@@ -60,6 +60,13 @@ public class Fut<T> implements Runnable{
         });
         return new Fut<>(nf);
     }
+    public static <T> Fut<T> after(Fut<T> f) {
+        CompletableFuture<T> nf = f.f.handle((result,exception) -> {
+            if(exception!=null) throw new RuntimeException("Fut errored out",exception);
+            else return result;
+        });
+        return new Fut<>(nf);
+    }
 
     public boolean isDone() {
         return f.isDone();
@@ -113,14 +120,14 @@ public class Fut<T> implements Runnable{
         return new Fut<>(f.thenComposeAsync(res -> action));
     }
 
-    public final Fut<Void> use(Consumer<T> action) {
-        return new Fut<>(f.thenAcceptAsync(action));
+    public final Fut<T> use(Consumer<T> action) {
+        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
     }
-    public final Fut<Void> use(Consumer<T> action, Executor executor) {
-        return new Fut<>(f.thenAcceptAsync(action, executor));
+    public final Fut<T> use(Consumer<T> action, Executor executor) {
+        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
     }
-    public final Fut<Void> use(Consumer<T> action, Consumer<Runnable> executor) {
-        return new Fut<>(f.thenAcceptAsync(action, executor::accept));
+    public final Fut<T> use(Consumer<T> action, Consumer<Runnable> executor) {
+        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor::accept));
     }
 
     public final Fut<T> then(Runnable action) {

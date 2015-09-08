@@ -36,7 +36,6 @@ import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import gui.pane.ActionPane;
 import main.App;
 import util.SingleⱤ;
 import util.animation.Anim;
@@ -113,7 +112,7 @@ public final class AreaControls {
 	    });
 	});
 
-    
+
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public Region deactivator;
     @FXML public Region deactivator2;
@@ -132,12 +131,12 @@ public final class AreaControls {
 
     public AreaControls(Area area) {
 	this.area = area;
-        
+
         // load fxml
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
         root.getStyleClass().add(Area.WIDGET_AREA_CONTROLS_STYLECLASS);
-        
+
 	// avoid clashing of title and control buttons for small root size
 	header_buttons.maxWidthProperty()
 	    .bind(root.widthProperty().subtract(title.widthProperty())
@@ -153,8 +152,8 @@ public final class AreaControls {
 	});
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
 	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
-	Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> 
-            ActionPane.PANE.show(Widget.class, area.getActiveWidget())
+	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
+            App.actionPane.show(Widget.class, area.getActiveWidget())
         );
 	propB = new Icon(COGS, 12, propbTEXT, this::settings);
 	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
@@ -168,7 +167,7 @@ public final class AreaControls {
 	    updateAbsB();
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, dragbTEXT);
-        
+
         // dragging
         EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
@@ -183,10 +182,10 @@ public final class AreaControls {
         root.setOnDragDetected(dh);
         // return graphics to normal
         root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
-        
-        
+
+
 	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
-        
+
 	// build header
 	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
 	header_buttons.setAlignment(Pos.CENTER_RIGHT);
@@ -235,7 +234,7 @@ public final class AreaControls {
                 // mouse entering the popup qualifies as root.mouseExited which we need
                 // to avoid (now we need to handle hiding when popup closes)
                 (helpP.isØ() || !helpP.get().isShowing()) &&
-                // only when the deactivators are !'hovered' 
+                // only when the deactivators are !'hovered'
                 // (Node.isHover() !work here) & we need to transform coords into scene-relative
                 !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
                 !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
@@ -272,14 +271,14 @@ public final class AreaControls {
 
 
 
-    
+
     void settings() {
 	if (area.getActiveWidgets().isEmpty()) return;
         Widget w = area.getActiveWidgets().get(0);
-         
+
         if(GUI.open_strategy==POPUP) {
             showSettings(w,propB);
-        } else 
+        } else
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
                 Configurator sc = new Configurator(true);
@@ -312,7 +311,7 @@ public final class AreaControls {
                     openAndDo(area.content_root,null);
                 });
             };
-        } else 
+        } else
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
                 WidgetPicker w = new WidgetPicker();
@@ -329,7 +328,7 @@ public final class AreaControls {
                                 area.root.getChildren().remove(l.root);
                                 openAndDo(area.content_root,null);
                             });
-                        
+
                         };
                     });
                 };
@@ -349,11 +348,11 @@ public final class AreaControls {
             });
         }
     }
-    
+
     void showInfo() {
         if(GUI.open_strategy==POPUP) {
             helpP.getM(this).show(infoB);
-        } else 
+        } else
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, ()->{
                 Text t = new Text(getInfo());
@@ -374,17 +373,17 @@ public final class AreaControls {
         }
         App.actionStream.push("Widget info");
     }
-    
+
     void detach() {
 	area.detach();
     }
 
     void close() {
         // if area belongs to the container, setØ container
-        if (area.index==null) 
+        if (area.index==null)
             closeAndDo(area.container.getGraphics().getRoot(), area.container::close);
         // if area belongs to the child, setØ child only
-        else 
+        else
             closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
     }
 
@@ -475,8 +474,8 @@ public final class AreaControls {
     public boolean isShowingWeak() {
 	return isShowingWeak;
     }
-    
-    
+
+
 /******************************************************************************/
 
     public String getInfo() {
@@ -502,5 +501,5 @@ public final class AreaControls {
             + "    Drag & Drop header : Drags widget to other area\n"
             + (w==null ? "" : w.getInfo().toStr());
     }
-    
+
 }

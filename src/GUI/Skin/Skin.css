@@ -3819,27 +3819,36 @@
 }
 
 
-/***************************** WIDGET INPUT OUTPUT *****************************
+/***************************** OVERLAY PANE *****************************
  * Action chooser
  */
 
-// Pane covering whole window.
+// Pane laying 'above' window creating 'overlay' bgr above it. Displays
+// various content.
 // inherits: .stack-pane
-.action-pane {
+.overlay-pane {
     -fx-background-color: rgba(0,0,0,0.2);
 }
 
 // Pane for content, doesnt cover all space, sort of inner box.
 // inherits: .stack-pane
-.action-pane-content {
+.overlay-pane-content {
     -fx-background-color: rgba(0,0,0,0.4);
     -fx-background-radius: 15;
     -fx-padding: 15;
 }
 
-// Action icon.
+// Action chooser, displays action icons (with description) to choose 
+// from and action input data information
+// inherits: .overlay-pane
+.action-pane {}
+
+// inherits: .overlay-pane-content
+.action-pane-content {}
+
+// Icon for actio i an action pane
 // inherits: .icon
-.action-pane-icon {
+.action-pane-action-icon {
     -glyph-size: 25;
 }
 

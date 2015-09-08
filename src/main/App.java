@@ -88,6 +88,7 @@ import gui.objects.icon.IconInfo;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.CellPane;
+import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
@@ -110,6 +111,7 @@ import util.units.FileSize;
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
@@ -141,12 +143,12 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     public static App INSTANCE;
-    
+
 /******************************************************************************/
-    
+
     /**
      * Event source and stream for executed actions, providing their name. Use
      * for notifications of running the action or executing additional behavior.
@@ -160,36 +162,39 @@ public class App extends Application {
      * Supports custom actions. Simply push a String value into the stream.
      */
     public static final EventSource<String> actionStream = new EventSource();
-    
+
 /******************************************************************************/
-    
-    
+
+
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
     public static Window window;
+    public static final ActionPane actionPane = new ActionPane();
+    public static final ShortcutPane shortcutPane = new ShortcutPane();
+
     public static final ServiceManager services = new ServiceManager();
     public static PluginMap plugins = new PluginMap();
     public static Guide guide;
     private Window windowOwner;
-    
+
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     public final AppSerializator serialization = new AppSerializator();
-    
+
     private boolean initialized = false;
     public boolean normalLoad = true;
-    
+
     public App() {
         INSTANCE = this;
-    }    
-    
+    }
+
 /*********************************** CONFIGS **********************************/
-    
+
     @IsConfig(name = "Show guide on app start", info = "Show guide when application "
             + "starts. Default true, but when guide is shown, it is set to false "
             + "so the guide will never appear again on its own.")
     public static boolean showGuide = true;
-    
+
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
     public static final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
@@ -203,28 +208,28 @@ public class App extends Application {
     @IsConfig(name = "Debug value", info = "For application testing. Generic number value"
             + "to control some application value manually.")
     public static final DoubleProperty debug = new SimpleDoubleProperty(0);
-    
+
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public static String TAG_NO_VALUE = "-- no assigned value --";
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
     public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
     public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
-    
-    
+
+
 /******************************************************************************/
-    
+
     public static final ClassName className = new ClassName();
     public static final InstanceName instanceName = new InstanceName();
     public static final InstanceInfo instanceInfo = new InstanceInfo();
-    
+
     /**
-     * The application initialization method. This method is called immediately 
+     * The application initialization method. This method is called immediately
      * after the Application class is loaded and constructed. An application may
      * override this method to perform initialization prior to the actual starting
      * of the application.
      * <p>
      * NOTE: This method is not called on the JavaFX Application Thread. An
-     * application must not construct a Scene or a Stage in this method. An 
+     * application must not construct a Scene or a Stage in this method. An
      * application may construct other JavaFX objects in this method.
      */
     @Override
@@ -242,10 +247,10 @@ public class App extends Application {
             LOGGER.error(ex.getMessage());
         }
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-        
+
         // log uncaught thread termination exceptions
         Thread.setDefaultUncaughtExceptionHandler((thrd,ex) -> LOGGER.error(thrd.getName(), ex));
-        
+
         // configure serialization
         XStream x = serialization.x;
         Mapper xm = x.getMapper();
@@ -266,13 +271,13 @@ public class App extends Application {
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
         x.alias("item", PlaylistItem.class);
-        ClassIndex.getSubclasses(Component.class).forEach(c -> 
+        ClassIndex.getSubclasses(Component.class).forEach(c ->
             x.alias(c.getSimpleName(), c)
         );
         x.useAttributeFor(Component.class, "id");
         x.useAttributeFor(Widget.class, "name");
         x.useAttributeFor(Playlist.class, "id");
-        
+
         // add optional object class -> string converters
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
@@ -288,15 +293,15 @@ public class App extends Application {
         instanceName.add(Component.class, o -> o.getName());
         instanceName.add(List.class, o -> String.valueOf(o.size()));
         instanceName.add(File.class, File::getPath);
-        
+
         // add optional object instance -> info string converters
         instanceInfo.add(File.class, o -> {
             HashMap<String,String> m = new HashMap<>();
-            
+
             FileSize fs = new FileSize(o);
             m.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
             m.put("Format", FileUtil.getSuffix(o));
-            
+
             ImageFileFormat iff = ImageFileFormat.of(o.toURI());
             if(iff.isSupported()) {
                 Dimension id = getImageDim(o);
@@ -304,9 +309,9 @@ public class App extends Application {
             }
             return m;
         });
-        
+
         // register actions
-        ActionPane.register(Widget.class, 
+        ActionPane.register(Widget.class,
             new FastAction<Widget>("Create launcher (def)","Creates a launcher "
                 + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
@@ -319,7 +324,7 @@ public class App extends Application {
                     if(dir!=null) w.exportFxwlDefault(dir);
             })
         );
-        ActionPane.register(Component.class, 
+        ActionPane.register(Component.class,
             new FastAction<Component>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
@@ -332,7 +337,7 @@ public class App extends Application {
                     if(dir!=null) w.exportFxwl(dir);
             })
         );
-        
+
         // initialize app parameter processor
         parameterProcessor.addFileProcessor(
             f -> AudioFileFormat.isSupported(f, APP),
@@ -350,13 +355,13 @@ public class App extends Application {
             fs -> fs.forEach(UiContext::launchComponent)
         );
     }
-    
+
     /**
      * The main entry point for applications. The start method is
      * called after the init method has returned, and after the system is ready
      * for the application to begin running.
      * <p>
-     * NOTE: This method is called on the JavaFX Application Thread. 
+     * NOTE: This method is called on the JavaFX Application Thread.
      * @param primaryStage the primary stage for this application, onto which
      * the application scene can be set. The primary stage will be embedded in
      * the browser if the application was launched as an applet. Applications
@@ -373,66 +378,66 @@ public class App extends Application {
                 close();
                 return;
             }
-            
+
             // listen to other application instance launches
             // process app parameters of newly started instance
             appCommunicator.start();
             appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
-            
+
             Action.startGlobalListening();
 
             // custom tooltip behavior
             setupCustomTooltipBehavior(1000, 10000, 200);
-            
+
             // create window owner - all 'top' windows are owned by it
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
-            
+
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
             WidgetManager.initialize();
-            
+
             // services must be created before Configuration
             services.addService(new TrayService());
             services.addService(new Notifier());
             services.addService(new PlaycountIncrementer());
             services.addService(new ClickEffect());
-            
+
             // gather configs
             Configuration.collectAppConfigs();
             // deserialize values (some configs need to apply it, will do when ready)
             Configuration.load();
-            
+
             // initializing, the order is important
             Player.initialize();
-            
+
             // collectAppConfigs windows from previous session
             List<String> ps = fetchParameters();
             normalLoad = !ps.stream().anyMatch(s->s.endsWith(".fxwl"));
             WindowManager.deserialize(normalLoad);
-            
+
             DB.start();
 //            GUI.setLayoutMode(true);
 //            Transition t = par(
-//                Window.windows.stream().map(w -> 
+//                Window.windows.stream().map(w ->
 //                    seq(
 //                        new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(1-0.6*at))
 //                                .dur(500).intpl(new CircularInterpolator()),
 //                        par(
 //                            par(
-//                                forEachIStream(w.left_icons.box.getChildren(),(i,icon)-> 
+//                                forEachIStream(w.left_icons.box.getChildren(),(i,icon)->
 //                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
 //                            ),
 //                            par(
-//                                forEachIRStream(w.right_icons.box.getChildren(),(i,icon)-> 
+//                                forEachIRStream(w.right_icons.box.getChildren(),(i,icon)->
 //                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
 //                            ),
 //                            par(
 //                                w.getSwitchPane().getLayouts().values().stream()
 //                                 .flatMap(l -> l.getAllWidgets())
 //                                 .map(wi -> (Area)wi.load().getUserData())
-//                                 .map(a -> 
+//                                 .map(a ->
 //                                    seq(
 //                                        new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
 //                                        new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
@@ -451,45 +456,45 @@ public class App extends Application {
 //                GUI.setLayoutMode(false);
 //            });
 //            t.play();
-            
+
             initialized = true;
-            
+
         } catch(Exception e) {
             LOGGER.info("Application failed to start", e);
             LOGGER.error("Application failed to start", e);
         }
-        
+
         // initialization is complete -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
-        
+
         // initialize non critical parts
         if(normalLoad) Player.loadLast();
-        
+
         // handle guide
         guide = new Guide();
         if(showGuide) {
             showGuide = false;
             run(2222, () -> guide.start());
         }
-        
+
         System.out.println(new File("cursor.png").getAbsoluteFile().toURI().toString());
         Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
         ImageCursor c = new ImageCursor(image,3,3);
         window.getStage().getScene().setCursor(c);
-        
+
         // process app parameters passed when app started
         parameterProcessor.process(fetchParameters());
     }
- 
+
     /**
      * This method is called when the application should stop, and provides a
      * convenient place to prepare for application exit and destroy resources.
-     * NOTE: This method is called on the JavaFX Application Thread. 
+     * NOTE: This method is called on the JavaFX Application Thread.
      */
     @Override
     public void stop() {
         if(initialized) {
-            if(normalLoad) Player.state.serialize();            
+            if(normalLoad) Player.state.serialize();
             if(normalLoad) WindowManager.serialize();
             Configuration.save();
             services.getAllServices()
@@ -500,7 +505,7 @@ public class App extends Application {
         Action.stopGlobalListening();
         appCommunicator.stop();
     }
-    
+
     public static boolean isInitialized() {
         return App.INSTANCE.initialized;
     }
@@ -517,22 +522,22 @@ public class App extends Application {
     public static Window getWindowOwner() {
         return INSTANCE.windowOwner;
     }
-    
+
     public static<S extends Service> void use(Class<S> type, Consumer<S> action) {
         services.getService(type).filter(Service::isRunning).ifPresent(action);
     }
-    
+
     /**
-     * Closes the application. Normally application closes when main window 
+     * Closes the application. Normally application closes when main window
      * closes. Therefore this method should not need to be used.
      */
     public static void close() {
         // close app
         Platform.exit();
     }
-    
+
 /******************************************************************************/
-    
+
     public List<String> fetchParameters() {
         List<String> params = new ArrayList<>();
         getParameters().getRaw().forEach(params::add);
@@ -540,14 +545,14 @@ public class App extends Application {
         // getParameters().getNamed().forEach( (t,tt) -> s.add(t+" "+tt) );
         return params;
     }
-    
-    /** 
-     * Calculates number of instances of this application running on this 
+
+    /**
+     * Calculates number of instances of this application running on this
      * system at this moment. In this context, application instance is considered
      * a application running on java virtual machine from user directory equal
      * to that of this application. This application is included in the count.
-     * 
-     * @return number of running instances 
+     *
+     * @return number of running instances
      */
     public static int getInstances() {
         // try {
@@ -564,7 +569,7 @@ public class App extends Application {
         //     java.util.logging.Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         // }
         // two occurrences of the result of MonitoredVmUtil.mainClass(), the program is started twice
-        
+
         int i=0;
         String ud = System.getProperty("user.dir");
 
@@ -580,7 +585,7 @@ public class App extends Application {
         }
         return i;
     }
-    
+
     /**
      * The root location of the application. Equivalent to new File("").getAbsoluteFile().
      * @return absolute file of location of the root directory of this
@@ -594,12 +599,12 @@ public class App extends Application {
     public static String getAppName() {
         return "PlayerFX";
     }
-    
+
     /** @return image of the icon of the application. */
     public static Image getIcon() {
         return new Image(new File("icon512.png").toURI().toString());
     }
-    
+
     /** Github url for project of this application. */
     public static URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
@@ -627,8 +632,8 @@ public class App extends Application {
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
     }
-    
-    /** 
+
+    /**
      * @return absolute file of Location of database. */
     public static File LIBRARY_FOLDER() {
         return new File(DATA_FOLDER(), "Library");
@@ -638,30 +643,30 @@ public class App extends Application {
     public static File PLAYLIST_FOLDER() {
         return new File(DATA_FOLDER(),"Playlists");
     }
-    
+
     /** Temporary directory of the os. */
     public static File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
     /** Directory for application logging. */
     public static File DIR_LOG = new File("log").getAbsoluteFile();
     /** File for application logging configuration. */
     public static File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
-    
-    
+
+
     // jobs
-    
+
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
            .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
            .showProgress(App.getWindow().taskAdd())
-           .run(); 
+           .run();
     }
-    
+
     public static void itemToMeta(Item i, Consumer<Metadata> action) {
        if (i.same(Player.playingtem.get())) {
            action.accept(Player.playingtem.get());
            return;
-       } 
-       
+       }
+
        Metadata m = DB.items_byId.get(i.getId());
        if(m!=null) {
            action.accept(m);
@@ -670,30 +675,30 @@ public class App extends Application {
                       .use(action, FX).run();
        }
     }
-    
-    
-    
+
+
+
 /************************************ actions *********************************/
-    
+
     @IsAction(name = "Open on github", desc = "Opens github page for this application. For developers.")
     public static void openAppGithubPage() {
         browse(GITHUB_URI);
     }
-    
+
     @IsAction(name = "Open app directory", desc = "Opens directory from which this application is "
             + "running from.")
     public static void openAppLocation() {
         browse(getLocation());
     }
-    
+
     @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
     public static void openCssGuide() {
         browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
     }
-    
+
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-        
+
         try {
             Font.loadFont(App.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
             Font.loadFont(App.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
@@ -702,7 +707,7 @@ public class App extends Application {
         } catch (IOException e) {
             LOGGER.error("Couldnt load font",e);
         }
-        
+
         StackPane root = new StackPane();
                   root.setPrefSize(600, 720);
         List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,
@@ -744,20 +749,20 @@ public class App extends Application {
 //           .showProgress(Window.getActive().taskAdd())
 //           .run();
     }
-    
+
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
         WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
     }
-    
+
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
     public static void openLayoutManager() {
         WidgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
     }
-    
+
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     public static void openActions() {
-        ActionPane.PANE.show(Void.class, null, 
+        actionPane.show(Void.class, null,
             new FastAction<Void>(
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
@@ -765,7 +770,7 @@ public class App extends Application {
                 + "If application was not running before, it will not load normally, "
                 + "but will only open the widget.\n"
                 + "Essentially, this exports the widgets as 'standalone' applications",
-                EXPORT, 
+                EXPORT,
                 ignored -> {
                     DirectoryChooser dc = new DirectoryChooser();
                                      dc.setInitialDirectory(App.LAYOUT_FOLDER());
@@ -776,8 +781,19 @@ public class App extends Application {
                         WidgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
                     }
                 }
+            ),
+            new FastAction<Void>(
+                "Show shortcuts",
+                "Display all available shortcuts on the screen",
+                KEYBOARD_VARIANT,
+                ignored -> showShortcuts()
             )
         );
+    }
+
+    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
+    public static void showShortcuts() {
+        shortcutPane.show();
     }
 
 }

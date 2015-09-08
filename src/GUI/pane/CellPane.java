@@ -21,11 +21,11 @@ import static util.functional.Util.forEachWithI;
 import static util.graphics.Util.setAnchors;
 
 /**
- * Pane displaying a grid of cells - nodes of same size. Similar to 
+ * Pane displaying a grid of cells - nodes of same size. Similar to
  * {@link javafx.scene.layout.TilePane}. The cells are always of specified size,
  * vertical gap as well, but horizontal gap is adjusted so the cells are laid
  * out in the whole horizontal space.
- * 
+ *
  * @author Plutonium_
  */
 public class CellPane extends Pane {
@@ -69,7 +69,7 @@ public class CellPane extends Pane {
 
         runLater(()->setPrefHeight(rows*(cellh+gapy)));
     }
-    
+
     /** Puts this pane to scrollbar and returns it. */
     public ScrollPane scrollable() {
         ScrollPane s = new ScrollPane();

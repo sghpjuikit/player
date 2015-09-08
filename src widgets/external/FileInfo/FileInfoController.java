@@ -32,7 +32,6 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.Rater.Rating;
 import gui.objects.image.ChangeableThumbnail;
 import gui.objects.image.cover.Cover.CoverSource;
-import gui.pane.ActionPane;
 import gui.pane.ActionPane.SlowAction;
 import gui.pane.ImageFlowPane;
 import main.App;
@@ -161,7 +160,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = fut_file ->
-            ActionPane.PANE.show(File.class, fut_file,
+            App.actionPane.show(File.class, fut_file,
                 new SlowAction<>("Copy and set as album cover",
                         "Sets image as cover. Copies file to destination and renames it "
                       + "to 'cover' so it is recognized as album cover. Any previous cover file "

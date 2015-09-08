@@ -111,7 +111,7 @@ public class Window extends WindowBase {
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
-    
+
     public static final ArrayList<Window> windows = new ArrayList();
 
     /**
@@ -141,7 +141,7 @@ public class Window extends WindowBase {
     public static Window getActive() {
 	return find(windows, w->w.focused.get()).orElse(App.getWindow());
     }
-    
+
     private static double mouse_speed = 0;
     private static double mouse_x = 0;
     private static double mouse_y = 0;
@@ -154,7 +154,7 @@ public class Window extends WindowBase {
         mouse_x = x;
         mouse_y = y;
     });
-    
+
     static { mouse_pulse.start();}
 
 /******************************** Configs *************************************/
@@ -181,7 +181,7 @@ public class Window extends WindowBase {
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
     public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
-    
+
     @IsConfig(name = "Headerless", info = "Hides header.")
     public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
 
@@ -244,13 +244,13 @@ public class Window extends WindowBase {
     }
 
 /******************************************************************************/
-    
+
     /**
      @return new window or null if error occurs during initialization.
      */
     public static Window create() {
         Window w = new Window();
-               
+
         w.getStage().initOwner(App.getWindowOwner().getStage());
         // load fxml part
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
@@ -259,7 +259,7 @@ public class Window extends WindowBase {
         if(windows.isEmpty()) w.setAsMain();
         // add to list of active windows
         windows.add(w);
-             
+
         w.initialize();
         return w;
     }
@@ -281,7 +281,7 @@ public class Window extends WindowBase {
      */
 
     boolean main = false;
-    
+
     // root is assigned '.window' styleclass
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public AnchorPane back;
@@ -289,7 +289,7 @@ public class Window extends WindowBase {
     @FXML public AnchorPane borders;
     @FXML public AnchorPane content;
     @FXML private HBox rightHeaderBox;
-    
+
     private Window() {
 	super();
     }
@@ -310,7 +310,7 @@ public class Window extends WindowBase {
 
         // normally we would bind bgr size, but we will bind it more dynamically later
 	// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
-        
+
 	// avoid some instances of not closing properly
 	s.setOnCloseRequest(e -> close());
 
@@ -355,7 +355,7 @@ public class Window extends WindowBase {
 		if (e.getClickCount() == 2)
 		    setHeaderVisible(!headerVisible);
 	});
-        
+
         // header open/close
         header_activator.addEventFilter(MOUSE_ENTERED, e -> {
             if(!headerVisible)
@@ -365,7 +365,7 @@ public class Window extends WindowBase {
             if(!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
                 applyHeaderVisible(false);
         });
-        
+
         titleL.setMinWidth(0);
 
         // change volume on scroll
@@ -383,7 +383,7 @@ public class Window extends WindowBase {
                 if(e.getEventType().equals(KEY_PRESSED)) IOPane.drawWidgetIO();
 	    }
 	});
-        
+
 	Icon gitB = new Icon(GITHUB, 13, Action.get("Open on github"));
 	Icon cssB = new Icon(CSS3, 13, Action.get("Open css guide"));
 	Icon iconsB = new Icon(IMAGE, 13, Action.get("Open icon viewer"));
@@ -412,12 +412,12 @@ public class Window extends WindowBase {
                 + "layouts can also be locked individually.", GUI::toggleLayoutLocked);
         maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
 	Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
-	Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout", 
+	Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout",
                 () -> ((SwitchPane)getSwitchPane()).alignLeftTab());
-	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout", 
+	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout",
                 () -> ((SwitchPane)getSwitchPane()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", () -> 
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", () ->
 	    App.guide.open()
 	);
 	Icon helpB = createInfoIcon("Available actions:\n"
@@ -431,14 +431,14 @@ public class Window extends WindowBase {
             + "\tPress ALT : Show hidden header temporarily.\n"
             + "\tPress ALT : Activate layout mode.\n"
             + "\tContent right drag : drag tabs.");
-	
+
         // left header
 	leftHeaderBox.getChildren().addAll(
             gitB, cssB, dirB, iconsB, new Label(" "),
             layB, propB, runB, lastFMB, new Label(" "),
             ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB
         );
-        
+
 	Icon miniB = new Icon(null, 13, Action.get("Mini mode"));
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
         Icon ontopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
@@ -455,17 +455,17 @@ public class Window extends WindowBase {
         Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window and application if no other "
                 + "windows remain open", this::close);
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
-        
+
         // right header
 	rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);
     }
-    
+
     private void setAsMain() {
         no(App.getWindow()!=null, "Only one window can be main");
-        
+
 	App.window = this;
 	main = true;
-        
+
         // move the window owner to screen of this window, which
         // moves taskbar icon to respective screen's taskbar
         moving.addListener((o,ov,nv) -> {
@@ -473,22 +473,22 @@ public class Window extends WindowBase {
                 App.getWindowOwner().setX(getCenterX());
         });
         add1timeEventHandler(s, WINDOW_SHOWN, e -> App.getWindowOwner().setX(getCenterX()));
-        
+
 	setIcon(App.getIcon());
 	setTitle(null);
 	// setTitlePosition(Pos.CENTER_LEFT);
     }
 
 /******************************* CONTENT **************************************/
-    
+
     private Layout layout;
     private SwitchContainer topContainer;
 //    private SwitchPane switchPane;
-    
+
     public Layout getLayout() {
         return layout;
     }
-    
+
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
@@ -507,22 +507,22 @@ public class Window extends WindowBase {
         l.setChild(topContainer);
         initLayout(l);
     }
-    
+
     public void initLayout(Layout l) {
         layout = l;
 	content.getChildren().clear();
         layout.load(content);
         topContainer = (SwitchContainer) l.getChild();
-        topContainer.load();    // if loaded no-op, otherwise initializes 
+        topContainer.load();    // if loaded no-op, otherwise initializes
 //        switchPane = new SwitchPane();
-        
+
         double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
         back.translateXProperty().unbind();
         back.setTranslateX(0);
         back.setScaleX(scaleFactor);
         back.setScaleY(scaleFactor);
         // scroll bgr along with the tabs
-        // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
+        // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
         // -try at: http://www.mathe-fa.de
         topContainer.getGraphics().translateProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
@@ -547,7 +547,7 @@ public class Window extends WindowBase {
     public SwitchPane getSwitchPane() {
 	return topContainer.getGraphics();
     }
-    
+
     public SwitchContainer getTopContainer() {
         return (SwitchContainer) layout.getChild();
     }
@@ -604,19 +604,19 @@ public class Window extends WindowBase {
 	    AnchorPane.setTopAnchor(content, 25d);
 	    AnchorPane.setTopAnchor(lBorder, 25d);
 	    AnchorPane.setTopAnchor(rBorder, 25d);
-            
+
             Anim.par(
                 par(
-                    forEachIStream(leftHeaderBox.getChildren(),(i,icon)-> 
+                    forEachIStream(leftHeaderBox.getChildren(),(i,icon)->
                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
                 ),
                 par(
-                    forEachIRStream(rightHeaderBox.getChildren(),(i,icon)-> 
+                    forEachIRStream(rightHeaderBox.getChildren(),(i,icon)->
                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
                 )
             ).play();
-            
-            
+
+
 	} else {
 	    header.setPrefHeight(isBorderlessApplied()? 0 : 5);
 	    AnchorPane.setTopAnchor(content, 5d);
@@ -630,12 +630,12 @@ public class Window extends WindowBase {
 	setHeaderVisible(val ? headerVisible : false);
 	headerAllowed = val;
     }
-    
+
     public boolean isHeaderVisibleApplied() {
 	return AnchorPane.getTopAnchor(content)==25;
     }
-    
-    /** 
+
+    /**
      * Set title for this window shown in the header.
      */
     public void setTitle(String text) {
@@ -654,11 +654,11 @@ public class Window extends WindowBase {
 	iconI.setImage(img);
 	leftHeaderBox.getChildren().remove(iconI);
     }
-    
-    /** Creates new progress indicator in this window's header, and returns it. 
-     * Bind or set its progress value to show ongoing task's progress. 
+
+    /** Creates new progress indicator in this window's header, and returns it.
+     * Bind or set its progress value to show ongoing task's progress.
      * <ul>
-     * <li> Set the the indicator's progress to -1, to indicate the task has 
+     * <li> Set the the indicator's progress to -1, to indicate the task has
      * started. This will display the indicator.
      * <li> Stop the indicator by setting progress to 1, when your task finishes.
      * </ul>
@@ -668,8 +668,8 @@ public class Window extends WindowBase {
      * one task/work.
      * <p>
      * Indicator is disposed of automatically when progress is set to 1. Be sure
-     * that the task finishes at some point! 
-     * 
+     * that the task finishes at some point!
+     *
      * @return indicator
      */
     public ProgressIndicator taskAdd() {
@@ -693,9 +693,9 @@ public class Window extends WindowBase {
     boolean a(){
         return true;
     }
-    
+
 /**************************** WINDOW MECHANICS ********************************/
-    
+
     @Override
     public void close() {
 	// close app if last window
@@ -705,7 +705,7 @@ public class Window extends WindowBase {
             App.close();
             return;
         }
-        
+
         // close content to release resources
 	layout.close();
 	// remove from window list
@@ -713,7 +713,7 @@ public class Window extends WindowBase {
 	if (main) {
             // javaFX bug fix - close all pop overs first
 	    // new list avoids ConcurrentModificationError
-	    new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly); 
+	    new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
 	    // act as main window and close whole app
 	    App.getWindowOwner().close();
 	}
@@ -738,7 +738,7 @@ public class Window extends WindowBase {
         borderless = v;
         applyBorderless(v);
     }
-    
+
     private void applyBorderless(boolean v) {
         double tp = isHeaderVisibleApplied() ? 25 : v ? 0 : 5;
         double p = v ? 0 : 5;
@@ -751,7 +751,7 @@ public class Window extends WindowBase {
     }
 
  /*********************************   MOVING   ********************************/
-    
+
     private double appX;
     private double appY;
 
@@ -761,7 +761,7 @@ public class Window extends WindowBase {
 	// should be fixed
 	if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
 //        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
-        
+
         isMoving.set(true);
 	appX = e.getSceneX();
 	appY = e.getSceneY();
@@ -882,16 +882,16 @@ public class Window extends WindowBase {
     }
 
 /******************************************************************************/
-    
+
     @FXML
     private void consumeMouseEvent(MouseEvent e) {
 	e.consume();
     }
 
 /**************************** SERIALIZATION ***********************************/
-    
+
     private static final XStream X = App.INSTANCE.serialization.x;
-    
+
     public void serialize(File f) {
         try {
             X.toXML(this, new BufferedWriter(new FileWriter(f)));
@@ -915,7 +915,7 @@ public class Window extends WindowBase {
 	public boolean canConvert(Class type) {
 	    return Window.class.equals(type);
 	}
-        
+
         @TODO(purpose = BUG, note = "fullscreen deserialization bug in WindowBase")
 	@Override
 	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {

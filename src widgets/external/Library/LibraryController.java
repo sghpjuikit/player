@@ -116,7 +116,7 @@ import static util.reactive.Util.maintain;
     group = LIBRARY
 )
 public class LibraryController extends FXMLController implements SongReader {
-    
+
     private @FXML AnchorPane root;
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner()){
         Anim a;
@@ -136,16 +136,16 @@ public class LibraryController extends FXMLController implements SongReader {
             }
         }
     };
-    private final FxTimer hideInfo = new FxTimer(5000, 1, 
+    private final FxTimer hideInfo = new FxTimer(5000, 1,
         new Anim(at->Util.setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
                 .intpl(reverse(new ElasticInterpolator())).then(taskInfo::hideNunbind)::play);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
     private final SelectionMenuItem editOnAdd_menuItem = new SelectionMenuItem("Edit added items",false);
-    
+
     // input/output
     private Output<Metadata> out_sel;
 
-    
+
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
@@ -161,19 +161,19 @@ public class LibraryController extends FXMLController implements SongReader {
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
     private final Property<Boolean> editOnAdd = editOnAdd_menuItem.selected;
-    
+
     private final ExecuteN runOnce = new ExecuteN(1);
-    
+
 
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
         d(Player.librarySelected.i.bind(out_sel));
-        
+
         // add table to scene graph
         root.getChildren().add(table.getRoot());
         setAnchors(table.getRoot(),0d);
-        
+
         // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -183,7 +183,7 @@ public class LibraryController extends FXMLController implements SongReader {
         d(maintain(orig_index,table.showOriginalIndex));
         d(maintain(show_header,table.headerVisible));
         d(maintain(show_footer,table.footerVisible));
-        
+
         // add progress indicator to bottom controls
         table.footerPane.setRight(new HBox(7,taskInfo.message, taskInfo.progressIndicator));
         taskInfo.setVisible(false);
@@ -202,8 +202,8 @@ public class LibraryController extends FXMLController implements SongReader {
             menuItem("Remove invalid items",this::removeInvalid),
             menuItem("Remove all items",DB::removeAllItems)
         );
-        
-        
+
+
         // set up table columns
         table.setColumnStateFacory( f -> {
             double w = f==PATH || f==TITLE ? 150 : 50;
@@ -218,7 +218,7 @@ public class LibraryController extends FXMLController implements SongReader {
             );
             return c;
         });
-        
+
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
@@ -227,15 +227,15 @@ public class LibraryController extends FXMLController implements SongReader {
                  .ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
             return b;
         });
-        
+
         // maintain rating column cell style
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
-        
+
         table.getDefaultColumnInfo();
-                
+
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
-                .onLeftDoubleClick((r,e) -> 
+                .onLeftDoubleClick((r,e) ->
                     PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex()))
                 )
                 .onRightSingleClick((r,e) -> {
@@ -244,18 +244,18 @@ public class LibraryController extends FXMLController implements SongReader {
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
                     // show context menu
                     contxt_menu.show(table, e);
-                })                
+                })
                 // additional css styleclasses
                 .styleRuleAdd("played", m -> Player.playingtem.get().same(m)) // dont use mthod reference!
         );
         // maintain playing item css by refreshing column
         d(Player.playingtem.onUpdate(o -> table.updateStyleRules()));
-        
+
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
-        
+
         // key actions
-        table.setOnKeyReleased(e -> {
+        table.setOnKeyPressed(e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
                     PlaylistManager.use(pl ->pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
@@ -266,7 +266,7 @@ public class LibraryController extends FXMLController implements SongReader {
             else if (e.getCode() == ESCAPE)    // deselect
                 table.getSelectionModel().clearSelection();
         });
-        
+
 
         // drag&drop to accept
         table.setOnDragOver_NoSelf(e -> {
@@ -282,17 +282,17 @@ public class LibraryController extends FXMLController implements SongReader {
         });
         // drag&drop from
         table.setOnDragDetected(e -> {
-            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
+            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
                 DragUtil.setItemList(table.getSelectedItemsCopy(),db,true);
             }
             e.consume();
         });
-        
+
         // prevent volume change
         table.setOnScroll(Event::consume);
-        
+
         // update library comparator
         maintain(table.itemsComparator,DB.library_sorter);
     }
@@ -303,24 +303,24 @@ public class LibraryController extends FXMLController implements SongReader {
             String c = getWidget().properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
-        
+
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
     }
-    
+
     @IsInput("To display")
     public void setItems(List<? extends Metadata> items) {
         if(items==null) return;
         table.setItemsRaw(items);
     }
-    
+
     @FXML private void addDirectory() {
         addNedit(editOnAdd.getValue(),true);
     }
     @FXML private void addFiles() {
         addNedit(editOnAdd.getValue(),false);
     }
-    
+
     private void addNedit(boolean edit, boolean dir) {
         Window w = root.getScene().getWindow();
         ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
@@ -345,7 +345,7 @@ public class LibraryController extends FXMLController implements SongReader {
             }
         }
     }
-    
+
     private void addNeditDo(Fut<Stream<Item>> files, boolean edit) {
         fut().then(() -> {
                  taskInfo.setVisible(true);
@@ -364,7 +364,7 @@ public class LibraryController extends FXMLController implements SongReader {
              .showProgress(App.getWindow().taskAdd())
              .run();
     }
-    
+
     private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
             hideInfo.start();
@@ -372,9 +372,9 @@ public class LibraryController extends FXMLController implements SongReader {
         taskInfo.showNbind(t);
     }
 
-    
+
 /******************************** PUBLIC API **********************************/
-    
+
     /**
      * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
      * and displays them in the table.
@@ -385,31 +385,31 @@ public class LibraryController extends FXMLController implements SongReader {
     public void read(List<? extends Item> items) {
         table.setItemsRaw(map(items,Item::toMeta));
     }
-    
+
 /********************************* CONFIGS ************************************/
-    
+
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
         getWidget().properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
-    
+
 /****************************** CONTEXT MENU **********************************/
-    
+
     private static final TableContextMenuⱤ<Metadata> contxt_menu = new TableContextMenuⱤ<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
-            m.getItems().addAll(menuItem("Play items", e ->                    
+            m.getItems().addAll(menuItem("Play items", e ->
                     PlaylistManager.use(p -> p.setNplay(m.getValue()))
                 ),
-                menuItem("Enqueue items", e -> 
+                menuItem("Enqueue items", e ->
                     PlaylistManager.use(p -> p.addItems(m.getValue()))
                 ),
-                menuItem("Update from file", e -> 
+                menuItem("Update from file", e ->
                     App.refreshItemsFromFileJob(m.getValue())
                 ),
-                menuItem("Remove from library", e -> 
+                menuItem("Remove from library", e ->
                     DB.removeItems(m.getValue())
                 ),
                 new Menu("Show in",null,
@@ -433,7 +433,7 @@ public class LibraryController extends FXMLController implements SongReader {
                             (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
                 ),
                 new Menu("Search album cover",null,
-                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
                             q -> "in " + Parser.toS(q),
                             q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())))
                 )
@@ -442,5 +442,5 @@ public class LibraryController extends FXMLController implements SongReader {
         },
         (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
-    
+
 }

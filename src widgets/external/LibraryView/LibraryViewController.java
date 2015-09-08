@@ -105,15 +105,15 @@ import static util.reactive.Util.maintain;
     group = LIBRARY
 )
 public class LibraryViewController extends FXMLController {
-    
+
     private @FXML AnchorPane root;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
-    
+
     // input/output
     private Output<MetadataGroup> out_sel;
     private Output<List<Metadata>> out_sel_met;
     private Input<List<Metadata>> in_items;
-    
+
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
@@ -129,19 +129,19 @@ public class LibraryViewController extends FXMLController {
     public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );
-    
+
     private final ExecuteN runOnce = new ExecuteN(1);
-    
+
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", List.class, EMPTY_LIST);
         in_items = inputs.create("To display", List.class, EMPTY_LIST, this::setItems);
-        
+
         // add table to scene graph
         root.getChildren().add(table.getRoot());
         setAnchors(table.getRoot(),0d);
-        
+
         // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -151,8 +151,8 @@ public class LibraryViewController extends FXMLController {
         d(maintain(orig_index,table.showOriginalIndex));
         d(maintain(show_header,table.headerVisible));
         d(maintain(show_footer,table.footerVisible));
-        
-        
+
+
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnStateFacory(f -> {
@@ -164,9 +164,9 @@ public class LibraryViewController extends FXMLController {
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
             Pos a = f.getType(mf).equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-            c.setCellFactory(f==AVG_RATING 
+            c.setCellFactory(f==AVG_RATING
                 ? (Callback) App.ratingCell.getValue()
-                : f==W_RATING 
+                : f==W_RATING
                 ? (Callback) new NumberRatingCellFactory()
                 : (Callback) col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
             );
@@ -175,7 +175,7 @@ public class LibraryViewController extends FXMLController {
         // maintain rating column cell style
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         table.getDefaultColumnInfo();
-        
+
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
                 // additional css styleclasses
@@ -192,8 +192,8 @@ public class LibraryViewController extends FXMLController {
         );
         // maintain playing item css by refreshing column
         d(Player.playingtem.onUpdate(m -> table.updateStyleRules()));
-       
-        
+
+
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         Stream.of(Field.values())
@@ -212,25 +212,25 @@ public class LibraryViewController extends FXMLController {
               .forEach(m.getItems()::add);
             // refresh when menu opens
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
-        
+
         // key actions
-        table.setOnKeyPressed( e -> {
+        table.setOnKeyPressed(e -> {
             if (e.getCode() == ENTER)        // play first of the selected
                 playSelected();
             else if (e.getCode() == ESCAPE)         // deselect
                 table.getSelectionModel().clearSelection();
         });
-        
+
         // drag&drop from
         table.setOnDragDetected(e -> {
-            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
+            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
                 DragUtil.setItemList(filerListToSelectedNsort(),db,true);
             }
             e.consume();
         });
-        
+
         // resizing
         table.setColumnResizePolicy(resize -> {
             FilteredTable<MetadataGroup,?> t = table;   // (FilteredTable) resize.getTable()
@@ -245,7 +245,7 @@ public class LibraryViewController extends FXMLController {
             });
             return b;
         });
-        
+
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         // forward on selection
@@ -257,11 +257,11 @@ public class LibraryViewController extends FXMLController {
             if(!sel_lock)
                 sel_last = nv==null ? "null" : nv.getField().toS(nv.getValue(), "");
         });
-        
+
         // prevent volume change
         table.setOnScroll(Event::consume);
     }
-    
+
     @Override
     public void refresh() {
         runOnce.execute(() -> {
@@ -277,14 +277,14 @@ public class LibraryViewController extends FXMLController {
         getWidget().properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
-    
-    
+
+
 /******************************** PRIVATE API *********************************/
-    
+
     //applies lvl & fieldFilter
     private void applyData(Object o) {
         Metadata.Field f = fieldFilter.getValue();
-        
+
         // rebuild value column
         find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
             TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
@@ -295,12 +295,12 @@ public class LibraryViewController extends FXMLController {
         // update filters
         table.filterPane.setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
         table.filterPane.setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(f),mgf.getType(f),mgf)));
-        
+
         setItems(in_items.getValue());
     }
-    
+
     private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
-    
+
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         fut(fieldFilter.getValue())
@@ -333,25 +333,25 @@ public class LibraryViewController extends FXMLController {
             })
             .run();
     }
-    
+
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
         if(list==null || list.isEmpty()) return EMPTY_LIST;
-        
+
         // bug fix, without this line, which does exactly nothing,
         // mgs list contains nulls sometimes (no idea why)
         util.functional.Util.toS(table.getSelectedItems(),Objects::toString);
-            
+
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
         // optimization : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList<>(list);
-        
+
         // composed predicate, performs badly
         // Predicate<Metadata> p = mgs.parallelStream()
         //        .map(MetadataGroup::toMetadataPredicate)
         //        .reduce(Predicate::or)
         //        .orElse(NONE);
-        
+
         Field f = fieldFilter.getValue();
         Predicate<Metadata> p;
         // optimization : if only 1, dont use list
@@ -365,11 +365,11 @@ public class LibraryViewController extends FXMLController {
             boolean prim = f.getType().isPrimitive();
             p = prim ? m -> isInR(m.getField(f), l) : m -> l.contains(m.getField(f));
         }
-        
+
         // optimization : use parallel stream
         return list.parallelStream().filter(p).collect(toList());
     }
-    
+
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filerList(in_items.getValue(),false,true);
@@ -379,12 +379,12 @@ public class LibraryViewController extends FXMLController {
     private void playSelected() {
         play(filerList(in_items.getValue(),false,true));
     }
-    
+
 /******************************* SELECTION RESTORE ****************************/
-    
+
     // restoring selection if table items change, we want to preserve as many
     // selected items as possible - when selection changes, we select all items
-    // (previously selected) that are still in the table 
+    // (previously selected) that are still in the table
     private boolean sel_lock = false;
     private Set sel_old;
     // restoring selection from previous session, we serialize string
@@ -393,16 +393,16 @@ public class LibraryViewController extends FXMLController {
     @IsConfig(name = "Last selected", editable = false)
     private String sel_last = "null";
     private boolean sel_last_restored = false;
-    
+
     private void selectionStore() {
         // remember selected
         sel_old = table.getSelectedItems().stream().map(MetadataGroup::getValue).collect(toSet());
         sel_lock = true;    // prevent forwarding items
     }
-    
+
     private void selectionReStore() {
         if(table.getItems().isEmpty()) return;
-        
+
         // restore last selected from previous session
         if(!sel_last_restored && !"null".equals(sel_last)) {
             forEachWithI(table.getItems(), (i,mg) -> {
@@ -412,7 +412,7 @@ public class LibraryViewController extends FXMLController {
                     return;
                 }
             });
-            
+
         // update selected - restore every available old one
         } else {
             forEachWithI(table.getItems(), (i,mg) -> {
@@ -424,17 +424,17 @@ public class LibraryViewController extends FXMLController {
         // performance optimization - prevents refreshes of a lot of items
         if(table.getSelectionModel().isEmpty())
             table.getSelectionModel().select(0);
-        
+
         sel_lock = false;   // enable forwarding items
     }
-    
+
 /******************************** CONTEXT MENU ********************************/
-    
+
     private static Menu searchMenu;
     private static final TableContextMenuMⱤ<Metadata, LibraryViewController> contxt_menu = new TableContextMenuMⱤ<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
-            MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+            MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
                                       q -> "in " + Parser.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);
@@ -462,10 +462,10 @@ public class LibraryViewController extends FXMLController {
             if(w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
                 menu.getItems().remove(searchMenu);
         });
-    
+
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
         PlaylistManager.use(p -> p.setNplay(items.stream().sorted(DB.library_sorter.get())));
     }
-    
+
 }

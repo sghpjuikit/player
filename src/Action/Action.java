@@ -53,10 +53,10 @@ import static util.functional.Util.do_NOTHING;
  */
 @IsConfigurable
 public final class Action extends Config<Action> implements Runnable {
-    
+
     /** Action that does nothing. Use where null inappropriate. */
     public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", false, false);
-    
+
     private final String name;
     private final Runnable action;
     private final String info;
@@ -65,11 +65,11 @@ public final class Action extends Config<Action> implements Runnable {
     private KeyCombination keys = KeyCombination.NO_MATCH;
     private final String defaultKeys;
     private final boolean defaultGlobal;
-    
+
     private Action(IsAction a, Runnable action) {
         this(a.name(),action,a.desc(),a.keys(),a.global(),a.repeat());
     }
-    
+
     /**
      * Creates new action.
      * @param name action name. Must be be unique for each action. Also human readable.
@@ -90,7 +90,7 @@ public final class Action extends Config<Action> implements Runnable {
         this.defaultKeys = keys;
         changeKeys(keys);
     }
-    
+
     /**
      * Global action has broader activation limit. For example global shortcut
      * doesn't require application to be focused. This value denotes the global
@@ -105,13 +105,13 @@ public final class Action extends Config<Action> implements Runnable {
     /**
      * Whether the action should be run constantly while the hotkey is pressed
      * or once.
-     * @return 
+     * @return
      */
     public boolean isContinuous() {
         return continuous;
     }
-    
-    /** 
+
+    /**
      * Returns the key combination for activating this action as a hotkey.
      * The output of this method is always valid parsable string for method
      * {@link #setKeys(java.lang.String)}. Use to assign keys of this action to
@@ -135,7 +135,7 @@ public final class Action extends Config<Action> implements Runnable {
     public KeyCombination getKeyCombination() {
         return keys;
     }
-    
+
     /**
      * When the parameter is not valid parsable hotkey string, the hotkey will
      * not be able to be registered and used.
@@ -145,21 +145,21 @@ public final class Action extends Config<Action> implements Runnable {
     public boolean hasKeysAssigned() {
         return keys!=NO_MATCH;
     }
-    
-    
+
+
     /** Set globality of this action. */
     public void setGlobal(boolean global) {
         unregister();
         this.global = global;
         register();
     }
-    
-    /** 
-     * Change and apply key combination. 
+
+    /**
+     * Change and apply key combination.
      * @param key_combination Case doesnt matter. <pre>
      * For example: "CTRL+A", "F6", "D", "ALT+SHIFT+\"
      * </pre>
-     * Incorrect keys will be substituted with "", which is equivalent to 
+     * Incorrect keys will be substituted with "", which is equivalent to
      * deactivating the shortcut.
      * <p>
      * To check the result of the assignment of the keys use {@link #getKeys()}
@@ -174,7 +174,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Set keys and scope of this action. See {@link #setGlobal(boolean)} and
      * {@link #setKeys(java.lang.String)}
      * @param global
-     * @param keys 
+     * @param keys
      */
     public void set(boolean global, String key_combination) {
         unregister();
@@ -182,54 +182,54 @@ public final class Action extends Config<Action> implements Runnable {
         changeKeys(key_combination);
         register();
     }
-    
+
     public void setDefault() {
         set(defaultGlobal, defaultKeys);
     }
-    
+
     /** Execute the action. Always executes on application thread. */
     @Override
     public void run() {
-        
+
         int id = getID();
         boolean canRun = id!=lock;
-        
+
         if(!continuous) {
             lock = id;
 //            System.out.println(System.currentTimeMillis());System.out.println("locking");
             locker.start();
         }
-        
+
         // run on appFX thread
         if(canRun) Async.runFX(this::runUnsafe);
     }
-    
+
     private void runUnsafe() {
         if(global) Log.deb("Global shortcut " + name + " execuing.");
         else Log.deb("Local shortcut " + name + " execuing.");
-        
+
 //        int id = getID();
 //        boolean canRun = id!=lock;
-//        
+//
 //        if(!continuous) {
 //            lock = id;System.out.println(System.currentTimeMillis());
 //            locker.restart();
 ////            unlocker.push(null);
 //        }
-//        
+//
 //        if(canRun) {
             action.run();
             App.actionStream.push(name);
 //        }
     }
-    
+
     /**
      * Activates shortcut. Only registered shortcuts can be invoked.
      * <p>
-     * If the {@link #hasKeysAssigned()} returns false, registration will not 
+     * If the {@link #hasKeysAssigned()} returns false, registration will not
      * take place.
      * <p>
-     * For local action this method will succeed only after {@link Scene} is 
+     * For local action this method will succeed only after {@link Scene} is
      * already initialized.
      * For global, platform support is required. If it isnt, shortcut will
      * be registered locally, although the action will remain global.
@@ -240,23 +240,23 @@ public final class Action extends Config<Action> implements Runnable {
      */
     public void register() {
         if(!hasKeysAssigned()) return;
-        
+
         // notice the else and how even global shortcuts can register locally
         // this is so if global registration is not possible, we fall back to
         // local, not leaving user confused about why the shortcut doesnt work
         if (global && global_shortcuts.getValue() && isGlobalShortcutsSupported())
             registerGlobal();
-        else 
-            // runlater is bugfix, we delay local shortcut registering 
+        else
+            // runlater is bugfix, we delay local shortcut registering
             // probably a javafx bug, as this was not always a problem
             //
             // for some unknown reason some shortcuts (F3,F4,
-            // F5,F6,F8,F12 confirmed) not getting registered when app starts, but 
+            // F5,F6,F8,F12 confirmed) not getting registered when app starts, but
             // other shortcuts register fine, even F9, F10 or F11...
             //
-            // (1) The order in which shortcuts register doesnt seem to play a 
+            // (1) The order in which shortcuts register doesnt seem to play a
             // role. (2) The problem is certainly not shortcuts being consumed
-            // by gui. (3) This method always executes on fx thread, threading 
+            // by gui. (3) This method always executes on fx thread, threading
             // is not the problem, you can make sure by uncommenting:
             // System.out.println("Registering shortcut: " + keys.getDisplayText() + ", is FX thread: " + Platform.isFxApplicationThread());
             runLater(this::registerInApp);
@@ -266,11 +266,11 @@ public final class Action extends Config<Action> implements Runnable {
         if (isGlobalShortcutsSupported()) unregisterGlobal();
         unregisterInApp();
     }
-    
+
 /*********************** registering helper methods ***************************/
-    
+
     private void changeKeys(String keys) {
-        if(keys.isEmpty()) {   
+        if(keys.isEmpty()) {
             this.keys = NO_MATCH;   // disable shortcut for empty keys
             return;
         }
@@ -278,11 +278,11 @@ public final class Action extends Config<Action> implements Runnable {
             this.keys = KeyCombination.keyCombination(keys);
         } catch (Exception e) {
             Log.warn("Illegal shortcut keys parameter. Shortcut keys disabled for: "
-                    + name + " Keys: '" + keys + "'");    
+                    + name + " Keys: '" + keys + "'");
             this.keys = NO_MATCH;   // disable shortcut for wrong keys
         }
-    }   
-    
+    }
+
     private void registerInApp() {
         if (!App.isInitialized()) return;
 
@@ -297,8 +297,8 @@ public final class Action extends Config<Action> implements Runnable {
         // unregister for each window separately
         Window.windows.forEach(w -> w.getStage().getScene().getAccelerators().remove(k));
     }
-    
-    
+
+
     public void unregisterInScene(Scene s) {
         s.getAccelerators().remove(getKeysForLocalRegistering());
     }
@@ -306,34 +306,34 @@ public final class Action extends Config<Action> implements Runnable {
         if (!App.isInitialized()) return;
         s.getAccelerators().put(getKeysForLocalRegistering(),this);
     }
-    
-    
+
+
     private void registerGlobal() {
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
     }
     private void unregisterGlobal() {
         JIntellitype.getInstance().unregisterHotKey(getID());
     }
-    
-    
+
+
     private int getID() {
         return name.hashCode();
     }
-    
+
     private KeyCombination getKeysForLocalRegistering() {
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
         String s = getKeys();
-        if(s.contains("Back_Slash")) 
+        if(s.contains("Back_Slash"))
             return KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
         else if(s.contains("Back_Quote"))
             return KeyCombination.keyCombination(s.replace("Back_Quote","`"));
-        else 
+        else
             return keys;
     }
-    
+
 /********************************** AS CONFIG *********************************/
-    
+
     /** {@inheritDoc} */
     @Override
     public Action getValue() {
@@ -374,8 +374,8 @@ public final class Action extends Config<Action> implements Runnable {
     @Override
     public String getGuiName() {
         return name;
-    }    
-    
+    }
+
     /** {@inheritDoc} */
     @Override
     public String getInfo() {
@@ -387,13 +387,13 @@ public final class Action extends Config<Action> implements Runnable {
     public String getGroup() {
         return "Shortcuts";
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isEditable() {
         return true;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isMinMax() {
@@ -411,13 +411,13 @@ public final class Action extends Config<Action> implements Runnable {
     public double getMax() {
         return Double.NaN;
     }
-    
+
 /********************************** AS OBJECT *********************************/
-    
+
     @Override
     public boolean equals(Object o) {
         if(this==o) return true; // this line can make a difference
-        
+
         if(!(o instanceof Action)) return false;
         Action a = (Action) o;
         // we will compare all fields that can change (global & keys)
@@ -435,11 +435,11 @@ public final class Action extends Config<Action> implements Runnable {
             hash = 41 * hash + Objects.hashCode(this.keys);
         return hash;
     }
-    
-    
 
-    
-    
+
+
+
+
     private Action(boolean isGlobal, KeyCombination keys) {
         this.name = null;
         this.action = null;
@@ -471,15 +471,15 @@ public final class Action extends Config<Action> implements Runnable {
     public String toString() {
         return global + "," + getKeys();
     }
-    
-    
 
-    
+
+
+
 /*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
-    
-    /** 
+
+    /**
      * Activates listening process for global hotkeys. Not running this method
-     * will cause registered global hotkeys to not get invoked. Use once when 
+     * will cause registered global hotkeys to not get invoked. Use once when
      * application initializes.
      * Does nothing if not supported.
      */
@@ -489,8 +489,8 @@ public final class Action extends Config<Action> implements Runnable {
             JIntellitype.getInstance().addIntellitypeListener(media_listener);
         }
     }
-    
-    /** 
+
+    /**
      * Deactivates listening process for global hotkeys. Frees resources. This
      * method should should always be ran at the end of application's life cycle
      * if {@link #stopGlobalListening()} was invoked at least once.
@@ -503,7 +503,7 @@ public final class Action extends Config<Action> implements Runnable {
         }
     }
 
-    /** 
+    /**
      * Returns true if global shortcuts are supported at running platform.
      * Otherwise false. In such case, global shortcuts will run as local and
      * {@link #startGlobalListening()} and {@link #stopGlobalListening()} will
@@ -512,8 +512,8 @@ public final class Action extends Config<Action> implements Runnable {
     public static boolean isGlobalShortcutsSupported() {
         return isGlobalShortcutsSupported;
     }
-    
-    /** 
+
+    /**
      * Returns modifiable collection of all actions mapped by their name. Actions
      * can be added and removed, which modifiea the underlying collection.
      * @return all actions.
@@ -521,13 +521,13 @@ public final class Action extends Config<Action> implements Runnable {
     public static Collection<Action> getActions() {
         return actions;
     }
-    
+
     /**
      * Returns the action with specified name.
-     * 
+     *
      * @param name
      * @return action. Never null.
-     * @throws IllegalArgumentException if no such action 
+     * @throws IllegalArgumentException if no such action
      */
     @Dependency("must use the same implementation as Action.getId()")
     public static Action get(String name) {
@@ -535,25 +535,25 @@ public final class Action extends Config<Action> implements Runnable {
         if(a==null) throw new IllegalArgumentException("No such action: " + name);
         return a;
     }
-    
+
     /** Do not use. Private API. Subject to change. */
     @Deprecated
     public static Action getOrNull(String name) {
         return actions.get(name.hashCode());
     }
-    
+
 /************************ action helper methods *******************************/
-    
+
     private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
     private static final MapSet<Integer,Action> actions = gatherActions();
-    
+
     /** @return all actions of this application */
     private static MapSet<Integer,Action> gatherActions() {
         List<Class<?>> cs = new ArrayList<>();
-        
+
         // autodiscover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
-        
+
         // discover all actions
         MapSet<Integer,Action> out = new MapSet<>(Action::getID);
                                out.add(EMPTY);
@@ -579,7 +579,7 @@ public final class Action extends Config<Action> implements Runnable {
                             try {
                                 mh.invokeExact();
                             } catch (Throwable e) {
-                                throw new RuntimeException("Error during running action.",e);
+                                throw new RuntimeException("Error during running action",e);
                             }
                         };
                         Action ac = new Action(a, r);
@@ -590,7 +590,7 @@ public final class Action extends Config<Action> implements Runnable {
         }
         return out;
     }
-    
+
 /************************ shortcut helper methods *****************************/
 
     // lock
@@ -621,9 +621,9 @@ public final class Action extends Config<Action> implements Runnable {
             else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
         });
     };
-    
+
 /****************************** CONFIGURATION *********************************/
-    
+
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
             + " application is not focused. Not all platforms supported.", group = "Shortcuts")
     public static final Ѵ<Boolean> global_shortcuts = new Ѵ<>(true, v -> {
@@ -647,7 +647,7 @@ public final class Action extends Config<Action> implements Runnable {
             }
         }
     });
-    
+
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
     public static final Ѵ<Boolean> global_media_shortcuts = new Ѵ<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
@@ -660,10 +660,10 @@ public final class Action extends Config<Action> implements Runnable {
             }
         }
     });
-    
+
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
     public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
-    
+
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";
 

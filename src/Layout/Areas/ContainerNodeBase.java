@@ -21,7 +21,6 @@ import Layout.*;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
-import gui.pane.ActionPane;
 import main.App;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
@@ -42,24 +41,24 @@ import static util.reactive.Util.maintain;
  * @author Plutonium_
  */
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
-    
+
     private static final String actbTEXT = "Actions\n\n"
         + "Opens action chooser for this container. Action chooser displays and "
         + "can run action using some data, in this case this container. Shows "
             + "non-layout actions for "
         + "this container.";
-    
-    
+
+
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
     protected boolean isAltCon = false;
     protected boolean isAlt = false;
     TilePane icons = new TilePane(8, 8);
     AnchorPane ctrls = new AnchorPane(icons);
-    
-    
+
+
     Icon absB;
-    
+
     public ContainerNodeBase(C container) {
         this.container = container;
 
@@ -78,8 +77,8 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	});
 	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
-        Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> 
-            ActionPane.PANE.show(Container.class, container)
+        Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
+            App.actionPane.show(Container.class, container)
         );
 	Icon propB = new Icon(COGS, 12, "Settings", ()->{});
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
@@ -96,7 +95,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	    App.actionStream.push("Close widget");
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
-        
+
         // accept drag onto
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
@@ -123,7 +122,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         ctrls.setOnDragDetected(dh);
         // return graphics to normal
         root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
-        
+
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);
         icons.setPrefColumns(10);
@@ -132,10 +131,10 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         AnchorPane.setRightAnchor(icons,0d);
         AnchorPane.setLeftAnchor(icons,0d);
         icons.getChildren().addAll(infoB, layB, dragB, absB, lockB, propB, actB, detachB, changeB, closeB);
-        
+
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
-        
+
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
             if(isAlt && !isAltCon && e.getButton()==SECONDARY) {
@@ -150,7 +149,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
             }
         });
     }
-    
+
     @Override
     public Pane getRoot() {
         return root;
@@ -176,36 +175,36 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
     abstract public void showChildren();
     abstract public void hideChildren();
     abstract Collection<WidgetArea> getAreas();
-    
+
     List<Node> getC() {
         List<Node> o = new ArrayList(root.getChildren());
         o.remove(ctrls);
         return o;
     }
-    
-    
+
+
     void setAltCon(boolean b) {
         if(isAltCon==b) return;
         isAltCon = b;
         new Anim(this::applyanim).dur(250).intpl(b ? x->x : x->1-x).play();
         ctrls.toFront();
     }
-    
+
     void applyanim(double at) {
         getC().forEach(c->c.setOpacity(1-0.8*at));
         ctrls.setOpacity(at);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     private void toggleAbsSize() {
 	Container c = container.getParent();
 	if (c != null && c instanceof BiContainer) {
@@ -224,13 +223,13 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	} else
 	    icons.getChildren().remove(absB);
     }
-    
+
     public void detach() {
         if(!container.hasParent()) return;
         // get first active component
         Component c = container;
         Container p = container.getParent();
-        
+
         // detach into new window
         // create new window with no content (not even empty widget)
         Window w = UiContext.showWindow(null);
@@ -243,5 +242,5 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         int i1 = p.indexOf(c);
         p.swapChildren(c2,i1,w2);
     }
-    
+
 }

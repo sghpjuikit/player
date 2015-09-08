@@ -3,15 +3,15 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- ESCAPE presses must not collide, particularly clearing table selection, etc
 - ClassMaps should support concurrency if desired
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
-- futs are computed >1 times in dragOver handlers, very not good, fix
 - actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
 - tagger spinner likes spinning forever, teach him
 - layout mode zoom animation use loop to increase smoothness
-- filesize use unsigned long
+- filesize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo
 - implement smooth volume on seek
 - custom Log -> logback
@@ -19,7 +19,6 @@
   add linear vs logarithmic option
 - improve app start+stop speed
 - converter add input area & display type of object
-- all tables sel + all sel outputs
 - LastFM -> service
 - DB -> service
 - global shourtcuts -> service
@@ -36,7 +35,6 @@
 - popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-- investigate how to properly remove image scaling artifacts
 
 -------------------------------------------------------------------------------- 
 ------------------------ BUGS - what i dont want to hear about -----------------
@@ -79,6 +77,13 @@ GENERAL
   - the current time value (and seeker position) is shifted
 - Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
 - variable bitrate oggs not playing
+- dragOver event is alled repeatedly, we cant use just any code in there
+  (like Fut, which oddly gets computed immediately when created)
+- Fut computed on creation? see above, investigate
+- investigate how to properly remove image scaling artifacts                    (minor)
+  Not an issue since we are using scale factor when loading images, but
+  investigate. When displaying image very close to its loaded size (+-10%)
+  aliasing appears
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)

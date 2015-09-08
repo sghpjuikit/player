@@ -63,14 +63,14 @@ import static util.functional.Util.*;
 import static util.reactive.Util.sizeOf;
 
 /**
- * 
+ *
  * Table with a search filter header that supports filtering with provided gui.
  *
  * @author Plutonium_
  */
 @IsConfigurable("Table")
 public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends FieldedTable<T,F> {
-    
+
     private final ObservableList<T> allitems;
     private final FilteredList<T> filtereditems;
     private final SortedList<T> sortedItems;
@@ -79,11 +79,11 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public FilteredTable(F main_field) {
         this(main_field, observableArrayList());
     }
-    
+
     /**
      * @param main_field field that will denote main column. Must not be null.
      * Also initializes {@link #searchField}.
-     * 
+     *
      * @param main_field be chosen as main and default search field
      * @param backing_list
      */
@@ -95,19 +95,19 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         filtereditems = new FilteredList<>(allitems);
         sortedItems = new SortedList<>(filtereditems);
         itemsPredicate = filtereditems.predicateProperty();
-        
+
         setItems(sortedItems);
         sortedItems.comparatorProperty().bind(comparatorProperty());
         VBox.setVgrow(this, ALWAYS);
-        
+
         items_info.bind(this);
-        
+
         // visually hint user menus are empty
         sizeOf(menuAdd.getItems(), size -> menuAdd.setDisable(size==0));
         sizeOf(menuRemove.getItems(), size -> menuRemove.setDisable(size==0));
         sizeOf(menuSelected.getItems(), size -> menuSelected.setDisable(size==0));
         sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
-        
+
         filterPane = new TableFilterGenerator(filtereditems, main_field);
         filterPane.getNode().setVisible(false);
         filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
@@ -116,11 +116,14 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 // clear & hide filter on single ESC
                 // searchBox.clear();
                 // setFilterVisible(false);
-                
+
+
                 // clear filter on 1st, hide on 2nd
-                if(filterPane.isEmpty()) filterVisible.set(false);
-                else filterPane.clear();
-                e.consume();
+                if(filterVisible.get()) {
+                    if(filterPane.isEmpty()) filterVisible.set(false);
+                    else filterPane.clear();
+                    e.consume();
+                }
             }
             // CTRL+F -> hide filter
             if(e.getCode()==F && e.isShortcutDown()) {
@@ -128,26 +131,28 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 requestFocus();
             }
         });
-        
+
         // using EventFilter would cause ignoring first key stroke when setting
         // search box visible
         addEventHandler(KEY_PRESSED, e -> {
+            KeyCode k = e.getCode();
             // CTRL+F -> toggle filter
-            if(e.getCode()==F && e.isShortcutDown()) {
+            if(k==F && e.isShortcutDown()) {
                 filterVisible.set(!filterVisible.get());
                 if(!filterVisible.get()) requestFocus();
                 return;
             }
-            
+
             if(e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
-            KeyCode k = e.getCode();
             // ESC, filter not focused -> close filter
             if(k==ESCAPE) {
-                if(filterPane.isEmpty()) filterVisible.set(false);
-                else filterPane.clear();
-                e.consume();
+                if(filterVisible.get()) {
+                    if(filterPane.isEmpty()) filterVisible.set(false);
+                    else filterPane.clear();
+                    e.consume();
+                }
             }
-            
+
             // typing -> scroll to
             if (k.isDigitKey() || k.isLetterKey()){
                 String st = e.getText().toLowerCase();
@@ -162,7 +167,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         addEventFilter(KEY_PRESSED, e -> {
             if(e.getCode()==ESCAPE && !scrolFtext.isEmpty()) {
                 searchEnd();
-                e.consume(); // causes all KEY_PRESSED handlers to be ignored
+                e.consume(); // must cause all KEY_PRESSED handlers to be ignored
             }
         });
         addEventFilter(Event.ANY, e -> updateSearchStyles()); // isnt this overkill!?
@@ -171,15 +176,15 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
         footerVisible.set(true);
     }
-    
+
     /** The root is a container for this table and the filter. Use the root instead
      * of this table when attaching it to the scene graph.
      * @return the root of this table */
     public VBox getRoot() {
         return root;
     }
-    
-    /** Return the items assigned to this this table. Includes the filtered out items. 
+
+    /** Return the items assigned to this this table. Includes the filtered out items.
      * <p>
      * This list can be modified, but it is recommended to use {@link #setItemsRaw(java.util.Collection)}
      * to change the items in the table.
@@ -187,45 +192,45 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public final ObservableList<T> getItemsRaw() {
         return allitems;
     }
-    
+
     /**
      * Sets items to the table. If any filter is in effect, it will be applied.
      * <p>
-     * Do not use {@link #setItems(javafx.collections.ObservableList)} or 
+     * Do not use {@link #setItems(javafx.collections.ObservableList)} or
      * {@code getItems().setAll(new_items)}. It will cause the filters to stop
      * working. The first replaces the table item list (instance of {@link FilteredList},
      * which must not happen. The second would throw an exception as FilteredList
      * is not directly modifiable.
-     * 
-     * @param items 
+     *
+     * @param items
      */
     public void setItemsRaw(Collection<? extends T> items) {
         allitems.setAll(items);
     }
-    
+
     /**
      * Maps the index of this list's filtered element to an index in the direct source list.
      *
-     * @param index the index in filtered list of items visible in the table 
+     * @param index the index in filtered list of items visible in the table
      * @return index in the unfiltered list backing this table
      */
     public int getSourceIndex(int i) {
         return filtereditems.getSourceIndex(i);
     }
-    
+
 /******************************** TOP CONTROLS ********************************/
-    
+
     /** Filter pane in the top of the table. */
     public final TableFilterGenerator<T,F> filterPane;
 
-    /* 
+    /*
      * Predicate that filters the table list. Null predicate will match all
-     * items (same as always true predicate). The value reflects the filter 
-     * generated by the user through the {@link #searchBox}. Changing the 
-     * predicate programmatically is possible, however the searchBox will not 
+     * items (same as always true predicate). The value reflects the filter
+     * generated by the user through the {@link #searchBox}. Changing the
+     * predicate programmatically is possible, however the searchBox will not
      * react on the change, its effect will merely be overriden and when
      * search box predicate changes, it will in turn override effect of a
-     * custom predicate. 
+     * custom predicate.
      */
     public final ObjectProperty<Predicate<? super T>> itemsPredicate;
     /**
@@ -246,10 +251,10 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 runLater(filterPane::focus);
                 return;
             }
-            
+
             super.set(v);
             if(!v) filterPane.clear();
-            
+
             Node sn = filterPane.getNode();
             if(v) {
                 if(!root.getChildren().contains(sn))
@@ -263,9 +268,9 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             if(v) runLater(filterPane::focus);
         }
     };
-    
+
 /******************************* BOTTOM CONTROLS ******************************/
-    
+
     public final Menu menuAdd = new Menu("", new Icon(FontAwesomeIcon.PLUS).embedded());
     public final Menu menuRemove = new Menu("", new Icon(FontAwesomeIcon.MINUS).embedded());
     public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
@@ -276,21 +281,21 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
     /** Table menubar in the bottom with menus. Feel free to modify. */
     public final MenuBar menus = new MenuBar(menuAdd,menuRemove,menuSelected,menuOrder);
-    /** 
+    /**
      * Labeled in the bottom displaying information on table items and selection.
      * Feel free to provide custom implementation of {@link InfoTable#textFactory}
-     * to display different information. You may want to reuse 
+     * to display different information. You may want to reuse
      * {@link InfoTable#DEFAULT_TEXT_FACTORY}.
      */
     public final InfoTable<T> items_info = new InfoTable<>(new Label()); // can not bind here as table items list not ready
     private final HBox bottomLeftPane = new HBox(5,menus,items_info.node){{ setAlignment(CENTER_LEFT); }};
-    /** 
-     * Pane for controls in the bottom of the table. 
-     * Feel free to modify its content. Menubar and item info label are on the 
+    /**
+     * Pane for controls in the bottom of the table.
+     * Feel free to modify its content. Menubar and item info label are on the
      * left {@link BorderPane#leftProperty()}.
      */
     public final BorderPane footerPane = new BorderPane(null, null, null, null, bottomLeftPane);
-    
+
     /**
      * Visibility of the bottom controls and information panel. Displays
      * information about table items and menubar.
@@ -306,15 +311,15 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             }
         }
     };
-    
-        
+
+
 /********************************** INDEX *************************************/
-    
-    /** 
+
+    /**
      * Shows original item's index in the unfiltered list when filter is on.
      * False will display index within filtered list. In other words false
      * will cause items to always be indexed from 1 to items.size. This has only
-     * effect when filter is in effect. 
+     * effect when filter is in effect.
      */
     public final BooleanProperty showOriginalIndex = new SimpleBooleanProperty(true){
         @Override public void set(boolean v) {
@@ -322,8 +327,8 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             refreshColumn(columnIndex);
         }
     };
-    
-    /** 
+
+    /**
      * Indexes range from 1 to n, where n can differ when filter is applied.
      * Equivalent to: {@code isShowOriginalIndex ? getItemsRaw().size() : getItems().size(); }
      * @return max index */
@@ -331,25 +336,25 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public final int getMaxIndex() {
         return showOriginalIndex.get() ? allitems.size() : getItems().size();
     }
-    
+
 /************************************ SCROLL **********************************/
-    
+
     public void scrollToCenter(int i) {
         int items = getItems().size();
         if(i<0 || i>=items) return;
-        
+
         double rows = getHeight()/getFixedCellSize();
         i -= rows/2;
         i = min(items-(int)rows+1,max(0,i));
         scrollTo(i);
     }
-    
+
 /************************************ SEARCH **********************************/
-    
-    /** 
+
+    /**
      * If the user types text to quick search content by scrolling table, the
      * text matching will be done by this field. Its column cell data must be
-     * String (or search will be ignored) and column should be visible. 
+     * String (or search will be ignored) and column should be visible.
      */
     private F searchField;
     private String scrolFtext = "";
@@ -357,7 +362,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private static final PseudoClass searchmatchPC = getPseudoClass("searchmatch");
     private static final PseudoClass searchmatchnotPC = getPseudoClass("searchmatchnot");
     private final FxTimer scrolFautocancelTimer = new FxTimer(3000,-1,this::searchEnd);
-    
+
     @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
     private static Duration scrolFTimeMax = millis(500);
     @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
@@ -371,16 +376,16 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public void searchSetColumn(F field) {
         searchField = field;
     }
-    
-    /** 
+
+    /**
      * Returns whether search is active. Every search must be ended, either
      * automatically {@link #scrolFautocancel}, or manually {@link #searchEnd()}.
      */
     public boolean searchIsActive() {
         return !scrolFtext.isEmpty();
     }
-    
-    /** 
+
+    /**
      * Starts search, searching for the specified string in the designated
      * column for field {@link #searchField} (column can be invisible).
      */
@@ -399,7 +404,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             }
         }
     }
-    
+
     /**
      * Ends search manually.
      */
@@ -407,17 +412,17 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         scrolFtext = "";
         updateSearchStyleRowsNoReset();
     }
-    
+
     private void updateSearchStyles() {
         if(scrolFautocancel) scrolFautocancelTimer.start(scrolFautocancelTime);
         updateSearchStyleRowsNoReset();
     }
-    
+
     private void updateSearchStyleRowsNoReset() {
         boolean searchOn = searchIsActive();
         for (TableRow<T> row : getRows()) {
             T t = row.getItem();
-            Object o = t==null ? null : t.getField(searchField); 
+            Object o = t==null ? null : t.getField(searchField);
             boolean isMatch = o instanceof String && matches((String)o,scrolFtext);
             row.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch);
             row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch));
@@ -425,41 +430,41 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch));
        }
     }
-    
+
     private boolean matches(String text, String s) {
         String x = s.toLowerCase();
         String in = text.toLowerCase();
         return scrolFTimeMatchContain ? in.contains(s) : in.startsWith(x);
     }
 
-    
+
 /************************************* SORT ***********************************/
-    
+
     /** {@inheritDoc} */
     @Override
     public void sortBy(F field) {
         getSortOrder().clear();
         allitems.sort(by(p -> (Comparable) p.getField(field)));
     }
-    
+
     /***
      * Sorts items using provided comparator. Any sort order is cleared.
-     * @param comparator 
+     * @param comparator
      */
     public void sort(Comparator<T> comparator) {
         getSortOrder().clear();
         allitems.sort(comparator);
     }
-    
+
 /*********************************** HELPER ***********************************/
-    
+
     @Override
     protected Callback<TableColumn<T, Void>, TableCell<T, Void>> buildIndexColumnCellFactory() {
         return ( column -> new TableCell<T,Void>() {
-            { 
+            {
                 setAlignment(Pos.CENTER_RIGHT);
             }
-            @Override 
+            @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty)
@@ -472,7 +477,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                         txt = zeroPad(i+1, getMaxIndex(), '0');
                     } else
                         txt = String.valueOf(j+1);
-                    
+
                     setText( txt + ".");
                 }
             }
@@ -498,7 +503,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 }
             );
             m.getItems().addAll(mis);
-            columnVisibleMenu.getItems().add(m);            
+            columnVisibleMenu.getItems().add(m);
         }
         return tci;
     }

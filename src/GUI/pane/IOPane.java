@@ -54,32 +54,32 @@ public class IOPane extends StackPane {
         getChildren().addAll(out_nodes);
         getChildren().addAll(in_nodes);
     }
-    
+
     private final Controller c;
     private final List<OutputNode> out_nodes;
     private final List<InputNode> in_nodes;
-    
+
     @Override
     protected void layoutChildren() {
         super.layoutChildren();
-        
+
         double os = out_nodes.size()+1;
         double is = in_nodes.size()+1;
         double h = getHeight();
         double w = getWidth();
         double ohx = h/os;
         double ihx = h/is;
-        
+
         forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, ohx*(i+1)-o.getHeight()/2));
         forEachWithI(in_nodes, (i,o) -> o.relocate(5, ihx*(i+1)-o.getHeight()/2));
     }
-    
+
 
     public static final String INODE_STYLECLASS = "inode";
     public static final String ONODE_STYLECLASS = "onode";
     public static final String IONODE_STYLECLASS = "ionode";
     public static final PseudoClass DRAGOVER_PSEUDOCLASS = getPseudoClass("drag-over");
-    
+
     static interface XNode {
         Icon getIcon();
         default Point2D getSceneXY() {
@@ -100,27 +100,28 @@ public class IOPane extends StackPane {
         OutputNode(Output<T> o) {
             super(8);
             output = o;
-            
+
             setMaxSize(80,120);
             getChildren().addAll(t,i);
             setAlignment(Pos.CENTER_RIGHT);
             i.styleclass(ONODE_STYLECLASS);
-            
+
             Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
-            
+
             i.addEventFilter(DRAG_DETECTED,e -> {
                 DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
                 e.consume();
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            
+
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> App.use(ClickEffect.class, c -> 
-                c.run(getSceneXY())
-            ));
+            o.monitor(v -> App.use(ClickEffect.class, c -> {
+                if(!gui.GUI.isLayoutMode())
+                    c.run(getSceneXY());
+            }));
         }
 
         @Override
@@ -135,16 +136,16 @@ public class IOPane extends StackPane {
         InputNode(Input<T> in) {
             super(8);
             input = in;
-            
+
             setMaxSize(80,120);
             getChildren().addAll(i,t);
             setAlignment(Pos.CENTER_LEFT);
             i.styleclass(INODE_STYLECLASS);
-            
+
             Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
-            
+
             i.addEventFilter(DRAG_OVER, DragUtil.anyDragAccepthandler);
             i.addEventFilter(DRAG_DROPPED,e -> {
                 if(DragUtil.hasWidgetOutput()) {
@@ -164,7 +165,7 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            
+
             t.setText(iToStr(input));
         }
 
@@ -180,16 +181,16 @@ public class IOPane extends StackPane {
         InOutputNode(InOutput<T> inout) {
             super(8);
             inoutput = inout;
-            
+
             setMaxSize(80,120);
             getChildren().addAll(i,t);
             setAlignment(Pos.CENTER_LEFT);
             i.styleclass(IONODE_STYLECLASS);
-            
+
             Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
-            
+
             i.addEventFilter(DRAG_DETECTED,e -> {
                 DragUtil.setWidgetOutput(inout.o,i.startDragAndDrop(TransferMode.LINK));
                 e.consume();
@@ -208,12 +209,13 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            
+
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> App.use(ClickEffect.class, c -> 
-                c.run(getSceneXY())
-            ));
+            o.monitor(v -> App.use(ClickEffect.class, c -> {
+                if(!gui.GUI.isLayoutMode())
+                    c.run(getSceneXY());
+            }));
         }
 
         @Override
@@ -223,17 +225,17 @@ public class IOPane extends StackPane {
     }
     static class IOLine extends Path {
         static final double GAP = 20;
-        
+
         Output output;
         Input input;
-        
+
         public IOLine(Input i, Output o) {
             input = i;
             output = o;
-            
+
             getStyleClass().add("input-output-line");
             App.getWindow().getSwitchPane().widget_io.getChildren().add(this);
-            
+
             setOnMouseClicked(e -> {
                 if(e.getButton()==SECONDARY) {
                     i.unbind(o);
@@ -246,17 +248,17 @@ public class IOPane extends StackPane {
                 e.consume();
             });
         }
-        
+
         public void lay(double startx, double starty, double tox, double toy) { // System.out.println(startx + " " + starty + " " + tox + " " + toy);
             setLayoutX(0);
             double h = App.getWindow().getSwitchPane().widget_io.getHeight();
             minHeight(h);
             prefHeight(h);
             maxHeight(h);
-        
+
             getElements().clear();
             getElements().add(new MoveTo(startx, starty));
-            
+
             double dx = tox-startx;
             double dy = toy-starty;
             if(dx>0) {
@@ -273,7 +275,7 @@ public class IOPane extends StackPane {
             }
             layTo(startx, starty, tox, toy, h);
         }
-        
+
         private boolean not_finished = false;
         private double not_finished_x;
         private double not_finished_y;
@@ -296,9 +298,9 @@ public class IOPane extends StackPane {
             }
         }
     }
-    
+
     public static String oToStr(Output o) {
-        return App.className.get(o.getType()) + " : " + o.getName() + 
+        return App.className.get(o.getType()) + " : " + o.getName() +
                "\n" + App.instanceName.get(o.getValue());
     }
     public static String iToStr(Input i) {
@@ -307,7 +309,7 @@ public class IOPane extends StackPane {
     public static void drawWidgetIO() {
         Map<Input,XNode> is = new HashMap();
         Map<Output,XNode> os = new HashMap();
-        
+
         WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
             .filter(ISNTØ)
             .forEach(c -> {
@@ -318,14 +320,14 @@ public class IOPane extends StackPane {
             is.put(((InOutputNode)n).inoutput.i, (XNode)n);
             os.put(((InOutputNode)n).inoutput.o, (XNode)n);
         });
-        
+
         AnchorPane widget_io = App.getWindow().getSwitchPane().widget_io;
         widget_io.getChildren().retainAll(ionodes);
         if(!widget_io.getChildren().contains(ionodes)) {
             widget_io.getChildren().add(ionodes);
             AnchorPane.setBottomAnchor(ionodes, 20.0);
         }
-        
+
         is.forEach((input,inputnode) -> {
             Set<Output> outs = input.getSources();
             outs.forEach(output -> {
@@ -347,14 +349,14 @@ public class IOPane extends StackPane {
             });
         });
     }
-    
+
     static final HBox ionodes;
     static {
         ionodes = new HBox(15);
         ionodes.setPickOnBounds(false);
         ionodes.setAlignment(Pos.CENTER);
         ionodes.getChildren().addAll(map(InOutput.inoutputs,InOutputNode::new));
-        
+
         InOutput.inoutputs.addListener(new ListChangeListener<InOutput>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends InOutput> c) {

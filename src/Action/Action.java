@@ -55,19 +55,20 @@ import static util.functional.Util.do_NOTHING;
 public final class Action extends Config<Action> implements Runnable {
 
     /** Action that does nothing. Use where null inappropriate. */
-    public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", false, false);
+    public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", "", false, false);
 
     private final String name;
     private final Runnable action;
     private final String info;
+    private final String group;
     private final boolean continuous;
     private boolean global;
     private KeyCombination keys = KeyCombination.NO_MATCH;
     private final String defaultKeys;
     private final boolean defaultGlobal;
 
-    private Action(IsAction a, Runnable action) {
-        this(a.name(),action,a.desc(),a.keys(),a.global(),a.repeat());
+    private Action(IsAction a, String group, Runnable action) {
+        this(a.name(),action,a.desc(),group, a.keys(),a.global(),a.repeat());
     }
 
     /**
@@ -80,10 +81,11 @@ public final class Action extends Config<Action> implements Runnable {
      * @param global value for the global property
      * @param continuous value for the final continuous property
      */
-    public Action(String name, Runnable action, String info, String keys, boolean global, boolean continuous) {
+    public Action(String name, Runnable action, String info, String group, String keys, boolean global, boolean continuous) {
         this.name = name;
         this.action = action;
         this.info = info;
+        this.group = group.isEmpty() ? "Other" : group;
         this.continuous = continuous;
         this.global = global;
         this.defaultGlobal = global;
@@ -359,7 +361,7 @@ public final class Action extends Config<Action> implements Runnable {
     /** {@inheritDoc} */
     @Override
     public Action getDefaultValue() {
-        return new Action(name,action,info,defaultKeys,defaultGlobal,continuous);
+        return new Action(name,action,info,group,defaultKeys,defaultGlobal,continuous);
     }
 
     /** {@inheritDoc} */
@@ -383,7 +385,7 @@ public final class Action extends Config<Action> implements Runnable {
     /** {@inheritDoc} */
     @Override
     public String getGroup() {
-        return "Shortcuts";
+        return group;
     }
 
     /** {@inheritDoc} */
@@ -442,6 +444,7 @@ public final class Action extends Config<Action> implements Runnable {
         this.name = null;
         this.action = null;
         this.info = null;
+        this.group = null;
         this.continuous = false;
         this.global = isGlobal;
         this.keys = keys;
@@ -556,14 +559,14 @@ public final class Action extends Config<Action> implements Runnable {
         MapSet<Integer,Action> out = new MapSet<>(Action::getID);
                                out.add(EMPTY);
         Lookup method_lookup = MethodHandles.lookup();
-        for (Class<?> man : cs) {
-            for (Method m : man.getDeclaredMethods()) {
+        for (Class<?> c : cs) {
+            for (Method m : c.getDeclaredMethods()) {
                 if (Modifier.isStatic(m.getModifiers())) {
                     for(IsAction a : m.getAnnotationsByType(IsAction.class)) {
                         if (m.getParameters().length > 0)
                             throw new RuntimeException("Action Method must have 0 parameters!");
 
-                        // grab method
+                        String group = getActionGroup(c);
                         MethodHandle mh;
                         try {
                             m.setAccessible(true);
@@ -580,13 +583,22 @@ public final class Action extends Config<Action> implements Runnable {
                                 throw new RuntimeException("Error during running action",e);
                             }
                         };
-                        Action ac = new Action(a, r);
+                        Action ac = new Action(a, group, r);
                         out.add(ac);
                     }
                 }
             }
         }
         return out;
+    }
+
+    private static String getActionGroup(Class<?> c) {
+        IsConfigurable ac = c.getAnnotation(IsConfigurable.class);
+        if(ac!=null && !ac.value().isEmpty())
+            return ac.value();
+
+        IsActionable aa = c.getAnnotation(IsActionable.class);
+        return aa==null || aa.value().isEmpty() ? c.getSimpleName() : aa.value();
     }
 
 /************************ shortcut helper methods *****************************/

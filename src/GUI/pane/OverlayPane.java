@@ -8,6 +8,7 @@ package gui.pane;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 import gui.objects.Window.stage.Window;
@@ -19,12 +20,17 @@ import static javafx.util.Duration.millis;
 import static util.graphics.Util.setAnchors;
 
 /**
- * Pane laying 'above' window creating 'overlay' bgr above it. This implementation has no content.
+ * Pane laying 'above' window creating 'overlay' bgr above it.
+ * <p>
+ * This implementation has no content. Rather than using {@link StackPane#getChildren()}, use
+ * {@link #setContent(javafx.scene.layout.Pane)}, which also applies {@link #CONTENT_STYLECLASS}
+ * styleclass on it. Content will align to center unless set otherwise.
  *
  * @author Plutonium_
  */
 public class OverlayPane extends StackPane {
 
+    private static final String IS_SHOWN = "visible";
     private static final String ROOT_STYLECLASS = "overlay-pane";
     static final String CONTENT_STYLECLASS = "overlay-pane-content";
 
@@ -40,33 +46,44 @@ public class OverlayPane extends StackPane {
             }
         });
         addEventFilter(KeyEvent.ANY, e -> {
-            System.out.println("key det " + e.getCode());
+            // close on ESC press
             if(e.getEventType()==KeyEvent.KEY_PRESSED && e.getCode()==ESCAPE && isShown()) {
                 hide();
             }
+            // prevent events from propagating
+            // user should not be able to interact with UI below
             e.consume();
         });
-//        setOnKeyPressed(e -> {  // isnt quite working yet, something consuming ESCAPEs?
-//            if(e.getCode()==ESCAPE && isShown()) {
-//                hide();
-//                e.consume();
-//            }
-//        });
 
     }
 
+    /**
+     * Shows this pane. The content should be set before calling this method.
+     * @see #setContent(javafx.scene.layout.Pane)
+     */
     public void show() {
-        if(!isShown())
+        if(!isShown()) {
+            getProperties().put(IS_SHOWN,IS_SHOWN);
             animStart();
+        }
     }
 
+    /** Returns true iff {@link #show()} has been called and {@link #hide()} not yet. */
     public boolean isShown() {
-        return isVisible();
+        return getProperties().containsKey(IS_SHOWN);
     }
 
+    /** Hides this pane. */
     public void hide() {
-        if(isShown())
+        if(isShown()) {
+            getProperties().remove(IS_SHOWN);
             animation.playCloseDo(this::animEnd);
+        }
+    }
+
+    public void setContent(Pane contentRoot) {
+        getChildren().add(contentRoot);
+        contentRoot.getStyleClass().add(CONTENT_STYLECLASS);
     }
 
 /****************************************** ANIMATION *********************************************/
@@ -87,8 +104,7 @@ public class OverlayPane extends StackPane {
         }
         // show
         setVisible(true);
-        requestFocus();
-//        setFocused(true);
+        requestFocus();     // 'bug fix' - we need focus or key events wont work
         bgr = Window.getActive().content;
         Window.getActive().front.setEffect(blurback);
         Window.getActive().back.setEffect(blurback);
@@ -96,7 +112,7 @@ public class OverlayPane extends StackPane {
     }
 
     private void animDo(double x) {
-        if(bgr==null) return; // bugfix, not 100% sure its necessary
+        if(bgr==null) return; // bugfix, not 100% sure why it is necessary
 
         bgr.setOpacity(1-x*0.5);
         setOpacity(x);

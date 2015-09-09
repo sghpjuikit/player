@@ -35,78 +35,78 @@ import static util.dev.Util.yesFinal;
 
 /**
  * Provides methods to access configs of the application.
- * 
+ *
  * @author uranium
  */
 public class Configuration {
-    
+
     private static final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup()+"."+c.getName());
     private static final Lookup methodLookup = MethodHandles.lookup();
-    
-    
+
+
     public static void collectAppConfigs() {
         // for all discovered classes
         ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
             // add class fields
             discoverConfigFieldsOf(c);
             // add methods in the end to avoid incorrect initialization
-            discoverMethodsOf(c);        
+            discoverMethodsOf(c);
         });
         // add service configs
         App.services.forEach(s -> configs.addAll(s.getFields()));
-        
-        
+
+
         configs.stream().filter(Config::isEditable)
                         .filter(c -> c.getType().equals(Boolean.class))
                         .map(c -> (Config<Boolean>) c)
                         .forEach(c -> {
                             String name = c.getGroup()+" "+c.getName() + " - toggle";
                             Runnable r = ()->c.setNextNapplyValue();
-                            Action.getActions().add(new Action(name, r, "Toggles value between yes and no", "", false, false));
+                            Action.getActions().add(new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false));
                         });
         
         // add actions
         configs.addAll(Action.getActions());
     }
-    
+
     public static List<Config> getFields() {
         return new ArrayList(configs);
     }
-    
+
     public static List<Config> getFields(Predicate<Config> condition) {
         List<Config> cs = new ArrayList(getFields());
                      cs.removeIf(condition.negate());
         return cs;
     }
-    
+
     /** Changes all config fields to their default value and applies them */
     public static void toDefault() {
         getFields().forEach(Config::setNapplyDefaultValue);
     }
-    
+
     /**
      * Saves configuration to the file. The file is created if it does not exist,
      * otherwise it is completely overwritten.
      * Loops through Configuration fields and stores them all into file.
      */
-    public static void save() {     
+    public static void save() {
         String header = ""
             + "# " + App.getAppName() + " configuration file.\n"
             + "# " + java.time.LocalTime.now() + "\n";
         StringBuilder content = new StringBuilder(header);
-        
+
         Function<Config,String> f = configs.keyMapper;
         getFields().stream()
                    .sorted(util.functional.Util.byNC(f::apply))
                    .forEach(c -> content.append(f.apply(c) + " : " + c.getValueS() + "\n"));
-        
+
         FileUtil.writeFile("Settings.cfg", content.toString());
     }
-    
+
     /**
      * Loads previously saved configuration file and set its values for this.
      * <p>
-     * Attempts to load all configuration fields from file. Fields might not be 
+     * Attempts to load all configuration fields from file. Fields might not be
      * read either through I/O error or parsing errors. Parsing errors are
      * recoverable, meaning corrupted fields will be ignored.
      * Default values will be used for all unread fields.
@@ -120,20 +120,20 @@ public class Configuration {
             if (c!=null) c.setValueS(value);
         });
     }
-    
-    
+
+
 /******************************************************************************/
-    
+
     private static String getGroup(Class<?> c) {
         IsConfigurable a = c.getAnnotation(IsConfigurable.class);
         return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
     }
-    
-    
+
+
     private static void discoverConfigFieldsOf(Class c) {
         configs.addAll(configsOf(c, null, true, false));
     }
-    
+
     private static void discoverMethodsOf(Class c) {
         for (Method m : c.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
@@ -159,21 +159,21 @@ public class Configuration {
             }
         }
     }
-    
+
     static List<Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments
         if(include_instance && instnc==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
-        
+
         List<Config> out = new ArrayList();
-        
+
         for (Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instnc, include_static, include_instance);
             if(c!=null) out.add(c);
         }
         return out;
     }
-    
+
     static Config createConfig(Class cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
         // that are annotated
         Config c = null;
@@ -184,14 +184,14 @@ public class Configuration {
             int modifiers = f.getModifiers();
             if (include_static && Modifier.isStatic(modifiers))
                 c = createConfig(f, instnc, name, a, group);
-            
+
             if (include_instance && !Modifier.isStatic(modifiers))
                 c = createConfig(f, instnc, name, a, group);
-            
+
         }
         return c;
     }
-    
+
     private static Config createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
         Class c = f.getType();
         if(Config.class.isAssignableFrom(c)) {
@@ -211,7 +211,7 @@ public class Configuration {
             }
         }
     }
-    
+
     private static Config newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
         try {
             yesFinal(f);            // make sure the field is final
@@ -229,7 +229,7 @@ public class Configuration {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
     }
-    
+
     private static Config newFromConfig(Field f, Object instance) {
         try {
             yesFinal(f);            // make sure the field is final
@@ -239,5 +239,5 @@ public class Configuration {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
     }
-    
+
 }

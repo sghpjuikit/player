@@ -34,7 +34,6 @@ import util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static gui.objects.icon.Icon.createInfoIcon;
-import static gui.pane.OverlayPane.CONTENT_STYLECLASS;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
@@ -62,11 +61,10 @@ public class ActionPane extends OverlayPane {
 
     private static final String ROOT_STYLECLASS = "action-pane";
     private static final String ICON_STYLECLASS = "action-pane-action-icon";
-    private static final String COD_INFO_SHRT = "Close when action ends";
-    private static final String COD_INFO_LONG = "Closes the chooser when action is picked and "
-                                              + "finishes running.";
+    private static final String COD_TITLE = "Close when action ends";
+    private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
-    @IsConfig(name = COD_INFO_SHRT, info = COD_INFO_LONG)
+    @IsConfig(name = COD_TITLE, info = COD_INFO)
     public static final Ѵ<Boolean> closeOnDone = new Ѵ(false);
     public static final ClassListMap<FastAction> ACTIONS = new ClassListMap<>(null);
 
@@ -89,8 +87,7 @@ public class ActionPane extends OverlayPane {
             icons, CENTER
         );
         layout.setMaxSize(GR*450,450);
-        layout.getStyleClass().add(CONTENT_STYLECLASS);
-        getChildren().addAll(layout);
+        setContent(layout);
 
         icons.setMaxHeight(layout.getMaxHeight()-2*30); // top/bottom padding for clickable controls
         desc.setMouseTransparent(true); // just in case, if it is under icons all's well
@@ -109,7 +106,7 @@ public class ActionPane extends OverlayPane {
       + "display progress indicator."
     );
     private final Icon hideI = new CheckIcon(closeOnDone)
-                                    .tooltip(COD_INFO_SHRT+"\n\n"+COD_INFO_LONG)
+                                    .tooltip(COD_TITLE+"\n\n"+COD_INFO)
                                     .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE, CLOSE_CIRCLE_OUTLINE);
     private final ProgressIndicator dataObtainingProgress = new Spinner(1){{
         maintain(progressProperty(),p -> p.doubleValue()<1, visibleProperty());
@@ -125,11 +122,16 @@ public class ActionPane extends OverlayPane {
     private Class dtype;
     private List<ActionData> dactions;
 
+    @Override
+    public void show() {
+        build();
+        super.show();
+    }
+
     public <T> void show(Class<T> type, T value, ActionData<?,?>... actions) {
         data = value;
         dtype = type;
         dactions = list(actions);
-        build();
         show();
     }
 
@@ -137,7 +139,6 @@ public class ActionPane extends OverlayPane {
         data = value;
         dtype = type;
         dactions = list(actions);
-        build();
         show();
     }
 
@@ -236,19 +237,24 @@ public class ActionPane extends OverlayPane {
         }
     }
     public static class FastAction<T> extends ActionData<T,Consumer<T>> {
+
         public FastAction(String name, String description, GlyphIcons icon, Consumer<T> act) {
             super(name, description, icon, act);
         }
+
         public FastAction(GlyphIcons icon, Action action) {
             super(action.getName(),
                   action.getInfo() + (action.hasKeysAssigned() ? "\n\nShortcut keys: " + action.getKeys() : ""),
                   icon, ignored -> action.run());
         }
+
     }
     public static class SlowAction<T,R> extends ActionData<T,Ƒ1<Fut<T>,Fut<R>>> {
+
         public SlowAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<T>,Fut<R>> act) {
             super(name, description, icon, act);
         }
+
     }
 
 }

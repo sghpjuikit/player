@@ -20,6 +20,7 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.feature.ConfiguringFeature;
+import action.Action;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
 import util.access.Ѵ;
@@ -34,6 +35,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static util.functional.Util.byNC;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchors;
+
 @IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
@@ -74,33 +76,34 @@ public final class Configurator extends ClassController implements ConfiguringFe
     private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
-    
-    
+
+
     public Configurator() {
         // creating widget loads controller's no-arg construstor - this one,
         // and we need widget to be in non-simple mode, hence param==false
         this(false);
     }
-    
+
     /**
      * @param simple simple mode==true hides home button and categories
      */
-    public Configurator(boolean simple) {inputs.create("To configure", Configurable.class, this::configure);
+    public Configurator(boolean simple) {
+        inputs.create("To configure", Configurable.class, this::configure);
         isSimple = simple;
-        
+
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
-        
+
         controls.getChildren().addAll(appI,new Region(),reI,defI);
         if(simple) controls.getChildren().remove(appI);
-        
+
         // init content
         configure(Configuration.getFields());
-        
+
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
     }
-    
+
     /** Set and apply values and refresh if needed (no need for hard refresh) */
     @FXML
     public void ok() {
@@ -123,7 +126,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     @Override
     public void configure(Collection<Config> c) {
         if(c==null) return;
-        
+
         // clear previous fields
         configFields.clear();
         accordion.getPanes().clear();
@@ -131,15 +134,15 @@ public final class Configurator extends ClassController implements ConfiguringFe
         groups.clear();
 
         // sort & populate fields
-        ConfigGroup oneg = isSimple ? new ConfigGroup("") : null;
+        ConfigGroup singlegroup = isSimple ? new ConfigGroup("") : null;
         c.stream().sorted(byNC(o -> o.getGuiName())).forEach(f -> {
             // create graphics
             ConfigField cf = ConfigField.create(f);
             configFields.add(cf);
 
             // get group
-            String cat = f.getGroup();
-            ConfigGroup g = isSimple ? oneg : groups.containsKey(cat) ? groups.get(cat) : new ConfigGroup(cat);
+            String group = f instanceof Action ? "Shortcuts" : f.getGroup();
+            ConfigGroup g = isSimple ? singlegroup : groups.computeIfAbsent(group,ConfigGroup::new);
 
             // add to grid
             g.grid.getRowConstraints().add(new RowConstraints());
@@ -160,17 +163,17 @@ public final class Configurator extends ClassController implements ConfiguringFe
                 .sorted(byNC(ConfigGroup::name))
                 .forEach(g -> accordion.getPanes().add(g.pane));
         }
-        
+
         alignemnt.applyValue();
-        
+
     }
-    
+
     public void refreshConfigs() {
         configFields.forEach(ConfigField::refreshItem);
     }
 
 /******************************************************************************/
-    
+
     class ConfigGroup {
 
         final TitledPane pane = new TitledPane();
@@ -191,18 +194,16 @@ public final class Configurator extends ClassController implements ConfiguringFe
             ColumnConstraints gap = new ColumnConstraints(0);
             ColumnConstraints c2 = new ColumnConstraints(50,-1,-1,ALWAYS,LEFT,true);
             grid.getColumnConstraints().addAll(c1, gap, c2);
-
-            groups.put(name, this);
         }
 
         String name() {
             return pane.getText();
         }
-        
+
         void dispose() {
             pane.alignmentProperty().unbind();
         }
-        
+
 //        void autosize() {
 //            grid.getColumnConstraints().stream().mapToDouble(c->c.g)
 //        }

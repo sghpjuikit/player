@@ -24,6 +24,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import static javafx.scene.layout.Priority.ALWAYS;
+
 /**
  * Graphic utility methods.
  *
@@ -58,6 +60,24 @@ public class Util {
         VBox l = new VBox(gap);
              l.setAlignment(align);
              l.getChildren().addAll(nodes);
+        return l;
+    }
+
+    public static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
+        VBox l = layVertically(gap, align, header,content);
+        VBox.setVgrow(content,ALWAYS);
+        return l;
+    }
+
+    public static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
+        VBox l = layVertically(gap, align, content, header);
+        VBox.setVgrow(content,ALWAYS);
+        return l;
+    }
+
+    public static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
+        VBox l = layVertically(gap, align, headerTop, content, headerBottom);
+        VBox.setVgrow(content,ALWAYS);
         return l;
     }
 

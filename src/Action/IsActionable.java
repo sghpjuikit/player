@@ -11,6 +11,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
 import org.atteo.classindex.IndexAnnotated;
 
 /**
@@ -22,8 +23,8 @@ import org.atteo.classindex.IndexAnnotated;
  */
 @Documented
 @IndexAnnotated
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface IsActionable {
-    
+    String value() default "";
 }

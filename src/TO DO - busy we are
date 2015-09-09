@@ -3,11 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- ESCAPE presses must not collide, particularly clearing table selection, etc
 - ClassMaps should support concurrency if desired
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
-- actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
 - tagger spinner likes spinning forever, teach him
 - layout mode zoom animation use loop to increase smoothness
@@ -134,7 +132,7 @@ SOLVED (but the underlying cause still deserves attention)
 - Icon does not support disabled style (opacity 0.4). Thus it was added in css. (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
   style gets applied twice! javafx apparently applies the disabled state on the
-  graphics on its own!
+  graphics of Labelled on its own!
   workaround: when intended to be used as graphics, call embedded() method
   on the icon. it will set different styleclass disabling the disable style
 
@@ -149,7 +147,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
-- finish nextPlayingItem() & LoopMode thing. Better support with GUI
+- finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
+  order in random playorder
 - clean up classes in Var class hierarchy
 - window manager
 - window color overlay effect

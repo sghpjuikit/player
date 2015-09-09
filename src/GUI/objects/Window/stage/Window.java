@@ -434,7 +434,8 @@ public class Window extends WindowBase {
 
         // left header
 	leftHeaderBox.getChildren().addAll(
-            gitB, cssB, dirB, iconsB, new Label(" "),
+//            gitB, cssB, dirB, iconsB, new Label(" "),
+            new Label(" "),
             layB, propB, runB, lastFMB, new Label(" "),
             ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB
         );

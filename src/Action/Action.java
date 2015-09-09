@@ -139,8 +139,8 @@ public final class Action extends Config<Action> implements Runnable {
     /**
      * When the parameter is not valid parsable hotkey string, the hotkey will
      * not be able to be registered and used.
-     * @return true if and only if the keys for this action's hotkey have valid
-     * value and can be registered.
+     *
+     * @return true iff the keys for this action's hotkey have valid value and can be registered.
      */
     public boolean hasKeysAssigned() {
         return keys!=NO_MATCH;
@@ -271,13 +271,13 @@ public final class Action extends Config<Action> implements Runnable {
     private void changeKeys(String keys) {
         if(keys.isEmpty()) {
             this.keys = NO_MATCH;   // disable shortcut for empty keys
-            return;
-        }
-        try {
-            this.keys = KeyCombination.keyCombination(keys);
-        } catch (Exception e) {
-            log(this).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name,keys,e);
-            this.keys = NO_MATCH;   // disable shortcut for wrong keys
+        } else {
+            try {
+                this.keys = KeyCombination.keyCombination(keys);
+            } catch (Exception e) {
+                log(this).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name,keys,e);
+                this.keys = NO_MATCH;   // disable shortcut for wrong keys
+            }
         }
     }
 

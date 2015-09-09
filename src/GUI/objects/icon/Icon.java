@@ -196,7 +196,6 @@ public class Icon<I extends Icon> extends Text {
                 Text txt = s==null ? null : getFieldValue(s.getSkin(), Text.class, "text");
                 Node ico = s==null ? null : getFieldValue(s.getSkin(), Node.class, "graphic");
                 if(ico!=null && txt!=null) {
-
                     new Anim(millis(400), p -> {
                         double p2 = Anim.mapTo01(p, 0.4, 1);
                         txt.setTranslateX(20*p*p-20);

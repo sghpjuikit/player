@@ -110,6 +110,10 @@ import util.units.FileSize;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
@@ -782,12 +786,11 @@ public class App extends Application {
                     }
                 }
             ),
-            new FastAction<Void>(
-                "Show shortcuts",
-                "Display all available shortcuts on the screen",
-                KEYBOARD_VARIANT,
-                ignored -> showShortcuts()
-            )
+            new FastAction<Void>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+            new FastAction<Void>(GITHUB,Action.get("Open on github")),
+            new FastAction<Void>(CSS3,Action.get("Open css guide")),
+            new FastAction<Void>(IMAGE,Action.get("Open icon viewer")),
+            new FastAction<Void>(FOLDER,Action.get("Open app directory"))
         );
     }
 

@@ -6,6 +6,7 @@
 package gui.pane;
 
 import javafx.scene.effect.BoxBlur;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 
@@ -38,17 +39,23 @@ public class OverlayPane extends StackPane {
                 e.consume();
             }
         });
-        setOnKeyPressed(e -> {  // isnt quite working yet, something consuming ESCAPEs?
-            if(e.getCode()==ESCAPE && isShown()) {
+        addEventFilter(KeyEvent.ANY, e -> {
+            System.out.println("key det " + e.getCode());
+            if(e.getEventType()==KeyEvent.KEY_PRESSED && e.getCode()==ESCAPE && isShown()) {
                 hide();
-                e.consume();
             }
+            e.consume();
         });
+//        setOnKeyPressed(e -> {  // isnt quite working yet, something consuming ESCAPEs?
+//            if(e.getCode()==ESCAPE && isShown()) {
+//                hide();
+//                e.consume();
+//            }
+//        });
 
     }
 
     public void show() {
-        requestFocus();
         if(!isShown())
             animStart();
     }
@@ -80,6 +87,8 @@ public class OverlayPane extends StackPane {
         }
         // show
         setVisible(true);
+        requestFocus();
+//        setFocused(true);
         bgr = Window.getActive().content;
         Window.getActive().front.setEffect(blurback);
         Window.getActive().back.setEffect(blurback);

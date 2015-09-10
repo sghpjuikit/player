@@ -101,7 +101,7 @@ import static util.graphics.Util.setAnchors;
     group = APP
 )
 public class Converter extends ClassController implements SongWriter {
-    
+
     private final ObservableList source = FXCollections.observableArrayList();
     private final Ta ta_in = new Ta("In");
     private final ObservableList<Ta> tas = FXCollections.observableArrayList(ta_in);
@@ -109,17 +109,17 @@ public class Converter extends ClassController implements SongWriter {
     private final HBox outTFBox = new HBox(5);
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
-    
-    
+
+
     public Converter() {
         inputs.create("To convert", Object.class, this::setData);
-        
+
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
         getChildren().add(ll);
         setAnchors(ll,0d);
-        
+
         // behavior
         addEventHandler(DRAG_OVER,DragUtil.anyDragAccepthandler);
         setOnDragDropped(e -> {
@@ -127,26 +127,26 @@ public class Converter extends ClassController implements SongWriter {
             e.setDropCompleted(true);
             e.consume();
         });
-        
+
         // on source change run transformation
         source.addListener((Change change) -> {
             Class c = source.isEmpty() ? Void.class : source.get(0).getClass();
             applier.fillActs(c);
             transform();
         });
-        
+
         ta_in.onItemChange = lines -> {
             List<Ta> l = null;
             if(!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
                 List<SplitData> s = (List) ta_in.output;
                 List<String> names = s.get(0).stream().map(split->split.parse_key).collect(toList());
-                
+
                 List<List<String>> outs = list(names.size(), ArrayList::new);
                 s.forEach(splitdata -> forEachWithI(map(splitdata,split->split.split), (i,line)->outs.get(i).add(line)));
 
                 List<Ta> li = list(outs.size(), () -> new Ta(""));
                 forEachWithI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
-                
+
                 l = li;
                 l.add(0, ta_in);
                 tas.setAll(l);
@@ -154,16 +154,16 @@ public class Converter extends ClassController implements SongWriter {
                 l = listRO(ta_in);
                 tas.setAll(ta_in);
             }
-            
-            outTFBox.getChildren().setAll(map(l,Ta::getNode));    
+
+            outTFBox.getChildren().setAll(map(l,Ta::getNode));
         };
-        
+
         // init data
-        acts.accumulate(new Act<>("Rename files (with extension)", File.class, 1, list("Filename"), (file, data) -> {
+        acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Rename files (same extension)", File.class, 1, list("Filename"), (file, data) -> {
+        acts.accumulate(new Act<>("Rename files (ignore extension)", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFileNoSuffix(file, name);
         }));
@@ -184,11 +184,11 @@ public class Converter extends ClassController implements SongWriter {
         acts.accumulate(new WriteFileAct());
         applier.fillActs(Void.class);
     }
-    
+
     private void transform() {
         ta_in.setData(source);
     }
-    
+
     public void setData(Object o) {
         if(o instanceof String)
             source.setAll(split((String) o, "\n", x->x));
@@ -198,13 +198,13 @@ public class Converter extends ClassController implements SongWriter {
     }
 
 /******************************** features ************************************/
-    
+
     /** {@inheritDoc} */
     @Override
     public void read(List<? extends Item> items) {
         source.setAll(map(items,Item::toMeta));
     }
-    
+
 /******************************* helper classes *******************************/
 
     class Ta extends ListAreaNode {
@@ -240,7 +240,7 @@ public class Converter extends ClassController implements SongWriter {
         private final Icon okB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
             Act action = actCB.getValue();
             if(action==null) return;
-            
+
             if(action.isPartial()) {
                 boolean empty = source.isEmpty() || ins.vals().count()==0;
                 if(empty) return;
@@ -248,7 +248,7 @@ public class Converter extends ClassController implements SongWriter {
                 boolean in_out_type_match = true;//action.type.isInstance(source.get(0));
                 boolean same_size = equalBy(tas, ta->ta.getValue().size());
                 if(!in_out_type_match || !same_size) return;
-                
+
                 Map<String,List<String>> m = ins.vals().collect(toMap(in->in.name,in ->in.ta.getValue()));
                 for(int i=0; i<source.size(); i++)
                     action.actionPartial.accept(source.get(i), mapSlice(m,i));
@@ -258,7 +258,7 @@ public class Converter extends ClassController implements SongWriter {
             }
         });
         VBox root = new VBox(5, new StackPane(new Label("Action")),actCB, new StackPane(new Label("Apply", okB)));
-        
+
         public Applier() {
             actCB.valueProperty().addListener((o,ov,nv) -> {
                 if(ins!=null) root.getChildren().remove(ins.node());
@@ -269,7 +269,7 @@ public class Converter extends ClassController implements SongWriter {
                 if(n!=null) root.getChildren().add(3,n);
             });
         }
-        
+
         public void fillActs(Class c) {
             List<Act> l = acts.getElementsOfSuperV(c);
             actCB.getItems().setAll(l);
@@ -317,11 +317,11 @@ public class Converter extends ClassController implements SongWriter {
             this.names = () -> names;
             isNamesDeterminate = true;
         }
-        
+
         Node getNode() {
             return null;
         }
-        
+
         public boolean isPartial() {
             return actionPartial!=null;
         }
@@ -330,7 +330,7 @@ public class Converter extends ClassController implements SongWriter {
         Ѵ<String> nam = new Ѵ("new_file");
         Ѵ<String> ext = new Ѵ("txt");
         Ѵ<File> loc = new Ѵ(App.getLocation());
-            
+
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
             actionImpartial = data -> {
@@ -350,7 +350,7 @@ public class Converter extends ClassController implements SongWriter {
     class In {
         String name;
         Ta ta;
-        
+
         public In(String name, Ta ta) {
             this.name = name;
             this.ta = ta;
@@ -362,7 +362,7 @@ public class Converter extends ClassController implements SongWriter {
         ConfigField<String> configfieldA;
         ConfigField<Ta> configfieldB;
         HBox root;
-        
+
         public InPane(Supplier<Collection<String>> actions) {
             name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
             input = new VarEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
@@ -370,7 +370,7 @@ public class Converter extends ClassController implements SongWriter {
             configfieldB = ConfigField.create(Config.forProperty("", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
         }
-        
+
         @Override
         public In getValue() {
             return new In(configfieldA.getValue(), configfieldB.getValue());
@@ -401,11 +401,11 @@ public class Converter extends ClassController implements SongWriter {
         public Stream<In> vals() {
             return ins.getValuesC().stream().map(c -> new In(c.getConfig().getName(),c.getValue()));
         }
-        
+
     }
     class InsComplex implements Ins {
         ListConfigField<In, InPane> ins;
-        
+
         public InsComplex(Act a) {
             ins = new ListConfigField<>(() -> new InPane(a.names));
             ins.maxChainLength.set(a.max);

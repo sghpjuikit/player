@@ -6,7 +6,6 @@
 package gui.pane;
 
 
-import java.util.List;
 import java.util.Map.Entry;
 
 import javafx.event.Event;
@@ -31,6 +30,7 @@ import action.Action;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import util.access.Ѵ;
+import util.Ɽ;
 
 import static action.Action.getActions;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
@@ -106,32 +106,33 @@ public class ShortcutPane extends OverlayPane {
         g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
         // build rows
-        int i=-1;
-        for(Entry<String,List<Action>> e : getActions().stream()
-                                            .filter(a -> !hideEmpty.getValue() || a.hasKeysAssigned())
-                                            .sorted(by(Action::getGroup))
-                                            .collect(groupingBy(Action::getGroup))
-                                            .entrySet()) {
+        Ɽ<Integer> i = new Ɽ<>(-1);
+        getActions().stream()
+                    .filter(a -> !hideEmpty.getValue() || a.hasKeysAssigned())
+                    .collect(groupingBy(Action::getGroup))
+                    .entrySet().stream()
+                    .sorted(by(Entry::getKey))
+                    .peek(e -> e.getValue().sort(by(Action::getName)))
+                    .forEach(e -> {
             // group title row
-            i++;
+            i.setOf(v -> v+1);
             String group = e.getKey();
             Label groupl = new Label(group);
             maintain(groupl.fontProperty(), f -> { // set & maintain bold font
                if(!f.getStyle().toLowerCase().contains("bold"))
                    groupl.setFont(Font.font(f.getFamily(), FontWeight.BOLD, f.getSize()));
             });
-            g.add(layVertically(0,Pos.CENTER, new Label(), groupl), 2,i);
+            g.add(layVertically(0,Pos.CENTER, new Label(), groupl), 2,i.get());
             GridPane.setValignment(groupl.getParent(), VPos.CENTER);
             GridPane.setHalignment(groupl.getParent(), HPos.LEFT);
 
             // shortcut rows
-            e.getValue().sort(by(Action::getName));
             for(Action a : e.getValue()) {
-                i++;
-                g.add(new Label(a.getKeys()), 0,i);
-                g.add(new Label(a.getName()), 2,i);
+                i.setOf(v -> v+1);
+                g.add(new Label(a.getKeys()), 0,i.get());
+                g.add(new Label(a.getName()), 2,i.get());
             }
-        }
+        });
     }
 
 

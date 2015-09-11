@@ -12,7 +12,6 @@
 - filesize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo
 - implement smooth volume on seek
-- custom Log -> logback
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
 - improve app start+stop speed

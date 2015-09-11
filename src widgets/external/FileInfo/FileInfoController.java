@@ -63,6 +63,7 @@ import static util.async.executor.EventReducer.toLast;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.layAnchor;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 /**
  * File info widget controller.
@@ -230,6 +231,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                 e.consume();
             }
         });
+        installDragSignalPane(root);
     }
 
     @Override

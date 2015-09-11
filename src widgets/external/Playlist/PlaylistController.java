@@ -134,8 +134,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         // maybe this widget was created & no playlist exists, add it to list
         PlaylistManager.playlists.add(playlist); // if exists, nothing happens
         // when widget closes we must remove the playlist or it would get saved
-        // and playlist list would infinitely grow, when widgets close naturally
-        // on app close, the playlist will get removed after it was saved => no problem
+        // and playlist list would infinitely grow. When widgets close naturally
+        // on app close, the playlist will get removed after app state was saved => no problem
         d(() -> PlaylistManager.playlists.remove(playlist));
 
         // widget input/output

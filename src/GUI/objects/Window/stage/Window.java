@@ -53,6 +53,7 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
+import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -79,6 +80,7 @@ import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.*;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 import static util.reactive.Util.maintain;
 
 /**
@@ -325,6 +327,13 @@ public class Window extends WindowBase {
                 e.consume();
             }
 	});
+        root.setOnDragOver(DragUtil.anyDragAccepthandler);
+        root.setOnDragDropped(e -> {
+            App.actionPane.show(DragUtil.getAnyFut(e));
+            e.acceptTransferModes(TransferMode.ANY);
+            e.setDropCompleted(true);
+        });
+        installDragSignalPane(root);
 
 	// maintain custom pseudoclasses for .window styleclass
 	focused.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcFocused, nv));

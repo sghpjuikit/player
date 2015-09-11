@@ -136,7 +136,7 @@ public class ShortcutPane extends OverlayPane {
     }
 
 
-/************************************ CONTROLS ************************************/
+/************************************ HEADER ************************************/
 
     private final Icon helpI = createInfoIcon("Shortcut viewer"
         + "\n\n"

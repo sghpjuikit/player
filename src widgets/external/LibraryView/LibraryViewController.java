@@ -339,7 +339,7 @@ public class LibraryViewController extends FXMLController {
 
         // bug fix, without this line, which does exactly nothing,
         // mgs list contains nulls sometimes (no idea why)
-        util.functional.Util.toS(table.getSelectedItems(),Objects::toString);
+        table.getSelectedItems().stream().map(m->"").collect(toCSList);
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
@@ -361,9 +361,8 @@ public class LibraryViewController extends FXMLController {
             Object v = mgs.get(0).getValue();
             p = prim ? m -> m.getField(f)==v : m -> v.equals(m.getField(f));
         } else {
-            Set<Object> l = mgs.stream().map(mg->mg.getValue()).collect(toSet());
-            boolean prim = f.getType().isPrimitive();
-            p = prim ? m -> isInR(m.getField(f), l) : m -> l.contains(m.getField(f));
+            Set<?> l = mgs.stream().map(mg->mg.getValue()).collect(toSet());
+            p = m -> l.contains(m.getField(f));
         }
 
         // optimization : use parallel stream

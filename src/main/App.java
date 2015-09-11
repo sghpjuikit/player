@@ -109,18 +109,23 @@ import util.serialize.xstream.StringPropertyConverter;
 import util.units.FileSize;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.BRUSH;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static org.atteo.evo.inflector.English.plural;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
 import static util.Util.getEnumConstants;
@@ -287,6 +292,7 @@ public class App extends Application {
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
         className.add(MetadataGroup.class, "Song Group");
+        className.add(List.class, "List");
 
         // add optional object instance -> string converters
         instanceName.add(Void.class, o -> "none");
@@ -295,7 +301,7 @@ public class App extends Application {
         instanceName.add(Metadata.class,Metadata::getTitle);
         instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
         instanceName.add(Component.class, o -> o.getName());
-        instanceName.add(List.class, o -> String.valueOf(o.size()));
+        instanceName.add(List.class, o -> o.size() + " " + plural("item",o.size()));
         instanceName.add(File.class, File::getPath);
 
         // add optional object instance -> info string converters
@@ -340,6 +346,24 @@ public class App extends Application {
                     File dir = dc.showDialog(Window.getActive().getStage());
                     if(dir!=null) w.exportFxwl(dir);
             })
+        );
+        ActionPane.register(File.class,
+            new FastAction<File>("New playlist", "Add items to new playlist widget.",
+                PLAYLIST_PLUS,
+                f -> AudioFileFormat.isSupported(f, APP),
+                f -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFile(f))),
+            new FastAction<File>("Apply skin", "Apply skin on the application.",
+                BRUSH,
+                FileUtil::isValidSkinFile,
+                f -> GUI.setSkin(FileUtil.getName(f))),
+            new FastAction<File>("View image", "Opens image in an image browser widget.",
+                IMAGE,
+                ImageFileFormat::isSupported,
+                f -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImage(f))),
+            new FastAction<File>("Open widget", "Opens exported widget.",
+                IMPORT,
+                f -> f.getPath().endsWith(".fxwl"),
+                UiContext::launchComponent)
         );
 
         // initialize app parameter processor

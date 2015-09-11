@@ -32,6 +32,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 import static util.reactive.Util.maintain;
 
 /** FXMLController for widget. */
@@ -49,14 +50,14 @@ import static util.reactive.Util.maintain;
     group = Widget.Group.PLAYBACK
 )
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
-    
+
     @FXML AnchorPane root;
     @FXML HBox layout, controlBox, volBox;
     @FXML Slider volume;
     @FXML Label currTime, titleL, artistL;
     private Seeker seeker = new Seeker();
     private Icon prevB, playB, stopB, nextB, volB;
-    
+
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Ѵ<Boolean> showChapters = new Ѵ<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
@@ -69,26 +70,26 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
-    
-        
+
+
     @Override
     public void init() {
         PlaybackState ps = PLAYBACK.state;
-        
+
         // make volume
         volume.setMin(ps.volume.getMin());
         volume.setMax(ps.volume.getMax());
         volume.setValue(ps.volume.get());
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);
-        
+
         // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         d(seeker::dispose);
         d(maintain(GUI.snapDistance, d->d, seeker.chapSnapDist));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
-        
+
         // make icons
         prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);
         playB = new Icon(null, 14, null, PLAYBACK::pause_resume);
@@ -97,14 +98,14 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         controlBox.getChildren().addAll(prevB,playB,stopB,nextB);
         volB = new Icon(null, 14, null, PLAYBACK::toggleMute);
         volBox.getChildren().add(0,volB);
-        
+
         // monitor properties and update graphics + initialize
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
         d(maintain(ps.status, this::statusChanged));
         d(maintain(ps.currentTime,t->currentTimeChanged()));
-        d(Player.playingtem.onUpdate(this::playbackItemChanged));   
-        
+        d(Player.playingtem.onUpdate(this::playbackItemChanged));
+
         // drag & drop
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
         root.setOnDragDropped( e -> {
@@ -122,24 +123,25 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 }
             }
         });
+        installDragSignalPane(root);
     }
-    
+
     @Override
     public void refresh() { }
-    
+
 /******************************************************************************/
-        
+
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         currentTimeChanged();
     }
-    
+
     private void playbackItemChanged(Metadata m) {
         titleL.setText(m.getTitle());
         artistL.setText(m.getArtist());
         seeker.reloadChapters(m);
     }
-    
+
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {
             seeker.setDisable(true);
@@ -152,20 +154,20 @@ public class PlayerControlsTinyController extends FXMLController implements Play
             playB.icon(PLAY);
         }
     }
-    
+
     private void muteChanged(boolean mute, double vol) {
         volB.icon(mute ? VOLUME_OFF : vol>.5 ? VOLUME_UP : VOLUME_DOWN);
     }
-    
+
     private void currentTimeChanged() {
         // update label
         if (elapsedTime) {
             Duration elapsed = PLAYBACK.getCurrentTime();
-            currTime.setText(Util.formatDuration(elapsed));  
+            currTime.setText(Util.formatDuration(elapsed));
         } else {
             if (PLAYBACK.getTotalTime() == null) return;
             Duration remaining = PLAYBACK.getRemainingTime();
-            currTime.setText("- " + Util.formatDuration(remaining)); 
+            currTime.setText("- " + Util.formatDuration(remaining));
         }
     }
 }

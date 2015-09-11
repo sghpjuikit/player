@@ -41,6 +41,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.formatDuration;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 import static util.reactive.Util.maintain;
 
 
@@ -65,7 +66,7 @@ import static util.reactive.Util.maintain;
     group = Widget.Group.PLAYBACK
 )
 public class PlayerControlsController extends FXMLController implements PlaybackFeature {
-    
+
     @FXML AnchorPane entireArea;
     @FXML BorderPane controlPanel;
     @FXML GridPane soundGrid;
@@ -85,7 +86,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     Icon muteB = new GlowIcon(VOLUME_UP,15);
     Icon addB  = new GlowIcon(PLUS_SQUARE_ALT,10);
     Icon loopB = new GlowIcon(RANDOM,14);
-    
+
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Ѵ<Boolean> showChapters = new Ѵ<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
@@ -98,27 +99,27 @@ public class PlayerControlsController extends FXMLController implements Playback
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
-    
+
     @Override
     public void init() {
         PlaybackState ps = PLAYBACK.state;
-        
+
         // create balancer
         balance = new Balancer();
         soundGrid.add(balance, 1, 1);
         balance.setPrefSize(50,20);
-        
+
         balance.setMin(ps.balance.getMin());
         balance.setMax(ps.balance.getMax());
         balance.balanceProperty().bindBidirectional(ps.balance);
         d(balance.balanceProperty()::unbind);
-        
+
         volume.setMin(ps.volume.getMin());
         volume.setMax(ps.volume.getMax());
         volume.setValue(ps.volume.get());
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);
-        
+
         seeker.bindTime(ps.duration, ps.currentTime);
         d(seeker::dispose);
         entireArea.getChildren().add(seeker);
@@ -126,7 +127,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
         d(maintain(GUI.snapDistance, d->d ,seeker.chapSnapDist));
-        
+
         // create play buttons
         p1.setOnMouseClicked(e->rewind());
         f2.setOnMouseClicked(e->previous());
@@ -135,7 +136,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         f5.setOnMouseClicked(e->forward());
         f6.setOnMouseClicked(e->stop());
         playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
-        
+
         // addButton
         Tooltip.install(addB, new Tooltip("Add files or folder\n\nUse left for files and right click for directory."));
         addB.setOnMouseClicked(e-> {
@@ -147,16 +148,16 @@ public class PlayerControlsController extends FXMLController implements Playback
         entireArea.getChildren().add(addB);
         AnchorPane.setTopAnchor(addB, 5d);
         AnchorPane.setLeftAnchor(addB, 5d);
-        
+
         // loopmode
         loopB.setOnMouseClicked(this::cycleLoopMode);
         loopB.setScaleX(1.3); // scale horizontally a bit to get non-rectangle icon
         infoBox.getChildren().add(1, loopB);
-        
+
         // volume button
         muteB.setOnMouseClicked(e->cycleMute());
         soundGrid.add(muteB, 0, 0);
-     
+
         // set gui updating
         d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingtem.get());              // init value
@@ -166,7 +167,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         d(maintain(ps.loopMode, this::loopModeChanged));
         d(maintain(ps.mute, v -> muteChanged(v, ps.volume.get())));
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
-        
+
         // drag & drop
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         entireArea.setOnDragDropped( e -> {
@@ -183,13 +184,14 @@ public class PlayerControlsController extends FXMLController implements Playback
                 });
             }
         });
+        installDragSignalPane(entireArea);
     }
-    
+
     @Override
     public void refresh() { }
-    
+
 /******************************************************************************/
-    
+
     private void playFile(File file) {
          PlaylistManager.use(p -> {
              p.addUri(file.toURI());
@@ -199,47 +201,47 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML private void play_pause() {
          PLAYBACK.pause_resume();
     }
-    
+
     @FXML private void stop() {
          PLAYBACK.stop();
     }
-    
+
     @FXML private void next() {
         PlaylistManager.playNextItem();
     }
-    
+
     @FXML private void previous() {
         PlaylistManager.playPreviousItem();
     }
-    
+
     @FXML private void forward() {
         PLAYBACK.seekForward();
     }
-    
+
     @FXML private void rewind() {
         PLAYBACK.seekBackward();
     }
-    
+
     private void cycleLoopMode(MouseEvent e) {
         if(e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
         if(e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
     }
-    
+
     @FXML private void cycleMute() {
         PLAYBACK.toggleMute();
     }
-    
+
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         timeChanged();
     }
 
-    
+
     // for example to prevent dragging application on some areas
     @FXML private void consumeMouseEvent(MouseEvent event) {
         event.consume();
     }
-    
+
     private void playingItemChanged(Metadata nv) {
         titleL.setText(nv.getTitle());
         artistL.setText(nv.getArtist());
@@ -248,7 +250,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         channelsL.setText(nv.getChannels());
         seeker.reloadChapters(nv);
     }
-    
+
     private void statusChanged(Status newStatus) {
         if (newStatus == null || newStatus == Status.UNKNOWN ) {
             controlPanel.setDisable(true);
@@ -257,7 +259,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         } else {
             controlPanel.setDisable(false);
             seeker.setDisable(false);
-            status.setText(newStatus.toString()); 
+            status.setText(newStatus.toString());
 
             if (newStatus == Status.PLAYING) {
                 f3.setIcon(PAUSE);
@@ -266,7 +268,7 @@ public class PlayerControlsController extends FXMLController implements Playback
             }
         }
     }
-    
+
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
             case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
@@ -283,7 +285,7 @@ public class PlayerControlsController extends FXMLController implements Playback
                             break;
         }
     }
-    
+
     private void muteChanged(boolean mute, double valume) {
         if (mute) {
             muteB.setIcon(VOLUME_OFF);
@@ -295,12 +297,12 @@ public class PlayerControlsController extends FXMLController implements Playback
     private void timeChanged() {
         if (elapsedTime) {
             Duration elapsed = PLAYBACK.getCurrentTime();
-            currTime.setText(Util.formatDuration(elapsed));  
+            currTime.setText(Util.formatDuration(elapsed));
         } else {
             Duration remaining = PLAYBACK.getRemainingTime();
-            currTime.setText("- " + Util.formatDuration(remaining)); 
+            currTime.setText("- " + Util.formatDuration(remaining));
         }
         realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     }
-    
+
 }

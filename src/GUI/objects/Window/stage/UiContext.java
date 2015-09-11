@@ -40,7 +40,7 @@ import static util.dev.Util.noØ;
  */
 @IsConfigurable
 public final class UiContext {
-    
+
 /********************************************** CLICK *********************************************/
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
@@ -48,43 +48,43 @@ public final class UiContext {
     private static double x;
     private static double y;
     private static final Set<ClickHandler> onClicks = new HashSet<>();
-    
-    /** 
-     * Handles mouse click anywhere in the application. Receives event source window 
+
+    /**
+     * Handles mouse click anywhere in the application. Receives event source window
      * as additional parameters next to the event.
      */
     public static Subscription onClick(ClickHandler h) {
         onClicks.add(h);
-        return () -> onClicks.remove(h); 
+        return () -> onClicks.remove(h);
     }
-    
+
     /** Simple version of {@link #onClick(ClickHandler)} with no extra parameter. */
     public static Subscription onClick(EventHandler<MouseEvent> h) {
         return onClick((w,e) -> h.handle(e));
     }
-    
+
     /** Fires an even for {@link #onClick(ClickHandler)}*/
     public static void fireAppMouseClickEvent(Window w, MouseEvent e) {
         onClicks.forEach(h -> h.handle(w,e));
     }
 
     /** Set last mouse press screen coordinatea. */
-    static void setPressedXY(double screenX, double screenY) { 
+    static void setPressedXY(double screenX, double screenY) {
         x = screenX;
         y = screenY;
     }
-    
+
     /** Get last mouse press screen x coordinate. */
     public static double getX() {
         return Window.getActive().getX()+x;
     }
-    
+
     /** Get last mouse press screen y coordinate. */
     public static double getY() {
         return Window.getActive().getY()+y;
     }
-    
-    /** 
+
+    /**
      * @param widget widget to open, does nothing when null.
      */
     public static Window showWindow(Component widget) {
@@ -96,10 +96,10 @@ public final class UiContext {
                w.centerOnScreen();
         return w;
     }
-    
+
     public static PopOver showFloating(Widget w) {
         noØ(w);
-        
+
         // build popup content
         Icon propB = new Icon(COGS,12,"Settings", e -> {
                   showSettings(w, (Node)e.getSource());
@@ -127,23 +127,23 @@ public final class UiContext {
                 p.setAutoHide(true);
                 p.show(n);
     }
-    
+
     public static PopOver showFloating(Node content, String title) {
         noØ(content);
         noØ(title);  // we could use null, but disallow
-        
+
         PopOver p = new PopOver(content);
                 p.title.set(title);
                 p.setAutoFix(false);
                 p.show(Window.getActive().getStage(),getX(),getY());
         return p;
     }
-    
+
     public static void launchComponent(File launcher) {
         try {
             WidgetFactory wf = null;
             Component w = null;
-            
+
             // simple launcher version, contains widget name on 1st line
             String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
             wf = WidgetManager.getFactory(wn);
@@ -154,7 +154,7 @@ public final class UiContext {
                 try {
                     w = (Component) App.INSTANCE.serialization.x.fromXML(launcher);
                 } catch (ClassCastException | StreamException ignored) {
-                    LOGGER.error("Could onot load .fxwl {}", launcher);
+                    LOGGER.error("Could not load .fxwl {}", launcher);
                 }
             }
 
@@ -173,20 +173,20 @@ public final class UiContext {
                     showWindow(w);
                 }
             }
-        }catch(Exception x) { 
+        }catch(Exception x) {
             LOGGER.error("Could not load component from file {}", launcher,x);
         }
     }
-    
-/******************************************************************************/   
-    
+
+/******************************************************************************/
+
     public static WritableImage makeSnapshot(Node n) {
         return n.snapshot(new SnapshotParameters(), null);
     }
-    
-    
+
+
     public static interface ClickHandler {
         void handle(Window w, MouseEvent e);
     }
-    
+
 }

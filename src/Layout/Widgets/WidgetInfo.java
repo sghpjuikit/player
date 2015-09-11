@@ -18,7 +18,7 @@ import static util.functional.Util.toS;
  * @author Plutonium_
  */
 public interface WidgetInfo {
-    
+
     /**
      * Name of the widget. "" by default.
      */
@@ -82,16 +82,21 @@ public interface WidgetInfo {
 
     /** @return widget group. Default {@link Widget.Group.UNKNOWN} */
     Widget.Group group();
-    
+
     /** Exact type of the widget. Denotes widget's controller type. */
     Class type();
-    
+
     /** @return all implemented features */
     List<Feature> getFeatures();
-    
-    /** @return true if widget's controller implements given feature */
+
+    /** @return true if widget's controller implements feature of given type */
     boolean hasFeature(Class feature);
-    
+
+    /** @return true if widget's controller implements given feature */
+    public default boolean hasFeature(Feature feature) {
+        return hasFeature(feature.type());
+    }
+
     /** @return true if widget's controller implements all given features */
     default boolean hasFeatures(Class... features){
         return stream(features).allMatch(this::hasFeature);
@@ -108,11 +113,11 @@ public interface WidgetInfo {
              + (notes().isEmpty() ? "" : notes() + "\n")
              + (howto().isEmpty() ? "" : howto()  + "\n")
              + "Features:"
-             + (fs.isEmpty() ? "\n\tnone" 
+             + (fs.isEmpty() ? "\n\tnone"
                              : toS(fs, f -> "\n\t" + f.name() + " - " + f.description()));
-        
+
         return info;
     }
 
-    
+
 }

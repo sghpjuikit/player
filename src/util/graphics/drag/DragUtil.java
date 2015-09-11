@@ -9,13 +9,10 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.event.EventHandler;
-import javafx.scene.Parent;
-import javafx.scene.control.Label;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 
 import AudioPlayer.Item;
 import AudioPlayer.SimpleItem;
@@ -23,26 +20,22 @@ import AudioPlayer.playlist.Playlist;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.controller.io.Output;
+import de.jensd.fx.glyphs.GlyphIcons;
 import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
-import util.SingleⱤ;
 import util.async.future.Fut;
-import util.dev.Dependency;
-import util.Ɽ;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
 import static javafx.scene.input.DataFormat.FILES;
-import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
-import static util.graphics.Util.bgr;
 
 /**
  *
@@ -52,58 +45,8 @@ public final class DragUtil {
 
 /********************************** drag signal pane **************************/
 
-    private static final Ɽ<Pane> DRAGPANE = new SingleⱤ<Pane,Void>(() -> {
-        Pane p = new StackPane(new Label("Drag"));
-             p.setBackground(bgr(new javafx.scene.paint.Color(0,0,0,0.5)));
-             p.setMouseTransparent(true);
-        return p;
-    });
-    private static final String DRAG_ACTIVE = "DRAG";
-    private static final String DRAG_INSTALLED = "DRAG_INSTALLED";
-
-    @Dependency("param must be pane")
-    public static final void installDragSignalPane(Pane r) { // Pane required!
-        r.getProperties().put(DRAG_INSTALLED, DRAG_INSTALLED);
-        r.addEventHandler(DragEvent.DRAG_ENTERED, e -> {
-            Pane dp = DRAGPANE.get();
-            if(!r.getChildren().contains(dp))
-                r.getChildren().add(dp);
-            double w = r.getLayoutBounds().getWidth();
-            double h = r.getLayoutBounds().getHeight();
-            dp.setMaxSize(w,h);
-            dp.setPrefSize(w,h);
-            dp.setMinSize(w,h);
-            dp.resizeRelocate(0,0,w,h);
-            dp.toFront();
-        });
-        r.addEventHandler(DRAG_EXITED, e -> {
-            r.getChildren().remove(DRAGPANE.get());
-
-            Parent p = r.getParent();
-            do {
-                // do not rely on Pane.isHover() !
-                boolean hover = p.localToScene(p.getLayoutBounds()).contains(e.getSceneX(),e.getSceneY());
-                if(p.getProperties().containsKey(DRAG_INSTALLED) && hover) {
-                    Pane dp = DRAGPANE.get();
-                    if(!p.getChildrenUnmodifiable().contains(dp))
-                        ((Pane)p).getChildren().add(dp);    // the cast is safe
-                    double w = p.getLayoutBounds().getWidth();
-                    double h = p.getLayoutBounds().getHeight();
-                    dp.setMaxSize(w,h);
-                    dp.setPrefSize(w,h);
-                    dp.setMinSize(w,h);
-                    dp.resizeRelocate(0,0,w,h);
-                    dp.toFront();
-                    break;
-                }
-                p = p.getParent();
-            }while(p!=null);
-        });
-//        r.hoverProperty().addListener((o,ov,nv) -> {
-//            if(!nv) {
-//                r.getChildren().remove(DRAGPANE.get());
-//            }
-//        });
+    public static final void installDragSignalPane(Pane r, GlyphIcons icon, String name) {
+        DragPane.installDragSignalPane(r, icon, name);
     }
 
 /******************************* data formats *********************************/

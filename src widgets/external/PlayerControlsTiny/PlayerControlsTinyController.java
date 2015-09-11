@@ -29,6 +29,7 @@ import util.access.Ѵ;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.materialicons.MaterialIcon.PLAYLIST_ADD;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
@@ -123,7 +124,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 }
             }
         });
-        installDragSignalPane(root);
+        installDragSignalPane(root, PLAYLIST_ADD,"Add to active playlist");
     }
 
     @Override

@@ -34,7 +34,6 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
-import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
@@ -259,7 +258,7 @@ public class Icon<I extends Icon> extends Text {
 
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
-        return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
+        return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class)//,MaterialIcon.class)
                 .flatMap(c -> stream(getEnumConstants(c)))
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
                 .findFirst().orElseGet(this::getDefaultGlyph);

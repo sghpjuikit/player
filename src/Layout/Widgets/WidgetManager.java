@@ -20,11 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import Layout.LayoutManager;
 import Layout.Widgets.controller.Controller;
+import Layout.Widgets.feature.Feature;
 import gui.objects.Window.stage.UiContext;
 import main.App;
 import util.File.FileUtil;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Handles operations with Widgets.
@@ -34,7 +36,7 @@ public final class WidgetManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
 
     /** Collection of registered Widget Factories. Non null, unique.*/
-    static final Map<String,WidgetFactory> factories = new HashMap<>();
+    static final Map<String,WidgetFactory<?>> factories = new HashMap<>();
 
     public static <T extends Node & Controller> void initialize() {
         // register internal
@@ -47,7 +49,7 @@ public final class WidgetManager {
     /**
      * @return read only list of registered widget factories
      */
-    public static Stream<WidgetFactory> getFactories() {
+    public static Stream<WidgetFactory<?>> getFactories() {
         return factories.values().stream();
     }
 
@@ -82,6 +84,9 @@ public final class WidgetManager {
         return factories.get(name);
     }
 
+    public static Stream<Feature> getFeatures() {
+        return getFactories().flatMap(f -> f.getFeatures().stream()).distinct();
+    }
 
 /******************************************************************************/
 

@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- css for dragpane
+- some icon fonts do not load correctly, probably due to the lookup
 - ClassMaps should support concurrency if desired
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
@@ -15,9 +17,8 @@
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
 - improve app start+stop speed
-- converter add input area & display type of object
+- converter & ActionPane improve collection support & collection element display
 - LastFM -> service
-- DB -> service
 - global shourtcuts -> service
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will 
   start playing playlist selected song too...
@@ -74,7 +75,7 @@ GENERAL
   - the current time value (and seeker position) is shifted
 - Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
 - variable bitrate oggs not playing
-- dragOver event is alled repeatedly, we cant use just any code in there
+- dragOver event is called repeatedly, we cant use just any code in there
   (like Fut, which oddly gets computed immediately when created)
 - Fut computed on creation? see above, investigate
 - investigate how to properly remove image scaling artifacts                    (minor)
@@ -143,13 +144,10 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - i think time has come to say goodbye to PlaylistItem, use Metadata instead
   this is a big thing though, maybe impossible (playlist serialization for instance)
 - item->metadata
-- popover investigate default NodeOwner and windowOwner and default move with   
-  functionality provided in house by javaFX. I might have reinvented the wheel
-  a bit here. It is questionable whether it is worth the effort
+- cleanup PopOver positioning
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
   order in random playorder
-- clean up classes in Var class hierarchy
-- window manager
+- unify & clean up Var, Ref, SingleRef
 - window color overlay effect
 - tab area
 - generic FileType class, particularly need separation on 'groups' like

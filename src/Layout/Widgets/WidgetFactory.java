@@ -17,7 +17,7 @@ import Layout.Widgets.feature.Feature;
  */
 @Widget.Info // empty widget info with default values
 public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
-    
+
     final String name;
     final String gui_name;
     final String description;
@@ -29,18 +29,18 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     final String year;
     final String notes;
     final Widget.Group group;
-    
+
     private final Class<?> controller_class;
-    
+
     /** Whether this factory will be preferred over others of the same group. */
     boolean preferred = false;
     /** Whether this factory will be ignored on widget requests. */
     boolean ignored = false;
-    
+
     /**
      * Implementation note: this constructor must be called from every extending
      * class' constructor with super().
-     * 
+     *
      * @param name name of widget this factory will create
      * @param c class of the controller of the widget this factory will create.
      * There are no restrictions here, but other factories might impose some.
@@ -53,12 +53,12 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         // init name
         this.name = name;
         this.controller_class = c;
-        
+
         // init info
             // grab Controller's class and its annotation or get default
         Widget.Info i = c.getAnnotation(Widget.Info.class);
         if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
-        
+
         gui_name = i.name().isEmpty() ? name : i.name();
         description = i.description();
         version = i.version();
@@ -70,7 +70,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         notes = i.notes();
         group = i.group();
     }
-    
+
     /**
      * Calls {@link #WidgetFactory(java.lang.String, java.lang.Class)} with
      * name derived from the class. If {@link Widget.Info} annotation is present
@@ -81,26 +81,26 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     public WidgetFactory(Class<?> c) {
         this(getNameFromAnnotation(c), c);
     }
-    
+
     private static String getNameFromAnnotation(Class<?> c) {
         Widget.Info i = c.getAnnotation(Widget.Info.class);
         return i==null ? c.getSimpleName() : i.name();
     }
-    
+
     /**
      * Creates new widget.
      * @return new widget instance or null if creation fails.
      */
     abstract public W create();
-    
+
     public String getName() {
         return name;
     }
-    
+
     protected Class getControllerClass() {
         return controller_class;
     }
-    
+
     /** {@see #preffered} */
     public boolean isPreferred() {
         return preferred;
@@ -117,8 +117,8 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     public void setIgnored(boolean val) {
         ignored = val;
     }
-    
-    
+
+
      /**
      * Registers widget factory. Only registered factories can
      * create widgets.
@@ -130,7 +130,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     void register() {
         if (!isRegistered()) WidgetManager.factories.put(name,this);
     }
-    
+
     /** @return true if the factory is already registered. */
     public boolean isRegistered() {
         return WidgetManager.factories.containsKey(name);
@@ -184,7 +184,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     public boolean hasFeature(Class feature) {
         return feature.isAssignableFrom(controller_class);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public List<Feature> getFeatures() {
@@ -195,5 +195,5 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         }
         return out;
     }
-    
+
 }

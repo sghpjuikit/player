@@ -38,6 +38,7 @@ import util.graphics.drag.DragUtil;
 
 import static AudioPlayer.tagging.Metadata.Field.BITRATE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.materialicons.MaterialIcon.PLAYLIST_ADD;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.formatDuration;
@@ -184,7 +185,7 @@ public class PlayerControlsController extends FXMLController implements Playback
                 });
             }
         });
-        installDragSignalPane(entireArea);
+        installDragSignalPane(entireArea, PLAYLIST_ADD,"Add to active playlist");
     }
 
     @Override

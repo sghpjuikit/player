@@ -6,21 +6,23 @@
 
 package gui.objects.Pickers;
 
-import Layout.Widgets.WidgetFactory;
-import Layout.Widgets.WidgetManager;
 import javafx.scene.control.Tooltip;
 
+import Layout.Widgets.WidgetFactory;
+import Layout.Widgets.WidgetManager;
+
 /** Widget factory picker. */
-public class WidgetPicker extends Picker<WidgetFactory>{
+public class WidgetPicker extends Picker<WidgetFactory<?>>{
 
     public WidgetPicker() {
         super();
         itemSupply = WidgetManager::getFactories;
         textCoverter = WidgetFactory::name;
         cellFactory = cellFactory.andApply((w,cell) -> {
-            if(!w.description().isEmpty())
-                Tooltip.install(cell, new Tooltip(w.description()));
+            Tooltip t = new Tooltip(w.toStr());
+                    t.setMaxWidth(300);
+            Tooltip.install(cell, new Tooltip(w.toStr()));
         });
     }
-    
+
 }

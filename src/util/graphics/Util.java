@@ -18,6 +18,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -63,18 +64,42 @@ public class Util {
         return l;
     }
 
+    /**
+     * Vertical layout where content takes as much vertical space as possible. Header at the top
+     * shrinks to its content.
+     * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
+     * to {@link javafx.scene.layout.Priority#ALWAYS}.
+     * <p>
+     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     */
     public static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
         VBox l = layVertically(gap, align, header,content);
         VBox.setVgrow(content,ALWAYS);
         return l;
     }
 
+    /**
+     * Vertical layout where content takes as much vertical space as possible. Header at the bottom
+     * shrinks to its content.
+     * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
+     * to {@link javafx.scene.layout.Priority#ALWAYS}.
+     * <p>
+     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     */
     public static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
         VBox l = layVertically(gap, align, content, header);
         VBox.setVgrow(content,ALWAYS);
         return l;
     }
 
+    /**
+     * Vertical layout where content takes as much vertical space as possible. Headers at the top
+     * and bottom shrink to their content.
+     * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
+     * to {@link javafx.scene.layout.Priority#ALWAYS}.
+     * <p>
+     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     */
     public static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
         VBox l = layVertically(gap, align, headerTop, content, headerBottom);
         VBox.setVgrow(content,ALWAYS);

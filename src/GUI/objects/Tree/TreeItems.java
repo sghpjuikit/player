@@ -42,10 +42,12 @@ import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.feature.ConfiguringFeature;
+import Layout.Widgets.feature.Feature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import main.App;
+import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
 
@@ -63,71 +65,72 @@ import static util.functional.Util.*;
  * @author Plutonium_
  */
 public class TreeItems {
-    
-    
+
     public static TreeItem<? extends Object> tree(Object o) {
         if(o instanceof TreeItem)       return (TreeItem)o;
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
-        if(o instanceof WidgetFactory)  return new STreeItem(o,()->Stream.empty());
-        if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o));
-        if(o instanceof WidgetSource)   return new STreeItem(o,()->WidgetManager.findAll((WidgetSource)o));
+        if(o instanceof WidgetFactory)  return new TreeItem<>(o);
+        if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
+        if(o instanceof WidgetSource)   return new STreeItem(o,()->WidgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
+        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> WidgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.name())));
         if(o instanceof Container)      return new LayoutItem((Component)o);
         if(o instanceof File)           return new FileTreeItem((File)o);
         if(o instanceof Node)           return new NodeTreeItem((Node)o);
         if(o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
         return new TreeItem<>(o);
     }
-    
+
     public static TreeItem<Object> tree(Object v, Object... children) {
         TreeItem t = new TreeItem();
         t.setValue(v);
         t.getChildren().addAll(trees(children));
         return t;
     }
-    
+
     public static TreeItem<Object> tree(Object v, List<? extends Object> cs) {
         return new SimpleTreeItem(v,cs.stream());
     }
-    
+
     public static TreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
         return new STreeItem(v, cs);
     }
-    
+
     public static TreeItem<Object> treeApp() {
         TreeItem widgetT = tree("Widgets",
                      tree("Categories", (List)list(Widget.Group.values())),
-                     tree("Types", () -> WidgetManager.getFactories()),
-                     tree("Open", (List)list(ANY,LAYOUT,STANDALONE))
+                     tree("Types", () -> WidgetManager.getFactories().sorted(by(f -> f.name()))),
+                     tree("Open", (List)list(ANY,LAYOUT,STANDALONE)),
+                     tree("Features", () -> WidgetManager.getFeatures().sorted(by(f -> f.name())))
                    );
         return tree("App",
                  tree("Behavior",
                    widgetT,
-                   tree("Services", () -> App.services.getAllServices())
+                   tree("Services", () -> App.services.getAllServices().sorted(by(s -> ClassName.of(s.getClass()))))
                  ),
                  tree("UI",
                    widgetT,
                    tree("Windows", () -> Window.windows.stream()),
-                   tree("Layouts", () -> LayoutManager.getLayouts())
+                   tree("Layouts", () -> LayoutManager.getLayouts().sorted(by(l -> l.getName())))
                  ),
                  tree("Location", listFiles(App.getLocation())),
                  tree("File system", map(File.listRoots(),FileTreeItem::new))
                );
     }
-    
+
     public static List<TreeItem<? extends Object>> trees(Object... children) {
         return (stream(children).map(TreeItems::tree).collect(toList()));
     }
-    
+
     public static List<TreeItem<? extends Object>> trees(Collection<Object> children) {
         return children.stream().map(TreeItems::tree).collect(toList());
     }
-    
+
     public static List<TreeItem<? extends Object>> trees(Stream<? extends Object> children) {
         return children.map(TreeItems::tree).collect(toList());
     }
-    
+
 /**************************************************************************************************/
-    
+
     public static TreeCell<Object> buildTreeCell(TreeView<Object> t) {
         return new TreeCell<Object>(){
             {
@@ -164,7 +167,7 @@ public class TreeItems {
             }
         };
     }
-    
+
     public static void doOnDoubleClick(Object o) {
         if(o instanceof Configurable) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
         if(o instanceof Node) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(toC(o)));
@@ -173,10 +176,10 @@ public class TreeItems {
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
         }
     }
-    
+
     public static void doOnSingleClick(Object o) {
     }
-    
+
     public static void showMenu(Object o, TreeView<Object> t, Node n, MouseEvent e) {
         if(o instanceof File) {
             List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c->c.getValue() instanceof File, c->(File)c.getValue());
@@ -194,9 +197,9 @@ public class TreeItems {
             m.show(n, e);
         }
     }
-    
+
     private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu();
-    
+
     static{
         m.getItems().addAll(
             menuItem("Open", e -> {
@@ -219,8 +222,8 @@ public class TreeItems {
         );
     }
 
-    
-    
+
+
     public static class SimpleTreeItem extends TreeItem<Object> {
 
         public SimpleTreeItem(Object v, Stream<? extends Object> children) {
@@ -238,12 +241,12 @@ public class TreeItems {
         private boolean isFirstTimeChildren = true;
         private boolean isFirstTimeLeaf = true;
         private boolean isLeaf; // cache
-        
+
         public STreeItem(Object v, Supplier<Stream<? extends Object>> cs) {
             super(v);
             s = cs;
         }
-        
+
         @Override
         public ObservableList<TreeItem<Object>> getChildren() {
             if (isFirstTimeChildren) {
@@ -269,21 +272,21 @@ public class TreeItems {
         public WidgetItem(Widget v) {
             super(v, () -> Stream.empty());
         }
-        
+
     }
     public static class LayoutItem extends STreeItem {
 
         public LayoutItem(Component v) {
             super(v, v instanceof Container ? () -> ((Container)v).getChildren().values().stream() : () -> Stream.empty());
         }
-        
+
     }
     public static class FileTreeItem extends TreeItem<File> {
-        
+
         private boolean isLeaf;
         private boolean isFirstTimeChildren = true;
         private boolean isFirstTimeLeaf = true;
-        
+
         public FileTreeItem(File value) {
             super(value);
         }
@@ -325,7 +328,7 @@ public class TreeItems {
         public NodeTreeItem(Node value) {
             super(value);
         }
-        
+
         private boolean isLeaf;
         private boolean isFirstTimeChildren = true;
         private boolean isFirstTimeLeaf = true;
@@ -334,7 +337,7 @@ public class TreeItems {
             if (isFirstTimeChildren) {
                 isFirstTimeChildren = false;
 
-                // First getChildren() call, so we actually go off and 
+                // First getChildren() call, so we actually go off and
                 // determine the children of the File contained in this TreeItem.
                 super.getChildren().setAll(buildChildren(this));
             }
@@ -363,7 +366,7 @@ public class TreeItems {
             return out;
         }
     }
-    
+
     public static Stream strm(Object o, Stream t) {
         return Stream.concat(Stream.of(o), t);
     }

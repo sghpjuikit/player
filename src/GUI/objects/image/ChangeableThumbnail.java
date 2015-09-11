@@ -19,6 +19,7 @@ import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
@@ -93,7 +94,7 @@ public class ChangeableThumbnail extends Thumbnail {
                 e.consume();
             }
         });
-        installDragSignalPane(root);
+        installDragSignalPane(root, DETAILS,"Display");
     }
 
     private void highlight(boolean v) {

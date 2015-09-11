@@ -59,6 +59,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMAGE_ALBUM;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
 import static gui.objects.Window.Resize.*;
@@ -333,7 +334,7 @@ public class Window extends WindowBase {
             e.acceptTransferModes(TransferMode.ANY);
             e.setDropCompleted(true);
         });
-        installDragSignalPane(root);
+        installDragSignalPane(root, IMAGE_ALBUM,"Display");
 
 	// maintain custom pseudoclasses for .window styleclass
 	focused.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcFocused, nv));

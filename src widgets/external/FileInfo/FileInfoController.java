@@ -44,6 +44,7 @@ import util.graphics.drag.DragUtil;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import static Layout.Widgets.Widget.Group.OTHER;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
@@ -231,7 +232,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                 e.consume();
             }
         });
-        installDragSignalPane(root);
+        installDragSignalPane(root, DETAILS,"Display");
     }
 
     @Override

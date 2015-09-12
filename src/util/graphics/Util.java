@@ -18,7 +18,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -187,5 +187,17 @@ public class Util {
                 etarget.removeEventHandler(etype, this);
             }
         });
+    }
+
+    public static void removeFromParent(Node parent, Node child) {
+        if(parent==null|| child==null) return;
+        if(parent instanceof Pane) {
+            ((Pane)parent).getChildren().remove(child);
+        }
+    }
+    
+    public static void removeFromParent(Node child) {
+        if(child==null) return;
+        removeFromParent(child.getParent(),child);
     }
 }

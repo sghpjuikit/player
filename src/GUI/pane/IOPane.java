@@ -40,6 +40,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.*;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 /**
  <p>
@@ -114,12 +115,12 @@ public class IOPane extends StackPane {
                 DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
                 e.consume();
             });
-            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
-            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
+//            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
+//            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
 
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
             o.monitor(v -> App.use(ClickEffect.class, c -> {
-                if(!gui.GUI.isLayoutMode())
+                if(gui.GUI.isLayoutMode())
                     c.run(getSceneXY());
             }));
         }
@@ -165,6 +166,11 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
+            installDragSignalPane(i, null, "", e -> {
+                if(DragUtil.hasWidgetOutput()) return true;
+                Object o = DragUtil.hasComponent() ? DragUtil.getComponent().child : DragUtil.getAny(e);
+                return (in.getType().isAssignableFrom(o.getClass()));
+            });
 
             t.setText(iToStr(input));
         }
@@ -209,11 +215,12 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
+            installDragSignalPane(i, null, "", e -> DragUtil.hasWidgetOutput());
 
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
             o.monitor(v -> App.use(ClickEffect.class, c -> {
-                if(!gui.GUI.isLayoutMode())
+                if(gui.GUI.isLayoutMode())
                     c.run(getSceneXY());
             }));
         }

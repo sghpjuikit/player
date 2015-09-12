@@ -34,6 +34,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
@@ -159,6 +160,7 @@ public class Icon<I extends Icon> extends Text {
 /********************************* FLUENT API *********************************/
 
     public I icon(GlyphIcons i) {
+        glyph = i;
         setIcon(i);
         return (I)this;
     }
@@ -255,13 +257,19 @@ public class Icon<I extends Icon> extends Text {
 /******************************************************************************/
 
 
-
+    GlyphIcons glyph = null;    // cache
+    // the problem is the name is not necessarily unique across different fonts
+    // however the cache already guarantees correct icon when loading programmatically
+    // css however remains a problem, should be reimplemented
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
-        return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class)//,MaterialIcon.class)
+        if(glyph==null || !glyph.name().equalsIgnoreCase(n)) {
+            glyph = (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
                 .flatMap(c -> stream(getEnumConstants(c)))
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
                 .findFirst().orElseGet(this::getDefaultGlyph);
+        }
+        return glyph;
     }
 
 

@@ -45,6 +45,8 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.async.executor.FxTimer;
 
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -59,6 +61,7 @@ import static org.reactfx.EventStreams.changesOf;
 import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
+import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
 import static util.reactive.Util.sizeOf;
 
@@ -271,8 +274,9 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
 /******************************* BOTTOM CONTROLS ******************************/
 
-    public final Menu menuAdd = new Menu("", new Icon(FontAwesomeIcon.PLUS).embedded());
-    public final Menu menuRemove = new Menu("", new Icon(FontAwesomeIcon.MINUS).embedded());
+    @util.dev.TODO(purpose = ILL_DEPENDENCY, note = "Hardcoded size for consistency, not good")
+    public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS,18).embedded());
+    public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS,18).embedded());
     public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
             menuItem("Select inverse", this::selectAll),
             menuItem("Select all", this::selectInverse),

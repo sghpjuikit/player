@@ -5,14 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.layout.Pane;
 
 import AudioPlayer.Item;
 import AudioPlayer.SimpleItem;
@@ -35,6 +36,7 @@ import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
+import static util.functional.Util.ALL;
 import static util.functional.Util.filterMap;
 
 /**
@@ -45,8 +47,12 @@ public final class DragUtil {
 
 /********************************** drag signal pane **************************/
 
-    public static final void installDragSignalPane(Pane r, GlyphIcons icon, String name) {
-        DragPane.installDragSignalPane(r, icon, name);
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
+        DragPane.installDragSignalPane(r, icon, name, accept);
+    }
+
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> accept) {
+        DragPane.installDragSignalPane(r, icon, name, accept);
     }
 
 /******************************* data formats *********************************/
@@ -67,17 +73,28 @@ public final class DragUtil {
 
 /******************************** handlers ************************************/
 
+    public static final EventHandler<DragEvent> accept(Predicate<DragEvent> cond) {
+        return e -> {
+            if (cond.test(e)) {
+                e.acceptTransferModes(ANY);
+                e.consume();
+            }
+        };
+    }
+
+    public static final EventHandler<DragEvent> accept(Supplier<Boolean> cond) {
+        return accept(e -> cond.get());
+    }
+
+    /** Always accepts and consumes drag over event. */
+    public static final EventHandler<DragEvent> anyDragAccepthandler = accept(ALL);
+
     /**
      * Accepts and consumes drag over event if contains Component
      * <p>
      * Reuse this handler spares code duplication and multiple object instances.
      */
-    public static final EventHandler<DragEvent> componentDragAcceptHandler = e -> {
-        if (hasComponent()) {
-            e.acceptTransferModes(ANY);
-            e.consume();
-        }
-    };
+    public static final EventHandler<DragEvent> componentDragAcceptHandler = accept(DragUtil::hasComponent);
 
     /**
      * Accepts and consumes drag over event if contains at least 1 audio file,
@@ -88,12 +105,7 @@ public final class DragUtil {
      * @see #hasAudio(javafx.scene.input.Dragboard)
      * @see #getAudioItems(javafx.scene.input.DragEvent)
      */
-    public static final EventHandler<DragEvent> audioDragAccepthandler = e -> {
-        if (hasAudio(e.getDragboard())) {
-            e.acceptTransferModes(ANY);
-            e.consume();
-        }
-    };
+    public static final EventHandler<DragEvent> audioDragAccepthandler = accept(DragUtil::hasAudio);;
 
     /**
      * Accepts and consumes drag over event if contains images
@@ -102,12 +114,7 @@ public final class DragUtil {
      * @see #getImage(javafx.scene.input.DragEvent)
      * @see #getImages(javafx.scene.input.DragEvent)
      */
-    public static final EventHandler<DragEvent> imgFileDragAccepthandler = e -> {
-        if (hasImage(e.getDragboard())) {
-            e.acceptTransferModes(ANY);
-            e.consume();
-        }
-    };
+    public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);;
 
     /**
      * Similar to {@link #imgFileDragAccepthandler}, but does nothing when the dragged image
@@ -140,12 +147,7 @@ public final class DragUtil {
         };
     }
 
-    /** Always accepts and consumes drag over event. */
-    public static final EventHandler<DragEvent> anyDragAccepthandler = e -> {
-        e.acceptTransferModes(ANY);
-        e.consume();
-    };
-
+/************************************ ANY *************************************/
 
     public static Object getAny(DragEvent e) {
         Dragboard d = e.getDragboard();
@@ -326,9 +328,13 @@ public final class DragUtil {
      * @return true if contains at least 1 audio file, audio url or items
      */
     public static boolean hasAudio(Dragboard d) {
-        return (d.hasFiles() && FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
+        return (d.hasFiles() && FileUtil.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
                          hasItemList();
+    }
+
+    public static boolean hasAudio(DragEvent e) {
+        return hasAudio(e.getDragboard());
     }
 
     /**
@@ -336,8 +342,12 @@ public final class DragUtil {
      * @return true if contains at least 1 img file, img url
      */
     public static boolean hasImage(Dragboard d) {
-        return (d.hasFiles() && !FileUtil.getImageFiles(d.getFiles()).isEmpty()) ||
+        return (d.hasFiles() && FileUtil.containsImageFiles(d.getFiles())) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+    }
+
+    public static boolean hasImage(DragEvent e) {
+        return hasImage(e.getDragboard());
     }
 
 

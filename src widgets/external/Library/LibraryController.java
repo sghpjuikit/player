@@ -70,6 +70,7 @@ import web.HttpSearchQueryBuilder;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
@@ -88,6 +89,7 @@ import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import static util.graphics.Util.setAnchors;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 import static util.reactive.Util.maintain;
 
 
@@ -269,17 +271,17 @@ public class LibraryController extends FXMLController implements SongReader {
 
 
         // drag&drop to accept
-        table.setOnDragOver_NoSelf(e -> {
-            // huh? something missing... like THE CODE!! dont just accept anything!
-            e.acceptTransferModes(COPY);
-            e.consume();
-        });
+        table.setOnDragOver_NoSelf(DragUtil.audioDragAccepthandler);
         // drag&drop to
         table.setOnDragDropped(e-> {
             addNeditDo(DragUtil.getSongs(e), editOnAdd.getValue());
             e.setDropCompleted(true);
             e.consume();
         });
+        installDragSignalPane(table, PLAYLIST_PLUS,
+                () -> "Add to library" + (editOnAdd.getValue() ? " and edit" : ""),
+                DragUtil::hasAudio
+        );
         // drag&drop from
         table.setOnDragDetected(e -> {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()

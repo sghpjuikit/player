@@ -1,4 +1,4 @@
- 
+
 package ImageViewer;
 
 
@@ -46,6 +46,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.Widgets.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
@@ -67,9 +68,10 @@ import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
 import static util.functional.Util.forEachWithI;
 import static util.graphics.Util.*;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 /**
- * 
+ *
  * @author Plutonium_
  */
 @Widget.Info(
@@ -105,7 +107,7 @@ import static util.graphics.Util.*;
     group = OTHER
 )
 public class ImageViewerController extends FXMLController implements ImageDisplayFeature, ImagesDisplayFeature {
-    
+
     // gui
     @FXML private AnchorPane root;
     @FXML private ScrollPane thumb_root;
@@ -114,14 +116,14 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private ItemInfo itemPane;
     private Anim thumbAnim;
     private Anim navigAnim;
-    
+
     // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
     private final ObservableList<File> images = observableArrayList();
     private final List<Thumbnail> thumbnails = new ArrayList<>();
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Metadata data = Metadata.EMPTY;
-    
+
     // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final Ѵ<Double> thumbSize = new Ѵ<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
@@ -158,7 +160,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public final Ѵ<Pos> align = new Ѵ<>(CENTER, mainImage::applyAlignment);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
     public final Ѵ<Boolean> theater_mode = new Ѵ<>(false, this::applyTheaterMode);
-    
+
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
     @IsConfig(name = "File search depth", info = "Depth to searcho for files in folders. 1 for current folder only.")
@@ -167,20 +169,20 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public int thumbsLimit = 50;
     @IsConfig(name = "Displayed image", editable = false)
     private int active_image = -1;
-    
-    
+
+
     /** {@inheritDoc} */
     @Override
     public void init() {
         inputs.getInput("Location of").bind(Player.playing.o);
 
         loadSkin("skin.css",root);
-        
+
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
         layAnchor(root,mainImage.getPane(),0d);
-        
+
         // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
              nextB.setMouseTransparent(true);
@@ -210,23 +212,23 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             nextB.setTranslateX(-40*(p-1));
         });
         navigAnim.affector.accept(0d);
-        
+
         EventReducer inactive = toLast(1000, () -> { if(!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
         EventReducer active = toFirstDelayed(400, navigAnim::playOpen);
         root.addEventFilter(MOUSE_MOVED, e -> {
             if(thumb_root.getOpacity()==0) {
-                if(prevP.getOpacity()!=1) 
+                if(prevP.getOpacity()!=1)
                     active.push(e);
                 else
                     inactive.push(e);
-            } 
+            }
         });
-        
+
         // thumb anim
         thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
         thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
         thumb_root.toFront();
-        
+
         // thumbnails & make sure it doesnt cover whole area
         setAnchors(thumb_root, 0d);
         root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
@@ -251,7 +253,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 e.consume();
             //}
         });
-        
+
         // slideshow on hold during user activity
         root.addEventFilter(MOUSE_ENTERED, e -> {
             if(slideshow_on.getValue()) slideshow.pause();
@@ -259,12 +261,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         root.addEventFilter(MOUSE_EXITED, e -> {
             if(slideshow_on.getValue()) slideshow.unpause();
         });
-        
+
         // refresh if source data changed
         ChangeListener<File> locationChange = (o,ov,nv) -> readThumbnails();
         folder.addListener(locationChange);
         d(() -> folder.removeListener(locationChange));
-        
+
         // accept drag transfer
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
         root.setOnDragOver(DragUtil.imgFileDragAccepthandler);
@@ -285,29 +287,30 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
-            } else 
+            } else
             if(DragUtil.hasImage(e.getDragboard())) {
                 DragUtil.getImages(e)
                      .use(this::showImages,FX)
                      .showProgress(App.getWindow().taskAdd())
                      .run();
-                
+
                 e.setDropCompleted(true);
                 e.consume();
             }
         });
-        
-        // forbid app scrolling when thumbnails are visible 
+        installDragSignalPane(root, DETAILS,"Display",DragUtil::hasImage);
+
+        // forbid app scrolling when thumbnails are visible
         thumb_root.setOnScroll(Event::consume);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void onClose() {
         thumb_reader.stop();    // prevent continued thumbnail creation
         slideshow.stop();       // stop slideshow
     }
- 
+
     /** {@inheritDoc} */
     @Override
     public void refresh() {
@@ -322,13 +325,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         theater_mode.applyValue();
         readThumbnails();
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return thumbnails.isEmpty();
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void showImage(File img_file) {
@@ -347,20 +350,20 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @Override
     public void showImages(List<File> img_files) {
         if(img_files.isEmpty()) return;
-        
+
         showImage(img_files.get(0));
         active_image = 0;
         img_files.forEach(this::addThumbnail);
     }
-    
+
 /****************************** HELPER METHODS ********************************/
-    
+
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if(i==null) dataChanged(Metadata.EMPTY);
         else App.itemToMeta(i, this::dataChanged);
     }
-    
+
     private void dataChanged(Metadata m) {
         // remember data
         data = m;
@@ -368,7 +371,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         File new_folder = (data==null || !data.isFileBased()) ? null : data.getLocation();
         dataChanged(new_folder);
     }
-    
+
     @IsInput("Directory")
     private void dataChanged(File i) {
         // calculate new location
@@ -379,7 +382,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         folder.set(new_folder);
         if(theater_mode.getValue()) itemPane.setValue("", data);
     }
-    
+
     class Exec {
         ExecutorService e = Executors.newFixedThreadPool(1, r -> {
             Thread t = new Thread(r);
@@ -388,7 +391,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         List<Runnable> l = new ArrayList();
         boolean executing = false;
-        
+
         public void run(Runnable r) {
             if(!l.isEmpty()) l.add(r);
             else {
@@ -401,28 +404,28 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 });
             }
         }
-        
+
         public void stop() {
             l.clear();
         }
     }
-    
+
     Exec thumb_reader = new Exec();
-    
-    
-    
+
+
+
     private void readThumbnails() {
         // clear old content before adding new
         // setImage(-1) // it is set during thumbnail reading, no need to clear it
         images.clear();
         thumbnails.clear();
-        thumb_pane.getChildren().clear();   
+        thumb_pane.getChildren().clear();
 
         thumb_reader.stop();
         thumb_reader.run(() -> {
             int ai = active_image;
             // discover files
-            List<File> files = folder.get()==null 
+            List<File> files = folder.get()==null
                 ? EMPTY_LIST
                 : getFilesImage(folder.get(),folderTreeDepth).limit(thumbsLimit).collect(toList());
             if(files.isEmpty()) {
@@ -442,11 +445,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             }
         });
     }
-    
+
     private void addThumbnail(final File f) {
         insertThumbnail(createThumbnail(f));
     }
-    
+
     private Thumbnail createThumbnail(final File f) {
         // create thumbnail
         Thumbnail t = new Thumbnail(thumbSize.getValue(),thumbSize.getValue());
@@ -462,7 +465,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                   });
         return t;
     }
-    
+
     private void insertThumbnail(Thumbnail t) {
         // store
         thumbnails.add(t);
@@ -477,12 +480,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         File currLoc = folder.get();
         if (thumbnails.size()==1 && currLoc!=null && !currLoc.equals(displLoc))
             setImage(0);
-    }    
-    
+    }
+
     private void setImage(int index) {
         if (images.isEmpty()) index = -1;
         if (index >= images.size()) index = images.size()-1;
-        
+
         if (index == -1) {
             Image i = null;
             mainImage.loadImage(i);
@@ -494,18 +497,18 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             active_image = index;
         }
     }
-    
+
     public void nextImage() {
         if (images.size()==1) return;
         if (images.isEmpty()) {
             setImage(-1);
-        } else { 
+        } else {
             int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
         if(slideshow.isRunning()) slideshow.start();
     }
-    
+
     public void prevImage() {
         if (images.size()==1) return;
         if (images.isEmpty()) {
@@ -516,12 +519,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         }
         if(slideshow.isRunning()) slideshow.start();
     }
-    
+
     private void applyShowThumbs(boolean v) {
         thumbAnim.playFromDir(v);
         if(v) navigAnim.playClose();
     }
-    
+
     private void applyTheaterMode(boolean v) {
         if(v && itemPane==null) {
             itemPane = new ItemInfo(false);
@@ -540,7 +543,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 }
             });
         }
-        
+
         slideshow_on.applyValue(v ? false : slideshow_on.getValue());
         mainImage.setBackgroundVisible(v);
         mainImage.setBorderVisible(!v);

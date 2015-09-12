@@ -94,7 +94,7 @@ public class ChangeableThumbnail extends Thumbnail {
                 e.consume();
             }
         });
-        installDragSignalPane(root, DETAILS,"Display");
+        installDragSignalPane(root, DETAILS,"Display",DragUtil::hasImage);
     }
 
     private void highlight(boolean v) {

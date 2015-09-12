@@ -45,6 +45,7 @@ import web.HttpSearchQueryBuilder;
 
 import static AudioPlayer.playlist.PlaylistItem.Field.*;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -54,6 +55,7 @@ import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.SAME;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.list;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 import static util.reactive.Util.maintain;
 
 /**
@@ -267,6 +269,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // handle drag (empty table has no rows so row drag event handlers
         // will not work, events fall through on table and we handle it here
         setOnDragDropped( e -> dropDrag(e, 0));
+        installDragSignalPane(this, PLAYLIST_PLUS, "Add to playlist after row",DragUtil::hasAudio);
 
         // scroll to playing item
         maintain(scrollToPlaying, v -> {

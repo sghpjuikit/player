@@ -46,6 +46,7 @@ import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
 
 import static Layout.Widgets.Widget.Group.APP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.EMPTY_LIST;
@@ -57,6 +58,7 @@ import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
+import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 @IsWidget
 @Widget.Info(
@@ -127,6 +129,7 @@ public class Converter extends ClassController implements SongWriter {
             e.setDropCompleted(true);
             e.consume();
         });
+        installDragSignalPane(this, LIST_ALT, "Set data as input", e -> true);
 
         // on source change run transformation
         source.addListener((Change change) -> {

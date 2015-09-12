@@ -232,7 +232,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                 e.consume();
             }
         });
-        installDragSignalPane(root, DETAILS,"Display");
+        installDragSignalPane(root, DETAILS,"Display", DragUtil::hasAudio);
     }
 
     @Override

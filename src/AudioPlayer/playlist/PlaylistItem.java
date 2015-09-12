@@ -205,13 +205,13 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
             try {
                 // read tag for data
                 AudioFile f = AudioFileIO.read(getFile());
-                Tag t = f.getTag();
+                Tag t = f.getTag(); // tag can be null!
                 AudioHeader h = f.getAudioHeader();
 
                 // get values
                 double length = 1000 * h.getTrackLength();
-                artist = t.getFirst(FieldKey.ARTIST);
-                title = t.getFirst(FieldKey.TITLE);
+                artist = t==null ? getArtist() : t.getFirst(FieldKey.ARTIST);
+                title = t==null ? getTitle() : t.getFirst(FieldKey.TITLE);
                 // set values always on fx thread
                 Async.runFX(() -> {
                     setATN(artist, title);

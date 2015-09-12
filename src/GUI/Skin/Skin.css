@@ -3855,3 +3855,9 @@
 .node:configselected {
     -fx-background-color: rgba(90,200,200,0.2); 
 }
+
+
+
+.drag-pane {
+    -fx-background-color: rgba(0,0,0,0.5); 
+}

@@ -163,3 +163,5 @@ PROTIP:
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory
   exceptions for images like 6k x 6k px & closing in on 10MB...
+- any VM arguments, in order to be used in self-contained app, need to be
+  specified in the build.xml file

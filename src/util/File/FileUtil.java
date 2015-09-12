@@ -259,7 +259,13 @@ public final class FileUtil {
         return false;
     }
 
-    static boolean containsImageFiles(List<File> files) {
+    public static boolean containsAudioFileOrDir(List<File> files, Use use) {
+        for(File f : files)
+            if(f.isDirectory() || AudioFileFormat.isSupported(f, use)) return true;
+        return false;
+    }
+
+    public static boolean containsImageFiles(List<File> files) {
         for(File f : files)
             if(ImageFileFormat.isSupported(f)) return true;
         return false;

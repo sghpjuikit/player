@@ -27,6 +27,21 @@ import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.removeFromParent;
 
 /**
+ * Visual aid for drag operations. Is shown when drag enters drag accepting {@link Node} and hidden
+ * when it exists.
+ * <p>
+ * This pane shows icon and description of the action that will take place when
+ * drag is dropped and accepted and highlights the drag accepting area.
+ * <p>
+ * The drag areas (the nodes which install this pane) do not have to be mutually exclusive, i.e.,
+ * the nodes can cover each other, e.g. drag accepting node can be a child of already drag accepting
+ * pane. The highlighted area then activates for the topmost drag accepting node
+ * <p>
+ * The node should be drag accepting - have a drag over handler/filter. The condition under which
+ * the node accepts the drag (e.g. only text) should be expressed as a {@link Predicate} and used
+ * when installing this pane. Otherwise it will be shown for drag of any content and confuse user.
+ * <p>
+ * See {@link #installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)}
  *
  * @author Plutonium_
  */
@@ -51,10 +66,31 @@ public class DragPane {
         }
     );
 
+    /**
+     * Installs drag highlighting for specified node and drag defined by specified predicate,
+     * dislaying specified icon and action description.
+     *
+     * @param r drag accepting node
+     * @param icon icon symbolizing the action that will take place when drag is dropped
+     * @param description of the action that will take place when drag is dropped
+     * @param accept predicate filtering the drag events. Must be consistent with the drag accepting
+     * node's DRAG_OVER event handler which accepts the drag! Predicate returning always true will
+     * cause the drag highlighting to work regardless of the content of the drag - even if the node
+     * does not allow the content to be dropped.
+     * <p>
+     * It is recommended to build a predicate and use it for drag over handler as well,
+     * see {@link DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute
+     * consistency in drag highlighting and drag accepting behavior.
+     */
     public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
         installDragSignalPane(r, icon, () -> name, accept);
     }
-    
+
+    /**
+     * Same as {@link #installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)},
+     * but the description is supplied (and built) at the time of drag entering the node (every
+     * time), so it can be dynamic and reflect certain state.
+     */
     public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> cond) {
         Data d = new Data(name, icon, cond);
         r.getProperties().put(INSTALLED, d);

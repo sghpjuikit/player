@@ -17,7 +17,6 @@ import javafx.scene.input.Dragboard;
 
 import AudioPlayer.Item;
 import AudioPlayer.SimpleItem;
-import AudioPlayer.playlist.Playlist;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.controller.io.Output;
@@ -47,10 +46,16 @@ public final class DragUtil {
 
 /********************************** drag signal pane **************************/
 
+    /**
+     * See {@link DragPane#installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate) }
+     */
     public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
         DragPane.installDragSignalPane(r, icon, name, accept);
     }
 
+    /**
+     * See {@link DragPane#installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.util.function.Supplier, java.util.function.Predicate) }
+     */
     public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> accept) {
         DragPane.installDragSignalPane(r, icon, name, accept);
     }
@@ -89,31 +94,13 @@ public final class DragUtil {
     /** Always accepts and consumes drag over event. */
     public static final EventHandler<DragEvent> anyDragAccepthandler = accept(ALL);
 
-    /**
-     * Accepts and consumes drag over event if contains Component
-     * <p>
-     * Reuse this handler spares code duplication and multiple object instances.
-     */
+    /** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent() } as predicate. */
     public static final EventHandler<DragEvent> componentDragAcceptHandler = accept(DragUtil::hasComponent);
 
-    /**
-     * Accepts and consumes drag over event if contains at least 1 audio file,
-     * audio url, {@link Playlist} or list of {@link Item}.
-     * <p>
-     * Reusing this handler spares code duplication and multiple object instances.
-     *
-     * @see #hasAudio(javafx.scene.input.Dragboard)
-     * @see #getAudioItems(javafx.scene.input.DragEvent)
-     */
+    /** {@link #accept(java.util.function.Predicate) } using {@link #hasAudio(javafx.scene.input.DragEvent) } as predicate. */
     public static final EventHandler<DragEvent> audioDragAccepthandler = accept(DragUtil::hasAudio);;
 
-    /**
-     * Accepts and consumes drag over event if contains images
-     *
-     * @see #hasImage(javafx.scene.input.Dragboard)
-     * @see #getImage(javafx.scene.input.DragEvent)
-     * @see #getImages(javafx.scene.input.DragEvent)
-     */
+    /** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
     public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);;
 
     /**
@@ -324,8 +311,10 @@ public final class DragUtil {
     }
 
     /**
-     * @param d
-     * @return true if contains at least 1 audio file, audio url or items
+     * Returns true if dragboard contains audio file/s. True does not guarantee the presence of audio,
+     * because directories are not traversed and may not contain any audio.
+     *
+     * @return true iff contains at least 1 audio file or audio url or (any) directory
      */
     public static boolean hasAudio(Dragboard d) {
         return (d.hasFiles() && FileUtil.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
@@ -333,19 +322,33 @@ public final class DragUtil {
                          hasItemList();
     }
 
+    /**
+     * Returns true if dragboard contains audio file/s. True does not guarantee the presence of audio,
+     * because directories are not traversed and may not contain any audio.
+     *
+     * @return true iff contains at least 1 audio file or audio url or (any) directory
+     */
     public static boolean hasAudio(DragEvent e) {
         return hasAudio(e.getDragboard());
     }
 
     /**
-     * @param d
-     * @return true if contains at least 1 img file, img url
+     * Returns true if dragboard contains an image file/s. True guarantees the presence of the image. Files
+     * denoting directories are ignored.
+     *
+     * @return true iff contains at least 1 img file or an img url
      */
     public static boolean hasImage(Dragboard d) {
         return (d.hasFiles() && FileUtil.containsImageFiles(d.getFiles())) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
 
+    /**
+     * Returns true if dragboard contains an image file/s. True guarantees the presence of the image. Files
+     * denoting directories are ignored.
+     *
+     * @return true iff contains at least 1 img file or an img url
+     */
     public static boolean hasImage(DragEvent e) {
         return hasImage(e.getDragboard());
     }

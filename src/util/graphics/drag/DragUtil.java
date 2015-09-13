@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -31,6 +32,9 @@ import util.async.future.Fut;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
 import static javafx.scene.input.DataFormat.FILES;
+import static javafx.scene.input.DragEvent.DRAG_DROPPED;
+import static javafx.scene.input.DragEvent.DRAG_EXITED;
+import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
@@ -47,16 +51,16 @@ public final class DragUtil {
 /********************************** drag signal pane **************************/
 
     /**
-     * See {@link DragPane#installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate) }
+     * See {@link DragPane#installDragHint(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate) }
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
+    public static final void installDragHint(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
         DragPane.installDragSignalPane(r, icon, name, accept);
     }
 
     /**
-     * See {@link DragPane#installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.util.function.Supplier, java.util.function.Predicate) }
+     * See {@link DragPane#installDragHint(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.util.function.Supplier, java.util.function.Predicate) }
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> accept) {
+    public static final void installDragHint(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> accept) {
         DragPane.installDragSignalPane(r, icon, name, accept);
     }
 
@@ -78,16 +82,24 @@ public final class DragUtil {
 
 /******************************** handlers ************************************/
 
-    public static final EventHandler<DragEvent> accept(Predicate<DragEvent> cond) {
+    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond) {
+        return accept(cond,false);
+    }
+
+    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond, boolean orConsume) {
+        return accept(cond, e -> orConsume);
+    }
+
+    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond, Predicate<DragEvent> orConsume) {
         return e -> {
-            if (cond.test(e)) {
+            if (cond.test(e) && !orConsume.test(e) ) {
                 e.acceptTransferModes(ANY);
                 e.consume();
             }
         };
     }
 
-    public static final EventHandler<DragEvent> accept(Supplier<Boolean> cond) {
+    public static EventHandler<DragEvent> accept(Supplier<Boolean> cond) {
         return accept(e -> cond.get());
     }
 
@@ -103,35 +115,43 @@ public final class DragUtil {
     /** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
     public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);;
 
-    /**
-     * Similar to {@link #imgFileDragAccepthandler}, but does nothing when the dragged image
-     * (if more then the first) is the same as the one supplied.
-     * <p>
-     * Useful if we want to accept image drag only if the dragged image is not the same as some
-     * image we already have. This should only be used when we request 1 dropped image.
-     *
-     * @see #hasImage(javafx.scene.input.Dragboard)
-     * @see #getImage(javafx.scene.input.DragEvent)
-     * @see #getImages(javafx.scene.input.DragEvent)
-     */
-    public static EventHandler<DragEvent> imgFileDragAccepthandlerNo(Supplier<File> except) {
-        return e -> {
-            if(hasImage(e.getDragboard())) {
-                // why does the Fut (CompletableFuture) compute without running the Fut ???
-                // now the Fut executes over and over because this event fires like that (btw wtf?)
-                // so the below can not be used right now
-//                Fut<File> fi = getImage(e);
-//                File i = fi.isDone() ? fi.getDone() : null;
-//                boolean same = i!=null && i.equals(except.get());
 
-                File i = getImageNoUrl(e);  // workaround
-                boolean same = i!=null && i.equals(except.get());
-                if(!same) {
-                    e.acceptTransferModes(ANY);
-                    e.consume();
-                }
+    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
+        installDrag(node, icon, description, condition, e -> false, action);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
+        installDrag(node, icon, () -> description, condition, exc, action);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
+        installDrag(node, icon, description, condition, e -> false, action);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
+        // accept drag if desired
+        node.addEventHandler(DRAG_OVER,accept(condition,exc));
+        // handle drag & clear data
+        node.addEventHandler(DRAG_DROPPED,e -> {
+            if (condition.test(e)) {
+                action.accept(e);
+                setDropCompleted(e);
+                e.consume();
             }
-        };
+        });
+        // clears data after drag was cancelled
+        node.addEventHandler(DRAG_EXITED, e -> {
+            if(e.isAccepted())
+                setDropCompleted(e);
+        });
+        // show hint
+        DragPane.installDragSignalPane(node,icon,description,condition,exc);
+    }
+
+    public static void setDropCompleted(DragEvent e) {
+        data = null;
+        dataFormat = null;
+        e.setDropCompleted(true);
     }
 
 /************************************ ANY *************************************/
@@ -386,7 +406,7 @@ public final class DragUtil {
     }
 
     @Deprecated    // workaround method, remove
-    private static File getImageNoUrl(DragEvent e) {
+    public static File getImageNoUrl(DragEvent e) {
         Dragboard d = e.getDragboard();
 
         if (d.hasFiles()) {

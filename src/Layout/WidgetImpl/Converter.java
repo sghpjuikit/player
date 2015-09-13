@@ -58,7 +58,7 @@ import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDragHint;
 
 @IsWidget
 @Widget.Info(
@@ -129,7 +129,7 @@ public class Converter extends ClassController implements SongWriter {
             e.setDropCompleted(true);
             e.consume();
         });
-        installDragSignalPane(this, LIST_ALT, "Set data as input", e -> true);
+        installDragHint(this, LIST_ALT, "Set data as input", e -> true);
 
         // on source change run transformation
         source.addListener((Change change) -> {

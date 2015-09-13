@@ -64,7 +64,6 @@ import static util.async.executor.EventReducer.toLast;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.layAnchor;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 /**
  * File info widget controller.
@@ -219,20 +218,14 @@ public class FileInfoController extends FXMLController implements SongReader {
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
 
-        // accept audio drag transfer
-        root.setOnDragOver(DragUtil.audioDragAccepthandler);
-        // handle audio drag transfers
-        root.setOnDragDropped( e -> {
-            if(DragUtil.hasAudio(e.getDragboard())) {
-                DragUtil.getSongs(e)
-                        .use(items -> items.findFirst().ifPresent(this::read),FX)
-                        .run();
-                // end drag
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
-        installDragSignalPane(root, DETAILS,"Display", DragUtil::hasAudio);
+        // drag & drop
+        DragUtil.installDrag(
+            root, DETAILS, "Display",
+            DragUtil::hasAudio,
+            e -> DragUtil.getSongs(e)
+                         .use(items -> items.findFirst().ifPresent(this::read),FX)
+                         .run()
+        );
     }
 
     @Override

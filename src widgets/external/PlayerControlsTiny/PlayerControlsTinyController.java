@@ -33,7 +33,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
 /** FXMLController for widget. */
@@ -108,23 +108,18 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         d(Player.playingtem.onUpdate(this::playbackItemChanged));
 
         // drag & drop
-        root.setOnDragOver(DragUtil.audioDragAccepthandler);
-        root.setOnDragDropped( e -> {
-            if (DragUtil.hasAudio(e.getDragboard())) {
-                // get items
+        installDrag(
+            root, PLAYLIST_PLUS, "Add to active playlist",
+            DragUtil::hasAudio,
+            e -> {
                 List<Item> items = DragUtil.getAudioItems(e);
-                // end drag
-                e.setDropCompleted(true);
-                e.consume();
-                // handle result
                 if(playDropped) {
                     PlaylistManager.use(p -> p.setNplay(items));
                 } else {
                     PlaylistManager.use(p -> p.addItems(items));
                 }
             }
-        });
-        installDragSignalPane(root, PLAYLIST_PLUS,"Add to active playlist", DragUtil::hasAudio);
+        );
     }
 
     @Override

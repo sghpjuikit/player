@@ -42,7 +42,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.formatDuration;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
 
@@ -170,22 +170,17 @@ public class PlayerControlsController extends FXMLController implements Playback
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
 
         // drag & drop
-        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
-        entireArea.setOnDragDropped( e -> {
-            if (DragUtil.hasAudio(e.getDragboard())) {
-                // get items
+        installDrag(
+            entireArea, PLAYLIST_PLUS, "Add to active playlist",
+            DragUtil::hasAudio,
+            e -> {
                 List<Item> items = DragUtil.getAudioItems(e);
-                // end drag
-                e.setDropCompleted(true);
-                e.consume();
-                // handle result
                 PlaylistManager.use(p -> {
                     if(!playDropped) p.addItems(items);
                     else p.setNplay(items);
                 });
             }
-        });
-        installDragSignalPane(entireArea, PLAYLIST_PLUS,"Add to active playlist", DragUtil::hasAudio);
+        );
     }
 
     @Override

@@ -80,7 +80,7 @@ import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.*;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDragHint;
 import static util.reactive.Util.maintain;
 
 /**
@@ -333,7 +333,7 @@ public class Window extends WindowBase {
             e.acceptTransferModes(TransferMode.ANY);
             e.setDropCompleted(true);
         });
-        installDragSignalPane(root, GAVEL,
+        installDragHint(root, GAVEL,
                 "Display possible actions\n\nMoving the drag elsewhere may offer other actions",
                 e -> true
         );

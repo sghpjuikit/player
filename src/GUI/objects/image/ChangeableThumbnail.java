@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.function.Consumer;
 
 import javafx.css.PseudoClass;
-import javafx.scene.input.Dragboard;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
@@ -28,7 +27,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static util.async.future.Fut.fut;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
@@ -84,17 +82,27 @@ public class ChangeableThumbnail extends Thumbnail {
             }
         });
 
-        // add image on drag & drop image file
-        getPane().setOnDragOver(DragUtil.imgFileDragAccepthandlerNo(this::getFile));
-        getPane().setOnDragDropped(e -> {
-            Dragboard d = e.getDragboard();
-            if (onFileDropped!=null && DragUtil.hasImage(d)) {
-                onFileDropped.accept(DragUtil.getImage(e));
-                e.setDropCompleted(true);
-                e.consume();
+        // drag&drop
+        DragUtil.installDrag(
+            root, DETAILS,"Display",
+            DragUtil::hasImage,
+            // we exclude drag if image file is already displayed
+            e -> {
+                // why does the Fut (CompletableFuture) compute without running the Fut ???
+                // now the Fut executes over and over because this event fires like that (btw wtf?)
+                // so the below can not be used right now
+//                Fut<File> fi = getImage(e);
+//                File i = fi.isDone() ? fi.getDone() : null;
+//                boolean same = i!=null && i.equals(except.get());
+
+                File i = DragUtil.getImageNoUrl(e);  // workaround
+                return i!=null && i.equals(getFile());
+            },
+            e -> {
+                if (onFileDropped!=null)
+                    onFileDropped.accept(DragUtil.getImage(e));
             }
-        });
-        installDragSignalPane(root, DETAILS,"Display",DragUtil::hasImage);
+        );
     }
 
     private void highlight(boolean v) {

@@ -40,7 +40,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.*;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDragHint;
 
 /**
  <p>
@@ -166,7 +166,7 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            installDragSignalPane(i, null, "", e -> {
+            installDragHint(i, null, "", e -> {
                 if(DragUtil.hasWidgetOutput()) return true;
                 Object o = DragUtil.hasComponent() ? DragUtil.getComponent().child : DragUtil.getAny(e);
                 return (in.getType().isAssignableFrom(o.getClass()));
@@ -215,7 +215,7 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            installDragSignalPane(i, null, "", e -> DragUtil.hasWidgetOutput());
+            installDragHint(i, null, "", e -> DragUtil.hasWidgetOutput());
 
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));

@@ -89,7 +89,8 @@ import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDrag;
+import static util.graphics.drag.DragUtil.installDragHint;
 import static util.reactive.Util.maintain;
 
 
@@ -269,19 +270,15 @@ public class LibraryController extends FXMLController implements SongReader {
                 table.getSelectionModel().clearSelection();
         });
 
-
-        // drag&drop to accept
-        table.setOnDragOver_NoSelf(DragUtil.audioDragAccepthandler);
-        // drag&drop to
-        table.setOnDragDropped(e-> {
-            addNeditDo(DragUtil.getSongs(e), editOnAdd.getValue());
-            e.setDropCompleted(true);
-            e.consume();
-        });
-        installDragSignalPane(table, PLAYLIST_PLUS,
-                () -> "Add to library" + (editOnAdd.getValue() ? " and edit" : ""),
-                DragUtil::hasAudio
+        // drag&drop
+        installDrag(
+            table, PLAYLIST_PLUS,
+            () -> "Add to library" + (editOnAdd.getValue() ? " and edit" : ""),
+            e -> DragUtil.hasAudio(e),
+            e -> e.getGestureSource()==table,
+            e -> addNeditDo(DragUtil.getSongs(e), editOnAdd.getValue())
         );
+
         // drag&drop from
         table.setOnDragDetected(e -> {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()

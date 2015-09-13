@@ -22,6 +22,7 @@ import util.graphics.Util;
 
 import static javafx.css.PseudoClass.getPseudoClass;
 import static util.functional.Util.list;
+import static util.graphics.Util.layAnchor;
 
 /**
  * Graphical part of the container within layout.
@@ -35,13 +36,13 @@ import static util.functional.Util.list;
  * @author uranium
  */
 public abstract class Area<T extends Container> implements ContainerNode {
-    
+
     public static final PseudoClass DRAGGED_PSEUDOCLASS = getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = list("block", "area");
     public static final String WIDGET_AREA_CONTROLS_STYLECLASS = "widget-control";
     public static final String CONTAINER_AREA_CONTROLS_STYLECLASS = "container-control";
-    
-    /** Container this are is associated with. The relationship can not be 
+
+    /** Container this are is associated with. The relationship can not be
       changed. */
     public final T container;
     /** Index of the child, the area is for or null if for many. Decides whether
@@ -54,7 +55,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
     public IOPane actionpane;
-    
+
     /**
      * @param c container to make contract with
      * @param i index of the child, the area is for or null if for many
@@ -64,10 +65,9 @@ public abstract class Area<T extends Container> implements ContainerNode {
         Objects.requireNonNull(c);
         container = c;
         index = i;
-        
-        root.getChildren().addAll(content_root);
-        Util.setAnchors(content_root, 0d);
-        
+
+        layAnchor(root, content_root,0d);
+
         // init properties
         c.properties.initProperty(Double.class, "padding", 0d);
 
@@ -78,20 +78,20 @@ public abstract class Area<T extends Container> implements ContainerNode {
         Util.setAnchors(activityPane, 0d);
         activityPane.toFront();
     }
-    
+
     /** @return all oomponents wrapped in the area. By default returns all
      * components of the container associated with the area.*/
     public final List<Component> getAllComponents() {
         return new ArrayList(container.getChildren().values());
     }
-    
-    /** @return all active coponents - components that are being actively 
+
+    /** @return all active coponents - components that are being actively
      * displayed. */
     abstract public List<Widget> getActiveWidgets();
-    
+
     /** @return the primary active component. */
     abstract public Widget getActiveWidget();
-    
+
     /**
      * Refresh area. Refreshes the content - wrapped components by calling their
      * refresh() method. Some components might not support this behavior and
@@ -103,7 +103,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
      */
     public void refresh() {
         for(Component c: getActiveWidgets()) {
-            if(c instanceof Widget) 
+            if(c instanceof Widget)
                 ((Widget)c).getController().refresh();
         }
     }
@@ -113,10 +113,10 @@ public abstract class Area<T extends Container> implements ContainerNode {
      * Implementation decides how exactly. Simple
      * implementation storing single component would remove the old component
      * from layout map and add new one to the parent container.
-     * @param c 
+     * @param c
      */
     abstract public void add(Component c);
-    
+
     /**
      * Detaches the content into standalone content. Opens new window.
      * <p>
@@ -129,7 +129,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     public void detach() {
         // get first active component
         Component c = getActiveWidget();
-        
+
         // detach into new window
         // create new window with no content (not even empty widget)
         Window w = UiContext.showWindow(null);
@@ -142,19 +142,19 @@ public abstract class Area<T extends Container> implements ContainerNode {
         int i1 = container.indexOf(c);
         container.swapChildren(c2,i1,w2);
     }
-    
+
 /******************************************************************************/
-    
+
     /** Returns the content. */
     abstract public AnchorPane getContent();
-    
+
     @Override
     public Pane getRoot() {
         return root;
     }
-    
+
 /******************************* layout mode **********************************/
-        
+
     @FXML
     @Override
     public void show() {
@@ -179,9 +179,9 @@ public abstract class Area<T extends Container> implements ContainerNode {
     public void toggleLocked() {
         container.locked.set(!container.locked.get());
     }
-    
+
 /**************************** activity node ***********************************/
-    
+
     public final void setActivityVisible(boolean v) {
         setActivityContent(actionpane);
         activityPane.setVisible(v);
@@ -194,7 +194,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
 //        if(v)activityPane.toFront();
 //        if(v)progress.getParent().toFront();
     }
-    
+
     public final void setActivityContent(IOPane n) {actionpane = n;
 //        if(!activityPane.getChildren().contains(n)) {
             activityPane.getChildren().setAll(n);

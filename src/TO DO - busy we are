@@ -3,7 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- css for dragpane
+- ImageViewer & thumbnails fix dragging
 - some icon fonts do not load correctly, probably due to the lookup
 - ClassMaps should support concurrency if desired
 - support fut error handling, 

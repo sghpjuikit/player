@@ -96,17 +96,17 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
 
-        // accept drag onto
-        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
-        // handle drag onto
-        ctrls.setOnDragDropped( e -> {
-            if (DragUtil.hasComponent()) {
+        // drag
+        DragUtil.installDrag(
+            ctrls, EXCHANGE, "Switch components",
+            e -> DragUtil.hasComponent(),
+            e -> DragUtil.getComponent().child == container,
+            e -> {
                 Container c = container.getParent();
                 c.swapChildren(c.indexOf(container),DragUtil.getComponent());
-                e.setDropCompleted(true);
-                e.consume();
             }
-        });
+        );
+
         // not that dragging children will drag those, dragging container
         // will drag whole container with all its children
         EventHandler<MouseEvent> dh = e -> {

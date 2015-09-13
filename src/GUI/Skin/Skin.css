@@ -3843,7 +3843,7 @@
 // inherits: .overlay-pane
 .action-pane {}
 
-// Icon for actio i an action pane
+// Icon for action in an action pane
 // inherits: .icon
 .action-pane-action-icon {
     -glyph-size: 25;

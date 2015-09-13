@@ -33,30 +33,30 @@ import static util.graphics.Util.setAnchors;
 
 /**
  * @author uranium
- * 
+ *
  * @TODO make dynamic indexes work and this widget part of layout map. See
  * TO Do file API section
  */
 @Layout.Widgets.Widget.Info
 public final class Layouter implements ContainerNode {
-    
+
     private final Container container;
     private final int index;
-    
+
     public final Picker<String> cp = new Picker();
     public final AnchorPane root = new AnchorPane(cp.root);
-    
+
     private final FadeTransition a1;
     private final ScaleTransition a2;
     private final EventHandler<MouseEvent> clickShowHider;
     private final EventHandler<MouseEvent> exitHider;
-    
+
     public Layouter(Container con, int index) {
         Objects.requireNonNull(con);
-        
+
         this.index = index;
         this.container = con;
-        
+
         cp.onSelect = layout -> {
             switch(layout) {
                 case "Split Vertically" : closeAndDo(cp.root, this::showSplitV);
@@ -76,19 +76,19 @@ public final class Layouter implements ContainerNode {
         cp.itemSupply = () -> stream("Split Vertically", "Split Horizontally",
                                         "Widget", "FreeForm"); // , "Tabs"
         cp.buildContent();
-        
+
         setAnchors(cp.root, 0d);
-        
+
         Interpolator i = new CircularInterpolator(EASE_OUT);
         a1 = new FadeTransition(ANIM_DUR, cp.root);
         a1.setInterpolator(LINEAR);
         a2 = new ScaleTransition(ANIM_DUR, cp.root);
         a2.setInterpolator(i);
-        
+
         cp.root.setOpacity(0);
         cp.root.setScaleX(0);
         cp.root.setScaleY(0);
-        
+
         // do not support drag from - no content
         // but accept drag onto
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
@@ -96,11 +96,11 @@ public final class Layouter implements ContainerNode {
         root.setOnDragDropped( e -> {
             if (DragUtil.hasComponent()) {
                 container.swapChildren(index,DragUtil.getComponent());
-                e.setDropCompleted(true);
+                DragUtil.setDropCompleted(e);
                 e.consume();
             }
         });
-        
+
         clickShowHider =  e -> {
             if(e.getButton()==PRIMARY) {
                 if(cp.root.getOpacity()!=0) return;
@@ -118,7 +118,7 @@ public final class Layouter implements ContainerNode {
 //            cp.onCancel.run();
 //            e.consume();
 //        };
-        
+
         // setParentRec mode
         setWeakMode(true); // this needs to be called in constructor
         // setParentRec show
@@ -126,7 +126,7 @@ public final class Layouter implements ContainerNode {
     }
 
 /****************************  functionality  *********************************/
-    
+
     @Override
     public void show() {
         showControls(true);
@@ -140,7 +140,7 @@ public final class Layouter implements ContainerNode {
         showControls(false);
 //        closeAndDo(cp.root, null);
     }
-    
+
     private void showControls(boolean val) {
         a1.stop();
         a2.stop();
@@ -155,7 +155,7 @@ public final class Layouter implements ContainerNode {
         }
         a1.play();
         a2.play();
-        
+
 //        Interpolator in = new SineInterpolator();
 ////        forEachIndexedStream(cp.getCells(), (i,n) -> new Anim(millis(300), in, at -> { n.setScaleX(at); n.setScaleY(at); }).delay(millis(i*50)))
 ////            .toArray(Anim[]::new)
@@ -167,18 +167,18 @@ public final class Layouter implements ContainerNode {
 //        t.setDelay(millis(500));
 //        t.play();
     }
-    
+
     private boolean clickMode = true;
-    
+
     /**
      * In normal mode the controls are displayed on mouse click
      * In weak mode the controls are displayed on mouse hover
      * Default false.
-     * @param val 
+     * @param val
      */
     public void setWeakMode(boolean val) {
         clickMode = val;
-        
+
         // always hide on mouse exit, setParentRec
         if (root.getOnMouseExited()==null)
             root.setOnMouseExited(exitHider);
@@ -191,14 +191,14 @@ public final class Layouter implements ContainerNode {
             root.removeEventHandler(MOUSE_ENTERED,clickShowHider);
         }
     }
-    
+
     public void toggleWeakMode() {
         clickMode = !clickMode;
     }
     public boolean isWeakMode() {
         return clickMode;
     }
-    
+
 
     private void showWidgetArea() {
         WidgetPicker w = new WidgetPicker();
@@ -235,7 +235,7 @@ public final class Layouter implements ContainerNode {
     private void showFreeform() {
         container.addChild(index, new FreeFormContainer());
     }
-    
+
     @Override
     public Pane getRoot() {
         return root;

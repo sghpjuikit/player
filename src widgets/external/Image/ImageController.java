@@ -18,9 +18,11 @@ import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
 import static Layout.Widgets.Widget.Group.OTHER;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.geometry.Pos.CENTER;
 import static util.async.Async.FX;
 import static util.graphics.Util.layAnchor;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * FXML Controller class
@@ -40,36 +42,37 @@ import static util.graphics.Util.layAnchor;
     group = OTHER
 )
 public class ImageController extends FXMLController implements ImageDisplayFeature {
-    
+
     @FXML AnchorPane root;
     private final Thumbnail thumb = new Thumbnail();
-    
+
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Ѵ<Pos> align = new Ѵ<>(CENTER, thumb::applyAlignment);   
+    public final Ѵ<Pos> align = new Ѵ<>(CENTER, thumb::applyAlignment);
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private File img = new File("");
 
-    
+
     @Override
     public void init() {
         thumb.setBackgroundVisible(false);
         thumb.setBorderVisible(false);
         thumb.setDragEnabled(true);
         layAnchor(root,thumb.getPane(),0d);
-        
-        root.setOnDragOver(DragUtil.imgFileDragAccepthandlerNo(() -> img));
-        root.setOnDragDropped( e -> {
-            if(DragUtil.hasImage(e.getDragboard())) {
+
+        // drag&drop
+        installDrag(
+            root, DETAILS,"Display",
+            e -> DragUtil.hasImage(e),
+            e -> img!=null && img.equals(DragUtil.getImageNoUrl(e)),
+            e -> {
                 Fut<File> future = DragUtil.getImage(e);
                 future.use(img -> showImage(img),FX)
                       .showProgress(!future.isDone(),App.getWindow()::taskAdd)
                       .run();
-                e.setDropCompleted(true);
-                e.consume();
             }
-        });
+        );
     }
-    
+
     @Override
     public void refresh() {
         align.applyValue();
@@ -82,5 +85,5 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         thumb.loadImage(img_file);
         img = img_file==null ? new File("") : img_file;
     }
-    
+
 }

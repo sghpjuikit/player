@@ -31,22 +31,22 @@ import static util.dev.Util.yes;
  * @author Plutonium_
  */
 public class Util {
-    
+
     /** Predicate returning true iff object is not null. */
     public static final Predicate<Object> ISNTØ = Objects::nonNull;
-    
+
     /** Predicate returning true iff object is null. */
     public static final Predicate<Object> ISØ = Objects::isNull;
-    
+
     /** Predicate returning true. Matches every object. */
     public static final Predicate ALL = o -> true;
-    
+
     /** Predicate returning false. Matches no object. */
     public static final Predicate NONE = o -> false;
-    
+
     /** Predicate returning false. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;
-    
+
     /**  */
     public static <E> boolean isIn(E o, E... es) {
         for(E e : es)
@@ -54,24 +54,32 @@ public class Util {
                 return true;
         return false;
     }
+
     public static <E> boolean isIn(E o, Collection<E> es) {
         for(E e : es)
             if(o.equals(e))
                 return true;
         return false;
     }
+
     public static <E> boolean isInR(E o, E... es) {
         for(E e : es)
             if(o == e)
                 return true;
         return false;
     }
+
     public static <E> boolean isInR(E o, Collection<E> es) {
         for(E e : es)
             if(o == e)
                 return true;
         return false;
     }
+
+    public static <E> boolean isInR(E o, Collection<E> es, E... ess) {
+        return isInR(o, es) || isInR(o, ess);
+    }
+
     public static <E> boolean isAll(E o, Predicate<E>... ps) {
         boolean b = true;
         for(Predicate<E> p : ps)
@@ -87,41 +95,41 @@ public class Util {
     public static <E> boolean isNone(E o, Predicate<E>... ps) {
         return !isAll(o, ps);
     }
-    
+
     /** Repeat action n times. */
     public static void repeat(int n, Runnable action) {
         for(int x=0; x<n; x++) action.run();
     }
-    
+
     /** Repeat action n times. Action takes the index of execution as parameter starting from 0. */
     public static void repeat(int n, IntConsumer action) {
         for(int x=0; x<n; x++) action.accept(x);
     }
-   
-    
+
+
     /** Runnable that does nothing.  () -> {}; */
     public static final Runnable do_NOTHING = () -> {};
-    
-    /** 
-     * Function transforming object into its string representation by invoking 
+
+    /**
+     * Function transforming object into its string representation by invoking
      * its toString() method or "null" if null.
      */
     public static final Function<Object,String> toString = Objects::toString;
-    
+
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      *  by delimiter ", ". */
     public static final Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
-    
+
     /** Comparator utilizing Comparable.compareTo() of the Comparables. */
     public static final Comparator<Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
-    
+
     /** String comparator utilizing String.compareTo() of the Strings */
     public static final Comparator<String> COMPARATOR_STR = (a,b) -> a.compareTo(b);
-    
+
     /** String comparator utilizing String.compareToIgnoreCase(). */
     public static final Comparator<String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
-    
-    /** 
+
+    /**
      * Creates comparator comparing E elements by derived {@link Comparable}, for
      * example a Comparable field, obtained by the converter.
      * Utilizes Comparable.compareTo().
@@ -130,40 +138,40 @@ public class Util {
      * <p>
      * This method is generic Comparator factory producing comparators comparing
      * the obtained result of the comparable supplier.
-     * 
+     *
      * @param toStr E to Comparable mapper, derives Comparable from E.
      */
     public static<E,C extends Comparable<? super C>> Comparator<E> by(Callback<E,C> toStr) {
         return (a,b) -> toStr.call(a).compareTo(toStr.call(b));
     }
-    
-    /** 
+
+    /**
      * Creates comparator comparing E elements by their string representation
      * obtained by provided converter. Utilizes String.compareToIgnoreCase().
      * <p>
      * Easy and concise way to compare objects without code duplication.
-     * 
+     *
      * @param cmpGetter E to String mapper, derives String from E.
      * the object.
      */
     public static<E> Comparator<E> byNC(Callback<E,String> toStr) {
         return (a,b) -> toStr.call(a).compareToIgnoreCase(toStr.call(b));
     }
-    
+
     /** @return set of elements of provided collection with no duplicates. Order undefined. */
     public static<E> Set<E> noDups(Collection<E> c) {
         return new HashSet(c);
     }
-    
+
     /** @return set of elements of provided collection with no duplicates. Retains order. */
     public static<E> Set<E> noDupsStable(Collection<E> c) {
         return new LinkedHashSet(c);
     }
-    
-    
-    
+
+
+
 /******************************* object -> object *****************************/
-    
+
     public static <IN,OUT> Ƒ1<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
         return in -> cond.test(in) ? y : n;
     }
@@ -174,9 +182,9 @@ public class Util {
         noØ(non_null);
         return (Ƒ1) in -> in==null ? non_null : in;
     }
-    
+
 /***************************** function -> function ***************************/
-    
+
     /** Returns function that never produces null, but returns its input instead. */
     public static <I> Ƒ1<I,I> nonNull(Function<I,I> f) {
         return in -> {
@@ -193,7 +201,7 @@ public class Util {
     public static <I> I noNull(I o, I or) {
         return o==null ? or : o;
     }
-    
+
     /** Equivalent to {@code noEx(f, null, ecs); }*/
     public static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
         return noEx(null, f, ecs);
@@ -202,15 +210,15 @@ public class Util {
     public static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
         return noEx(null, f, ecs);
     }
-    /** 
+    /**
      * Return function functionally equivalent to the one provided, but which
-     * returns null if any of the exception types or subtypes is caught. The 
-     * function will never throw any (including runtime) of the specified 
+     * returns null if any of the exception types or subtypes is caught. The
+     * function will never throw any (including runtime) of the specified
      * exceptions, but will keep throwing other exception types.
-     * 
+     *
      * @param f function to wrap
      * @param or value to return when exception is caught
-     * @param ecs exception types. Any exception that is equal to the type or 
+     * @param ecs exception types. Any exception that is equal to the type or
      * subtype of any of the exceptions types will be caught. Using
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
@@ -230,7 +238,7 @@ public class Util {
             }
         };
     }
-    
+
     /** Equivalent to {@code noExE(f, null, ecs); }*/
     public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
@@ -239,15 +247,15 @@ public class Util {
     public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
     }
-    /** 
+    /**
      * Return function functionally equivalent to the one provided, but which
-     * returns null if any of the exception types or subtypes is caught. The 
-     * function will never throw any (including runtime) of the specified 
+     * returns null if any of the exception types or subtypes is caught. The
+     * function will never throw any (including runtime) of the specified
      * exceptions, but will keep throwing other exception types.
-     * 
+     *
      * @param f function to wrap
      * @param or value to return when exception is caught
-     * @param ecs exception types. Any exception that is equal to the type or 
+     * @param ecs exception types. Any exception that is equal to the type or
      * subtype of any of the exceptions types will be caught. Using
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
@@ -267,35 +275,35 @@ public class Util {
             }
         };
     }
-    
+
 /****************************** collection -> list ****************************/
-    
+
     public static<T,E> List<T> flatMapToList(Collection<E> col, Function<E,Collection<T>> mapper) {
         return col.stream().flatMap(e->mapper.apply(e).stream()).collect(Collectors.toList());
     }
-    
+
     public static<T,E> List<T> flatsMapToList(Collection<E> col, Function<E,Stream<T>> mapper) {
         return col.stream().flatMap(mapper).collect(Collectors.toList());
     }
-    
+
     public static<T,E> List<T> flatMapToList(Stream<E> col, Function<E,Collection<T>> mapper) {
         return col.flatMap(e->mapper.apply(e).stream()).collect(Collectors.toList());
     }
-    
+
     public static<T,E> List<T> flatsMapToList(Stream<E> col, Function<E,Stream<T>> mapper) {
         return col.flatMap(mapper).collect(Collectors.toList());
     }
-    
+
     public static<T,E> List<T> flatMapToList(Map<?,E> col, Function<E,Collection<T>> mapper) {
         return col.values().stream().flatMap(e->mapper.apply(e).stream()).collect(Collectors.toList());
     }
-    
+
     public static<T,E> List<T> flatsMapToList(Map<?,E> col, Function<E,Stream<T>> mapper) {
         return col.values().stream().flatMap(mapper).collect(Collectors.toList());
     }
-    
+
 /***************************** collection -> object ***************************/
-    
+
     /**
      * Converts array to string, joining string representations of the
      * elements by separator.
@@ -307,7 +315,7 @@ public class Util {
     public static<T> String toS(T[] a, Function<T,String> m, String s) {
         return Stream.of(a).map(m).collect(joining(s));
     }
-    
+
     /**
      * Converts array to string, joining string representations of the
      * elements by ', '.
@@ -317,11 +325,11 @@ public class Util {
     public static<T> String toS(String s, T... a) {
         return Stream.of(a).map(Object::toString).collect(joining(s));
     }
-    
+
     /**
      * Converts collection to string, joining string representations of the
      * elements by separator
-     * 
+     *
      * @param c collection
      * @param m element to string mapper
      * @param s delimiter/separator
@@ -330,10 +338,10 @@ public class Util {
     public static<T> String toS(Collection<T> c, Function<T,String> m, String s) {
         return c.stream().map(m).collect(joining(s));
     }
-    
+
     /**
      * Joins collection of strings to string using delimiter
-     * 
+     *
      * @param c collection
      * @param s delimiter/separator
      * @return s separated representation of the collection
@@ -341,11 +349,11 @@ public class Util {
     public static String toS(Collection<String> c, String s) {
         return c.stream().collect(joining(s));
     }
-    
+
     /**
      * Converts collection to string, joining string representations of the
      * elements by ', '.
-     * 
+     *
      * @param c collection
      * @param m element to string mapper
      * @return comma separated string representation of the objects in the
@@ -354,10 +362,10 @@ public class Util {
     public static<T> String toS(Collection<T> c, Function<T,String> m) {
         return c.stream().map(m).collect(toCSList);
     }
-    
+
     /**
      * Equivalent to {@link #toS(java.util.Collection, java.util.function.Function)}.
-     * 
+     *
      * @param c collection
      * @return comma separated string representations of the objects in the
      * collection
@@ -365,7 +373,7 @@ public class Util {
     public static<T> String toS(Collection<T> c) {
         return c.stream().map(toString).collect(toCSList);
     }
-    
+
     public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
         for(E i : c) if(filter.test(i)) return i;
         throw new RuntimeException("Collection does not have the element.");
@@ -374,32 +382,32 @@ public class Util {
         for(E i : c) if(filter.test(i)) return Optional.of(i);
         return Optional.empty();
     }
-    
-    
-    
+
+
+
     public static <C extends Comparable> C min(C a, C b) {
         return a.compareTo(b)<0 ? a : b;
     }
-    
+
     public static <C extends Comparable> C max(C a, C b) {
         return a.compareTo(b)>0 ? a : b;
     }
-    
-    /** 
+
+    /**
      * Specialization of {@link #minBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
      * with atMost parameter null - maximum value.
-     * 
+     *
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
     public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, Ƒ1<V,C> by) {
         return minBy(c, null, by);
     }
-    
-    /** 
+
+    /**
      * Returns minimal element from collection by given criteria. If multiple elements compare
      * equal, the 1st is considered minimal.
-     * 
+     *
      * @param c collection to find minimal element of
      * @param atMost the maximal value minimal element must have to be considered minimal, null
      * represents maximul value - any element is smaller than null
@@ -418,21 +426,21 @@ public class Util {
         }
         return Optional.ofNullable(minv);
     }
-    /** 
+    /**
      * Specialization of {@link #maxBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
      * with atLeast parameter null - maximum value.
-     * 
+     *
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
     public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, Ƒ1<V,C> by) {
         return maxBy(c, null, by);
     }
-    
-    /** 
+
+    /**
      * Returns maximal element from collection by given criteria. If multiple elements compare
      * equal, the 1st is considered minimal.
-     * 
+     *
      * @param c collection to find minimal element of
      * @param atleast the minimal value maximal element must have to be considered maximal, null
      * represents minimal value - any element is more than null
@@ -451,82 +459,82 @@ public class Util {
         }
         return Optional.ofNullable(maxv);
     }
-    
-    /** 
+
+    /**
      * Returns minimal element from the array using given comparator.
      * Returns supplied value if it is the smallest, or array is empty.
      */
     public static <V> V min(V min, Comparator<V> cmp, V... c) {
         return min(Stream.of(c), min, cmp);
     }
-    
-    /** 
+
+    /**
      * Returns minimal element from the collection using given comparator.
      * Returns supplied value if it is the smallest, or collection is empty.
      */
     public static <V> V min(Collection<V> c, V min, Comparator<V> cmp) {
         return min(c.stream(), min, cmp);
     }
-    
-    /** 
+
+    /**
      * Returns minimal element from the stream using {@link Comparable#compareTo(java.lang.Object)}.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
     public static <V extends Comparable<V>> V min(Stream<V> c, V min) {
         return max(c, min, Comparable::compareTo);
     }
-    
-    /** 
+
+    /**
      * Returns minimal element from the stream using given comparator.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
     public static <V> V min(Stream<V> c, V min, Comparator<V> cmp) {
         return c.reduce(min, (t,u) -> cmp.compare(t, u)<0 ? t : u);
     }
-    
-    /** 
+
+    /**
      * Returns maximal element from the array using given comparator.
      * Returns supplied value if it is the smallest, or array is empty.
      */
     public static <V> V max(V max, Comparator<V> cmp, V... c) {
         return max(Stream.of(c), max, cmp);
     }
-    
-    /** 
+
+    /**
      * Returns maximal element from the collection using given comparator.
      * Returns supplied value if it is the smallest, or collection is empty.
      */
     public static <V> V max(Collection<V> c, V max, Comparator<V> cmp) {
         return max(c.stream(), max, cmp);
     }
-    
-    /** 
+
+    /**
      * Returns maximal element from the stream using given comparator.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
     public static <V extends Comparable<V>> V max(Stream<V> c, V max) {
         return max(c, max, Comparable::compareTo);
     }
-    
-    /** 
+
+    /**
      * Returns maximal element from the stream using given comparator.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
     public static <V> V max(Stream<V> c, V max, Comparator<V> cmp) {
         return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
     }
-    
+
     public static <V> V get(Collection<V> c, Predicate<V> p) {
         return c.stream().filter(p).findFirst().get();
     }
-    
+
     /**
-     * Checks whether all elements of the list are equal by some property 
+     * Checks whether all elements of the list are equal by some property
      * obtained using specified transformation.
      * <p>
      * For example checking whether all lists have the same size:
      * <pre>{@code equalBy(lists,List::size) }</pre>
-     * 
+     *
      * @return true if transformation of each element in the list produces equal
      * result.
      */
@@ -537,8 +545,8 @@ public class Util {
             if(!r.equals(by.apply(o.get(i)))) return false;
         return true;
     }
-    
-    /** 
+
+    /**
      * Assuming a map of lists, i-slice is a list i-th elements in every list.
      * @return i-th slice of the map m
      */
@@ -547,8 +555,8 @@ public class Util {
         m.entrySet().forEach(e -> o.put(e.getKey(), e.getValue().get(i)));
         return o;
     }
-    
-    /** 
+
+    /**
      * Creates map which remaps all elements to different key, using key mapper
      * function.
      * @return new map containing all elements mapped to transformed keys
@@ -558,16 +566,16 @@ public class Util {
         m.forEach((key,val) -> o.put(f.apply(key), val));
         return o;
     }
-    
+
 /************************************ for *************************************/
-    
+
     /** Loops over both lists simultaneously. Must be of the same size. */
     public static<A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
         yes(a.size()==b.size());
         for(int i=0; i<a.size(); i++)
             action.accept(a.get(i), b.get(i));
     }
-    
+
     /** Loops over list zipping index with each item. Index starts at 0. */
     public static<T> void forEachWithI(Collection<T> c, BiConsumer<Integer,T> action) {
         int i=0;
@@ -576,26 +584,26 @@ public class Util {
             i++;
         }
     }
-    
+
     /** Loops over list zipping each item with a companion derived from it. */
     public static<T,W> void forEachWith(Collection<T> c, Function<T,W> toCompanion, BiConsumer<? super T, ? super W> action) {
         for(T t : c)
             action.accept(t, toCompanion.apply(t));
     }
-    
+
     /**
-     * Returns stream of elements mapped by the mapper from index-element pairs 
+     * Returns stream of elements mapped by the mapper from index-element pairs
      * of specified collection. Indexes start at 0.
      * <p>
      * Functionally equivalent to: List.stream().mapB(item->new Pair(item,list.indexOf(item))).mapB(pair->mapper.mapB(p))
      * but avoiding the notion of a Pair or Touple, and without any collection
      * traversal to get indexes.
-     * 
+     *
      * @param <T> element type
      * @param <R> result type
      * @param c
      * @param mapper
-     * @return 
+     * @return
      */
     public static<T,R> Stream<R> forEachIStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
         int i=0;
@@ -616,7 +624,7 @@ public class Util {
             b.accept(mapper.apply(i-1, c.get(size-i)));
         return b.build();
     }
-    
+
     /**
      * More general version of {@link #forEachIndexed(java.util.Collection, utilities.functional.functor.BiCallback)}.
      * The index can now be of any type and how it changes is defined by a parameter.
@@ -627,7 +635,7 @@ public class Util {
      * @param initial_val  for example: 0
      * @param operation for example: number -> number++
      * @param mapper maps the key-object pair into another object
-     * 
+     *
      * @return stream of mapped values by a mapper out of key-element pairs
      */
     public static<I,T,R> Stream<R> forEachIStream(Collection<T> c, I initial_val, Function<I,I> operation, BiFunction<I,T,R> mapper) {
@@ -639,9 +647,9 @@ public class Util {
         }
         return b.build();
     }
-    
+
 /****************************** () -> collection ******************************/
-    
+
     public static<T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
         int i=0;
         Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
@@ -651,14 +659,14 @@ public class Util {
         }
         return b.build();
     }
-    
+
     /** Returns modifiable list containing specified elements. */
     public static<T> List<T> list(T... ts) {
         List<T> l = new ArrayList<>(ts.length);
         for(T t : ts) l.add(t);
         return l;
     }
-    /** 
+    /**
      * Returns unmodifiable list containing specified elements. Optimized:
      * <ul>
      * <li> if zero parameters - {@link Collections#EMPTY_LIST}
@@ -682,37 +690,37 @@ public class Util {
         for(int i=0; i<ts.length; i++) out.add(ts[i]);
         return out;
     }
-    
+
     /** Returns modifiable list containing specified element i times */
     public static<T> List<T> list(int i, T a) {
         List<T> l = new ArrayList(i);
         for(int j=0; j<i; j++) l.add(a);
         return l;
     }
-    
+
     /** Returns modifiable list containing element supplied by specified supplier i times. */
     public static<T> List<T> list(int i, Supplier<T> factory) {
         List<T> l = new ArrayList(i);
         for(int j=0; j<i; j++) l.add(factory.get());
         return l;
     }
-    
+
     public static <T> Stream<T> stream(T... t) {
         return Stream.of(t);
     }
-    
+
     public static <T> Stream<T> stream(Stream<T> s1, Stream<T> s2) {
         return Stream.concat(s1,s2);
     }
-    
+
     public static <T> Stream<T> stream(T o, Stream<T> t) {
         return Stream.concat(Stream.of(o), t);
     }
-    
+
     public static <T> Stream<T> stream(Collection<T> t) {
         return t.stream();
     }
-    
+
     /** @return stream equivalent to a for loop */
     public static <T> Stream<T> stream(T seed, Predicate<T> cond, UnaryOperator<T> op) {
         Stream.Builder<T> b = Stream.builder();
@@ -721,56 +729,56 @@ public class Util {
     }
 
 /************************* collection -> collection ***************************/
-    
+
     /** Filters array. Returns list. Source remains unchanged. */
     public static<T> List<T> filter(T[] a, Predicate<T> f) {
         return Stream.of(a).filter(f).collect(toList());
     }
-    
+
     /** Filters collection. Returns list. Source remains unchanged. */
     public static<T> List<T> filter(Collection<T> c, Predicate<T> f) {
         return c.stream().filter(f).collect(toList());
     }
-    
+
     /** Maps array. Returns list. Source remains unchanged. */
     public static<T,R> List<R> map(T[] a, Function<T,R> m) {
         return Stream.of(a).map(m).collect(toList());
     }
-    
+
     /** Maps collection. Returns list. Source remains unchanged. */
     public static<T,R> List<R> map(Collection<T> c, Function<T,R> m) {
         return c.stream().map(m).collect(toList());
     }
-    
+
     /** Filters and then maps array. Returns list. Source remains unchanged. */
     public static<T,R> List<R> filterMap(Predicate<T> f, Function<T,R> m, T... a ) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }
-    
+
     /** Filters and then maps collection. Returns list. Source remains unchanged. */
     public static<T,R> List<R> filterMap(Collection<T> c, Predicate<T> f, Function<T,R> m) {
         return c.stream().filter(f).map(m).collect(toList());
     }
-    
+
     /** Filters and then maps stream. Returns list. */
     public static<T,R> List<R> filterMap(Stream<T> c, Predicate<T> f, Function<T,R> m) {
         return c.filter(f).map(m).collect(toList());
     }
 
-    
+
     public static <K,V,E> Map<K,E> toMap(Function<V,K> key_extractor, Function<V,E> val_extractor, V... c) {
         return Stream.of(c).collect(Collectors.toMap(key_extractor, val_extractor));
     }
     public static <K,V,E> Map<K,E> toMap(Collection<V> c, Function<V,K> key_extractor, Function<V,E> val_extractor) {
         return c.stream().collect(Collectors.toMap(key_extractor, val_extractor));
     }
-    
-    
+
+
     public static<T> List<T> split(String txt, String regex, int i, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).map(m).collect(toList());
     }
-    
+
     public static<T> List<T> split(String txt, String regex, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
@@ -779,14 +787,14 @@ public class Util {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).collect(toList());
     }
-    
+
     public static List<String> split(String txt, String regex) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).collect(toList());
     }
-    
-    
-    
+
+
+
     public static int findFirstEmpty(Map<Integer, ?> m, int from) {
         return iterate(from, i -> i+1).filter(i->m.get(i)==null).findFirst().getAsInt();
     }

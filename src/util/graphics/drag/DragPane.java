@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
@@ -23,6 +22,7 @@ import util.SingleⱤ;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
+import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.removeFromParent;
 
@@ -68,12 +68,12 @@ public class DragPane {
 
     /**
      * Installs drag highlighting for specified node and drag defined by specified predicate,
-     * dislaying specified icon and action description.
+     * displaying specified icon and action description.
      *
      * @param r drag accepting node
      * @param icon icon symbolizing the action that will take place when drag is dropped
-     * @param description of the action that will take place when drag is dropped
-     * @param accept predicate filtering the drag events. Must be consistent with the drag accepting
+     * @param name description of the action that will take place when drag is dropped
+     * @param cond predicate filtering the drag events. Must be consistent with the drag accepting
      * node's DRAG_OVER event handler which accepts the drag! Predicate returning always true will
      * cause the drag highlighting to work regardless of the content of the drag - even if the node
      * does not allow the content to be dropped.
@@ -82,8 +82,8 @@ public class DragPane {
      * see {@link DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute
      * consistency in drag highlighting and drag accepting behavior.
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
-        installDragSignalPane(r, icon, () -> name, accept);
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> cond) {
+        installDragSignalPane(r, icon, () -> name, cond);
     }
 
     /**
@@ -92,59 +92,47 @@ public class DragPane {
      * time), so it can be dynamic and reflect certain state.
      */
     public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> cond) {
+        installDragSignalPane(r, icon, name, cond, e -> false);
+    };
+
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> cond, Predicate<DragEvent> orConsume) {
         Data d = new Data(name, icon, cond);
         r.getProperties().put(INSTALLED, d);
-        // r.addEventFilter(Event.ANY, e -> System.out.println(e.getEventType())); // debug
-        // instead of DRAG_ENTERED we need to use DRAG_ENTERED_TARGET as the former isnt called
-        // sometimes (when mouse exits window and reenters (sometimes))
-        // this in turn causes wrong node to be activated. Using filters instead of handlers solves it
-        r.addEventFilter(DragEvent.DRAG_ENTERED_TARGET, e -> {
-            if(d.cond.test(e)) {
-                // this may not make sense, one would expect this to ALWAYS be called (before
-                // the check above), but we must remove the pane ONLY when new location acceps
-                // the drag
-                removeFromParent(PANE.get());
+        //r.addEventFilter(DragEvent.ANY, e -> System.out.println(e.getEventType() + " " + e.getSource())); // debug
+        r.addEventHandler(DragEvent.DRAG_OVER, e -> {
+            if(!r.getProperties().containsKey(ACTIVE)) {
+                if(d.cond.test(e)) {
+                    // this may not make sense, one would expect this to ALWAYS be called (before
+                    // the check above), but we must remove the pane ONLY when new location acceps
+                    // the drag
+                    removeFromParent(PANE.get());
 
-                r.getProperties().put(ACTIVE, ACTIVE);
-                Pane p = r instanceof Pane ? (Pane)r : (Pane)r.getParent();
-                Pane dp = PANE.getM(d);
-                if(!p.getChildren().contains(dp))
-                    p.getChildren().add(dp);
-                Bounds b = r.getLayoutBounds();
-                double w = b.getWidth();
-                double h = b.getHeight();
-                dp.setMaxSize(w,h);
-                dp.setPrefSize(w,h);
-                dp.setMinSize(w,h);
-                dp.resizeRelocate(b.getMinX(),b.getMinY(),w,h);
-                dp.toFront();
+                    if(!orConsume.test(e)) {
+                        r.getProperties().put(ACTIVE, ACTIVE);
+                        Pane p = r instanceof Pane ? (Pane)r : r.getParent()==null ? null : (Pane)r.getParent();
+                        Pane dp = PANE.getM(d);
+                        if(p!=null && !p.getChildren().contains(dp)) {
+                            p.getChildren().add(dp);
+                            Bounds b = r.getLayoutBounds();
+                            double w = b.getWidth();
+                            double h = b.getHeight();
+                            dp.setMaxSize(w,h);
+                            dp.setPrefSize(w,h);
+                            dp.setMinSize(w,h);
+                            dp.resizeRelocate(b.getMinX(),b.getMinY(),w,h);
+                            dp.toFront();
+                        }
+                    }
+                    e.consume();
+                }
             }
+        });
+        r.addEventHandler(DRAG_EXITED_TARGET, e -> {
+            r.getProperties().remove(ACTIVE);
         });
         r.addEventHandler(DRAG_EXITED, e -> {
             removeFromParent(PANE.get());
             r.getProperties().remove(ACTIVE);
-
-            Parent p = r.getParent();
-            do {
-                // do not rely on Pane.isHover() it doesnt work during drags
-                boolean hover = p.localToScene(p.getLayoutBounds()).contains(e.getSceneX(),e.getSceneY());
-                Data dt = (Data) p.getProperties().get(INSTALLED);
-                if(dt!=null && dt.cond.test(e) && hover && p instanceof Pane) {
-                    Pane dp = PANE.getM(dt);
-                    if(!p.getChildrenUnmodifiable().contains(dp))
-                        ((Pane)p).getChildren().add(dp);
-                    Bounds b = p.getLayoutBounds();
-                    double w = b.getWidth();
-                    double h = b.getHeight();
-                    dp.setMaxSize(w,h);
-                    dp.setPrefSize(w,h);
-                    dp.setMinSize(w,h);
-                dp.resizeRelocate(b.getMinX(),b.getMinY(),w,h);
-                    dp.toFront();
-                    break;
-                }
-                p = p.getParent();
-            }while(p!=null);
         });
     }
 

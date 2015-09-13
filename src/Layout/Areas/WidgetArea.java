@@ -3,10 +3,12 @@ package Layout.Areas;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 
@@ -16,7 +18,9 @@ import Layout.Widgets.Widget;
 import gui.GUI;
 import gui.pane.IOPane;
 import util.graphics.drag.DragUtil;
+import util.graphics.fxml.ConventionFxmlLoader;
 
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static gui.GUI.openAndDo;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -26,51 +30,41 @@ import static util.graphics.Util.setAnchors;
  * Implementation of Area for UniContainer.
  */
 public final class WidgetArea extends Area<Container> {
-    
+
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;
-    
+
     private Widget widget = Widget.EMPTY();     // never null
-    
+
     /**
      @param c container to make contract with
      @param i index of the child within the container
      */
     public WidgetArea(Container c, int i) {
         super(c,i);
-        
-        // load graphics
-        try {
-            FXMLLoader loader = new FXMLLoader(this.getClass().getResource("WidgetArea.fxml"));
-                       loader.setRoot(content_root);
-                       loader.setController(this);
-                       loader.load();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex.getMessage());
-        }
+
+        // fxml
+        new ConventionFxmlLoader(WidgetArea.class, content_root, this).loadNoEx();
+
         // load controls
         controls = new AreaControls(this);
         content_padding.getChildren().addAll(controls.root);
-        
-        // support css styling - 
-//        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
-        
-        // support drag from - done in controls: AreaControls.class
 
-        // accept drag onto
-        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
-        // handle drag onto
-        root.setOnDragDropped( e -> {
-            if (DragUtil.hasComponent()) {
-                container.swapChildren(index,DragUtil.getComponent());
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
-       
+        // support css styling -
+//        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
+
+        // drag
+        DragUtil.installDrag(
+            root, EXCHANGE, "Switch components",
+            e -> DragUtil.hasComponent(),
+            e -> DragUtil.getComponent().child==widget,
+            e -> container.swapChildren(index,DragUtil.getComponent())
+        );
+
         if(GUI.isLayoutMode()) show(); else hide();
     }
-    
+
+
     /** @return currently active widget. */
     public Widget getWidget() {
         return widget;
@@ -82,7 +76,7 @@ public final class WidgetArea extends Area<Container> {
     public Widget getActiveWidget() {
         return widget;
     }
-    
+
     /**
      * This implementation returns widget of this area.
      * @return singleton list of this area's only widget. Never null. Never
@@ -92,32 +86,32 @@ public final class WidgetArea extends Area<Container> {
     public List<Widget> getActiveWidgets() {
         return singletonList(widget);
     }
-    
+
     public void loadWidget(Widget w) {
         requireNonNull(w,"widget must not be null");
-        
+
         widget = w;
-        
+
         // load widget
         Node wNode = w.load();
         content.getChildren().clear();
         content.getChildren().add(wNode);
         setAnchors(wNode,0d);
         openAndDo(content_root, null);
-        
+
         // put controls to new widget
         controls.title.setText(w.getInfo().name());
         controls.propB.setDisable(w.getFields().isEmpty());
-        
+
         // put up activity node
         IOPane an = new gui.pane.IOPane(w.getController());
         an.setUserData(this);
         setActivityContent(an);
         setActivityVisible(false);
         wNode.setUserData(this);
-        
+
     }
-    
+
     @Override
     public void refresh() {
         widget.getController().refresh();
@@ -127,7 +121,7 @@ public final class WidgetArea extends Area<Container> {
     public void add(Component c) {
         container.addChild(index, c);
     }
-    
+
     @Override
     public AnchorPane getContent() {
         return content;

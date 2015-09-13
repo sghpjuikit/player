@@ -55,7 +55,7 @@ import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.SAME;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.list;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
 /**
@@ -136,12 +136,13 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
                 // additional css styleclasses
-                styleRuleAdd("played", p -> getPlaylist().isItemPlaying(p));
+                styleRuleAdd("played", p -> getPlaylist().getPlaying()==p);
                 styleRuleAdd("corrupt", PlaylistItem::isCorruptCached);
             }
         });
         // maintain playing item css by refreshing index column
         d1 = Player.playingtem.onChange(o -> refreshColumn(columnIndex));
+        Player.playingtem.onChange(o -> System.out.println(playlist.stream().filter(p->p==playlist.getPlaying()).count()));
 
         // resizing
         setColumnResizePolicy(resize -> {
@@ -264,12 +265,16 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             }
             e.consume();
         });
+
         // drag&drop to
-        setOnDragOver_NoSelf(DragUtil.audioDragAccepthandler);
         // handle drag (empty table has no rows so row drag event handlers
         // will not work, events fall through on table and we handle it here
-        setOnDragDropped( e -> dropDrag(e, 0));
-        installDragSignalPane(this, PLAYLIST_PLUS, "Add to playlist after row",DragUtil::hasAudio);
+        installDrag(
+            this,PLAYLIST_PLUS,"Add to playlist after row",
+            DragUtil::hasAudio,
+            e -> e.getGestureSource()==this,
+            e -> dropDrag(e, 0)
+        );
 
         // scroll to playing item
         maintain(scrollToPlaying, v -> {
@@ -342,8 +347,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         if (DragUtil.hasAudio(e.getDragboard())) {
             List<Item> items = DragUtil.getAudioItems(e);
             getPlaylist().addItems(items, index);
-            //end drag transfer
-            e.setDropCompleted(true);
+            DragUtil.setDropCompleted(e);
             e.consume();
         }
     }

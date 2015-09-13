@@ -63,13 +63,13 @@ import static util.functional.Util.*;
  index if component is not found. Therefore such index must be ignored.
  */
 public abstract class Container extends Component implements AltState {
-    
+
     @XStreamOmitField
     AnchorPane root;
-    
+
     @XStreamOmitField
     private Container parent;
-    
+
     /**
      * Whether the container is locked. The effect of lock is not implicit and
      * might vary. Generally, the container becomes immune against certain
@@ -93,7 +93,7 @@ public abstract class Container extends Component implements AltState {
     public String getName() {
         return this.getClass().getName();
     }
-    
+
     /**
      * Equivalent to hasParent()
      * @return true if container is root - has no parent
@@ -101,25 +101,25 @@ public abstract class Container extends Component implements AltState {
     public boolean isRoot() {
         return parent == null;
     }
-    
-    /** 
+
+    /**
      * Equivalent to !isRoot()
      * @return whether has parent */
     public boolean hasParent() {
         return parent != null;
     }
-    
+
     /** @return parent container of this container */
     public Container getParent() {
         return parent;
     }
-    
+
     protected void setParent(Container c) {
         parent = c;
         lockedUnder.unbind();
         lockedUnder.bind(c.lockedUnder.or(locked).or(GUI.locked_layout));
     }
-    
+
     /**
      * Properly links up this container with its children and propagates this
      * call down on the children and so on.
@@ -136,11 +136,11 @@ public abstract class Container extends Component implements AltState {
             }
         }
     }
-    
+
     /** @return the children */
     public abstract Map<Integer, Component> getChildren();
     boolean b = false;
-    
+
     /**
      * Adds component to specified index as child of the container.
      * @param index index of a child. Determines its position within container.
@@ -149,16 +149,16 @@ public abstract class Container extends Component implements AltState {
      * index.
      */
     public abstract void addChild(Integer index, Component c);
-    
+
     /**
      * Removes child of this container if it exists.
      * @param c component to remove
      */
     public void removeChild(Component c) {
-        addChild(indexOf(c), null); 
+        addChild(indexOf(c), null);
         closeComponent(c);
     }
-    
+
     /**
      * Removes child of this container at specified index.
      * <p>
@@ -170,7 +170,7 @@ public abstract class Container extends Component implements AltState {
         addChild(index, null);  // reload
         closeComponent(c);
     }
-    
+
     private static void closeComponent(Component c) {
         if(c instanceof Container) {
 //            ((Container)c).close();
@@ -180,7 +180,7 @@ public abstract class Container extends Component implements AltState {
             if(wc!=null) wc.close();
         }
     }
-    
+
     /**
      * Swaps children in the layout.
      * @param w1 child of this container to swap.
@@ -190,26 +190,31 @@ public abstract class Container extends Component implements AltState {
     public void swapChildren(Container toParent, int i1, Component toChild) {
         Container c1 = this;
         Container c2 = toParent;
+
+        // im pretty sure container could be null, e.g., when copying Layout (has no parent)
+        // should be investigated and fixed
+
         // avoid pointless operation but dont rely on equals
         // subclass can overide it and cause problems
-        // note: we can rely on this check only because we 
-        // use Unary Container for all widgets. If we had
-        // polynary Container (multiple children) this would
-        // prevent them from being swapped
-        if (c1==c2) return;
-        
+        // note: we can rely on this check only because we
+        // use Unary Container for all widgets.
+        // If we had polynary Container (multiple children) this would prevent their swapping
+        // edit: but we do have them now... hence the instanceof checks
+        // i think this is largely useless now, but dont want to break anything, fix it later...
+        if (c1 instanceof UniContainer && c2 instanceof UniContainer && c1==c2) return;
+
         Component w1 = c1.getChildren().get(i1);
         Component w2 = toChild;
         int i2 = c2.indexOf(w2);
-        
+
         String w1n = w1==null ? "null" : w1.getName();
         String w2n = w2==null ? "null" : w2.getName();
         getLogger(Container.class).info("Swapping widgets {} and {}", w1n,w2n);
-        
+
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);
     }
-    
+
     /**
      * Convenience method. Equivalent to: swapChildren(wt.container, i1, wt.child)
      * @see #swapChildren(Layout.Container, int, Layout.Component)
@@ -218,7 +223,7 @@ public abstract class Container extends Component implements AltState {
     public void swapChildren(int i1, WidgetTransfer wt) {
         swapChildren(wt.container, i1, wt.child);
     }
-    
+
     /**
      * Returns index of a child or null if no child or parameter null.
      * @param c component
@@ -226,36 +231,36 @@ public abstract class Container extends Component implements AltState {
      */
     public Integer indexOf(Component c) {
         if (c==null) return null;
-        
+
         for (Map.Entry<Integer, ? extends Component> entry: getChildren().entrySet()) {
             if (entry.getValue().equals(c))
                 return entry.getKey();
         }
-        
+
         return null;
     }
-    
+
     /**
      * Equivalent to: parent.indexOf(this)
      * @throws NullPointerException when this container is root
-     * @return 
+     * @return
      */
     public final int indexInParent() {
         return parent.indexOf(this);
     }
-    
+
     /** @return available index for child or null if none available. */
     public abstract Integer getEmptySpot();
-    
+
     /**
-     * Returns all components in layout mapB of which this is the root. In other 
+     * Returns all components in layout mapB of which this is the root. In other
      * words all children recursively. The root (this) is included in the list.
-     * @return 
+     * @return
      */
     public Stream<Component> getAllChildren() {
         List<Component> out = new ArrayList<>();
                         out.add(this);
-                        
+
         for (Component w: getChildren().values()) {
             if(w!=null) out.add(w);
             if (w instanceof Container)
@@ -266,7 +271,7 @@ public abstract class Container extends Component implements AltState {
     /**
      * Returns all widgets in layout mapB of which this is the root. In other words
      * all widget children recursively.
-     * @return 
+     * @return
      */
     public Stream<Widget> getAllWidgets() {
         List<Widget> out = new ArrayList<>();
@@ -282,7 +287,7 @@ public abstract class Container extends Component implements AltState {
     /**
      * Returns all containers in layout mapB of which this is the root. In other words
      * all container children recursively. The root (this) is included in the list.
-     * @return 
+     * @return
      */
     public Stream<Container> getAllContainers(boolean include_self) {
         Stream<Container> s1 = include_self ? stream(this) : stream();
@@ -291,7 +296,7 @@ public abstract class Container extends Component implements AltState {
                                             .flatMap(c -> ((Container)c).getAllContainers(true));
         return stream(s1,s2);
     }
-    
+
     /**
      * Loads the graphical element this container wraps. Furthermore all the children
      * get loaded too.
@@ -299,23 +304,23 @@ public abstract class Container extends Component implements AltState {
      * Here, the term parent isnt parent Container, but instead the very AnchorPane
      * this container will be loaded into.
      * @param _parent
-     * @return 
+     * @return
      */
     public Node load(AnchorPane _parent){
         root = _parent;
-        return load();   
+        return load();
     }
-    
+
     /**
      * Effectively a reload.
      * Loads the whole container and its children - the whole layout sub branch
      * having this container as root - to its parent_pane. The parent_pane must be assigned
      * before calling this method.
-     * @return 
+     * @return
      */
     @Override
     public abstract Node load();
-    
+
     /**
      * Closes this container and its content. Can not be undone.
      * <p>
@@ -339,7 +344,7 @@ public abstract class Container extends Component implements AltState {
         getAllWidgets().map(Widget::getController)
                 .filter(ISNTØ)  // there might not yet loaded widgets => contorller==null
                 .forEach(c->c.close());
-        
+
         if (parent!=null) {
             // remove from layout graph
             parent.removeChild(this);
@@ -347,7 +352,7 @@ public abstract class Container extends Component implements AltState {
             // remove from scene graph if attached to it
             removeGraphicsFromSceneGraph();
         } else {
-            // remove all children 
+            // remove all children
             list(getChildren().keySet()).forEach(this::removeChild);
         }
         // free resources of all guis, we need to do this because we do not
@@ -355,29 +360,29 @@ public abstract class Container extends Component implements AltState {
         // implement their own implementation because it will not be invoked
         getAllContainers(false).forEach(Container::closeGraphics);
     }
-    
+
     protected void removeGraphicsFromSceneGraph() {
         // to do: make sure the layout brachn under this container does not
         // cause a memory leak
         ContainerNode a = getGraphics();
-        if(a!=null) root.getChildren().remove(a.getRoot()); 
+        if(a!=null) root.getChildren().remove(a.getRoot());
     }
-    
+
     protected void closeGraphics() {
         ContainerNode a = getGraphics();
         if(a!=null) a.close();
     }
-    
+
     /**
      * Set the root of this container. The container is attached to the scene
      * graph through this root. The root is parent node of all the nodes of
      * this container (including its children).
-     * @param pane 
+     * @param pane
      */
     public void setRoot(AnchorPane pane) {
         root = pane;
     }
-    
+
     /**
      * Returns the root. See {@link #getRoot()}
      * @return the root or null if none.
@@ -385,13 +390,13 @@ public abstract class Container extends Component implements AltState {
     public AnchorPane getRoot() {
         return root;
     }
-    
+
     public abstract ContainerNode getGraphics();
-    
+
 /******************************************************************************/
 
     @Override
-    public boolean equals(Object o) {        
+    public boolean equals(Object o) {
         return this==o;
     }
 
@@ -404,9 +409,9 @@ public abstract class Container extends Component implements AltState {
         hash = 67 * hash + (this.b ? 1 : 0);
         return hash;
     }
-    
+
 /******************************************************************************/
-    
+
     protected Object readResolve() throws ObjectStreamException {
         if(lockedUnder == null) {   // for some reason this happens, investigate, remove
             util.Util.setField(this, "lockedUnder", new SimpleBooleanProperty(false));
@@ -414,9 +419,9 @@ public abstract class Container extends Component implements AltState {
         }
         return this;
     }
-    
+
 /******************************************************************************/
-    
+
     @Override
     public void show() {
         if(getGraphics()!=null) getGraphics().show();
@@ -424,7 +429,7 @@ public abstract class Container extends Component implements AltState {
                      .filter(AltState.class::isInstance)
                      .map(AltState.class::cast)
                      .forEach(AltState::show);
-        
+
     }
     @Override
     public void hide() {
@@ -434,5 +439,5 @@ public abstract class Container extends Component implements AltState {
                      .map(AltState.class::cast)
                      .forEach(AltState::hide);
     }
-    
+
 }

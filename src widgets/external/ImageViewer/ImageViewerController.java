@@ -68,7 +68,7 @@ import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
 import static util.functional.Util.forEachWithI;
 import static util.graphics.Util.*;
-import static util.graphics.drag.DragUtil.installDragSignalPane;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  *
@@ -267,38 +267,29 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         folder.addListener(locationChange);
         d(() -> folder.removeListener(locationChange));
 
-        // accept drag transfer
-        root.setOnDragOver(DragUtil.audioDragAccepthandler);
-        root.setOnDragOver(DragUtil.imgFileDragAccepthandler);
-        root.setOnDragOver(DragUtil.fileDragAccepthandler);
-        // handle drag transfers
-        root.setOnDragDropped(e -> {
-            if(e.getDragboard().hasFiles()) {
-                dataChanged(e.getDragboard().getFiles().get(0));
-                e.setDropCompleted(true);
-                e.consume();
-                return;
+        // drag&drop
+        installDrag(
+            root, DETAILS,"Display",
+            e -> DragUtil.hasImage(e) || DragUtil.hasAudio(e) || DragUtil.hasFiles(e),
+            e -> {
+                if(e.getDragboard().hasFiles()) {
+                    dataChanged(e.getDragboard().getFiles().get(0));
+                    return;
+                }
+                if(e.getGestureSource().equals(mainImage.getPane())) return;
+                if(DragUtil.hasAudio(e.getDragboard())) {
+                    // get first item
+                    List<Item> items = DragUtil.getAudioItems(e);
+                    if (!items.isEmpty()) dataChanged(items.get(0));
+                } else
+                if(DragUtil.hasImage(e.getDragboard())) {
+                    DragUtil.getImages(e)
+                         .use(this::showImages,FX)
+                         .showProgress(App.getWindow().taskAdd())
+                         .run();
+                }
             }
-            if(e.getGestureSource().equals(mainImage.getPane())) return;
-            if(DragUtil.hasAudio(e.getDragboard())) {
-                // get first item
-                List<Item> items = DragUtil.getAudioItems(e);
-                if (!items.isEmpty()) dataChanged(items.get(0));
-                // end drag
-                e.setDropCompleted(true);
-                e.consume();
-            } else
-            if(DragUtil.hasImage(e.getDragboard())) {
-                DragUtil.getImages(e)
-                     .use(this::showImages,FX)
-                     .showProgress(App.getWindow().taskAdd())
-                     .run();
-
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
-        installDragSignalPane(root, DETAILS,"Display",DragUtil::hasImage);
+        );
 
         // forbid app scrolling when thumbnails are visible
         thumb_root.setOnScroll(Event::consume);

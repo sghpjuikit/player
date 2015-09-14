@@ -48,28 +48,28 @@ import static util.functional.Util.list;
 import static util.functional.Util.map;
 
 public class Functors {
-    
+
     public interface Λ {}
     public static interface Ƒ extends Λ, Runnable {
         void apply();
-        
+
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
         @Deprecated
-        default void run() { 
+        default void run() {
             apply();
         }
     }
     public static interface Ƒ0<O> extends Λ, Supplier<O> {
         O apply();
-        
+
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
         @Deprecated
         default O get() {
-            return apply(); 
+            return apply();
         }
-        
-        /** 
-         * Returns ewuivalent function to this returning no output. The computation will still 
+
+        /**
+         * Returns ewuivalent function to this returning no output. The computation will still
          * take place as normal, so this function should have side effects. If it does not, a
          * function that does nothing should be used instead of this method.
          */
@@ -77,21 +77,49 @@ public class Functors {
             return () -> apply();
         }
     }
-    public static interface Ƒ1<I,O> extends Λ, Function<I,O>, Callback<I,O> {
-        O apply(I i);
+    public static interface Ƒ1<I,O> extends Λ, Function<I,O>, Callback<I,O>, Consumer<I> {
+
+        public static Ƒ1<Void,Void> f1(Runnable r) {
+            return i -> {
+                r.run();
+                return null;
+            };
+        }
         
+        public static <T> Ƒ1<Void,T> f1(Supplier<T> s) {
+            return i -> s.get();
+        }
+
+        public static <T> Ƒ1<T,Void> f1(Consumer<T> c) {
+            return i -> {
+                c.accept(i);
+                return null;
+            };
+        }
+
+        @Override
+        O apply(I i);
+
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Callback}. */
         @Deprecated
+        @Override
         default O call(I i) {
             return apply(i);
         }
-        
+
+        /** Equivalent to {@link #apply()}, ignoring the result. Exists for compatibility with {@link Consumer}. */
+        @Deprecated
+        @Override
+        public default void accept(I i) {
+            apply(i); // and ignore result as a proper Consumer
+        }
+
         /** Partially applies this function with 1st parameter. */
         default Ƒ0<O> toF0(I i) {
             return () -> apply(i);
         }
-        
-        /** 
+
+        /**
          * Returns function equivalent to this, except for when certain exception types are thrown.
          * These will be caught and alternative output returned.
          */
@@ -100,22 +128,22 @@ public class Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) 
-                        if(ec.isAssignableFrom(ec.getClass())) 
+                    for(Class<?> ec : ecs)
+                        if(ec.isAssignableFrom(ec.getClass()))
                             return or;
                     throw e;
                 }
             };
         }
-        
+
         /** Lazy version of {@link #onEx(java.lang.Object, java.lang.Class...) } */
         default Ƒ1<I,O> onEx(Supplier<O> or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) 
-                        if(ec.isAssignableFrom(ec.getClass())) 
+                    for(Class<?> ec : ecs)
+                        if(ec.isAssignableFrom(ec.getClass()))
                             return or.get();
                     throw e;
                 }
@@ -127,8 +155,8 @@ public class Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) 
-                        if(ec.isAssignableFrom(ec.getClass())) 
+                    for(Class<?> ec : ecs)
+                        if(ec.isAssignableFrom(ec.getClass()))
                             return or.apply(i);
                     throw e;
                 }
@@ -140,13 +168,28 @@ public class Functors {
             noØ(after);
             return (I t) -> after.apply(apply(t));
         }
-        
+
+        default <V> Ƒ1<I, V> andThen(Ƒ1<? super O, ? extends V> after) {
+            noØ(after);
+            return (I t) -> after.apply(apply(t));
+        }
+
+        // this change return type from Consumer to Function in a typesafe way!!
+        @Override
+        default Ƒ1<I,Void> andThen(Consumer<? super I> after) {
+            return i -> {
+                apply(i);
+                after.accept(i);
+                return null;
+            };
+        }
+
         @Override
         default <V> Ƒ1<V,O> compose(Function<? super V, ? extends I> before) {
             noØ(before);
             return (V v) -> apply(before.apply(v));
         }
-        
+
         /**
          * @param mutator consumer that takes the input of this function and applies it
          * on output of this function after this function finishes
@@ -164,7 +207,7 @@ public class Functors {
         /**
          * Similar to {@link #andApply(java.util.function.Consumer)} but the mutator takes
          * additional parameter - initial input of this function.
-         * 
+         *
          * @param mutator consumer that takes the input of this function and applies it
          * on output of this function after this function finishes
          * @return composed function that applies this function to its input and then
@@ -177,24 +220,23 @@ public class Functors {
                 return o;
             };
         }
-
         /**
          * Similar to {@link #andThen(java.util.function.Function)} but the mutator
          * takes additional parameter - the original input to this function.
-         * 
+         *
          * @param mutator consumer that takes the input of this function and applies it
          * on output of this function after this function finishes
          * @return composed function that applies this function to its input and then
          * applies the mutator before returning it.
          */
-        public  default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
+        public default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
             return in -> {
                 O o = apply(in);
                 return mutator.apply(in,o);
             };
         }
-        
-        /** 
+
+        /**
          * Returns nullless version of this f, which returns its input instead of null. The input
          * type must conform to output type! This mostly makes sense when input and output type
          * match.
@@ -205,38 +247,38 @@ public class Functors {
                 return out==null ? (O)in : out;
             };
         }
-        
+
         default Ƒ1<I,O> nonNull(O or) {
             return andThen(o -> o==null ? or : o);
         }
-        
+
         default Ƒ1<I,O> passNull() {
             return in -> in==null ? null : apply(in);
         }
-        
-        default Ƒ1<I,Object> wrap(NullIn i, NullOut o) {
-            if(i==NullIn.NULL && o==NullOut.NULL) 
+
+        default Ƒ1<I,O> wrap(NullIn i, NullOut o) {
+            if(i==NullIn.NULL && o==NullOut.NULL)
                 return in -> in==null ? null : apply(in);
-            if(i==NullIn.APPLY && o==NullOut.NULL) 
+            if(i==NullIn.APPLY && o==NullOut.NULL)
                 return (Ƒ1) this;
-            if(i==NullIn.APPLY && o==NullOut.INPUT) 
+            if(i==NullIn.APPLY && o==NullOut.INPUT)
                 return in -> {
                     O out = apply(in);
                     return out==null ? (O)in : out;
                 };
-            if(i==NullIn.NULL && o==NullOut.INPUT) 
+            if(i==NullIn.NULL && o==NullOut.INPUT)
                 return in -> {
                     if(in==null) return null;
                     O out = apply(in);
                     return out==null ? (O)in : out;
                 };
-            
+
             throw new AssertionError("Illegal switch case");
         }
     }
     public static interface Ƒ1E<I,O> extends Λ {
         O apply(I i) throws Exception;
-        
+
         default Ƒ1E<I,O> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
@@ -251,11 +293,11 @@ public class Functors {
     public static interface Ƒ2<I,I2,O> extends Λ, BiFunction<I,I2,O> {
         @Override
         O apply(I i, I2 i2);
-        
+
         default Ƒ1<I,O> toF2(I2 i2) {
             return (i) -> apply(i, i2);
         }
-        
+
         default Ƒ2<I,I2,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2) -> {
                 try {
@@ -269,11 +311,11 @@ public class Functors {
     }
     public static interface Ƒ3<I,I2,I3,O> extends Λ {
         O apply(I i, I2 i2, I3 i3);
-        
+
         default Ƒ2<I,I2,O> toF2(I3 i3) {
             return (i,i2) -> apply(i, i2, i3);
         }
-        
+
         default Ƒ3<I,I2,I3,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3) -> {
                 try {
@@ -287,11 +329,11 @@ public class Functors {
     }
     public static interface Ƒ4<I,I2,I3,I4,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4);
-        
+
         default Ƒ3<I,I2,I3,O> toF3(I4 i4) {
             return (i,i2,i3) -> apply(i, i2, i3, i4);
         }
-        
+
         default Ƒ4<I,I2,I3,I4,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4) -> {
                 try {
@@ -305,11 +347,11 @@ public class Functors {
     }
     public static interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
-        
+
         default Ƒ4<I,I2,I3,I4,O> toF4(I5 i5) {
             return (i,i2,i3,i4) -> apply(i, i2, i3, i4, i5);
         }
-        
+
         default Ƒ5<I,I2,I3,I4,I5,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4,i5) -> {
                 try {
@@ -323,11 +365,11 @@ public class Functors {
     }
     public static interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
-        
+
         default Ƒ5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
             return (i,i2,i3,i4,i5) -> apply(i, i2, i3, i4, i5, i6);
         }
-        
+
         default Ƒ6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4,i5,i6) -> {
                 try {
@@ -339,7 +381,7 @@ public class Functors {
             };
         }
     }
-    
+
     public static enum NullIn {
         NULL,
         APPLY;
@@ -348,36 +390,36 @@ public class Functors {
         NULL,
         INPUT;
     }
-    
+
     private static final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
     private static final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
     private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
-    
+
     static {
         add("Is null",      Object.class, Boolean.class, Objects::isNull);
         add("Is not null",  Object.class, Boolean.class, Objects::nonNull);
-        
+
         add("As is",        Object.class, Object.class, x->x, true, true, true);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
-        
+
         add("Is true",      Boolean.class, Boolean.class, b -> b==true);
         add("Is false",     Boolean.class, Boolean.class, b -> b==false);
         add("Negate",       Boolean.class, Boolean.class, b -> !b);
         add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
         add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr, Boolean.class,true);
         add("Xor",          Boolean.class, Boolean.class, Boolean::logicalXor, Boolean.class,true);
-        
+
         add("'_' -> ' '", String.class,String.class, s -> s.replace("_", " "));
         add("-> file name", String.class,String.class, Util::filenamizeString);
         add("Anime", String.class,String.class, s -> {
             // remove the super annoying '_'
             s = s.replaceAll("_", " ");
-            
+
             // remove hash
             if(s.endsWith("]") && s.lastIndexOf('[')==s.length()-10)
                 s = s.substring(0,s.length()-10);
-            
+
             // remove fangroups
             String fangroup = null;
             if(s.startsWith("[")) {
@@ -387,14 +429,14 @@ public class Functors {
                     s = s.substring(i+1);
                 }
             }
-            
+
             // remove leading and trailing shit
             s = s.trim();
-            
+
             // add fangroup at the end
             if(fangroup!=null)
                 s = s+"." + fangroup;
-            
+
             return s;
         });
         add("Plural",       String.class,String.class, (t) -> plural(t));
@@ -409,7 +451,7 @@ public class Functors {
         add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(min(i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
         add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(min(i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
         add("Trim",         String.class,String.class, (t) -> t.trim());
-        add("Split",        String.class,SplitData.class, (t,splitter) -> 
+        add("Split",        String.class,SplitData.class, (t,splitter) ->
                 splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(Collectors.toCollection(SplitData::new))
             , StringSplitParser.class,new StringSplitParser("%all%"));
         add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
@@ -426,13 +468,13 @@ public class Functors {
                     o.append(splits.get(keys.get(keys.size()-1)));
                 return o.toString();
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
-        
+
         add("Name",       File.class,String.class, FileUtil::getName);
         add("Suffix",     File.class,String.class, FileUtil::getSuffix);
         add("Name.Suffix",File.class,String.class, File::getName);
         add("Path",       File.class,String.class, File::getAbsolutePath);
         add("Size",       File.class,FileSize.class, FileSize::new);
-        
+
         // fielded values
         for(Metadata.Field f : Metadata.Field.values())
             add(f.name(), Metadata.class, f.getType(), m->m.getField(f));
@@ -440,7 +482,7 @@ public class Functors {
             add(f.name(), PlaylistItem.class, f.getType(), m->m.getField(f));
         for(MetadataGroup.Field f : MetadataGroup.Field.values())
             add(f.name(), MetadataGroup.class, f.getType(), m->m.getField(f));
-        
+
         add("Is",                   String.class,Boolean.class, (text,b) -> text.equals(b), String.class,"");
         add("Contains",             String.class,Boolean.class, (text,b) -> text.contains(b), String.class,"");
         add("Ends with",            String.class,Boolean.class, (text,b) -> text.endsWith(b), String.class,"");
@@ -471,7 +513,7 @@ public class Functors {
         add("Is empty",         String.class,Boolean.class, x -> x.isEmpty());
         add("Is funny",         String.class,Boolean.class, x -> x.contains("fun") && x.contains("y"));
         add("Is palindrome",    String.class,Boolean.class, x -> isNonEmptyPalindrome(x));
-        
+
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
         add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
@@ -482,7 +524,7 @@ public class Functors {
         add("Is bad",    Bitrate.class,Boolean.class, x -> x.getValue()<=128);
         add("Is unknown",Bitrate.class,Boolean.class, x -> x.getValue()==-1);
         add("Is known",  Bitrate.class,Boolean.class, x -> x.getValue()>-1);
-        
+
         add("Less",      FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
         add("Is",        FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
         add("More",      FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
@@ -496,7 +538,7 @@ public class Functors {
         add(">= Not less",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
         add("<> Is not",    NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
         add("<= Not more",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
-        
+
         add("<  Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
         add("=  Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
         add(">  More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
@@ -506,7 +548,7 @@ public class Functors {
         add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
         add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
         add("Is 1.21GB", FileSize.class,Boolean.class, x -> x.inGBytes()==1.21);
-        
+
         add("After",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
         add("Is",        Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
         add("Before",    Year.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
@@ -514,19 +556,19 @@ public class Functors {
         add("Not",       Year.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, Year.class,Year.now());
         add("Not before",Year.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, Year.class,Year.now());
         add("Is leap",   Year.class,Boolean.class, x -> x.isLeap());
-        
+
         add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
         add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));
         addPredicatesOf(AudioFileFormat.class);
         addPredicatesOf(ImageFileFormat.class);
-        
+
         addPredicatesComparable(Short.class, new Short("0"));
         addPredicatesComparable(Integer.class, 0);
         addPredicatesComparable(Long.class, 0l);
         addPredicatesComparable(Double.class, 0d);
         addPredicatesComparable(Float.class, 0f);
     }
-    
+
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f) {
         addF(new PƑ0(name,i,o,f));
     }
@@ -539,7 +581,7 @@ public class Functors {
     public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
         addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
     }
-    
+
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
         addF(new PƑ0(name,i,o,f),pi,po,pio);
     }
@@ -552,7 +594,7 @@ public class Functors {
     public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
         addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f),pi,po,pio);
     }
-    
+
     public static <E extends Enum> void addPredicatesOf(Class<E> c) {
         add("Is", c,Boolean.class, (a,b) -> a==b, c, c.getEnumConstants()[0], false,false,true);
     }
@@ -564,7 +606,7 @@ public class Functors {
         add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
         add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
     }
-    
+
     /** Add function to the pool. */
     public static void addF(PƑ f) {
         fsI.accumulate(f);
@@ -583,12 +625,12 @@ public class Functors {
         fsO.deaccumulate(f);
         fsIO.deaccumulate(f);
     }
-    
+
     /** Returns all functions taking input I. */
     public static <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
         PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
         return l;
-        
+
 //        PrefList l = (PrefList) fsI.get(unPrimitivize(i));
 //        return l==null ? new PrefList() : l;
     }
@@ -606,7 +648,7 @@ public class Functors {
     public static <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
         return getIO(io, io);
     }
-    /** 
+    /**
      * Returns first function taking input I, producing output O and named
      * name or null if there is no such function.
      */
@@ -614,7 +656,7 @@ public class Functors {
         return getIO(i, o).stream().filter(f->f.name.equals(name))
                           .findFirst().map(f->f.toFunction()).orElseGet(null);
     }
-    
+
     public static <I> PƑ<I,?> getPrefI(Class<I> i) {
         PrefList<PƑ> l = (PrefList<PƑ>)fsI.get(i);
         return l==null ? null : l.getPrefered();
@@ -631,12 +673,12 @@ public class Functors {
         PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(io,io));
         return l==null ? null : l.getPrefered();
     }
-    
-    
+
+
 
     public static class Parameter<P> {
         public final Class<P> type;
-        public final P defaultValue; 
+        public final P defaultValue;
 
         public Parameter(Class<P> type, P defaultValue) {
             this.type = type;
@@ -656,19 +698,19 @@ public class Functors {
             this.in = unPrimitivize(in);
             this.out = unPrimitivize(out);
         }
-        
+
         public Ƒ1<I,O> toFunction() {
             return i -> apply(i, new Object[]{});
         }
 
         @Override
         public abstract O apply(I t, Object... u);
-        
-        
+
+
 //        public CƑ<I,O> toConfigurable() {
 //            return new CƑ<>(this);
 //        }
-        
+
     }
     public static class PƑ0<I,O> extends PƑ<I,O> {
         private Ƒ1<I,O> f;
@@ -716,7 +758,7 @@ public class Functors {
         private P1 p1def;
         private P2 p2def;
         private Ƒ3<I,P1,P2,O> f;
-        
+
         public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
             super(_name,i,o);
             this.p1 = unPrimitivize(p1type);
@@ -725,7 +767,7 @@ public class Functors {
             this.p2def = p2def;
             this.f = f;
         }
-        
+
         @Override
         public List<Parameter<Object>> getParameters() {
             return list(new Parameter(p1,p1def),new Parameter(p2,p2def));
@@ -744,7 +786,7 @@ public class Functors {
         private P2 p2def;
         private P3 p3def;
         private Ƒ4<I,P1,P2,P3,O> f;
-        
+
         public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
             super(_name,i,o);
             this.p1 = unPrimitivize(p1type);
@@ -755,7 +797,7 @@ public class Functors {
             this.p3def = p3def;
             this.f = f;
         }
-        
+
         @Override
         public List<Parameter<Object>> getParameters() {
             return list(new Parameter(p1,p1def),new Parameter(p2,p2def),new Parameter(p3,p3def));
@@ -771,10 +813,10 @@ public class Functors {
         FROM_END;
     }
     public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
-        
+
         public final PƑ<I,O> pf;
         private final List<Config<Object>> cs = new ArrayList();
-        
+
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(),p->{
@@ -787,6 +829,6 @@ public class Functors {
         public O apply(I i) {
             return pf.apply(i, cs.stream().map(c->c.getValue()).toArray());
         }
-        
+
     }
 }

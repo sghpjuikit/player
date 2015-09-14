@@ -121,7 +121,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     }
 
     @Override
-    public void configure(Collection<Config> c) {System.out.println("sss " + c);
+    public void configure(Collection<Config> c) {
         if(c==null) return;
 
         // clear previous fields

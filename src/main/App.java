@@ -505,7 +505,7 @@ public class App extends Application {
             run(2222, () -> guide.start());
         }
 
-        System.out.println(new File("cursor.png").getAbsoluteFile().toURI().toString());
+        // get rid of this, load from skins
         Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
         ImageCursor c = new ImageCursor(image,3,3);
         window.getStage().getScene().setCursor(c);

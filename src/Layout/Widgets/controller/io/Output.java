@@ -14,14 +14,14 @@ import java.util.UUID;
  */
 public class Output<T> extends Put<T> {
     public final Id id;
-    
-        
-    public Output(UUID id, String name, Class<? super T> c) {// System.out.println(id);
+
+
+    public Output(UUID id, String name, Class<? super T> c) {
         super(c, null);
         this.id = new Id(id, name);
     }
-    
-    
+
+
     public String getName() {
         return id.name;
     }
@@ -36,7 +36,7 @@ public class Output<T> extends Put<T> {
     public int hashCode() {
         return 5 * 89 + Objects.hashCode(this.id);
     }
-    
+
     public static class Id {
         public final UUID carrier_id;
         public final String name;
@@ -49,7 +49,7 @@ public class Output<T> extends Put<T> {
         @Override
         public boolean equals(Object o) {
             if(this==o) return true;
-            if(o instanceof Id) 
+            if(o instanceof Id)
                 return ((Id)o).name.equals(name) && ((Id)o).carrier_id.equals(carrier_id);
             return false;
         }
@@ -66,14 +66,14 @@ public class Output<T> extends Put<T> {
         public String toString() {
             return name + "," + carrier_id.toString();
         }
-        
+
         public static Id fromString(String s) {
             int i = s.indexOf(",");
             String n = s.substring(0,i);
             UUID u = UUID.fromString(s.substring(i+1, s.length()));
             return new Id(u,n);
         }
-        
+
     }
 
 }

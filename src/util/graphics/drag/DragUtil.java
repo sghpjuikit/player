@@ -38,6 +38,7 @@ import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
+import static util.dev.Util.log;
 import static util.functional.Util.ALL;
 import static util.functional.Util.filterMap;
 
@@ -456,11 +457,16 @@ public final class DragUtil {
     private static Fut<File> futUrl(String url) {
         return fut(() -> {
             try {
+                // this can all fail when the certificate is not trusted
+                // security is fine, but user doesnt care if a site he uses wont work due to this...
+                // e.g. anime-pictures.net
+                //
+                // https://code.google.com/p/jsslutils/wiki/SSLContextFactory
                 File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
                      f.deleteOnExit();
                 return f;
-            } catch(IOException ex) {
-                // THIS MUST BE HANDLED PROPERLY
+            } catch(IOException e) {
+                log(DragUtil.class).error("Couldnt download from url",e);
                 return null;
             }
         });

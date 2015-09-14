@@ -490,7 +490,7 @@ public final class FileUtil {
      * <p>
      * If source file equals the file of its copy, the file will not be copied.
      *
-     * @param files
+     * @param files list of files
      * @param target
      * @param options optional. See {@link CopyOption} and Files.copy() methods
      *

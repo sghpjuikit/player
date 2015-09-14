@@ -256,7 +256,8 @@ public class IOPane extends StackPane {
             });
         }
 
-        public void lay(double startx, double starty, double tox, double toy) { // System.out.println(startx + " " + starty + " " + tox + " " + toy);
+        public void lay(double startx, double starty, double tox, double toy) {
+            // System.out.println(startx + " " + starty + " " + tox + " " + toy); // debug
             setLayoutX(0);
             double h = App.getWindow().getSwitchPane().widget_io.getHeight();
             minHeight(h);

@@ -39,9 +39,8 @@ public class ThumbnailWithAdd extends Thumbnail {
      * Action for when image file is dropped or received from file chooser.
      * Default does nothing. Null indicates no action.
      * <p>
-     * Obtaining the image file may be blocking operation. Therefore, the file
-     * is obtained by executing the provided supplier. That must be done
-     * manually and should be done on bgr thread.
+     * Obtaining the image file may be blocking operation (hence the {@link Fut}). The future will
+     * never be null, but the obtained image can be null!
      */
     public Consumer<Fut<File>> onFileDropped = null;
     /**

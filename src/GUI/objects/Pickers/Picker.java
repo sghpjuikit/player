@@ -6,13 +6,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javafx.animation.Transition;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
@@ -25,8 +23,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static util.animation.Anim.Interpolators.isAroundMin1;
-import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.functional.Util.*;
 
@@ -35,7 +31,7 @@ import static util.functional.Util.*;
  * <p>
  * Node displaying elements as grid.
  * Elements are converted to their text representation according to provided
- * mapper. Element should override toString() method if no mapper is provided. 
+ * mapper. Element should override toString() method if no mapper is provided.
  * <p>
  * Elements will be sorted lexicographically.
  * <p>
@@ -44,7 +40,7 @@ import static util.functional.Util.*;
  * @author Plutonium_
  */
 public class Picker<E> {
-    
+
     /** Style class for cell. */
     public static final String STYLE_CLASS = "item-picker";
     public static final List<String> CELL_STYLE_CLASS = asList("block","item-picker-element");
@@ -56,10 +52,10 @@ public class Picker<E> {
     public static final ToStringConverter DEF_textCoverter = Object::toString;
     /** Default Item supplier. Returns empty stream. */
     public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
-    
+
     private final CellPane tiles = new CellPane();
     public final ScrollPane root = new ScrollPane(tiles);
-    
+
     /**
      * Procedure executed when item is selected passing the item as parameter.
      * Default implementation does nothing. Must not be null;
@@ -81,7 +77,7 @@ public class Picker<E> {
      */
     public ToStringConverter<E> textCoverter = DEF_textCoverter;
     /**
-     * Item supplier. Fetches the items as a stream. 
+     * Item supplier. Fetches the items as a stream.
      * Default implementation returns empty stream. Must not be null;
      */
     public Supplier<Stream<E>> itemSupply = (Supplier)DEF_itemSupply;
@@ -100,12 +96,12 @@ public class Picker<E> {
         a.setMinSize(90, 30);
         return a;
     };
-    
+
     public Picker() {
         root.setPannable(false);  // forbid mouse panning
         root.setHbarPolicy(NEVER);
         root.setPrefSize(-1,-1);  // leave resizable
-        root.setFitToWidth(true); // make content resize with scroll pane        
+        root.setFitToWidth(true); // make content resize with scroll pane
         // consume problematic events and prevent from propagating
         // disables unwanted behavior of the popup
         root.addEventFilter(MOUSE_PRESSED, Event::consume);
@@ -118,9 +114,9 @@ public class Picker<E> {
         });
         root.getStyleClass().add(STYLE_CLASS);
     }
-    
+
     public void buildContent() {
-        tiles.getChildren().clear(); 
+        tiles.getChildren().clear();
         // get items
         itemSupply.get()
             // & sort
@@ -136,56 +132,32 @@ public class Picker<E> {
                      });
                 tiles.getChildren().add(cell);
             });
-        
-        getCells().forEach( c -> c.setBorder(new Border(new BorderStroke(new Color(0,0,0,0.2), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2)))));
-//        getCells().forEachBoth( c -> c.setBorder(new Border(new BorderStroke(c.getBackground().getFills().get(0).getFill(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, null))));
-        Transition t = par(
-          forEachIStream(getCells(), (i,n) ->
-              seq(
-                new Anim(n.getChildrenUnmodifiable().get(0)::setOpacity).dur(500+random()*1000).intpl(0),
-                new Anim(n.getChildrenUnmodifiable().get(0)::setOpacity).dur(500).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
-              )
-          )
-        );
-        t.setOnFinished(e -> getCells().forEach( c -> c.setBorder(null)));
-        t.play();
-        
-//        Interpolator in = new BounceInterpolator();
-////        getCells().forEachBoth(n -> setScaleXY(n,0));
-//        getCells().forEachBoth(n -> n.setOpacity(0));
-//        Interpolator in = new BounceInterpolator();
-//        par(millis(500),
-//            forEachIndexedStream(getCells(), (i,n) -> 
-//                par(millis(abs(getCells().size()/2-i)*100),
-//                        new Anim(millis(300), in, at -> n.setOpacity(isAroundMin(at, 0.02, 0.5+0.05, 0.5+0,15, 0.5+0.2, 0.5+0.35) ? 0 : 1))
-////                    seq(
-////                        new Anim(millis(450), in, at -> setScaleXY(n, at, 0.2)),
-////                        new Anim(millis(300), in, at -> setScaleXY(n, 1, 0.2+0.8*at)),
-////                    )
-////                    new Anim(millis(300), in, at -> n.setOpacity(isAround(0.04, 0.5, 0,65, 0.8, 0.95).test(at) ? 0 : 1))
-//                )
-//           )
-//        ).play();
-        
+
+        // animate & show
+        int s = getCells().size();
+        Anim.par(getCells(), (i,n) -> seq(
+            new Anim(n::setOpacity).dur(i*(1000/s)).intpl(0),
+            new Anim(n::setOpacity).dur(500).intpl(x -> sqrt(x))
+        )).play();
     }
-    
+
     public Node getNode() {
         buildContent();
         return root;
     }
-    
+
     public List<Region> getCells() {
         return (List) list(tiles.getChildren());
     }
-    
+
     private class CellPane extends Pane {
 
         @Override
         protected void layoutChildren() {
             double width = root.getWidth();
             double height = root.getHeight();
-            
-            
+
+
             int gap = 5;
             int elements = tiles.getChildren().size();
             double min_cell_w = max(1,getCells().get(0).getMinWidth());
@@ -212,6 +184,6 @@ public class Picker<E> {
                 n.resize(cell_width, cell_height);
             });
         }
-        
+
     }
 }

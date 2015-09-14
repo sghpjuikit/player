@@ -822,8 +822,6 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
                     T t = a.factory.get();
                     List<Config<Object>> configs = (List)list(a.toConfigurable.apply(t).getFields());
                     List<String> vals = split(s, ";", x->x);
-                    //configs.forEach(c -> System.out.println("c-"+c)); DEBUG
-                    //vals.forEach(v -> System.out.println("v-"+v));
                     if(configs.size()==vals.size())
                          // its important to apply the values too
                         forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));

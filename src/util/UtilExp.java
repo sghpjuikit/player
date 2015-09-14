@@ -21,10 +21,11 @@ import org.reactfx.Subscription;
 
 import static java.time.Duration.ofMillis;
 import static javafx.scene.input.MouseEvent.*;
+import static util.dev.Util.log;
 
 /**
  * Experimental utilities and ideas.
- * 
+ *
  * @author Plutonium_
  */
 public class UtilExp {
@@ -34,13 +35,13 @@ public class UtilExp {
         EventHandler<MouseEvent> htrue = e -> h.push(true);
         EventHandler<MouseEvent> hfalse = e -> h.push(false);
         ChangeListener<Boolean> hx = (o,ov,nv) -> h.push(nv);
-        
+
         n.hoverProperty().addListener(hx);
 //        n.addEventFilter(MOUSE_MOVED, htrue);
 //        n.addEventFilter(MOUSE_ENTERED_TARGET, htrue);
 //        n.addEventFilter(MOUSE_EXITED_TARGET, hfalse);
         Subscription s = h.successionEnds(ofMillis(50)).subscribe(handler);
-        
+
         return Subscription.multi(
                 s,
                 () -> n.removeEventFilter(MOUSE_MOVED, htrue),
@@ -49,9 +50,9 @@ public class UtilExp {
                 () -> n.hoverProperty().removeListener(hx)
         );
     }
-    
-    
-    
+
+
+
     //http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration
     /**
      * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
@@ -63,7 +64,7 @@ public class UtilExp {
      */
     public static void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
         try {
-             
+
             Class TTBehaviourClass = null;
             Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
             for (Class c:declaredClasses) {
@@ -96,13 +97,13 @@ public class UtilExp {
                 return;
             }
             ttbehaviourField.setAccessible(true);
-             
+
             // Cache the default behavior if needed.
             Object defaultTTBehavior = ttbehaviourField.get(Tooltip.class);
             ttbehaviourField.set(Tooltip.class, newTTBehaviour);
-             
+
         } catch (Exception e) {
-            System.out.println("Aborted setup due to error:" + e.getMessage());
+            log(UtilExp.class).warn("Aborted customizing tooltip behavior",e);
         }
     }
 }

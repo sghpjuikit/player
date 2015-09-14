@@ -136,13 +136,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
                 // additional css styleclasses
-                styleRuleAdd("played", p -> getPlaylist().getPlaying()==p);
+                styleRuleAdd("played", p -> p==getPlaylist().getPlaying());
                 styleRuleAdd("corrupt", PlaylistItem::isCorruptCached);
             }
         });
         // maintain playing item css by refreshing index column
         d1 = Player.playingtem.onChange(o -> refreshColumn(columnIndex));
-        Player.playingtem.onChange(o -> System.out.println(playlist.stream().filter(p->p==playlist.getPlaying()).count()));
 
         // resizing
         setColumnResizePolicy(resize -> {

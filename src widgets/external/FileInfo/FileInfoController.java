@@ -4,6 +4,7 @@ package FileInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,6 +62,7 @@ import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toLast;
+import static util.functional.Functors.Ƒ1.f1;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.layAnchor;
@@ -327,37 +329,29 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
 
     private Fut setAsCover(Fut<File> ff, boolean setAsCover) {
-        if(ff==null) System.out.println("WTF ff null");
-        if(ff==null) return ff;
-
-        Consumer<File> action = setAsCover
+        Consumer<File> a = setAsCover
             ? file -> copyFileSafe(file, data.getLocation(), "cover")
             : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
-
-        return ff.use(action)
+        return ff.use(f1(a).passNull())
                  .then(cover_source::applyValue,FX)         // refresh cover
                  .showProgress(App.getWindow().taskAdd());
     }
 
     private Fut tagAsCover(Fut<File> ff, boolean includeAlbum) {
-        if(ff==null) System.out.println("WTF ff null");
-        if(ff==null) return ff;
+        Consumer<File> a = f -> {
+            Collection<Metadata> items = includeAlbum
+                // get all known songs from album
+                ? DB.items.o.getValue().stream()
+                    // we must not write when album is empty! that could have disastrous consequences!
+                    .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
+                    .collect(toSet())
+                : new HashSet<>();
+            items.add(data); // make sure the original is included (Set avoids duplicates)
 
-        Collection<Metadata> items = includeAlbum
-            // get all known songs from album
-            ? DB.items.o.getValue().stream()
-                // we must not write when album is empty! that could have disastrous consequences!
-                .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
-                .distinct()
-                .collect(toSet())
-            // or only original
-            : list();
-        items.add(data); // make sure the original is included (we use set to avoid duplicates)
-
-        return ff.use(f -> {
-                     MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
-                     Player.refreshItems(items);
-                  })
+            MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
+            Player.refreshItems(items);
+        };
+        return ff.use(f1(a).passNull())
                  .showProgress(App.getWindow().taskAdd());
     }
 

@@ -12,9 +12,9 @@ import javafx.collections.ListChangeListener;
 
 import util.collections.PrefList;
 import util.functional.Functors;
-import util.functional.Functors.Ƒ1;
 import util.functional.Functors.NullIn;
 import util.functional.Functors.NullOut;
+import util.functional.Functors.Ƒ1;
 
 /**
  * Function editor with function chaining.
@@ -31,29 +31,29 @@ import util.functional.Functors.NullOut;
  * <li> begins with an input type. It determines the type of input of the first
  * function in the chain and input type of the reduction function. By default it
  * is Void.class. {@link #getTypeIn()}
- * <li> produces output of type determined by the last function in the chain 
+ * <li> produces output of type determined by the last function in the chain
  * {@link #getTypeOut()}
  * </ul>
- * 
+ *
  * Supported are also:
  * <ul>
- * <li> null. Functions in the chain  are wrapped to function wrappers to 
+ * <li> null. Functions in the chain  are wrapped to function wrappers to
  * cases of producing or receiving null. The strategy can be customized
  * {@link #setNullHandling(util.functional.Functors.NullIn, util.functional.Functors.NullOut)}
  * <li> Void. Functions with void parameter can simulate supplier (no input) or
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
- * 
+ *
  *
  * @author Plutonium_
  */
 public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNode<Object,Object>> {
-    
+
     private final Function<Class,PrefList<Functors.PƑ<Object,Object>>> fp;
     private Class type_in = Void.class;
     private NullIn handleNullIn = NullIn.NULL;
     private NullOut handleNullOut = NullOut.NULL;
-    
+
     /** Creates unlimited chain starting with Void.class. */
     public ƑChainItemNode(Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
         this(Void.class, Integer.MAX_VALUE, functionPool);
@@ -62,7 +62,7 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
     public ƑChainItemNode(Class in, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
         this(in, Integer.MAX_VALUE, functionPool);
     }
-    
+
     /** Creates limited chain starting with specified type. */
     public ƑChainItemNode(Class in, int max_len, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
 //        super(len, max_len, () -> new ƑItemNode(functionPool));
@@ -71,7 +71,7 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
         homogeneous = false;
         setTypeIn(in);  // initializes value, dont fire update yet
-        
+
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
             if(m<chain.size()) {
@@ -83,8 +83,8 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         chain.addListener((ListChangeListener.Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
         maxChainLength.set(max_len);
     }
-    
-    /** 
+
+    /**
      * Sets input type.
      * Input type determines:
      * <ul>
@@ -103,7 +103,7 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
      * Default Void.class
      */
     public void setTypeIn(Class c) {
-        if(type_in.equals(c)) 
+        if(type_in.equals(c))
             generateValue();
         else {
             type_in = c;
@@ -111,7 +111,7 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
             addChained();
         }
     }
-    
+
     /**
      * Sets null handling during chain function reduction.
      * <p>
@@ -122,7 +122,7 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         handleNullOut = no;
         generateValue();
     }
-    
+
 
     public Class getTypeIn() {
         return type_in;
@@ -131,11 +131,11 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
     public Class getTypeOut() {
         return chain.isEmpty() ? type_in : chain.get(chain.size()-1).chained.getTypeOut();
     }
-    
+
     @Override
     protected Ƒ1<Object,Object> reduce(Stream<Ƒ1<Object,Object>> ƒs) {
         return ƒs.map(ƒ -> ƒ.wrap(handleNullIn, handleNullOut))
-                     .reduce(Functors.Ƒ1::andThen).orElse(x->x);
+                     .reduce(Ƒ1::andThen).orElse(x->x);
     }
-    
+
 }

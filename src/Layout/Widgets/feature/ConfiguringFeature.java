@@ -13,7 +13,7 @@ import Configuration.Configurable;
 
 /**
  * Editor for {@link Configurable}.
- * 
+ *
  * @author Plutonium_
  */
 @Feature(
@@ -22,12 +22,12 @@ import Configuration.Configurable;
   type = ConfiguringFeature.class
 )
 public interface ConfiguringFeature {
-    
+
     /** Displays configs of the specified configurable object for user to edit. */
     default void configure(Configurable c) {
         configure(c==null ? null : c.getFields());
     };
-    
+
     /** Displays specified configs for user to edit. */
     void configure(Collection<Config> c);
 }

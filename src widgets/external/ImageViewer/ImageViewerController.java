@@ -277,12 +277,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                     return;
                 }
                 if(e.getGestureSource().equals(mainImage.getPane())) return;
-                if(DragUtil.hasAudio(e.getDragboard())) {
+                if(DragUtil.hasAudio(e)) {
                     // get first item
                     List<Item> items = DragUtil.getAudioItems(e);
                     if (!items.isEmpty()) dataChanged(items.get(0));
                 } else
-                if(DragUtil.hasImage(e.getDragboard())) {
+                if(DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
                          .use(this::showImages,FX)
                          .showProgress(App.getWindow().taskAdd())

@@ -31,7 +31,7 @@ import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.Rater.Rating;
-import gui.objects.image.ChangeableThumbnail;
+import gui.objects.image.ThumbnailWithAdd;
 import gui.objects.image.cover.Cover.CoverSource;
 import gui.pane.ActionPane.SlowAction;
 import gui.pane.ImageFlowPane;
@@ -92,7 +92,7 @@ import static util.graphics.Util.layAnchor;
 public class FileInfoController extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
-    private final ChangeableThumbnail cover = new ChangeableThumbnail();
+    private final ThumbnailWithAdd cover = new ThumbnailWithAdd();
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
     private final Rating rater = new Rating();

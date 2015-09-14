@@ -33,7 +33,6 @@ import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
-import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
@@ -78,7 +77,6 @@ public final class DragUtil {
 /********************************* dragboard **********************************/
 
     private static Object data;
-    private static DataFormat dataFormat;
 
 /******************************** handlers ************************************/
 
@@ -115,6 +113,9 @@ public final class DragUtil {
     /** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
     public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);;
 
+    /** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as predicate. */
+    public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = accept(DragUtil::hasWidgetOutput);
+
 
     public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
         installDrag(node, icon, description, condition, e -> false, action);
@@ -135,23 +136,12 @@ public final class DragUtil {
         node.addEventHandler(DRAG_DROPPED,e -> {
             if (condition.test(e)) {
                 action.accept(e);
-                setDropCompleted(e);
+                e.setDropCompleted(true);
                 e.consume();
             }
         });
-        // clears data after drag was cancelled
-        node.addEventHandler(DRAG_EXITED, e -> {
-            if(e.isAccepted())
-                setDropCompleted(e);
-        });
         // show hint
         DragPane.installDragSignalPane(node,icon,description,condition,exc);
-    }
-
-    public static void setDropCompleted(DragEvent e) {
-        data = null;
-        dataFormat = null;
-        e.setDropCompleted(true);
     }
 
 /************************************ ANY *************************************/
@@ -160,7 +150,7 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
-        if(hasItemList()) return getItemsList();
+        if(hasItemList(e)) return getItemsList(e);
         if(d.hasFiles()) return d.getFiles();
         if(d.hasImage()) return d.getImage();
         if(d.hasUrl()) return d.getUrl();
@@ -172,7 +162,7 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
-        if(hasItemList()) return getItemsList();
+        if(hasItemList(e)) return getItemsList(e);
         if(d.hasFiles()) return d.getFiles();
         if(d.hasImage()) return d.getImage();
         if(d.hasUrl()) return futUrl(d.getUrl());
@@ -231,73 +221,62 @@ public final class DragUtil {
 
 /******************************* WIDGET OUTPUT ********************************/
 
-    /** Accepts and consumes drag over event if contains text. */
-    public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = e -> {
-        if (hasWidgetOutput()) {
-            e.acceptTransferModes(ANY);
-            e.consume();
-        }
-    };
-
     public static void setWidgetOutput(Output o, Dragboard db) {
-        // put fake data into dragboard
-        db.setContent(singletonMap(widget_outputDF, ""));
         data = o;
-        dataFormat = widget_outputDF;
+        db.setContent(singletonMap(widget_outputDF, ""));   // fake data
     }
 
     /** Returns widget output from dragboard or runtime exceptin if none. */
     public static Output getWidgetOutput(DragEvent e) {
-        if(dataFormat != widget_outputDF) throw new RuntimeException("No widget output in data available.");
+        if(!hasWidgetOutput(e))
+            throw new RuntimeException("No widget output in data available.");
         return (Output) data;
     }
 
     /** Returns whether dragboard contains text. */
-    public static boolean hasWidgetOutput() {
-        return dataFormat == widget_outputDF;
+    public static boolean hasWidgetOutput(DragEvent e) {
+        return e.getDragboard().hasContent(widget_outputDF);
     }
 
 /*********************************** SONGS ************************************/
 
     public static void setItemList(List<? extends Item> items, Dragboard db, boolean includeFiles) {
-        // put fake data into dragboard
-        db.setContent(singletonMap(itemsDF, ""));
         data = items;
-        dataFormat = itemsDF;
+        db.setContent(singletonMap(itemsDF, ""));   // fake data
 
         if(includeFiles) {
             HashMap<DataFormat,Object> c = new HashMap();
+            c.put(itemsDF, "");   // fake data
             c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
             db.setContent(c);
         }
     }
 
-    public static List<Item> getItemsList() {
-        if(dataFormat != itemsDF) throw new RuntimeException("No item list in data available.");
+    public static List<Item> getItemsList(DragEvent e) {
+        if(!hasItemList(e)) throw new RuntimeException("No item list in data available.");
         return (List<Item>) data;
     }
 
-    public static boolean hasItemList() {
-        return dataFormat == itemsDF;
+    public static boolean hasItemList(DragEvent e) {
+        return e.getDragboard().hasContent(itemsDF);
     }
 
 /********************************** LAYOUT ************************************/
 
     public static void setComponent(Container parent, Component child, Dragboard db) {
-        // put fake data into dragboard
-        db.setContent(singletonMap(componentDF, ""));
         data = new WidgetTransfer(parent, child);
-        dataFormat = componentDF;
+        db.setContent(singletonMap(componentDF, ""));   // fake data
     }
 
-    public static WidgetTransfer getComponent() {
-        if(dataFormat != componentDF) throw new RuntimeException("No component in data available.");
+    public static WidgetTransfer getComponent(DragEvent e) {
+        if(!hasComponent(e)) throw new RuntimeException("No component in data available.");
         return (WidgetTransfer) data;
     }
 
-    public static boolean hasComponent() {
-        return dataFormat == componentDF;
+    public static boolean hasComponent(DragEvent e) {
+        return e.getDragboard().hasContent(componentDF);
     }
+
 
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,
@@ -312,8 +291,8 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         ArrayList<Item> o = new ArrayList();
 
-        if (hasItemList()) {
-            o.addAll(getItemsList());
+        if (hasItemList(e)) {
+            o.addAll(getItemsList(e));
         } else
         if (d.hasFiles()) {
             getFilesAudio(d.getFiles(),Use.APP,Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
@@ -336,31 +315,11 @@ public final class DragUtil {
      *
      * @return true iff contains at least 1 audio file or audio url or (any) directory
      */
-    public static boolean hasAudio(Dragboard d) {
+    public static boolean hasAudio(DragEvent e) {
+        Dragboard d = e.getDragboard();
         return (d.hasFiles() && FileUtil.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
-                         hasItemList();
-    }
-
-    /**
-     * Returns true if dragboard contains audio file/s. True does not guarantee the presence of audio,
-     * because directories are not traversed and may not contain any audio.
-     *
-     * @return true iff contains at least 1 audio file or audio url or (any) directory
-     */
-    public static boolean hasAudio(DragEvent e) {
-        return hasAudio(e.getDragboard());
-    }
-
-    /**
-     * Returns true if dragboard contains an image file/s. True guarantees the presence of the image. Files
-     * denoting directories are ignored.
-     *
-     * @return true iff contains at least 1 img file or an img url
-     */
-    public static boolean hasImage(Dragboard d) {
-        return (d.hasFiles() && FileUtil.containsImageFiles(d.getFiles())) ||
-                    (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+                         hasItemList(e);
     }
 
     /**
@@ -370,9 +329,10 @@ public final class DragUtil {
      * @return true iff contains at least 1 img file or an img url
      */
     public static boolean hasImage(DragEvent e) {
-        return hasImage(e.getDragboard());
+        Dragboard d = e.getDragboard();
+        return (d.hasFiles() && FileUtil.containsImageFiles(d.getFiles())) ||
+                    (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
-
 
     /**
      * Similar to {@link #getImages(javafx.scene.input.DragEvent)}, but
@@ -476,8 +436,8 @@ public final class DragUtil {
     public static Fut<Stream<Item>> getSongs(DragEvent e) {
         Dragboard d = e.getDragboard();
 
-        if (hasItemList()) {
-            return fut(getItemsList().stream());
+        if (hasItemList(e)) {
+            return fut(getItemsList(e).stream());
         }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();

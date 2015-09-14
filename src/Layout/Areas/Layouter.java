@@ -20,6 +20,7 @@ import main.App;
 import util.animation.interpolator.CircularInterpolator;
 import util.graphics.drag.DragUtil;
 
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static gui.GUI.*;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -28,8 +29,10 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.functional.Util.isInR;
 import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchors;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * @author uranium
@@ -89,17 +92,13 @@ public final class Layouter implements ContainerNode {
         cp.root.setScaleX(0);
         cp.root.setScaleY(0);
 
-        // do not support drag from - no content
-        // but accept drag onto
-        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
-        // handle drag onto
-        root.setOnDragDropped( e -> {
-            if (DragUtil.hasComponent()) {
-                container.swapChildren(index,DragUtil.getComponent());
-                DragUtil.setDropCompleted(e);
-                e.consume();
-            }
-        });
+        // drag&drop
+        installDrag(
+            root, EXCHANGE, "Switch components",
+            DragUtil::hasComponent,
+            e -> isInR(container, DragUtil.getComponent(e).child,DragUtil.getComponent(e).container),
+            e -> container.swapChildren(index,DragUtil.getComponent(e))
+        );
 
         clickShowHider =  e -> {
             if(e.getButton()==PRIMARY) {

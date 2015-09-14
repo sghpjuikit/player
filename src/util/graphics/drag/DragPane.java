@@ -23,6 +23,7 @@ import util.SingleⱤ;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
+import static util.functional.Util.ALL;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.removeFromParent;
 
@@ -45,24 +46,16 @@ import static util.graphics.Util.removeFromParent;
  *
  * @author Plutonium_
  */
-public class DragPane {
+public class DragPane extends StackPane {
 
     private static final String ACTIVE = "DRAG_PANE";
     private static final String INSTALLED = "DRAG_PANE_INSTALLED";
     private static final String STYLECLASS = "drag-pane";
-    private static final SingleⱤ<Pane,Data> PANE = new SingleⱤ<>(() -> {
-            Pane p = new StackPane(new Label("Drag"));
-                 p.getStyleClass().add(STYLECLASS);
-                 p.setMouseTransparent(true);   // must not interfere with events
-                 p.setManaged(false);           // must not interfere with layout
-            return p;
-        },
+    private static final String STYLECLASS_ICON = "drag-pane-icon";
+    public static final SingleⱤ<DragPane,Data> PANE = new SingleⱤ<>(DragPane::new,
         (p,data) -> {
-            // we could reuse the layout, but premature optimization...
-            p.getChildren().setAll(layHeaderBottom(8, Pos.CENTER,
-                new Icon(data.icon == null ? CLIPBOARD : data.icon,25),
-                new Label(data.name.get()))
-            );
+            p.icon.setIcon(data.icon == null ? CLIPBOARD : data.icon);
+            p.desc.setText(data.name.get());
         }
     );
 
@@ -102,10 +95,7 @@ public class DragPane {
         r.addEventHandler(DragEvent.DRAG_OVER, e -> {
             if(!r.getProperties().containsKey(ACTIVE)) {
                 if(d.cond.test(e)) {
-                    // this may not make sense, one would expect this to ALWAYS be called (before
-                    // the check above), but we must remove the pane ONLY when new location acceps
-                    // the drag
-                    removeFromParent(PANE.get());
+                    PANE.get().hide();
 
                     if(!orConsume.test(e)) {
                         r.getProperties().put(ACTIVE, ACTIVE);
@@ -131,20 +121,61 @@ public class DragPane {
             r.getProperties().remove(ACTIVE);
         });
         r.addEventHandler(DRAG_EXITED, e -> {
-            removeFromParent(PANE.get());
+            PANE.get().hide();
             r.getProperties().remove(ACTIVE);
         });
     }
 
-    private static class Data {
-        final Supplier<String> name;
-        final GlyphIcons icon;
-        final Predicate<DragEvent> cond;
+    public static class Data {
+        private final Supplier<String> name;
+        private final GlyphIcons icon;
+        private final Predicate<DragEvent> cond;
 
-        Data(Supplier<String> name, GlyphIcons icon, Predicate<DragEvent> cond) {
+        public Data(Supplier<String> name, GlyphIcons icon) {
+            this.name = name;
+            this.icon = icon;
+            this.cond = ALL;
+        }
+        public Data(Supplier<String> name, GlyphIcons icon, Predicate<DragEvent> cond) {
             this.name = name;
             this.icon = icon;
             this.cond = cond;
         }
+    }
+
+
+    private final Icon icon = new Icon().styleclass(STYLECLASS_ICON);
+    private final Label desc = new Label();
+
+    private DragPane() {
+        getStyleClass().add(STYLECLASS);
+        setMouseTransparent(true);   // must not interfere with events
+        setManaged(false);           // must not interfere with layout
+        getChildren().add(
+            layHeaderBottom(8, Pos.CENTER, icon,desc)
+        );
+    }
+
+    public void showFor(Node n) {
+        Pane p = n instanceof Pane ? (Pane)n : n.getParent()==null ? null : (Pane)n.getParent();
+        if(p!=null && !p.getChildren().contains(this)) {
+//            p.getProperties().put(ACTIVE, ACTIVE);
+            p.getChildren().add(this);
+            Bounds b = n.getLayoutBounds();
+            double w = b.getWidth();
+            double h = b.getHeight();
+            setMaxSize(w,h);
+            setPrefSize(w,h);
+            setMinSize(w,h);
+            resizeRelocate(b.getMinX(),b.getMinY(),w,h);
+            toFront();
+        }
+    }
+
+    public void hide() {
+//        if(getParent()!=null) {
+//            getParent().getProperties().remove(ACTIVE);
+//        }
+        removeFromParent(this);
     }
 }

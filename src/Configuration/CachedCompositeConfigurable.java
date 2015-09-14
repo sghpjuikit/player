@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Plutonium_
  */
 public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T> {
-    
+
     Map<String,Config<T>> getFieldsMap();
 
     @Override
@@ -26,5 +26,5 @@ public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T>
         CompositeConfigurable.super.getFields().forEach(c -> getFieldsMap().putIfAbsent(c.getName(), c));
         return getFieldsMap().values();
     }
-    
+
 }

@@ -35,16 +35,16 @@ import static util.graphics.Util.setAnchors;
  * Implementation of PolyArea.
  */
 public final class TabArea extends PolyArea {
-    
+
     private @FXML TabPane tabPane;
     private @FXML AnchorPane content;
-    
+
     public TabArea(PolyContainer c) {
         super(c, null);
-        
+
         // init properties
         container.properties.initProperty(Integer.class, "selected", -1);
-        
+
         root.setMinSize(0,0);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TabbedArea.fxml"));
         fxmlLoader.setRoot(content_root);
@@ -54,17 +54,17 @@ public final class TabArea extends PolyArea {
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }
-        
+
         tabPane.setUserData(this);
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
-        
+
         register();
-        
+
         // load controls
         controls = new AreaControls(this);
         content_root.getChildren().add(controls.root);
         setAnchors(controls.root, 0d);
-        
+
         // support drag from
         root.setOnDragDetected( e -> {
             // disallow in normal mode & primary button drag only
@@ -80,26 +80,26 @@ public final class TabArea extends PolyArea {
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
         root.setOnDragDropped( e -> {
-            if (DragUtil.hasComponent()) {
+            if (DragUtil.hasComponent(e)) {
                 int i = container.getParent().indexOf(container);
-                container.swapChildren(i, DragUtil.getComponent());
+                container.swapChildren(i, DragUtil.getComponent(e));
                 e.setDropCompleted(true);
                 e.consume();
             }
         });
         // return graphics to normal
         root.setOnDragDone( e -> content.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
-        
+
         setShow(GUI.isLayoutMode());
     }
-    
+
     /** @return active - currently displayed component */
     @Override
     public Widget getActiveWidget() {
         Tab t = tabPane.getSelectionModel().getSelectedItem();
         return t == null ? null : (Widget)t.getUserData();
     }
-    
+
     /**
      * @return singleton list containing active - currently displayed component
      */
@@ -108,16 +108,16 @@ public final class TabArea extends PolyArea {
         Widget c = getActiveWidget();
         return c==null ? EMPTY_LIST : singletonList(c);
     }
-    
-    
+
+
     @Override
     public void add(Component c) {
         addComponents(singleton(c));
     }
-    
+
     public void addComponents(Collection<Component> cs) {
         if(cs.isEmpty()) return;
-        
+
         int i = container.properties.getI("selected");
         // process components -> turn into tab, put behavior, load lazily
             // somehow null get through here, investigate, fix, document
@@ -126,7 +126,7 @@ public final class TabArea extends PolyArea {
             container.getChildren().put(container.getChildren().size(), c);
             tabPane.getTabs().add(t);
         });
-        
+
         // select correct tab
         if(!selectionLock) {
             if(i<0) i = 0;
@@ -137,7 +137,7 @@ public final class TabArea extends PolyArea {
             selectComponent(i);
         }
     }
-    
+
     @Override
     public void removeComponent(Component c) {
         Objects.requireNonNull(c);
@@ -149,15 +149,15 @@ public final class TabArea extends PolyArea {
                     tabPane.getTabs().remove(t);
                 });
     }
-    
+
 /******************************** selection ***********************************/
-    
+
     private static boolean selectionLock = false;
-    
+
     public void selectComponentPreventLoad(boolean val) {
         selectionLock = val;
     }
-    
+
     public void selectComponent(Integer i) {
         // release lock on manual change
         selectionLock = false;
@@ -167,13 +167,13 @@ public final class TabArea extends PolyArea {
         int ii = tabPane.getSelectionModel().getSelectedIndex();
         container.properties.put("selected", ii);
     }
-    
+
     /** Purges all tabs. */
     @Override
     public void removeAllComponents() {
         tabPane.getTabs().clear();
     }
-    
+
     private void loadTab(Tab t, Component c) {
         if (c == null || t == null) return;
         Node w = c.load();
@@ -186,11 +186,11 @@ public final class TabArea extends PolyArea {
         controls.propB.setDisable(false);
         if(c instanceof Configurable)
             controls.propB.setDisable(((Configurable)c).getFields().isEmpty());
-        
+
         int ii = tabPane.getTabs().indexOf(t);
         if(!selectionLock) container.properties.put("selected", ii);
     }
-    
+
     /** Refreshes the active component */
     @Override
     public void refresh() {
@@ -198,7 +198,7 @@ public final class TabArea extends PolyArea {
         if(c instanceof Widget) Widget.class.cast(c).getController().refresh();
         else if (c instanceof Container) Container.class.cast(c).load();
     }
-    
+
     @Override
     public void detach() {
 //        // create new window with no content (not even empty widget)
@@ -226,20 +226,20 @@ public final class TabArea extends PolyArea {
                // put size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
-    
+
     public void moveTab(int from, int to) {
         // prevent selection change
         selectComponentPreventLoad(true);
-        
+
         // pointless, order would remain the same, return
         if(from==to || from+1==to) return;
-        
+
         Tab t = tabPane.getTabs().get(from);
-        
+
         Tab newT = buildTab((Component) t.getUserData(), to);
         tabPane.getTabs().add(to,newT);
         tabPane.getTabs().remove(t);
-        
+
         // because there are two indexes per child (left & right) if we move
         // to the right we must decrement by one
         // for n tabs there is n+1 positions between them.
@@ -254,13 +254,13 @@ public final class TabArea extends PolyArea {
         else newSel = oldSel;
         selectComponent(newSel);
     }
-    
+
     @Override
     public AnchorPane getContent() {
         return content;
     }
-    
-    
+
+
     // the tab must be added to tabPane after this
     private DraggableTab buildTab(Component c, int to) {
         DraggableTab t = new DraggableTab(c.getName());
@@ -276,17 +276,17 @@ public final class TabArea extends PolyArea {
         });
         return t;
     }
-    
+
 /******************************************************************************/
-    
+
     public void register() {
         DraggableTab.tabPanes.add(tabPane); // register to support drag
     }
-    
+
     @Override
     public void close() {
         tabPane.getTabs().forEach(t -> t.setUserData(null));
         DraggableTab.tabPanes.remove(tabPane); // unregister from drag
     }
-    
+
 }

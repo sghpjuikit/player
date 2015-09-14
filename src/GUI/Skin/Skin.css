@@ -3558,24 +3558,6 @@
     -fx-border-width: 2;
 }
 
-/************************** CHANGEABLE THUMBNAIL ******************************
- * highlights that file can be added with icon
- * inherits .thumbnail, adds following entries
- */
-
-// highlighted is active when: mouse hover | drag over
-.thumbnail-image:highlighted {
-    -fx-opacity: 0.5;
-}
-.thumbnail-border:highlighted {
-    -fx-border-color: -fx-def-font-color;
-    -fx-opacity: 0.5;
-}
-// icon shown on highlight
-.changeable-thumbnail-icon {
-    -fx-text-fill: -fx-def-font-color;
-}
-
 /********************************** SEEKER *************************************
  * 
  * inherits: .slider
@@ -3858,6 +3840,12 @@
 
 
 
+// inherits: .stack-pane
 .drag-pane {
     -fx-background-color: rgba(0,0,0,0.5); 
+}
+
+// inherits: .icon
+.drag-pane-icon {
+    -glyph-size: 25; 
 }

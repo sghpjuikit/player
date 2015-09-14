@@ -780,7 +780,7 @@ public class App extends Application {
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
-        WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
+        WidgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(Configuration.getFields()));
     }
 
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")

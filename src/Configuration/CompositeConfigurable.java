@@ -20,7 +20,7 @@ import java.util.Collection;
  * @author Plutonium_
  */
 public interface CompositeConfigurable<T> extends Configurable<T> {
-    
+
     /** {@inheritDoc} */
     @Override
     public default Collection<Config<T>> getFields() {
@@ -41,8 +41,8 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
         return null;
     }
 
-    /** 
-     * Returns configurables composing this object. 
+    /**
+     * Returns configurables composing this object.
      * @return collection of subocnfigurable, never null
      */
     public Collection<Configurable<T>> getSubConfigurable();

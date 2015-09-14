@@ -99,11 +99,11 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         // drag
         DragUtil.installDrag(
             ctrls, EXCHANGE, "Switch components",
-            e -> DragUtil.hasComponent(),
-            e -> DragUtil.getComponent().child == container,
+            DragUtil::hasComponent,
+            e -> DragUtil.getComponent(e).child == container,
             e -> {
                 Container c = container.getParent();
-                c.swapChildren(c.indexOf(container),DragUtil.getComponent());
+                c.swapChildren(c.indexOf(container),DragUtil.getComponent(e));
             }
         );
 

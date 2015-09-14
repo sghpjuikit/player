@@ -8,25 +8,20 @@ package gui.objects.image;
 import java.io.File;
 import java.util.function.Consumer;
 
-import javafx.css.PseudoClass;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
-
+import de.jensd.fx.glyphs.GlyphIcons;
 import util.File.Environment;
 import util.async.future.Fut;
-import util.graphics.Icons;
+import util.graphics.drag.DragPane;
 import util.graphics.drag.DragUtil;
 
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static util.async.future.Fut.fut;
-import static util.graphics.Util.setAnchors;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
@@ -37,9 +32,9 @@ import static util.graphics.Util.setAnchors;
  *
  * @author Plutonium_
  */
-public class ChangeableThumbnail extends Thumbnail {
-    private final StackPane rt = new StackPane();
-    private final Text icon;
+public class ThumbnailWithAdd extends Thumbnail {
+
+    private final DragPane.Data dragData;
     /**
      * Action for when image file is dropped or received from file chooser.
      * Default does nothing. Null indicates no action.
@@ -55,38 +50,33 @@ public class ChangeableThumbnail extends Thumbnail {
      */
     public Consumer<Boolean> onHighlight = v -> {};
 
-    public ChangeableThumbnail() {
+    public ThumbnailWithAdd() {
+        this(DETAILS,"Set Image");
+    }
+
+    public ThumbnailWithAdd(GlyphIcons dragIcon, String dragDescription) {
         super();
+        dragData = new DragPane.Data(() -> dragDescription, dragIcon);
 
-        root.getChildren().add(rt);
-        setAnchors(rt,0d);
-
-        // cover add icon
-        icon = Icons.createIcon(PLUS, 40);
-        icon.setMouseTransparent(true);
-        icon.setVisible(false);
-        rt.getChildren().add(icon);
-        icon.getStyleClass().add("changeable-thumbnail-icon");
-
-        // highlight on/off on mouse
-        rt.addEventHandler(MOUSE_EXITED, e -> highlight(false));
-        rt.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
-        rt.addEventHandler(DRAG_OVER, e -> { if(DragUtil.hasImage(e.getDragboard())) highlight(true); });
-        rt.addEventHandler(DRAG_EXITED, e -> highlight(false));
+        // highlight on hover | drag
+        root.addEventHandler(MOUSE_EXITED, e -> highlight(false));
+        root.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
+        root.addEventHandler(DRAG_OVER, e -> { if(DragUtil.hasImage(e)) onHighlight.accept(true); });
+        root.addEventHandler(DRAG_EXITED, e -> onHighlight.accept(false));
 
         // add image on click
-        rt.setOnMouseClicked(e -> {
+        root.addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton()==PRIMARY) {
                 File f = Environment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
                 if (f!= null && onFileDropped!=null) onFileDropped.accept(fut(f));
+                e.consume();
             }
         });
 
         // drag&drop
         DragUtil.installDrag(
-            root, DETAILS,"Display",
+            root, dragIcon,dragDescription,
             DragUtil::hasImage,
-            // we exclude drag if image file is already displayed
             e -> {
                 // why does the Fut (CompletableFuture) compute without running the Fut ???
                 // now the Fut executes over and over because this event fires like that (btw wtf?)
@@ -96,7 +86,7 @@ public class ChangeableThumbnail extends Thumbnail {
 //                boolean same = i!=null && i.equals(except.get());
 
                 File i = DragUtil.getImageNoUrl(e);  // workaround
-                return i!=null && i.equals(getFile());
+                return i!=null && i.equals(getFile());  // false if image file is already displayed
             },
             e -> {
                 if (onFileDropped!=null)
@@ -106,11 +96,9 @@ public class ChangeableThumbnail extends Thumbnail {
     }
 
     private void highlight(boolean v) {
-        icon.setVisible(v);
-        PseudoClass highlightedPC = getPseudoClass("highlighted");
-        root.pseudoClassStateChanged(highlightedPC, v);
-        img_border.pseudoClassStateChanged(highlightedPC, v);
-        imageView.pseudoClassStateChanged(highlightedPC, v);
+        if(v) DragPane.PANE.getM(dragData).showFor(root);
+        else DragPane.PANE.get().hide();
+
         onHighlight.accept(v);
     }
 }

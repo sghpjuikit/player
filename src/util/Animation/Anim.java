@@ -190,24 +190,32 @@ public class Anim extends Transition {
     }
 
     public void playCloseDo(Runnable action) {
-        setOnFinished(action==null ? null : a -> action.run());
+        setOnFinished(action==null ? null : a -> {
+            setOnFinished(null);
+            action.run();
+        });
         playClose();
     }
 
     public void playOpenDo(Runnable action) {
-        setOnFinished(action==null ? null : a -> action.run());
+        setOnFinished(action==null ? null : a -> {
+            setOnFinished(null);
+            action.run();
+        });
         playOpen();
     }
 
     public void playOpenDoClose(Runnable middle) {
         playOpenDo(() -> {
             if(middle!=null) middle.run();
+            setOnFinished(null);
             playClose();
         });
     }
     public void playCloseDoOpen(Runnable middle) {
         playCloseDo(() -> {
             if(middle!=null) middle.run();
+            setOnFinished(null);
             playOpen();
         });
     }
@@ -247,7 +255,7 @@ public class Anim extends Transition {
         Transition t = new SequentialTransition(ts.toArray(Transition[]::new));
         return t;
     }
-    
+
     public static <T> Transition seq(List<T> animated, Ƒ2<Integer,T,Transition> animFactory) {
         return seq(forEachIStream(animated,animFactory));
     }

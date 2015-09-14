@@ -1,14 +1,10 @@
 
 package Layout.Areas;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.input.DragEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 
@@ -24,6 +20,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static gui.GUI.openAndDo;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static util.functional.Util.isInR;
 import static util.graphics.Util.setAnchors;
 
 /**
@@ -56,9 +53,9 @@ public final class WidgetArea extends Area<Container> {
         // drag
         DragUtil.installDrag(
             root, EXCHANGE, "Switch components",
-            e -> DragUtil.hasComponent(),
-            e -> DragUtil.getComponent().child==widget,
-            e -> container.swapChildren(index,DragUtil.getComponent())
+            DragUtil::hasComponent,
+            e -> isInR(DragUtil.getComponent(e).child, container,widget),
+            e -> container.swapChildren(index,DragUtil.getComponent(e))
         );
 
         if(GUI.isLayoutMode()) show(); else hide();

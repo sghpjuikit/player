@@ -55,12 +55,20 @@ import static util.reactive.Util.maintain;
     name = "Playback",
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    howto = "Available actions:\n" +
-            "    Control Playback\n" +
-            "    Add button left click : Opens file chooser and plays files\n" +
-            "    Add button right click: Opens directory chooser and plays files\n" +
-            "    Drop audio files : Adds or plays the files\n",
-    description = "Controls playback.",
+    howto = "Playback actions:\n"
+          + "    Control Playback\n"
+          + "    Drop audio files : Adds or plays the files\n"
+          + "    Left click : Seek - move playback to seeked position\n"
+          + "    Mouse drag : Seek (on release)\n"
+          + "    Right click : Cancel seek\n"
+          + "    Add button left click : Opens file chooser and plays files\n"
+          + "    Add button right click: Opens directory chooser and plays files\n"
+          + "    Drop audio files : Adds or plays the files\n"
+          + "\nChapter actions:\n"
+          + "    Right click : Create chapter\n"
+          + "    Right click chapter : Open chapter\n"
+          + "    Mouse hover chapter (optional) : Open chapter\n",
+    description = "Playback control widget.",
     notes = "",
     version = "0.8",
     year = "2014",
@@ -90,11 +98,11 @@ public class PlayerControlsController extends FXMLController implements Playback
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Ѵ<Boolean> showChapters = new Ѵ<>(true, seeker::setChaptersVisible);
-    @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
+    @IsConfig(name = "Open chapters", info = "Display pop up information for chapter marks on seeker.")
     public final Ѵ<Boolean> popupChapters = new Ѵ<>(true, seeker::setChaptersShowPopUp);
     @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
     public final Ѵ<Boolean> snapToChap = new Ѵ<>(true, seeker::setSnapToChapters);
-    @IsConfig(name = "Show max 1 chapter", info = "Allows only one chapter popup to be visible at any time. Opening new chapter closes all open chapters.")
+    @IsConfig(name = "Open max 1 chapter", info = "Allows only one chapter open. Opening chapter closes all open chapters.")
     public final Ѵ<Boolean> singleChapMode = new Ѵ<>(true, seeker::setSinglePopupMode);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;

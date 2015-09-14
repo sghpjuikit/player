@@ -47,7 +47,7 @@ import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodePos;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import gui.objects.image.ChangeableThumbnail;
+import gui.objects.image.ThumbnailWithAdd;
 import gui.objects.image.cover.Cover;
 import main.App;
 import util.File.AudioFileFormat;
@@ -110,7 +110,7 @@ import static util.functional.Util.*;
 public class TaggerController extends FXMLController implements SongWriter, SongReader {
 
     @FXML AnchorPane root;
-    @FXML AnchorPane content;
+    @FXML VBox content;
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
@@ -144,11 +144,13 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     @FXML StackPane coverSuperContainer;
     @FXML Label CoverL;
     @FXML Label noCoverL;
-    ChangeableThumbnail CoverV;
+    ThumbnailWithAdd CoverV;
     File new_cover_file = null;
     ProgressIndicator progressI;
     @FXML Label infoL;
     @FXML Label placeholder;
+    @FXML StackPane fieldDescPane;
+    Text fieldDesc;
 
     //global variables
     ObservableList<Item> allitems = FXCollections.observableArrayList();
@@ -173,7 +175,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
 
         loadSkin("skin.css",root);
 
-        CoverV = new ChangeableThumbnail();
+        CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
         CoverV.onFileDropped = f -> f.use(this::addImg,FX);
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
@@ -182,6 +184,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         progressI = new gui.objects.spinner.Spinner();
         progressI.setVisible(false);
         header.setRight(progressI);
+
+        fieldDesc = new gui.objects.Text();
+        fieldDescPane.getChildren().add(fieldDesc);
+        StackPane.setAlignment(fieldDesc, Pos.CENTER);
 
         // add specialized mood text field
         grid.add(MoodF, 1, 14, 2, 1);
@@ -340,9 +346,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     @Override
     @IsInput("Edit")
     public void read(List<? extends Item> items) {
-        Objects.requireNonNull(items);
+        if(items==null) return;
+
         // remove duplicates
-        MapSet<URI, ? extends Item> unique = new MapSet<>(Item::getURI, items);
+        MapSet<URI,? extends Item> unique = new MapSet<>(Item::getURI, items);
 
         this.allitems.setAll(unique);
         if(add_not_set.get()) add(unique, false); else set(unique);
@@ -631,6 +638,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
 
             emptyContent();
 
+            // show description
+            c.setOnMouseEntered(e -> fieldDesc.setText(field.description()));
+            c.setOnMouseExited(e -> fieldDesc.setText(""));
+
             // restrain input
             if(field.isTypeNumber())
                 InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
@@ -844,7 +855,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     }
 
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {
-        if (DragUtil.hasAudio(e.getDragboard())) {
+        if (DragUtil.hasAudio(e)) {
             List<Item> dropped = DragUtil.getAudioItems(e);
             //end drag transfer
             e.setDropCompleted(true);

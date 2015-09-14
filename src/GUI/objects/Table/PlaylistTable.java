@@ -344,10 +344,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 /****************************** DRAG AND DROP *********************************/
 
     private void dropDrag(DragEvent e, int index) {
-        if (DragUtil.hasAudio(e.getDragboard())) {
+        if (DragUtil.hasAudio(e)) {
             List<Item> items = DragUtil.getAudioItems(e);
             getPlaylist().addItems(items, index);
-            DragUtil.setDropCompleted(e);
+            e.setDropCompleted(true);
             e.consume();
         }
     }

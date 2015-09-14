@@ -97,9 +97,6 @@ public final class Configurator extends ClassController implements ConfiguringFe
         controls.getChildren().addAll(appI,new Region(),reI,defI);
         if(simple) controls.getChildren().remove(appI);
 
-        // init content
-        configure(Configuration.getFields());
-
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
     }
@@ -124,7 +121,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     }
 
     @Override
-    public void configure(Collection<Config> c) {
+    public void configure(Collection<Config> c) {System.out.println("sss " + c);
         if(c==null) return;
 
         // clear previous fields
@@ -134,7 +131,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         groups.clear();
 
         // sort & populate fields
-        ConfigGroup singlegroup = isSimple ? new ConfigGroup("") : null;
+        ConfigGroup singlegroup = isSimple ? groups.computeIfAbsent("",ConfigGroup::new) : null;
         c.stream().sorted(byNC(o -> o.getGuiName())).forEach(f -> {
             // create graphics
             ConfigField cf = ConfigField.create(f);

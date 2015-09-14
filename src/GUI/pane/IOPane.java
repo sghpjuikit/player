@@ -149,13 +149,13 @@ public class IOPane extends StackPane {
 
             i.addEventFilter(DRAG_OVER, DragUtil.anyDragAccepthandler);
             i.addEventFilter(DRAG_DROPPED,e -> {
-                if(DragUtil.hasWidgetOutput()) {
+                if(DragUtil.hasWidgetOutput(e)) {
                     in.bind(DragUtil.getWidgetOutput(e));
                     drawWidgetIO();
                     e.setDropCompleted(true);
                     e.consume();
                 } else {
-                    Object o = DragUtil.hasComponent() ? DragUtil.getComponent().child : DragUtil.getAny(e);
+                    Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
                     Class c = o.getClass();
                     if(in.getType().isAssignableFrom(c)) {
                         in.setValue((T)o);
@@ -167,8 +167,8 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             installDragHint(i, null, "", e -> {
-                if(DragUtil.hasWidgetOutput()) return true;
-                Object o = DragUtil.hasComponent() ? DragUtil.getComponent().child : DragUtil.getAny(e);
+                if(DragUtil.hasWidgetOutput(e)) return true;
+                Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
                 return (in.getType().isAssignableFrom(o.getClass()));
             });
 
@@ -203,7 +203,7 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_OVER,DragUtil.widgetOutputDragAccepthandler);
             i.addEventFilter(DRAG_DROPPED,e -> {
-                if(DragUtil.hasWidgetOutput()) {
+                if(DragUtil.hasWidgetOutput(e)) {
                     Output o = DragUtil.getWidgetOutput(e);
                     if(o!=inout.o) {
                         inout.i.bind(o);
@@ -215,7 +215,7 @@ public class IOPane extends StackPane {
             });
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            installDragHint(i, null, "", e -> DragUtil.hasWidgetOutput());
+            installDragHint(i, null, "", e -> DragUtil.hasWidgetOutput(e));
 
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));

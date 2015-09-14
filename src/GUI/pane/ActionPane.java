@@ -260,10 +260,10 @@ public class ActionPane extends OverlayPane {
         public final String name;
         public final String description;
         public final GlyphIcons icon;
-        public final Predicate<T> condition;
+        public final Predicate<? super T> condition;
         public final F action;
 
-        private ActionData(String name, String description, GlyphIcons icon, Predicate<T> constriction, F action) {
+        private ActionData(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, F action) {
             this.name = name;
             this.description = description;
             this.icon = icon;
@@ -277,7 +277,7 @@ public class ActionPane extends OverlayPane {
             super(name, description, icon, ALL, act);
         }
 
-        public FastAction(String name, String description, GlyphIcons icon, Predicate<T> constriction, Consumer<T> act) {
+        public FastAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<T> act) {
             super(name, description, icon, constriction, act);
         }
 

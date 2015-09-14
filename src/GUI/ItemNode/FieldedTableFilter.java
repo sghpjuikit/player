@@ -6,24 +6,27 @@
 package gui.itemnode;
 
 import java.util.List;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+
 import javafx.collections.transformation.FilteredList;
-import static util.Util.getEnumConstants;
+
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple3;
-import static util.collections.Tuples.tuple;
 import util.functional.Functors;
+
+import static java.util.stream.Collectors.toList;
+import static util.Util.getEnumConstants;
+import static util.collections.Tuples.tuple;
 import static util.functional.Util.by;
 
 /**
  *
  * @author Plutonium_
  */
-public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>> extends PredicateChainItemNode<T,F> {
+public class FieldedTableFilter<T extends FieldedValue,F extends FieldEnum<T>> extends PredicateChainItemNode<T,F> {
 
-    public TableFilterGenerator(FilteredList<T> table_list, F prefFilterType) {
+    public FieldedTableFilter(FilteredList<T> table_list, F prefFilterType) {
         super(() -> {
             PredicateItemNode<F> g = new PredicateItemNode<>(
                 in -> Functors.getIO(in, Boolean.class),
@@ -33,7 +36,6 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
             g.setData(d(prefFilterType));
             return g;
         });
-        setMapper((field,filter) -> element -> filter.test(element.getField(field)));
         setOnFilterChange(table_list::setPredicate);
         setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
         if(prefFilterType instanceof Enum) {
@@ -41,7 +43,7 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
         } else
             throw new IllegalArgumentException("Initial value - field type must be an enum");
     }
-    
+
     private static <F extends FieldEnum> List<Tuple3<String,Class,F>> d(F prefFilterType) {
         F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
         return Stream.of(es)
@@ -50,5 +52,5 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
                 .sorted(by(e->e._1))
                 .collect(toList());
     }
-    
+
 }

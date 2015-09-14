@@ -38,7 +38,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.InfoNode.InfoTable;
-import gui.itemnode.TableFilterGenerator;
+import gui.itemnode.FieldedTableFilter;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.icon.Icon;
 import util.access.FieldValue.FieldEnum;
@@ -111,7 +111,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         sizeOf(menuSelected.getItems(), size -> menuSelected.setDisable(size==0));
         sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
-        filterPane = new TableFilterGenerator(filtereditems, main_field);
+        filterPane = new FieldedTableFilter(filtereditems, main_field);
         filterPane.getNode().setVisible(false);
         filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
             // ESC -> close filter
@@ -224,7 +224,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 /******************************** TOP CONTROLS ********************************/
 
     /** Filter pane in the top of the table. */
-    public final TableFilterGenerator<T,F> filterPane;
+    public final FieldedTableFilter<T,F> filterPane;
 
     /*
      * Predicate that filters the table list. Null predicate will match all

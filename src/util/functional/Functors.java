@@ -1,12 +1,14 @@
 package util.functional;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,13 +46,21 @@ import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
 import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
+import static util.functional.Util.ALL;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.ISØ;
+import static util.functional.Util.NONE;
+import static util.functional.Util.isInR;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
 
 public class Functors {
 
+    /** Marker interface for lambda. */
     public interface Λ {}
-    public static interface Ƒ extends Λ, Runnable {
+    /** Marker interface for lambda denoting its first input and output. */
+    public interface IO<I,O> extends Λ {}
+    public static interface Ƒ extends Λ, IO<Void,Void>, Runnable {
         void apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
@@ -59,13 +69,17 @@ public class Functors {
             apply();
         }
     }
-    public static interface Ƒ0<O> extends Λ, Supplier<O> {
+    public static interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
         O apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
         @Deprecated
         default O get() {
             return apply();
+        }
+
+        default <M> Ƒ0<M> map(Ƒ1<? super O,? extends M> f) {
+            return () -> f.apply(apply());
         }
 
         /**
@@ -77,7 +91,7 @@ public class Functors {
             return () -> apply();
         }
     }
-    public static interface Ƒ1<I,O> extends Λ, Function<I,O>, Callback<I,O>, Consumer<I> {
+    public static interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
 
         public static Ƒ1<Void,Void> f1(Runnable r) {
             return i -> {
@@ -85,7 +99,7 @@ public class Functors {
                 return null;
             };
         }
-        
+
         public static <T> Ƒ1<Void,T> f1(Supplier<T> s) {
             return i -> s.get();
         }
@@ -115,7 +129,7 @@ public class Functors {
         }
 
         /** Partially applies this function with 1st parameter. */
-        default Ƒ0<O> toF0(I i) {
+        default Ƒ0<O> toƑ0(I i) {
             return () -> apply(i);
         }
 
@@ -276,7 +290,50 @@ public class Functors {
             throw new AssertionError("Illegal switch case");
         }
     }
-    public static interface Ƒ1E<I,O> extends Λ {
+    // Ƒ can not extend Predicate, doing so would not be typesafe, hence this subclass
+    // this class also preserves predicate identity during predicate combination operations
+    public static interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
+
+        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Predicate}. */
+        @Deprecated
+        @Override
+        public default boolean test(I i) {
+            return apply(i);
+        }
+
+        @Override
+        default ƑP<I> negate() {
+            // we should retain the predicate identity if possible. Of course it can be leveraged
+            // only if unique predicates are used, not dynamically created ones, e.g. (o -> o==null)
+            if(this==ISØ) return (ƑP)ISNTØ;
+            else if(this==ISNTØ) return (ƑP)ISØ;
+            else if(this==ALL) return (ƑP)ALL;
+            else if(this==NONE) return (ƑP)NONE;
+            return i -> !test(i);
+        }
+
+        @Override
+        default ƑP<I> and(Predicate<? super I> p) {
+            // we should retain the predicate identity if possible
+            if(this==p) return this;
+            else if(this==NONE) return (ƑP)NONE;
+            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)NONE;
+            else if((this==ALL && p==NONE) || (this==NONE && p==ALL)) return (ƑP)NONE;
+            return i -> test(i) && test(i);
+        }
+
+        @Override
+        default ƑP<I> or(Predicate<? super I> p) {
+            // we should retain the predicate identity if possible
+            if(this==p) return this;
+            else if(this==ALL) return (ƑP)NONE;
+            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ALL;
+            else if((this==ALL && p==NONE) || (this==NONE && p==ALL)) return (ƑP)ALL;
+            return i -> test(i) || test(i);
+        }
+
+    }
+    public static interface Ƒ1E<I,O> extends Λ, IO<I,O> {
         O apply(I i) throws Exception;
 
         default Ƒ1E<I,O> onEx(O or, Class<?>... ecs) {
@@ -290,11 +347,11 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ2<I,I2,O> extends Λ, BiFunction<I,I2,O> {
+    public static interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
         @Override
         O apply(I i, I2 i2);
 
-        default Ƒ1<I,O> toF2(I2 i2) {
+        default Ƒ1<I,O> toƑ1(I2 i2) {
             return (i) -> apply(i, i2);
         }
 
@@ -309,10 +366,10 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ3<I,I2,I3,O> extends Λ {
+    public static interface Ƒ3<I,I2,I3,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3);
 
-        default Ƒ2<I,I2,O> toF2(I3 i3) {
+        default Ƒ2<I,I2,O> toƑ2(I3 i3) {
             return (i,i2) -> apply(i, i2, i3);
         }
 
@@ -327,10 +384,10 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ4<I,I2,I3,I4,O> extends Λ {
+    public static interface Ƒ4<I,I2,I3,I4,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4);
 
-        default Ƒ3<I,I2,I3,O> toF3(I4 i4) {
+        default Ƒ3<I,I2,I3,O> toƑ3(I4 i4) {
             return (i,i2,i3) -> apply(i, i2, i3, i4);
         }
 
@@ -345,10 +402,10 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ {
+    public static interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
 
-        default Ƒ4<I,I2,I3,I4,O> toF4(I5 i5) {
+        default Ƒ4<I,I2,I3,I4,O> toƑ4(I5 i5) {
             return (i,i2,i3,i4) -> apply(i, i2, i3, i4, i5);
         }
 
@@ -363,10 +420,10 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ {
+    public static interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
 
-        default Ƒ5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
+        default Ƒ5<I,I2,I3,I4,I5,O> toƑ5(I6 i6) {
             return (i,i2,i3,i4,i5) -> apply(i, i2, i3, i4, i5, i6);
         }
 
@@ -396,15 +453,15 @@ public class Functors {
     private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 
     static {
-        add("Is null",      Object.class, Boolean.class, Objects::isNull);
-        add("Is not null",  Object.class, Boolean.class, Objects::nonNull);
+        add("Is null",      Object.class, Boolean.class, ISØ);
+        add("Is not null",  Object.class, Boolean.class, ISNTØ);
 
         add("As is",        Object.class, Object.class, x->x, true, true, true);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
 
-        add("Is true",      Boolean.class, Boolean.class, b -> b==true);
-        add("Is false",     Boolean.class, Boolean.class, b -> b==false);
+        add("Is true",      Boolean.class, Boolean.class, ALL);
+        add("Is false",     Boolean.class, Boolean.class, NONE);
         add("Negate",       Boolean.class, Boolean.class, b -> !b);
         add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
         add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr, Boolean.class,true);
@@ -557,6 +614,10 @@ public class Functors {
         add("Not before",Year.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, Year.class,Year.now());
         add("Is leap",   Year.class,Boolean.class, x -> x.isLeap());
 
+        add("After",   LocalDateTime.class,Boolean.class, (x,y) -> x.isAfter(y), LocalDateTime.class,LocalDateTime.now());
+        add("Before",  LocalDateTime.class,Boolean.class, (x,y) -> x.isBefore(y), LocalDateTime.class,LocalDateTime.now());
+        add("Is",      LocalDateTime.class,Boolean.class, (x,y) -> x.isEqual(y), LocalDateTime.class,LocalDateTime.now());
+
         add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
         add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));
         addPredicatesOf(AudioFileFormat.class);
@@ -569,7 +630,7 @@ public class Functors {
         addPredicatesComparable(Float.class, 0f);
     }
 
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f) {
+    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
         addF(new PƑ0(name,i,o,f));
     }
     public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
@@ -636,25 +697,41 @@ public class Functors {
     }
     /** Returns all functions producing output O. */
     public static <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
-        PrefList l = (PrefList) fsO.get(unPrimitivize(o));
-        return l==null ? new PrefList() : l;
+        List l =  fsO.get(unPrimitivize(o));
+        return l==null ? new PrefList() : (PrefList) l;
     }
     /** Returns all functions taking input I and producing output O. */
     public static <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
-        PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
-        return l==null ? new PrefList() : l;
+        // this is rather messy, but works
+        // we accumulate result for al superclasses & retain first found preferred element, while
+        // keeping duplicate elements in check
+        PrefList pl = new PrefList();
+        Object pref = null;
+        for(Class c : getSuperClassesInc(unPrimitivize(i))) {
+            List l = fsIO.get(Objects.hash(c,unPrimitivize(o)));
+            PrefList ll = l==null ? null : (PrefList) l;
+            if(ll!=null) {
+                if(pref==null && ll.getPrefered()!=null) pref = ll.getPrefered();
+                pl.addAll(ll);
+            }
+        }
+        Object prefcpy = pref;
+        pl.removeIf(e -> e==prefcpy || e==null);
+        if(pref!=null) pl.addPreferred(pref);
+        if(pl.getPrefered()==null && !pl.isEmpty()) {
+            Object e = pl.get(pl.size()-1);
+            pl.remove(pl.size()-1);
+            pl.addPreferred(e);
+        }
+        return pl;
+
+        // old impl, ignores super classes
+//        PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
+//        return l==null ? new PrefList() : l;
     }
     /** Returns all functions taking input IO and producing output IO. */
     public static <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
         return getIO(io, io);
-    }
-    /**
-     * Returns first function taking input I, producing output O and named
-     * name or null if there is no such function.
-     */
-    public static <I,O> Function<I,O> getIO(Class<I> i, Class<O> o, String name) {
-        return getIO(i, o).stream().filter(f->f.name.equals(name))
-                          .findFirst().map(f->f.toFunction()).orElseGet(null);
     }
 
     public static <I> PƑ<I,?> getPrefI(Class<I> i) {
@@ -666,12 +743,13 @@ public class Functors {
         return l==null ? null : l.getPrefered();
     }
     public static <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
-        PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(i,o));
+        PrefList<PƑ<I,O>> l = getIO(i, o);
         return l==null ? null : l.getPrefered();
+
+//        PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(i,o));
     }
     public static <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {
-        PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(io,io));
-        return l==null ? null : l.getPrefered();
+        return getPrefIO(io,io);
     }
 
 
@@ -688,15 +766,18 @@ public class Functors {
     public static interface Parameterized<P> {
         public List<Parameter<P>> getParameters();
     }
+    // parameterized function - variadic I -> O function factory with parameters
     public static abstract class PƑ<I,O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
         public final String name;
         public final Class<I> in;
         public final Class<O> out;
+        private final IO<I,O> ff;
 
-        public PƑ(String name, Class<I> in, Class<O> out) {
+        public PƑ(String name, Class<I> in, Class<O> out, IO<I,O> f) {
             this.name = name;
             this.in = unPrimitivize(in);
             this.out = unPrimitivize(out);
+            this.ff = f;
         }
 
         public Ƒ1<I,O> toFunction() {
@@ -704,20 +785,33 @@ public class Functors {
         }
 
         @Override
-        public abstract O apply(I t, Object... u);
+        public abstract O apply(I t, Object... is);
 
-
-//        public CƑ<I,O> toConfigurable() {
-//            return new CƑ<>(this);
-//        }
+        @Override
+        public Ƒ1<I,O> toƑ1(Object...is) {
+            // retain predicate identity
+            if(isInR(ff, ISØ,ISNTØ,ALL,NONE)) return (Ƒ1<I,O>)ff;
+            return i -> apply(i, is);
+        }
 
     }
-    public static class PƑ0<I,O> extends PƑ<I,O> {
-        private Ƒ1<I,O> f;
+    // solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
+    // detail - we do not want it to pollute external code, in fact this parameter exists solely
+    // so PƑ can access its underlaying function, while not breaking typesafety for subclasses
+    public static abstract class PƑB<I,O,F extends IO<I,O>> extends PƑ<I,O> {
+
+        public final F f;
+
+        public PƑB(String name, Class<I> in, Class<O> out, F f) {
+            super(name, in, out, f);
+            this.f = f;
+        }
+
+    }
+    public static class PƑ0<I,O> extends PƑB<I,O,Ƒ1<I,O>> {
 
         public PƑ0(String _name, Class<I> i, Class<O> o, Ƒ1<I,O> f) {
-            super(_name,i,o);
-            this.f = f;
+            super(_name,i,o,f);
         }
 
         @Override
@@ -727,19 +821,18 @@ public class Functors {
 
         @Override
         public O apply(I t, Object... ps) {
-             return f.apply(t);
+            return f.apply(t);
         }
+
     }
-    public static class PƑ1<I,P1,O> extends PƑ<I,O> {
+    public static class PƑ1<I,P1,O> extends PƑB<I,O,Ƒ2<I,P1,O>> {
         private Class<P1> p1;
         private P1 p1def;
-        private Ƒ2<I,P1,O> f;
 
         public PƑ1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, Ƒ2<I,P1,O> f) {
-            super(_name,i,o);
+            super(_name,i,o,f);
             this.p1 = unPrimitivize(p1type);
             this.p1def = p1def;
-            this.f = f;
         }
 
         @Override
@@ -752,20 +845,18 @@ public class Functors {
              return f.apply(t, (P1)ps[0]);
         }
     }
-    public static class PƑ2<I,P1,P2,O> extends PƑ<I,O> {
+    public static class PƑ2<I,P1,P2,O> extends PƑB<I,O,Ƒ3<I,P1,P2,O>> {
         private Class<P1> p1;
         private Class<P2> p2;
         private P1 p1def;
         private P2 p2def;
-        private Ƒ3<I,P1,P2,O> f;
 
         public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
-            super(_name,i,o);
+            super(_name,i,o,f);
             this.p1 = unPrimitivize(p1type);
             this.p2 = unPrimitivize(p2type);
             this.p1def = p1def;
             this.p2def = p2def;
-            this.f = f;
         }
 
         @Override
@@ -778,24 +869,22 @@ public class Functors {
              return f.apply(t, (P1)ps[0], (P2)ps[1]);
         }
     }
-    public static class PƑ3<I,P1,P2,P3,O> extends PƑ<I,O> {
+    public static class PƑ3<I,P1,P2,P3,O> extends PƑB<I,O,Ƒ4<I,P1,P2,P3,O>> {
         private Class<P1> p1;
         private Class<P2> p2;
         private Class<P2> p3;
         private P1 p1def;
         private P2 p2def;
         private P3 p3def;
-        private Ƒ4<I,P1,P2,P3,O> f;
 
         public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
-            super(_name,i,o);
+            super(_name,i,o,f);
             this.p1 = unPrimitivize(p1type);
             this.p2 = unPrimitivize(p2type);
             this.p3 = unPrimitivize(p3type);
             this.p1def = p1def;
             this.p2def = p2def;
             this.p3def = p3def;
-            this.f = f;
         }
 
         @Override

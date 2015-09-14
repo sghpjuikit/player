@@ -75,7 +75,7 @@ public class DragPane extends StackPane {
      * see {@link DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute
      * consistency in drag highlighting and drag accepting behavior.
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<DragEvent> cond) {
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
         installDragSignalPane(r, icon, () -> name, cond);
     }
 
@@ -84,11 +84,11 @@ public class DragPane extends StackPane {
      * but the description is supplied (and built) at the time of drag entering the node (every
      * time), so it can be dynamic and reflect certain state.
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> cond) {
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
         installDragSignalPane(r, icon, name, cond, e -> false);
     };
 
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> cond, Predicate<DragEvent> orConsume) {
+    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> orConsume) {
         Data d = new Data(name, icon, cond);
         r.getProperties().put(INSTALLED, d);
         //r.addEventFilter(DragEvent.ANY, e -> System.out.println(e.getEventType() + " " + e.getSource())); // debug
@@ -129,14 +129,14 @@ public class DragPane extends StackPane {
     public static class Data {
         private final Supplier<String> name;
         private final GlyphIcons icon;
-        private final Predicate<DragEvent> cond;
+        private final Predicate<? super DragEvent> cond;
 
         public Data(Supplier<String> name, GlyphIcons icon) {
             this.name = name;
             this.icon = icon;
             this.cond = ALL;
         }
-        public Data(Supplier<String> name, GlyphIcons icon, Predicate<DragEvent> cond) {
+        public Data(Supplier<String> name, GlyphIcons icon, Predicate<? super DragEvent> cond) {
             this.name = name;
             this.icon = icon;
             this.cond = cond;

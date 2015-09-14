@@ -29,25 +29,29 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.ALL;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.ISØ;
+import static util.functional.Util.NONE;
+import static util.functional.Util.isInR;
 
 /**
  *
  * @author Plutonium_
  */
 public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>> {
-    
+
     private static final Tooltip negTooltip = new Tooltip("Negate");
-        
+
     private final ComboBox<Tuple3<String,Class,T>> typeCB = new ImprovedComboBox<>(t->t._1);
     private ƑItemNode<Object,Boolean> config;
     private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
     private final HBox root = new HBox(5,negB,typeCB);
-    
+
     private final Callback<Class,PƑ<?,Boolean>> ppPool;
     private final Callback<Class,PrefList<PƑ<?,Boolean>>> pPool;
     private Supplier<Tuple3<String,Class,T>> prefTypeSupplier;
     boolean inconsistentState = false;
-    
+
     public PredicateItemNode(Callback<Class,PrefList<PƑ<?,Boolean>>> predicatePool, Callback<Class,PƑ<?,Boolean>> prefPredicatePool) {
         pPool = predicatePool;
         ppPool = prefPredicatePool;
@@ -64,11 +68,11 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
         negB.selected.addListener((o,nv,ov) -> generatePredicate());
         negB.tooltip(negTooltip);
     }
-    
+
     public void setPrefTypeSupplier(Supplier<Tuple3<String,Class,T>> supplier) {
         prefTypeSupplier = supplier;
     }
-    
+
     /**
      * Sets chosable data specifying what filter can be generated in form of list
      * of tri-tuples : displayed name, class, passed object.
@@ -79,7 +83,7 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
      * </pre>
      * <p>
      * If there is no object to pass, use null.
-     * @param classes 
+     * @param classes
      */
     public void setData(List<Tuple3<String,Class,T>> classes) {
         List<Tuple3<String,Class,T>> cs = new ArrayList(classes);
@@ -87,13 +91,13 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
         inconsistentState = true;
         typeCB.getItems().setAll(cs);
         inconsistentState = false;
-        
+
         Tuple3<String,Class,T> v = prefTypeSupplier == null ? null : prefTypeSupplier.get();
         if (v==null) v = cs.isEmpty() ? null : cs.get(0);
         typeCB.setValue(v);
     }
-    
-    /** 
+
+    /**
      * Focuses the filter's first parameter's config field if any.
      * <p>
      * {@inheritDoc }
@@ -102,25 +106,26 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
     public void focus() {
         config.focus();
     }
-    
+
     private boolean empty = true;
-    
+
     public boolean isEmpty() {
         return empty;
     }
-    
+
     public void clear() {
         empty = true;
         value = tuple(ALL, prefTypeSupplier.get()._3);
     }
-    
+
     private void generatePredicate() {
         if(inconsistentState) return;
         empty = false;
         Function<Object,Boolean> p = config.getValue();
         T o = typeCB.getValue()==null ? null : typeCB.getValue()._3;
         if(p!=null) {
-            Predicate<Object> pr = p::apply;
+                                // p::apply; // avoid destroying predicate identity
+            Predicate<Object> pr = isInR(p, ISØ,ISNTØ,ALL,NONE) ? (Predicate)p : p::apply;
             if(negB.selected.getValue()) pr = pr.negate();
             changeValue(tuple(pr,o));
         }
@@ -130,5 +135,5 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
     public Node getNode() {
         return root;
     }
-    
+
 }

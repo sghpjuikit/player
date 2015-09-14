@@ -6,6 +6,8 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
@@ -46,13 +48,13 @@ import static util.parsing.StringParseStrategy.From.*;
  * Each parser must adhere to convention:
  * <ul>
  * <li> Parser must never assume anything about the input. To string parser can
- * receive an object of particular type in any state. From string parser can 
+ * receive an object of particular type in any state. From string parser can
  * receive any String as input.
- * <li> Parser does not have to handle null inpu. It will never receive it. 
+ * <li> Parser does not have to handle null inpu. It will never receive it.
  * This is because the parsers are only used
  * indirectly using {@link #toS(java.lang.Object)} and {@link #fromS(java.lang.Class, java.lang.String)}.
  * <li> Parser must never throw an exception as a result of failed parsing,
- * instead return null. Null is not a valid parsing output value. It always 
+ * instead return null. Null is not a valid parsing output value. It always
  * indicates error.
  * <li> Only one parser can be registered per single class.
  * </ul>
@@ -85,23 +87,23 @@ import static util.parsing.StringParseStrategy.From.*;
  * <p>
  * This allows arbitrary implementation.
  * </ul>
- * 
+ *
  * @author Plutonium_
  */
 public class Parser {
-    
+
     private static final ClassMap<Function<?,String>> parsersToS = new ClassMap<>();
     private static final ClassMap<Function<String,?>> parsersFromS = new ClassMap<>();
     private static final Function<String,Object> errFromP = o -> null;
     private static final Function<Object,String> errToP = toString;
     private static String error = "";
-    
+
     static {
         Function<Object,String> sv = String::valueOf;
         Class<? extends Throwable> nfe = NumberFormatException.class;
         Class<? extends Throwable> iae = IllegalArgumentException.class;
         Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
-        
+
         registerConverter(Boolean.class,toString,Boolean::valueOf);
         registerConverter(boolean.class,sv,Boolean::valueOf);
         registerConverter(Integer.class,toString,noEx(Integer::valueOf,nfe));
@@ -125,7 +127,7 @@ public class Parser {
         registerConverter(URI.class,toString, noEx(URI::create, iae));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
         registerConverter(Font.class,
-            f -> String.format("%s, %s", f.getName(),f.getSize()), 
+            f -> String.format("%s, %s", f.getName(),f.getSize()),
             noEx(Font.getDefault(), s -> {
                 int i = s.indexOf(',');
                 String name = s.substring(0, i);
@@ -135,16 +137,17 @@ public class Parser {
                 return Font.font(name, weight, style, size);
             }, nfe,obe)
         );
+        registerConverter(LocalDateTime.class,toString,noEx(LocalDateTime::parse, DateTimeException.class));
         registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
     }
-    
+
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs) 
+                for(Class<?> ec : ecs)
                     if(ec.isAssignableFrom(e.getClass())) {
                         error = e.getMessage();
                         return or;
@@ -153,7 +156,7 @@ public class Parser {
             }
         };
     }
-    
+
     private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
         return noEx(null, f, list(ecs));
     }
@@ -163,30 +166,30 @@ public class Parser {
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
         return noEx(or, f, list(ecs));
     }
-    
+
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {
         registerConverter(c, parser::toS, parser::fromS);
     }
-    
+
     public static<T> void registerConverter(Class<T> c, Function<? super T,String> to, Function<String,? super T> from) {
         registerConverterToS(c, to);
         registerConverterFromS(c, from);
     }
-    
+
     public static<T> void registerConverterToS(Class<T> c, Function<? super T,String> parser) {
         parsersToS.put(c, parser);
     }
-    
+
     public static<T> void registerConverterFromS(Class<T> c, Function<String,? super T> parser) {
         parsersFromS.put(c, parser);
     }
-    
-    
+
+
     /**
      * Converts string s to object o of type c.
-     * Null input not allowed. 
-     * Null output if and only if error occurs. 
-     * 
+     * Null input not allowed.
+     * Null output if and only if error occurs.
+     *
      * @param c specifies type of object
      * @param s string to parse
      * @return parsing result or null if not parsable
@@ -197,12 +200,12 @@ public class Parser {
         noØ(s,"Parsing null not allowed!");
         return getParserFromS(c).apply(s);
     }
-    
-    /** 
+
+    /**
      * Converts object to String.
-     * Null input not allowed. 
-     * Null output if and only if error occurs. 
-     * 
+     * Null input not allowed.
+     * Null output if and only if error occurs.
+     *
      * @param o object to parse
      * @return parsed string or null if not parsable
      * @throws NullPointerException if parameter null
@@ -211,11 +214,11 @@ public class Parser {
         noØ(o,"Parsing null not allowed!");
         return getParserToS((Class<T>)o.getClass()).apply(o);
     }
-    
+
     public static <T> Predicate<String> isParsable(Class<T> c) {
         return s -> fromS(c, s)==null;
     }
-    
+
     public static <T> StringConverter<T> toConverter(Class<T> c) {
         return new StringConverter<T>() {
             @Override public String toS(T object) {
@@ -226,29 +229,29 @@ public class Parser {
             }
         };
     }
-    
+
 /******************************************************************************/
-    
+
     /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<T,String> getParserToS(Class<T> c) {
         return parsersToS.computeIfAbsent(c, ƈ -> noNull(buildTosParser(ƈ), errToP));
     }
-    
+
     /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
         return parsersFromS.computeIfAbsent(c, ƈ -> noNull(buildFromsParser(ƈ), errFromP));
     }
-    
+
     public static String getError() {
         return error;
     }
-    
+
 /******************************************************************************/
-    
+
     private static <T> Function<String,T> buildFromsParser(Class<T> c) {
         Function<String,?> fromS = null;
-        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class); 
-        
+        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
+
         if(fromS==null && a!=null) {
             From strategy = a.from();
             if(strategy==VALUE_OF_METHOD) {
@@ -272,7 +275,7 @@ public class Parser {
                 fromS = parserOfC(a, c, String.class);
             }
         }
-        
+
         // try to fall back to valueOf or fromString parsers
         if(fromS==null) {
             Method m = getValueOfStatic(c);
@@ -282,13 +285,13 @@ public class Parser {
             Method m = getMethodStatic("fromString",c);
             if(m!=null) fromS = noEx(parserOfM(m, String.class, c, null), Exception.class);
         }
-        
+
         return (Function)fromS;
     }
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
         Function<?,String> toS = null;
-        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class); 
-        
+        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
+
         if(toS==null && a!=null) {
             To strategy = a.to();
             if(strategy==To.CONSTANT) {
@@ -313,21 +316,21 @@ public class Parser {
                 toS = toString;
             }
         }
-        
+
         // always fall back to toString()
         if(toS==null) toS = toString;
-        
+
         return (Function)toS;
     }
-    
-    
+
+
     private static Method getValueOfStatic(Class type) {
         // hadle enum with class bodies that dont identify as enums
         // simply fool the parser by changing the class to the enum
         // note: getDeclaringClass() does not seem to work here though
         if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();
-        
+
         try {
             return type.getDeclaredMethod("valueOf", String.class);
 //            if (m.getReturnType().equals(type)) throw new NoSuchMethodException();
@@ -335,7 +338,7 @@ public class Parser {
             return null;
         }
     }
-    
+
     private static Method getMethodStatic(String name, Class type) {
         try {
             Method m = type.getDeclaredMethod(name, String.class);
@@ -345,8 +348,8 @@ public class Parser {
             return null;
         }
     }
-    
-    private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a) {       
+
+    private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a) {
         Set<Class<?>> ecs = new HashSet();
         if(a!=null) ecs.addAll(list(a.ex())); else ecs.add(Exception.class);
         if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
@@ -364,8 +367,8 @@ public class Parser {
         };
         return noExWrap(m, a, f);
     }
-    
-    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class... params) {        
+
+    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class... params) {
         try {
             Constructor<O> cn = type.getConstructor(params);
             boolean passinput = params.length==1;
@@ -390,7 +393,7 @@ public class Parser {
               throw new RuntimeException("Parser cant find no param constructor in " + type, e);
           }
     }
-    
+
     private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, Function<I,O> f) {
         Set<Class<?>> ecs = new HashSet();
         if(a!=null) ecs.addAll(list(a.ex()));

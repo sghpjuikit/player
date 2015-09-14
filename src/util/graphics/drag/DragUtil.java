@@ -81,15 +81,15 @@ public final class DragUtil {
 
 /******************************** handlers ************************************/
 
-    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond) {
+    public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond) {
         return accept(cond,false);
     }
 
-    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond, boolean orConsume) {
+    public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond, boolean orConsume) {
         return accept(cond, e -> orConsume);
     }
 
-    public static EventHandler<DragEvent> accept(Predicate<DragEvent> cond, Predicate<DragEvent> orConsume) {
+    public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond, Predicate<DragEvent> orConsume) {
         return e -> {
             if (cond.test(e) && !orConsume.test(e) ) {
                 e.acceptTransferModes(ANY);
@@ -361,7 +361,7 @@ public final class DragUtil {
 //                });
         }
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
-            futUrl(d.getUrl());
+            return futUrl(d.getUrl());
         }
         return fut(null);
     }
@@ -442,7 +442,7 @@ public final class DragUtil {
         }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return fut(getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
+            return fut(() -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
         }
         if (d.hasUrl()) {
             String url = d.getUrl();

@@ -16,6 +16,7 @@ import javafx.util.Callback;
 import util.collections.Tuple2;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ1E;
+import util.functional.Functors.ƑP;
 
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
@@ -33,16 +34,16 @@ import static util.dev.Util.yes;
 public class Util {
 
     /** Predicate returning true iff object is not null. */
-    public static final Predicate<Object> ISNTØ = Objects::nonNull;
+    public static final ƑP<? super Object> ISNTØ = Objects::nonNull;
 
     /** Predicate returning true iff object is null. */
-    public static final Predicate<Object> ISØ = Objects::isNull;
+    public static final ƑP<? super Object> ISØ = Objects::isNull;
 
     /** Predicate returning true. Matches every object. */
-    public static final Predicate ALL = o -> true;
+    public static final ƑP<? super Object> ALL = o -> true;
 
     /** Predicate returning false. Matches no object. */
-    public static final Predicate NONE = o -> false;
+    public static final ƑP<? super Object> NONE = o -> false;
 
     /** Predicate returning false. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;

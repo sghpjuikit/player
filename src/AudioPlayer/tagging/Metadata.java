@@ -9,6 +9,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.net.URI;
 import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +75,9 @@ import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
 import static util.dev.Util.log;
 import static util.functional.Util.isIn;
+import static util.functional.Util.list;
+import static util.functional.Util.repeat;
+import static util.functional.Util.split;
 import static util.functional.Util.stream;
 
 /**
@@ -159,6 +164,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     private String custom4 = "";
     private String custom5 = "";
 
+    private String playedFirst = "";
+    private String playedLast = "";
+    private String libraryAdded = "";
+
     /**
      * EMPTY metadata. Substitute for null. Always use instead of null. Also
      * corrupted items should transform into EMPTY metadata.
@@ -172,6 +181,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * instance of EMPTY metadata.
      */
     public static final Metadata EMPTY = new Metadata();
+    private static final int SPECIAL_TAG_FIELDS = 3;
 
     public static String metadataID(URI u) {
         return u.toString();
@@ -216,12 +226,12 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         Tag tag = audiofile.getTagOrCreateAndSetDefault();
         loadGeneralFields(audiofile, tag);
         switch (getFormat()) {
-            case mp3:  loadSpecificFieldsMP3((MP3File)audiofile);           break;
-            case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag());break;
+            case mp3:  loadSpecificFieldsMP3((MP3File)audiofile);              break;
+            case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag()); break;
             case ogg:  loadFieldsVorbis((VorbisCommentTag)tag);                break;
-            case wav:  loadFieldsWAV((WavTag)tag);                          break;
+            case wav:  loadFieldsWAV((WavTag)tag);                             break;
             case mp4:
-            case m4a:  loadFieldsMP4((Mp4Tag)tag);                          break;
+            case m4a:  loadFieldsMP4((Mp4Tag)tag);                             break;
             default:   // do nothing for the rest;
         }
 
@@ -292,8 +302,13 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         custom3 = getGeneral(tag,FieldKey.CUSTOM3);
         custom4 = getGeneral(tag,FieldKey.CUSTOM4);
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
-    }
 
+        List<String> specialtag = list(split(custom5,"\\|"));
+        repeat(SPECIAL_TAG_FIELDS-specialtag.size(), () -> specialtag.add(""));
+        playedFirst = specialtag.get(0);
+        playedLast = specialtag.get(1);
+        libraryAdded = specialtag.get(2);
+    }
 
     // use to debug tag
     // tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
@@ -871,6 +886,38 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         return custom5;
     }
 
+    // localDateTime.toInstant(ZoneOffset.UTC).getEpochSecond();
+
+    public LocalDateTime getTimePlayedFirst() {
+        if(playedFirst.isEmpty()) return null;
+        try {
+            long epochMillis = Long.parseLong(playedFirst);
+            return LocalDateTime.from(Instant.ofEpochMilli(epochMillis));
+        } catch(NumberFormatException | DateTimeException e) {
+            return null;
+        }
+    }
+
+    public LocalDateTime getTimePlayedLast() {
+        if(playedLast.isEmpty()) return null;
+        try {
+            long epochMillis = Long.parseLong(playedLast);
+            return LocalDateTime.from(Instant.ofEpochMilli(epochMillis));
+        } catch(NumberFormatException | DateTimeException e) {
+            return null;
+        }
+    }
+
+    public LocalDateTime getTimeLibraryAdded() {
+        if(libraryAdded.isEmpty()) return null;
+        try {
+            long epochMillis = Long.parseLong(libraryAdded);
+            return LocalDateTime.from(Instant.ofEpochMilli(epochMillis));
+        } catch(NumberFormatException | DateTimeException e) {
+            return null;
+        }
+    }
+
 /******************************************************************************/
 
     /**
@@ -1021,6 +1068,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             case CUSTOM3 : return getCustom3();
             case CUSTOM4 : return getCustom4();
             case CUSTOM5 : return getCustom5();
+            case FIRST_PLAYED : return getTimePlayedFirst();
+            case LAST_PLAYED : return getTimePlayedLast();
+            case ADDED_TO_LIBRARY : return getTimeLibraryAdded();
             default : throw new AssertionError("Default case should never execute");
         }
     }
@@ -1128,7 +1178,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CUSTOM2("Custom field 2. Reserved for color."),
         CUSTOM3("Custom field 3. Reserved for playback."),
         CUSTOM4("Custom field 4"),
-        CUSTOM5("Custom field 5");
+        CUSTOM5("Custom field 5"),
+        LAST_PLAYED("Marks time the song was played the last time."),
+        FIRST_PLAYED("Marks time the song was played the first time."),
+        ADDED_TO_LIBRARY("Marks time the song was added to the library.");
 
         private final String desc;
 
@@ -1152,6 +1205,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         @Override
         public Class getType() {
             if(this==BITRATE) return Bitrate.class;
+            if(this==FIRST_PLAYED || this==LAST_PLAYED || this==ADDED_TO_LIBRARY) return LocalDateTime.class;
             return Metadata.EMPTY.getField(this).getClass();
         }
 
@@ -1165,7 +1219,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
 
         public boolean isCommon() {
             return this==TITLE || this==ALBUM || this==ARTIST || this==RATING || this==PLAYCOUNT ||
-                   this==LENGTH || this==BITRATE || this==TRACK_INFO || this==DISCS_INFO;
+                   this==LENGTH || this==TRACK_INFO || this==DISCS_INFO;
         }
 
         public boolean isAutoCompleteable() {
@@ -1177,48 +1231,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
 
         @Override
         public String toS(Object o, String empty_val) {
+            if(o==null) return empty_val;
             switch(this) {
-                case YEAR :
-                case TRACK :
-                case TRACKS_TOTAL :
-                case DISC :
-                case DISCS_TOTAL :
                 case PLAYCOUNT :    return EMPTY.getField(this).equals(o) ? empty_val : o.toString();
-                case PATH :
-                case FILENAME :
-                case FORMAT :
-                case FILESIZE :
-                case ENCODING :
-                case BITRATE :
-                case ENCODER :
-                case CHANNELS :
-                case SAMPLE_RATE :
-                case LENGTH :
-                case TITLE :
-                case ALBUM :
-                case ARTIST :
-                case ALBUM_ARTIST :
-                case COMPOSER :
-                case PUBLISHER :
-                case TRACK_INFO :
-                case DISCS_INFO :
-                case GENRE :
-                case COVER :
-                case COVER_INFO :
-                case RATING :
-                case RATING_RAW :
-                case CATEGORY :
-                case COMMENT :
-                case LYRICS :
-                case MOOD :
-                case COLOR :
-                case CHAPTERS :
-                case CUSTOM1 :
-                case CUSTOM2 :
-                case CUSTOM3 :
-                case CUSTOM4 :
-                case CUSTOM5 :      return o.toString();
-                default : throw new AssertionError("Default case should never execute");
+                default : return o.toString();
             }
         }
     }

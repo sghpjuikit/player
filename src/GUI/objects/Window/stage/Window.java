@@ -41,6 +41,7 @@ import Layout.Layout;
 import Layout.SwitchContainer;
 import Layout.SwitchPane;
 import action.Action;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
@@ -78,6 +79,7 @@ import static util.dev.Util.no;
 import static util.functional.Util.find;
 import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
+import static util.functional.Util.list;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDragHint;
@@ -490,6 +492,11 @@ public class Window extends WindowBase {
 	setIcon(App.getIcon());
 	setTitle(null);
 	// setTitlePosition(Pos.CENTER_LEFT);
+
+        Icon mainw_i = new Icon(FontAwesomeIcon.CIRCLE,5)
+                .tooltip("This window is main app window\nClosing it will close application.");
+        rightHeaderBox.getChildren().add(0, new Label(""));
+        rightHeaderBox.getChildren().add(0,mainw_i);
     }
 
 /******************************* CONTENT **************************************/
@@ -711,29 +718,19 @@ public class Window extends WindowBase {
 
     @Override
     public void close() {
-	// close app if last window
-        int ws = 1;
-        if(WindowManager.mini) ws++;
-	if (windows.size()<=ws) {
-            App.close();
-            return;
-        }
-
-        // close content to release resources
-	layout.close();
-	// remove from window list
-	windows.remove(this);
+        LOGGER.info("Closing window. {} windows currently open.", windows.size());
 	if (main) {
+            LOGGER.info("Window is main. App will be closed.", windows.size());
             // javaFX bug fix - close all pop overs first
 	    // new list avoids ConcurrentModificationError
-	    new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
+	    list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
 	    // act as main window and close whole app
 	    App.getWindowOwner().close();
-	}
-	// in the end close itself
-	super.close();
-
-        App.getWindow().focus();
+	} else {
+            if(layout!=null) layout.close(); // close layout to release resources
+            windows.remove(this);   // remove from window list
+            super.close();  // in the end close itself
+        }
     }
 
     @Override

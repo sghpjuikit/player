@@ -158,8 +158,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
   main column taking all space, maybe signal locked columns with icon and add
   menu item for on/off autoresize columns option
 
-
-
 PROTIP:
 - util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 - heap: Use -Xmx1g, possibly more

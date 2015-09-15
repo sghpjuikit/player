@@ -599,7 +599,7 @@ public class SwitchPane implements ContainerNode {
 
 /******************************************************************************/
 
-    private final SwitchContainer container;
+    public final SwitchContainer container;
     private final Map<Integer,Container> layouts = new HashMap<>();
 
     public Map<Integer,Container> getComponents() {

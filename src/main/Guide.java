@@ -12,15 +12,14 @@ import java.util.List;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
 import Layout.BiContainer;
 import Layout.BiContainerPure;
-import Layout.Container;
-import Layout.Layout;
-import Layout.SwitchPane;
+import Layout.SwitchContainer;
 import Layout.Widgets.WidgetManager;
 import action.Action;
 import gui.objects.PopOver.PopOver;
@@ -28,14 +27,19 @@ import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import main.Guide.Hint;
+import util.animation.Anim;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_MARKED_OUTLINE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_BOX_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER;
+import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.async.Async.run;
+import static util.async.Async.runFX;
 import static util.graphics.Util.layHorizontally;
 
 /**
@@ -72,44 +76,52 @@ public final class Guide {
             new Icon(ARROW_RIGHT,11,"Next",this::goToNext)
         );
 
-        hint("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
+        hint("Intro", "Hi, this is guide for this application. It will show you around. " +
              "\n\nBut first some music, right?",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
-                SwitchPane la = Window.getFocused().getSwitchPane();
-                Container con = la.getActive().getAllContainers(true).filter(c->c.getEmptySpot()!=null).findFirst()
-                                .orElse(la.getComponents().values().stream().filter(c->c.getEmptySpot()!=null).findFirst()
-                                .orElse(null));
-                if(con==null) {
-                    Layout l = new Layout();
-                    la.addTabToRight(l);
-                    con = l;
-                }
+                SwitchContainer la = Window.getFocused().getSwitchPane().container;
                 // prepare container
                 BiContainer bc = new BiContainerPure(VERTICAL);
-                con.addChild(con.getEmptySpot(), bc);
+                la.addChild(la.getEmptySpot(), bc);
                 // load widgets
-                ((Container)bc.getChildren().get(1)).addChild(1,WidgetManager.getFactory("Playlist").create());
-                ((Container)bc.getChildren().get(2)).addChild(1,WidgetManager.getFactory("PlayerControls").create());
+                bc.addChild(1,WidgetManager.getFactory("Playlist").create());
+                bc.addChild(2,WidgetManager.getFactory("PlayerControls").create());
                 // go to layout
-                la.alignTab(con);
+                la.getGraphics().alignTab(bc);
                 // go to next guide
                 APP.actionStream.push("Intro");
             }
         ));
-        hint("Guide offer", "Hi, app guide here. It will show you around. Interested ?",
-                new Icon(CHECKBOX_MARKED_OUTLINE,ICON_SIZE,null,this::goToNext),
-                new Icon(CLOSE_BOX_OUTLINE,ICON_SIZE,null,this::close)
-        );
         hint("Guide hints", "Guide consists of hints. Complete hint to proceed or "
            + "go to next hint manually." +
              "\n\nShow next hint by clicking the next button in the header of this guide.");
         hint("Guide closing", "Guide can be closed simply by closing the popup.\n\n"
-           + "Closing guide by clicking the close button in the header of this guide. Or press ESC.");
+           + "Close guide by clicking the close button in the header of this guide. Or press ESC.");
         hint("Guide opening", "Guide can be opened from app window header. It will resume "
            + "from where you left off" +
              "\n\nGo to header of the app window and click on the guide button. It looks like: ",
              new Icon(GRADUATION_CAP,ICON_SIZE));
+        int i = 3; // randomize this
+        hint("Icons", "Icons, icons everywhere. Picture is worth a thousand words, they say."
+           + "\n\nOnly one icon leads to next hint. Can you guess which?",
+              new Icon(WHEELCHAIR,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).icon(CLOSE)),
+              new Icon(WALK,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).icon(CLOSE)),
+              new Icon(RUN,ICON_SIZE).onClick(() -> runFX(1500,() -> APP.actionStream.push("Icons")))
+        );
+        Icon hi = new Icon(TROPHY,ICON_SIZE)
+                .tooltip("Click to claim the trophy")
+                .onClick(() -> runFX(1500,() -> APP.actionStream.push("Tooltips")));
+             hi.setVisible(false);
+        hint("Tooltips", "Tooltips can provide additional action description. Use them well."
+           + "\n\nThere can be a meaning where you don't see it. Hover above the icons to find out.",
+              new Icon(GAMEPAD_VARIANT,ICON_SIZE).tooltip(new Tooltip("Play")),
+              new Icon(HAND_POINTING_RIGHT,ICON_SIZE).tooltip(new Tooltip("To")),
+              new Icon(GRADUATION_CAP,ICON_SIZE).tooltip(new Tooltip("Learn"){{
+                  setOnHidden(e -> runFX(1500, () -> hi.setVisible(true)));
+              }}),
+              hi
+        );
         hint("Info popup", "The app has info buttons explaining functionalities for app "
            + "sections and how to use them." +
              "\n\nGo to header of the app window and click the help button. It looks like:",
@@ -119,11 +131,10 @@ public final class Guide {
            + "\n\t• Behavior"
            + "\n\t\t• Widgets"
            + "\n\t\t• Services"
-           + "\n\t• UI (user interface)"
-           + "\n\t\t• Widget Layout"
-           + "\n\t\t\t• Windows"
-           + "\n\t\t\t• Containers"
-           + "\n\t\t\t• Widgets");
+           + "\n\t• UI (user interface) layout"
+           + "\n\t\t• Windows"
+           + "\n\t\t• Containers"
+           + "\n\t\t• Widgets");
         hint("New widget", "Widget is a graphical component with some functionality." +
              "\n\nClick anywhere within empty space in the layout and choose 'Place widget' to add new widget. " +
              "All available widgets will display for you to choose from, sorted lexicographically. There is a " +
@@ -161,25 +172,33 @@ public final class Guide {
              "\n\nClick on the lock button in the widget's header.");
     }
 
+    private final Anim proceed_anim = new Anim(millis(500),x -> p.getContentNode().setOpacity(1-x*x));
     private void proceed() {
         if (at<0) at=0;
         if (at<hints.size()) {
-            Hint h = hints.get(at);
-            // the condition has 2 reasons
-            // - avoids unneded show() call
-            // - avoids relocating thepopupas a result of alignment with different popup size
-            // - the popup size depends on the text
-            if (!p.isShowing()) p.show(PopOver.ScreenPos.App_Center);
-            // progress
-            infoL.setText((at+1) + "/" + hints.size());
-            // title + text
-            p.title.set(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
-            text.setText(h.text);
-            // graphics
-            p.getContentNode().getChildren().retainAll(text);
-            if(h.graphics!=null) p.getContentNode().getChildren().add(h.graphics);
+            proceed_anim.playOpenDoClose(this::proceedFinish);
         } else {
             stop();
+        }
+    }
+
+    private void proceedFinish() {
+        Hint h = hints.get(at);
+        // the condition has 2 reasons
+        // - avoids unneded show() call
+        // - avoids relocating thepopupas a result of alignment with different popup size
+        // - the popup size depends on the text
+        if (!p.isShowing()) p.show(PopOver.ScreenPos.App_Center);
+        // progress
+        infoL.setText((at+1) + "/" + hints.size());
+        // title + text
+        p.title.set(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
+        text.setText(h.text);
+        // graphics
+        p.getContentNode().getChildren().retainAll(text);
+        if(h.graphics!=null) {
+            p.getContentNode().getChildren().add(h.graphics);
+            VBox.setMargin(h.graphics, new Insets(10,0,0,0));
         }
     }
 
@@ -235,7 +254,7 @@ public final class Guide {
     }
 
     public void hint(String action, String text, Node... graphics) {
-        hints.add(new Hint(action, text, layHorizontally(5,CENTER,graphics)));
+        hints.add(new Hint(action, text, layHorizontally(10,CENTER,graphics)));
     }
 
 

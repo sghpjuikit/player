@@ -90,7 +90,6 @@ import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
-import static util.graphics.drag.DragUtil.installDragHint;
 import static util.reactive.Util.maintain;
 
 

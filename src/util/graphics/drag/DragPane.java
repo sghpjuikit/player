@@ -19,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.objects.icon.Icon;
 import util.SingleⱤ;
+import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
@@ -42,7 +43,7 @@ import static util.graphics.Util.removeFromParent;
  * the node accepts the drag (e.g. only text) should be expressed as a {@link Predicate} and used
  * when installing this pane. Otherwise it will be shown for drag of any content and confuse user.
  * <p>
- * See {@link #installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)}
+ * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)}
  *
  * @author Plutonium_
  */
@@ -59,51 +60,86 @@ public class DragPane extends StackPane {
         }
     );
 
+    public static final void install(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
+        DragPane.install(r, icon, () -> name, cond);
+    }
+
+    public static final void install(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
+        install(r, icon, name, cond, e -> false, null);
+    };
+
     /**
      * Installs drag highlighting for specified node and drag defined by specified predicate,
      * displaying specified icon and action description.
+     * <p>
      *
-     * @param r drag accepting node
+     * @param node drag accepting node. The node should be the accepting object for the drag event.
+     *
      * @param icon icon symbolizing the action that will take place when drag is dropped
-     * @param name description of the action that will take place when drag is dropped
-     * @param cond predicate filtering the drag events. Must be consistent with the drag accepting
-     * node's DRAG_OVER event handler which accepts the drag! Predicate returning always true will
-     * cause the drag highlighting to work regardless of the content of the drag - even if the node
-     * does not allow the content to be dropped.
+     *
+     * @param name description of the action that will take place when drag is dropped. The text
+     * is supplied when the drag enters the node. Normally, just pass in {@code () -> "text" }, but
+     * you can derive the text from a state of the node or however you wish, e.g. when the action
+     * can be different under some circumstances.
+     * @param cond predicate filtering the drag events. The highlighting will show if the drag
+     * event tests true.
+     * <p>
+     * Must be consistent with the node's DRAG_OVER event handler which accepts the drag in order
+     * for highlighting to make sense! Check out
+     * {@link DragUtil#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate, java.util.function.Consumer) }
+     * which guarantees consistency.
+     * <p>
+     * Normally, one simple queries the Dragboard of the event for type of content. Predicate
+     * returning always true will cause the drag highlighting to show regardless of the content of
+     * the drag - even if the node does not allow the content to be dropped.
      * <p>
      * It is recommended to build a predicate and use it for drag over handler as well,
      * see {@link DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute
      * consistency in drag highlighting and drag accepting behavior.
+     *
+     * @param except Optionally, it is possible to forbid drag highlighting even if the condition
+     * tests true. This is useful for when node that shouldnt accept given event doesn't wish for
+     * any of its parents accept (and highlight if installed) the drag. For example node may use
+     * this parameter to refuse drag&drop from itself.
+     * <pre>
+     * This can simply be thought of as this (pseudocode):
+     * Condition: event -> event.hasImage   // accept drag containing image file
+     * Except: event -> hasPngImage   // but ignore pngs, accept all other images
+     * </pre>
+     * Exception condition should be a subset of condition - if condition returns false, the except
+     * should as well. It should only constrict the condition
+     * <p>
+     * Using more strict condition (logically equivalent with using except condition) will not have
+     * the same effect, because then any parent node which can accept the event will be able to do
+     * so and also show drag highlight if it is installed. Normally that is the desired behavior
+     * here, but there are cases when it is not.
+     * <p>
+     * Generally, this is useful to hint that the node which would normally accept the event, can
+     * not. If the condition is not met, parents may accept the event instead. But if it is and the
+     * except condition returns true, then area covering the node will refuse the drag whether
+     * parents like it or not.
+     *
+     * @param area Optionally, the highlighting can have specified size and position. Normally it
+     * mirrors the size and position of the node.
+     * This function is called repeatedly (on DRAG_OVER event, which behaves like MOUSE_MOVE ) and
+     * may be used to calculate size and position of the highlight. The result can be a portion of
+     * the node's area and even react on mouse drag moving across the node.
      */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
-        installDragSignalPane(r, icon, () -> name, cond);
-    }
-
-    /**
-     * Same as {@link #installDragSignalPane(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)},
-     * but the description is supplied (and built) at the time of drag entering the node (every
-     * time), so it can be dynamic and reflect certain state.
-     */
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
-        installDragSignalPane(r, icon, name, cond, e -> false);
-    };
-
-    public static final void installDragSignalPane(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> orConsume) {
+    public static final void install(Node node, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
         Data d = new Data(name, icon, cond);
-        r.getProperties().put(INSTALLED, d);
-        //r.addEventFilter(DragEvent.ANY, e -> System.out.println(e.getEventType() + " " + e.getSource())); // debug
-        r.addEventHandler(DragEvent.DRAG_OVER, e -> {
-            if(!r.getProperties().containsKey(ACTIVE)) {
+        node.getProperties().put(INSTALLED, d);
+        node.addEventHandler(DragEvent.DRAG_OVER, e -> {
+            if(!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
                 if(d.cond.test(e)) {
                     PANE.get().hide();
 
-                    if(!orConsume.test(e)) {
-                        r.getProperties().put(ACTIVE, ACTIVE);
-                        Pane p = r instanceof Pane ? (Pane)r : r.getParent()==null ? null : (Pane)r.getParent();
+                    if(!except.test(e)) {
+                        node.getProperties().put(ACTIVE, ACTIVE);
+                        Pane p = node instanceof Pane ? (Pane)node : node.getParent()==null ? null : (Pane)node.getParent();
                         Pane dp = PANE.getM(d);
                         if(p!=null && !p.getChildren().contains(dp)) {
                             p.getChildren().add(dp);
-                            Bounds b = r.getLayoutBounds();
+                            Bounds b = area==null ? node.getLayoutBounds() : area.apply(e);
                             double w = b.getWidth();
                             double h = b.getHeight();
                             dp.setMaxSize(w,h);
@@ -116,13 +152,25 @@ public class DragPane extends StackPane {
                     e.consume();
                 }
             }
+
+            if(area!=null && node.getProperties().containsKey(ACTIVE)) {
+                Pane dp = PANE.getM(d);
+                    Bounds b = area.apply(e);
+                    double w = b.getWidth();
+                    double h = b.getHeight();
+                    dp.setMaxSize(w,h);
+                    dp.setPrefSize(w,h);
+                    dp.setMinSize(w,h);
+                    dp.resizeRelocate(b.getMinX(),b.getMinY(),w,h);
+                    dp.toFront();
+            }
         });
-        r.addEventHandler(DRAG_EXITED_TARGET, e -> {
-            r.getProperties().remove(ACTIVE);
+        node.addEventHandler(DRAG_EXITED_TARGET, e -> {
+            node.getProperties().remove(ACTIVE);
         });
-        r.addEventHandler(DRAG_EXITED, e -> {
+        node.addEventHandler(DRAG_EXITED, e -> {
             PANE.get().hide();
-            r.getProperties().remove(ACTIVE);
+            node.getProperties().remove(ACTIVE);
         });
     }
 

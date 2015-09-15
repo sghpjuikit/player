@@ -271,12 +271,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         installDrag(
             root, DETAILS,"Display",
             e -> DragUtil.hasImage(e) || DragUtil.hasAudio(e) || DragUtil.hasFiles(e),
+            e -> e.getGestureSource()==mainImage.getPane(),
             e -> {
                 if(e.getDragboard().hasFiles()) {
                     dataChanged(e.getDragboard().getFiles().get(0));
                     return;
                 }
-                if(e.getGestureSource().equals(mainImage.getPane())) return;
                 if(DragUtil.hasAudio(e)) {
                     // get first item
                     List<Item> items = DragUtil.getAudioItems(e);

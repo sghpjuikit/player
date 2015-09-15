@@ -52,13 +52,12 @@ import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.drag.DragUtil.installDragHint;
+import static util.graphics.drag.DragUtil.installDrag;
 
 @IsWidget
 @Widget.Info(
@@ -122,14 +121,12 @@ public class Converter extends ClassController implements SongWriter {
         getChildren().add(ll);
         setAnchors(ll,0d);
 
-        // behavior
-        addEventHandler(DRAG_OVER,DragUtil.anyDragAccepthandler);
-        setOnDragDropped(e -> {
-            setData(DragUtil.getAny(e));
-            e.setDropCompleted(true);
-            e.consume();
-        });
-        installDragHint(this, LIST_ALT, "Set data as input", e -> true);
+        // drag&drop
+        installDrag(
+            this, LIST_ALT, "Set data as input",
+            e -> true,
+            e -> setData(DragUtil.getAny(e))
+        );
 
         // on source change run transformation
         source.addListener((Change change) -> {

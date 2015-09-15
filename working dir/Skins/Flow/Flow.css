@@ -220,18 +220,3 @@
 .congfig-field-warn-button {
     -fx-fill: -fx-focus-color;
 }
-
-
-
-
-
-
-// inherits: checkicon-menu-item-icon
-.checkicon-menu-item-icon-single-selection {
-    visibility: hidden;
-    -glyph-name: "CHECK";
-}
-.checkicon-menu-item-icon-single-selection: selected {
-    visibility: visible;
-    -glyph-name: "CHECK";
-}

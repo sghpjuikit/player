@@ -40,7 +40,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.*;
-import static util.graphics.drag.DragUtil.installDragHint;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  <p>
@@ -111,12 +111,11 @@ public class IOPane extends StackPane {
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
 
+            // drag&drop
             i.addEventFilter(DRAG_DETECTED,e -> {
                 DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
                 e.consume();
             });
-//            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
-//            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
 
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
             o.monitor(v -> App.use(ClickEffect.class, c -> {
@@ -147,30 +146,25 @@ public class IOPane extends StackPane {
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
 
-            i.addEventFilter(DRAG_OVER, DragUtil.anyDragAccepthandler);
-            i.addEventFilter(DRAG_DROPPED,e -> {
-                if(DragUtil.hasWidgetOutput(e)) {
-                    in.bind(DragUtil.getWidgetOutput(e));
-                    drawWidgetIO();
-                    e.setDropCompleted(true);
-                    e.consume();
-                } else {
-                    Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
-                    Class c = o.getClass();
-                    if(in.getType().isAssignableFrom(c)) {
-                        in.setValue((T)o);
-                        e.setDropCompleted(true);
-                        e.consume();
+            // drag&drop
+            installDrag(
+                i, null, "",
+                DragUtil::hasAny,
+                e -> {
+                    if(DragUtil.hasWidgetOutput(e)) {
+                        in.bind(DragUtil.getWidgetOutput(e));
+                        drawWidgetIO();
+                    } else {
+                        Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
+                        Class c = o.getClass();
+                        if(in.getType().isAssignableFrom(c)) {
+                            in.setValue((T)o);
+                        }
                     }
                 }
-            });
+            );
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            installDragHint(i, null, "", e -> {
-                if(DragUtil.hasWidgetOutput(e)) return true;
-                Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
-                return (in.getType().isAssignableFrom(o.getClass()));
-            });
 
             t.setText(iToStr(input));
         }
@@ -197,25 +191,24 @@ public class IOPane extends StackPane {
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
 
-            i.addEventFilter(DRAG_DETECTED,e -> {
-                DragUtil.setWidgetOutput(inout.o,i.startDragAndDrop(TransferMode.LINK));
-                e.consume();
-            });
-            i.addEventFilter(DRAG_OVER,DragUtil.widgetOutputDragAccepthandler);
-            i.addEventFilter(DRAG_DROPPED,e -> {
-                if(DragUtil.hasWidgetOutput(e)) {
+            // drag&drop
+            installDrag(
+                i, null, "",
+                DragUtil::hasWidgetOutput,
+                e -> {
                     Output o = DragUtil.getWidgetOutput(e);
                     if(o!=inout.o) {
                         inout.i.bind(o);
                         drawWidgetIO();
                     }
-                    e.setDropCompleted(true);
-                    e.consume();
                 }
-            });
+            );
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-            installDragHint(i, null, "", e -> DragUtil.hasWidgetOutput(e));
+            i.addEventFilter(DRAG_DETECTED,e -> {
+                DragUtil.setWidgetOutput(inout.o,i.startDragAndDrop(TransferMode.LINK));
+                e.consume();
+            });
 
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));

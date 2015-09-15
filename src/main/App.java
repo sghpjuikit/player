@@ -320,6 +320,21 @@ public class App extends Application {
             return m;
         });
 
+        instanceInfo.add(Metadata.class, o -> {
+            HashMap<String,String> m = new HashMap<>();
+            stream(Metadata.Field.values()).filter(f -> f.isTypeStringRepresentable()).forEach(f ->
+                m.put(f.name(), o.getFieldS(f))
+            );
+            return m;
+        });
+        instanceInfo.add(PlaylistItem.class, o -> {
+            HashMap<String,String> m = new HashMap<>();
+            stream(PlaylistItem.Field.values()).filter(f -> f.isTypeString()).forEach(f ->
+                m.put(f.name(), (String)o.getField(f))
+            );
+            return m;
+        });
+
         // register actions
         ActionPane.register(Widget.class,
             new FastAction<Widget>("Create launcher (def)","Creates a launcher "

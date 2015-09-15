@@ -1100,10 +1100,14 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * representable by string (e.g. cover) are excluded.
      * @return comprehensive information about all string representable fields
      */
-    @Override
-    public String toString() {
+    public String getInfo() {
         return stream(Field.values()).filter(f->f.isTypeStringRepresentable())
             .map(f -> f.name() + ": " + getField(f)).collect(joining("\n"));
+    }
+
+    @Override
+    public String toString() {
+        return Metadata.class.toString() + " " + getURI();
     }
 
     @Override

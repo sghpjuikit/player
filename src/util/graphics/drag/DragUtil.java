@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
@@ -28,6 +29,7 @@ import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.async.future.Fut;
+import util.functional.Functors.Ƒ1;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
@@ -48,20 +50,37 @@ import static util.functional.Util.filterMap;
  */
 public final class DragUtil {
 
-/********************************** drag signal pane **************************/
+/*************************************** drag  *******************************/
 
-    /**
-     * See {@link DragPane#installDragHint(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate) }
-     */
-    public static final void installDragHint(Node r, GlyphIcons icon, String name, Predicate<DragEvent> accept) {
-        DragPane.installDragSignalPane(r, icon, name, accept);
+    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
+        installDrag(node, icon, description, condition, e -> false, action);
     }
 
-    /**
-     * See {@link DragPane#installDragHint(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.util.function.Supplier, java.util.function.Predicate) }
-     */
-    public static final void installDragHint(Node r, GlyphIcons icon, Supplier<String> name, Predicate<DragEvent> accept) {
-        DragPane.installDragSignalPane(r, icon, name, accept);
+    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
+        installDrag(node, icon, () -> description, condition, exc, action);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
+        installDrag(node, icon, description, condition, e -> false, action);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
+        installDrag(node, icon, description, condition, exc, action, null);
+    }
+
+    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action, Ƒ1<DragEvent,Bounds> area) {
+        // accept drag if desired
+        node.addEventHandler(DRAG_OVER,accept(condition,exc));
+        // handle drag & clear data
+        node.addEventHandler(DRAG_DROPPED,e -> {
+            if (condition.test(e)) {
+                action.accept(e);
+                e.setDropCompleted(true);
+                e.consume();
+            }
+        });
+        // show hint
+        DragPane.install(node,icon,description,condition,exc,area);
     }
 
 /******************************* data formats *********************************/
@@ -117,35 +136,11 @@ public final class DragUtil {
     /** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as predicate. */
     public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = accept(DragUtil::hasWidgetOutput);
 
-
-    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
-        installDrag(node, icon, description, condition, e -> false, action);
-    }
-
-    public static void installDrag(Node node, GlyphIcons icon, String description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
-        installDrag(node, icon, () -> description, condition, exc, action);
-    }
-
-    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Consumer<DragEvent> action) {
-        installDrag(node, icon, description, condition, e -> false, action);
-    }
-
-    public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action) {
-        // accept drag if desired
-        node.addEventHandler(DRAG_OVER,accept(condition,exc));
-        // handle drag & clear data
-        node.addEventHandler(DRAG_DROPPED,e -> {
-            if (condition.test(e)) {
-                action.accept(e);
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
-        // show hint
-        DragPane.installDragSignalPane(node,icon,description,condition,exc);
-    }
-
 /************************************ ANY *************************************/
+
+    public static boolean hasAny(DragEvent e) {
+        return true;
+    }
 
     public static Object getAny(DragEvent e) {
         Dragboard d = e.getDragboard();

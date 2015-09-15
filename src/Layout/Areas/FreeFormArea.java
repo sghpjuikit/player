@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -79,13 +81,14 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         // drag
         rt.setOnDragDone(e -> rt.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         DragUtil.installDrag(
-            root, EXCHANGE, "Move component here",
+            root, EXCHANGE, () -> "Move component here",
             DragUtil::hasComponent,
             e -> isInR(container, DragUtil.getComponent(e).child,DragUtil.getComponent(e).container),
             e -> {
                 int i = addEmptyWindowAt(e.getX(), e.getY());
                 container.swapChildren(i,DragUtil.getComponent(e));
-            }
+            },
+            e -> bestRecBounds(e.getX(),e.getY(),null)
         );
 
         rt.widthProperty().addListener((o,ov,nv) -> {
@@ -263,6 +266,38 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         return new TupleM4<>(b.a/rt.getWidth(),b.c/rt.getHeight(),
                             (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
+    }
+    Bounds bestRecBounds(double x, double y, PaneWindowControls new_w) {
+        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
+
+        for(PaneWindowControls w : windows.values()) {
+            if(w==new_w) continue;   // ignore self
+            double wl = w.x.get()+w.w.get();
+            if(wl<x && wl>b.a) b.a = wl;
+            double wr = w.x.get();
+            if(wr>x && wr<b.b) b.b = wr;
+            double ht = w.y.get()+w.h.get();
+            if(ht<y && ht>b.c) b.c = ht;
+            double hb = w.y.get();
+            if(hb>y && hb<b.d) b.d = hb;
+        }
+
+        b.a = 0d;
+        b.b = rt.getWidth();
+        for(PaneWindowControls w : windows.values()) {
+            if(w==new_w) continue;   // ignore self
+            double wl = w.x.get()+w.w.get();
+            double wr = w.x.get();
+            double ht = w.y.get()+w.h.get();
+            double hb = w.y.get();
+            boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
+            if(intheway) {
+                if(wl<x && wl>b.a) b.a = wl;
+                if(wr>x && wr<b.b) b.b = wr;
+            }
+        }
+
+        return new BoundingBox(b.a,b.c,b.b-b.a,b.d-b.c);
     }
 
     /** Optimal size/position strategy returning centeraligned 3rd of window size

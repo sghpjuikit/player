@@ -82,7 +82,6 @@ import static util.functional.Util.forEachIStream;
 import static util.functional.Util.list;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.*;
-import static util.graphics.drag.DragUtil.installDragHint;
 import static util.reactive.Util.maintain;
 
 /**
@@ -329,15 +328,13 @@ public class Window extends WindowBase {
                 e.consume();
             }
 	});
-        root.setOnDragOver(DragUtil.anyDragAccepthandler);
-        root.setOnDragDropped(e -> {
-            App.actionPane.show(DragUtil.getAnyFut(e));
-            e.acceptTransferModes(TransferMode.ANY);
-            e.setDropCompleted(true);
-        });
-        installDragHint(root, GAVEL,
-                "Display possible actions\n\nMoving the drag elsewhere may offer other actions",
-                e -> true
+
+        // drag&drop
+        DragUtil.installDrag(
+            root, GAVEL,
+            "Display possible actions\n\nMoving the drag elsewhere may offer other actions",
+            DragUtil::hasAny,
+            e -> App.actionPane.show(DragUtil.getAnyFut(e))
         );
 
 	// maintain custom pseudoclasses for .window styleclass
@@ -467,8 +464,8 @@ public class Window extends WindowBase {
         Icon maximB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
                 this::toggleMaximize);
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
-        Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window and application if no other "
-                + "windows remain open", this::close);
+        Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is main, "
+                + "application closes as well.", this::close);
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
 
         // right header
@@ -494,7 +491,8 @@ public class Window extends WindowBase {
 	// setTitlePosition(Pos.CENTER_LEFT);
 
         Icon mainw_i = new Icon(FontAwesomeIcon.CIRCLE,5)
-                .tooltip("This window is main app window\nClosing it will close application.");
+                .tooltip("Main window\n\nThis window is main app window\nClosing it will "
+                       + "close application.");
         rightHeaderBox.getChildren().add(0, new Label(""));
         rightHeaderBox.getChildren().add(0,mainw_i);
     }

@@ -3747,12 +3747,21 @@
 
 // inherits: check-icon
 .checkicon-menu-item-icon {
-    // add 1px below to fix vertical alignment, may depend on icon used
-    // add 5px between icon and menu item text
-    -fx-padding: 0 5 1 0;
+    //-fx-padding: 0 5 1 0; // i think padding doesnt work here
+    -fx-translate-x: -2px;
 }
 .checkicon-menu-item-icon:selected {
     // leave default
+}
+
+// inherits: checkicon-menu-item-icon
+.checkicon-menu-item-icon-single-selection {
+    visibility: hidden;
+    -glyph-name: "CHECK";
+}
+.checkicon-menu-item-icon-single-selection: selected {
+    visibility: visible;
+    -glyph-name: "CHECK";
 }
 
 // hide the arrow if no children

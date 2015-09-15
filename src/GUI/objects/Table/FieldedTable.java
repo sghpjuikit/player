@@ -53,7 +53,7 @@ import static util.functional.Util.*;
  * potentially additional features (e.g. filtering - {@link FilteredTable}.
  * <p>
  * Supports column state serialization and deserialization - it is possible to
- * restore previous state. This includes column order, column names, sort order, 
+ * restore previous state. This includes column order, column names, sort order,
  * and column widths.
  * <p>
  * Nested columns are not supported.
@@ -61,7 +61,7 @@ import static util.functional.Util.*;
  * The columns use userData property to store the field F for identification.
  * Use {@link #setUserData(java.lang.Object)}
  * to obtain the exact F field the column represents. Every column will return
- * a value except for index column, which returns null. Never use 
+ * a value except for index column, which returns null. Never use
  * {@link #getUserData()} on the columns or column lookup will break.
  * <p>
  * Only visible columns are built.
@@ -77,44 +77,44 @@ import static util.functional.Util.*;
  * @author Plutonium_
  */
 public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
-    
+
     private Ƒ1<F,ColumnInfo> colStateFact;
     private Ƒ1<F,TableColumn<T,?>> colFact;
     private Ƒ1<String,String> keyNameColMapper = name -> name;
-    
+
     private TableColumnInfo columnState;
     private final Class<F> type;
     public ContextMenu columnVisibleMenu;
-    
-    
+
+
     public FieldedTable(Class<F> type) {
         super();
         if(!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
         this.type = type;
-        
+
         // install comparator updating part I
         getSortOrder().addListener((Change<?> c) -> updateComparator(c));
-        
+
         // show the column control menu on right click ( + hide if shown )
         addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight())
                 columnVisibleMenu.show(this, e.getScreenX(), e.getScreenY());
-            
+
             else if(columnVisibleMenu.isShowing()) columnVisibleMenu.hide();
         });
 
         // column control menu button not needed now (but still optionally usable)
         setTableMenuButtonVisible(false);
     }
-    
-    /** 
+
+    /**
      * Returns all fields of this table. The fields are all values of the
      * field enum that are string representable.
      */
     public List<F> getFields() {
         return filter(getEnumConstants(type), f->f.isTypeStringRepresentable());
     }
-    
+
     /**
      * Similar to {@link #getFields()}, but includes fields that are not derived
      * from the value. Such as index column.
@@ -124,7 +124,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         l.addAll(filter(getEnumConstants(ColumnField.class), f->f.isTypeStringRepresentable()));
         return l;
     }
-    
+
     public void setColumnFactory(Ƒ1<F,TableColumn<T,?>> columnFactory) {
         colFact = f -> {
             TableColumn<T,?> c = f==null ? columnIndex : columnFactory.call(f);
@@ -133,27 +133,27 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             return c;
         };
     }
-    
+
     public Callback<F,TableColumn<T,?>> getColumnFactory() {
         return colFact;
     }
-    
+
     public void setColumnStateFacory(Ƒ1<F,ColumnInfo> columnStateFactory) {
         colStateFact = columnStateFactory;
     }
-    
+
     public Function<F,ColumnInfo> getColumnStateFactory() {
         return colStateFact;
     }
-    
+
     public void setkeyNameColMapper(Ƒ1<String,String> columnNametoKeyMapper) {
         keyNameColMapper = columnNametoKeyMapper;
     }
-    
+
     public boolean isColumnVisible(FieldEnum<? super T> f) {
         return getColumn(f).isPresent();
     }
-    
+
     public void setColumnVisible(FieldEnum<? super T> f, boolean v) {
         TableColumn<T,?> c = getColumn(f).orElse(null);
         if(v) {
@@ -172,7 +172,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
     public void setColumnState(TableColumnInfo state) {
         requireNonNull(state);
-        
+
         List<TableColumn<T,?>> visibleColumns = new ArrayList();
         state.columns.stream().sorted().filter(c->c.visible).forEach(c->{
             // get or build column
@@ -189,12 +189,12 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         // restore sort order
         state.sortOrder.toTable(this);
     }
-    
+
     public TableColumnInfo getColumnState() {
         columnState.update(this);
         return columnState;
     }
-    
+
     private TableColumnInfo defColInfo;
     @TODO(purpose = FUNCTIONALITY, note = "menu needs to be checked menu. However"
             + "rather than building it from scratch, get rid of the reflection and"
@@ -210,10 +210,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             defColInfo.columns.forEach(t->t.position++);
             defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
             // leave sort order empty
-            
+
             columnState = defColInfo;
-            
-            
+
+
             // build new table column menu
             columnVisibleMenu = new ContextMenu();
             defColInfo.columns.streamV()
@@ -231,9 +231,8 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
                             .filtered(i -> i instanceof SelectionMenuItem)
                             .forEach(i -> ((SelectionMenuItem)i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
-            
+
             // link table column button to our menu instead of an old one
-            
             if(getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
             TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
 
@@ -253,14 +252,14 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             // install comparator updating part II
             // we need this because sort order list changes dont reflect
             // every sort change (when only ASCENDING-DESCENDING is changed
-            // theres no list change event. 
+            // theres no list change event.
             h.setOnMouseReleased(this::updateComparator);
             h.setOnMouseClicked(this::updateComparator);
-            
+
         }
         return defColInfo;
     }
-    
+
     public Optional<TableColumn<T,?>> getColumn(Predicate<TableColumn<T,?>> filter) {
         for(TableColumn t : getColumns())
             if(filter.test(t)) {
@@ -268,7 +267,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             }
         return Optional.empty();
     }
-    
+
     public Optional<TableColumn<T,?>> getColumn(FieldEnum<? super T> f) {
         return getColumn(c -> c.getUserData()==f);
     }
@@ -280,9 +279,9 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public void refreshCoumns() {
         if(!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
-    
+
 /************************************* SORT ***********************************/
-    
+
     /**
      * Comparator for ordering items reflecting this table's sort order.
      * Read only, changing value will have no effect.
@@ -291,10 +290,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * particular order.
      */
     public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>(SAME);
-    
+
     /**
      * Sorts the items by the field. Sorting does not operate on table's sort
-     * order and is applied to items backing the table. Any sort order of 
+     * order and is applied to items backing the table. Any sort order of
      * the table will be removed.
      * <p>
      * This is not a programmatic equivalent of sorting the table manually by
@@ -303,28 +302,28 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * Works even when field's respective column is invisible.
      * <p>
      * Note, that the field must support sorting - return Comparable type.
-     * 
-     * @param field 
+     *
+     * @param field
      */
     public void sortBy(F field) {
         getSortOrder().clear();
         getItems().sort(by(p -> (Comparable) p.getField(field)));
     }
-    
+
     /**
      * Sorts the items by the column.
-     * Same as {@link #sortBy(javafx.scene.control.TableColumn, 
-     * javafx.scene.control.TableColumn.SortType)}, but uses 
+     * Same as {@link #sortBy(javafx.scene.control.TableColumn,
+     * javafx.scene.control.TableColumn.SortType)}, but uses
      * {@link #getColumn(util.access.FieldValue.FieldEnum)} for column lookup.
      */
     public void sortBy(F field, SortType type) {
         getColumn(field).ifPresent(c -> sortBy(c, type));
         updateComparator(null);
     }
-    
+
 /******************************** CELL FACTORY ********************************/
-    
-    /** 
+
+    /**
      * Use as cell factory for columns created in column factory.
      * <p>
      * This cell factory
@@ -344,10 +343,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         };
         cell.setAlignment(a);
         return cell;
-    } 
-    
+    }
+
 /*********************************** PRIVATE **********************************/
-    
+
     // sort order -> comparator, never null
     private void updateComparator(Object ignored) {
         Comparator<T> c = getSortOrder().stream().map(column -> {
@@ -358,7 +357,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             .reduce(Comparator::thenComparing).orElse(SAME);
         itemsComparator.setValue(c);
     }
-    
+
     private F nameToF(String name) {
         return ColumnField.INDEX.name().equals(name) ? null : Parser.fromS(type, keyNameColMapper.apply(name));
     }

@@ -4,7 +4,6 @@ package LibraryView;
 import java.time.Year;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -59,6 +58,7 @@ import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
@@ -196,21 +196,15 @@ public class LibraryViewController extends FXMLController {
 
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
-        Stream.of(Field.values())
-              .sorted(by(f -> f.name()))
-              .map(f -> new SelectionMenuItem(f.toStringEnum(), false){{
-                  this.setOnMouseClicked(() -> {
-                        if(!selected.getValue()) {
-                            // refresh menu
-                            m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(false));
-                            selected.setValue(true);
-                            // apply
-                            fieldFilter.setNapplyValue(f);
-                        }
-                  });
-              }})
-              .forEach(m.getItems()::add);
-            // refresh when menu opens
+        m.getItems().addAll(
+            buildSingleSelectionMenu(
+                list(Metadata.Field.values()),
+                null,
+                Metadata.Field::name,
+                fieldFilter::setNapplyValue
+            )
+        );
+        // refresh when menu opens
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
 
         // key actions

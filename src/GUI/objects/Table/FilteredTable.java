@@ -23,7 +23,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -38,9 +37,8 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.InfoNode.InfoTable;
-import gui.itemnode.FieldedPredicateItemNode;
 import gui.itemnode.FieldedPredicateChainItemNode;
-import gui.objects.ContextMenu.SelectionMenuItem;
+import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
@@ -50,6 +48,7 @@ import util.functional.Functors;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import static java.util.stream.Collectors.toList;
@@ -527,24 +526,18 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
     @Override
     public TableColumnInfo getDefaultColumnInfo() {
-        boolean b = columnVisibleMenu==null;
+        boolean needs_creating = columnVisibleMenu==null;
         TableColumnInfo tci = super.getDefaultColumnInfo();
-        if(b) {
-            Menu m = new Menu("Search column");
-            List<MenuItem> mis = filterMap(getFields(),
-                f-> isIn(f.getType(),String.class,Object.class), // objects too, they can be strings
-                f -> {
-                    SelectionMenuItem mi = new SelectionMenuItem(f.name(),f==searchField);
-                    mi.setOnMouseClicked(() -> {
-                        m.getItems().forEach(i -> ((SelectionMenuItem)i).selected.setValue(false));
-                        mi.selected.setValue(true);
-                        searchField = f;
-                    });
-                    return mi;
-                }
+        if(needs_creating) {
+            columnVisibleMenu.getItems().add(
+                buildSingleSelectionMenu(
+                    "Search column",
+                    filter(getFields(),f -> isIn(f.getType(),String.class,Object.class)), // objects too, they can be strings
+                    searchField,
+                    field -> field.name(),
+                    field -> searchField=field
+                )
             );
-            m.getItems().addAll(mis);
-            columnVisibleMenu.getItems().add(m);
         }
         return tci;
     }

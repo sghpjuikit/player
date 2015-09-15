@@ -36,6 +36,7 @@ import util.dev.Dependency;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
@@ -220,7 +221,7 @@ public final class Action extends Config<Action> implements Runnable {
 //
 //        if(canRun) {
             action.run();
-            App.actionStream.push(name);
+            APP.actionStream.push(name);
 //        }
     }
 
@@ -628,7 +629,7 @@ public final class Action extends Config<Action> implements Runnable {
             else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
-            else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
+            else if(i==JIntellitype.APPCOMMAND_CLOSE) APP.close();
         });
     };
 

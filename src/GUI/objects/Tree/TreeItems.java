@@ -56,6 +56,7 @@ import static gui.objects.tree.FileTree.createTreeItem;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static main.App.APP;
 import static util.File.FileUtil.listFiles;
 import static util.Util.*;
 import static util.functional.Util.*;
@@ -105,7 +106,7 @@ public class TreeItems {
         return tree("App",
                  tree("Behavior",
                    widgetT,
-                   tree("Services", () -> App.services.getAllServices().sorted(by(s -> ClassName.of(s.getClass()))))
+                   tree("Services", () -> APP.services.getAllServices().sorted(by(s -> ClassName.of(s.getClass()))))
                  ),
                  tree("UI",
                    widgetT,
@@ -371,7 +372,7 @@ public class TreeItems {
         return Stream.concat(Stream.of(o), t);
     }
     private static String toS(Node n) {
-        return emptifyString(n.getId())+":"+App.className.get(n.getClass());
+        return emptifyString(n.getId()) + ":" + APP.className.get(n.getClass());
     }
     private static String windowToName(Window w) {
         String n = "window " + Window.windows.indexOf(w);

@@ -73,6 +73,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
+import static main.App.APP;
 import static util.Util.menuItem;
 import static util.Util.menuItems;
 import static util.async.future.Fut.fut;
@@ -165,7 +166,7 @@ public class LibraryViewController extends FXMLController {
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
             Pos a = f.getType(mf).equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==AVG_RATING
-                ? (Callback) App.ratingCell.getValue()
+                ? (Callback) APP.ratingCell.getValue()
                 : f==W_RATING
                 ? (Callback) new NumberRatingCellFactory()
                 : (Callback) col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
@@ -173,7 +174,7 @@ public class LibraryViewController extends FXMLController {
             return c;
         });
         // maintain rating column cell style
-        App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
+        APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         table.getDefaultColumnInfo();
 
         // rows
@@ -427,7 +428,7 @@ public class LibraryViewController extends FXMLController {
     private static final TableContextMenuMⱤ<Metadata, LibraryViewController> contxt_menu = new TableContextMenuMⱤ<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
-            MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
+            MenuItem[] is = menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
                                       q -> "in " + Parser.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);

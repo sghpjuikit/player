@@ -18,7 +18,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Areas.ContainerNode;
 import gui.objects.Window.stage.Window;
-import main.App;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -29,6 +28,7 @@ import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.input.ScrollEvent.SCROLL;
+import static main.App.APP;
 import static util.Util.clip;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
@@ -48,7 +48,7 @@ import static util.graphics.Util.setAnchors;
  */
 @IsConfigurable("Tabs")
 public class SwitchPane implements ContainerNode {
-    
+
     @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
             + " Tabs are always aligned. Seamless mode alows any tab position.")
     public static boolean align_tabs = false;
@@ -75,36 +75,36 @@ public class SwitchPane implements ContainerNode {
     public static double SNAP_TRESHOLD_DIST = 25;
     @IsConfig(editable = false, min=0.2, max=1)
     private static double zoomScaleFactor = 0.7;
-    
+
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
         Window.windows.stream()
                .map(Window::getSwitchPane)
                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
-    
+
     @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
         Window.windows.stream()
               .map(Window::getSwitchPane)
               .forEach(sp -> sp.snapTabs());
     }
-    
+
 /******************************************************************************/
-    
+
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
     private final AnchorPane ui = new AnchorPane();
     public final AnchorPane widget_io = new AnchorPane();
-    
+
     // use when outside of container
     public SwitchPane() {
         this(null);
     }
-    
+
     public SwitchPane(SwitchContainer container) {
         this.container = container;
-        
+
         // set ui
         root.getChildren().add(zoom);
         setAnchors(zoom, 0d);
@@ -116,17 +116,17 @@ public class SwitchPane implements ContainerNode {
         widget_io.setPickOnBounds(false);
         widget_io.translateXProperty().bind(ui.translateXProperty());
         widget_io.visibleProperty().bind(gui.GUI.layout_mode);
-        
+
         // always zoom x:y == 1:1, to zoom change x, y will simply follow
         zoom.scaleYProperty().bind(zoom.scaleXProperty());
-        
+
         // prevent problematic events
         // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
         root.addEventFilter(Event.ANY, e -> {
             if(uiDragActive) e.consume();
             else if(e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
         });
-        
+
 //        PerspectiveTransform pt = new PerspectiveTransform();
 //            pt.setUlx(0);
 //            pt.setUly(0);
@@ -159,7 +159,7 @@ public class SwitchPane implements ContainerNode {
 //            pt.setLry(1440/2-50*y);
 //            }
 //        });
-        
+
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
@@ -167,20 +167,20 @@ public class SwitchPane implements ContainerNode {
                 dragUi(e);
             }
         });
-        
+
         root.addEventFilter(MOUSE_RELEASED, e-> {
             if(e.getButton()==SECONDARY) {
                 dragUiEnd(e);
                 ui.setMouseTransparent(false);
             }
         });
-        
+
         // if mouse exits the root (and quite possibly window) we can not
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, e-> {
             dragUiEnd(e);
         });
-        
+
         root.addEventHandler(SCROLL, e-> {
             if(gui.GUI.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
@@ -193,29 +193,29 @@ public class SwitchPane implements ContainerNode {
                 e.consume();
             }
         });
-        
+
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
-        
+
         // bind widths for automatic dynamic resizing (works perfectly)
         ui.widthProperty().addListener(l -> {
             tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
             ui.setTranslateX(-getTabX(currTab()));
         });
     };
-    
+
     double byx = 0;
     double tox = 0;
 
 /********************************    TABS   ***********************************/
-    
+
     public final Map<Integer,AnchorPane> tabs = new HashMap();
     boolean changed = false;
     int at = Integer.MAX_VALUE;
-    
-    /** 
-     * Adds specified layout as new tab on the first empty tab from 0 to right 
-     * 
+
+    /**
+     * Adds specified layout as new tab on the first empty tab from 0 to right
+     *
      * @return tab index
      */
     public int addTabToRight(Container layout) {
@@ -224,7 +224,7 @@ public class SwitchPane implements ContainerNode {
         addTab(i, layout);
         return i;
     }
-    
+
     public void addTab(int i, Container layout) {
         if(layouts.get(i)==layout) return;
         // remove first
@@ -239,7 +239,7 @@ public class SwitchPane implements ContainerNode {
             // setParentRec layouts to left & right
 //            addTab(i+1);
 //            addTab(i-1);
-            
+
             if(at==Integer.MAX_VALUE) {
                 at = i;
                 if(!container.getChildren().containsKey(i+1)) container.addChild(i+1, new UniContainer());
@@ -248,11 +248,11 @@ public class SwitchPane implements ContainerNode {
             }
         }
     }
-    
+
     /**
      * Adds mew tab at specified position and initializes new empty layout. If tab
      * already exists this method is a no-op.
-     * @param i 
+     * @param i
      */
     public void addTab(int i) {
         if (!tabs.containsKey(i)) {
@@ -272,9 +272,9 @@ public class SwitchPane implements ContainerNode {
             AnchorPane.setTopAnchor(t, 0.0);
             AnchorPane.setBottomAnchor(t, 0.0);
         }
-        
+
         AnchorPane t = tabs.get(i);
-        
+
         if(!layouts.containsKey(i)) {
             Container c =  new UniContainer();
             if(container!=null) c.setParent(container);
@@ -282,11 +282,11 @@ public class SwitchPane implements ContainerNode {
             layouts.put(i,c);
             changed = true;
         }
-        
+
         if(changed) layouts.get(i).load(t);
         changed = false;
     }
-    
+
     void removeTab(int i) {
         if(tabs.containsKey(i)) {
             // detach from scene graph
@@ -298,26 +298,26 @@ public class SwitchPane implements ContainerNode {
             tabs.remove(i);
         }
     }
-    
+
     void removeAllTabs() {
         layouts.keySet().forEach(this::removeTab);
     }
 
-    
+
 /****************************  DRAG ANIMATIONS   ******************************/
-    
+
     private final TranslateTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
     boolean uiDragActive = false;
-    
+
     private double lastX = 0;
     private double nowX = 0;
     FxTimer measurePulser = new FxTimer(100, INDEFINITE, () -> {
         lastX = nowX;
         nowX = ui.getTranslateX();
     });
-    
+
     private void dragUiStart(MouseEvent e) {
         if(uiDragActive) return;//System.out.println("start");
         uiDrag.stop();
@@ -348,7 +348,7 @@ public class SwitchPane implements ContainerNode {
             // simulate mass - the more traveled the longer ease out
             uiDrag.setToX(x + traveled * DRAG_INERTIA);
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
-            // snap at the end of animation 
+            // snap at the end of animation
             uiDrag.setOnFinished( a -> {
                 int i = snapTabs();
                 // setParentRec layouts to left & right
@@ -374,8 +374,8 @@ public class SwitchPane implements ContainerNode {
         e.consume();
     }
 
-    
-    /** 
+
+    /**
      * Scrolls to the current tab.
      * It is pointless to use this method when autoalign is enabled.
      * <p>
@@ -388,8 +388,8 @@ public class SwitchPane implements ContainerNode {
     public int alignTabs() {
         return alignTab(currTab());
     }
-    
-    /** 
+
+    /**
      * Scrolls to tab right from the current tab.
      * Use to force-align tabs.
      * <p>
@@ -400,8 +400,8 @@ public class SwitchPane implements ContainerNode {
     public int alignRightTab() {
         return alignTab(currTab()+1);
     }
-    
-    /** 
+
+    /**
      * Scrolls to tab left from the current tab.
      * Use to force-align tabs.
      * <p>
@@ -412,8 +412,8 @@ public class SwitchPane implements ContainerNode {
     public int alignLeftTab() {
         return alignTab(currTab()-1);
     }
-    
-    /** 
+
+    /**
      * Scrolls to tab on provided position. Positions are (-infinity;infinity)
      * with 0 being the main.
      *
@@ -427,8 +427,8 @@ public class SwitchPane implements ContainerNode {
         uiDrag.play();
         return i;
     }
-    
-    /** 
+
+    /**
      * Scrolls to tab containing given layout.
      *
      * @param l layout
@@ -445,8 +445,8 @@ public class SwitchPane implements ContainerNode {
         }
         return i;
     }
-    
-    /** 
+
+    /**
      * Scrolls to tab containing given component in its layout.
      *
      * @param c component
@@ -464,7 +464,7 @@ public class SwitchPane implements ContainerNode {
         }
         return i;
     }
-    
+
     /**
      * Executes {@link #alignTabs()} if the position of the tabs fullfills
      * snap requirements.
@@ -476,41 +476,41 @@ public class SwitchPane implements ContainerNode {
     public int snapTabs() {
         int i = currTab();
         if(!snap_tabs) return i;
-        
+
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
         double dist = Math.abs(is-should_be);
         double treshold1 = ui.getWidth()*SNAP_TRESHOLD_COEFICIENT;
         double treshold2 = SNAP_TRESHOLD_DIST;
-        if(dist < Math.max(treshold1, treshold2))  
+        if(dist < Math.max(treshold1, treshold2))
             return alignTabs();
         else
             return i;
     }
-    
-    /** 
+
+    /**
      * @return index of currently viewed tab. It is the tab consuming the most
      * of the view space on the layout screen.
      */
     public final int currTab() {
         return (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
     }
-    
+
     // get current ui width
-    private double uiWidth() { // must never return 0 (divisio by zero)        
-        return ui.getWidth()==0 ? 50 : ui.getWidth(); 
+    private double uiWidth() { // must never return 0 (divisio by zero)
+        return ui.getWidth()==0 ? 50 : ui.getWidth();
     }
-    
+
     // get current X position of the tab with the specified index
     private double getTabX(int i) {
-        if (i==0) 
+        if (i==0)
             return 0;
         else if (tabs.containsKey(i))
             return tabs.get(i).getLayoutX();
         else
             return (uiWidth()+5)*i;
     }
-    
+
     // align to next tab
     private void alignNextTab(MouseEvent e) {
         double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
@@ -527,50 +527,50 @@ public class SwitchPane implements ContainerNode {
         uiDrag.setOnFinished( a -> addTab(toT));
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
-    }   
-    
+    }
+
     public DoubleProperty translateProperty() {
         return ui.translateXProperty();
     }
-    
-    
+
+
 /********************************** ALIGNING **********************************/
-    
+
     private boolean always_align = true;
-    
+
     public void setAlwaysAlignTabs(boolean val) {
         always_align = val;
         if(val) alignTabs();
     }
-    
+
 /*********************************** ZOOMING **********************************/
-    
+
     private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
     private final TranslateTransition zt = new TranslateTransition(Duration.ZERO,ui);
-    
+
     /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
         z.setInterpolator(new CircularInterpolator(EASE_OUT));
         zt.setInterpolator(new CircularInterpolator(EASE_OUT));
         zoomNoAcc(v ? zoomScaleFactor : 1);
     }
-    
+
     /** @return true if zoomed to value <0,1), false when zoomed to 1*/
     public boolean isZoomed() {
         return zoom.getScaleX()!=1;
     }
-    
+
     /** Animates zoom on/off. Equivalent to: {@code zoom(!isZoomed());} */
     public void toggleZoom() {
         zoom(!isZoomed());
     }
-    
-    /** Use to animate or manipulate zooming 
+
+    /** Use to animate or manipulate zooming
     @return zoom scale prperty taking on values from (0,1> */
     public DoubleProperty zoomProperty() {
         return zoom.scaleXProperty();
     }
-    
+
     private void zoom(double d) {
         if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // remember amount
@@ -584,10 +584,10 @@ public class SwitchPane implements ContainerNode {
         zt.setDuration(z.getDuration());
         zt.setByX(tox/5);
         zt.play();
-        App.actionStream.push("Zoom mode");
+        APP.actionStream.push("Zoom mode");
     }
     private void zoomNoAcc(double d) {
-        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");   
+        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // calculate amount
         double missed = Double.compare(NaN, z.getToX())==0 ? 0 : z.getToX() - zoom.getScaleX();
                missed = signum(missed)==signum(d) ? missed : 0;
@@ -596,12 +596,12 @@ public class SwitchPane implements ContainerNode {
         // zoom normally
         zoom(d);
     }
-    
+
 /******************************************************************************/
-    
+
     private final SwitchContainer container;
     private final Map<Integer,Container> layouts = new HashMap<>();
-    
+
     public Map<Integer,Container> getComponents() {
         return layouts;
     }

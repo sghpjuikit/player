@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- improve guide
+- guide -> service
 - playlist playing item is busted for item duplicates
 - add played first, played last, added to lib & tags metadata fields
 - improve tagger description label - add animation, support disabled fields & cover

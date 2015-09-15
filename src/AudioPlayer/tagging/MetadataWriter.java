@@ -39,7 +39,6 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
-import main.App;
 import util.File.AudioFileFormat;
 import util.dev.TODO;
 import util.parsing.Parser;
@@ -48,6 +47,7 @@ import util.units.NofX;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
 import static javafx.application.Platform.runLater;
+import static main.App.APP;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.File.AudioFileFormat.*;
@@ -822,7 +822,7 @@ public class MetadataWriter extends MetaItem {
      */
     public static void useToRate(Metadata item, double rating) {
         use(item, w->w.setRatingPercent(rating));
-        App.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
+        APP.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
     }
 
 }

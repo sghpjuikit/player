@@ -50,6 +50,7 @@ import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static main.App.APP;
 import static util.Util.*;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.SAME;
@@ -395,7 +396,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     DB.addItems(items);
                 }),
                 new Menu("Search album cover",null,
-                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
+                    menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
                             q -> "in " + Parser.toS(q),
                             q -> App.itemToMeta(m.getValue().get(0), i -> Environment.browse(q.apply(i.getAlbum()))))
                 )

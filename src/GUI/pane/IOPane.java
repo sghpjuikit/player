@@ -39,6 +39,7 @@ import static javafx.scene.input.DragEvent.*;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.functional.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 
@@ -118,7 +119,7 @@ public class IOPane extends StackPane {
             });
 
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> App.use(ClickEffect.class, c -> {
+            o.monitor(v -> APP.use(ClickEffect.class, c -> {
                 if(gui.GUI.isLayoutMode())
                     c.run(getSceneXY());
             }));
@@ -212,7 +213,7 @@ public class IOPane extends StackPane {
 
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> App.use(ClickEffect.class, c -> {
+            o.monitor(v -> APP.use(ClickEffect.class, c -> {
                 if(gui.GUI.isLayoutMode())
                     c.run(getSceneXY());
             }));
@@ -301,11 +302,11 @@ public class IOPane extends StackPane {
     }
 
     public static String oToStr(Output o) {
-        return App.className.get(o.getType()) + " : " + o.getName() +
-               "\n" + App.instanceName.get(o.getValue());
+        return APP.className.get(o.getType()) + " : " + o.getName() +
+               "\n" + APP.instanceName.get(o.getValue());
     }
     public static String iToStr(Input i) {
-        return App.className.get(i.getType()) + " : " + i.getName() + "\n";
+        return APP.className.get(i.getType()) + " : " + i.getName() + "\n";
     }
     public static void drawWidgetIO() {
         Map<Input,XNode> is = new HashMap();

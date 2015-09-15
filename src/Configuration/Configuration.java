@@ -29,6 +29,7 @@ import util.File.FileUtil;
 import util.access.Ѵo;
 import util.collections.map.MapSet;
 
+import static main.App.APP;
 import static util.Util.getAllFields;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
@@ -53,7 +54,8 @@ public class Configuration {
             discoverMethodsOf(c);
         });
         // add service configs
-        App.services.forEach(s -> configs.addAll(s.getFields()));
+        APP.services.forEach(s -> configs.addAll(s.getFields()));
+        configs.addAll(APP.getFields());
 
 
         configs.stream().filter(Config::isEditable)
@@ -64,7 +66,7 @@ public class Configuration {
                             Runnable r = ()->c.setNextNapplyValue();
                             Action.getActions().add(new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false));
                         });
-        
+
         // add actions
         configs.addAll(Action.getActions());
     }

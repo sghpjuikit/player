@@ -28,7 +28,7 @@ import util.File.FileUtil;
  */
 public final class Layout extends UniContainer {
     
-    private static final XStream X = App.INSTANCE.serialization.x;
+    private static final XStream X = App.APP.serialization.x;
     private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
     
     @XStreamOmitField

@@ -27,7 +27,6 @@ import gui.InfoNode.ItemInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
-import main.App;
 import util.access.VarAction;
 import util.access.VarEnum;
 
@@ -37,31 +36,32 @@ import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.media.MediaPlayer.Status.*;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 
 /** Provides notification functionality. */
 @IsActionable
 @IsConfigurable("Notifications")
 public final class Notifier extends ServiceBase {
-    
+
     @IsAction(name = "Notification hide")
     public static void notifHide() {
-        App.use(Notifier.class, Notifier::hideNotification);
+        APP.use(Notifier.class, Notifier::hideNotification);
     }
     @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
     public static void notifNowPlaying() {
-        App.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
+        APP.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
     }
-    
-    
+
+
     private static Notification n;
     private static Node songNotifGui;
     private static SongReader songNotifInfo;
-    
+
     // dependencies
     private Subscription d1, d2;
-    
+
 /*****************************   CONFIGURATION   ******************************/
-    
+
     @IsConfig(name = "On playback status change")
     public boolean showStatusNotification = true;
     @IsConfig(name = "On playing song change")
@@ -82,9 +82,9 @@ public final class Notifier extends ServiceBase {
     public final VarAction onClickL = new VarAction("Show application", null);
     @IsConfig(name = "On click right")
     public final VarAction onClickR = new VarAction("Notification hide", null);
-    
+
     @IsConfig(name = "Playback change graphics")
-    public final VarEnum<String> graphics = new VarEnum<>("Normal", 
+    public final VarEnum<String> graphics = new VarEnum<>("Normal",
         v -> {
             if("Normal".equals(v)) {
                 ItemInfo ii = new ItemInfo(true);
@@ -111,19 +111,19 @@ public final class Notifier extends ServiceBase {
             l.add("Normal - no cover");
             return l;
         });
-    
 
-    
+
+
     public Notifier() {
         super(true);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void start() {
         // create notification
         n = new Notification();
-        
+
         // show notification on playback status change
         ChangeListener<Status> statusListener = (o,ov,nv) -> {
             if (nv == PAUSED || nv ==PLAYING || nv == STOPPED)
@@ -131,11 +131,11 @@ public final class Notifier extends ServiceBase {
         };
         PLAYBACK.statusProperty().addListener(statusListener);
         d2 = () -> PLAYBACK.statusProperty().removeListener(statusListener);
-        
+
         // show notification on song change
         d1 = Player.playingtem.onChange(this::songChange);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isRunning() {
@@ -158,7 +158,7 @@ public final class Notifier extends ServiceBase {
     /** {@inheritDoc} */
     @Override
     public boolean isDependency() { return false; }
-    
+
     /** Show notification for custom content. */
     public void showNotification(Node content, String title) {
         if (isRunning()) {
@@ -176,7 +176,7 @@ public final class Notifier extends ServiceBase {
             n.show(notifPos);
         }
     }
-    
+
     /** Show notification displaying given text. */
     public void showTextNotification(String text, String title) {
         if (isRunning()) {
@@ -196,25 +196,25 @@ public final class Notifier extends ServiceBase {
             n.hide();
         }
     }
-    
-    
+
+
     private void songChange(Metadata m) {
         if (showSongNotification) {
             String title = "Now playing";
             songNotifInfo.read(m);
-            
+
             showNotification(songNotifGui, title);
         }
     }
-    
+
     private void playbackChange(Status s) {
         if (showSongNotification || s == null) {
             String title = "Playback change : " + s;
             SongReader i = new ItemInfo(false);
                        i.read(Player.playingtem.get());
-                     
+
             showNotification((Node)i, title);
         }
     }
-    
+
 }

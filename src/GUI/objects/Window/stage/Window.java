@@ -73,6 +73,7 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
+import static main.App.APP;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.no;
@@ -334,7 +335,7 @@ public class Window extends WindowBase {
             root, GAVEL,
             "Display possible actions\n\nMoving the drag elsewhere may offer other actions",
             DragUtil::hasAny,
-            e -> App.actionPane.show(DragUtil.getAnyFut(e))
+            e -> APP.actionPane.show(DragUtil.getAnyFut(e))
         );
 
 	// maintain custom pseudoclasses for .window styleclass
@@ -429,7 +430,7 @@ public class Window extends WindowBase {
                 () -> ((SwitchPane)getSwitchPane()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
 	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", () ->
-	    App.guide.open()
+	    APP.guide.open()
 	);
 	Icon helpB = createInfoIcon("Available actions:\n"
             + "\tHeader icons : Providing custom functionalities. See tooltips.\n"
@@ -475,7 +476,7 @@ public class Window extends WindowBase {
     private void setAsMain() {
         no(App.getWindow()!=null, "Only one window can be main");
 
-	App.window = this;
+	APP.window = this;
 	main = true;
 
         // move the window owner to screen of this window, which
@@ -898,7 +899,7 @@ public class Window extends WindowBase {
 
 /**************************** SERIALIZATION ***********************************/
 
-    private static final XStream X = App.INSTANCE.serialization.x;
+    private static final XStream X = App.APP.serialization.x;
 
     public void serialize(File f) {
         try {

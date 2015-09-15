@@ -21,7 +21,6 @@ import Layout.*;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
-import main.App;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 
@@ -32,6 +31,7 @@ import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static main.App.APP;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -78,12 +78,12 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
         Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
-            App.actionPane.show(Container.class, container)
+            APP.actionPane.show(Container.class, container)
         );
 	Icon propB = new Icon(COGS, 12, "Settings", ()->{});
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
-	    App.actionStream.push("Widget layout lock");
+	    APP.actionStream.push("Widget layout lock");
 	});
         maintain(container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, "Resize widget proportionally", () -> {
@@ -92,7 +92,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	});
 	Icon closeB = new Icon(TIMES, 12, "Close widget", () -> {
 	    container.close();
-	    App.actionStream.push("Close widget");
+	    APP.actionStream.push("Close widget");
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
 

@@ -9,12 +9,17 @@ import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import gui.objects.Rater.Rating;
+
 import javafx.geometry.Pos;
+
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
+
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import main.App;
+
 import util.parsing.StringParseStrategy;
+
+import static main.App.APP;
 import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
@@ -26,14 +31,14 @@ public class RatingRatingCellFactory implements RatingCellFactory {
     @Override
     public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> c) {
         return new TableCell<Metadata,Double>(){
-            Rating r = new Rating(App.maxRating.get(), 0);
+            Rating r = new Rating(APP.maxRating.get(), 0);
             {
-                setContentDisplay(GRAPHIC_ONLY);    
+                setContentDisplay(GRAPHIC_ONLY);
                 setAlignment(Pos.CENTER);
-                r.icons.bind(App.maxRating);
-                r.partialRating.bind(App.partialRating);
-                r.updateOnHover.bind(App.hoverRating);
-                r.editable.bind(App.allowRatingChange);
+                r.icons.bind(APP.maxRating);
+                r.partialRating.bind(APP.partialRating);
+                r.updateOnHover.bind(APP.hoverRating);
+                r.editable.bind(APP.allowRatingChange);
                 if(c.getUserData().equals(Metadata.Field.RATING)) {
                     r.setOnRatingChanged(rv -> MetadataWriter.useToRate(c.getTableView().getItems().get(getIndex()), rv));
                 }
@@ -50,5 +55,5 @@ public class RatingRatingCellFactory implements RatingCellFactory {
             }
         };
     }
-    
+
 }

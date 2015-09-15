@@ -91,6 +91,7 @@ import gui.pane.CellPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
+import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.InstanceInfo;
@@ -126,7 +127,6 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static org.atteo.evo.inflector.English.plural;
-import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
 import static util.Util.getEnumConstants;
 import static util.Util.getImageDim;
@@ -142,11 +142,11 @@ import static util.graphics.Util.layVertically;
  */
 @IsActionable
 @IsConfigurable("General")
-public class App extends Application {
-
+public class App extends Application implements Configurable {
 
     /**
      * Starts program.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -154,9 +154,15 @@ public class App extends Application {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-    public static App INSTANCE;
+    public static App APP;
 
-/******************************************************************************/
+
+    public final ClassName className = new ClassName();
+    public final InstanceName instanceName = new InstanceName();
+    public final InstanceInfo instanceInfo = new InstanceInfo();
+
+    public final ServiceManager services = new ServiceManager();
+    public final PluginMap plugins = new PluginMap();
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -170,66 +176,56 @@ public class App extends Application {
      * Running an {@link Action} always fires an event.
      * Supports custom actions. Simply push a String value into the stream.
      */
-    public static final EventSource<String> actionStream = new EventSource();
-
-/******************************************************************************/
-
-
-    // NOTE: for some reason cant make fields final in this class +
-    // initializing fields right up here (or constructor) will have no effect
-    public static Window window;
-    public static final ActionPane actionPane = new ActionPane();
-    public static final ShortcutPane shortcutPane = new ShortcutPane();
-
-    public static final ServiceManager services = new ServiceManager();
-    public static PluginMap plugins = new PluginMap();
-    public static Guide guide;
-    private Window windowOwner;
-
+    public final EventSource<String> actionStream = new EventSource<>();
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     public final AppSerializator serialization = new AppSerializator();
 
+    public Window window;
+    private Window windowOwner;
+    public final ActionPane actionPane = new ActionPane();
+    public final ShortcutPane shortcutPane = new ShortcutPane();
+    public Guide guide;
     private boolean initialized = false;
     public boolean normalLoad = true;
 
-    public App() {
-        INSTANCE = this;
-    }
-
-/*********************************** CONFIGS **********************************/
 
     @IsConfig(name = "Show guide on app start", info = "Show guide when application "
             + "starts. Default true, but when guide is shown, it is set to false "
             + "so the guide will never appear again on its own.")
-    public static boolean showGuide = true;
+    public boolean showGuide = true;
 
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
-    public static final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
+    public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
+
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
-    public static final IntegerProperty maxRating = new SimpleIntegerProperty(5);
+    public final IntegerProperty maxRating = new SimpleIntegerProperty(5);
+
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
-    public static final BooleanProperty partialRating = new SimpleBooleanProperty(true);
+    public final BooleanProperty partialRating = new SimpleBooleanProperty(true);
+
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
-    public static final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
+    public final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
+
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
-    public static final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
+    public final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
+
     @IsConfig(name = "Debug value", info = "For application testing. Generic number value"
             + "to control some application value manually.")
-    public static final DoubleProperty debug = new SimpleDoubleProperty(0);
+    public final DoubleProperty debug = new SimpleDoubleProperty(0);
 
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
-    public static String TAG_NO_VALUE = "-- no assigned value --";
+    public String TAG_NO_VALUE = "-- no assigned value --";
+
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
-    public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
-    public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
+    public String TAG_MULTIPLE_VALUE = "-- multiple values --";
+
+    public boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
 
 
-/******************************************************************************/
-
-    public static final ClassName className = new ClassName();
-    public static final InstanceName instanceName = new InstanceName();
-    public static final InstanceInfo instanceInfo = new InstanceInfo();
+    public App() {
+        APP = this;
+    }
 
     /**
      * The application initialization method. This method is called immediately
@@ -319,10 +315,11 @@ public class App extends Application {
             }
             return m;
         });
-
         instanceInfo.add(Metadata.class, o -> {
             HashMap<String,String> m = new HashMap<>();
-            stream(Metadata.Field.values()).filter(f -> f.isTypeStringRepresentable()).forEach(f ->
+            stream(Metadata.Field.values())
+                    .filter(f -> f.isTypeStringRepresentable() && !o.isFieldEmpty(f))
+                    .forEach(f ->
                 m.put(f.name(), o.getFieldS(f))
             );
             return m;
@@ -365,7 +362,7 @@ public class App extends Application {
         ActionPane.register(File.class,
             new FastAction<File>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
-                f -> AudioFileFormat.isSupported(f, APP),
+                f -> AudioFileFormat.isSupported(f, Use.APP),
                 f -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFile(f))),
             new FastAction<File>("Apply skin", "Apply skin on the application.",
                 BRUSH,
@@ -381,9 +378,9 @@ public class App extends Application {
                 UiContext::launchComponent)
         );
 
-        // initialize app parameter processor
+        // add app parameter handlers
         parameterProcessor.addFileProcessor(
-            f -> AudioFileFormat.isSupported(f, APP),
+            f -> AudioFileFormat.isSupported(f, Use.APP),
             fs -> WidgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(fs))
         );
         parameterProcessor.addFileProcessor(
@@ -550,7 +547,7 @@ public class App extends Application {
     }
 
     public static boolean isInitialized() {
-        return App.INSTANCE.initialized;
+        return App.APP.initialized;
     }
 
     /**
@@ -560,21 +557,18 @@ public class App extends Application {
      * @return window
      */
     public static Window getWindow() {
-        return INSTANCE.window;
+        return APP.window;
     }
     public static Window getWindowOwner() {
-        return INSTANCE.windowOwner;
+        return APP.windowOwner;
     }
 
-    public static<S extends Service> void use(Class<S> type, Consumer<S> action) {
+    public <S extends Service> void use(Class<S> type, Consumer<S> action) {
         services.getService(type).filter(Service::isRunning).ifPresent(action);
     }
 
-    /**
-     * Closes the application. Normally application closes when main window
-     * closes. Therefore this method should not need to be used.
-     */
-    public static void close() {
+    /** Forces application to stop. Invokes {@link #stop()} as a result. */
+    public void close() {
         // close app
         Platform.exit();
     }
@@ -805,7 +799,7 @@ public class App extends Application {
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     public static void openActions() {
-        actionPane.show(Void.class, null,
+        APP.actionPane.show(Void.class, null,
             new FastAction<Void>(
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
@@ -835,7 +829,7 @@ public class App extends Application {
 
     @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
     public static void showShortcuts() {
-        shortcutPane.show();
+        APP.shortcutPane.show();
     }
 
 }

@@ -79,6 +79,7 @@ import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
+import static main.App.APP;
 import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
 import static util.Util.menuItem;
@@ -215,7 +216,7 @@ public class LibraryController extends FXMLController implements SongReader {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
             c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
             c.setCellFactory(f==RATING
-                ? (Callback)App.ratingCell.getValue()
+                ? (Callback)APP.ratingCell.getValue()
                 : (Callback) col -> table.buildDefaultCell(f)
             );
             return c;
@@ -231,7 +232,7 @@ public class LibraryController extends FXMLController implements SongReader {
         });
 
         // maintain rating column cell style
-        App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
+        APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
 
         table.getDefaultColumnInfo();
 
@@ -431,7 +432,7 @@ public class LibraryController extends FXMLController implements SongReader {
                             (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
                 ),
                 new Menu("Search album cover",null,
-                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
+                    menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
                             q -> "in " + Parser.toS(q),
                             q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())))
                 )

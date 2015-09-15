@@ -30,7 +30,7 @@ import util.collections.map.PropertyMap;
 public abstract class Component {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Component.class);
-    private static final XStream X = App.INSTANCE.serialization.x;
+    private static final XStream X = App.APP.serialization.x;
     
     /** Unique ID. Permanent. Persists application life cycle. */
     public final UUID id = UUID.randomUUID();

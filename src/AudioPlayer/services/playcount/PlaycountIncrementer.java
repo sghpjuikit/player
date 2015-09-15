@@ -19,19 +19,19 @@ import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import main.App;
 import util.access.Ѵ;
 
 import static AudioPlayer.services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
 import static java.awt.TrayIcon.MessageType.INFO;
 import static javafx.util.Duration.seconds;
+import static main.App.APP;
 import static util.functional.Util.max;
 import static util.functional.Util.min;
 
 /** Playcount incrementing service. */
 @IsConfigurable(value = "Playcount Incrementing")
 public class PlaycountIncrementer extends ServiceBase {
-    
+
     @IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")
     public final Ѵ<PlaycountIncrStrategy> when = new Ѵ<>(ON_PERCENT,this::apply);
     @IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
@@ -52,11 +52,11 @@ public class PlaycountIncrementer extends ServiceBase {
     private PlayTimeHandler incrHand;
     private boolean running = false;
     private Subscription d = null;
-        
+
     public PlaycountIncrementer() {
         super(false);
     }
-    
+
     @Override
     public void start() {
         running = true;
@@ -68,7 +68,7 @@ public class PlaycountIncrementer extends ServiceBase {
     public boolean isRunning() {
         return running;
     }
-    
+
     @Override
     public void stop() {
         running = false;
@@ -79,7 +79,7 @@ public class PlaycountIncrementer extends ServiceBase {
          // unwanted application close delay.
          // This shouldnt be a big problem, unless user listened to single song lot of the times
          // in a loop and then disabled this service and closed the app. We really dont care about
-         // such scenario. Plus, few lost playcounts are no big deal. 
+         // such scenario. Plus, few lost playcounts are no big deal.
         d.unsubscribe();
     }
 
@@ -92,7 +92,7 @@ public class PlaycountIncrementer extends ServiceBase {
     public boolean isSupported() {
         return true;
     }
-    
+
     /**
      * Increments playcount of currently playing song. According to settings now or schedules it for
      * later. Also throws notifications if set.
@@ -102,24 +102,24 @@ public class PlaycountIncrementer extends ServiceBase {
         if (!m.isEmpty() && m.isFileBased() ) {
             if(delay.get()) {
                 queue.add(m);
-                if(show_notif.get()) App.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
-                if(show_bubble.get()) App.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted scheduled", INFO));
+                if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
+                if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted scheduled", INFO));
             } else {
                 int pc = 1 + m.getPlaycount();
                 MetadataWriter.use(m, w -> w.setPlaycount(pc), ok -> {
                     if(ok) {
-                        if(show_notif.get()) App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
-                        if(show_bubble.get()) App.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted to: " + pc, INFO));
+                        if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
+                        if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted to: " + pc, INFO));
                     }
                 });
             }
         }
     };
-    
+
     private void apply() {
         removeOld();
         if(!running) return;
-        
+
         if (when.get() == ON_PERCENT) {
             incrHand = new PlayTimeHandler(total -> total.multiply(when_percent.get()),incr);
             PLAYBACK.addOnPlaybackAt(incrHand);
@@ -138,16 +138,16 @@ public class PlaycountIncrementer extends ServiceBase {
             PLAYBACK.addOnPlaybackEnd(incr);
         } else if (when.get() == NEVER) {}
     }
-    
+
     private void removeOld() {
         if(incrHand!=null) PLAYBACK.removeOnPlaybackAt(incrHand);
         PLAYBACK.removeOnPlaybackStart(incr);
         PLAYBACK.removeOnPlaybackEnd(incr);
     }
-    
-    
+
+
     private final List<Metadata> queue = new ArrayList<>();
-    
+
     private void incrementQueued(Metadata m) {
         int δ = (int) queue.stream().filter(i -> i.same(m)).count();
         if(δ>0) {
@@ -159,7 +159,7 @@ public class PlaycountIncrementer extends ServiceBase {
             });
         }
     }
-    
+
     /** Strategy for incrementing playcount. */
     public static enum PlaycountIncrStrategy {
         /** Increment when song starts playing. */

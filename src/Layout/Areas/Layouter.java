@@ -16,7 +16,6 @@ import Layout.PolyContainer;
 import gui.GUI;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
-import main.App;
 import util.animation.interpolator.CircularInterpolator;
 import util.graphics.drag.DragUtil;
 
@@ -28,6 +27,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.functional.Util.isInR;
 import static util.functional.Util.stream;
@@ -208,7 +208,7 @@ public final class Layouter implements ContainerNode {
                 // this is the crucial part
                 container.addChild(index, factory.create());
                 if(GUI.isLayoutMode()) container.show();
-                App.actionStream.push("New widget");
+                APP.actionStream.push("New widget");
             });
         };
         w.onCancel = () -> closeAndDo(w.root, () -> {
@@ -222,11 +222,11 @@ public final class Layouter implements ContainerNode {
     }
     private void showSplitV() {
         container.addChild(index, new BiContainerPure(HORIZONTAL));
-        App.actionStream.push("Divide layout");
+        APP.actionStream.push("Divide layout");
     }
     private void showSplitH() {
         container.addChild(index, new BiContainerPure(VERTICAL));
-        App.actionStream.push("Divide layout");
+        APP.actionStream.push("Divide layout");
     }
     private void showTabs() {
         container.addChild(index, new PolyContainer());

@@ -41,6 +41,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.File.FileUtil.listFiles;
 import static util.dev.Util.log;
 import static util.functional.Util.mapB;
@@ -82,7 +83,7 @@ public class WindowManager {
     }
     @AppliesConfig("show_windows")
     private static void applyShowWindows() {
-        if(!App.INSTANCE.normalLoad) return;
+        if(!App.APP.normalLoad) return;
 
         if(show_windows)
             Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
@@ -97,14 +98,14 @@ public class WindowManager {
         setMini(!mini);
     }
     public static void toggleMiniFull() {
-        if(!App.INSTANCE.normalLoad) return;
+        if(!App.APP.normalLoad) return;
 
         if(mini) App.getWindow().show();
         else App.getWindow().hide();
         setMini(!mini);
     }
     public static void toggleShowWindows() {
-        if(!App.INSTANCE.normalLoad) return;
+        if(!App.APP.normalLoad) return;
 
         show_windows = !show_windows;
         applyShowWindows();
@@ -114,7 +115,7 @@ public class WindowManager {
     private static Animation t;
 
     public static void setMini(boolean val) {
-        if(!App.INSTANCE.normalLoad) return;
+        if(!App.APP.normalLoad) return;
 
         mini = val;
         if(val) {
@@ -137,7 +138,7 @@ public class WindowManager {
             miniWindow.initLayout();
             miniWindow.setContent(content);
                 // menu
-            Icon closeB = new Icon(CLOSE, 13, "Close window", App::close);
+            Icon closeB = new Icon(CLOSE, 13, "Close window", APP::close);
             Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);

@@ -49,7 +49,6 @@ import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.image.ThumbnailWithAdd;
 import gui.objects.image.cover.Cover;
-import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.ImageFileFormat;
@@ -74,8 +73,7 @@ import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
-import static main.App.TAG_MULTIPLE_VALUE;
-import static main.App.TAG_NO_VALUE;
+import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.FileUtil.EMPTY_COLOR;
 import static util.async.Async.FX;
@@ -460,7 +458,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             runLater(() -> {
                 writing = false;
                 populate(items);
-                App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
+                APP.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
             });
         });
 
@@ -539,9 +537,9 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                         fields.forEach(f -> f.histogramEnd(formats));
                             // handle cover separately
                             // set image info
-                             if (c == 0)    CoverL.setText(TAG_NO_VALUE);
+                             if (c == 0)    CoverL.setText(APP.TAG_NO_VALUE);
                         else if (c == 1)    CoverL.setText(s);
-                        else if (c == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
+                        else if (c == 2)    CoverL.setText(APP.TAG_MULTIPLE_VALUE);
                             // set image
                         if (c == 1)         CoverV.loadImage(co.getImage());
                         else                CoverV.loadImage((Image)null);
@@ -596,7 +594,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             CoverL.setUserData(true);
         } else {
             CoverV.loadImage((Image)null);
-            CoverL.setText(TAG_NO_VALUE);
+            CoverL.setText(APP.TAG_NO_VALUE);
             CoverL.setUserData(true);
         }
     }
@@ -694,7 +692,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(isIn(c.getPromptText(), TAG_NO_VALUE, TAG_MULTIPLE_VALUE)
+                c.setText(isIn(c.getPromptText(), APP.TAG_NO_VALUE, APP.TAG_MULTIPLE_VALUE)
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();
@@ -760,9 +758,9 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                 ColorF.setText("");
             }
 
-            if      (histogramI == 0)   c.setPromptText(TAG_NO_VALUE);
+            if      (histogramI == 0)   c.setPromptText(APP.TAG_NO_VALUE);
             else if (histogramI == 1)   c.setPromptText(histogramS);
-            else if (histogramI == 2)   c.setPromptText(TAG_MULTIPLE_VALUE);
+            else if (histogramI == 2)   c.setPromptText(APP.TAG_MULTIPLE_VALUE);
 
             // remember prompt text
             c.setId(c.getPromptText());

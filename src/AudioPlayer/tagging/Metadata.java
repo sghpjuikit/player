@@ -50,7 +50,6 @@ import gui.objects.image.cover.Cover;
 import gui.objects.image.cover.Cover.CoverSource;
 import gui.objects.image.cover.FileCover;
 import gui.objects.image.cover.ImageCover;
-import main.App;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
@@ -69,6 +68,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
+import static main.App.APP;
 import static util.File.FileUtil.EMPTY_COLOR;
 import static util.File.FileUtil.EMPTY_URI;
 import static util.Util.emptifyString;
@@ -611,7 +611,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      */
     @MetadataFieldMethod(Field.ARTIST)
     public String getArtist() {
-        return App.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
+        return APP.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
     }
 
     /** @return the album_artist, "" if empty. */

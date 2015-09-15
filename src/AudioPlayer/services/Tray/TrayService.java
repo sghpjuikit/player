@@ -37,6 +37,7 @@ import static javafx.scene.input.MouseButton.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UTILITY;
+import static main.App.APP;
 import static util.Util.menuItem;
 import static util.dev.Util.log;
 
@@ -79,7 +80,7 @@ public class TrayService extends ServiceBase {
               s.setScene(new Scene(new Region()));
         ContextMenu cm = new ContextMenu();
                     cm.getItems().addAll(menuItem("Play/pause", PLAYBACK::pause_resume),
-                        menuItem("Exit", App::close)
+                        menuItem("Exit", APP::close)
                     );
                     s.focusedProperty().addListener((o,ov,nv) -> {
                         if(!nv) {

@@ -44,7 +44,7 @@ public final class UiContext {
 /********************************************** CLICK *********************************************/
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
-    private static boolean launching1st = !App.INSTANCE.normalLoad;
+    private static boolean launching1st = !App.APP.normalLoad;
     private static double x;
     private static double y;
     private static final Set<ClickHandler> onClicks = new HashSet<>();
@@ -152,7 +152,7 @@ public final class UiContext {
             // try to deserialize normally
             if(w==null) {
                 try {
-                    w = (Component) App.INSTANCE.serialization.x.fromXML(launcher);
+                    w = (Component) App.APP.serialization.x.fromXML(launcher);
                 } catch (ClassCastException | StreamException ignored) {
                     LOGGER.error("Could not load .fxwl {}", launcher);
                 }

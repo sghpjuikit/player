@@ -36,7 +36,6 @@ import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import main.App;
 import util.SingleⱤ;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
@@ -54,6 +53,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static main.App.APP;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -148,18 +148,18 @@ public final class AreaControls {
 	// build header buttons
 	Icon closeB = new Icon(TIMES, 12, closebTEXT, e -> {
 	    close();
-	    App.actionStream.push("Close widget");
+	    APP.actionStream.push("Close widget");
 	});
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
 	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
 	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
-            App.actionPane.show(Widget.class, area.getActiveWidget())
+            APP.actionPane.show(Widget.class, area.getActiveWidget())
         );
 	propB = new Icon(COGS, 12, propbTEXT, this::settings);
 	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
 	Icon lockB = new Icon(null, 12, lockbTEXT, () -> {
             toggleLocked();
-	    App.actionStream.push("Widget layout lock");
+	    APP.actionStream.push("Widget layout lock");
         });
         maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, absbTEXT, e -> {
@@ -371,7 +371,7 @@ public final class AreaControls {
                 openAndDo(s, null);
             });
         }
-        App.actionStream.push("Widget info");
+        APP.actionStream.push("Widget info");
     }
 
     void detach() {

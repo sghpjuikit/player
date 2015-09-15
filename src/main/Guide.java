@@ -34,6 +34,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_BOX_OUTLINE;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER;
+import static main.App.APP;
 import static util.async.Async.run;
 import static util.graphics.Util.layHorizontally;
 
@@ -42,21 +43,21 @@ import static util.graphics.Util.layHorizontally;
  * @author Plutonium_
  */
 public final class Guide {
-    
+
     private final double ICON_SIZE = 40; // use css style instead
-    
+
     private final List<Hint> hints = new ArrayList();
     private int at = -1;
     private final Text text = new Text();
     private final PopOver<VBox> p = new PopOver(new VBox(15,text));
     private Subscription action_monitoring;
     final Label infoL = new Label();
-    
+
     public Guide() {
-        
+
         text.setWrappingWidth(350);
         text.prefWidth(350);
-        
+
         p.getContentNode().setPadding(new Insets(30));
         p.setAutoHide(false);
         p.setHideOnClick(false);
@@ -64,15 +65,15 @@ public final class Guide {
         p.getSkinn().setContentPadding(new Insets(8));
         p.setArrowSize(0);
         p.detached.set(true);
-        p.setOnHiding(e -> run(20,() -> App.actionStream.push("Guide closing")));
+        p.setOnHiding(e -> run(20,() -> APP.actionStream.push("Guide closing")));
         p.getHeaderIcons().addAll(
             new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious),
             infoL,
             new Icon(ARROW_RIGHT,11,"Next",this::goToNext)
         );
-        
+
         hint("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
-             "\n\nBut first some music, right?", 
+             "\n\nBut first some music, right?",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
                 SwitchPane la = Window.getFocused().getSwitchPane();
@@ -93,7 +94,7 @@ public final class Guide {
                 // go to layout
                 la.alignTab(con);
                 // go to next guide
-                App.actionStream.push("Intro");
+                APP.actionStream.push("Intro");
             }
         ));
         hint("Guide offer", "Hi, app guide here. It will show you around. Interested ?",
@@ -151,7 +152,7 @@ public final class Guide {
         hint("Layout lock", "Because automatic layout mode for widgets and containers can be intrusive, " +
              "the layout can be locked. Locked layout will enter full layout mode with shortcuts, but not " +
              "individual widgets. You may want to lock the layout after configuring it to your needs." +
-             "\n\nClick on the lock button in the window header or press '" + Action.get("Toggle layout lock.").getKeys() + 
+             "\n\nClick on the lock button in the window header or press '" + Action.get("Toggle layout lock.").getKeys() +
              "' to temporarily enter layout mode.");
         hint("Widget layout lock", "Note that individual widgets and containers can be locked as well to " +
              "achieve semi-locked layout effect. You may lock individual widgets or containers if layout mode " +
@@ -159,7 +160,7 @@ public final class Guide {
              "other controls in the corner activation area." +
              "\n\nClick on the lock button in the widget's header.");
     }
-            
+
     private void proceed() {
         if (at<0) at=0;
         if (at<hints.size()) {
@@ -181,21 +182,21 @@ public final class Guide {
             stop();
         }
     }
-    
+
     private void handleAction(String action) {
         if (hints.get(at).action.equals(action)) goToNext();
     }
-    
-    
+
+
     public void start() {
-        if (action_monitoring==null) 
-            action_monitoring = App.actionStream.subscribe(action -> {
+        if (action_monitoring==null)
+            action_monitoring = APP.actionStream.subscribe(action -> {
 //                if(p.isShowing())
                     handleAction(action);
             });
         goToStart();
     }
-    
+
     public void stop() {
         if (p.isShowing()) p.hideImmediatelly();
         if (action_monitoring!=null) {
@@ -203,18 +204,18 @@ public final class Guide {
             action_monitoring = null;
         }
     }
-    
+
     public void open() {
-        App.actionStream.push("Guide opening");
+        APP.actionStream.push("Guide opening");
         if (action_monitoring==null) start();
         else proceed();
     }
-    
+
     public void close() {
         p.hide();
     }
-    
-    
+
+
     public void goToStart() {
         if(hints.isEmpty()) return;
         at = 0;
@@ -228,16 +229,16 @@ public final class Guide {
         at++;
         proceed();
     }
-    
+
     public void hint(String action, String text) {
         hints.add(new Hint(action, text));
     }
-    
+
     public void hint(String action, String text, Node... graphics) {
         hints.add(new Hint(action, text, layHorizontally(5,CENTER,graphics)));
     }
-    
-    
+
+
     class Hint {
         public final String text;
         public final String action;

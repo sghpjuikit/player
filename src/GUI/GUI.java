@@ -50,6 +50,7 @@ import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
@@ -99,7 +100,7 @@ public class GUI {
     public final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {
             super.set(v);
-            App.actionStream.push("Layout lock");
+            APP.actionStream.push("Layout lock");
         }
     };
     @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
@@ -205,7 +206,7 @@ public class GUI {
             LayoutManager.getLayouts().forEach(Layout::hide);
             setZoomMode(false);
         }
-        if(val) App.actionStream.push("Layout mode");
+        if(val) APP.actionStream.push("Layout mode");
     }
 
     public static void setZoomMode(boolean val) {

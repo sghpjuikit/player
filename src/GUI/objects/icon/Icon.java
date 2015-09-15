@@ -39,7 +39,6 @@ import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.PopOver.PopOver;
-import main.App;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
@@ -52,6 +51,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.Util.getEnumConstants;
 import static util.Util.getFieldValue;
 import static util.functional.Util.stream;
@@ -80,7 +80,7 @@ public class Icon<I extends Icon> extends Text {
 	    PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
 	    helpP.show((Node) e.getSource());
 	    helpP.getContentNode().setWrappingWidth(400);
-	    App.actionStream.push("Info popup");
+	    APP.actionStream.push("Info popup");
 	});
     }
 

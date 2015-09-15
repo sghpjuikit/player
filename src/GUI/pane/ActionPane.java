@@ -27,7 +27,6 @@ import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
-import main.App;
 import util.access.Ѵ;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
@@ -44,6 +43,7 @@ import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static main.App.APP;
 import static util.Util.GR;
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
@@ -244,9 +244,9 @@ public class ActionPane extends OverlayPane {
         if(Void.class.equals(type)) return "";
 
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
-        String dname = computed ? App.instanceName.get(d) : "n/a";
-        String dkind = computed ? App.className.get(type) : "n/a";
-        String dinfo = App.instanceInfo.get(d).entrySet().stream()
+        String dname = computed ? APP.instanceName.get(d) : "n/a";
+        String dkind = computed ? APP.className.get(type) : "n/a";
+        String dinfo = APP.instanceInfo.get(d).entrySet().stream()
                           .map(e -> e.getKey() + ": " + e.getValue()).sorted().collect(joining("\n"));
         if(!dinfo.isEmpty()) dinfo = "\n" + dinfo;
 

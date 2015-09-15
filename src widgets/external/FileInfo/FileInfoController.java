@@ -58,6 +58,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
+import static main.App.APP;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import static util.async.Async.FX;
@@ -164,7 +165,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = fut_file ->
-            App.actionPane.show(File.class, fut_file,
+            APP.actionPane.show(File.class, fut_file,
                 new SlowAction<>("Copy and set as album cover",
                         "Sets image as cover. Copies file to destination and renames it "
                       + "to 'cover' so it is recognized as album cover. Any previous cover file "
@@ -213,10 +214,10 @@ public class FileInfoController extends FXMLController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        rater.icons.bind(App.maxRating);
-        rater.partialRating.bind(App.partialRating);
-        rater.updateOnHover.bind(App.hoverRating);
-        rater.editable.bind(App.allowRatingChange);
+        rater.icons.bind(APP.maxRating);
+        rater.partialRating.bind(APP.partialRating);
+        rater.updateOnHover.bind(APP.hoverRating);
+        rater.editable.bind(APP.allowRatingChange);
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
 

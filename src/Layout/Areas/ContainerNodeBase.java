@@ -27,6 +27,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -43,11 +44,10 @@ import static util.reactive.Util.maintain;
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
 
     private static final String actbTEXT = "Actions\n\n"
-        + "Opens action chooser for this container. Action chooser displays and "
-        + "can run action using some data, in this case this container. Shows "
-            + "non-layout actions for "
-        + "this container.";
-
+        + "Opens action chooser for this container. Browse and run additional non-layout actions "
+        + "for this container.";
+    private static final String autolbTEXT = "Autolayout\n\nLayout algorithm will resize widgets "
+        + "to maximalize used space.";
 
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
@@ -72,7 +72,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                 + "\n\tLeft click: visit children"
                 + "\n\tRight click: visit parent container"
         );
-	Icon layB = new Icon(ANCHOR, 12, "Resize content", () -> {
+	Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, () -> {
 	    ((FreeFormArea)this).bestLayout();
 	});
 	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);

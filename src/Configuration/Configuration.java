@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,7 +30,6 @@ import util.File.FileUtil;
 import util.access.Ѵo;
 import util.collections.map.MapSet;
 
-import static main.App.APP;
 import static util.Util.getAllFields;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
@@ -41,11 +41,17 @@ import static util.dev.Util.yesFinal;
  */
 public class Configuration {
 
-    private static final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup()+"."+c.getName());
-    private static final Lookup methodLookup = MethodHandles.lookup();
+    private static Lookup methodLookup = MethodHandles.lookup();
+    private final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup() + "." + c.getName());
 
+    public void collect(Configurable c) {
+        configs.addAll(c.getFields());
+    }
+    public void collect(Collection<Config> c) {
+        configs.addAll(c);
+    }
 
-    public static void collectAppConfigs() {
+    public void collectStatic() {
         // for all discovered classes
         ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
             // add class fields
@@ -53,16 +59,14 @@ public class Configuration {
             // add methods in the end to avoid incorrect initialization
             discoverMethodsOf(c);
         });
-        // add service configs
-        APP.services.forEach(s -> configs.addAll(s.getFields()));
-        configs.addAll(APP.getFields());
+    }
 
-
+    public void collectComplete() {
         configs.stream().filter(Config::isEditable)
                         .filter(c -> c.getType().equals(Boolean.class))
                         .map(c -> (Config<Boolean>) c)
                         .forEach(c -> {
-                            String name = c.getGroup()+" "+c.getName() + " - toggle";
+                            String name = c.getGroup() + " " + c.getName() + " - toggle";
                             Runnable r = ()->c.setNextNapplyValue();
                             Action.getActions().add(new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false));
                         });
@@ -71,18 +75,18 @@ public class Configuration {
         configs.addAll(Action.getActions());
     }
 
-    public static List<Config> getFields() {
+    public List<Config> getFields() {
         return new ArrayList(configs);
     }
 
-    public static List<Config> getFields(Predicate<Config> condition) {
+    public List<Config> getFields(Predicate<Config> condition) {
         List<Config> cs = new ArrayList(getFields());
                      cs.removeIf(condition.negate());
         return cs;
     }
 
     /** Changes all config fields to their default value and applies them */
-    public static void toDefault() {
+    public void toDefault() {
         getFields().forEach(Config::setNapplyDefaultValue);
     }
 
@@ -91,7 +95,7 @@ public class Configuration {
      * otherwise it is completely overwritten.
      * Loops through Configuration fields and stores them all into file.
      */
-    public static void save() {
+    public void save() {
         String header = ""
             + "# " + App.getAppName() + " configuration file.\n"
             + "# " + java.time.LocalTime.now() + "\n";
@@ -115,7 +119,7 @@ public class Configuration {
      * <p>
      * If field of given name does not exist it will be ignored as well.
      */
-    public static void load() {
+    public void load() {
         File file = new File("Settings.cfg").getAbsoluteFile();
         FileUtil.readFileKeyValues(file).forEach((id,value) -> {
             Config c = configs.get(id);
@@ -132,11 +136,11 @@ public class Configuration {
     }
 
 
-    private static void discoverConfigFieldsOf(Class c) {
+    private void discoverConfigFieldsOf(Class c) {
         configs.addAll(configsOf(c, null, true, false));
     }
 
-    private static void discoverMethodsOf(Class c) {
+    private void discoverMethodsOf(Class c) {
         for (Method m : c.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
                 for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {

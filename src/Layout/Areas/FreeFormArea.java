@@ -28,7 +28,7 @@ import util.graphics.drag.DragUtil;
 
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE_ALT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static gui.GUI.closeAndDo;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -144,7 +144,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if(cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container, i);
                        // add maximize button
-                       wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, laybTEXT, () -> {
+                       wa.controls.header_buttons.getChildren().add(1, new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> {
                            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
                            w.x.set(p.a*rt.getWidth());
                            w.y.set(p.b*rt.getHeight());

@@ -180,6 +180,7 @@ public class App extends Application implements Configurable {
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     public final AppSerializator serialization = new AppSerializator();
+    public final Configuration configuration = new Configuration();
 
     public Window window;
     private Window windowOwner;
@@ -445,9 +446,12 @@ public class App extends Application implements Configurable {
             services.addService(new ClickEffect());
 
             // gather configs
-            Configuration.collectAppConfigs();
+            configuration.collectStatic();
+            APP.services.forEach(configuration::collect);
+            configuration.collect(this);
+            configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
-            Configuration.load();
+            configuration.load();
 
             // initializing, the order is important
             Player.initialize();
@@ -505,7 +509,7 @@ public class App extends Application implements Configurable {
         }
 
         // initialization is complete -> apply all settings
-        Configuration.getFields().forEach(Config::applyValue);
+        configuration.getFields().forEach(Config::applyValue);
 
         // initialize non critical parts
         if(normalLoad) Player.loadLast();
@@ -526,6 +530,10 @@ public class App extends Application implements Configurable {
         parameterProcessor.process(fetchParameters());
     }
 
+    public static boolean isInitialized() {
+        return App.APP.initialized;
+    }
+
     /**
      * This method is called when the application should stop, and provides a
      * convenient place to prepare for application exit and destroy resources.
@@ -536,7 +544,7 @@ public class App extends Application implements Configurable {
         if(initialized) {
             if(normalLoad) Player.state.serialize();
             if(normalLoad) WindowManager.serialize();
-            Configuration.save();
+            configuration.save();
             services.getAllServices()
                     .filter(Service::isRunning)
                     .forEach(Service::stop);
@@ -546,8 +554,10 @@ public class App extends Application implements Configurable {
         appCommunicator.stop();
     }
 
-    public static boolean isInitialized() {
-        return App.APP.initialized;
+    /** Forces application to stop. Invokes {@link #stop()} as a result. */
+    public void close() {
+        // close app
+        Platform.exit();
     }
 
     /**
@@ -565,12 +575,6 @@ public class App extends Application implements Configurable {
 
     public <S extends Service> void use(Class<S> type, Consumer<S> action) {
         services.getService(type).filter(Service::isRunning).ifPresent(action);
-    }
-
-    /** Forces application to stop. Invokes {@link #stop()} as a result. */
-    public void close() {
-        // close app
-        Platform.exit();
     }
 
 /******************************************************************************/
@@ -789,7 +793,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
-        WidgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(Configuration.getFields()));
+        WidgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
     }
 
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")

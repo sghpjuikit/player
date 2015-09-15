@@ -14,7 +14,6 @@ import javafx.scene.layout.*;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import Configuration.Configuration;
 import Configuration.IsConfig;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
@@ -26,12 +25,12 @@ import gui.objects.icon.Icon;
 import util.access.Ѵ;
 import util.graphics.fxml.ConventionFxmlLoader;
 
-import static Layout.Widgets.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.geometry.HPos.LEFT;
 import static javafx.geometry.HPos.RIGHT;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static main.App.APP;
 import static util.functional.Util.byNC;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchors;
@@ -50,7 +49,7 @@ import static util.graphics.Util.setAnchors;
     notes = "To do: generate active widget settings, allow subcategories.",
     version = "1",
     year = "2015",
-    group = APP
+    group = Widget.Group.APP
 )
 public final class Configurator extends ClassController implements ConfiguringFeature {
 
@@ -72,7 +71,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });
-    private final Icon appI = new Icon(HOME,13,"App settings",() -> configure(Configuration.getFields()));
+    private final Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields()));
     private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 

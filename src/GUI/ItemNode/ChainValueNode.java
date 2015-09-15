@@ -43,8 +43,8 @@ import static util.functional.Util.*;
 
 /**
  * {@link ValueNode} containing editable list of {@link ValueNode}.
- * 
- * @param <V> type of value that is chained. Each value is contained in a 
+ *
+ * @param <V> type of value that is chained. Each value is contained in a
  * chained C - a {@link ValueNode} of the same type. The exact type is specified
  * as generic parameter.
  * @param <C> type of chained. This chain will be made of links of chained of
@@ -59,27 +59,28 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected Supplier<C> chainedFactory; // final
     protected boolean homogeneous = true;
-    
+    protected boolean inconsistent_state = true;
+
 
     /** Creates unlimited chain of 1 initial chained element.  */
     public ChainValueNode() {}
-    
+
     /** Creates unlimited chain of 1 initial chained element.  */
     public ChainValueNode(Supplier<C> chainedFactory) {
         this(1, chainedFactory);
     }
-    
+
     /** Creates unlimited chain of i initial chained elements.  */
     public ChainValueNode(int i, Supplier<C> chainedFactory) {
         this(i, Integer.MAX_VALUE, chainedFactory);
     }
-    
+
     /** Creates limited chain of i initial chained elements.  */
     public ChainValueNode(int len, int max_len, Supplier<C> chainedFactory) {
         maxChainLength.set(max_len);
         this.chainedFactory = chainedFactory;
         growTo(len);
-        
+
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
             if(m<chain.size()) {
@@ -89,8 +90,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             chain.forEach(Link::updateIcons);
         });
         chain.addListener((Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
+        inconsistent_state = false;
     }
-    
+
     public void addChained() {
         addChained(chain.size(), chainedFactory.get());
     }
@@ -107,20 +109,20 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             generateValue();
         }
     }
-    
-    /** 
+
+    /**
      * Grows the chain to 1.
      * It is important for the chain length to be at least 1, otherwise it will
      * become non-editable and always empty!
      * <p>
      * Equivalent to {@code growTo(1); }
-     * 
-     * @see #growTo(int) 
+     *
+     * @see #growTo(int)
      */
     public void growTo1() {
         growTo(1);
     }
-    
+
     /**
      * Grows the chain (adds chained to it using the chained factory) so there is
      * at least n chained elements.
@@ -132,13 +134,13 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         repeat(n-chain.size(),(Runnable)this::addChained);
         generateValue();
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public VBox getNode() {
         return root;
     }
-    
+
     /**
      * Invokes focus on last chained element.
      * <p>
@@ -148,13 +150,14 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public void focus() {
         chain.get(chain.size()-1).chained.focus();
     }
-    
+
     protected void generateValue() {
+        if(inconsistent_state) return;
         changeValue(reduce(getValues()));
     }
-    
+
     abstract protected V reduce(Stream<V> values);
-    
+
     /** Return individual chained values that are enabled and non null. */
     public Stream<V> getValues() {
         return chain.stream().filter(g -> g.on.getValue())
@@ -162,10 +165,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                              .filter(ISNTØ);
     }
 
-    /** 
-     * Sets button in the top left corner - instead of remove button of the 
+    /**
+     * Sets button in the top left corner - instead of remove button of the
      * first element of the chain (which is more or less disabled by default).
-     * 
+     *
      * @param icon icon to set, null to revert to default state
      * @param t tooltip
      * @param action on click action
@@ -182,13 +185,13 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public Icon getButton() {
         return chain.get(0).rem;
     }
-    
-    
+
+
     private static final Tooltip addTooltip = new Tooltip("Add");
     private static final Tooltip remTooltip = new Tooltip("Remove");
     private static final Tooltip onTooltip = new Tooltip("Enable. Disabled "
             + "elements will not be in the list.");
-    
+
     public class Link extends HBox {
         private final CheckIcon onB = new CheckIcon(true);
         private final Icon rem = new Icon(MINUS, 13);
@@ -196,7 +199,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         public final Property<Boolean> on = onB.selected;
         public final C chained;
         private boolean rem_alt = false; // alternative icon, never disable
-        
+
         Link(C c) {
             chained = c;
             chained.onItemChange = f -> generateValue();
@@ -213,34 +216,34 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             onB.tooltip(onTooltip);
             updateIcons();
         }
-        
+
         /** @return position index within the chain from 0 to chain.size() */
         public final int getIndex() {
             return chain.indexOf(this);
         }
-        
+
         void updateIcons() {
             int l = chain.size();
             boolean h = isHomogeneous();
-            
+
             rem.setDisable(h && !rem_alt && l<=1);
             add.setDisable(h && l>=maxChainLength.get());
             this.setDisable(!h);
         }
-        
+
         void onRem(MouseEvent e) {
             if(chain.size()>1) {
                 chain.remove(this);
                 generateValue();
             }
         }
-        
+
         private boolean isHomogeneous() {
             int i = getIndex();
             return homogeneous || i>=chain.size()-1;
         }
     }
-    
+
     public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN> {
 
         public ListConfigField(Supplier<IN> chainedFactory) {
@@ -264,13 +267,13 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         protected V reduce(Stream<V> values) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
-        
+
     }
     public static class ConfigPane<T> implements ConfiguringFeature{
         private final FlowPane root = new FlowPane(5,5);
         private final List<ConfigField<T>> configs = new ArrayList();
         Runnable onChange;
-        
+
         public ConfigPane() {}
         public ConfigPane(Collection<Config<T>> configs) {
             this.configs.clear();
@@ -283,7 +286,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         @Override
         public final void configure(Collection<Config> configs) {
             if(configs==null) return;
-            
+
             root.getChildren().setAll(map(configs,c -> {
                 ConfigField cf = ConfigField.create(c);
                             cf.onChange = () -> { if(onChange!=null) onChange.run(); };
@@ -299,17 +302,17 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                 return h;
             }));
         }
-        
+
         public Node getNode() {
             return root;
         }
-        
+
         public Stream<T> getValues() {
             return configs.stream().map(ConfigField::getValue);
         }
         public List<ConfigField<T>> getValuesC() {
             return configs;
         }
-        
+
     }
 }

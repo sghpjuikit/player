@@ -40,10 +40,10 @@ public class Util {
     public static final ƑP<? super Object> ISØ = Objects::isNull;
 
     /** Predicate returning true. Matches every object. */
-    public static final ƑP<? super Object> ALL = o -> true;
+    public static final ƑP<? super Object> IS = o -> true;
 
     /** Predicate returning false. Matches no object. */
-    public static final ƑP<? super Object> NONE = o -> false;
+    public static final ƑP<? super Object> ISNT = o -> false;
 
     /** Predicate returning false. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;

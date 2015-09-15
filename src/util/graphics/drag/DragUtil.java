@@ -39,7 +39,7 @@ import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
-import static util.functional.Util.ALL;
+import static util.functional.Util.IS;
 import static util.functional.Util.filterMap;
 
 /**
@@ -103,7 +103,7 @@ public final class DragUtil {
     }
 
     /** Always accepts and consumes drag over event. */
-    public static final EventHandler<DragEvent> anyDragAccepthandler = accept(ALL);
+    public static final EventHandler<DragEvent> anyDragAccepthandler = accept(IS);
 
     /** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent() } as predicate. */
     public static final EventHandler<DragEvent> componentDragAcceptHandler = accept(DragUtil::hasComponent);

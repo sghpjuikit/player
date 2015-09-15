@@ -38,17 +38,21 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.InfoNode.InfoTable;
-import gui.itemnode.FieldedTableFilter;
+import gui.itemnode.FieldedPredicateItemNode;
+import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.icon.Icon;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.async.executor.FxTimer;
+import util.collections.Tuple3;
+import util.functional.Functors;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -58,9 +62,11 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static org.reactfx.EventStreams.changesOf;
+import static util.Util.getEnumConstants;
 import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
+import static util.collections.Tuples.tuple;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
 import static util.reactive.Util.sizeOf;
@@ -111,7 +117,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         sizeOf(menuSelected.getItems(), size -> menuSelected.setDisable(size==0));
         sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
-        filterPane = new FieldedTableFilter(filtereditems, main_field);
+        filterPane = new Filter(filtereditems, main_field);
         filterPane.getNode().setVisible(false);
         filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
             // ESC -> close filter
@@ -224,7 +230,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 /******************************** TOP CONTROLS ********************************/
 
     /** Filter pane in the top of the table. */
-    public final FieldedTableFilter<T,F> filterPane;
+    public final Filter filterPane;
 
     /*
      * Predicate that filters the table list. Null predicate will match all
@@ -316,6 +322,37 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         }
     };
 
+    /** Table's filter node. */
+    public class Filter extends FieldedPredicateChainItemNode<T,F> {
+
+        public Filter(FilteredList<T> table_list, F prefFilterType) {
+            super(() -> {
+                FieldedPredicateItemNode<T,F> g = new FieldedPredicateItemNode<>(
+                    in -> Functors.getIO(in, Boolean.class),
+                    in -> Functors.getPrefIO(in, Boolean.class)
+                );
+                g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+                g.setData(d(prefFilterType));
+                return g;
+            });
+            onItemChange = v -> filtereditems.setPredicate(v);
+            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+            if(prefFilterType instanceof Enum) {
+                setData(d(prefFilterType));
+            } else
+                throw new IllegalArgumentException("Initial value - field type must be an enum");
+        }
+
+    }
+
+    private static <F extends FieldEnum> List<Tuple3<String,Class,F>> d(F prefFilterType) {
+        F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
+        return stream(es)
+                .filter(FieldEnum::isTypeStringRepresentable)
+                .map(mf -> tuple(mf.toString(),mf.getType(),mf))
+                .sorted(by(e -> e._1))
+                .collect(toList());
+    }
 
 /********************************** INDEX *************************************/
 

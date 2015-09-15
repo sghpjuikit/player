@@ -46,10 +46,10 @@ import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
 import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
-import static util.functional.Util.ALL;
+import static util.functional.Util.IS;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.ISØ;
-import static util.functional.Util.NONE;
+import static util.functional.Util.ISNT;
 import static util.functional.Util.isInR;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
@@ -307,8 +307,8 @@ public class Functors {
             // only if unique predicates are used, not dynamically created ones, e.g. (o -> o==null)
             if(this==ISØ) return (ƑP)ISNTØ;
             else if(this==ISNTØ) return (ƑP)ISØ;
-            else if(this==ALL) return (ƑP)ALL;
-            else if(this==NONE) return (ƑP)NONE;
+            else if(this==IS) return (ƑP)IS;
+            else if(this==ISNT) return (ƑP)ISNT;
             return i -> !test(i);
         }
 
@@ -316,9 +316,9 @@ public class Functors {
         default ƑP<I> and(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
             if(this==p) return this;
-            else if(this==NONE) return (ƑP)NONE;
-            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)NONE;
-            else if((this==ALL && p==NONE) || (this==NONE && p==ALL)) return (ƑP)NONE;
+            else if(this==ISNT) return (ƑP)ISNT;
+            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ISNT;
+            else if((this==IS && p==ISNT) || (this==ISNT && p==IS)) return (ƑP)ISNT;
             return i -> test(i) && test(i);
         }
 
@@ -326,9 +326,9 @@ public class Functors {
         default ƑP<I> or(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
             if(this==p) return this;
-            else if(this==ALL) return (ƑP)NONE;
-            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ALL;
-            else if((this==ALL && p==NONE) || (this==NONE && p==ALL)) return (ƑP)ALL;
+            else if(this==IS) return (ƑP)ISNT;
+            else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)IS;
+            else if((this==IS && p==ISNT) || (this==ISNT && p==IS)) return (ƑP)IS;
             return i -> test(i) || test(i);
         }
 
@@ -460,8 +460,8 @@ public class Functors {
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
 
-        add("Is true",      Boolean.class, Boolean.class, ALL);
-        add("Is false",     Boolean.class, Boolean.class, NONE);
+        add("Is true",      Boolean.class, Boolean.class, IS);
+        add("Is false",     Boolean.class, Boolean.class, ISNT);
         add("Negate",       Boolean.class, Boolean.class, b -> !b);
         add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
         add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr, Boolean.class,true);
@@ -790,7 +790,7 @@ public class Functors {
         @Override
         public Ƒ1<I,O> toƑ1(Object...is) {
             // retain predicate identity
-            if(isInR(ff, ISØ,ISNTØ,ALL,NONE)) return (Ƒ1<I,O>)ff;
+            if(isInR(ff, ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
             return i -> apply(i, is);
         }
 

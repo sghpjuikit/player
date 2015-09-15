@@ -23,7 +23,7 @@ import util.SingleⱤ;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
-import static util.functional.Util.ALL;
+import static util.functional.Util.IS;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.removeFromParent;
 
@@ -134,7 +134,7 @@ public class DragPane extends StackPane {
         public Data(Supplier<String> name, GlyphIcons icon) {
             this.name = name;
             this.icon = icon;
-            this.cond = ALL;
+            this.cond = IS;
         }
         public Data(Supplier<String> name, GlyphIcons icon, Predicate<? super DragEvent> cond) {
             this.name = name;

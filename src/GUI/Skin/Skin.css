@@ -981,6 +981,11 @@
  *                                                                             *
  ******************************************************************************/
 
+.scroll-bar {
+    -fx-skin: "gui.objects.ImprovedScrollBarSkin"; // let us use custom skin
+    -fx-background-color: null;
+    -fx-background-insets: 0, 1 0 1 0;
+}
 .scroll-bar:horizontal {
     -fx-background-color: null;
     -fx-background-insets: 0, 1 0 1 0;

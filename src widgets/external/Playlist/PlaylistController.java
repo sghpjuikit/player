@@ -291,6 +291,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private static Playlist getUnusedPlaylist(UUID id) {
         List<Playlist> pall = list(PlaylistManager.playlists);
         WidgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
+                     .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, this is not good
                      .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
                      .filter(ISNTØ)
                      .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));

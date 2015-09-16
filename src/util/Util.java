@@ -777,9 +777,9 @@ public class Util {
             Field f = getField(o.getClass(), fieldname);
             f.setAccessible(true);
             T t = (T) f.get(o);
-            f.setAccessible(true);
+            f.setAccessible(false);
             return t;
-        } catch(Exception e) {e.printStackTrace();
+        } catch(Exception e) {
             return null;
         }
     }

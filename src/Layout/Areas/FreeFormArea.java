@@ -62,13 +62,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         root.getChildren().add(rt);
         setAnchors(rt, 0d);
 
-        BooleanProperty isHere = new SimpleBooleanProperty(false);
-        rt.setOnMousePressed(e -> isHere.set(isHere(e)));
+        BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
+        rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
         rt.setOnMouseClicked(e -> {
             if(!isAltCon && (GUI.isLayoutMode() || !container.lockedUnder.get())) {
-                isHere.set(isHere.get() && isHere(e));
+                any_window_clicked.set(any_window_clicked.get() && isHere(e));
                 // add new widget on left click
-                if(e.getButton()==PRIMARY && isHere.get() && !any_window_resizing) {
+                if(e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(), e.getY());
                     e.consume();
                 }

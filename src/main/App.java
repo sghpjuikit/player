@@ -451,53 +451,62 @@ public class App extends Application implements Configurable {
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.load();
 
+
             // initializing, the order is important
             Player.initialize();
 
-            // collectAppConfigs windows from previous session
             List<String> ps = fetchParameters();
             normalLoad = !ps.stream().anyMatch(s->s.endsWith(".fxwl"));
+
+            // load windows, layouts, widgets
+            // we must apply skin before we load graphics, solely because if skin defines custom
+            // Control Skins, it will only have effect when set before control is created
+            // and yes, this means reapplying diferent skin will have no effect in this regard...
+            configuration.getFields(f -> f.getGroup().equals("GUI") && f.getGuiName().equals("Skin")).get(0).applyValue();
             WindowManager.deserialize(normalLoad);
 
             DB.start();
-//            GUI.setLayoutMode(true);
-//            Transition t = par(
-//                Window.windows.stream().map(w ->
-//                    seq(
-//                        new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(1-0.6*at))
-//                                .dur(500).intpl(new CircularInterpolator()),
-//                        par(
-//                            par(
-//                                forEachIStream(w.left_icons.box.getChildren(),(i,icon)->
-//                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-//                            ),
-//                            par(
-//                                forEachIRStream(w.right_icons.box.getChildren(),(i,icon)->
-//                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-//                            ),
-//                            par(
-//                                w.getSwitchPane().getLayouts().values().stream()
-//                                 .flatMap(l -> l.getAllWidgets())
-//                                 .map(wi -> (Area)wi.load().getUserData())
-//                                 .map(a ->
-//                                    seq(
-//                                        new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
-//                                        new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
-//                                    )
-//                                 )
-//                            )
-//                        ),
-//                        par(
-//                            new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(0.4+0.7*at))
-//                                    .dur(500).intpl(new CircularInterpolator())
-//                        )
-//                    )
-//                )
-//            );
-//            t.setOnFinished(e -> {
-//                GUI.setLayoutMode(false);
-//            });
-//            t.play();
+
+            // animations are nice, but during load the fx thread is completely exhausted
+            // i do not see easy wau out of this
+            // GUI.setLayoutMode(true);
+            // Transition t = par(
+            //     Window.windows.stream().map(w ->
+            //         seq(
+            //             new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(1-0.6*at))
+            //                     .dur(500).intpl(new CircularInterpolator()),
+            //             par(
+            //                 par(
+            //                     forEachIStream(w.left_icons.box.getChildren(),(i,icon)->
+            //                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
+            //                 ),
+            //                 par(
+            //                     forEachIRStream(w.right_icons.box.getChildren(),(i,icon)->
+            //                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
+            //                 ),
+            //                 par(
+            //                     w.getSwitchPane().getLayouts().values().stream()
+            //                      .flatMap(l -> l.getAllWidgets())
+            //                      .map(wi -> (Area)wi.load().getUserData())
+            //                      .map(a ->
+            //                         seq(
+            //                             new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
+            //                             new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
+            //                         )
+            //                      )
+            //                 )
+            //             ),
+            //             par(
+            //                 new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(0.4+0.7*at))
+            //                         .dur(500).intpl(new CircularInterpolator())
+            //             )
+            //         )
+            //     )
+            // );
+            // t.setOnFinished(e -> {
+            //     GUI.setLayoutMode(false);
+            // });
+            // t.play();
 
             initialized = true;
 

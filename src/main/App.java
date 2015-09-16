@@ -186,15 +186,12 @@ public class App extends Application implements Configurable {
     private Window windowOwner;
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
-    public Guide guide;
+    public final Guide guide = new Guide();
     private boolean initialized = false;
     public boolean normalLoad = true;
 
 
-    @IsConfig(name = "Show guide on app start", info = "Show guide when application "
-            + "starts. Default true, but when guide is shown, it is set to false "
-            + "so the guide will never appear again on its own.")
-    public boolean showGuide = true;
+
 
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
     public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
@@ -449,6 +446,7 @@ public class App extends Application implements Configurable {
             configuration.collectStatic();
             APP.services.forEach(configuration::collect);
             configuration.collect(this);
+            configuration.collect(guide);
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.load();
@@ -514,12 +512,8 @@ public class App extends Application implements Configurable {
         // initialize non critical parts
         if(normalLoad) Player.loadLast();
 
-        // handle guide
-        guide = new Guide();
-        if(showGuide) {
-            showGuide = false;
-            run(2222, () -> guide.start());
-        }
+        // show guide
+        if(guide.first_time) run(3000, guide::start);
 
         // get rid of this, load from skins
         Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
@@ -799,6 +793,10 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
     public static void openLayoutManager() {
         WidgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
+    }
+    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
+    public static void openGuide() {
+        APP.guide.open();
     }
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")

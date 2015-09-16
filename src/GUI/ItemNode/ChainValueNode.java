@@ -248,7 +248,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         private boolean isHomogeneous() {
             int i = getIndex();
             boolean hi = false;
-            if(i>0 && chained!=null && chained.getValue()!=null) {
+            if(chained!=null && chained.getValue()!=null) {
                 hi = isHomogeneous.test(i,chained.getValue());
             }
             return homogeneous || hi || i>=chain.size()-1;

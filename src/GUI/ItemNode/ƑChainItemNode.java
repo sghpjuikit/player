@@ -73,13 +73,31 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         fp = functionPool;
         chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
         isHomogeneous = (i,f) -> {
+            // Link is homogeneous if removing the function poses no problem
+            // for function f this is when previous function return type is same as next function
+            // input type (whis is same as f's return type.
+
+            // Workaround for identity function erasing its own return type to Object.class
+            // Identity function (x -> x) has same input type and output type, but this is
+            // generalized to Object since it works for any object. We either handle this manually
+            // here, or guarantee that the identity function input type will not be erased
+            // (basically we need instance of identity function per each class)
             if(f==IDENTITY) return true;
-            if(f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true;
-            Ƒ1 f1 = getValueAt(i-1);
-            return f1 instanceof TypeAwareƑ && f instanceof TypeAwareƑ
-                    ? ((TypeAwareƑ)f).out.equals(((TypeAwareƑ)f1).out)
+            if(f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true; // just in case
+
+            // If two subsequent functions have same output type (or input type) one of them is safe
+            // to remove (which depends on whether we check inputs or outputs).
+            //
+            // The exceptional case is first and last link of the chain, which miss the prevous (
+            // respectively following) function.
+            // However, they can still be removed. Checking for output types will result in the first
+            // link being an exceptional case. Below we check for inputs, which results in the last
+            // link to be exceptional case. We do this, because the last link can always be removed
+            // hence we do not have to handle the case.
+            Ƒ1 next_f = getValueAt(i+1);
+            return next_f instanceof TypeAwareƑ && f instanceof TypeAwareƑ
+                    ? ((TypeAwareƑ)f).in.equals(((TypeAwareƑ)next_f).in)
                     : false;
-//            return f instanceof TypeAwareƑ && ((TypeAwareƑ)f).in.equals(((TypeAwareƑ)f).out);
         };
         homogeneous = false;
         setTypeIn(in);  // initializes value, dont fire update yet

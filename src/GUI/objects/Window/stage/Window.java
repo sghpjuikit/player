@@ -429,9 +429,7 @@ public class Window extends WindowBase {
 	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout",
                 () -> ((SwitchPane)getSwitchPane()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", () ->
-	    APP.guide.open()
-	);
+	Icon guideB = new Icon(GRADUATION_CAP, 13, Action.get("Open guide"));
 	Icon helpB = createInfoIcon("Available actions:\n"
             + "\tHeader icons : Providing custom functionalities. See tooltips.\n"
             + "\tHeader buttons : Providing window contorl. See tooltips.\n"
@@ -515,7 +513,8 @@ public class Window extends WindowBase {
     }
 
     public void setContent(Component c) {
-	topContainer.addChild(topContainer.getEmptySpot(), c);
+        if(c!=null)
+            topContainer.addChild(topContainer.getEmptySpot(), c);
     }
 
     public void initLayout() {

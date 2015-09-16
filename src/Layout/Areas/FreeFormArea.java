@@ -22,6 +22,7 @@ import Layout.*;
 import Layout.Widgets.Widget;
 import gui.GUI;
 import gui.objects.Window.Pane.PaneWindowControls;
+import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import util.collections.TupleM4;
 import util.graphics.drag.DragUtil;
@@ -33,6 +34,7 @@ import static gui.GUI.closeAndDo;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static util.async.Async.runFX;
 import static util.functional.Util.findFirstEmpty;
 import static util.functional.Util.isInR;
 import static util.graphics.Util.setAnchors;
@@ -66,7 +68,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             if(!isAltCon && (GUI.isLayoutMode() || !container.lockedUnder.get())) {
                 isHere.set(isHere.get() && isHere(e));
                 // add new widget on left click
-                if(e.getButton()==PRIMARY && isHere.get()) {
+                if(e.getButton()==PRIMARY && isHere.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(), e.getY());
                     e.consume();
                 }
@@ -101,7 +103,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double ww = container.properties.getD(i+"w");
                 if(container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
                 if(container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
-                maintain(GUI.snapping, w.snappable);
+                maintain(GUI.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -115,7 +117,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double wh = container.properties.getD(i+"h");
                 if(container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
                 if(container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
-                maintain(GUI.snapping, w.snappable);
+                maintain(GUI.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -229,9 +231,15 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
         maintain(container.lockedUnder, l -> !l, w.resizable);
         maintain(container.lockedUnder, l -> !l, w.movable);
+        w.resizing.addListener((o,ov,nv) -> {
+            if(nv!=Resize.NONE) any_window_resizing = true;
+            else runFX(100, () -> any_window_resizing = false);
+        });
 
         return w;
     }
+
+    boolean any_window_resizing = false;
 
     /** Optimal size/position strategy returning greatest empty square. */
     TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {

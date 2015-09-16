@@ -17,6 +17,9 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
+import Configuration.Configurable;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import Layout.BiContainer;
 import Layout.BiContainerPure;
 import Layout.SwitchContainer;
@@ -46,8 +49,13 @@ import static util.graphics.Util.layHorizontally;
  *
  * @author Plutonium_
  */
-public final class Guide {
+@IsConfigurable
+public final class Guide implements Configurable {
 
+    @IsConfig(name = "Show guide on app start", info = "Show guide when application "
+            + "starts. Default true, but when guide is shown, it is set to false "
+            + "so the guide will never appear again on its own.")
+    public boolean first_time = true;
     private final double ICON_SIZE = 40; // use css style instead
 
     private final List<Hint> hints = new ArrayList();
@@ -237,6 +245,7 @@ public final class Guide {
 
     public void goToStart() {
         if(hints.isEmpty()) return;
+        first_time = false;
         at = 0;
         proceed();
     }

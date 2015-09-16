@@ -3,8 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- improve guide
-- guide -> service
 - playlist playing item is busted for item duplicates
 - add played first, played last, added to lib & tags metadata fields
 - improve tagger description label - add animation, support disabled fields & cover
@@ -21,10 +19,8 @@
 - implement smooth volume on seek
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
-- improve app start+stop speed
 - converter & ActionPane improve collection support & collection element display
   ultimately creating a file importer, such as for playlist & library
-- LastFM -> service
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will 
   start playing playlist selected song too...
 - make containers & widgets more lightweight
@@ -34,8 +30,18 @@
 - app animated loading
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
-- plugin discovery/load
-- popover position jumps on app drag start
+- decide what exactly is plugin and service. Stuff avaiable in app from the
+  being a service doesnt sit well with me. Basically the only thing i did it
+  like that was to be able to control lifecycle. 
+  1: plugins may me implementation of functionalities that will be 'exposed'
+     as pluggable (@IsPluggable). These may be services too.
+  2: service is anything requiring a lifecycle and with no ui
+  3: core services should be exposed as APP components in addition to being
+     registered as services. for sanity.
+- guide -> core service, finish guide hints to cover all the basics
+- LastFM -> service, implement properly
+- popover position jumps on app drag start & fix icon shadows affecting
+  layout
 
 -------------------------------------------------------------------------------- 
 ------------------------ BUGS - what i dont want to hear about -----------------

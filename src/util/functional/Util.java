@@ -33,7 +33,7 @@ import static util.dev.Util.yes;
  */
 public class Util {
 
-    /** Predicate returning true iff object is not null. */
+    /** Function returning the inputs. */
     public static final Ƒ1<? super Object,Object> IDENTITY = o -> o;
 
     /** Predicate returning true iff object is not null. */

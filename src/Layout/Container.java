@@ -230,6 +230,7 @@ public abstract class Container extends Component implements AltState {
      * @return index of a child or null if no child
      */
     public Integer indexOf(Component c) {
+//        if (c==null) return null;
         if (c==null) return null;
 
         for (Map.Entry<Integer, ? extends Component> entry: getChildren().entrySet()) {

@@ -159,11 +159,11 @@ public class Converter extends ClassController implements SongWriter {
         };
 
         // init data
-        acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
+        acts.accumulate(new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Rename files (ignore extension)", File.class, 1, list("Filename"), (file, data) -> {
+        acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFileNoSuffix(file, name);
         }));

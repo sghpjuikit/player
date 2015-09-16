@@ -11,10 +11,13 @@ import java.util.stream.Stream;
 import javafx.collections.ListChangeListener;
 
 import util.collections.PrefList;
-import util.functional.Functors;
 import util.functional.Functors.NullIn;
 import util.functional.Functors.NullOut;
+import util.functional.Functors.PƑ;
+import util.functional.Functors.TypeAwareƑ;
 import util.functional.Functors.Ƒ1;
+
+import static util.functional.Util.IDENTITY;
 
 /**
  * Function editor with function chaining.
@@ -49,26 +52,35 @@ import util.functional.Functors.Ƒ1;
  */
 public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNode<Object,Object>> {
 
-    private final Function<Class,PrefList<Functors.PƑ<Object,Object>>> fp;
+    private final Function<Class,PrefList<PƑ<Object,Object>>> fp;
     private Class type_in = Void.class;
     private NullIn handleNullIn = NullIn.NULL;
     private NullOut handleNullOut = NullOut.NULL;
 
     /** Creates unlimited chain starting with Void.class. */
-    public ƑChainItemNode(Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
+    public ƑChainItemNode(Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
         this(Void.class, Integer.MAX_VALUE, functionPool);
     }
     /** Creates unlimited chain starting with specified type. */
-    public ƑChainItemNode(Class in, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
+    public ƑChainItemNode(Class in, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
         this(in, Integer.MAX_VALUE, functionPool);
     }
 
     /** Creates limited chain starting with specified type. */
-    public ƑChainItemNode(Class in, int max_len, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
+    public ƑChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
 //        super(len, max_len, () -> new ƑItemNode(functionPool));
 //        homogeneous = false;
         fp = functionPool;
         chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
+        isHomogeneous = (i,f) -> {
+            if(f==IDENTITY) return true;
+            if(f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true;
+            Ƒ1 f1 = getValueAt(i-1);
+            return f1 instanceof TypeAwareƑ && f instanceof TypeAwareƑ
+                    ? ((TypeAwareƑ)f).out.equals(((TypeAwareƑ)f1).out)
+                    : false;
+//            return f instanceof TypeAwareƑ && ((TypeAwareƑ)f).in.equals(((TypeAwareƑ)f).out);
+        };
         homogeneous = false;
         setTypeIn(in);  // initializes value, dont fire update yet
 
@@ -82,6 +94,9 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         });
         chain.addListener((ListChangeListener.Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
         maxChainLength.set(max_len);
+
+        inconsistent_state = false;
+        generateValue();
     }
 
     /**

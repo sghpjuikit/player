@@ -46,10 +46,11 @@ import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
 import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
+import static util.functional.Util.IDENTITY;
 import static util.functional.Util.IS;
+import static util.functional.Util.ISNT;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.ISØ;
-import static util.functional.Util.ISNT;
 import static util.functional.Util.isInR;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
@@ -59,7 +60,13 @@ public class Functors {
     /** Marker interface for lambda. */
     public interface Λ {}
     /** Marker interface for lambda denoting its first input and output. */
-    public interface IO<I,O> extends Λ {}
+    public interface IO<I,O> extends Λ {
+        // not sure if good idea
+        // for default impl i want to use reflection to inspect generic type in runtime
+        // subclasses may want to override, like PF or TypeAwareF
+        // default Class<? super I> getTypeInput() {}
+        // default Class<? super I> getTypeOutput() {}
+    }
     public static interface Ƒ extends Λ, IO<Void,Void>, Runnable {
         void apply();
 
@@ -316,9 +323,8 @@ public class Functors {
         default ƑP<I> and(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
             if(this==p) return this;
-            else if(this==ISNT) return (ƑP)ISNT;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ISNT;
-            else if((this==IS && p==ISNT) || (this==ISNT && p==IS)) return (ƑP)ISNT;
+            else if(p==ISNT || this==ISNT) return (ƑP)ISNT;
             return i -> test(i) && test(i);
         }
 
@@ -326,9 +332,8 @@ public class Functors {
         default ƑP<I> or(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
             if(this==p) return this;
-            else if(this==IS) return (ƑP)ISNT;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)IS;
-            else if((this==IS && p==ISNT) || (this==ISNT && p==IS)) return (ƑP)IS;
+            else if(this==IS || p==IS) return (ƑP)IS;
             return i -> test(i) || test(i);
         }
 
@@ -456,7 +461,7 @@ public class Functors {
         add("Is null",      Object.class, Boolean.class, ISØ);
         add("Is not null",  Object.class, Boolean.class, ISNTØ);
 
-        add("As is",        Object.class, Object.class, x->x, true, true, true);
+        add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
 
@@ -790,8 +795,9 @@ public class Functors {
         @Override
         public Ƒ1<I,O> toƑ1(Object...is) {
             // retain predicate identity
-            if(isInR(ff, ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
-            return i -> apply(i, is);
+            if(isInR(ff, IDENTITY,ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
+            return new TypeAwareƑ<>(i -> apply(i, is),in,out);
+            // return i -> apply(i, is); // would not preserve I,O types
         }
 
     }
@@ -897,10 +903,12 @@ public class Functors {
              return f.apply(t, (P1)ps[0], (P2)ps[1], (P3)ps[2]);
         }
     }
+
     public static enum StringDirection {
         FROM_START,
         FROM_END;
     }
+
     public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
 
         public final PƑ<I,O> pf;
@@ -917,6 +925,23 @@ public class Functors {
         @Override
         public O apply(I i) {
             return pf.apply(i, cs.stream().map(c->c.getValue()).toArray());
+        }
+
+    }
+    public static class TypeAwareƑ<I,O> implements Ƒ1<I,O> {
+        public final Class<I> in;
+        public final Class<O> out;
+        public final Ƒ1<I,O> f;
+
+        public TypeAwareƑ(Ƒ1<I,O> f, Class<I> in, Class<O> out) {
+            this.in = in;
+            this.out = out;
+            this.f = f;
+        }
+
+        @Override
+        public O apply(I i) {
+            return f.apply(i);
         }
 
     }

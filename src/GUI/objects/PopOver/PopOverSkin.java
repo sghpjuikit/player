@@ -84,11 +84,11 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private Point2D dragStartLocation;
 
-    private final PopOver<? extends Node> popOver;
+    private final PopOver<? extends Node> p;
 
-    public PopOverSkin(final PopOver<? extends Node> p) {
+    public PopOverSkin(final PopOver<? extends Node> popover) {
 
-        popOver = p;
+        p = popover;
 
         root = new StackPane();
         root.setPickOnBounds(false);
@@ -98,51 +98,45 @@ public class PopOverSkin implements Skin<PopOver> {
          // 2 * arrow size.
         root.minHeightProperty().bind(root.minWidthProperty());
         root.minWidthProperty().bind(
-                add(multiply(2,popOver.arrowSizeProperty()),
-                        add(multiply(2,popOver.cornerRadiusProperty()),
-                            multiply(2,popOver.arrowIndentProperty()))));
+                add(multiply(2,p.arrowSizeProperty()),
+                        add(multiply(2,p.cornerRadiusProperty()),
+                            multiply(2,p.arrowIndentProperty()))));
 
         // create header & its content
         title = new Label();
-        title.textProperty().bind(popOver.title);
+        title.textProperty().bind(p.title);
         title.getStyleClass().add(TITLE_STYLECLASS);
 
         String closeBt = "Close\n\nClose this popup and its content.";
-        Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, popOver::hideStrong)
+        Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong)
                             .styleclass("popover-closebutton");
 
         String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse "
                 + "click outside of this popup.";
-        Icon pinB = new Icon(null, 11, pinBt,() -> popOver.setAutoHide(!popOver.isAutoHide()));
-        maintain(popOver.autoHideProperty(), mapB(PIN_OFF,PIN), pinB::setIcon);
+        Icon pinB = new Icon(null, 11, pinBt,() -> p.setAutoHide(!p.isAutoHide()));
+        maintain(p.autoHideProperty(), mapB(PIN_OFF,PIN), pinB::setIcon);
 
         HBox headerControls = new HBox(closeB);
         headerControls.setSpacing(5);
         headerControls.setAlignment(Pos.CENTER_RIGHT);
         headerControls.getStyleClass().add("header-buttons");
         // initialize proper header content
-                headerControls.getChildren().setAll(popOver.getHeaderIcons());
-//                headerControls.getChildren().add(headerControls.getChildren().size(),
-//                        popOver.isDetached() ? closeIcon : pinIcon);
-                headerControls.getChildren().addAll(pinB,closeB);
+        headerControls.getChildren().setAll(p.getHeaderIcons());
+        headerControls.getChildren().addAll(pinB,closeB);
         // maintain proper header content
-        popOver.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
+        p.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
             while(e.next()) {
-                headerControls.getChildren().setAll(popOver.getHeaderIcons());
-//                headerControls.getChildren().add(headerControls.getChildren().size(),
-//                        popOver.isDetached() ? closeIcon : pinIcon);
-            headerControls.getChildren().removeAll(pinB,closeB);
-            headerControls.getChildren().add(pinB);
-            headerControls.getChildren().add(closeB);
+                headerControls.getChildren().clear();
+                headerControls.getChildren().setAll(p.getHeaderIcons());
+                headerControls.getChildren().addAll(pinB,closeB);
             }
         });
-
 
         // content
         content = new BorderPane();
         content.getStyleClass().add(CONTENT_STYLECLASS);
 //        maintain(popOver.contentNodeProperty(), n->n, content.centerProperty());
-        maintain(popOver.contentNodeProperty(), n->n, n -> {
+        maintain(p.contentNodeProperty(), n->n, n -> {
             content.setCenter(n);
             // the following fixes some resize bugs
             content.autosize();
@@ -161,15 +155,15 @@ public class PopOverSkin implements Skin<PopOver> {
         header.setRight(headerControls);
         header.getStyleClass().add(HEADER_STYLECLASS);
         // header visibility
-        maintain(popOver.headerVisible, b->b ? header : null, content.topProperty());
+        maintain(p.headerVisible, b->b ? header : null, content.topProperty());
 
         // the delay in the execution is essencial for updatePath to work - unknown reason
         InvalidationListener uPLd = o -> run(25,this::updatePath);
         InvalidationListener uPL = o -> updatePath();
 
-        popOver.getScene().getWindow().xProperty().addListener(uPL);
-        popOver.getScene().getWindow().yProperty().addListener(uPL);
-        popOver.arrowLocationProperty().addListener(uPL);
+        p.getScene().getWindow().xProperty().addListener(uPL);
+        p.getScene().getWindow().yProperty().addListener(uPL);
+        p.arrowLocationProperty().addListener(uPL);
 
         // show new content when changes
         content.widthProperty().addListener(uPLd);
@@ -183,16 +177,16 @@ public class PopOverSkin implements Skin<PopOver> {
         updatePath();
 
         // react on detached state change and initialize
-        maintain(popOver.detached, d -> {
+        maintain(p.detached, d -> {
             updatePath();
-            popOver.pseudoClassStateChanged(DETACHED, d);
+            p.pseudoClassStateChanged(DETACHED, d);
             content.setTop(header); // always show header in detached mode
         });
         // maintain focus style
-        maintain(popOver.focusedProperty(), v -> popOver.pseudoClassStateChanged(FOCUSED, v));
+        maintain(p.focusedProperty(), v -> p.pseudoClassStateChanged(FOCUSED, v));
 
         root.setOnMousePressed(e -> {
-            if (popOver.detachable.get()) {
+            if (p.detachable.get()) {
                 tornOff = false;
 
                 xOffset = e.getScreenX();
@@ -202,10 +196,10 @@ public class PopOverSkin implements Skin<PopOver> {
             }
         });
         root.setOnMouseDragged(e -> {
-            if (popOver.detachable.get()) {
+            if (p.detachable.get()) {
                 double deltaX = e.getScreenX() - xOffset;
                 double deltaY = e.getScreenY() - yOffset;
-                Window window = popOver.getScene().getWindow();
+                Window window = p.getScene().getWindow();
 
                 window.setX(window.getX() + deltaX);
                 window.setY(window.getY() + deltaY);
@@ -222,9 +216,9 @@ public class PopOverSkin implements Skin<PopOver> {
             }
         });
         root.setOnMouseReleased(e -> {
-            if (tornOff && !popOver.detached.get()) {
+            if (tornOff && !p.detached.get()) {
                 tornOff = false;
-                popOver.detached.set(true);
+                p.detached.set(true);
             }
         });
 
@@ -239,7 +233,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     @Override
     public PopOver getSkinnable() {
-        return popOver;
+        return p;
     }
 
     /**
@@ -311,23 +305,23 @@ public class PopOverSkin implements Skin<PopOver> {
         DoubleProperty bottomEdgeProperty = new SimpleDoubleProperty();
         DoubleProperty bottomEdgeMinusRadiusProperty = new SimpleDoubleProperty();
 
-        DoubleProperty cornerProperty = popOver.cornerRadiusProperty();
+        DoubleProperty cornerProperty = p.cornerRadiusProperty();
 
-        DoubleProperty arrowSizeProperty = popOver.arrowSizeProperty();
-        DoubleProperty arrowIndentProperty = popOver.arrowIndentProperty();
+        DoubleProperty arrowSizeProperty = p.arrowSizeProperty();
+        DoubleProperty arrowIndentProperty = p.arrowIndentProperty();
 
         centerYProperty.bind(Bindings.divide(root.heightProperty(), 2));
         centerXProperty.bind(Bindings.divide(root.widthProperty(), 2));
 
-        leftEdgePlusRadiusProperty.bind(Bindings.add(leftEdgeProperty,popOver.cornerRadiusProperty()));
+        leftEdgePlusRadiusProperty.bind(Bindings.add(leftEdgeProperty,p.cornerRadiusProperty()));
 
-        topEdgePlusRadiusProperty.bind(Bindings.add(topEdgeProperty,popOver.cornerRadiusProperty()));
+        topEdgePlusRadiusProperty.bind(Bindings.add(topEdgeProperty,p.cornerRadiusProperty()));
 
         rightEdgeProperty.bind(root.widthProperty());
-        rightEdgeMinusRadiusProperty.bind(Bindings.subtract(rightEdgeProperty,popOver.cornerRadiusProperty()));
+        rightEdgeMinusRadiusProperty.bind(Bindings.subtract(rightEdgeProperty,p.cornerRadiusProperty()));
 
         bottomEdgeProperty.bind(root.heightProperty());
-        bottomEdgeMinusRadiusProperty.bind(Bindings.subtract(bottomEdgeProperty, popOver.cornerRadiusProperty()));
+        bottomEdgeMinusRadiusProperty.bind(Bindings.subtract(bottomEdgeProperty, p.cornerRadiusProperty()));
 
         // INIT
         moveTo = new MoveTo();
@@ -581,8 +575,8 @@ public class PopOverSkin implements Skin<PopOver> {
     }
 
     private boolean showArrow(ArrowLocation loc) {
-        ArrowLocation arrowLocation = popOver.getArrowLocation();
-        return loc.equals(arrowLocation) && !popOver.detached.get() && !tornOff;
+        ArrowLocation arrowLocation = p.getArrowLocation();
+        return loc.equals(arrowLocation) && !p.detached.get() && !tornOff;
     }
 
     public void updatePath() {

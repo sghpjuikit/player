@@ -8,6 +8,7 @@ package gui.itemnode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -54,12 +55,17 @@ import static util.functional.Util.*;
  */
 public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 
+    private static final Tooltip addTooltip = new Tooltip("Add");
+    private static final Tooltip remTooltip = new Tooltip("Remove");
+    private static final Tooltip onTooltip = new Tooltip("Enable. Disabled elements will not be in the list.");
+
     protected final VBox root = new VBox();
     protected final ObservableList<Link> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected Supplier<C> chainedFactory; // final
     protected boolean homogeneous = true;
     protected boolean inconsistent_state = true;
+    protected BiPredicate<Integer,V> isHomogeneous = (i,v) -> false;
 
 
     /** Creates unlimited chain of 1 initial chained element.  */
@@ -158,6 +164,12 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
     abstract protected V reduce(Stream<V> values);
 
+    public V getValueAt(int i) {
+        return i>=0 && i<chain.size() && chain.get(i).chained!=null && chain.get(i).chained.getValue()!=null
+                ? chain.get(i).chained.getValue()
+                : null;
+    }
+
     /** Return individual chained values that are enabled and non null. */
     public Stream<V> getValues() {
         return chain.stream().filter(g -> g.on.getValue())
@@ -186,11 +198,6 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         return chain.get(0).rem;
     }
 
-
-    private static final Tooltip addTooltip = new Tooltip("Add");
-    private static final Tooltip remTooltip = new Tooltip("Remove");
-    private static final Tooltip onTooltip = new Tooltip("Enable. Disabled "
-            + "elements will not be in the list.");
 
     public class Link extends HBox {
         private final CheckIcon onB = new CheckIcon(true);
@@ -240,7 +247,23 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
         private boolean isHomogeneous() {
             int i = getIndex();
-            return homogeneous || i>=chain.size()-1;
+            boolean hi = false;
+            if(i>0 && chained!=null && chained.getValue()!=null) {
+                hi = isHomogeneous.test(i,chained.getValue());
+            }
+            return homogeneous || hi || i>=chain.size()-1;
+
+            // optimization, but doesnt work?
+//            int i = getIndex();
+//
+//            if(i==0) return false;
+//            if(i>=chain.size()-1) return true;
+//            if(homogeneous) return true;
+//
+//            if(i>0 && chained!=null && chained.getValue()!=null)
+//                return isHomogeneous.test(chained.getValue());
+//            return false;
+
         }
     }
 
@@ -248,9 +271,13 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
         public ListConfigField(Supplier<IN> chainedFactory) {
             super(chainedFactory);
+            inconsistent_state = false;
+            generateValue();
         }
         public ListConfigField(int length, Supplier<IN> chainedFactory) {
             super(length, chainedFactory);
+            inconsistent_state = false;
+            generateValue();
         }
 
         @Override

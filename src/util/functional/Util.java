@@ -34,6 +34,9 @@ import static util.dev.Util.yes;
 public class Util {
 
     /** Predicate returning true iff object is not null. */
+    public static final Ƒ1<? super Object,Object> IDENTITY = o -> o;
+
+    /** Predicate returning true iff object is not null. */
     public static final ƑP<? super Object> ISNTØ = Objects::nonNull;
 
     /** Predicate returning true iff object is null. */

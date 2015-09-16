@@ -5,15 +5,18 @@
  */
 package gui.itemnode;
 
-import gui.itemnode.ItemNode.ValueNode;
 import java.util.Collection;
 import java.util.List;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TextArea;
-import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
+
+import gui.itemnode.ItemNode.ValueNode;
 import util.functional.Functors;
+
+import static javafx.scene.layout.Priority.ALWAYS;
 import static util.functional.Util.*;
 
 /**
@@ -39,7 +42,7 @@ import static util.functional.Util.*;
  * </ul>
  * but is not necessary. The area can be used without input. Transformation chain
  * starts a Void.class which still allows functions that supply value, which in
- * return again allows scaling the transformation chain without limitation. 
+ * return again allows scaling the transformation chain without limitation.
  * <p>
  * The result can be accessed as:
  * <ul>
@@ -47,19 +50,19 @@ import static util.functional.Util.*;
  * <li> list of strings. Each string element represents a single line in the text
  * area. List can be empty, but not null. {@link #getValue() }
  * </ul>
- * 
+ *
  * @author Plutonium_
  */
 public class ListAreaNode extends ValueNode<List<String>> {
-    
+
     private final VBox root = new VBox();
     private final TextArea area = new TextArea();
     private final ƑChainItemNode transforms = new ƑChainItemNode(Functors::getI);
     private List input;
-    /** 
+    /**
      * Output list. List of objects after applying the transformation on input
      * list elements. The text of this area shows string representation of the
-     * elements of this list. 
+     * elements of this list.
      * <p>
      * Note that although the area is editable, the changes
      * will not be reflected in the items of this list.
@@ -69,7 +72,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * this list only when you are not interested in the text data.
      */
     public final ObservableList output = FXCollections.observableArrayList();
-    
+
     public ListAreaNode() {
         transforms.onItemChange = f -> {
             List l = map(input,f);
@@ -81,9 +84,9 @@ public class ListAreaNode extends ValueNode<List<String>> {
         root.getChildren().addAll(area,transforms.getNode());
         VBox.setVgrow(area, ALWAYS);
     }
-    
+
     /**
-     * Sets the input list directly. Must be homogeneous - all elements of the 
+     * Sets the input list directly. Must be homogeneous - all elements of the
      * same type.
      * <p>
      * Discards previous input list. Transformation chain is cleared if the type
@@ -95,21 +98,21 @@ public class ListAreaNode extends ValueNode<List<String>> {
         Class ec = getElementClass(input);
         transforms.setTypeIn(ec);    // fires update
     }
-    
+
     /**
      * Sets the input list by splitting the text by '\n' newline character.
      * <p>
      * Discards previous input list. Transformation chain is cleared if the type
      * of list has changed.
      * Updates text of the text area.
-     * 
-     * @param text 
+     *
+     * @param text
      */
     public void setData(String text) {
         setData(split(text, "\n", c->c));
     }
-    
-    /** 
+
+    /**
      * Returns the current text in the text area. Represents concatenation of
      * string representations of the elements of the list after transformation,
      * if any.
@@ -123,10 +126,10 @@ public class ListAreaNode extends ValueNode<List<String>> {
     public VBox getNode() {
         return root;
     }
-    
+
     private static <E> Class getElementClass(Collection<E> c) {
         for(E e : c) if(e!=null) return e.getClass();
         return Void.class;
     }
-    
+
 }

@@ -719,7 +719,8 @@ public final class Seeker extends AnchorPane {
             content.getChildren().remove(ta);
             message.setVisible(true);
             // maintain proper content
-            p.getHeaderIcons().set(0, editB);
+            p.getHeaderIcons().remove(editB);    // make sure remB was removed
+            p.getHeaderIcons().add(0, editB);
             p.getHeaderIcons().remove(cancelB);
             p.getHeaderIcons().remove(delB);    // make sure remB was removed
             p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);   // add remove button back

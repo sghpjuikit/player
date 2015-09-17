@@ -78,7 +78,7 @@ public final class AreaControls {
         + "size. Instead, the widget will keep the same size, if possible.";
     private static final String lockbTEXT = "Lock widget\n\n"
         + "Disallows layout mode when mouse enters top corner of the widget. \n"
-        + "This can be applie separately on widgets, but also containers or "
+        + "This can be applied separately on widgets, but also containers or "
         + "whole layout.";
     private static final String refbTEXT = "Refresh widget\n\n"
         + "Applies widget properties, layout or reloads widget content. Depends "

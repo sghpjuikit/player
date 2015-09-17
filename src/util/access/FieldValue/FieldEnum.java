@@ -5,8 +5,13 @@
  */
 package util.access.FieldValue;
 
+import java.io.File;
+
+import util.File.FileUtil;
 import util.Util;
 import util.access.TypedValue;
+import util.functional.Functors.Ƒ1;
+import util.units.FileSize;
 
 import static util.Util.mapEnumConstant;
 
@@ -14,7 +19,7 @@ import static util.Util.mapEnumConstant;
  *
  * @author Plutonium_
  */
-public interface FieldEnum<T> extends TypedValue {
+public interface FieldEnum<V> extends TypedValue {
 
     /** Returns description of the field. */
     public String description();
@@ -82,5 +87,45 @@ public interface FieldEnum<T> extends TypedValue {
             return Integer.class;
         }
 
+    }
+    public static interface ObjectField<V> extends FieldEnum<V> {
+        public Object getOf(V value);
+    }
+
+    public static enum FileField implements ObjectField<File> {
+
+        PATH("Path",File::getPath, String.class),
+        TYPE("Size",FileSize::new, FileSize.class),
+        SIZE("Type",f -> f.isDirectory() ? "Directory" : FileUtil.getSuffix(f), String.class);
+
+        private final String description;
+        private final Ƒ1<File,?> mapper;
+        private final Class<?> type;
+
+        private <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
+            this.mapper = mapper;
+            this.description = description;
+            this.type = type;
+        }
+
+        @Override
+        public Object getOf(File value) {
+            return mapper.apply(value);
+        }
+
+        @Override
+        public String description() {
+            return description;
+        }
+
+        @Override
+        public String toS(Object o, String empty_val) {
+            return o==null ? empty_val : o.toString();
+        }
+
+        @Override
+        public Class getType() {
+            return type;
+        }
     }
 }

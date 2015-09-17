@@ -56,6 +56,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
 import static javafx.beans.binding.Bindings.add;
 import static javafx.beans.binding.Bindings.multiply;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -222,6 +223,18 @@ public class PopOverSkin implements Skin<PopOver> {
             }
         });
 
+        // bugfix
+        // When owning window is not focused, interacting with the popover is impossible (its focus
+        // seems to be tied in with its owner window's focus). Unfortunately clicking on the popover
+        // when its owner doesnt have focus does not focus it, which is really annoying.
+        // Whether intended default behavior or javafx/popover bug, the below fixes it.
+        //
+        // We use filter to always execute the behavior & do not consume to not break any either.
+        root.addEventFilter(MOUSE_PRESSED, e -> {
+            if(!p.getOwnerWindow().isFocused())
+                p.getOwnerWindow().requestFocus();
+        });
+
         root.getChildren().add(path);
         root.getChildren().add(content);
     }
@@ -240,6 +253,7 @@ public class PopOverSkin implements Skin<PopOver> {
      * Sets padding of content within popover. Overrides and defaults to css.
      * @param i
      */
+    @Deprecated // use css
     public void setContentPadding(Insets i) {
         // set padding from borders
         content.setPadding(i);
@@ -247,9 +261,10 @@ public class PopOverSkin implements Skin<PopOver> {
         header.setPadding(new Insets(0, 0, i.getTop(), 0));
     }
 
-    public void setTitleAsOnlyHeaderContent() {
+    public void setTitleAsOnlyHeaderContent(boolean right) {
         header.getChildren().clear();
-        header.setRight(title);
+        if(right) header.setRight(title);
+        else header.setLeft(title);
     }
 
     /**

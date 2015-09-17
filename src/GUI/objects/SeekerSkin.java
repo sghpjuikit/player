@@ -19,10 +19,16 @@ import com.sun.javafx.scene.control.behavior.SliderBehavior;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import com.sun.javafx.scene.control.skin.SliderSkin;
 
+import util.animation.Anim;
+
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.util.Duration.millis;
+
 
 /**
  * Stripped and customized version of {@link SliderSkin} for {@link Seeker}.
- * 
+ *
  * @author Plutonium_
  */
 public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
@@ -80,6 +86,11 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
         track.getStyleClass().setAll("track");
 //        horizontal = getSkinnable().isVertical();
 
+        // hover scaling animation
+        Anim scaling = new Anim(millis(350),p -> thumb.setScaleX(1+4*p*p));
+        thumb.addEventHandler(MOUSE_ENTERED, e -> scaling.playOpen());
+        thumb.addEventHandler(MOUSE_EXITED, e -> scaling.playClose());
+
         getChildren().clear();
         getChildren().addAll(track, thumb);
         setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
@@ -94,7 +105,7 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
                 trackClicked = false;
             }
         });
-        
+
         track.setOnMouseDragged(me -> {
             if (!thumb.isPressed()) {
                 if (getSkinnable().getOrientation() == Orientation.HORIZONTAL) {
@@ -133,7 +144,7 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
             return slider.getLabelFormatter().fromString(string);
         }
     };
-    
+
      private void setShowTickMarks(boolean ticksVisible, boolean labelsVisible) {
         showTickMarks = (ticksVisible || labelsVisible);
         Slider slider = getSkinnable();
@@ -161,7 +172,7 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
                 tickLine.setTickMarkVisible(ticksVisible);
                 tickLine.setMinorTickVisible(ticksVisible);
             }
-        } 
+        }
         else  {
             getChildren().clear();
             getChildren().addAll(track, thumb);
@@ -220,7 +231,7 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
      */
     void positionThumb() {
             Slider s = getSkinnable();
-            if (s.getValue() > s.getMax()) return;// this can happen if we are bound to something 
+            if (s.getValue() > s.getMax()) return;// this can happen if we are bound to something
             boolean horizontal = s.getOrientation() == Orientation.HORIZONTAL;
             final double endX = (horizontal) ? trackStart + (((trackLength * ((s.getValue() - s.getMin()) /
                     (s.getMax() - s.getMin()))) - thumbWidth/2)) : thumbLeft;

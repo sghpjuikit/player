@@ -16,6 +16,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -44,10 +45,13 @@ import util.access.Ѵ;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
+import util.Ɽ;
 
 import static Layout.Widgets.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
@@ -56,7 +60,9 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layStack;
 import static util.graphics.drag.DragUtil.installDrag;
 
 @IsWidget
@@ -118,14 +124,17 @@ public class Converter extends ClassController implements SongWriter {
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
-        getChildren().add(ll);
-        setAnchors(ll,0d);
+        layAnchor(this, ll,0d);
 
         // drag&drop
         installDrag(
             this, LIST_ALT, "Set data as input",
             e -> true,
             e -> setData(DragUtil.getAny(e))
+        );
+
+        tas.addListener((Change<? extends Ta> change) ->
+            outTFBox.getChildren().setAll(map(tas,Ta::getNode))
         );
 
         // on source change run transformation
@@ -137,35 +146,40 @@ public class Converter extends ClassController implements SongWriter {
 
         ta_in.onItemChange = lines -> {
             List<Ta> l = null;
+            List<Ta> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
             if(!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
                 List<SplitData> s = (List) ta_in.output;
-                List<String> names = s.get(0).stream().map(split->split.parse_key).collect(toList());
+                List<String> names = s.get(0).stream().map(split -> split.parse_key).collect(toList());
 
                 List<List<String>> outs = list(names.size(), ArrayList::new);
-                s.forEach(splitdata -> forEachWithI(map(splitdata,split->split.split), (i,line)->outs.get(i).add(line)));
+                s.forEach(splitdata -> forEachWithI(map(splitdata,split -> split.split), (i,line)->outs.get(i).add(line)));
 
                 List<Ta> li = list(outs.size(), () -> new Ta(""));
                 forEachWithI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
 
                 l = li;
                 l.add(0, ta_in);
+                l.addAll(custom_tas);
                 tas.setAll(l);
             } else {
-                l = listRO(ta_in);
-                tas.setAll(ta_in);
+                l = custom_tas;
+                l.add(0,ta_in);
+                tas.setAll(l);
             }
-
-            outTFBox.getChildren().setAll(map(l,Ta::getNode));
         };
 
-        // init data
-        acts.accumulate(new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
-            String name = data.get("Filename");
-            FileUtil.renameFile(file, name);
-        }));
+        // add actions
+        // Note that the actions are looked up (per class) in the order they are inserted. Per each
+        // class, the first added action will become 'default' and show up as selected when data is
+        // set.
+        // Therefore, the order below matters.
         acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFileNoSuffix(file, name);
+        }));
+        acts.accumulate(new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
+            String name = data.get("Filename");
+            FileUtil.renameFile(file, name);
         }));
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
             List<Item> songs = list(source);
@@ -182,6 +196,8 @@ public class Converter extends ClassController implements SongWriter {
                .run();
         }));
         acts.accumulate(new WriteFileAct());
+
+        // set empty content
         applier.fillActs(Void.class);
     }
 
@@ -207,13 +223,37 @@ public class Converter extends ClassController implements SongWriter {
 
 /******************************* helper classes *******************************/
 
-    class Ta extends ListAreaNode {
-        private final Label nameL = new Label("");
-        public final StringProperty name = nameL.textProperty();
+    String taname() {
+        Ɽ<Integer> i = new Ɽ<>(0);
+        do {
+            i.setOf(x -> x+1);
+        }while(tas.stream().map(t->t.name.get()).anyMatch(n -> n.equals("Custom"+i.get())));
+        return "Custom"+i.get();
+    }
 
+    class Ta extends ListAreaNode {
+        public final StringProperty name;
+
+        public Ta() {
+            this(taname());
+        }
         public Ta(String name) {
             super();
-            getNode().getChildren().add(0,new StackPane(nameL));
+
+            Label nameL = new Label("");
+            Icon remI = new Icon(MINUS).tooltip("Remove area\n\nRemove this edit area.")
+                                      .onClick(() -> tas.remove(this));
+            Icon addI = new Icon(PLUS).tooltip("Add area\n\nAdd new edit area.")
+                                      .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
+            getNode().getChildren().add(0,
+                layStack(
+                    nameL,Pos.CENTER,
+                    layHorizontally(5,Pos.CENTER_RIGHT, remI,addI),Pos.CENTER_RIGHT
+                )
+            );
+
+            this.name = nameL.textProperty();
+
             setData(name, EMPTY_LIST);
         }
 

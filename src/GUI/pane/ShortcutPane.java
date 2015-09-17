@@ -19,8 +19,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import org.reactfx.Subscription;
 
@@ -57,6 +55,8 @@ public class ShortcutPane extends OverlayPane {
 
     private static final String HE_TITLE = "Hide unassigned shortcuts";
     private static final String HE_INFO = "Displays only shortcuts that have keys assigned";
+    private static final String STYLECLASS = "shortcut-pane";
+    private static final String STYLECLASS_GROUP = "shortcut-pane-group-label";
 
     @IsConfig(name = HE_TITLE, info = HE_INFO)
     public static final Ѵ<Boolean> hideEmpty = new Ѵ(true);
@@ -66,6 +66,8 @@ public class ShortcutPane extends OverlayPane {
     Subscription rebuilding = maintain(hideEmpty,v -> build());
 
     public ShortcutPane() {
+        getStyleClass().add(STYLECLASS);
+
         ScrollPane sp = new ScrollPane();
                    sp.setOnScroll(Event::consume);
                    sp.setContent(layStack(g, CENTER));
@@ -118,10 +120,7 @@ public class ShortcutPane extends OverlayPane {
             i.setOf(v -> v+1);
             String group = e.getKey();
             Label groupl = new Label(group);
-            maintain(groupl.fontProperty(), f -> { // set & maintain bold font
-               if(!f.getStyle().toLowerCase().contains("bold"))
-                   groupl.setFont(Font.font(f.getFamily(), FontWeight.BOLD, f.getSize()));
-            });
+                  groupl.getStyleClass().add(STYLECLASS_GROUP);
             g.add(layVertically(0,Pos.CENTER, new Label(), groupl), 2,i.get());
             GridPane.setValignment(groupl.getParent(), VPos.CENTER);
             GridPane.setHalignment(groupl.getParent(), HPos.LEFT);

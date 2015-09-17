@@ -46,6 +46,7 @@ import util.Ɽ;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
+import static java.lang.Math.signum;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
@@ -60,7 +61,7 @@ import static util.graphics.Util.setScaleXY;
 public class Icon<I extends Icon> extends Text {
 
     // animation builder, & reusable supplier
-    private static final Ƒ1<Icon,Anim> A = i -> new Anim(millis(400), p -> setScaleXY(i,1-0.3*p*p*p));
+    private static final Ƒ1<Icon,Anim> A = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
     private static final Double DEFAULT_ICON_SIZE = 12.0;
     private static final String DEFAULT_FONT_SIZE = "1em";
 
@@ -80,6 +81,7 @@ public class Icon<I extends Icon> extends Text {
 	    PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
 	    helpP.show((Node) e.getSource());
 	    helpP.getContentNode().setWrappingWidth(400);
+            helpP.getSkinn().setTitleAsOnlyHeaderContent(false);
 	    APP.actionStream.push("Info popup");
 	});
     }

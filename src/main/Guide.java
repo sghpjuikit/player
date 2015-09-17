@@ -9,6 +9,8 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -33,12 +35,17 @@ import main.Guide.Hint;
 import util.animation.Anim;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DEBUG_STEP_OVER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.async.Async.run;
@@ -57,6 +64,7 @@ public final class Guide implements Configurable {
             + "so the guide will never appear again on its own.")
     public boolean first_time = true;
     private final double ICON_SIZE = 40; // use css style instead
+    private final String STYLECLASS_TEXT = "guide-text";
 
     private final List<Hint> hints = new ArrayList();
     private int at = -1;
@@ -69,6 +77,7 @@ public final class Guide implements Configurable {
 
         text.setWrappingWidth(350);
         text.prefWidth(350);
+        text.getStyleClass().add(STYLECLASS_TEXT);
 
         p.getContentNode().setPadding(new Insets(30));
         p.setAutoHide(false);
@@ -79,10 +88,16 @@ public final class Guide implements Configurable {
         p.detached.set(true);
         p.setOnHiding(e -> run(20,() -> APP.actionStream.push("Guide closing")));
         p.getHeaderIcons().addAll(
-            new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious),
+            // new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious),
+            createInfoIcon("Guide info popup."),
             infoL,
-            new Icon(ARROW_RIGHT,11,"Next",this::goToNext)
+            new Label()
+            // new Icon(ARROW_RIGHT,11,"Next",this::goToNext)
         );
+        p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
+            if(e.getButton()==PRIMARY) goToNext();
+            if(e.getButton()==SECONDARY) goToPrevious();
+        });
 
         hint("Intro", "Hi, this is guide for this application. It will show you around. " +
              "\n\nBut first some music, right?",
@@ -101,38 +116,61 @@ public final class Guide implements Configurable {
                 APP.actionStream.push("Intro");
             }
         ));
-        hint("Guide hints", "Guide consists of hints. Complete hint to proceed or "
-           + "go to next hint manually." +
-             "\n\nShow next hint by clicking the next button in the header of this guide.");
-        hint("Guide closing", "Guide can be closed simply by closing the popup.\n\n"
-           + "Close guide by clicking the close button in the header of this guide. Or press ESC.");
+        hint("Guide hints", "Guide consists of hints. You can proceed by completing the hint or "
+           + "manually. Navigate using left and right mouse button."
+           + "\n\nClick anywhere on this guide.");
+        Icon<?> ni = new Icon(DEBUG_STEP_OVER,ICON_SIZE);
+        Icon<?> pi = new Icon(DEBUG_STEP_OVER,ICON_SIZE){{setScaleX(-1);}};
+             pi.setOpacity(0.5);
+             ni.onClick(e -> {
+                 if(e.getButton()==PRIMARY) {
+                     ni.setOpacity(0.5);
+                     pi.setOpacity(1);
+                 }
+                 e.consume();
+             });
+             pi.onClick(e -> {
+                 if(e.getButton()==SECONDARY) {
+                     pi.setOpacity(0.5);
+                     ni.setOpacity(1);
+                 }
+                 e.consume();
+             });
+        hint("Navigation", "Navigation with mouse buttons is used across the entire app. Remember:\n"
+           + "\n\t• Left click: go next"
+           + "\n\t• Right click: go back"
+           + "\n\nTry it out below:",
+           ni,pi
+        );
+        hint("Guide closing", "Know your ESCAPEs. It will help you. With what? Completing this guide."
+           + "And closing windows. And table selections. And searching... You get the idea."
+           + "\n\nClose guide to proceed. Use close button or ESC key. Tough choice.");
         hint("Guide opening", "Guide can be opened from app window header. It will resume "
            + "from where you left off" +
              "\n\nGo to header of the app window and click on the guide button. It looks like: ",
              new Icon(GRADUATION_CAP,ICON_SIZE));
-        int i = 3; // randomize this
         hint("Icons", "Icons, icons everywhere. Picture is worth a thousand words, they say."
            + "\n\nOnly one icon leads to next hint. Can you guess which?",
-              new Icon(WHEELCHAIR,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).icon(CLOSE)),
-              new Icon(WALK,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).icon(CLOSE)),
+              new Icon(WHEELCHAIR,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).setDisable(true)),
+              new Icon(WALK,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).setDisable(true)),
               new Icon(RUN,ICON_SIZE).onClick(() -> runFX(1500,() -> APP.actionStream.push("Icons")))
         );
         Icon hi = new Icon(TROPHY,ICON_SIZE)
                 .tooltip("Click to claim the trophy")
                 .onClick(() -> runFX(1500,() -> APP.actionStream.push("Tooltips")));
              hi.setVisible(false);
-        hint("Tooltips", "Tooltips can provide additional action description. Use them well."
+        hint("Tooltips", "Tooltips will teach you the way. Use them well, apprentice."
            + "\n\nThere can be a meaning where you don't see it. Hover above the icons to find out.",
-              new Icon(GAMEPAD_VARIANT,ICON_SIZE).tooltip(new Tooltip("Play")),
+              new Icon(GAMEPAD_VARIANT,ICON_SIZE).tooltip(new Tooltip("Playing")),
               new Icon(HAND_POINTING_RIGHT,ICON_SIZE).tooltip(new Tooltip("To")),
               new Icon(GRADUATION_CAP,ICON_SIZE).tooltip(new Tooltip("Learn"){{
                   setOnHidden(e -> runFX(1500, () -> hi.setVisible(true)));
               }}),
               hi
         );
-        hint("Info popup", "The app has info buttons explaining functionalities for app "
-           + "sections and how to use them." +
-             "\n\nGo to header of the app window and click the help button. It looks like:",
+        hint("Info popup", "There is more... Info buttons explain various app sections and how to "
+           + "use them."
+           + "\n\nGo to corner of this hint and click the help button. It looks like:",
               new Icon(INFO,ICON_SIZE));
         hint("New widget", "The aplication consists of:\n"
            + "\n\t• Core"
@@ -180,7 +218,9 @@ public final class Guide implements Configurable {
              "\n\nClick on the lock button in the widget's header.");
     }
 
-    private final Anim proceed_anim = new Anim(millis(500),x -> p.getContentNode().setOpacity(1-x*x));
+    private final EventHandler consumer = Event::consume;
+    private final Anim proceed_anim = new Anim(millis(400),x -> p.getContentNode().setOpacity(-(x*x-1)));
+
     private void proceed() {
         if (at<0) at=0;
         if (at<hints.size()) {
@@ -189,7 +229,6 @@ public final class Guide implements Configurable {
             stop();
         }
     }
-
     private void proceedFinish() {
         Hint h = hints.get(at);
         // the condition has 2 reasons
@@ -205,6 +244,8 @@ public final class Guide implements Configurable {
         // graphics
         p.getContentNode().getChildren().retainAll(text);
         if(h.graphics!=null) {
+            h.graphics.removeEventHandler(MOUSE_CLICKED, consumer);
+            h.graphics.addEventHandler(MOUSE_CLICKED, consumer);
             p.getContentNode().getChildren().add(h.graphics);
             VBox.setMargin(h.graphics, new Insets(10,0,0,0));
         }

@@ -313,14 +313,14 @@ public class App extends Application implements Configurable {
             }
             return m;
         });
-        instanceInfo.add(Metadata.class, o -> {
-            HashMap<String,String> m = new HashMap<>();
+        instanceInfo.add(Metadata.class, m -> {
+            HashMap<String,String> map = new HashMap<>();
             stream(Metadata.Field.values())
-                    .filter(f -> f.isTypeStringRepresentable() && !o.isFieldEmpty(f))
+                    .filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
                     .forEach(f ->
-                m.put(f.name(), o.getFieldS(f))
+                map.put(f.name(), m.getFieldS(f))
             );
-            return m;
+            return map;
         });
         instanceInfo.add(PlaylistItem.class, o -> {
             HashMap<String,String> m = new HashMap<>();

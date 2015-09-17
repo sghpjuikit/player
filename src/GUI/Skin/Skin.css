@@ -435,7 +435,7 @@
 .menu-button:hover,
 .split-menu-button > .label:hover,
 .split-menu-button > .arrow-button:hover,
-.slider .thumb:hover,
+//.slider .thumb:hover,
 .color-picker.split-button > .arrow-button:hover,
 .color-picker.split-button > .color-picker-label:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
@@ -456,7 +456,7 @@
 .split-menu-button:armed > .label,
 .split-menu-button > .arrow-button:pressed,
 .split-menu-button:showing > .arrow-button,
-.slider .thumb:pressed,
+//.slider .thumb:pressed,
 //.choice-box:showing,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
     -fx-background-color:
@@ -951,9 +951,9 @@
 }
 .slider .thumb:hover,
 .slider .thumb:pressed {
-    -fx-background-color: white;
+    //-fx-background-color: white;
     -fx-padding: 2;
-    -fx-background-radius:0;
+    //-fx-background-radius:0;
 }
 .slider:focused .thumb {
     // i say lets stay rectangular
@@ -3533,6 +3533,19 @@
     // -fx-stroke: grey; this would change border
 }
 
+/******************************* HELP POPOVER **********************************
+ * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
+ * Has purely informative use. Provides basically no interaction.
+ */
+.help-popover {}
+
+// Text of the help popover
+// inherits: .text
+.help-popover-text {
+    -fx-font-weight: bold;
+    -fx-text-alignment: justify;
+}
+
 /******************************* NOTIFICATION **********************************
  * Application notification popover. Does not style notification content.
  * inherits: .popover
@@ -3816,7 +3829,7 @@
 
 
 /***************************** OVERLAY PANE *****************************
- * Action chooser
+ * 
  */
 
 // Pane laying 'above' window creating 'overlay' bgr above it. Displays
@@ -3825,7 +3838,6 @@
 .overlay-pane {
     -fx-background-color: rgba(0,0,0,0.2);
 }
-
 // Pane for content, doesnt cover all space, sort of inner box.
 // inherits: .stack-pane
 .overlay-pane-content {
@@ -3838,28 +3850,48 @@
 // from and action input data information
 // inherits: .overlay-pane
 .action-pane {}
-
 // Icon for action in an action pane
 // inherits: .icon
 .action-pane-action-icon {
     -glyph-size: 25;
 }
 
-.action-pane-action-icon {
-
+// Overlay displaying shortcuts and their keys
+// inherits: .overlay-pane
+shortcut-pane{
+    
+}
+// Group title label for shortcut group
+// inherits: .label
+.shortcut-pane-group-label {
+    -fx-font-weight: bold;
+}
+    
+    
 
 .node:configselected {
     -fx-background-color: rgba(90,200,200,0.2); 
 }
 
-
-
-// inherits: .stack-pane
+/***************************** GUIDE *****************************
+ * Drag hihglighting pane, visible when drag enters node and hidden when it exists
+ * inherits: .stack-pane
+ */
 .drag-pane {
     -fx-background-color: rgba(0,0,0,0.5); 
 }
-
+// Icon denoting an action that will take place after drag is dropped
 // inherits: .icon
 .drag-pane-icon {
     -glyph-size: 25; 
+}
+
+/***************************** GUIDE *****************************
+ * Guide
+ */
+
+// Standard text of the guide
+// inherits: .text
+.guide-text {
+    -fx-font-weight: bold;
 }

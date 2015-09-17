@@ -738,7 +738,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             //    (empty and non empty values = multiple)
             // -- if same value streak and different value -> conclusion = multiple values
             // -- otherwise this ends as no value or same streak decided by 1st value
-            boolean empty = m.isFieldEmpty(f);
+            boolean empty = f.isFieldEmpty(m);
             if (i==0 && !empty) {
                 histogramI = 1;
                 histogramS = String.valueOf(m.getField(f));

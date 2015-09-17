@@ -507,8 +507,8 @@ public final class Seeker extends AnchorPane {
         StackPane content;
         Text message;
         TextArea ta;            // edit text area
-        PopOver p, helpP;           // main & help popup
-        Icon editB, commitB, delB, cancelB; // popup controls
+        PopOver<?> p, helpP;           // main & help popup
+        Icon helpB, prevB, nextB, editB, commitB, delB, cancelB; // popup controls
         Anim hover = new Anim(millis(150),this::setScaleX).intpl(x -> 1+7*x);
 
         Chap(double x) {
@@ -540,9 +540,8 @@ public final class Seeker extends AnchorPane {
             // hide other popups if only one allowed
             if(singleChapterPopupMode)
                 chapters.stream().filter(f->f!=this).forEach(Chap::hidePopup);
-            // build popup if not yet built
+            // build popup if not yet
             if(p==null) {
-                // --------   build
                 // text content
                 message = new Text(c.getText());
                 message.setWrappingWidthNatural(true);
@@ -559,14 +558,14 @@ public final class Seeker extends AnchorPane {
                      MetadataWriter.use(m, w->w.removeChapter(c,m));
                 });
                 cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
-                Icon nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
+                nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
                     int i = Seeker.this.chapters.indexOf(this) + 1;
                     if(chapters.size()>i){
                         hidePopup();
                         chapters.get(i).showPopup();
                     }
                 });
-                Icon prevB = new Icon(CHEVRON_LEFT, 11, "Previous chapter", () -> {
+                prevB = new Icon(CHEVRON_LEFT, 11, "Previous chapter", () -> {
                     int i = chapters.indexOf(this) - 1;
                     if(0<=i){
                         hidePopup();
@@ -578,7 +577,7 @@ public final class Seeker extends AnchorPane {
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
-                Icon helpB = createInfoIcon(
+                helpB = createInfoIcon(
                        "Single click : Close\n"
                      + "Double L click : Play from this chapter\n"
                      + "Double R click : Start edit\n"
@@ -587,8 +586,8 @@ public final class Seeker extends AnchorPane {
                      + "Escape : If editing cancel edit, else hide"
                 ).size(11);
                 // popup
-                p = new PopOver(content);
-                p.getSkinn().setContentPadding(new Insets(8));
+                p = new PopOver<>(content);
+                p.getSkinn().setContentPadding(new Insets(10));
                 p.setArrowLocation(TOP_CENTER);
                 p.setAutoHide(true);
                 p.setHideOnEscape(true);
@@ -598,8 +597,8 @@ public final class Seeker extends AnchorPane {
                     if(editOn) cancelEdit();
                     hover.playCloseDo(just_created ? () -> Seeker.this.getChildren().remove(this) : null);
                 });
-                p.title.set(c.getTime().toString());
-                p.getHeaderIcons().addAll(prevB, nextB, editB, delB, helpB);
+                p.title.setValue(c.getTime().toString());
+                p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
                 content.setOnMouseClicked( e -> {
                     // if info popup displayed close it and act as if content is
                     // mouse transparent to prevent any action
@@ -681,12 +680,7 @@ public final class Seeker extends AnchorPane {
             // maintain proper content
             content.getChildren().add(ta);
             message.setVisible(false);
-            p.getHeaderIcons().set(0, commitB);
-            p.getHeaderIcons().add(1, cancelB);
-            p.getHeaderIcons().remove(editB);                                   // testing bug
-                // do not add remove buton if the chapter is being created
-            if (!Player.playingtem.get().containsChapterAt(c.getTime()))
-                p.getHeaderIcons().remove(delB);
+            p.getHeaderIcons().setAll(helpB,commitB,cancelB);
         }
 
         private void appendToCaret(TextArea a, String s) {
@@ -715,15 +709,10 @@ public final class Seeker extends AnchorPane {
                 Metadata m = Player.playingtem.get();
                 MetadataWriter.use(m, w->w.addChapter(c,m));
             }
-            // go back visually
+            // maintain proper content
             content.getChildren().remove(ta);
             message.setVisible(true);
-            // maintain proper content
-            p.getHeaderIcons().remove(editB);    // make sure remB was removed
-            p.getHeaderIcons().add(0, editB);
-            p.getHeaderIcons().remove(cancelB);
-            p.getHeaderIcons().remove(delB);    // make sure remB was removed
-            p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);   // add remove button back
+            p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
             // stop edit
             editOn = false;
             if(just_created) Seeker.this.getChildren().remove(this);

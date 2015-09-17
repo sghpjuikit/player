@@ -26,15 +26,10 @@
  */
 package gui.objects.PopOver;
 
-import static com.sun.javafx.util.Utils.getScreenForPoint;
-import static gui.objects.PopOver.PopOver.ScreenPos.*;
-import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
-import gui.objects.Text;
-import gui.objects.Window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
+
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
@@ -46,17 +41,24 @@ import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.*;
-import static javafx.scene.text.TextAlignment.JUSTIFY;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import javafx.util.Duration;
+
+import gui.objects.Text;
+import gui.objects.Window.stage.WindowBase;
 import main.App;
+
+import static com.sun.javafx.util.Utils.getScreenForPoint;
+import static gui.objects.PopOver.PopOver.ScreenPos.*;
+import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
+import static java.util.Objects.requireNonNull;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.MouseEvent.*;
+import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static util.functional.Util.*;
 
 /**
@@ -117,10 +119,10 @@ import static util.functional.Util.*;
  * only window is specified it becomes owner window and owner node is left empty.
  * <br><p><p>
  * There is a lot of use cases for popover. The content can vary greatly from
- * simple text or icon to a very complex components in which case it is easier 
- * to think of the popover as standalone window. 
+ * simple text or icon to a very complex components in which case it is easier
+ * to think of the popover as standalone window.
  * <p>
- * Below are some of the expected use cases along with the recommended 
+ * Below are some of the expected use cases along with the recommended
  * configurations:
  * <pre>
  * Informative popover with static content - more sophisticated tooltip
@@ -131,19 +133,19 @@ import static util.functional.Util.*;
  *  - hiding immediatelly or disabling animations might be considered
  *  - detachable : false
  *  - detached : false or true with no arrow
- * 
+ *
  * Variation tips:
  *  - autohide : optional but inverse with : close on click (see {@link #setHideOnClick(boolean)})
  *  - hide on click : see above or depending on content
  *  - move with owner : true
- * 
+ *
  * Small content reactive popover - an alternative to context menus or default popups
  *  - autohide : true
  *  - hide on click : false or false with custom implementation through popover's content's mouse click event handler
  *  - move with owner : true
  *  - detachable : true
  *  - detached : false
- * 
+ *
  * Sophisticated content - alternative to full fledged window
  *  - autohide : false
  *  - hide on click : false
@@ -152,24 +154,26 @@ import static util.functional.Util.*;
  *  - detached : true or depending on context
  * </pre>
  * <br><p>
- * The popover supports nested instances - popovers opened from other 
+ * The popover supports nested instances - popovers opened from other
  * popovers. However the owning window will be the owning window of the parent
  * popup, not the popup itself. Although Node inside a popup can be an owner node
  * for another popup.
- * 
+ *
  * @param <N> Type of Content.
  */
 public class PopOver<N extends Node> extends PopupControl {
 
     private static final String STYLE_CLASS = "popover";
-    public static List<PopOver> active_popups = new ArrayList(); 
+    private static final String STYLE_CLASS_HELP = "help-popover";
+    private static final String STYLE_CLASS_HELP_TEXT = "help-popover-text";
+    public static List<PopOver> active_popups = new ArrayList();
 
 /******************************************************************************/
 
     /**
      * Creates simple help popover designed as a tooltip for help buttons.
      * <p>
-     * The content of the popover is specified text and title: "Help". 
+     * The content of the popover is specified text and title: "Help".
      * <pre>
      *  For example: "Left click : Executes action\n
      *                Help button click : Shows hint on using this feature"
@@ -185,7 +189,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Tip: Help popover is intended to help user with familiarizing with the
      * functionalities of the application and as such is not expected to be
      * showed frequently.
-     * It is recommended to have only single instance per help button, meaning 
+     * It is recommended to have only single instance per help button, meaning
      * that if the popover is requested multiple times, it will only be constructed
      * once. Another recommended practice is to create the popover lazily - on
      * demand when requested, leaving the initial value as null.
@@ -196,18 +200,19 @@ public class PopOver<N extends Node> extends PopupControl {
      * <p>
      * Note: following the above advice and assuming the request for the popover
      * comes from button click (more precisely an event handler) it is likely
-     * that the event handler will be written as lambda. In that case the 
+     * that the event handler will be written as lambda. In that case the
      * reference to the popup will have to be global as the object referenced
      * from lambda must be effectively final and can not be reinitialized inside.
      * @param text
-     * @return 
+     * @return
      */
     public static PopOver<Text> createHelpPopOver(String text) {
         Text t = new Text(text);
+             t.getStyleClass().add(STYLE_CLASS_HELP_TEXT);
              t.setWrappingWidthNatural(true);
-             t.setTextAlignment(JUSTIFY);
-        PopOver<Text> p = new PopOver(t);
-                      p.getSkinn().setContentPadding(new Insets(8));
+        PopOver<Text> p = new PopOver<>(t);
+                      p.getSkinn().setContentPadding(new Insets(15)); // use css instead
+                      p.getStyleClass().add(STYLE_CLASS_HELP);
                       p.title.set("Help");
                       p.setAutoHide(true);
                       p.setHideOnClick(true);
@@ -215,23 +220,23 @@ public class PopOver<N extends Node> extends PopupControl {
                       p.detachable.set(false);
         return p;
     }
-    
+
     /**
      * Creates a pop over with a label as the content node.
      * Sets autoFix and consumeAutoHidingEvents to false.
      */
     public PopOver() {
         super();
-        
-        // we need to make the skin or getSkin() throws null if we call i too 
+
+        // we need to make the skin or getSkin() throws null if we call i too
         // soon - improve this if possible
         setSkin(createDefaultSkin());
-        
+
         getStyleClass().add(STYLE_CLASS);
         setConsumeAutoHidingEvents(false);
         setAutoFix(false);
-        
-        
+
+
         // not working as advertized, disable for now...
 //        ChangeListener<Object> repositionListener = (o, oldV, newV) -> {
 //            if (isShowing() && !isDetached()) {
@@ -255,7 +260,7 @@ public class PopOver<N extends Node> extends PopupControl {
         this();
         setContentNode(content);
     }
-    
+
     /**
      * Creates a pop over with the given node as the content node and provided
      * title text.
@@ -267,20 +272,20 @@ public class PopOver<N extends Node> extends PopupControl {
         title.set(titl);
         setContentNode(content);
     }
-    
+
     @Override
     public final PopOverSkin createDefaultSkin() {
         return new PopOverSkin(this);
     }
-    
+
     /**
      * Type safe alternative to {@link #getSkin()} which should be avoided.
      * @return skin
      */
     public PopOverSkin getSkinn() {
         return (PopOverSkin) getSkin();
-    }    
-    
+    }
+
     private final ObjectProperty<N> contentNode = new SimpleObjectProperty<N>(this, "contentNode") {
         @Override public void setValue(N node) {
             requireNonNull(node);
@@ -297,7 +302,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 
     /**
-     * Returns the content of this popover as previously set with 
+     * Returns the content of this popover as previously set with
      * {@link #setContentNode(javafx.scene.Node)}.
      * @return the content node
      * @see #contentProperty()
@@ -307,7 +312,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 
     /**
-     * Sets the content. There can only be one content. Old content will be 
+     * Sets the content. There can only be one content. Old content will be
      * removed.
      * @param content the new content node value
      * @see #contentProperty()
@@ -316,10 +321,10 @@ public class PopOver<N extends Node> extends PopupControl {
     public final void setContentNode(N content) {
         contentNodeProperty().set(content);
     }
-    
+
 /******************************************************************************/
-    
-    /** 
+
+    /**
      * Hides this popup if it is not detached. Otherwise does nothing.
      * Equivalent to: if(!isDetached()) hideStrong();
      */
@@ -327,8 +332,8 @@ public class PopOver<N extends Node> extends PopupControl {
     public void hide() {
         if (!detached.get()) hideStrong();
     }
-    
-    /** 
+
+    /**
      * Hides this popup. If is animated, the hiding animation will be set off,
      * otherwise happens immediatelly.
      */
@@ -336,16 +341,16 @@ public class PopOver<N extends Node> extends PopupControl {
         if (isAnimated()) fadeOut();
         else hideImmediatelly();
     }
-    
-    /** 
+
+    /**
      * Hides this popup immediatelly.
      * Use when the hiding animation is not desired (regardless the set value)
      * or could cause problems such as delaying application exit.
-     * 
+     *
      * @implSpec
      * This is the default hide implementation overriding the
      * one in the super class. It should not cause any delays and keep changes
-     * to hiding mechanism to minimum as otherwise it could cause problems. For 
+     * to hiding mechanism to minimum as otherwise it could cause problems. For
      * example casting javafx.stage.Window to PopOver (when it in fact is an
      * instance of this class) and calling modified hide() method has been
      * observed to cause serious problems.
@@ -354,16 +359,16 @@ public class PopOver<N extends Node> extends PopupControl {
         active_popups.remove(this);
         uninstallMoveWith();
         super.hide();
-    }    
-    
+    }
+
 /******************************************************************************/
-    
+
     private void showThis(Node ownerNode, Window ownerWindow) {
         Objects.requireNonNull(ownerWindow);
         Screen s = com.sun.javafx.util.Utils.getScreenForPoint(ownerWindow.getX()+ownerWindow.getWidth()/2, ownerWindow.getY()+ownerWindow.getHeight()/2);
         setMaxWidth(s.getBounds().getWidth());
         setMaxHeight(s.getBounds().getHeight());
-        
+
         // we must set the owners so moving with owner behavior knows which
         // mode should be done
         if(ownerNode!=null) {
@@ -374,53 +379,53 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
         else this.ownerWindow = ownerWindow;
-        
+
         detached.set(false);
-        
+
         // show the popup
         super.show(ownerWindow,0,0);
         active_popups.add(this);
         getSkin().getNode().setOpacity(isAnimated() ? opacityOldVal : 1);
-        
+
         // initialize moving with owner behavior to respect set value
         initializeMovingBehavior(move_with_owner);
-        
+
         // fixes 'broken' default hide on ESC functionality. Because hideOnESC
         // calls hide() method by default, there is no effect in detached mode
         // we fix this here, because we need default hide() implementation to
         // not close detached popup
         getScene().addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE && isHideOnEscape() && detached.get()) 
+            if(e.getCode()==ESCAPE && isHideOnEscape() && detached.get())
                 hideStrong();
         });
     }
-    
+
     private void position(double x, double y) {
         setX(x);
         setY(y);
-        
+
         // causes popup position itself on the screen with the most favourable
         // position (the furthest from any border)
         // do it after the popup is shown, after the desired cordinates are
         // set - those are needed, before adjusting location
         //adjustArrowLocation(); // experimental & busted
-        
+
         // move popover so the arrow points to the desired coordinates
         // avoid when no arrow
         if(getArrowSize()>0) adjustWindowLocation();
-        
+
         // solves a small bug where the followng variables dont get initialized
         // and binding is currently impossible
         deltaThisX = getX();
         deltaThisY = getY();
-        
+
         if (isAnimated()) fadeIn();
     }
-    
+
     /**
      * Makes the pop over visible at the give location and associates it with
      * the given owner node. The x and y coordinate will be the target location
-     * of the arrow of the pop over and not the location of the window.     * 
+     * of the arrow of the pop over and not the location of the window.     *
      * @param owner the owning node
      * @param x the x coordinate for the pop over arrow tip
      * @param y the y coordinate for the pop over arrow tip
@@ -436,7 +441,7 @@ public class PopOver<N extends Node> extends PopupControl {
         double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
         position(X,Y);
     }
-    
+
     /**
      * Shows popup. Equivalent to: show(owner,0,0);
      * @param owner
@@ -444,7 +449,7 @@ public class PopOver<N extends Node> extends PopupControl {
     public final void show(Node owner) {
         show(owner,0,0);
     }
-    
+
     /** Display at specified designated position relative to node. */
     public void show(Node owner, NodePos pos) {
         showThis(owner, owner.getScene().getWindow());
@@ -452,24 +457,24 @@ public class PopOver<N extends Node> extends PopupControl {
         double Y = pos.calcY(owner, this)+owner.getBoundsInParent().getHeight()/2;
         position(X,Y);
     }
-    
+
     /** Display at specified screen coordinates */
     @Override
     public void show(Window window, double x, double y) {
         showThis(null, window);
         position(x, y);
     }
-    
+
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
         showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : App.getWindowOwner().getStage());
         position(pos.calcX(this), pos.calcY(this));
-        
-        if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center 
+
+        if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center
                 || pos==Screen_Top_Left || pos==Screen_Top_Right)
             uninstallMoveWith();
-        
+
     }
 
     @Override
@@ -477,11 +482,11 @@ public class PopOver<N extends Node> extends PopupControl {
         showThis(null, window);
         uninstallMoveWith();
     }
-    
+
 /**************************** MOVE WITH OWNER *********************************/
-    
+
     private boolean move_with_owner = true;
-    
+
     /**
      * Sets moving with owner behavior on or off. Default on (true).
      * <p>
@@ -492,19 +497,19 @@ public class PopOver<N extends Node> extends PopupControl {
      * popover was shown. The position can be absolute relative to the Node or
      * relative to the Window (or none). The first will reposition this popup
      * in order for it to stay with the Node (even when the Node only changes
-     * its position within the Window that remained static). Second simply 
+     * its position within the Window that remained static). Second simply
      * follows the Window and the third does nothing.
      * <p>
      * The 'mode' is decided based on the parameters of the show method that was
      * called.
      * Must never be called before the popover is shown.
-     * @param val 
+     * @param val
      */
     public void setMoveWithOwner(boolean val) {
         // avoid wasteful operation, continue only if values differ
         if(val != move_with_owner) {
             move_with_owner = val;
-            
+
             // if is showing the behavior (one way or the other) was already initialized
             // and we need to change it. Otherwise, it needs to be applied from
             // show method as the initialisation can not precede show method
@@ -514,11 +519,11 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
     }
-    
+
     public boolean isMoveWithOwner() {
         return move_with_owner;
     }
-    
+
     private void initializeMovingBehavior(boolean val) {
         // throw exception if illegal state
         Objects.requireNonNull(ownerWindow, "Error, popup window owner null"
@@ -536,14 +541,14 @@ public class PopOver<N extends Node> extends PopupControl {
     // owners
     private Node ownerNode = null;
     private Window ownerWindow = null;
-    
+
     // variables for dragging behavior
     private double deltaX = 0;
     private double deltaY = 0;
     private double deltaThisX = 0;
     private double deltaThisY = 0;
     private boolean deltaThisLock = false;
-    
+
     // listeners for relocating
     private final ChangeListener<Number> xListener = (o,oldX,newX) -> {
         if(ownerNode!=null)
@@ -561,7 +566,7 @@ public class PopOver<N extends Node> extends PopupControl {
         if(ownerWindow!=null)
             setY(deltaThisY+ownerWindow.getY()-deltaY);
     };
-    
+
     private void installMoveWithWindow(Window owner) {
         ownerNode = null;
         ownerWindow = owner;
@@ -614,7 +619,7 @@ public class PopOver<N extends Node> extends PopupControl {
         ownerWindow = null;
         uninstallMonitoring();
     }
-    
+
     // monitoring ----------
     // turn lock on/off to prevent dragging to change state
     EventHandler<MouseEvent> lockOnHandler = e -> deltaThisLock=true;
@@ -632,7 +637,7 @@ public class PopOver<N extends Node> extends PopupControl {
             uninstallMoveWith();
             hideStrong();
         };
-    
+
     private void installMonitoring() {
         // this should have been handled like this:
         //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
@@ -640,7 +645,7 @@ public class PopOver<N extends Node> extends PopupControl {
         // do' anything in the 'otherwise' part - there we need to maintain the
         // current value but it doesnt seem possible - it would really clean
         // this up a bit (way too many listeners for my taste)
-        
+
         // maintain lock to prevent illegal position monitoring
         getScene().addEventHandler(MOUSE_PRESSED, lockOnHandler);
         getScene().addEventHandler(MOUSE_RELEASED, lockOffHandler);
@@ -659,13 +664,13 @@ public class PopOver<N extends Node> extends PopupControl {
         xProperty().removeListener(deltaXListener);
         yProperty().removeListener(deltaYListener);
     }
-    
-    
+
+
 /******************************************************************************/
-    
+
     private void adjustArrowLocation() {
         Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
-        
+
         double SW = Screen.getPrimary().getBounds().getWidth();
         double SH = Screen.getPrimary().getBounds().getHeight();
         double W = getWidth();
@@ -680,8 +685,8 @@ public class PopOver<N extends Node> extends PopupControl {
         double hdiff = down-up;
         double h_content_screen_span = W/SW;
         double v_content_screen_span = H/SH;
-        
-        
+
+
         if(right>left) {
             if(down>up) {
                 setArrowLocation(ArrowLocation.LEFT_TOP);
@@ -695,7 +700,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 setArrowLocation(ArrowLocation.RIGHT_BOTTOM);
             }
         }
-//        setArrowLocation(ArrowLocation.LEFT_TOP);  
+//        setArrowLocation(ArrowLocation.LEFT_TOP);
     }
    /*
     * Move the window so that the arrow will end up pointing at the
@@ -704,7 +709,7 @@ public class PopOver<N extends Node> extends PopupControl {
     private void adjustWindowLocation() {
         Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
         double X = getX();
-        
+
         switch (getArrowLocation()) {
         case TOP_CENTER:
         case TOP_LEFT:
@@ -732,8 +737,8 @@ public class PopOver<N extends Node> extends PopupControl {
             break;
         }
     }
-    
-    private double computeXOffset() {        
+
+    private double computeXOffset() {
         switch (getArrowLocation()) {
         case TOP_LEFT:
         case BOTTOM_LEFT:
@@ -766,16 +771,16 @@ public class PopOver<N extends Node> extends PopupControl {
             return 0;
         }
     }
-    
+
 /******************************************************************************/
-    
+
     // TODO: add css support for the gap value
     // gap between screen border and the popover
     // note that the practical value is (GAP-padding)/2 so if padding is 4
     // then real GAP will be 3
     private static double GAP = 9;
     public ScreenUse screen_preference = APP_WINDOW;
-    
+
     public static enum NodePos {
         Center,
         UpLeft,
@@ -790,7 +795,7 @@ public class PopOver<N extends Node> extends PopupControl {
         LeftUp,
         LeftCenter,
         LeftDown;
-        
+
         public NodePos reverse() {
             switch(this) {
                 case Center:        return Center;
@@ -850,7 +855,7 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
     }
-    
+
     /** Defines position within the screen area defined by {@link ScreenUse}. */
     public static enum ScreenPos {
         Screen_Top_Right,
@@ -863,12 +868,12 @@ public class PopOver<N extends Node> extends PopupControl {
         App_Center,
         App_Bottom_Right,
         App_Bottom_Left;
-        
+
         public boolean isAppCentric() {
             return this==App_Bottom_Left || this==App_Bottom_Right || this==App_Center ||
                    this==App_Top_Left || this==App_Top_Right;
         }
-        
+
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();
             Rectangle2D screen = popup.screen_preference.getScreenArea(App.getWindow().getStage(), this);
@@ -909,25 +914,25 @@ public class PopOver<N extends Node> extends PopupControl {
         }
     }
 
-    /** 
+    /**
      * Screen area picking strategy for popover position. Decides a rectangular
      * screen area for popup positioning.
      */
     public static enum ScreenUse {
         /** Area of a main screen will always be picked. */
         MAIN,
-        /** 
-         * Area of popover's window owner's screen will be picked. This is the 
+        /**
+         * Area of popover's window owner's screen will be picked. This is the
          * screen, which contains the window's centrum.
          */
         APP_WINDOW,
-        /** 
+        /**
          * All screens will be used. Resulting area is a rectangle ranging from
          * the left most screen's left edge and topmost screen's top edge to
          * rightmost screen's right edge and bottomost screen's bottom edge.
          */
         ALL;
-        
+
         /** Returns rectangular screen area */
         public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
@@ -956,7 +961,7 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
     }
-    
+
 /******************************************************************************/
 
     // arrow size support
@@ -971,7 +976,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Disabling arrow
      * has an effect of not positioning the popover so the arrow points to the
      * specific point. Rather the popover's upper left corner will.
-     * 
+     *
      * @return the arrow size property
      */
     public final DoubleProperty arrowSizeProperty() {
@@ -980,7 +985,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Returns the value of the arrow size property.
-     * 
+     *
      * @return the arrow size property value
      * @see #arrowSizeProperty()
      */
@@ -992,7 +997,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Sets the value of the arrow size property.
      * <p>
      * Set to arbitrary positive value or 0 to disable arrow.
-     * 
+     *
      * @param size arrow size
      * @see #arrowSizeProperty()
      */
@@ -1008,7 +1013,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /**
      * Controls the distance between the arrow and the corners of the pop over.
      * The default value is 12.
-     * 
+     *
      * @return the arrow indent property
      */
     public final DoubleProperty arrowIndentProperty() {
@@ -1017,9 +1022,9 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Returns the value of the arrow indent property.
-     * 
+     *
      * @return the arrow indent value
-     * 
+     *
      * @see #arrowIndentProperty()
      */
     public final double getArrowIndent() {
@@ -1028,10 +1033,10 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Sets the value of the arrow indent property.
-     * 
+     *
      * @param size
      *            the arrow indent value
-     * 
+     *
      * @see #arrowIndentProperty()
      */
     public final void setArrowIndent(double size) {
@@ -1047,7 +1052,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Returns the corner radius property for the pop over.
-     * 
+     *
      * @return the corner radius property (default is 6)
      */
     public final DoubleProperty cornerRadiusProperty() {
@@ -1056,9 +1061,9 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Returns the value of the corner radius property.
-     * 
+     *
      * @return the corner radius
-     * 
+     *
      * @see #cornerRadiusProperty()
      */
     public final double getCornerRadius() {
@@ -1067,10 +1072,10 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Sets the value of the corner radius property.
-     * 
+     *
      * @param radius
      *            the corner radius
-     * 
+     *
      * @see #cornerRadiusProperty()
      */
     public final void setCornerRadius(double radius) {
@@ -1113,36 +1118,36 @@ public class PopOver<N extends Node> extends PopupControl {
         LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM, RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM,
         TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT;
     }
-    
+
 /**************************** IN/OUT ANIMATIONS *******************************/
-    
+
     private static final Duration DEFAULT_FADE_IN_DURATION = Duration.seconds(.5);
     private static boolean animated = true;
-    
+
     // Lazily initialized, might be null, use getter
     private Duration fadeDuration;
     private FadeTransition fadeInAnim;
     private FadeTransition fadeOutAnim;
     private double opacityOldVal = 0;   // for restoring from previous session
-    
+
     /**
      * Return whether is animated. Uses fade in and out animations on show/hide.
      */
     public boolean isAnimated() {
         return animated;
     }
-    
+
     /**
      * Sets whether is animated. Uses fade in and out animations on show/hide.
      */
     public void setAnimated(boolean val) {
         animated = val;
     }
-    
+
     public void setAnimDuration(Duration val) {
         fadeDuration = val;
     }
-    
+
     public Duration getAnimDuration() {
         return (fadeDuration != null) ? fadeDuration : DEFAULT_FADE_IN_DURATION;
     }
@@ -1191,11 +1196,11 @@ public class PopOver<N extends Node> extends PopupControl {
         });
         fadeOutAnim.playFromStart();
     }
-    
+
 /******************************************************************************/
-    
+
     /**
-     * Sets closing behavior when receives click event. The detached value is 
+     * Sets closing behavior when receives click event. The detached value is
      * ignored - popup will always hide. Default false (off).
      * <p>
      * Even if true, this behavior can be prevented when the content of the
@@ -1205,15 +1210,15 @@ public class PopOver<N extends Node> extends PopupControl {
      * on mouse events - for example in case of informative popups.
      * Also, it is recommended to use this in conjunction with {@link #setAutoHide(boolean)}
      * but with inverted value. One might want to have a popup with reactive
-     * content auto-closing when clicked anywhere but on it, or static popup 
+     * content auto-closing when clicked anywhere but on it, or static popup
      * displaying information hovering above its owner, while the owner can be
      * used with the popup open but conveniently closing on mouse click.
      * <p>
-     * Of course any combination of the values is possible. Completely custom 
+     * Of course any combination of the values is possible. Completely custom
      * implementation can be used too using mouse click event handler on the
      * content.
-     * 
-     * @param val 
+     *
+     * @param val
      */
     public void setHideOnClick(boolean val) {
         if(val) {
@@ -1234,18 +1239,18 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
     }
-    
+
     /**
      * Returns whether hiding on click behavior is set true.
      */
     public boolean isHideOnClick() {
         return hideOnClick!=null;
     }
-    
+
     private EventHandler<MouseEvent> hideOnClick;
-    
+
 /******************************************************************************/
-    
+
     public void setParentPopup(PopOver popover) {
         popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
             if(this != null && this.isShowing())
@@ -1256,30 +1261,27 @@ public class PopOver<N extends Node> extends PopupControl {
         });
     }
 /******************************** DETACHING ***********************************/
-    
+
 
     /** Determines whether the pop over can be detached. */
     public final BooleanProperty detachable = new SimpleBooleanProperty(this, "detachable", true);
-    
-    /** Denotes whether this popover is detached. Popover detached from the 
+
+    /** Denotes whether this popover is detached. Popover detached from the
      * owning node. The pop over will no longer display an arrow pointing at the
      * owner node.*/
     public final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
-    
+
 
     /** Title text. Default "". */
     public final StringProperty title = new SimpleStringProperty(this, "title", "");
-    
+
     /** Header visibility. Default true. Header contains title and icons. */
     public final BooleanProperty headerVisible = new SimpleBooleanProperty(true);
-    
-    /** Title position within the header. Default CENTER_LEFT. */
-//    public final ObjectProperty<Pos> titlePos = new SimpleObjectProperty(this,"titlePos",Pos.CENTER_LEFT);
- 
-    
-    
+
+
+
     private ObservableList<Node> headerContent = null;
-    
+
     /**
      * Modifiable list of children of the header. The elements are Nodes displayed
      * in the header. The list is modifiable and any changes will be immediatelly
@@ -1295,11 +1297,11 @@ public class PopOver<N extends Node> extends PopupControl {
      * Tip: add node to specific position by add(int i, element e) and replace
      * the node with set(int i, element e); called on the returned list.
      * <p>
-     * The added node will probably have assigned a mouse click event handler 
+     * The added node will probably have assigned a mouse click event handler
      * that executes a click behavior. In such case it is recommended to always
-     * consume the event to prevent popover autohiding features to occur by 
+     * consume the event to prevent popover autohiding features to occur by
      * stopping the event propagation.
-     * 
+     *
      * @return all custom children of the header
      */
     public ObservableList<Node> getHeaderIcons() {

@@ -87,6 +87,7 @@ import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
+import gui.pane.ActionPane.FastColAction;
 import gui.pane.CellPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
@@ -252,7 +253,7 @@ public class App extends Application implements Configurable {
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
 
         // log uncaught thread termination exceptions
-        Thread.setDefaultUncaughtExceptionHandler((thrd,ex) -> LOGGER.error(thrd.getName(), ex));
+        Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error(thread.getName(), ex));
 
         // configure serialization
         XStream x = serialization.x;
@@ -274,9 +275,7 @@ public class App extends Application implements Configurable {
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
         x.alias("item", PlaylistItem.class);
-        ClassIndex.getSubclasses(Component.class).forEach(c ->
-            x.alias(c.getSimpleName(), c)
-        );
+        ClassIndex.getSubclasses(Component.class).forEach(c -> x.alias(c.getSimpleName(),c));
         x.useAttributeFor(Component.class, "id");
         x.useAttributeFor(Widget.class, "name");
         x.useAttributeFor(Playlist.class, "id");
@@ -331,7 +330,7 @@ public class App extends Application implements Configurable {
         });
 
         // register actions
-        ActionPane.register(Widget.class,
+        actionPane.register(Widget.class,
             new FastAction<Widget>("Create launcher (def)","Creates a launcher "
                 + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
@@ -344,7 +343,7 @@ public class App extends Application implements Configurable {
                     if(dir!=null) w.exportFxwlDefault(dir);
             })
         );
-        ActionPane.register(Component.class,
+        actionPane.register(Component.class,
             new FastAction<Component>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
@@ -357,7 +356,12 @@ public class App extends Application implements Configurable {
                     if(dir!=null) w.exportFxwl(dir);
             })
         );
-        ActionPane.register(File.class,
+        actionPane.register(Item.class,
+            new FastColAction<Item>("New playlist", "Add items to new playlist widget.",
+                PLAYLIST_PLUS,
+                is -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(is)))
+                );
+        actionPane.register(File.class,
             new FastAction<File>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
@@ -445,8 +449,7 @@ public class App extends Application implements Configurable {
             // gather configs
             configuration.collectStatic();
             APP.services.forEach(configuration::collect);
-            configuration.collect(this);
-            configuration.collect(guide);
+            configuration.collect(this, guide, actionPane);
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.load();

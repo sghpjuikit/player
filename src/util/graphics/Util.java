@@ -129,6 +129,15 @@ public class Util {
         StackPane.setAlignment(n3, a3);
         return l;
     }
+    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
+        StackPane l = new StackPane(n1,n2,n3,n4);
+        StackPane.setAlignment(n1, a1);
+        StackPane.setAlignment(n2, a2);
+        StackPane.setAlignment(n3, a3);
+        StackPane.setAlignment(n4, a4);
+        return l;
+    }
 
     /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
     public static void layAnchor(AnchorPane pane, Node n, Double a) {

@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-import util.access.FieldValue.FieldEnum;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
 import util.collections.Tuple3;
 
 import static util.functional.Util.*;
@@ -21,7 +20,7 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class FieldedPredicateChainItemNode<T extends FieldedValue<T,F>,F extends FieldEnum<T>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
+public class FieldedPredicateChainItemNode<T,F extends ObjectField<T>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 
     private final List<Tuple3<String,Class,F>> data = new ArrayList();
 

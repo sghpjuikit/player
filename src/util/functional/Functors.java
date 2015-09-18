@@ -542,11 +542,11 @@ public class Functors {
 
         // fielded values
         for(Metadata.Field f : Metadata.Field.values())
-            add(f.name(), Metadata.class, f.getType(), m->m.getField(f));
+            add(f.name(), Metadata.class, f.getType(), m -> f.getOf(m));
         for(PlaylistItem.Field f : PlaylistItem.Field.values())
-            add(f.name(), PlaylistItem.class, f.getType(), m->m.getField(f));
+            add(f.name(), PlaylistItem.class, f.getType(), m -> f.getOf(m));
         for(MetadataGroup.Field f : MetadataGroup.Field.values())
-            add(f.name(), MetadataGroup.class, f.getType(), m->m.getField(f));
+            add(f.name(), MetadataGroup.class, f.getType(), m -> f.getOf(m));
 
         add("Is",                   String.class,Boolean.class, (text,b) -> text.equals(b), String.class,"");
         add("Contains",             String.class,Boolean.class, (text,b) -> text.contains(b), String.class,"");

@@ -20,8 +20,7 @@ import javafx.util.Callback;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
-import util.access.FieldValue.FieldEnum;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
 import util.collections.PrefList;
 import util.collections.Tuple3;
 import util.dev.TODO;
@@ -42,7 +41,7 @@ import static util.functional.Util.isInR;
  * @author Plutonium_
  */
 @TODO(purpose = READABILITY, note = "Get rid of that Tuple")
-public class FieldedPredicateItemNode<V extends FieldedValue<V,F>,F extends FieldEnum<V>> extends ValueNode<Predicate<V>> {
+public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueNode<Predicate<V>> {
 
     // Normally we would use this predicate builder:
     //     (field,filter) -> element -> filter.test(element.getField(field));
@@ -62,16 +61,16 @@ public class FieldedPredicateItemNode<V extends FieldedValue<V,F>,F extends Fiel
     // isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
     // where null.equals(null) would return true, basically: element.hasDefaultValue(field).
     // However, in my opinion, isNull predicate does not lose its value completely.
-    private static <V extends FieldedValue,F extends FieldEnum> Predicate<V> predicate(F field, Function<Object,Boolean> filter) {
+    private static <V,F extends ObjectField> Predicate<V> predicate(F field, Function<Object,Boolean> filter) {
             // debug
             // if(field==Metadata.Field.FIRST_PLAYED) {
             //     System.out.println((filter==ISØ) + " " + (filter==ISNTØ) + " " + (filter==IS) + " " + (filter==ISNT));
             // }
             return isInR(filter, ISØ,ISNTØ,IS,ISNT)
                     // the below could be made more OOP by adding predicate methods to FieldEnum
-                    ? element -> filter.apply(element.getField(field))
+                    ? element -> filter.apply(field.getOf(element))
                     : element -> {
-                          Object o = element.getField(field);
+                          Object o = field.getOf(element);
                           return o==null ? false : filter.apply(o);
                       };
     }

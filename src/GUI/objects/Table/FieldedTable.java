@@ -30,9 +30,8 @@ import com.sun.javafx.scene.control.skin.TableViewSkinBase;
 
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
-import util.access.FieldValue.FieldEnum;
-import util.access.FieldValue.FieldEnum.ColumnField;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
+import util.access.FieldValue.ObjectField.ColumnField;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
@@ -76,7 +75,7 @@ import static util.functional.Util.*;
 
  * @author Plutonium_
  */
-public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
+public class FieldedTable <T, F extends ObjectField<T>> extends ImprovedTable<T> {
 
     private Ƒ1<F,ColumnInfo> colStateFact;
     private Ƒ1<F,TableColumn<T,?>> colFact;
@@ -119,8 +118,8 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * Similar to {@link #getFields()}, but includes fields that are not derived
      * from the value. Such as index column.
      */
-    public List<FieldEnum<? super F>> getFieldsC() {
-        List<FieldEnum<? super F>> l = filter(getEnumConstants(type), f->f.isTypeStringRepresentable());
+    public List<ObjectField<? super F>> getFieldsC() {
+        List<ObjectField<? super F>> l = filter(getEnumConstants(type), f->f.isTypeStringRepresentable());
         l.addAll(filter(getEnumConstants(ColumnField.class), f->f.isTypeStringRepresentable()));
         return l;
     }
@@ -150,11 +149,11 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         keyNameColMapper = columnNametoKeyMapper;
     }
 
-    public boolean isColumnVisible(FieldEnum<? super T> f) {
+    public boolean isColumnVisible(ObjectField<? super T> f) {
         return getColumn(f).isPresent();
     }
 
-    public void setColumnVisible(FieldEnum<? super T> f, boolean v) {
+    public void setColumnVisible(ObjectField<? super T> f, boolean v) {
         TableColumn<T,?> c = getColumn(f).orElse(null);
         if(v) {
             if(c==null) {
@@ -219,7 +218,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             defColInfo.columns.streamV()
                     .sorted(by(c->c.name))
                     .map(c-> {
-                        FieldEnum<? super T> f =  nameToCF(c.name);
+                        ObjectField<? super T> f =  nameToCF(c.name);
                         SelectionMenuItem m = new SelectionMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
                         String d = f.description();
                         if(!d.isEmpty()) Tooltip.install(m.getGraphic(), new Tooltip(d));
@@ -268,12 +267,12 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return Optional.empty();
     }
 
-    public Optional<TableColumn<T,?>> getColumn(FieldEnum<? super T> f) {
+    public Optional<TableColumn<T,?>> getColumn(ObjectField<? super T> f) {
         return getColumn(c -> c.getUserData()==f);
     }
 
 
-    public void refreshColumn(FieldEnum<? super T> f) {
+    public void refreshColumn(ObjectField<? super T> f) {
         getColumn(f).ifPresent(this::refreshColumn);
     }
     public void refreshCoumns() {
@@ -307,7 +306,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      */
     public void sortBy(F field) {
         getSortOrder().clear();
-        getItems().sort(by(p -> (Comparable) p.getField(field)));
+        getItems().sort(by(p -> (Comparable) field.getOf(p)));
     }
 
     /**
@@ -328,7 +327,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * <p>
      * This cell factory
      * <ul>
-     * <li> sets text using {@link FieldEnum#toS(java.lang.Object, java.lang.String)}
+     * <li> sets text using {@link ObjectField#toS(java.lang.Object, java.lang.String)}
      * <li> sets alignment to CENTER_LEFT for Strings and CENTER_RIGHT otherwise
      * </ul>
      */
@@ -344,15 +343,27 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         cell.setAlignment(a);
         return cell;
     }
-
+    public static <T> TableCell<T,?> defaultCell(ObjectField<T> f) {
+        Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+        TableCell<T,Object> cell = new TableCell<T,Object>(){
+            @Override
+            protected void updateItem(Object item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "" : f.toS(item,""));
+            }
+        };
+        cell.setAlignment(a);
+        return cell;
+    }
+    
 /*********************************** PRIVATE **********************************/
 
     // sort order -> comparator, never null
     private void updateComparator(Object ignored) {
-        Comparator<T> c = getSortOrder().stream().map(column -> {
+        Comparator<? super T> c = getSortOrder().stream().map(column -> {
                 F f = (F) column.getUserData();
                 int type = column.getSortType()==ASCENDING ? 1 : -1;
-                return (Comparator<T>)(m1,m2) -> type*((Comparable)m1.getField(f)).compareTo((m2.getField(f)));
+                return (Comparator<T>)(m1,m2) -> type*((Comparable)f.getOf(m1)).compareTo((f.getOf(m2)));
             })
             .reduce(Comparator::thenComparing).orElse(SAME);
         itemsComparator.setValue(c);
@@ -361,7 +372,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private F nameToF(String name) {
         return ColumnField.INDEX.name().equals(name) ? null : Parser.fromS(type, keyNameColMapper.apply(name));
     }
-    private FieldEnum<? super T> nameToCF(String name) {
+    private ObjectField<? super T> nameToCF(String name) {
         return ColumnField.INDEX.name().equals(name) ? ColumnField.INDEX : nameToF(name);
     }
 }

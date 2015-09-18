@@ -30,8 +30,7 @@ import AudioPlayer.tagging.Metadata;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
-import util.access.FieldValue.FieldEnum.ObjectField;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
 import util.async.Async;
 import util.functional.Functors.Ƒ1;
 import util.units.FormattedDuration;
@@ -68,7 +67,7 @@ import static util.dev.Util.log;
  * into more generic ObjectProperty. It will cause XStream serializing
  * to malperform (java7)(needs more testing).
  */
-public final class PlaylistItem extends Item<PlaylistItem> implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
+public final class PlaylistItem extends Item<PlaylistItem> {
 
     private final SimpleObjectProperty<URI> uri;
     private final SimpleObjectProperty<FormattedDuration> time;
@@ -381,21 +380,11 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
 /******************************************************************************/
 
     /** {@inheritDoc} */
-    @Override
     public Object getField(Field field) {
-        switch(field) {
-            case PATH :  return getPath();
-            case FORMAT :  return getFormat();
-            case LENGTH : return getTime();
-            case TITLE : return getTitle();
-            case NAME : return getName();
-            case ARTIST : return getArtist();
-            default : throw new AssertionError("Default case should never execute");
-        }
+        return field.getOf(this);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Field getMainField() {
         return Field.NAME;
     }

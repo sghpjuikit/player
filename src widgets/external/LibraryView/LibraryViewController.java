@@ -43,7 +43,7 @@ import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
-import util.access.FieldValue.FieldEnum.ColumnField;
+import util.access.FieldValue.ObjectField.ColumnField;
 import util.access.VarEnum;
 import util.access.Ѵo;
 import util.async.executor.ExecuteN;
@@ -163,7 +163,7 @@ public class LibraryViewController extends FXMLController {
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
-            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
+            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
             Pos a = f.getType(mf).equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==AVG_RATING
                 ? (Callback) APP.ratingCell.getValue()

@@ -19,7 +19,9 @@ import static util.Util.mapEnumConstant;
  *
  * @author Plutonium_
  */
-public interface FieldEnum<V> extends TypedValue {
+public interface ObjectField<V> extends TypedValue {
+
+    public Object getOf(V value);
 
     /** Returns description of the field. */
     public String description();
@@ -65,9 +67,13 @@ public interface FieldEnum<V> extends TypedValue {
     }
 
 
-    public static enum ColumnField implements FieldEnum<Object>{
+    public static enum ColumnField implements ObjectField<Object>{
         INDEX;
 
+        @Override
+        public Object getOf(Object value) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
         private ColumnField() {
             mapEnumConstant(this, f -> f.ordinal()==0 ? "#" : Util.enumToHuman(f));
         }
@@ -88,21 +94,19 @@ public interface FieldEnum<V> extends TypedValue {
         }
 
     }
-    public static interface ObjectField<V> extends FieldEnum<V> {
-        public Object getOf(V value);
-    }
 
     public static enum FileField implements ObjectField<File> {
 
         PATH("Path",File::getPath, String.class),
-        TYPE("Size",FileSize::new, FileSize.class),
-        SIZE("Type",f -> f.isDirectory() ? "Directory" : FileUtil.getSuffix(f), String.class);
+        SIZE("Size",FileSize::new, FileSize.class),
+        TYPE("Type",f -> f.isDirectory() ? "Directory" : FileUtil.getSuffix(f), String.class);
 
         private final String description;
         private final Ƒ1<File,?> mapper;
         private final Class<?> type;
 
         private <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
+            mapEnumConstant(this, Util::enumToHuman);
             this.mapper = mapper;
             this.description = description;
             this.type = type;

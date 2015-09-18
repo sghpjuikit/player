@@ -47,6 +47,11 @@ public class Configuration {
     public void collect(Configurable c) {
         configs.addAll(c.getFields());
     }
+
+    public void collect(Configurable... cs) {
+        for(Configurable c : cs) collect(c);
+    }
+
     public void collect(Collection<Config> c) {
         configs.addAll(c);
     }

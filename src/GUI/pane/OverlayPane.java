@@ -45,7 +45,7 @@ public class OverlayPane extends StackPane {
                 e.consume();
             }
         });
-        addEventFilter(KeyEvent.ANY, e -> {
+        addEventHandler(KeyEvent.ANY, e -> {
             // close on ESC press
             if(e.getEventType()==KeyEvent.KEY_PRESSED && e.getCode()==ESCAPE && isShown()) {
                 hide();

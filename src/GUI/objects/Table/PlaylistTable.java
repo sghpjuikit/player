@@ -47,6 +47,7 @@ import static AudioPlayer.playlist.PlaylistItem.Field.*;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Collections.EMPTY_LIST;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -92,7 +93,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
         // initialize table
         setFixedCellSize(GUI.font.getValue().getSize() + 5);
-        getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        getSelectionModel().setSelectionMode(MULTIPLE);
 
         // initialize column factories
         setColumnStateFacory( f -> {

@@ -40,8 +40,7 @@ import gui.InfoNode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;
-import util.access.FieldValue.FieldEnum;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
 import util.async.executor.FxTimer;
 import util.collections.Tuple3;
 import util.functional.Functors;
@@ -77,7 +76,7 @@ import static util.reactive.Util.sizeOf;
  * @author Plutonium_
  */
 @IsConfigurable("Table")
-public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends FieldedTable<T,F> {
+public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
 
     private final ObservableList<T> allitems;
     private final FilteredList<T> filtereditems;
@@ -344,10 +343,10 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
     }
 
-    private static <F extends FieldEnum> List<Tuple3<String,Class,F>> d(F prefFilterType) {
+    private static <F extends ObjectField> List<Tuple3<String,Class,F>> d(F prefFilterType) {
         F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
         return stream(es)
-                .filter(FieldEnum::isTypeStringRepresentable)
+                .filter(ObjectField::isTypeStringRepresentable)
                 .map(mf -> tuple(mf.toString(),mf.getType(),mf))
                 .sorted(by(e -> e._1))
                 .collect(toList());
@@ -435,7 +434,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         TableColumn c = getColumn(searchField).orElse(null);
         if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
             for(int i=0;i<getItems().size();i++) {
-                String item = (String)getItems().get(i).getField(searchField);
+                String item = (String)searchField.getOf(getItems().get(i));
                 if(matches(item,scrolFtext)) {
                     scrollToCenter(i);
                     updateSearchStyles();
@@ -462,7 +461,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         boolean searchOn = searchIsActive();
         for (TableRow<T> row : getRows()) {
             T t = row.getItem();
-            Object o = t==null ? null : t.getField(searchField);
+            Object o = t==null ? null : searchField.getOf(t);
             boolean isMatch = o instanceof String && matches((String)o,scrolFtext);
             row.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch);
             row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch));
@@ -484,7 +483,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     @Override
     public void sortBy(F field) {
         getSortOrder().clear();
-        allitems.sort(by(p -> (Comparable) p.getField(field)));
+        allitems.sort(by(p -> (Comparable) field.getOf(p)));
     }
 
     /***
@@ -500,7 +499,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
 
     @Override
     protected Callback<TableColumn<T, Void>, TableCell<T, Void>> buildIndexColumnCellFactory() {
-        return ( column -> new TableCell<T,Void>() {
+        return (column -> new TableCell<T,Void>() {
             {
                 setAlignment(Pos.CENTER_RIGHT);
             }

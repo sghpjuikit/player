@@ -7,18 +7,15 @@
 package AudioPlayer.tagging;
 
 import java.time.Year;
-import java.util.function.Predicate;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
-
-import static util.Util.capitalizeStrong;
-import static util.Util.mapEnumConstant;
-
-import util.access.FieldValue.FieldEnum.ObjectField;
-import util.access.FieldValue.FieldedValue;
+import util.access.FieldValue.ObjectField;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
+
+import static util.Util.capitalizeStrong;
+import static util.Util.mapEnumConstant;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -33,7 +30,7 @@ import util.units.FormattedDuration;
  * @author Plutonium_
  */
 @Immutable
-public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataGroup.Field> {
+public final class MetadataGroup {
     private final Metadata.Field field;
     private final Object value;
     private final long items;
@@ -106,29 +103,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Object getField(Field field) {
-        switch(field) {
-            case VALUE : return getValue();
-            case ITEMS : return getItemCount();
-            case ALBUMS : return getAlbumCount();
-            case LENGTH : return getLength();
-            case SIZE : return getFileSize();
-            case AVG_RATING : return getAvgRating();
-            case W_RATING : return getWeighRating();
-            case YEAR : return getYear();
-        }
-        throw new AssertionError();
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public Field getMainField() {
         return Field.VALUE;
-    }
-
-    public Predicate<Metadata> toMetadataPredicate() {
-        return m->m.getField(field).equals(value);
     }
 
     @Override

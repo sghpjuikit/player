@@ -30,9 +30,10 @@ import AudioPlayer.tagging.Metadata;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
-import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldEnum.ObjectField;
 import util.access.FieldValue.FieldedValue;
 import util.async.Async;
+import util.functional.Functors.Ƒ1;
 import util.units.FormattedDuration;
 
 import static util.File.AudioFileFormat.Use.APP;
@@ -405,31 +406,33 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     /**
      *
      */
-    public static enum Field implements FieldEnum<PlaylistItem> {
-        NAME,
-        TITLE,
-        ARTIST,
-        LENGTH,
-        PATH,
-        FORMAT;
+    public static enum Field implements ObjectField<PlaylistItem> {
+        NAME(PlaylistItem::getName,"'Song artist' - 'Song title'"),
+        TITLE(PlaylistItem::getTitle,"Song title"),
+        ARTIST(PlaylistItem::getArtist,"Song artist"),
+        LENGTH(PlaylistItem::getTime,"Song length"),
+        PATH(PlaylistItem::getPath,"Song file path"),
+        FORMAT(PlaylistItem::getFormat,"Song file type"),;
 
-        private Field() {
+        private final String desc;
+        private final Ƒ1<PlaylistItem,?> extr;
+
+        private Field(Ƒ1<PlaylistItem,?> extractor, String description) {
             mapEnumConstant(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
                             ? "Time"
                             : capitalizeStrong(constant.name().replace('_', ' ')));
+            this.desc = description;
+            this.extr = extractor;
         }
 
         @Override
         public String description() {
-            switch(this) {
-                case NAME : return "'Song artist' - 'Song title'";
-                case TITLE : return "Song title";
-                case ARTIST : return "Song artist";
-                case LENGTH : return "Song length";
-                case PATH : return "Song file path";
-                case FORMAT : return "Song file type";
-            }
-            throw new AssertionError();
+            return desc;
+        }
+
+        @Override
+        public Object getOf(PlaylistItem p) {
+            return extr.apply(p);
         }
 
         /**

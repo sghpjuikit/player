@@ -79,7 +79,7 @@ public interface FieldEnum<V> extends TypedValue {
 
         @Override
         public String toS(Object o, String empty_val) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override

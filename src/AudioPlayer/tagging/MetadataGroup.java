@@ -8,11 +8,15 @@ package AudioPlayer.tagging;
 
 import java.time.Year;
 import java.util.function.Predicate;
+
 import jdk.nashorn.internal.ir.annotations.Immutable;
+
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
-import util.access.FieldValue.FieldEnum;
+
+import util.access.FieldValue.FieldEnum.ObjectField;
 import util.access.FieldValue.FieldedValue;
+import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 
@@ -39,9 +43,9 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     private final double avg_rating;
     private final double weigh_rating;
     private final Year year;
-    
-    public MetadataGroup(Metadata.Field field, Object value, long item_count, 
-                         long album_count, double length, long filesize_sum, 
+
+    public MetadataGroup(Metadata.Field field, Object value, long item_count,
+                         long album_count, double length, long filesize_sum,
                          double avg_rating, Year year) {
         this.field = field;
         this.value = value;
@@ -53,62 +57,62 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         this.weigh_rating = avg_rating*item_count;
         this.year = year;
     }
-    
+
     public Metadata.Field getField() {
         return field;
     }
-    
+
     public Object getValue() {
         return value;
     }
-    
+
     public long getItemCount() {
         return items;
     }
-    
+
     public long getAlbumCount() {
         return albums;
     }
-    
+
     /** @return the length */
     public FormattedDuration getLength() {
         return new FormattedDuration(length);
     }
-    
+
     /** @return the length in milliseconds */
     public double getLengthInMs() {
         return length;
     }
-    
+
     /** get total file size */
     public FileSize getFileSize() {
         return new FileSize(size);
     }
-    
+
     /** {@link getFilesize()} in bytes */
     public long getFileSizeInB() {
         return size;
     }
-    
+
     public double getAvgRating() {
         return avg_rating;
     }
     public double getWeighRating() {
         return weigh_rating;
     }
-    
+
     public Year getYear() {
         return year;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Object getField(Field field) {
         switch(field) {
             case VALUE : return getValue();
-            case ITEMS : return getItemCount(); 
-            case ALBUMS : return getAlbumCount(); 
-            case LENGTH : return getLength(); 
+            case ITEMS : return getItemCount();
+            case ALBUMS : return getAlbumCount();
+            case LENGTH : return getLength();
             case SIZE : return getFileSize();
             case AVG_RATING : return getAvgRating();
             case W_RATING : return getWeighRating();
@@ -119,65 +123,65 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
 
     /** {@inheritDoc} */
     @Override
-    public Field getMainField() { 
+    public Field getMainField() {
         return Field.VALUE;
     }
-    
+
     public Predicate<Metadata> toMetadataPredicate() {
         return m->m.getField(field).equals(value);
     }
 
     @Override
     public String toString() {
-        return getField() + ": " + getValue() + ", items: " + getItemCount() + 
-                ", albums: " + getAlbumCount() + ", length: " + getLength() + 
+        return getField() + ": " + getValue() + ", items: " + getItemCount() +
+                ", albums: " + getAlbumCount() + ", length: " + getLength() +
                 ", size: " + getFileSize()+ ", avgrating: " + getAvgRating() +
                 ", wighted rating: " + getWeighRating()+ ", year: " + getYear();
     }
-    
+
 /***************************** COMPANION CLASS ********************************/
-    
-    public static enum Field implements FieldEnum<MetadataGroup> {
-        VALUE,
-        ITEMS,
-        ALBUMS,
-        LENGTH,
-        SIZE,
-        AVG_RATING,
-        W_RATING,
-        YEAR;
-        
-        Field() {
+
+    public static enum Field implements ObjectField<MetadataGroup> {
+        VALUE(MetadataGroup::getValue,"Song field to group by"),
+        ITEMS(MetadataGroup::getItemCount,"Number of songs in the group"),
+        ALBUMS(MetadataGroup::getAlbumCount,"Number of albums in the group"),
+        LENGTH(MetadataGroup::getLength,"Total length of the group"),
+        SIZE(MetadataGroup::getFileSize,"Total file size of the group"),
+        AVG_RATING(MetadataGroup::getAvgRating,"Average rating of the group = sum(rating)/items"),
+        W_RATING(MetadataGroup::getWeighRating,"\"Weighted rating of the group = sum(rating) = avg_rating*items"),
+        YEAR(MetadataGroup::getYear,"Year of songs in the group or '...' if multiple");
+
+        private final String desc;
+        private final Ƒ1<MetadataGroup,?> extr;
+
+        Field(Ƒ1<MetadataGroup,?> extractor, String description) {
             mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
+            this.desc = description;
+            this.extr = extractor;
         }
 
         @Override
         public String description() {
-            switch(this) {
-                case VALUE : return "Song field to group by";
-                case ITEMS : return "Number of songs in the group";
-                case ALBUMS : return "Number of albums in the group";
-                case LENGTH : return "Total length of the group";
-                case SIZE : return "Total file size of the group";
-                case AVG_RATING : return "Average rating of the group = sum(rating)/items";
-                case W_RATING : return "Weighted rating of the group = sum(rating) = avg_rating*items";
-                case YEAR : return "Year of songs in the group or '...' if multiple";
-            }
-            throw new AssertionError();
+            return desc;
         }
-        
+
+        @Override
+        public Object getOf(MetadataGroup mg) {
+            return extr.apply(mg);
+        }
+
         public boolean isCommon() {
             return this!=AVG_RATING && this!=YEAR && this!=W_RATING;
         }
-        
+
         public String toString(MetadataGroup group) {
             return this==VALUE ? group.getField().toString() : toString();
         }
-        
+
         public String toString(Metadata.Field field) {
             return this==VALUE ? field.toString() : toString();
         }
-        
+
         public static Field valueOfEnumString(String s) {
             if(ITEMS.name().equals(s)) return ITEMS;
             if(ALBUMS.name().equals(s)) return ALBUMS;
@@ -188,15 +192,15 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             if(YEAR.name().equals(s)) return YEAR;
             else return VALUE;
         }
-        
+
         /** {@inheritDoc} */
         @Override
         public Class getType() {
             switch(this) {
                 case VALUE : return Object.class;
-                case ITEMS : return long.class; 
-                case ALBUMS : return long.class; 
-                case LENGTH : return FormattedDuration.class; 
+                case ITEMS : return long.class;
+                case ALBUMS : return long.class;
+                case LENGTH : return FormattedDuration.class;
                 case SIZE : return FileSize.class;
                 case AVG_RATING : return double.class;
                 case W_RATING : return double.class;
@@ -204,11 +208,11 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             }
             throw new AssertionError();
         }
-        
+
         public Class getType(Metadata.Field field) {
             return (this==VALUE) ? field.getType() : getType();
         }
-        
+
         @Override
         public String toS(Object o, String empty_val) {
             switch(this) {
@@ -216,9 +220,9 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case ITEMS :
                 case ALBUMS :
                 case LENGTH :
-                case SIZE :  
+                case SIZE :
                 case AVG_RATING :
-                case W_RATING : return o.toString();        
+                case W_RATING : return o.toString();
                 case YEAR : return Year.of(0).equals(o) ? empty_val : Year.of(-1).equals(o) ? "..." : o.toString();
                 default : throw new AssertionError("Default case should never execute");
             }

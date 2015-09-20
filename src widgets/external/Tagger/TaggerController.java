@@ -77,6 +77,7 @@ import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.FileUtil.EMPTY_COLOR;
 import static util.async.Async.FX;
+import static util.async.Async.runFX;
 import static util.functional.Util.*;
 
 /**
@@ -447,7 +448,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
             if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
             if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
-            // enabling the following three has no effect as they are not
+            // enabling the following these has no effect as they are not
             // editable and graphics are disabled, thus will always be empty
             // we comment it out to prevent needless checking
             // if ((boolean)Custom1F.getUserData())      w.setCustom2(Custom1F.getText());
@@ -455,10 +456,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             // if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
         }, items -> {
             // post (make sure its on FX)
-            runLater(() -> {
+            runFX(() -> {
                 writing = false;
                 populate(items);
-                APP.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
+                APP.use(Notifier.class, s -> s.showTextNotification("Tagging complete", "Tagger"));
             });
         });
 

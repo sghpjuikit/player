@@ -38,7 +38,6 @@ import gui.objects.ContextMenu.TableContextMenuMⱤ;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
@@ -156,10 +155,6 @@ public class LibraryViewController extends FXMLController {
 
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
-        table.setColumnStateFacory(f -> {
-            double w = f==VALUE ? 250 : 70;
-            return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
-        });
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));

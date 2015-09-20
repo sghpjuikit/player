@@ -31,7 +31,6 @@ import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuⱤ;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
@@ -96,10 +95,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         getSelectionModel().setSelectionMode(MULTIPLE);
 
         // initialize column factories
-        setColumnStateFacory( f -> {
-            boolean visible = f==NAME || f==LENGTH;
-            return new ColumnInfo(f.toString(), f.ordinal(), visible, 60);
-        });
         setColumnFactory( f -> {
             TableColumn<PlaylistItem,?> c = new TableColumn(f.toString());
             c.setCellValueFactory( f==NAME || f==LENGTH

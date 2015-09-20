@@ -146,10 +146,6 @@ public final class MetadataGroup {
             return extr.apply(mg);
         }
 
-        public boolean isCommon() {
-            return this!=AVG_RATING && this!=YEAR && this!=W_RATING;
-        }
-
         public String toString(MetadataGroup group) {
             return this==VALUE ? group.getField().toString() : toString();
         }
@@ -203,5 +199,17 @@ public final class MetadataGroup {
                 default : throw new AssertionError("Default case should never execute");
             }
         }
+
+        @Override
+        public boolean c_visible() {
+            return this!=AVG_RATING && this!=YEAR && this!=W_RATING;
+        }
+
+        @Override
+        public double c_width() {
+            return this==VALUE ? 250 : 70;
+        }
+
+
     }
 }

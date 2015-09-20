@@ -33,13 +33,12 @@ import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
+import util.access.FieldValue.FileField;
 import util.access.FieldValue.ObjectField;
-import util.access.FieldValue.ObjectField.FileField;
 import util.access.Ѵ;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
@@ -225,7 +224,6 @@ public class ActionPane extends OverlayPane implements Configurable {
             // if data is future, it is done => get data & data type, no more future from here on
             data = data instanceof Fut ? ((Fut)data).getDone() : data;
             Class dtype = data==null ? Void.class : data instanceof Collection ? ((Collection)data).stream().findFirst().orElse(null).getClass() : data.getClass();
-            System.out.println(dtype + " sssssssssssssss");
             // get suitable actions
             dactions.addAll(actions.getElementsOfSuperV(dtype));
             dactions.removeIf(a -> !a.condition.test(data));
@@ -285,7 +283,6 @@ public class ActionPane extends OverlayPane implements Configurable {
                 FilteredTable<Object,?> t = new gui.objects.Table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
                 t.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
-                t.setColumnStateFacory(f -> new ColumnInfo(f.toString(), ((Enum) f).ordinal(), true, 60));
                 t.setColumnFactory(f -> {
                     TableColumn<?,?> c = new TableColumn(f.toString());
                     c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));

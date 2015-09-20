@@ -1138,9 +1138,7 @@ public final class Metadata extends MetaItem<Metadata> {
         @Override
         public boolean isTypeNumberNonegative() { return true; }
 
-        public boolean isCommon() {
-            return this==TITLE || this==ALBUM || this==ARTIST || this==RATING || this==PLAYCOUNT ||
-                   this==LENGTH || this==TRACK_INFO || this==DISCS_INFO;
+        public boolean isCommon() { return true;
         }
 
         public boolean isAutoCompleteable() {
@@ -1158,6 +1156,18 @@ public final class Metadata extends MetaItem<Metadata> {
                 default : return o.toString();
             }
         }
+
+        @Override
+        public boolean c_visible() {
+            return this==TITLE || this==ALBUM || this==ARTIST ||
+                   this==LENGTH || this==TRACK_INFO || this==DISCS_INFO;
+        }
+
+        @Override
+        public double c_width() {
+            return this==PATH || this==TITLE ? 150 : 50;
+        }
+
     }
 
 }

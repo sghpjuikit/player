@@ -5,13 +5,8 @@
  */
 package util.access.FieldValue;
 
-import java.io.File;
-
-import util.File.FileUtil;
 import util.Util;
 import util.access.TypedValue;
-import util.functional.Functors.Ƒ1;
-import util.units.FileSize;
 
 import static util.Util.mapEnumConstant;
 
@@ -67,6 +62,17 @@ public interface ObjectField<V> extends TypedValue {
     }
 
 
+    public default double c_width() {
+        return 70;
+    }
+    public default boolean c_visible() {
+        return true;
+    }
+    public default int c_order() {
+        return (this instanceof Enum) ? ((Enum)this).ordinal() : 1;
+    }
+
+
     public static enum ColumnField implements ObjectField<Object>{
         INDEX;
 
@@ -95,41 +101,4 @@ public interface ObjectField<V> extends TypedValue {
 
     }
 
-    public static enum FileField implements ObjectField<File> {
-
-        PATH("Path",File::getPath, String.class),
-        SIZE("Size",FileSize::new, FileSize.class),
-        TYPE("Type",f -> f.isDirectory() ? "Directory" : FileUtil.getSuffix(f), String.class);
-
-        private final String description;
-        private final Ƒ1<File,?> mapper;
-        private final Class<?> type;
-
-        private <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
-            mapEnumConstant(this, Util::enumToHuman);
-            this.mapper = mapper;
-            this.description = description;
-            this.type = type;
-        }
-
-        @Override
-        public Object getOf(File value) {
-            return mapper.apply(value);
-        }
-
-        @Override
-        public String description() {
-            return description;
-        }
-
-        @Override
-        public String toS(Object o, String empty_val) {
-            return o==null ? empty_val : o.toString();
-        }
-
-        @Override
-        public Class getType() {
-            return type;
-        }
-    }
 }

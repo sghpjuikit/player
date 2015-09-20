@@ -47,7 +47,6 @@ import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
 import gui.objects.spinner.Spinner;
 import main.App;
@@ -90,6 +89,7 @@ import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.setScaleXY;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -140,7 +140,7 @@ public class LibraryController extends FXMLController implements SongReader {
         }
     };
     private final FxTimer hideInfo = new FxTimer(5000, 1,
-        new Anim(at->Util.setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
+        new Anim(at-> setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
                 .intpl(reverse(new ElasticInterpolator())).then(taskInfo::hideNunbind)::play);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
     private final SelectionMenuItem editOnAdd_menuItem = new SelectionMenuItem("Edit added items",false);
@@ -206,12 +206,7 @@ public class LibraryController extends FXMLController implements SongReader {
             menuItem("Remove all items",DB::removeAllItems)
         );
 
-
         // set up table columns
-        table.setColumnStateFacory( f -> {
-            double w = f==PATH || f==TITLE ? 150 : 50;
-            return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
-        });
         table.setColumnFactory(f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
             c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));

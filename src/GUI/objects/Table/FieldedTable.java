@@ -75,9 +75,9 @@ import static util.functional.Util.*;
 
  * @author Plutonium_
  */
-public class FieldedTable <T, F extends ObjectField<T>> extends ImprovedTable<T> {
+public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> {
 
-    private Ƒ1<F,ColumnInfo> colStateFact;
+    private Ƒ1<F,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
     private Ƒ1<F,TableColumn<T,?>> colFact;
     private Ƒ1<String,String> keyNameColMapper = name -> name;
 
@@ -355,7 +355,7 @@ public class FieldedTable <T, F extends ObjectField<T>> extends ImprovedTable<T>
         cell.setAlignment(a);
         return cell;
     }
-    
+
 /*********************************** PRIVATE **********************************/
 
     // sort order -> comparator, never null

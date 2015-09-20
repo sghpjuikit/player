@@ -46,12 +46,12 @@ import util.units.NofX;
 
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
-import static javafx.application.Platform.runLater;
 import static main.App.APP;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
+import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 
 /**
@@ -779,8 +779,9 @@ public class MetadataWriter extends MetaItem {
                 setter.accept(w);
                 w.write();
             }
-
-            Player.refreshItemsWith(MetadataReader.readMetadata(items));
+            List<Metadata> fresh = MetadataReader.readMetadata(items);
+            Player.refreshItemsWith(fresh);
+            if(action!=null) runFX(() -> action.accept(fresh));
         });
     }
 
@@ -790,7 +791,7 @@ public class MetadataWriter extends MetaItem {
             w.reset(item);
             setter.accept(w);
             boolean b = w.write();
-            runLater(() -> action.accept(b));
+            if(action!=null) runFX(() -> action.accept(b));
 
             Metadata m = MetadataReader.create(item);
             if(!m.isEmpty()) Player.refreshItemWith(m);

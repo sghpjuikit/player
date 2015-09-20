@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- ability to switch main window
 - IDENTITY function
 - playlist playing item is busted for item duplicates
 - add played first, played last, added to lib & tags metadata fields
@@ -13,7 +14,6 @@
 - ClassMaps should support concurrency if desired
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
 - Metadata cover caching causes outdated data if cover is set to tag
-- tagger spinner likes spinning forever, teach him
 - layout mode zoom animation use loop to increase smoothness
 - filesize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo

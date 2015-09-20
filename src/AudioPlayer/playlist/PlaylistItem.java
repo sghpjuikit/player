@@ -460,5 +460,10 @@ public final class PlaylistItem extends Item<PlaylistItem> {
                 default : throw new AssertionError("Default case should never execute");
             }
         }
+
+        @Override
+        public double c_width() {
+            return 60;
+        }
     }
 }

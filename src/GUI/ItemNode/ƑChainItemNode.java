@@ -86,10 +86,10 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
             if(f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true; // just in case
 
             // If two subsequent functions have same output type (or input type) one of them is safe
-            // to remove (which depends on whether we check inputs or outputs).
+            // to remove (which one depends on whether we check inputs or outputs).
             //
-            // The exceptional case is first and last link of the chain, which miss the prevous (
-            // respectively following) function.
+            // The exceptional case is the first and the last link of the chain, which lack the
+            // previous (respectively following) function.
             // However, they can still be removed. Checking for output types will result in the first
             // link being an exceptional case. Below we check for inputs, which results in the last
             // link to be exceptional case. We do this, because the last link can always be removed

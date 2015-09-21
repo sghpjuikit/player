@@ -48,6 +48,7 @@ import util.graphics.drag.DragUtil;
 import util.Ɽ;
 
 import static Layout.Widgets.Widget.Group.APP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
@@ -128,9 +129,10 @@ public class Converter extends ClassController implements SongWriter {
 
         // drag&drop
         installDrag(
-            this, LIST_ALT, "Set data as input",
-            e -> true,
-            e -> setData(DragUtil.getAny(e))
+            this, LIST_ALT, () -> "Set data as input",
+            e -> true, e -> false,
+            e -> setData(DragUtil.getAny(e)),
+            e -> ta_in.getNode().getLayoutBounds()
         );
 
         tas.addListener((Change<? extends Ta> change) ->
@@ -139,9 +141,9 @@ public class Converter extends ClassController implements SongWriter {
 
         // on source change run transformation
         source.addListener((Change change) -> {
-            Class c = source.isEmpty() ? Void.class : source.get(0).getClass();
+            ta_in.setData(source);
+            Class c = ta_in.transforms.getTypeIn();
             applier.fillActs(c);
-            transform();
         });
 
         ta_in.onItemChange = lines -> {
@@ -201,16 +203,16 @@ public class Converter extends ClassController implements SongWriter {
         applier.fillActs(Void.class);
     }
 
-    private void transform() {
-        ta_in.setData(source);
+    public void setData(Object o) {
+        source.setAll(unpackData(o));
     }
 
-    public void setData(Object o) {
+    public static List<?> unpackData(Object o) {
         if(o instanceof String)
-            source.setAll(split((String) o, "\n", x->x));
+            return split((String) o, "\n", x->x);
         else if(o instanceof Collection)
-            source.setAll((Collection) o);
-        else source.setAll(listRO(o));
+            return list((Collection) o);
+        else return listRO(o);
     }
 
 /******************************** features ************************************/
@@ -223,6 +225,7 @@ public class Converter extends ClassController implements SongWriter {
 
 /******************************* helper classes *******************************/
 
+    // generates unique name in format 'CustomN', where N is integer number
     String taname() {
         Ɽ<Integer> i = new Ɽ<>(0);
         do {
@@ -237,22 +240,45 @@ public class Converter extends ClassController implements SongWriter {
         public Ta() {
             this(taname());
         }
+
         public Ta(String name) {
             super();
 
             Label nameL = new Label("");
-            Icon remI = new Icon(MINUS).tooltip("Remove area\n\nRemove this edit area.")
-                                      .onClick(() -> tas.remove(this));
-            Icon addI = new Icon(PLUS).tooltip("Add area\n\nAdd new edit area.")
-                                      .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
+            Icon remI = new Icon(MINUS)
+                    .tooltip("Remove\n\nRemove this edit area.")
+                    .onClick(() -> tas.remove(this));
+            Icon addI = new Icon(PLUS)
+                    .tooltip("Add\n\nCreate new edit area with no data.")
+                    .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
+            Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
+                    .tooltip("Copy\n\nCopy data of edit area into new one. Data will retain its transformations.")
+                    .onClick(() -> {
+                        Ta t = new Ta();
+                        t.setData(output);
+                        tas.add(t);
+                     });
             getNode().getChildren().add(0,
                 layStack(
                     nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, remI,addI),Pos.CENTER_RIGHT
+                    layHorizontally(5,Pos.CENTER_RIGHT, remI,addI,copyI),Pos.CENTER_RIGHT
                 )
             );
 
             this.name = nameL.textProperty();
+            boolean is1st = tas==null;
+
+            // disallow removing 1st edit area
+            remI.setDisable(is1st);
+
+            // drag & drop (1st area is handled globally)
+            if(!is1st) {
+                installDrag(
+                    getNode(), LIST_ALT, () -> "Set data to " + this.name.get() + " edit area",
+                    e -> true,
+                    e -> setData(unpackData(DragUtil.getAny(e)))
+                );
+            }
 
             setData(name, EMPTY_LIST);
         }

@@ -65,15 +65,17 @@ public interface ObjectField<V> extends TypedValue {
     public default double c_width() {
         return 70;
     }
+
     public default boolean c_visible() {
         return true;
     }
+
     public default int c_order() {
         return (this instanceof Enum) ? ((Enum)this).ordinal() : 1;
     }
 
 
-    public static enum ColumnField implements ObjectField<Object>{
+    public static enum ColumnField implements ObjectField<Object> {
         INDEX;
 
         @Override

@@ -133,7 +133,7 @@ public class DragPane extends StackPane {
                 if(d.cond.test(e)) {
                     PANE.get().hide();
 
-                    if(!except.test(e)) {
+                    if(except==null || !except.test(e)) { // null is equivalent to e -> false
                         node.getProperties().put(ACTIVE, ACTIVE);
                         Pane p = node instanceof Pane ? (Pane)node : node.getParent()==null ? null : (Pane)node.getParent();
                         Pane dp = PANE.getM(d);

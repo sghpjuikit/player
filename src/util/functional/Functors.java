@@ -98,6 +98,13 @@ public class Functors {
             return () -> apply();
         }
     }
+    /**
+     * Function. Provides additional methods.
+     * <p>
+     * Can also be used as a callback (it falls back to the {@link #apply(java.lang.Object)}
+     * method) or consumer (same and in addition ignores output - this is not pointless due to side
+     * effects - consumer by nature relies on side effects.)
+     */
     public static interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
 
         public static Ƒ1<Void,Void> f1(Runnable r) {
@@ -297,8 +304,12 @@ public class Functors {
             throw new AssertionError("Illegal switch case");
         }
     }
-    // Ƒ can not extend Predicate, doing so would not be typesafe, hence this subclass
-    // this class also preserves predicate identity during predicate combination operations
+    /**
+     * Predicate.
+     * <p>
+     * {@link Ƒ1} can not extend Predicate, doing so would not be typesafe, hence this subclass.
+     * This class also preserves predicate identity during predicate combination operations.
+     */
     public static interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Predicate}. */
@@ -338,10 +349,15 @@ public class Functors {
         }
 
     }
-    public static interface Ƒ1E<I,O> extends Λ, IO<I,O> {
-        O apply(I i) throws Exception;
+    /**
+     * Function throwing an exception.
+     * <p>
+     * Due to the signature, it is impossible to extend {@link Consumer}
+     */
+    public static interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
+        O apply(I i) throws E;
 
-        default Ƒ1E<I,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ1E<I,O,E> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
@@ -351,6 +367,25 @@ public class Functors {
                 }
             };
         }
+    }
+    /**
+     * {@link Consumer} which throws an exception.
+     * <p>
+     * Consumer version of {@link Ƒ1E}, so lambda expression does not need to return void (null)
+     * at the end
+     */
+    // this class is ~pointless, yes we dont have to return null in lambda as with F1E, but
+    // thats only possible if some method takes parameter of this class. which will prevent
+    // other F1E from being used 
+    public static interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
+
+        @Override
+        default Void apply(I i) throws E{
+            accept(i);
+            return null;
+        }
+
+        void accept(I i) throws E;
     }
     public static interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
         @Override

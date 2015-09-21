@@ -27,6 +27,7 @@ import Configuration.IsConfig;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.PlaybackFeature;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.GUI;
 import gui.objects.Balancer.Balancer;
 import gui.objects.Seeker;
@@ -39,6 +40,8 @@ import util.graphics.drag.DragUtil;
 import static AudioPlayer.tagging.Metadata.Field.BITRATE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.formatDuration;
@@ -94,7 +97,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     Icon f6    = new GlowIcon(STOP,25);
     Icon muteB = new GlowIcon(VOLUME_UP,15);
     Icon addB  = new GlowIcon(PLUS_SQUARE_ALT,10);
-    Icon loopB = new GlowIcon(RANDOM,14);
+    Icon loopB = new GlowIcon(RANDOM,15);
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Ѵ<Boolean> showChapters = new Ѵ<>(true, seeker::setChaptersVisible);
@@ -160,7 +163,6 @@ public class PlayerControlsController extends FXMLController implements Playback
 
         // loopmode
         loopB.setOnMouseClicked(this::cycleLoopMode);
-        loopB.setScaleX(1.3); // scale horizontally a bit to get non-rectangle icon
         infoBox.getChildren().add(1, loopB);
 
         // volume button
@@ -275,16 +277,16 @@ public class PlayerControlsController extends FXMLController implements Playback
 
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
-            case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
+            case OFF:       loopB.setIcon(REPEAT_OFF);
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));
                             break;
-            case PLAYLIST:  loopB.setIcon(REORDER);     // linear playlist
+            case PLAYLIST:  loopB.setIcon(MaterialDesignIcon.REPEAT);
                             Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
                             break;
-            case SONG:      loopB.setIcon(REPEAT);      // point
+            case SONG:      loopB.setIcon(REPEAT_ONCE);
                             Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
                             break;
-            case RANDOM:    loopB.setIcon(RANDOM);      // random
+            case RANDOM:    loopB.setIcon(RANDOM);
                             Tooltip.install(loopB, new Tooltip("Play mode: random"));
                             break;
         }

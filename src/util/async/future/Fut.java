@@ -88,6 +88,10 @@ public class Fut<T> implements Runnable{
         }
     }
 
+    public void cancel(boolean mayInterruptIfRunning) {
+        f.cancel(mayInterruptIfRunning);
+    }
+
     public final <R> Fut<R> map(Function<T,R> action) {
         return new Fut<>(f.thenApplyAsync(action));
     }

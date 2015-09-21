@@ -98,6 +98,7 @@ import util.File.ImageFileFormat;
 import util.InstanceInfo;
 import util.InstanceName;
 import util.access.VarEnum;
+import util.animation.Anim;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
 import util.serialize.xstream.BooleanPropertyConverter;
@@ -123,6 +124,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
+import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
@@ -133,6 +135,7 @@ import static util.Util.getEnumConstants;
 import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
+import static util.functional.Util.forEachAfter;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
@@ -766,14 +769,19 @@ public class App extends Application implements Configurable {
                             if(b.getUserData()!=null) {
                                 root.getChildren().setAll((ScrollPane)b.getUserData());
                             } else {
+                                CellPane cp = new CellPane(70,80,5);
+                                ScrollPane sp = cp.scrollable();
+                                b.setUserData(sp);
+                                runFX(() -> root.getChildren().setAll(sp));
                                 Fut.fut()
-                                   .then(() -> {
-                                        CellPane cp = new CellPane(70,80,5);
-                                        cp.getChildren().addAll(map(getEnumConstants(c),i -> new IconInfo((GlyphIcons)i,55)));
-                                        ScrollPane sp = cp.scrollable();
-                                        b.setUserData(sp);
-                                        runLater(() -> root.getChildren().setAll(sp));
-                                   })
+                                   .then(() ->
+                                       forEachAfter(2, map(getEnumConstants(c),i -> new IconInfo((GlyphIcons)i,55)), i -> {
+                                           runFX(() -> {
+                                               cp.getChildren().add(i);
+                                               new Anim(i::setOpacity).dur(500).intpl(x -> sqrt(x)).play(); // animate
+                                           });
+                                       })
+                                   )
                                    .showProgress(Window.getActive().taskAdd())
                                    .run();
                             }
@@ -784,17 +792,6 @@ public class App extends Application implements Configurable {
                 }).collect(toList());
         PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,typeicons), root));
                 o.show(App_Center);
-//        Fut.fut()
-//           .then(() -> {
-//                CellPane c = new CellPane(70,80,5);
-//                c.getChildren().addAll(map(FontAwesomeIcon.values(),i -> new IconInfo(i,55)));
-//                ScrollPane p = c.scrollable();
-//                p.setPrefSize(500, 720);
-//                PopOver o = new PopOver(p);
-//                runLater(() -> o.show(App_Center));
-//           })
-//           .showProgress(Window.getActive().taskAdd())
-//           .run();
     }
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")

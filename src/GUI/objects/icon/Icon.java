@@ -323,6 +323,7 @@ public class Icon<I extends Icon> extends Text {
     }
 
     public final void setIcon(GlyphIcons i) {
+        glyph = i;
         setGlyphName(i.name());
     }
 

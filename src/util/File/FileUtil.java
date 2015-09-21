@@ -310,6 +310,7 @@ public final class FileUtil {
      */
     public static String getName(File f) {
         String n = f.getName();
+        if(f.isDirectory()) return n;
         if(n.isEmpty()) return f.toString();
         int i = n.lastIndexOf('.');
         return i==-1 ? n : n.substring(0,i);

@@ -198,8 +198,22 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     @Override
     public V fromS(String str) {
         if(isTypeEnumerable()) {
+            // 1 Notice we are traversing all enumarated values to look up the one which we want to
+            //   deserialize.
+            //   We do this by converting each value to string and compare. This is potentially
+            //   inefficient operation. It is much better to parse the string to value first and
+            //   then compare obejcts. The problem is Im not sure if relying on Object equals() is
+            //   very safe, this should be investigated and optimized.
+            //
+            // 2 OverridableConfig adds additional information as a prefix when serializing the
+            //   value, then removing the prefix when deserializing. This causes the lookup not work
+            //   because toS adds the prefix to the values and the string parameter of this method
+            //   has it already removed. To bypass this, we rely on Parser.toS/fromS directly,
+            //   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
+            //   by having OverridableConfig provide its own implementation, but I dont want to
+            //   spread problematic code such as this around. Not till 1 gets fixed up.
             for(V v : enumerateValues())
-                if(toS(v).equals(str)) return v;
+                if(Parser.toS(v).equalsIgnoreCase(str)) return v;
 
             log(this).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
             return getDefaultValue();
@@ -683,66 +697,56 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             setDefaultValue();
         }
 
-//    /**
-//     * Converts the value to String utilizing generic {@link Parser}.
-//     * Use for serialization or filling out guis.
-//     */
-//    @Override
-//    public String getValueS() {
-//        String prefix = value instanceof Ѵo ? "overrides:"+((Ѵo)value).override.getValue()+", " : "";
-//        return prefix + super.toS(getValue());
-//    }
+        ///**
+        // * Converts the value to String utilizing generic {@link Parser}.
+        // * Use for serialization or filling out guis.
+        // */
+        //@Override
+        //public String getValueS() {
+        //    String prefix = value instanceof Ѵo ? "overrides:"+((Ѵo)value).override.getValue()+", " : "";
+        //    return prefix + super.toS(getValue());
+        //}
 
-    /**
-     * Sets value converted from string.
-     * Equivalent to: return setValue(fromS(str));
-     * @param s
-     */
-    @Override
-    public void setValueS(String str) {
-        String s = str;
-        if(s.contains("overrides:true, ")) {
-            getProperty().override.setValue(true);
-            s = s.replace("overrides:true, ", "");
+        /**
+         * Sets value converted from string.
+         * Equivalent to: return setValue(fromS(str));
+         * @param s
+         */
+        @Override
+        public void setValueS(String str) {
+            getProperty().real.setValue(fromS(str));
         }
-        if(s.contains("overrides:false, ")) {
-            getProperty().override.setValue(false);
-            s = s.replace("overrides:false, ", "");
+
+        /**
+         * Inherited method from {@link StringConverter}
+         * Note: this config remains intact.
+         * <p>
+         * {@inheritDoc}
+         */
+        @Override
+        public String toS(T v) {
+            return "overrides:"+((Ѵo)value).override.getValue() + ", " + ((Ѵo)value).real.getValue();
         }
-        getProperty().real.setValue(fromS(s));
-    }
 
-    /**
-     * Inherited method from {@link StringConverter}
-     * Note: this config remains intact.
-     * <p>
-     * {@inheritDoc}
-     */
-    @Override
-    public String toS(T v) {
-        return "overrides:"+((Ѵo)value).override.getValue() + ", " + ((Ѵo)value).real.getValue();
-    }
-
-//    /**
-//     * Inherited method from {@link StringConverter}
-//     * Note: this config remains intact.
-//     * <p>
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public T fromS(String s) {
-//        if(isTypeEnumerable()) {
-//            for(T v : enumerateValues())
-//                if(toS(v).equals(s)) return v;
-//
-//            Log.warn("Can not parse '" + s + "'. No enumerable config value for: "
-//                    + getGuiName() + ". Using default value.");
-//            return getDefaultValue();
-//        } else {
-//            return Parser.fromS(getType(), s);
-//        }
-//    }
-
+        /**
+         * Inherited method from {@link StringConverter}
+         * Note: this config remains intact.
+         * <p>
+         * {@inheritDoc}
+         */
+        @Override
+        public T fromS(String str) {
+            String s = str;
+            if(s.contains("overrides:true, ")) {
+                getProperty().override.setValue(true);
+                s = s.replace("overrides:true, ", "");
+            }
+            if(s.contains("overrides:false, ")) {
+                getProperty().override.setValue(false);
+                s = s.replace("overrides:false, ", "");
+            }
+            return super.fromS(s);
+        }
 
     }
     public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {

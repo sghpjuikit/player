@@ -16,6 +16,7 @@ import javafx.util.Callback;
 import util.collections.Tuple2;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ1E;
+import util.functional.Functors.ƑEC;
 import util.functional.Functors.ƑP;
 
 import static java.util.Collections.EMPTY_LIST;
@@ -244,11 +245,11 @@ public class Util {
     }
 
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
     }
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
     }
     /**
@@ -264,12 +265,12 @@ public class Util {
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
      */
-    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O,?> f, Class<?>... ecs) {
         return noExE(or, f, list(ecs));
     }
 
     /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
-    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);
@@ -572,6 +573,35 @@ public class Util {
     }
 
 /************************************ for *************************************/
+
+    /** Functional equivalent of a for loop. */
+    public static<I> void forEachBoth(List<I> items, Consumer<I> action) {
+        for(I item : items)
+            action.accept(item);
+    }
+
+    /**
+     * Functional equivalent of a for loop. After each (last included) cycle the thread sleeps for
+     * given period. If thread interrupts, the cycle ends immediately.
+     * <p>
+     * The cycle will also end if action in any cycle throws {@link InterruptedException}. Use it
+     * instead of the {@code break} expression.
+     *
+     * @param period time for thread to wait after each loop. If negative or 0, no waiting occurs.
+     * @param items items to execute action for, the order of execution will be the same as if using
+     * normal for loop
+     * @param action action that executes once per item. It can throw exception to signal loop break
+     */
+    public static <T> void forEachAfter(long period, List<T> items, ƑEC<T,InterruptedException> action) {
+        for(T item : items) {
+            try {
+                action.apply(item);
+                if(period>0) Thread.sleep(period);
+            } catch (InterruptedException ex) {
+                break;
+            }
+        }
+    }
 
     /** Loops over both lists simultaneously. Must be of the same size. */
     public static<A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {

@@ -18,10 +18,10 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import Layout.AltState;
 import Layout.Areas.ContainerNode;
 import Layout.Component;
-import Layout.widget.Widget;
-import Layout.widget.controller.Controller;
 import Layout.container.layout.Layout;
 import Layout.container.uncontainer.UniContainer;
+import Layout.widget.Widget;
+import Layout.widget.controller.Controller;
 import gui.GUI;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil.WidgetTransfer;
@@ -67,12 +67,14 @@ import static util.functional.Util.*;
  behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  index if component is not found. Therefore such index must be ignored.
  */
-public abstract class Container extends Component implements AltState {
+public abstract class Container<G extends ContainerNode> extends Component implements AltState {
 
     @XStreamOmitField
     protected AnchorPane root;
     @XStreamOmitField
     private Container parent;
+    @XStreamOmitField
+    public G ui;
 
     /**
      * Whether the container is locked. The effect of lock is not implicit and
@@ -193,8 +195,8 @@ public abstract class Container extends Component implements AltState {
      * @param toChild child to swap with
      */
     public void swapChildren(Container toParent, int i1, Component toChild) {
-        Container c1 = this;
-        Container c2 = toParent;
+        Container<?> c1 = this;
+        Container<?> c2 = toParent;
 
         // im pretty sure container could be null, e.g., when copying Layout (has no parent)
         // should be investigated and fixed
@@ -270,7 +272,7 @@ public abstract class Container extends Component implements AltState {
         for (Component w: getChildren().values()) {
             if(w!=null) out.add(w);
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllChildren().collect(toList()));
+                out.addAll(((Container<?>)w).getAllChildren().collect(toList()));
         }
         return out.stream();
     }
@@ -283,7 +285,7 @@ public abstract class Container extends Component implements AltState {
         List<Widget> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllWidgets().collect(toList()));
+                out.addAll(((Container<?>)w).getAllWidgets().collect(toList()));
             else
             if (w instanceof Widget)
                 out.add((Widget)w);
@@ -370,13 +372,11 @@ public abstract class Container extends Component implements AltState {
     protected void removeGraphicsFromSceneGraph() {
         // to do: make sure the layout brachn under this container does not
         // cause a memory leak
-        ContainerNode a = getGraphics();
-        if(a!=null) root.getChildren().remove(a.getRoot());
+        if(ui!=null) root.getChildren().remove(ui.getRoot());
     }
 
     protected void closeGraphics() {
-        ContainerNode a = getGraphics();
-        if(a!=null) a.close();
+        if(ui!=null) ui.close();
     }
 
     /**
@@ -396,8 +396,6 @@ public abstract class Container extends Component implements AltState {
     public AnchorPane getRoot() {
         return root;
     }
-
-    public abstract ContainerNode getGraphics();
 
 /******************************************************************************/
 
@@ -430,7 +428,7 @@ public abstract class Container extends Component implements AltState {
 
     @Override
     public void show() {
-        if(getGraphics()!=null) getGraphics().show();
+        if(ui!=null) ui.show();
         getChildren().values().stream()
                      .filter(AltState.class::isInstance)
                      .map(AltState.class::cast)
@@ -439,7 +437,7 @@ public abstract class Container extends Component implements AltState {
     }
     @Override
     public void hide() {
-        if(getGraphics()!=null) getGraphics().hide();
+        if(ui!=null) ui.hide();
         getChildren().values().stream()
                      .filter(AltState.class::isInstance)
                      .map(AltState.class::cast)

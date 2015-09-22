@@ -17,10 +17,10 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import Layout.*;
-import Layout.widget.Widget;
-import Layout.widget.controller.Controller;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
+import Layout.widget.Widget;
+import Layout.widget.controller.Controller;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
@@ -160,16 +160,19 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
     @Override
     public void show() {
-        if(container.getChildren().isEmpty()) {
-            setAltCon(true);
-        }
+        // Interesting idea, but turns out it isnt intuitive. Most of the time, user
+        // simply wants to add child, so this gets in the way.
+        // go to container if children empty
+        // if(container.getChildren().isEmpty())
+        //     setAltCon(true);
+
         isAlt = true;
 
         container.getChildren().values().forEach(c -> {
             if(c instanceof Container) ((Container)c).show();
             if(c instanceof Widget) {
                 Controller ct = ((Widget)c).getController();
-                if(ct!=null) ct.getArea().show();
+                if(ct!=null && ct.getArea()!=null) ct.getArea().show();
             }
         });
     }
@@ -183,7 +186,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
             if(c instanceof Container) ((Container)c).hide();
             if(c instanceof Widget) {
                 Controller ct = ((Widget)c).getController();
-                if(ct!=null) ct.getArea().hide();
+                if(ct!=null && ct.getArea()!=null) ct.getArea().hide();
             }
         });
     }
@@ -220,7 +223,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
     private void toggleAbsSize() {
 	Container c = container.getParent();
 	if (c != null && c instanceof BiContainer) {
-	    Splitter s = BiContainer.class.cast(c).getGraphics();
+	    Splitter s = BiContainer.class.cast(c).ui;
 	    s.toggleAbsoluteSizeFor(container.indexInParent());
 	}
     }

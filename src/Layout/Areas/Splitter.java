@@ -16,9 +16,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 
-import Layout.container.bicontainer.BiContainer;
 import Layout.Component;
 import Layout.container.Container;
+import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.icon.Icon;
@@ -219,22 +219,31 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         hideControls();
     }
 
+    Layouter layouter1;
+    Layouter layouter2;
+
     public void setComponent(int i, Component c) {
         if(i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
 
         AnchorPane r = i==1 ? root_child1 : root_child2;
 
-        if (c == null) {
-            r.getChildren().clear();
-            return;
+        Node n = null;
+        if (c instanceof Widget) {
+            WidgetArea wa = new WidgetArea(container, i);
+            wa.loadWidget((Widget)c);
+            n = wa.root;
+        } else if (c instanceof Container) {
+            n = ((Container)c).load(r);
+        } else {
+            Layouter layouter = i==1 ? layouter1 : layouter2;
+            if(layouter==null) layouter = new Layouter(container, i);
+            if(i==1) layouter1=layouter; else layouter2 = layouter;
+            if(GUI.isLayoutMode()) layouter.show();
+            n = layouter.getRoot();
         }
-        Node content = null;
-        if (c instanceof Widget) content = c.load();
-        else if (c instanceof Container) content = ((Container)c).load(r);
 
-
-        r.getChildren().setAll(content);
-        setAnchors(content,0d);
+        r.getChildren().setAll(n);
+        setAnchors(n,0d);
     }
 
     public void setChild1(Component w) {
@@ -296,9 +305,9 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     private void updateAbsB(Component cmp) {
         if(cmp instanceof Container) {
             Container c = (Container)cmp;
-            Component w = ((Container)cmp).getChildren().get(1);
-            if(w instanceof Widget && c.getGraphics() instanceof Area) {
-                ((Area)c.getGraphics()).controls.updateAbsB();
+            Component w = ((Container<?>)cmp).getChildren().get(1);
+            if(w instanceof Widget && c.ui instanceof Area) {
+                ((Area)c.ui).controls.updateAbsB();
             }
         }
     }
@@ -407,6 +416,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         super.show();
 //        showControls();
         splitPane.addEventFilter(MOUSE_MOVED,aaa);
+        if(layouter1!=null) layouter1.show();System.out.println(layouter1==null);
+        if(layouter2!=null) layouter2.show();System.out.println(layouter2==null);
     }
 
     @Override
@@ -414,6 +425,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         super.hide();
 //        hideControls();
         splitPane.removeEventFilter(MOUSE_MOVED,aaa);
+        if(layouter1!=null) layouter1.hide();
+        if(layouter2!=null) layouter2.hide();
     }
 
 

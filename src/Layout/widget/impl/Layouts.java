@@ -103,7 +103,7 @@ public final class Layouts extends ClassController {
         Component toLoad = getSelectedLayout().getChild();
         int i = c.getEmptySpot(); // this can normally return null, but not SwitchContainer
         c.addChild(i, toLoad);
-        c.getGraphics().alignTab(i);
+        c.ui.alignTab(i);
     }
 
     public void saveSelectedLayout() {

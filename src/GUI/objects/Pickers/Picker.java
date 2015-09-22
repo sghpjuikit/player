@@ -53,6 +53,8 @@ public class Picker<E> {
     /** Default Item supplier. Returns empty stream. */
     public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
 
+    public boolean consumeCancelClick = false;
+
     private final CellPane tiles = new CellPane();
     public final ScrollPane root = new ScrollPane(tiles);
 
@@ -109,7 +111,7 @@ public class Picker<E> {
         root.setOnMouseClicked(e->{
             if(e.getButton()==SECONDARY) {
                 onCancel.run();
-//                e.consume(); // causes problems for layouter, off for now
+                if(consumeCancelClick) e.consume(); // causes problems for layouter, off for now
             }
         });
         root.getStyleClass().add(STYLE_CLASS);

@@ -11,12 +11,10 @@ import java.util.Map;
 
 import javafx.scene.Node;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-
 import Layout.Component;
-import Layout.widget.Widget;
 import Layout.container.Container;
 import Layout.container.uncontainer.UniContainer;
+import Layout.widget.Widget;
 
 import static util.functional.Util.list;
 
@@ -25,10 +23,8 @@ import static util.functional.Util.list;
  *
  * @author Plutonium_
  */
-public class SwitchContainer extends Container {
+public class SwitchContainer extends Container<SwitchPane> {
 
-    @XStreamOmitField
-    SwitchPane graphics;
     Map<Integer,Component> children = new HashMap<>();
 
     @Override
@@ -66,14 +62,9 @@ public class SwitchContainer extends Container {
 
     @Override
     public Node load() {
-        if(graphics==null) graphics = new SwitchPane(this);
-        new HashMap<>(children).forEach((i,c) -> graphics.addTab(i,(Container)c));
-        return graphics.getRoot();
-    }
-
-    @Override
-    public SwitchPane getGraphics() {
-        return graphics;
+        if(ui==null) ui = new SwitchPane(this);
+        new HashMap<>(children).forEach((i,c) -> ui.addTab(i,(Container)c));
+        return ui.getRoot();
     }
 
     /** Invoked just before the serialization. */

@@ -459,14 +459,14 @@ public class Window extends WindowBase {
         // scroll bgr along with the tabs
         // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
         // -try at: http://www.mathe-fa.de
-        topContainer.getGraphics().translateProperty().addListener((o, oldx, newV) -> {
+        topContainer.ui.translateProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
             double space = back.getWidth() * ((scaleFactor - 1) / 2d);
             double dir = signum(x);
             x = abs(x);
             back.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
         });
-        topContainer.getGraphics().zoomProperty().addListener((o, oldx, newV) -> {
+        topContainer.ui.zoomProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
             x = 1 - (1 - x) / 5;
             back.setScaleX(scaleFactor * pow(x, 0.25));
@@ -480,7 +480,7 @@ public class Window extends WindowBase {
      @return layout aggregator, never null.
      */
     public SwitchPane getSwitchPane() {
-	return topContainer.getGraphics();
+	return topContainer.ui;
     }
 
     public SwitchContainer getTopContainer() {

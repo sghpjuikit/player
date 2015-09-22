@@ -9,8 +9,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 
-import Layout.container.bicontainer.BiContainerPure;
 import Layout.container.Container;
+import Layout.container.bicontainer.BiContainer;
 import Layout.container.freeformcontainer.FreeFormContainer;
 import Layout.container.tabcontainer.TabContainer;
 import gui.GUI;
@@ -111,12 +111,12 @@ public final class Layouter implements ContainerNode {
             }
 
         };
-        exitHider =  e -> cp.onCancel.run();
-//        exitHider =  e -> {
-//            // rely on the public show() implementation, not internal one
-//            cp.onCancel.run();
-//            e.consume();
-//        };
+//        exitHider =  e -> cp.onCancel.run();
+        exitHider =  e -> {
+            // rely on the public show() implementation, not internal one
+            cp.onCancel.run();
+            e.consume();
+        };
 
         // setParentRec mode
         setWeakMode(true); // this needs to be called in constructor
@@ -215,17 +215,18 @@ public final class Layouter implements ContainerNode {
             root.getChildren().remove(w.root);
             showControls(GUI.isLayoutMode());
         });
+        w.consumeCancelClick = true;
         w.buildContent();
         root.getChildren().add(w.root);
         setAnchors(w.root, 0d);
         openAndDo(w.root, null);
     }
     private void showSplitV() {
-        container.addChild(index, new BiContainerPure(HORIZONTAL));
+        container.addChild(index, new BiContainer(HORIZONTAL));
         APP.actionStream.push("Divide layout");
     }
     private void showSplitH() {
-        container.addChild(index, new BiContainerPure(VERTICAL));
+        container.addChild(index, new BiContainer(VERTICAL));
         APP.actionStream.push("Divide layout");
     }
     private void showTabs() {

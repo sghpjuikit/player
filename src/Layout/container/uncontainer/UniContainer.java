@@ -7,14 +7,12 @@ import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-
 import Layout.Areas.ContainerNode;
 import Layout.Areas.Layouter;
 import Layout.Areas.WidgetArea;
 import Layout.Component;
-import Layout.widget.Widget;
 import Layout.container.Container;
+import Layout.widget.Widget;
 
 import static util.graphics.Util.setAnchors;
 
@@ -27,22 +25,14 @@ import static util.graphics.Util.setAnchors;
  * <p>
  * @author uranium
  */
-public class UniContainer extends Container {
+public class UniContainer extends Container<ContainerNode> {
 
     protected Component child;
-    @XStreamOmitField
-    private ContainerNode graphics;
 
-    public UniContainer() {
-    }
+    public UniContainer() {}
 
     public UniContainer(AnchorPane root_pane) {
         root = root_pane;
-    }
-
-    @Override
-    public ContainerNode getGraphics() {
-        return graphics;
     }
 
     @Override
@@ -51,19 +41,19 @@ public class UniContainer extends Container {
 
         if (child instanceof Container) {
             removeGraphicsFromSceneGraph();
-            graphics = null;
+            ui = null;
             out = Container.class.cast(child).load(root);
         } else
         if (child instanceof Widget) {
-            if (!(graphics instanceof WidgetArea)) {
+            if (!(ui instanceof WidgetArea)) {
                 removeGraphicsFromSceneGraph();
-                graphics = new WidgetArea(this, 1);
+                ui = new WidgetArea(this, 1);
             }
-            WidgetArea.class.cast(graphics).loadWidget((Widget)child);
-            out = graphics.getRoot();
+            WidgetArea.class.cast(ui).loadWidget((Widget)child);
+            out = ui.getRoot();
         } else {
-            graphics = new Layouter(this,1);
-            out = graphics.getRoot();
+            ui = new Layouter(this,1);
+            out = ui.getRoot();
         }
 
         root.getChildren().setAll(out);

@@ -23,7 +23,6 @@ import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.container.bicontainer.BiContainer;
-import Layout.container.bicontainer.BiContainerPure;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.WidgetManager;
 import action.Action;
@@ -111,13 +110,13 @@ public final class Guide implements Configurable {
                 // find spot
                 SwitchContainer la = Window.getFocused().getSwitchPane().container;
                 // prepare container
-                BiContainer bc = new BiContainerPure(VERTICAL);
+                BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
                 // load widgets
                 bc.addChild(1,WidgetManager.getFactory("Playlist").create());
                 bc.addChild(2,WidgetManager.getFactory("PlayerControls").create());
                 // go to layout
-                la.getGraphics().alignTab(bc);
+                la.ui.alignTab(bc);
                 // go to next guide
                 APP.actionStream.push("Intro");
             }

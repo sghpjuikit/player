@@ -5,12 +5,8 @@
  */
 package Layout.Areas;
 
-import Layout.container.freeformcontainer.FreeFormContainer;
-import Layout.container.Container;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -21,6 +17,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import Layout.*;
+import Layout.container.Container;
+import Layout.container.freeformcontainer.FreeFormContainer;
 import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.Window.Pane.PaneWindowControls;
@@ -136,30 +134,35 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         PaneWindowControls w = getWindow(i);
 
         Node n;
-        Layouter l=null;
+        Layouter l = null;
         if(cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
         } else
         if(cm instanceof Widget) {
-            WidgetArea wa = new WidgetArea(container, i);
-                       // add maximize button
-                       wa.controls.header_buttons.getChildren().add(1, new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> {
-                           TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
-                           w.x.set(p.a*rt.getWidth());
-                           w.y.set(p.b*rt.getHeight());
-                           w.w.set(p.c*rt.getWidth());
-                           w.h.set(p.d*rt.getHeight());
-                       }));
-                       wa.loadWidget((Widget)cm);
-                       w.moveOnDragOf(wa.content_root);
+            WidgetArea wa = new WidgetArea(container,i);
+            // add maximize button
+            wa.controls.header_buttons.getChildren().add(1, new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> {
+                TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
+                w.x.set(p.a*rt.getWidth());
+                w.y.set(p.b*rt.getHeight());
+                w.w.set(p.c*rt.getWidth());
+                w.h.set(p.d*rt.getHeight());
+            }));
+            wa.loadWidget((Widget)cm);
+            w.moveOnDragOf(wa.content_root);
             n = wa.root;
         } else {
-            BooleanProperty tmp = new SimpleBooleanProperty(true);
             l = new Layouter(container, i);
-            final Consumer<String> onS = l.cp.onSelect;
-            l.cp.onSelect = v -> { tmp.set(false); onS.accept(v); };
-            l.cp.onCancel = () -> { if(tmp.get())closeAndDo(w.root, () -> container.removeChild(i));};
+            Node lr = l.root;
+            l.cp.consumeCancelClick = true;
+            l.cp.onCancel = () -> {
+                // bugfix, layouter calls onCancel on mouse exit, but the below will close the
+                // layouter and cause mouse exit, thus calling onCancel twice, causes visual artefact
+                // mouse transparent==true prevent mouse exit event
+                lr.setMouseTransparent(true);
+                closeAndDo(w.root, () -> container.removeChild(i));
+            };
             n = l.root;
         }
 

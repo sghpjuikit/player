@@ -27,10 +27,10 @@ import javafx.scene.layout.*;
 
 import org.reactfx.EventSource;
 
-import Layout.container.bicontainer.BiContainer;
 import Layout.container.Container;
-import Layout.widget.impl.Configurator;
+import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
+import Layout.widget.impl.Configurator;
 import gui.GUI;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
@@ -377,7 +377,7 @@ public final class AreaControls {
     void close() {
         // if area belongs to the container, setØ container
         if (area.index==null)
-            closeAndDo(area.container.getGraphics().getRoot(), area.container::close);
+            closeAndDo(area.container.ui.getRoot(), area.container::close);
         // if area belongs to the child, setØ child only
         else
             closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
@@ -386,7 +386,7 @@ public final class AreaControls {
     private void toggleAbsSize() {
 	Container c = area.container.getParent();
 	if (c != null && c instanceof BiContainer) {
-	    Splitter s = BiContainer.class.cast(c).getGraphics();
+	    Splitter s = BiContainer.class.cast(c).ui;
 	    s.toggleAbsoluteSizeFor(area.container.indexInParent());
 	}
     }

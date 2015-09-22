@@ -16,10 +16,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 
-import Layout.BiContainer;
+import Layout.container.bicontainer.BiContainer;
 import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.Widget;
+import Layout.container.Container;
+import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.icon.Icon;
 import unused.SimplePositionable;

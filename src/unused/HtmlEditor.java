@@ -8,7 +8,7 @@ package unused;
 
 import javafx.scene.web.HTMLEditor;
 
-import Layout.Widgets.controller.ClassController;
+import Layout.widget.controller.ClassController;
 
 import static util.graphics.Util.setAnchors;
 

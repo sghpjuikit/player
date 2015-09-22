@@ -18,9 +18,9 @@ import javafx.scene.layout.AnchorPane;
 
 import Configuration.Configurable;
 import Layout.Component;
-import Layout.Container;
-import Layout.PolyContainer;
-import Layout.Widgets.Widget;
+import Layout.container.Container;
+import Layout.container.tabcontainer.TabContainer;
+import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
@@ -39,7 +39,7 @@ public final class TabArea extends PolyArea {
     private @FXML TabPane tabPane;
     private @FXML AnchorPane content;
 
-    public TabArea(PolyContainer c) {
+    public TabArea(TabContainer c) {
         super(c, null);
 
         // init properties

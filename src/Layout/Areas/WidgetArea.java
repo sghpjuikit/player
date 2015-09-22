@@ -9,8 +9,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 
 import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.Widget;
+import Layout.container.Container;
+import Layout.widget.Widget;
 import gui.GUI;
 import gui.pane.IOPane;
 import util.graphics.drag.DragUtil;

@@ -18,16 +18,16 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 
 import AudioPlayer.playlist.PlaylistManager;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.feature.ImageDisplayFeature;
-import Layout.Widgets.feature.ImagesDisplayFeature;
+import Layout.widget.WidgetManager;
+import Layout.widget.feature.ImageDisplayFeature;
+import Layout.widget.feature.ImagesDisplayFeature;
 import gui.GUI;
 import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
 import util.dev.TODO;
 
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static java.awt.Desktop.Action.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.MEDIUM;

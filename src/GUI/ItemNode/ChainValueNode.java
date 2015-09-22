@@ -29,7 +29,7 @@ import javafx.scene.text.TextAlignment;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import Layout.Widgets.feature.ConfiguringFeature;
+import Layout.widget.feature.ConfiguringFeature;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;

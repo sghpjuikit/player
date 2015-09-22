@@ -7,17 +7,17 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.AnchorPane;
 
 import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.controller.io.IsInput;
-import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.widget.Widget;
+import Layout.widget.controller.FXMLController;
+import Layout.widget.controller.io.IsInput;
+import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
 import main.App;
 import util.access.Ѵ;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
-import static Layout.Widgets.Widget.Group.OTHER;
+import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.geometry.Pos.CENTER;
 import static util.async.Async.FX;

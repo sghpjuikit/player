@@ -20,7 +20,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
-import Layout.Widgets.controller.io.InOutput;
+import Layout.widget.controller.io.InOutput;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;

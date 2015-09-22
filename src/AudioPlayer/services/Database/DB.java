@@ -18,7 +18,7 @@ import javafx.beans.property.SimpleObjectProperty;
 
 import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.controller.io.InOutput;
+import Layout.widget.controller.io.InOutput;
 import main.App;
 import util.async.future.Fut;
 import util.collections.map.MapSet;

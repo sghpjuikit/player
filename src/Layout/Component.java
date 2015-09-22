@@ -1,6 +1,9 @@
 
 package Layout;
 
+import Layout.container.Container;
+import Layout.container.layout.Layout;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,8 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
 
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetManager;
+import Layout.widget.Widget;
+import Layout.widget.WidgetManager;
 import main.App;
 import util.collections.map.PropertyMap;
 

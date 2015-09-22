@@ -9,10 +9,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 
-import Layout.BiContainerPure;
-import Layout.Container;
-import Layout.FreeFormContainer;
-import Layout.PolyContainer;
+import Layout.container.bicontainer.BiContainerPure;
+import Layout.container.Container;
+import Layout.container.freeformcontainer.FreeFormContainer;
+import Layout.container.tabcontainer.TabContainer;
 import gui.GUI;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
@@ -40,7 +40,7 @@ import static util.graphics.drag.DragUtil.installDrag;
  * @TODO make dynamic indexes work and this widget part of layout map. See
  * TO Do file API section
  */
-@Layout.Widgets.Widget.Info
+@   Layout.widget.Widget.Info
 public final class Layouter implements ContainerNode {
 
     private final Container container;
@@ -229,7 +229,7 @@ public final class Layouter implements ContainerNode {
         APP.actionStream.push("Divide layout");
     }
     private void showTabs() {
-        container.addChild(index, new PolyContainer());
+        container.addChild(index, new TabContainer());
     }
     private void showFreeform() {
         container.addChild(index, new FreeFormContainer());

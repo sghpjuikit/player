@@ -7,15 +7,15 @@
 package Layout.Areas;
 
 import Layout.Component;
-import Layout.PolyContainer;
+import Layout.container.tabcontainer.TabContainer;
 
 /**
  *
  * @author Plutonium_
  */
-public abstract class PolyArea extends Area<PolyContainer>{
+public abstract class PolyArea extends Area<TabContainer>{
 
-    public PolyArea(PolyContainer _container, Integer i) {
+    public PolyArea(TabContainer _container, Integer i) {
         super(_container, i);
     }
     

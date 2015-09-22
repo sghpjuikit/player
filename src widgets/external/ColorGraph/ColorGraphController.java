@@ -23,7 +23,7 @@ import org.reactfx.Subscription;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.controller.FXMLController;
+import Layout.widget.controller.FXMLController;
 import util.graphics.drag.DragUtil;
 
 import static java.time.Duration.ofMillis;

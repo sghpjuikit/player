@@ -17,8 +17,10 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import Layout.*;
-import Layout.Widgets.Widget;
-import Layout.Widgets.controller.Controller;
+import Layout.widget.Widget;
+import Layout.widget.controller.Controller;
+import Layout.container.Container;
+import Layout.container.bicontainer.BiContainer;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
@@ -132,10 +134,6 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
             // close on right click
-            System.out.println(isAlt);
-            System.out.println(isAltCon);
-            System.out.println(e.getButton());
-            System.out.println(container.getChildren().isEmpty());
             if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
                 container.close();
                 e.consume();

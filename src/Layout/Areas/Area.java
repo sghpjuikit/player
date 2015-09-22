@@ -13,8 +13,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.Widget;
+import Layout.container.Container;
+import Layout.widget.Widget;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.pane.IOPane;

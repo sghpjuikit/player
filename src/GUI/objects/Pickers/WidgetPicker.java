@@ -8,8 +8,8 @@ package gui.objects.Pickers;
 
 import javafx.scene.control.Tooltip;
 
-import Layout.Widgets.WidgetFactory;
-import Layout.Widgets.WidgetManager;
+import Layout.widget.WidgetFactory;
+import Layout.widget.WidgetManager;
 
 /** Widget factory picker. */
 public class WidgetPicker extends Picker<WidgetFactory<?>>{

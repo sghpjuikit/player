@@ -26,8 +26,8 @@ import com.sun.javafx.css.StyleManager;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Layout;
-import Layout.LayoutManager;
+import Layout.container.layout.Layout;
+import Layout.container.layout.LayoutManager;
 import action.IsAction;
 import action.IsActionable;
 import gui.objects.Window.stage.Window;

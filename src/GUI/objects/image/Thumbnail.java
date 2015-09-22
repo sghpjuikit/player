@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.widget.Widget;
+import Layout.widget.WidgetManager;
+import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;

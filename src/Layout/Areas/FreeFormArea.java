@@ -5,6 +5,9 @@
  */
 package Layout.Areas;
 
+import Layout.container.freeformcontainer.FreeFormContainer;
+import Layout.container.Container;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -18,7 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import Layout.*;
-import Layout.Widgets.Widget;
+import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.Window.Pane.PaneWindowControls;
 import gui.objects.Window.Resize;

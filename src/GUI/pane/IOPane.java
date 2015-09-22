@@ -19,12 +19,12 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
 import AudioPlayer.services.ClickEffect;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.WidgetManager.WidgetSource;
-import Layout.Widgets.controller.Controller;
-import Layout.Widgets.controller.io.InOutput;
-import Layout.Widgets.controller.io.Input;
-import Layout.Widgets.controller.io.Output;
+import Layout.widget.WidgetManager;
+import Layout.widget.WidgetManager.WidgetSource;
+import Layout.widget.controller.Controller;
+import Layout.widget.controller.io.InOutput;
+import Layout.widget.controller.io.Input;
+import Layout.widget.controller.io.Output;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import main.App;

@@ -14,7 +14,7 @@ import javafx.scene.layout.AnchorPane;
 
 import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.feature.SongReader;
+import Layout.widget.feature.SongReader;
 import gui.objects.image.Thumbnail;
 import util.graphics.fxml.ConventionFxmlLoader;
 

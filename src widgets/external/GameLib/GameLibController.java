@@ -21,8 +21,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.gamelib.GameItem;
+import Layout.widget.controller.FXMLController;
+import Layout.widget.gamelib.GameItem;
 import gui.GUI;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;

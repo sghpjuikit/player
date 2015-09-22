@@ -191,14 +191,13 @@ public class App extends Application implements Configurable {
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final Guide guide = new Guide();
-    private boolean initialized = false;
     public boolean normalLoad = true;
-
-
+    private boolean initialized = false;
 
 
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
-    public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
+    public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
+            () -> plugins.getPlugins(RatingCellFactory.class));
 
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
     public final IntegerProperty maxRating = new SimpleIntegerProperty(5);
@@ -363,7 +362,7 @@ public class App extends Application implements Configurable {
             new FastColAction<Item>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 is -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(is)))
-                );
+        );
         actionPane.register(File.class,
             new FastAction<File>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,

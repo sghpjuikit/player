@@ -12,18 +12,17 @@ import javafx.scene.Node;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
 import Layout.Areas.FreeFormArea;
 
 /**
  */
 public class FreeFormContainer extends Container {
-    
+
     private final Map<Integer,Component> children = new HashMap();
     @XStreamOmitField
     private FreeFormArea gui;
-    
+
 
     @Override
     public Map<Integer, Component> getChildren() {
@@ -33,15 +32,15 @@ public class FreeFormContainer extends Container {
     @Override
     public void addChild(Integer index, Component c) {
         if(index == null) return;
-                
+
         if(c==null) {
-            
+
         } else {
             if(c instanceof Container) {
                 Container.class.cast(c).setParent(this);
             }
         }
-        
+
         children.put(index, c);
         gui.loadWindow(index, c);
         setParentRec();
@@ -52,7 +51,7 @@ public class FreeFormContainer extends Container {
         gui.closeWindow(index);
         children.remove(index);
     }
-    
+
 
     @Override
     public Integer getEmptySpot() {
@@ -73,8 +72,8 @@ public class FreeFormContainer extends Container {
 
     @Override
     public void show() {
-        super.show();
-        if(gui !=null) gui.widgets.values().forEach(Area::show);
+//        super.show();
+        if(gui!=null) gui.show();
     }
 
     @Override
@@ -83,5 +82,5 @@ public class FreeFormContainer extends Container {
 //        if(gui !=null) gui.widgets.values().forEach(Area::hide);
                 if(gui!=null) gui.hide();
     }
-    
+
 }

@@ -3,7 +3,6 @@ package gui.objects.Window.stage;
 import java.io.*;
 import java.util.ArrayList;
 
-import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -18,7 +17,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 
-import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +29,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 
-import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.lasfm.LastFM;
-import AudioPlayer.tagging.Metadata;
 import Configuration.*;
 import Layout.Component;
 import Layout.Layout;
@@ -166,86 +162,11 @@ public class Window extends WindowBase {
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
     public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
 
-    @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
-    public static boolean gui_overlay = false;
-
-    @IsConfig(name = "Overlay effect use song color", info = "Use song color if available as source color for gui overlay effect.")
-    public static boolean gui_overlay_use_song = false;
-
-    @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
-    public static final Ѵ<Color> gui_overlay_color = new Ѵ<>(BLACK, v -> {
-	if (!gui_overlay_use_song) applyColorEffect(v);
-    });
-
-    @IsConfig(name = "Overlay effect normalize", info = "Forbid contrast and brightness change. Applies only hue portion of the color for overlay effect.")
-    public static boolean gui_overlay_normalize = true;
-
-    @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min = 0, max = 1)
-    public static double overlay_norm_factor = 0.5;
-
     @IsConfig(name = "Borderless", info = "Hides borders.")
     public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
 
     @IsConfig(name = "Headerless", info = "Hides header.")
     public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
-
-    @AppliesConfig("overlay_norm_factor")
-    @AppliesConfig("gui_overlay_use_song")
-    @AppliesConfig("gui_overlay_normalize")
-    @AppliesConfig("gui_overlay")
-    public static void applyColorOverlay() {
-	if (gui_overlay_use_song) applyOverlayUseSongColor();
-	else applyColorEffect(gui_overlay_color.getValue());
-    }
-
-    private static void applyColorEffect(Color c) {
-	if (!App.isInitialized()) return;
-	if (gui_overlay) {
-	    // normalize color
-	    if (gui_overlay_normalize) c = Color.hsb(c.getHue(), 0.5, 0.5);
-
-	    Color cl = c;
-            // apply effect
-	    // IMPLEMENT
-	    windows.forEach(w -> {
-                // apply overlay_norm_factor
-		// overlay_norm_factor
-//                String s = ".root{ skin-main-color: rgb(" + (int)(cl.getRed()*255) + ","+ (int)(cl.getGreen()*255)+ ","+ (int)(cl.getBlue()*255)+ "); }";
-//                w.root.setStyle(s);System.out.println(s);
-	    });
-
-	} else {
-            // disable effect
-	    // IMPLEMENT
-	}
-    }
-
-    //TODO: this is too much for sch simple task, simplify the colorizing
-    private static Subscription playingItemMonitoring;
-    private static ChangeListener<Metadata> colorListener;
-
-    private static void applyOverlayUseSongColor() {
-	if (gui_overlay_use_song)
-	    // lazily create and add listener
-	    if (colorListener == null) {
-		colorListener = (o, ov, nv) -> {
-		    Color c = nv.getColor();
-		    applyColorEffect(c == null ? gui_overlay_color.getValue() : c);
-		};
-		playingItemMonitoring = Player.playingtem.onUpdate(item -> colorListener.changed(null, null, item));
-		// fire upon binding to create immediate response
-		colorListener.changed(null, null, Player.playingtem.get());
-	    } else
-		colorListener.changed(null, null, Player.playingtem.get());
-	else {
-	    // remove and destroy listener
-	    if (colorListener != null) {
-		playingItemMonitoring.unsubscribe();
-		colorListener = null;
-	    }
-	    applyColorOverlay();
-	}
-    }
 
 /******************************************************************************/
 
@@ -334,7 +255,7 @@ public class Window extends WindowBase {
         DragUtil.installDrag(
             root, GAVEL,
             "Display possible actions\n\nMoving the drag elsewhere may offer other actions",
-            DragUtil::hasAny,
+            e -> !DragUtil.hasWidgetOutput(e),
             e -> APP.actionPane.show(DragUtil.getAnyFut(e))
         );
 
@@ -396,10 +317,6 @@ public class Window extends WindowBase {
 	    }
 	});
 
-	Icon gitB = new Icon(GITHUB, 13, Action.get("Open on github"));
-	Icon cssB = new Icon(CSS3, 13, Action.get("Open css guide"));
-	Icon iconsB = new Icon(IMAGE, 13, Action.get("Open icon viewer"));
-	Icon dirB = new Icon(FOLDER, 13, Action.get("Open app directory"));
 	Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 	Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
 	Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
@@ -585,9 +502,8 @@ public class Window extends WindowBase {
 	content.setMouseTransparent(val);
     }
 
-    /**
-     **************************** HEADER & BORDER    *********************************
-     */
+/****************************** HEADER & BORDER **********************************/
+
     @FXML public BorderPane header;
     @FXML private Pane header_activator;
     @FXML private Region lBorder;
@@ -828,6 +744,7 @@ public class Window extends WindowBase {
     }
 
 /*******************************    RESIZING  *********************************/
+
     @FXML
     private void border_onDragStart(MouseEvent e) {
         // start resize if allowed

@@ -8,11 +8,13 @@ package gui.objects.Table;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -40,7 +42,9 @@ import gui.InfoNode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;
+import util.Util;
 import util.access.FieldValue.ObjectField;
+import util.access.Ѵ;
 import util.async.executor.FxTimer;
 import util.collections.Tuple3;
 import util.functional.Functors;
@@ -48,25 +52,30 @@ import util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
+import static gui.objects.Table.FilteredTable.Search.CONTAINS;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.getEnumConstants;
+import static util.Util.mapEnumConstant;
 import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.collections.Tuples.tuple;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
+import static util.graphics.Util.layHorizontally;
 import static util.reactive.Util.sizeOf;
 
 /**
@@ -165,14 +174,14 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 String st = e.getText().toLowerCase();
                 // update scroll text
                 long now = System.currentTimeMillis();
-                boolean append = scrolFTime==-1 || now-scrolFTime<scrolFTimeMax.toMillis();
-                scrolFtext = append ? scrolFtext+st : st;
-                scrolFTime = now;
-                search(scrolFtext);
+                boolean append = searchTime==-1 || now-searchTime<scrolFTimeMax.toMillis();
+                searchQuery.set(append ? searchQuery.get()+st : st);
+                searchTime = now;
+                search(searchQuery.get());
             }
         });
         addEventFilter(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE && !scrolFtext.isEmpty()) {
+            if(e.getCode()==ESCAPE && searchIsActive()) {
                 searchEnd();
                 e.consume(); // must cause all KEY_PRESSED handlers to be ignored
             }
@@ -282,9 +291,9 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS,18).embedded());
     public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS,18).embedded());
     public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-            menuItem("Select inverse", this::selectAll),
-            menuItem("Select all", this::selectInverse),
-            menuItem("Select none", this::selectNone)
+        menuItem("Select inverse", this::selectAll),
+        menuItem("Select all", this::selectInverse),
+        menuItem("Select none", this::selectNone)
     );
     public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
     /** Table menubar in the bottom with menus. Feel free to modify. */
@@ -296,13 +305,16 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * {@link InfoTable#DEFAULT_TEXT_FACTORY}.
      */
     public final InfoTable<T> items_info = new InfoTable<>(new Label()); // can not bind here as table items list not ready
-    private final HBox bottomLeftPane = new HBox(5,menus,items_info.node){{ setAlignment(CENTER_LEFT); }};
+    private final Label searchQueryLabel = new Label();
+    private final HBox bottomLeftPane = layHorizontally(5,CENTER_LEFT, menus,items_info.node);
+    private final HBox bottomRightPane = layHorizontally(5,CENTER_RIGHT, searchQueryLabel);
     /**
      * Pane for controls in the bottom of the table.
      * Feel free to modify its content. Menubar and item info label are on the
-     * left {@link BorderPane#leftProperty()}.
+     * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
+     * Both wrapped in {@link HBox};
      */
-    public final BorderPane footerPane = new BorderPane(null, null, null, null, bottomLeftPane);
+    public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
 
     /**
      * Visibility of the bottom controls and information panel. Displays
@@ -396,11 +408,11 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * String (or search will be ignored) and column should be visible.
      */
     private F searchField;
-    private String scrolFtext = "";
-    private long scrolFTime = -1;
-    private static final PseudoClass searchmatchPC = getPseudoClass("searchmatch");
-    private static final PseudoClass searchmatchnotPC = getPseudoClass("searchmatchnot");
-    private final FxTimer scrolFautocancelTimer = new FxTimer(3000,-1,this::searchEnd);
+    private long searchTime = -1;
+    private final StringProperty searchQuery = searchQueryLabel.textProperty();
+    private final FxTimer searchAutocanceller = new FxTimer(3000,-1,this::searchEnd);
+    private static final PseudoClass SEARCHMATCHPC = getPseudoClass("searchmatch");
+    private static final PseudoClass SEARCHMATCHNOTPC = getPseudoClass("searchmatchnot");
 
     @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
     private static Duration scrolFTimeMax = millis(500);
@@ -408,8 +420,10 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     private static boolean scrolFautocancel = true;
     @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
     private static Duration scrolFautocancelTime = millis(3000);
-    @IsConfig(name = "Search use contains", info = "Use 'contains' instead of 'starts with' for string matching.")
-    private static boolean scrolFTimeMatchContain = true;
+    @IsConfig(name = "Search algorithm", info = "Algorithm for string matching.")
+    private static final  Ѵ<Search> searchAlg = new Ѵ<>(CONTAINS);
+    @IsConfig(name = "Search ignore case", info = "Algorithm for string matching will ignore case.")
+    private static boolean searchAlg_caseless = true;
 
     /** Sets fields to be used in search. Default is main field. */
     public void searchSetColumn(F field) {
@@ -421,7 +435,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * automatically {@link #scrolFautocancel}, or manually {@link #searchEnd()}.
      */
     public boolean searchIsActive() {
-        return !scrolFtext.isEmpty();
+        return !searchQuery.get().isEmpty();
     }
 
     /**
@@ -429,13 +443,14 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * column for field {@link #searchField} (column can be invisible).
      */
     public void search(String s) {
-        scrolFtext = s;
+        APP.actionStream.push("Table search");
+        searchQuery.set(s);
         // scroll to first item beginning with search string
         TableColumn c = getColumn(searchField).orElse(null);
         if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
             for(int i=0;i<getItems().size();i++) {
                 String item = (String)searchField.getOf(getItems().get(i));
-                if(matches(item,scrolFtext)) {
+                if(matches(item,searchQuery.get())) {
                     scrollToCenter(i);
                     updateSearchStyles();
                     break;
@@ -448,12 +463,13 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * Ends search manually.
      */
     public void searchEnd() {
-        scrolFtext = "";
+        searchQuery.set("");
+        searchQueryLabel.setText(searchQuery.get());
         updateSearchStyleRowsNoReset();
     }
 
     private void updateSearchStyles() {
-        if(scrolFautocancel) scrolFautocancelTimer.start(scrolFautocancelTime);
+        if(scrolFautocancel) searchAutocanceller.start(scrolFautocancelTime);
         updateSearchStyleRowsNoReset();
     }
 
@@ -462,20 +478,33 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         for (TableRow<T> row : getRows()) {
             T t = row.getItem();
             Object o = t==null ? null : searchField.getOf(t);
-            boolean isMatch = o instanceof String && matches((String)o,scrolFtext);
-            row.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch);
-            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch));
-            row.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch);
-            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch));
+            boolean isMatch = o instanceof String && matches((String)o,searchQuery.get());
+            row.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
+            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch));
+            row.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch);
+            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch));
        }
     }
 
-    private boolean matches(String text, String s) {
-        String x = s.toLowerCase();
-        String in = text.toLowerCase();
-        return scrolFTimeMatchContain ? in.contains(s) : in.startsWith(x);
+    private static boolean matches(String text, String query) {
+        String t = searchAlg_caseless ? text.toLowerCase() : text;
+        String q = searchAlg_caseless ? query.toLowerCase() : query;
+        return searchAlg.getValue().predicate.test(t,q);
     }
 
+    public static enum Search {
+        CONTAINS((text,query) -> text.contains(query)),
+        STARTS_WITH((text,query) -> text.startsWith(query)),
+        ENDS_WITH((text,query) -> text.endsWith(query));
+
+        final BiPredicate<String,String> predicate;
+
+        private Search(BiPredicate<String,String> p) {
+            mapEnumConstant(this, Util::enumToHuman);
+            predicate = p;
+        }
+
+    }
 
 /************************************* SORT ***********************************/
 

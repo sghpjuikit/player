@@ -5,7 +5,6 @@
  */
 package Layout.Areas;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -33,10 +32,10 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static gui.GUI.closeAndDo;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.async.Async.runFX;
 import static util.functional.Util.findFirstEmpty;
 import static util.functional.Util.isInR;
+import static util.graphics.Util.layAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -50,17 +49,19 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         + "Sets best size and position for the widget. Maximizes widget size "
         + "and tries to align it with other widgets so it does not cover other "
         + "widgets.";
-
+    private static final String autolbTEXT = "Autolayout\n\nLayout algorithm will resize widgets "
+        + "to maximalize used space.";
 
     private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap();
-    public final Map<Integer,WidgetArea> widgets = new HashMap();
     boolean resizing = false;
 
     public FreeFormArea(FreeFormContainer con) {
         super(con);
-        root.getChildren().add(rt);
-        setAnchors(rt, 0d);
+        layAnchor(root, rt,0d);
+
+        Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, this::bestLayout);
+        icons.getChildren().add(1,layB);
 
         BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
@@ -70,11 +71,6 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 // add new widget on left click
                 if(e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(), e.getY());
-                    e.consume();
-                }
-                // close on right click
-                if(e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-                    container.close();
                     e.consume();
                 }
             }
@@ -130,7 +126,6 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     }
 
     public void load() {
-        widgets.clear();
         container.getChildren().forEach(this::loadWindow);
     }
 
@@ -154,7 +149,6 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                            w.h.set(p.d*rt.getHeight());
                        }));
                        wa.loadWidget((Widget)cm);
-                       widgets.put(i,wa);
                        w.moveOnDragOf(wa.content_root);
             n = wa.root;
         } else {
@@ -175,26 +169,12 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if(w!=null) { // null can happen only in illegal call, but cant prevent that for now (layouter calls close 2 times)
             w.close();
             windows.remove(i);
-            widgets.remove(i);
             container.properties.remove(i+"x");
             container.properties.remove(i+"y");
             container.properties.remove(i+"w");
             container.properties.remove(i+"h");
         }
     }
-
-    @Override
-    public void showChildren() {
-
-    }
-
-    @Override
-    public void hideChildren() {
-//        windows.forEachBoth((i,w) -> {
-//            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
-//        });
-    }
-
 
     private PaneWindowControls getWindow(int i) {
         PaneWindowControls w = windows.get(i);
@@ -341,10 +321,6 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         return i;
     }
 
-    @Override
-    Collection<WidgetArea> getAreas() {
-        return widgets.values();
-    }
     public void bestLayout() {
         windows.forEach((i,w) -> {
             TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);

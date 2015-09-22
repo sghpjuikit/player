@@ -146,10 +146,7 @@ public final class AreaControls {
 	header_buttons.setVgap(8);
 
 	// build header buttons
-	Icon closeB = new Icon(TIMES, 12, closebTEXT, e -> {
-	    close();
-	    APP.actionStream.push("Close widget");
-	});
+	Icon closeB = new Icon(TIMES, 12, closebTEXT, this::close);
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
 	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
 	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
@@ -371,7 +368,6 @@ public final class AreaControls {
                 openAndDo(s, null);
             });
         }
-        APP.actionStream.push("Widget info");
     }
 
     void detach() {
@@ -456,6 +452,7 @@ public final class AreaControls {
 	//set state
 	isShowingStrong = true;
 	showWeak();
+        APP.actionStream.push("Widget control");
     }
 
     public void hide() {

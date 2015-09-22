@@ -386,6 +386,17 @@ public class ActionPane extends OverlayPane implements Configurable {
             super(name, description, icon, NONE, IS, act);
         }
 
+        public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupally, Ƒ1<Fut<T>,Fut<R>> act) {
+            super(name, description, icon, groupally, IS, act);
+        }
+
+    }
+    public static class SlowColAction<T,R> extends SlowAction<Collection<T>,R> {
+
+        public SlowColAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<Collection<T>>, Fut<R>> act) {
+            super(name, description, icon, FOR_ALL, act);
+        }
+
     }
 
     public static enum GroupApply {

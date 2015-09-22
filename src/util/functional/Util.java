@@ -592,7 +592,7 @@ public class Util {
      * normal for loop
      * @param action action that executes once per item. It can throw exception to signal loop break
      */
-    public static <T> void forEachAfter(long period, List<T> items, ƑEC<T,InterruptedException> action) {
+    public static <T> void forEachAfter(long period, Collection<T> items, ƑEC<T,InterruptedException> action) {
         for(T item : items) {
             try {
                 action.apply(item);

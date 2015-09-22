@@ -7,7 +7,9 @@ package Layout.WidgetImpl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -40,7 +42,6 @@ import util.async.future.Fut;
 import static Layout.Widgets.Widget.Group.OTHER;
 import static java.lang.Character.isAlphabetic;
 import static java.lang.Math.sqrt;
-import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -105,6 +106,11 @@ public class DirViewer extends ClassController {
         viewDir(new TopCell());
     }
 
+    @Override
+    public void onClose() {
+        loading++;
+        super.onClose();
+    }
 
     void visitUp() {
         if(item!=null && item.parent!=null)
@@ -128,7 +134,9 @@ public class DirViewer extends ClassController {
                .use(newcells ->  {
                    runFX(cells.getChildren()::clear);
                    log(DirViewer.class).info("Cells loading {} started ", l);
-                   forEachAfter(10, newcells, c -> {
+                   List<Cell> sorted = list(newcells);
+                              sorted.sort(by(c -> c.val.getName()));
+                   forEachAfter(10, sorted, c -> {
                        if(l!=loading) throw new InterruptedException();
                        Node n = c.load();
                        runFX(() -> {
@@ -146,37 +154,43 @@ public class DirViewer extends ClassController {
     private boolean filter(File f) {
         return !f.isHidden() && f.canRead() && filter.getValue().filter.test(f);
     }
-
+    private static boolean file_exists(Cell c, File f) {
+        return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
+    }
     public class Cell {
 
         public final File val;
         public final Cell parent;
-
-        private boolean isLeaf;
-        private boolean isFirstTimeLeaf = true;
-        private boolean isFirstTimeChildren = true;
-        private final List<Cell> childr = new ArrayList();
+        private Set<Cell> children = null;
+        private Set<String> all_children = null; // cache
 
         public Cell(Cell parent, File value) {
             this.val = value;
             this.parent = parent;
         }
 
-        public List<Cell> children() {
-            if (isFirstTimeChildren) {
-                childr.clear();
-                childr.addAll(buildChildren());
-                isFirstTimeChildren = false;
-            }
-            return childr;
+        public Set<Cell> children() {
+            if (children == null) buildChildren();
+            return children;
         }
 
         boolean isFirstTimeCover = true;
         Image cover = null;
         public File getCoverFile() {
-            File f = val;
-            File i = f.isDirectory() ? new File(f,"cover.jpg") : filImage(f);
-            return i;
+
+            if(all_children==null) System.out.println("children null " + val);
+            if(all_children==null) buildChildren();
+            if(val.isDirectory())
+                return getImageT(val,"cover");
+            else {
+                if(ImageFileFormat.isSupported(val))
+                    return val;
+                else {
+                    File i = getImage(val.getParentFile(),FileUtil.getName(val));
+                    if(i==null && parent!=null) return parent.getCoverFile();
+                    return i;
+                }
+            }
         }
         public Image getCover() {
             return cover;
@@ -186,26 +200,46 @@ public class DirViewer extends ClassController {
             isFirstTimeCover=false;
         }
 
-        private File filImage(File f) {
-            File i = new File(f.getParent(),FileUtil.getName(f)+".jpg");
-            if(!i.exists()) return parent.getCoverFile();
-            else return i;
+        protected Stream<File> children_files() {
+            return listFiles(val).stream();
         }
 
-        protected List<Cell> buildChildren() {
-            // we want to sort the items : directories first
-            // we make use of the fact that listFiles() gives us already
-            // sorted list
-            List<Cell> dirs = new ArrayList<>();
+        private void buildChildren() {
+            all_children = new HashSet<>();
+            children = new HashSet<>();
             List<Cell> fils = new ArrayList<>();
-            listFiles(val).stream().filter(DirViewer.this::filter).forEach(f -> {
-                if(!f.isDirectory()) dirs.add(new Cell(this,f));
-                else                 fils.add(new Cell(this,f));
+            children_files().forEach(f -> {
+                all_children.add(f.getPath().toLowerCase());
+                if(DirViewer.this.filter(f)) {
+                    if(!f.isDirectory()) children.add(new Cell(this,f));
+                    else                 fils.add(new Cell(this,f));
+                }
             });
-                   dirs.addAll(fils);
-            return dirs;
+            children.addAll(fils);
         }
 
+        private File getImage(File dir, String name) {
+            if(dir==null) return null;
+            for(ImageFileFormat format: ImageFileFormat.values()) {
+                if (format.isSupported()) {
+                    File f = new File(dir,name + "." + format.toString());
+                    if(dir==val ? file_exists(this,f) : file_exists(parent,f)) return f;
+                }
+            }
+            return null;
+        }
+        private File getImageT(File dir, String name) {
+            if(dir==null) return null;
+
+            for(ImageFileFormat format: ImageFileFormat.values()) {
+                if (format.isSupported()) {
+                    File f = new File(dir,name + "." + format.toString());
+                    System.out.println(file_exists(this,f) + " " + f + " " +val);
+                    if(file_exists(this,f)) return f;
+                }
+            }
+            return null;
+        }
 
         private VBox root;
 
@@ -257,13 +291,8 @@ public class DirViewer extends ClassController {
         }
 
         @Override
-        protected List<Cell> buildChildren() {
-            return files.list.stream()
-                      .flatMap(f->f.isDirectory() ? stream(listFiles(f)) : Stream.empty())
-                      .filter(DirViewer.this::filter)
-                      .sorted(by(File::getName))
-                      .map(f -> new Cell(this,f))
-                      .collect(toList());
+        protected Stream<File> children_files() {
+            return files.list.stream().flatMap(f -> f.isDirectory() ? stream(listFiles(f)) : stream());
         }
 
         @Override

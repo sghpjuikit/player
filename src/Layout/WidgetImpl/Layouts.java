@@ -35,8 +35,8 @@ import static util.functional.Util.toCSList;
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    name = "Spectrumator",
-    description = "PDisplays real time audio spectrum of playback",
+    name = "Layouts",
+    description = "",
     howto = "",
     notes = "",
     version = "0.4",
@@ -44,7 +44,7 @@ import static util.functional.Util.toCSList;
     group = APP
 )
 public final class Layouts extends ClassController {
-    
+
     Text infoT = new Text();
     @FXML ComboBox<String> layoutsCB;
     @FXML CheckBox lockedChB;
@@ -53,15 +53,15 @@ public final class Layouts extends ClassController {
     @FXML StackPane imgContainer;
     @FXML VBox box;
     Thumbnail thumb = new Thumbnail(250,250);
-    
+
     public Layouts() {
-        
+
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
-        
+
         infoT.setWrappingWidth(200);
         box.getChildren().add(3, infoT);
-        
+
         layoutsCB.valueProperty().addListener((o,oldValue,newValue) -> {
             if (isSelected())
                 displayInfo(getSelectedLayout());
@@ -82,11 +82,11 @@ public final class Layouts extends ClassController {
                 }
             };
         });
-        
+
         imgContainer.getChildren().add(thumb.getPane());
         refresh();
     }
-    
+
     /**
      * Completely refreshes layouts - rereads them from files, etc...
      */
@@ -94,21 +94,21 @@ public final class Layouts extends ClassController {
         layoutsCB.getItems().setAll(LayoutManager.getAllLayoutsNames().collect(toList()));
         layoutsCB.getSelectionModel().select(LayoutManager.getActive().getName());
     }
-    
+
     @FXML
     public void loadSelectedLayout() {
         if (!isSelected()) return;
-        
+
         SwitchContainer c = Window.getActive().getTopContainer();
         Component toLoad = getSelectedLayout().getChild();
         int i = c.getEmptySpot(); // this can normally return null, but not SwitchContainer
         c.addChild(i, toLoad);
         c.getGraphics().alignTab(i);
     }
-    
+
     public void saveSelectedLayout() {
         if (!isSelected()) return;
-        
+
         Layout l = getSelectedLayout();
                l.locked.set(lockedChB.isSelected());
                if (!nameF.getText().isEmpty()) l.setName(nameF.getText());
@@ -116,7 +116,7 @@ public final class Layouts extends ClassController {
                l.makeSnapshot();
         refresh();
     }
-    
+
     @FXML
     public void newLayout() {
         Layout l = new Layout();
@@ -132,29 +132,29 @@ public final class Layouts extends ClassController {
     public void openLayoutDirectory() {
         Environment.browse(App.LAYOUT_FOLDER().toURI());
     }
-    
+
     private boolean isSelected() {
         return !layoutsCB.getSelectionModel().isEmpty();
     }
-    
+
     private Layout getSelectedLayout() {
         // create 'empty' layout based on name
         String name = layoutsCB.getSelectionModel().getSelectedItem();
         // attempt to get layout from active layouts
         Layout l = LayoutManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
         // attempt to deserialize the layout if not active
-        if(l==null) { 
+        if(l==null) {
             l = new Layout(name);
             l.deserialize();
         }
         return l;
     }
-    
-    private void displayInfo(Layout l) {                
+
+    private void displayInfo(Layout l) {
         nameF.setText("");
         nameF.setPromptText(l.getName());
         lockedChB.setSelected(l.locked.get());
-        
+
         List<String> w_names = new ArrayList();
         // get children counts by counting leaf Components
             // all widgets (and fetch names while at it to avoid reiterating
@@ -162,7 +162,7 @@ public final class Layouts extends ClassController {
         long chs = l.getAllContainers(true).filter(c -> c.getChildren().isEmpty()).count();
             // all empty leaf containers
         long cs = ws-chs;
-        
+
         // show info
         String s;
         s  = "Name: " + l.getName() + "\n";

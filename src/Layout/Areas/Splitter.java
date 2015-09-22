@@ -12,11 +12,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 
 import Layout.BiContainer;
@@ -28,24 +25,18 @@ import gui.objects.icon.Icon;
 import unused.SimplePositionable;
 import util.collections.map.PropertyMap;
 import util.dev.TODO;
-import util.graphics.drag.DragUtil;
 
-import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static gui.GUI.closeAndDo;
-import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static util.access.SequentialValue.next;
 import static util.async.Async.run;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.MEDIUM;
-import static util.functional.Util.mapB;
+import static util.graphics.Util.layAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -54,58 +45,62 @@ import static util.reactive.Util.maintain;
  */
 @TODO(purpose = UNIMPLEMENTED, severity = MEDIUM,
       note = "resizing when collapsed slow response & boilerplate code")
-public final class Splitter implements ContainerNode {
-    
-    AnchorPane root = new AnchorPane();
+public final class Splitter extends ContainerNodeBase<BiContainer> {
+
+    AnchorPane rt = new AnchorPane();
     @FXML AnchorPane root_child1;
     @FXML AnchorPane root_child2;
     @FXML SplitPane splitPane;
     @FXML AnchorPane controlsRoot;
     @FXML TilePane controlsBox;
     @FXML TilePane collapseBox;
-    
+
     SimplePositionable controls;
-    private final BiContainer container;
-    
+
     private final PropertyMap prop;
     private final FadeTransition fadeIn;
     private final FadeTransition fadeOut;
 
     private boolean initialized = false;
     private EventHandler<MouseEvent> aaa;
-    
+
     private void applyPos() {
         splitPane.getDividers().get(0).setPosition(prop.getD("pos"));
     }
-    
+
     public Splitter(BiContainer c) {
-        container = c;
+        super(c);
+        layAnchor(root, rt,0d);
         prop = c.properties;
-        
+
         // load graphics
         FXMLLoader fxmlLoader = new FXMLLoader(Splitter.class.getResource("Splitter.fxml"));
-        fxmlLoader.setRoot(root);
+        fxmlLoader.setRoot(rt);
         fxmlLoader.setController(this);
         try {
             fxmlLoader.load();
-        } catch (IOException e) { 
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        
+
+        // bugfix, splitpane consumes all mouse events (some java dev einstein did this!)
+        // either use custom skin or this nasty workaround
+        splitPane.setOnMouseClicked(root.getOnMouseClicked());
+
         // setParentRec properties
         prop.initProperty(Double.class, "pos", 0.5d);
         prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
         prop.initProperty(Integer.class, "col", 0);
-       
+
         // maintain proper orientation
         maintain(container.orientation, splitPane.orientationProperty());
         // put properties
         setAbsoluteSize(prop.getI("abs_size"));
         applyPos();
         setupCollapsed(getCollapsed());
-        
+
         // controls behavior
-        controls = new SimplePositionable(controlsRoot, root);
+        controls = new SimplePositionable(controlsRoot, rt);
 
         // maintain controls position
         // note: ideally we would reposition ontorls when show() gets called
@@ -114,11 +109,11 @@ public final class Splitter implements ContainerNode {
         ChangeListener<Number> repositioner = (o,ov,nv) -> {
             if(controls.getPane().getOpacity() != 0) positionControls();
         };
-        root.widthProperty().addListener(repositioner);
-        root.heightProperty().addListener(repositioner);
+        rt.widthProperty().addListener(repositioner);
+        rt.heightProperty().addListener(repositioner);
         controls.getPane().opacityProperty().addListener(repositioner);
         splitPane.getDividers().get(0).positionProperty().addListener(repositioner);
-                
+
         // build animations
         fadeIn = new FadeTransition(TIME, controlsRoot);
         fadeIn.setToValue(1);
@@ -137,14 +132,14 @@ public final class Splitter implements ContainerNode {
                 root_child2.setPadding(new Insets(d*20, 0, 0, 0));
             }
         });
-        
+
         // maintain controls position show if mouse close to divider
         // activate the handler only if this visible
         final double limit = 15; // distance for activation of the animation
         final double act_width = 70; // length for activation area
         aaa = e -> {
-            double W = root.widthProperty().get();
-            double H = root.heightProperty().get();
+            double W = rt.widthProperty().get();
+            double H = rt.heightProperty().get();
             if (splitPane.getOrientation() == HORIZONTAL) {
                 double gap = (H-act_width)/2d;
                 double X = splitPane.getDividerPositions()[0] * W;
@@ -167,17 +162,13 @@ public final class Splitter implements ContainerNode {
                 }
             }
         };
-        
+
         // activate animation if mouse if leaving area
-        splitPane.addEventFilter(MOUSE_EXITED, e -> {
-            if (!splitPane.contains(e.getX(), e.getY())) // the containsKey check is necessary to avoid mouse over button = splitPane pane mouse exit
-                hideControls();
-            e.consume();
-        });
-        
-        // maintain controls orientation 
+        splitPane.setOnMouseClicked(root.getOnMouseClicked());
+
+        // maintain controls orientation
         maintain(splitPane.orientationProperty(), this::refreshControlsOrientation);
-                
+
         splitPane.getDividers().get(0).positionProperty().addListener((o,ov,nv) -> {
             // occurs when user drags the divider, manual -> remember it
             if(splitPane.isPressed()) {
@@ -195,12 +186,12 @@ public final class Splitter implements ContainerNode {
                     // the value from prop.getD("pos") is not working because of a bug
                     // which requires it to be in Platform.runlater() which causes
                     // a major unersponsiveness of the divider during resizing
-                    
+
                     // the stored value is not affected which is good. But the gui
                     // might not be be properly put on consequent resizes or on
                     // near edge restoration (major problem)
 
-                    
+
                     // because we really need to load the layout to proper
                     // position, use the workaround for initialisation
                 } else {
@@ -213,49 +204,26 @@ public final class Splitter implements ContainerNode {
             }
         });
 
-        // close container if on right click it is empty
-        splitPane.setOnMouseClicked( e -> {
-            if(e.getButton()==SECONDARY && GUI.isLayoutMode()) {
-                if (c.getAllWidgets().count()==0)
-                    closeAndDo(root, c::close);
-                e.consume();
-            }
-        });
-        
         // controls
-        Icon infoB = createInfoIcon("Split container settings");
-        Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
-        dragB.setOnDragDetected(e -> {
-            if (e.getButton()==PRIMARY) { //// primary button drag only
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(container.getParent(),container,db);
-                // signal dragging graphically with css
-                root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
-                e.consume();
-            }
-        });
-        Icon lockB = new Icon(LOCK, 12, "Lock container", this::toggleLocked);
-        maintain(c.locked,mapB(LOCK,UNLOCK), lockB::icon);
         Icon absB = new Icon(CHAIN, 12, "Switch proportionally resizable content", this::toggleAbsoluteSize);absB.setText("1");
         Icon switchB = new Icon(EXCHANGE, 12, "Swap content", this::switchChildren);
         Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
         maintain(c.orientation,o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB::icon);
-        Icon closeB = new Icon(CLOSE, 12, "Close container", ()->closeAndDo(root, container::close));
         Icon coll1B = new Icon(ARROW_RIGHT, 10, "Collapse", this::toggleCollapsed1);
         maintain(c.orientation,o->o==VERTICAL ? ARROW_RIGHT : ARROW_DOWN, coll1B::icon);
         Icon coll2B = new Icon(ARROW_LEFT, 10, "Collapse", this::toggleCollapsed2);
         maintain(c.orientation,o->o==VERTICAL ? ARROW_LEFT : ARROW_UP, coll2B::icon);
         collapseBox.getChildren().setAll(coll1B,coll2B);
-        controlsBox.getChildren().setAll(infoB,dragB,absB,collapseBox,lockB,orienB,switchB,closeB);
-        
+        controlsBox.getChildren().setAll(absB,collapseBox,orienB,switchB);
+
         hideControls();
     }
-    
+
     public void setComponent(int i, Component c) {
         if(i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
-        
+
         AnchorPane r = i==1 ? root_child1 : root_child2;
-        
+
         if (c == null) {
             r.getChildren().clear();
             return;
@@ -263,12 +231,12 @@ public final class Splitter implements ContainerNode {
         Node content = null;
         if (c instanceof Widget) content = c.load();
         else if (c instanceof Container) content = ((Container)c).load(r);
-            
-            
+
+
         r.getChildren().setAll(content);
         setAnchors(content,0d);
     }
-    
+
     public void setChild1(Component w) {
         setComponent(1, w);
     }
@@ -283,11 +251,6 @@ public final class Splitter implements ContainerNode {
         return root_child2;
     }
 
-    @Override
-    public Pane getRoot() {
-        return root;
-    }
-    
     /**
      * Toggle orientation between vertical/horizontal.
      */
@@ -295,9 +258,9 @@ public final class Splitter implements ContainerNode {
     public void toggleOrientation() {
         container.orientation.set(next(splitPane.getOrientation()));
     }
-    
+
 /*********************************** ABS SIZE *********************************/
-    
+
     /**
      * Toggle fixed size on for different children and off.
      */
@@ -306,27 +269,30 @@ public final class Splitter implements ContainerNode {
         int i = getAbsoluteSize();
             i = i==2 ? 0 : i+1;
         setAbsoluteSize(i);
-        
+
     }
+
     public void toggleAbsoluteSizeFor(int i) {
         setAbsoluteSize(getAbsoluteSize()==i ? 0 : i);
     }
+
     public void setAbsoluteSize(int i) {
         if(i<0 || i>2)
             throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
-        
+
         SplitPane.setResizableWithParent(root_child1, i!=1);
         SplitPane.setResizableWithParent(root_child2, i!=2);
-        
+
         prop.put("abs_size", i);
-        
+
         updateAbsB(container.getChildren().get(1));
         updateAbsB(container.getChildren().get(2));
     }
+
     public int getAbsoluteSize() {
         return prop.getI("abs_size");
     }
-    
+
     private void updateAbsB(Component cmp) {
         if(cmp instanceof Container) {
             Container c = (Container)cmp;
@@ -336,9 +302,9 @@ public final class Splitter implements ContainerNode {
             }
         }
     }
-    
+
 /********************************** COLLAPSING ********************************/
-    
+
     /**
      * Switch positions of the children
      */
@@ -365,7 +331,7 @@ public final class Splitter implements ContainerNode {
     public int getCollapsed() {
         return prop.getI("col");
     }
-    
+
     private final ChangeListener<Orientation> orientListener = (o,ov,nv) -> {
         setupCollapsed(getCollapsed());
     };
@@ -414,48 +380,50 @@ public final class Splitter implements ContainerNode {
             }
         }
     }
-    
+
     @FXML
     public void closeContainer() {
-        closeAndDo(root, container::close);
+        closeAndDo(rt, container::close);
     }
-    
-    
+
+
     public void showControls() {
         if (!GUI.isLayoutMode()) return;
         fadeIn.play();
         controls.getPane().setMouseTransparent(false);
     }
-    
+
     public void hideControls() {
         fadeOut.play();
     }
-    
+
     @FXML
     public void toggleLocked() {
         container.locked.set(!container.locked.get());
     }
-    
+
     @Override
     public void show() {
+        super.show();
 //        showControls();
         splitPane.addEventFilter(MOUSE_MOVED,aaa);
     }
 
     @Override
     public void hide() {
+        super.hide();
 //        hideControls();
         splitPane.removeEventFilter(MOUSE_MOVED,aaa);
     }
-    
-    
+
+
     private void positionControls() {
         if (splitPane.getOrientation() == VERTICAL) {
             double X = splitPane.getWidth()/2;
-            double Y = splitPane.getDividerPositions()[0] * root.heightProperty().get();
+            double Y = splitPane.getDividerPositions()[0] * rt.heightProperty().get();
             controls.relocate(X-controls.getWidth()/2, Y-controls.getHeight()/2);
         } else {
-            double X = splitPane.getDividerPositions()[0] * root.widthProperty().get();
+            double X = splitPane.getDividerPositions()[0] * rt.widthProperty().get();
             double Y = splitPane.getHeight()/2;
             controls.relocate(X-controls.getWidth()/2, Y-controls.getHeight()/2);
         }

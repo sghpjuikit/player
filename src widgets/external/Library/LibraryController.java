@@ -16,7 +16,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import javafx.util.Callback;
@@ -188,7 +188,7 @@ public class LibraryController extends FXMLController implements SongReader {
         d(maintain(show_footer,table.footerVisible));
 
         // add progress indicator to bottom controls
-        table.footerPane.setRight(new HBox(7,taskInfo.message, taskInfo.progressIndicator));
+        ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.message, taskInfo.progressIndicator);
         taskInfo.setVisible(false);
         // extend table items information
         table.items_info.textFactory = (all, list) -> {

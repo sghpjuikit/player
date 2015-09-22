@@ -6,7 +6,6 @@
 package Layout.Areas;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javafx.event.EventHandler;
@@ -18,6 +17,8 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import Layout.*;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.Controller;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
@@ -27,7 +28,6 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -46,16 +46,13 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
     private static final String actbTEXT = "Actions\n\n"
         + "Opens action chooser for this container. Browse and run additional non-layout actions "
         + "for this container.";
-    private static final String autolbTEXT = "Autolayout\n\nLayout algorithm will resize widgets "
-        + "to maximalize used space.";
 
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
+    protected final TilePane icons = new TilePane(8, 8);
+    protected final AnchorPane ctrls = new AnchorPane(icons);
     protected boolean isAltCon = false;
     protected boolean isAlt = false;
-    TilePane icons = new TilePane(8, 8);
-    AnchorPane ctrls = new AnchorPane(icons);
-
 
     Icon absB;
 
@@ -72,9 +69,6 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                 + "\n\tLeft click: visit children"
                 + "\n\tRight click: visit parent container"
         );
-	Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, () -> {
-	    ((FreeFormArea)this).bestLayout();
-	});
 	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
         Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
@@ -130,13 +124,23 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         AnchorPane.setTopAnchor(icons,0d);
         AnchorPane.setRightAnchor(icons,0d);
         AnchorPane.setLeftAnchor(icons,0d);
-        icons.getChildren().addAll(infoB, layB, dragB, absB, lockB, propB, actB, detachB, changeB, closeB);
+        icons.getChildren().addAll(infoB, dragB, absB, lockB, propB, actB, detachB, changeB, closeB);
 
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
 
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
+            // close on right click
+            System.out.println(isAlt);
+            System.out.println(isAltCon);
+            System.out.println(e.getButton());
+            System.out.println(container.getChildren().isEmpty());
+            if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
+                container.close();
+                e.consume();
+                return;
+            }
             if(isAlt && !isAltCon && e.getButton()==SECONDARY) {
                 setAltCon(true);
                 e.consume();
@@ -148,6 +152,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                 e.consume();
             }
         });
+
     }
 
     @Override
@@ -161,20 +166,29 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
             setAltCon(true);
         }
         isAlt = true;
-        showChildren();
+
+        container.getChildren().values().forEach(c -> {
+            if(c instanceof Container) ((Container)c).show();
+            if(c instanceof Widget) {
+                Controller ct = ((Widget)c).getController();
+                if(ct!=null) ct.getArea().show();
+            }
+        });
     }
 
     @Override
     public void hide() {
         if(isAltCon) setAltCon(false);
         isAlt = false;
-        hideChildren();
-        getAreas().forEach(AltState::hide);
-    }
 
-    abstract public void showChildren();
-    abstract public void hideChildren();
-    abstract Collection<WidgetArea> getAreas();
+        container.getChildren().values().forEach(c -> {
+            if(c instanceof Container) ((Container)c).hide();
+            if(c instanceof Widget) {
+                Controller ct = ((Widget)c).getController();
+                if(ct!=null) ct.getArea().hide();
+            }
+        });
+    }
 
     List<Node> getC() {
         List<Node> o = new ArrayList(root.getChildren());

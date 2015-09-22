@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- action for importing files
 - DirViewer needs virtual flow
 - ability to switch main window
 - IDENTITY function
@@ -21,10 +22,6 @@
 - implement smooth volume on seek
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
-- converter & ActionPane improve collection support & collection element display
-  ultimately creating a file importer, such as for playlist & library
-- popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will 
-  start playing playlist selected song too...
 - make containers & widgets more lightweight
 - Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
@@ -51,7 +48,6 @@
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
   order in random playorder
 - unify & clean up Var, Ref, SingleRef
-- window color overlay effect
 - tab area
 - generic FileType class, particularly need separation on 'groups' like
   audio, video, image, etc...

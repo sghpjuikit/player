@@ -143,7 +143,7 @@ public class ShortcutPane extends OverlayPane {
     );
     private final Icon hideI = new CheckIcon(hideEmpty)
                                     .tooltip(HE_TITLE+"\n\n"+HE_INFO)
-                                    .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE, CLOSE_CIRCLE_OUTLINE);
+                                    .icons(CLOSE_CIRCLE_OUTLINE,CHECKBOX_BLANK_CIRCLE_OUTLINE);
     private final HBox controls = layHorizontally(5,CENTER_RIGHT, hideI,helpI);
 
 }

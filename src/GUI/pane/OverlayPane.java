@@ -13,6 +13,7 @@ import javafx.scene.layout.StackPane;
 
 import gui.objects.Window.stage.Window;
 import util.animation.Anim;
+import util.reactive.RunnableSet;
 
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -33,6 +34,11 @@ public class OverlayPane extends StackPane {
     private static final String IS_SHOWN = "visible";
     private static final String ROOT_STYLECLASS = "overlay-pane";
     static final String CONTENT_STYLECLASS = "overlay-pane-content";
+
+    /** Handlers called just after this pane was shown. */
+    public final RunnableSet onShown = new RunnableSet();
+    /** Handlers called just after this pane was hidden. */
+    public final RunnableSet onHidden = new RunnableSet();
 
     public OverlayPane() {
         setVisible(false);
@@ -109,6 +115,7 @@ public class OverlayPane extends StackPane {
         Window.getActive().front.setEffect(blurback);
         Window.getActive().back.setEffect(blurback);
         animation.playOpenDo(null);
+        onShown.run();
     }
 
     private void animDo(double x) {
@@ -134,6 +141,7 @@ public class OverlayPane extends StackPane {
         Window.getActive().content.setEffect(null);
         Window.getActive().header.setEffect(null);
         bgr=null;
+        onHidden.run();
     }
 
 }

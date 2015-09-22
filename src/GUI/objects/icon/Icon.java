@@ -83,6 +83,7 @@ public class Icon<I extends Icon> extends Text {
 	    helpP.getContentNode().setWrappingWidth(400);
             helpP.getSkinn().setTitleAsOnlyHeaderContent(false);
 	    APP.actionStream.push("Info popup");
+            e.consume();
 	});
     }
 

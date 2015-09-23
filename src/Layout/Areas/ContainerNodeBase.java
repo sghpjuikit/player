@@ -135,6 +135,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         root.setOnMouseClicked(e -> {
             // close on right click
             if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
+//                closeAndDo(container.getRoot(), container::close);
                 container.close();
                 e.consume();
                 return;

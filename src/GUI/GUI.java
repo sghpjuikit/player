@@ -432,7 +432,7 @@ public class GUI {
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately
-            Window.windows.forEach(w ->{
+            Window.WINDOWS.forEach(w ->{
                 String tmp = f.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;
@@ -457,6 +457,26 @@ public class GUI {
 
 
     public static final Duration ANIM_DUR = Duration.millis(300);
+
+//    public static void closeAndDo(Node n, Runnable action) {
+//        double pos = n.getOpacity()==1 ? 0 : n.getOpacity();
+//               pos *= pos;
+//        Animation a = buildAnimation(n, action);
+//                  a.setRate(-1);
+//                  a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
+//    }
+//    public static void openAndDo(Node n, Runnable action) {
+//        double pos = n.getOpacity()==1 ? 0 : n.getOpacity();
+//               pos *= pos;
+//        Animation a = buildAnimation(n, action);
+//                  a.playFrom(ANIM_DUR.multiply(pos));
+//    }
+//
+//    private static Animation buildAnimation(Node n, Runnable action) {
+//        Anim a = new Anim(ANIM_DUR,x -> n.setOpacity(x*x));
+//            a.then(action);
+//        return a;
+//    }
 
     public static void closeAndDo(Node n, Runnable action) {
         double pos = n.getScaleX()==1 ? 0 : n.getScaleX();

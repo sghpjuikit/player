@@ -52,7 +52,7 @@ import unused.SimpleConfigurator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;

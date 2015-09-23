@@ -2,6 +2,7 @@ package gui.objects.Window.stage;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -73,6 +74,7 @@ import static main.App.APP;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.no;
+import static util.dev.Util.yes;
 import static util.functional.Util.find;
 import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
@@ -103,6 +105,7 @@ import static util.reactive.Util.maintain;
 public class Window extends WindowBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
+    public static final List<Window> WINDOWS = new ArrayList<>();
     /** Psududoclass active when this window is focused. Applied on root as '.window'. */
     public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
     /** Psududoclass active when this window is resized. Applied on root as '.window'. */
@@ -112,8 +115,6 @@ public class Window extends WindowBase {
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
 
-    public static final ArrayList<Window> windows = new ArrayList();
-
     /**
      Get focused window. There is zero or one focused window in the application
      at any given time.
@@ -122,7 +123,7 @@ public class Window extends WindowBase {
      @return focused window or null if none focused.
      */
     public static Window getFocused() {
-	return find(windows, w->w.focused.get()).orElse(null);
+	return find(WINDOWS, w->w.focused.get()).orElse(null);
     }
 
     /**
@@ -139,7 +140,7 @@ public class Window extends WindowBase {
      @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-	return find(windows, w->w.focused.get()).orElse(App.getWindow());
+	return find(WINDOWS, w->w.focused.get()).orElse(App.getWindow());
     }
 
     private static double mouse_speed = 0;
@@ -160,13 +161,13 @@ public class Window extends WindowBase {
 /******************************** Configs *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
+    public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
+    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
 
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
+    public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
 
 /******************************************************************************/
 
@@ -181,9 +182,9 @@ public class Window extends WindowBase {
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
 
 //        System.out.println(windows.);
-        if(windows.isEmpty()) w.setAsMain();
+        if(WINDOWS.isEmpty()) w.setAsMain();
         // add to list of active windows
-        windows.add(w);
+        WINDOWS.add(w);
 
         w.initialize();
         return w;
@@ -217,6 +218,7 @@ public class Window extends WindowBase {
 
     private Window() {
 	super();
+        s.getProperties().put("window", this);
     }
 
     /**
@@ -424,6 +426,7 @@ public class Window extends WindowBase {
     }
 
     public void setContent(Node n) {
+        yes(layout==null, "Layout already initialized");
 	content.getChildren().clear();
 	content.getChildren().add(n);
 	setAnchors(n, 0d);
@@ -444,6 +447,7 @@ public class Window extends WindowBase {
     }
 
     public void initLayout(Layout l) {
+        yes(layout==null, "Layout already initialized");
         layout = l;
 	content.getChildren().clear();
         layout.load(content);
@@ -632,9 +636,9 @@ public class Window extends WindowBase {
 
     @Override
     public void close() {
-        LOGGER.info("Closing window. {} windows currently open.", windows.size());
+        LOGGER.info("Closing window. {} windows currently open.", WINDOWS.size());
 	if (main) {
-            LOGGER.info("Window is main. App will be closed.", windows.size());
+            LOGGER.info("Window is main. App will be closed.", WINDOWS.size());
             // javaFX bug fix - close all pop overs first
 	    // new list avoids ConcurrentModificationError
 	    list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
@@ -642,7 +646,7 @@ public class Window extends WindowBase {
 	    App.getWindowOwner().close();
 	} else {
             if(layout!=null) layout.close(); // close layout to release resources
-            windows.remove(this);   // remove from window list
+            WINDOWS.remove(this);   // remove from window list
             super.close();  // in the end close itself
         }
     }

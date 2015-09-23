@@ -28,7 +28,7 @@ import action.Action;
 import main.App;
 import util.File.FileUtil;
 import util.access.Ѵo;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 
 import static util.Util.getAllFields;
 import static util.dev.Util.noFinal;

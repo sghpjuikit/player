@@ -86,9 +86,9 @@ public class WindowManager {
         if(!App.APP.normalLoad) return;
 
         if(show_windows)
-            Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
+            Window.WINDOWS.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else
-            Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
+            Window.WINDOWS.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     }
 
 
@@ -135,7 +135,6 @@ public class WindowManager {
             Widget w = WidgetManager.getFactory("PlayerControlsTiny").create();
             BorderPane content = new BorderPane();
             content.setCenter(w.load());
-            miniWindow.initLayout();
             miniWindow.setContent(content);
                 // menu
             Icon closeB = new Icon(CLOSE, 13, "Close window", APP::close);
@@ -222,7 +221,7 @@ public class WindowManager {
         }
 
         // get windows
-        List<Window> src = new ArrayList<>(Window.windows);
+        List<Window> src = new ArrayList<>(Window.WINDOWS);
                      src.remove(miniWindow);    // manually
         log(WindowManager.class).info("Serializing " + src.size() + " application windows");
 

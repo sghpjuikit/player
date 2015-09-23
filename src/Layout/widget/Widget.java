@@ -23,7 +23,9 @@ import Configuration.CachedCompositeConfigurable;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
+import Layout.Areas.Area;
 import Layout.Component;
+import Layout.container.Container;
 import Layout.widget.controller.Controller;
 import Layout.widget.controller.io.InOutput;
 import Layout.widget.controller.io.Input;
@@ -39,40 +41,40 @@ import static util.functional.Util.*;
 /**
  * Widget graphical component with a functionality.
  * <p>
- * The functionality is handled by widget's {@link Controller}. The controller 
+ * The functionality is handled by widget's {@link Controller}. The controller
  * is instantiated when widget loads. The widget-controller relationship is 1:1
  * and permanent.
  * <p>
  * Widget can be thought of as a wrapper for controller (which may be used as
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle. See {@link FXMLWidget} and {@link ClassWidget}.
- * 
+ *
  * @author uranium
  */
 public abstract class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object> {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
-    
+
     // Name of the widget. Permanent. same as factory input_name
     // it needs to be declared to support deserialization
     final String name;
-    
+
     @XStreamOmitField private WidgetFactory factory;
     @XStreamOmitField protected C controller;
     @XStreamOmitField private Node root;
     @XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
-    
+
     // configuration
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
             + "for widget, preferred one will be selected. ")
     private boolean preferred = false;
-    
+
     @XStreamOmitField
     @IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
     private boolean forbid_use = false;
-    
-    
+
+
     /**
      * @param {@link Widget#name}
      */
@@ -80,11 +82,30 @@ public abstract class Widget<C extends Controller> extends Component implements 
         this.name = name;
         this.factory = factory;
     }
-        
+
     /** {@inheritDoc} */
     @Override
-    public String getName() { return name; }
-    
+    public String getName() {
+        return name;
+    }
+
+    @Deprecated
+    public Node getGraphics() {
+        return root;
+    }
+
+    /**
+     * Non null only if within container and loaded.
+     * {@inheritDoc} */
+    @Override
+    public Container getParent() {
+        if(controller!=null) {
+            Area a = controller.getArea();
+            if(a!=null) return a.container;
+        }
+        return null;
+    }
+
     /**
      * Returns this widget's content.
      * <p>
@@ -98,7 +119,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * <li> graphics and controller is created only once when needed and reused
      * <li> attaching the graphics to the scenegraph will remove it from its old location
      * <li> reattaching to scenegraph has no effect on widget state
-     * <li> serialisation is the only time when widget state (configs) need to be taken care of 
+     * <li> serialisation is the only time when widget state (configs) need to be taken care of
      * manually
      * </ul>
      * {@inheritDoc}
@@ -114,6 +135,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                 Exception ex = null;
                 try {
                     root = loadInitial();
+                    loadInitialize();
                 } catch(Exception e) {
                     ex = e;
                 }
@@ -125,14 +147,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
         }
         return root;
     }
-    
+
     /**
      * Loads the widget. Solely used for {@link #load()} method called initially,
      * before the loaded content is cached. Should be called only once per life
      * cycle of the widget and internally.
      */
     protected abstract Node loadInitial() throws Exception;
-    
+    protected void loadInitialize() {};
+
     private C instantiateController() {
         // instantiate controller
         Class cc = getFactory().getControllerClass();
@@ -152,15 +175,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
             IsInput a = m.getAnnotation(IsInput.class);
             if(a!=null) {
                 int params = m.getParameterCount();
-                if(Modifier.isStatic(m.getModifiers()) || params>1) 
+                if(Modifier.isStatic(m.getModifiers()) || params>1)
                     throw new RuntimeException("Method " + m + " can not be an input.");
 
                 String i_name = a.value();
                 boolean isvoid = params==0;
                 Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
-                Consumer i_action = isvoid 
+                Consumer i_action = isvoid
                     ?   value -> {
-                            if(value!=null) 
+                            if(value!=null)
                                 throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
                             try {
                                 m.setAccessible(true);
@@ -182,27 +205,27 @@ public abstract class Widget<C extends Controller> extends Component implements 
                 c.getInputs().create(i_name, i_type, i_action);
             }
         }
-        
+
         return c;
     }
-    
+
     /**
      * Returns controller of the widget. It provides access to public behavior
      * of the widget.
      * <p>
      * The controller is instantiated when widget loads. The controller is null
-     * before that and this method should not be invoked. 
+     * before that and this method should not be invoked.
      * <p>
      * Do not check the output of this method for null! Receiving null implies
      * wrong use of this method.
-     * 
+     *
      * @return controller of the widget or null if widget has not been loaded
      * yet.
      */
     public C getController() {
         return controller;
     }
-    
+
     /** @return whether this widget will be preferred over other widgets */
     public boolean isPreffered() {
         return preferred;
@@ -219,37 +242,37 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public void setIgnored(boolean val) {
         forbid_use = val;
     }
-    
+
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
         return factory;
     }
-    
+
     /** @return factory information about this widget */
     public WidgetInfo getInfo() {
         return factory;
     }
-    
+
     /** Creates a launcher for this widget with default (no predefined) settings. */
     public void exportFxwlDefault(File dir) {
         File f = new File(dir,name + ".fxwl");
         boolean ok = writeFile(f, name);
         if(!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
     }
-    
+
 /******************************************************************************/
 
-    
+
     /**
      * Returns whether this widget is empty.
      * <p>
-     * Empty widget has no graphics. {@link Controller#isEmpty()} indicates 
+     * Empty widget has no graphics. {@link Controller#isEmpty()} indicates
      * state - that there is no data to display within widget's graphics.
      */
     public boolean isEmpty() {
         return this instanceof EmptyWidget;
     }
-    
+
     /**
      * Returns singleton list containing the controller of this widget
      * <p>
@@ -264,27 +287,27 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public Map<String, Config<Object>> getFieldsMap() {
         return configs;
     }
-    
+
     /** @return input_name of the widget */
     @Override
     public String toString() {
         return name;
     }
-    
-    
+
+
     /**
      * @return empty widget. Use to inject fake widget instead null value.
      */
     public static Widget EMPTY() {
         return new EmptyWidget();
     }
-    
+
 /****************************** SERIALIZATION *********************************/
-    
+
     /** Invoked just before the serialization. */
     protected Object writeReplace() throws ObjectStreamException {
         // prepare input-output bindings
-        getController().getInputs().getInputs().forEach(i -> 
+        getController().getInputs().getInputs().forEach(i ->
             properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
         );
         // prepare configs
@@ -294,10 +317,10 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
         return this;
     }
-        
+
     /**
      * Invoked just after deserialization.
-     * 
+     *
      * @implSpec
      * Resolve object by initializing non-deserializable fields or providing an
      * alternative instance (e.g. to adhere to singleton pattern).
@@ -307,18 +330,18 @@ public abstract class Widget<C extends Controller> extends Component implements 
         if (factory==null) factory = WidgetManager.getFactory(name);
         // use empty widget when no factory available
         if (factory==null) return Widget.EMPTY();
-        
+
         if(configs==null) configs = configs = new HashMap<>();
-        
+
         // accumulate serialized inputs for later deserialiation when all widgets are ready
         properties.entrySet().stream()
                   .filter(e->e.getKey().startsWith("io"))
                   .map(e -> new IO(this,e.getKey().substring(2), (String)e.getValue()))
                   .forEach(ios::add);
-        
+
         return this;
     }
-    
+
     // normally we would do this in readResolve, but controller ready only after
     // widget loads
     protected void restoreConfigs() {
@@ -328,9 +351,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
             properties.remove("configs");
         }
     }
-    
+
 /******************************************************************************/
-    
+
     static class IO {
         public final Widget widget;
         public final String input_name;
@@ -342,7 +365,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
             this.outputs_ids.addAll(map(split(outputs,":",x->x),Output.Id::fromString));
         }
     }
-    
+
     static final ArrayList<IO> ios = new ArrayList();
     public static void deserializeWidgetIO() {
         Set<Input> is = new HashSet();
@@ -351,14 +374,14 @@ public abstract class Widget<C extends Controller> extends Component implements 
                      .flatMap(w -> w.getController().getOutputs().getOutputs().stream())
                      .collect(Collectors.toMap(i->i.id, i->i));
         InOutput.inoutputs.forEach(io -> os.put(io.o.id, io.o));
-        
+
         ios.forEach(io -> {
             Input i = io.widget.getController().getInputs().getInput(io.input_name);
             if(i!=null)
                 io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
     }
-    
+
 
     /** Widget metadata. Passed from code to program. Use on controller class. */
     @Retention(value = RUNTIME)
@@ -432,7 +455,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
          */
         Widget.Group group() default Widget.Group.UNKNOWN;
     }
-    
+
     /** Widget's intended functionality. */
     public enum Group {
         APP,

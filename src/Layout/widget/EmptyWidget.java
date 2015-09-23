@@ -39,7 +39,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     private final Widget widget = null;
     private final Outputs o = new Outputs();
     private final Inputs i = new Inputs();
-    
+
     public EmptyWidget() {
         super("Empty", new EmptyWidgetFactory());
     }
@@ -50,15 +50,16 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
         // since this=this.controller -> StackOverflow
         return Collections.EMPTY_LIST;
     }
-    
+
     @Override public Node loadInitial() {
         return new Region();
     }
-    
+
+
     @Override public Controller getController() {
         return this;
     }
-    
+
     /** This implementation is no-op */
     @Override public void refresh() { }
 
@@ -80,10 +81,10 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     public Config<Object> getField(String n) {
         return null;
     }
-    
+
     @Override
     public Map<String, Config<Object>> getFieldsMap() {
         return EMPTY_MAP;
     }
-    
+
 }

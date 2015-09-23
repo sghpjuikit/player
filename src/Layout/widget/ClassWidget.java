@@ -13,21 +13,26 @@ import Layout.widget.controller.Controller;
  * <p>
  * This is done by providing the Node's class, which is then instantiated during loading. The class
  * must implement {@link Controller} and have a no argument constructor.
- * 
+ *
  * @see ClassWidgetFactory
  * @author uranium
  */
 public class ClassWidget extends Widget<Controller> {
-    
+
     ClassWidget(String name, ClassWidgetFactory factory) {
         super(name,factory);
     }
 
     @Override
-    public Node loadInitial() {   
+    public Node loadInitial() {
         Node node = (Node) controller;
-        restoreConfigs();
-        controller.refresh();
         return node;
     }
+
+    @Override
+    protected void loadInitialize() {
+        restoreConfigs();
+        controller.refresh();
+    }
+
 }

@@ -82,14 +82,14 @@ public class SwitchPane implements ContainerNode {
 
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
-        Window.windows.stream()
+        Window.WINDOWS.stream()
                .map(Window::getSwitchPane)
                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
 
     @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
-        Window.windows.stream()
+        Window.WINDOWS.stream()
               .map(Window::getSwitchPane)
               .forEach(sp -> sp.snapTabs());
     }

@@ -6,13 +6,23 @@
 
 package Layout.Areas;
 
+import javafx.scene.Parent;
+import javafx.scene.layout.Pane;
+
 import Layout.AltState;
 
 /**
  *
  * @author Plutonium_
  */
-public interface ContainerNode extends SceneGraphNode, AltState {
-    
+public interface ContainerNode extends AltState {
+
+    Pane getRoot();
+
+    public default Parent getParent() {
+        return getRoot()==null ? null : getRoot().getParent();
+    }
+
     public default void close() {}
+
 }

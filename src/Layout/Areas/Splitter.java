@@ -235,11 +235,11 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         } else if (c instanceof Container) {
             n = ((Container)c).load(r);
         } else {
-            Layouter layouter = i==1 ? layouter1 : layouter2;
-            if(layouter==null) layouter = new Layouter(container, i);
-            if(i==1) layouter1=layouter; else layouter2 = layouter;
-            if(GUI.isLayoutMode()) layouter.show();
-            n = layouter.getRoot();
+            Layouter l = i==1 ? layouter1 : layouter2;
+            if(l==null) l = new Layouter(container, i);
+            if(i==1) layouter1=l; else layouter2 = l;
+            if(GUI.isLayoutMode()) l.show();
+            n = l.getRoot();
         }
 
         r.getChildren().setAll(n);
@@ -416,8 +416,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         super.show();
 //        showControls();
         splitPane.addEventFilter(MOUSE_MOVED,aaa);
-        if(layouter1!=null) layouter1.show();System.out.println(layouter1==null);
-        if(layouter2!=null) layouter2.show();System.out.println(layouter2==null);
+        if(layouter1!=null) layouter1.show();
+        if(layouter2!=null) layouter2.show();
     }
 
     @Override

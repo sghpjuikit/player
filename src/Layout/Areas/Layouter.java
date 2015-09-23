@@ -112,7 +112,7 @@ public final class Layouter implements ContainerNode {
 
         };
 //        exitHider =  e -> cp.onCancel.run();
-        exitHider =  e -> {
+        exitHider = e -> {
             // rely on the public show() implementation, not internal one
             cp.onCancel.run();
             e.consume();
@@ -154,17 +154,6 @@ public final class Layouter implements ContainerNode {
         }
         a1.play();
         a2.play();
-
-//        Interpolator in = new SineInterpolator();
-////        forEachIndexedStream(cp.getCells(), (i,n) -> new Anim(millis(300), in, at -> { n.setScaleX(at); n.setScaleY(at); }).delay(millis(i*50)))
-////            .toArray(Anim[]::new)
-////        cp.getCells().stream().map(n->new Anim(millis(300), i, at -> { n.setScaleX(at); n.setScaleY(at); })).to
-//        Transition t = new ParallelTransition(
-//            forEachIndexedStream(cp.getCells(), (i,n) -> new Anim(millis(300), in, at -> { n.setScaleX(at); n.setScaleY(at); }).delay(millis(i*50)))
-//            .toArray(Anim[]::new)
-//        );
-//        t.setDelay(millis(500));
-//        t.play();
     }
 
     private boolean clickMode = true;
@@ -213,7 +202,7 @@ public final class Layouter implements ContainerNode {
         };
         w.onCancel = () -> closeAndDo(w.root, () -> {
             root.getChildren().remove(w.root);
-            showControls(GUI.isLayoutMode());
+            showControls(true);
         });
         w.consumeCancelClick = true;
         w.buildContent();

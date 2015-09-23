@@ -31,7 +31,7 @@ import main.App;
 import util.access.Ѵ;
 import util.async.Async;
 import util.async.executor.FxTimer;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 import util.dev.Dependency;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
@@ -289,14 +289,14 @@ public final class Action extends Config<Action> implements Runnable {
 
         KeyCombination k = getKeysForLocalRegistering();
         // register for each window separately
-        Window.windows.forEach(w -> w.getStage().getScene().getAccelerators().put(k,this));
+        Window.WINDOWS.forEach(w -> w.getStage().getScene().getAccelerators().put(k,this));
     }
     private void unregisterInApp() {
         if (!App.isInitialized()) return;
 
         KeyCombination k = getKeysForLocalRegistering();
         // unregister for each window separately
-        Window.windows.forEach(w -> w.getStage().getScene().getAccelerators().remove(k));
+        Window.WINDOWS.forEach(w -> w.getStage().getScene().getAccelerators().remove(k));
     }
 
 

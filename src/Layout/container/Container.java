@@ -69,12 +69,9 @@ import static util.functional.Util.*;
  */
 public abstract class Container<G extends ContainerNode> extends Component implements AltState {
 
-    @XStreamOmitField
-    protected AnchorPane root;
-    @XStreamOmitField
-    private Container parent;
-    @XStreamOmitField
-    public G ui;
+    @XStreamOmitField protected AnchorPane root;
+    @XStreamOmitField private Container parent;
+    @XStreamOmitField public G ui;
 
     /**
      * Whether the container is locked. The effect of lock is not implicit and
@@ -100,22 +97,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         return this.getClass().getName();
     }
 
-    /**
-     * Equivalent to hasParent()
-     * @return true if container is root - has no parent
-     */
-    public boolean isRoot() {
-        return parent == null;
-    }
-
-    /**
-     * Equivalent to !isRoot()
-     * @return whether has parent */
-    public boolean hasParent() {
-        return parent != null;
-    }
-
-    /** @return parent container of this container */
+    /** {@inheritDoc} */
     public Container getParent() {
         return parent;
     }

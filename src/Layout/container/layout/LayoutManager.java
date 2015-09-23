@@ -12,6 +12,7 @@ import main.App;
 import util.File.FileUtil;
 
 import static util.dev.Util.log;
+import static util.functional.Util.ISNTØ;
 
 /**
  * @author uranium
@@ -35,7 +36,7 @@ public final class LayoutManager implements Configurable {
      * @return all Layouts in the application.
      */
     public static Stream<Layout> getLayouts() {
-        return Window.windows.stream().map(w->w.getLayout());
+        return Window.WINDOWS.stream().map(w->w.getLayout()).filter(ISNTØ);
     }
 
     /**

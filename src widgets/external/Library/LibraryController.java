@@ -355,7 +355,7 @@ public class LibraryController extends FXMLController implements SongReader {
                  },false);
                  taskInfo.bind(t);
              },FX)
-             .showProgress(App.getWindow().taskAdd())
+             .showProgress(getWidget().getWindow().taskAdd())
              .run();
     }
 

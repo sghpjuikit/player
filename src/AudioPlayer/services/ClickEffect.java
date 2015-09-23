@@ -50,8 +50,8 @@ public class ClickEffect extends ServiceBase {
     public final Ѵ<BlendMode> blend_mode = new Ѵ<>(BlendMode.SRC_OVER,this::apply);
     
     private void applyC() {
-        if(show_clickEffect.get()) Window.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
-        else Window.windows.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
+        if(show_clickEffect.get()) Window.WINDOWS.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
+        else Window.WINDOWS.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
     }
     
     private void apply() {

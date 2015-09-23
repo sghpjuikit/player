@@ -15,7 +15,7 @@ import javafx.scene.control.TableView;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
 
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 
@@ -31,20 +31,20 @@ import static util.functional.Util.*;
  */
 @TODO(purpose = DOCUMENTATION)
 public final class TableColumnInfo {
-    
+
     private static final String S1 = "+";
     private static final String S2 = ";";
     private static final String S3 = ",";
-    
+
     public final MapSet<String,ColumnInfo> columns;
     public final ColumnSortInfo sortOrder;
     public Ƒ1<String,String> nameKeyMapper = name -> name;
-        
+
     public TableColumnInfo() {
         columns = new MapSet<>(c->nameKeyMapper.apply(c.name));
         sortOrder = new ColumnSortInfo();
     }
-    
+
     public TableColumnInfo(List<String> all_columns) {
         this();
         // add columns as visible
@@ -52,7 +52,7 @@ public final class TableColumnInfo {
                 .map(p->new ColumnInfo(p._2,p._1,true,50))
                 .forEach(columns::add);
     }
-    
+
     public TableColumnInfo(TableView<?> table) {
         this();
         // add visible columns
@@ -61,12 +61,12 @@ public final class TableColumnInfo {
                 .forEach(columns::add);
         sortOrder.fromTable(table);
     }
-    
+
     public TableColumnInfo(TableView<?> table, List<String> all_columns) {
         this(all_columns);
         update(table);
     }
-    
+
     public void update(TableView<?> table) {
         MapSet<String,ColumnInfo> old = new MapSet<>(c->nameKeyMapper.apply(c.name));
                                   old.addAll(columns);
@@ -81,7 +81,7 @@ public final class TableColumnInfo {
         old.stream()
            .map(p->new ColumnInfo(p.name, i+p.position, false, p.width))
            .forEach(columns::add);
-        
+
         sortOrder.fromTable(table);
     }
 
@@ -89,7 +89,7 @@ public final class TableColumnInfo {
     public String toString() {
         return toS(columns,Object::toString,S2) + S1 + sortOrder.toString();
     }
-    
+
     public static TableColumnInfo fromString(String str) {
         String[] a = str.split("\\"+S1, -1);
         TableColumnInfo tci = new TableColumnInfo();
@@ -97,14 +97,14 @@ public final class TableColumnInfo {
                         tci.sortOrder.sorts.addAll(ColumnSortInfo.fromString(a[1]).sorts);
         return tci;
     }
-    
-    
+
+
     public static final class ColumnInfo implements Comparable<ColumnInfo>{
         public String name;
         public int position;
         public boolean visible;
         public double width;
-        
+
         public ColumnInfo(String name, int position, boolean visible, double width) {
             this.name = name;
             this.position = position;
@@ -119,7 +119,7 @@ public final class TableColumnInfo {
         public String toString() {
             return toS(S3, name, position, visible, width);
         }
-        
+
         public static ColumnInfo fromString(String str) {
             String[] s = str.split(S3, -1);
             return new ColumnInfo(s[0], parseInt(s[1]), parseBoolean(s[2]), parseDouble(s[3]));
@@ -130,21 +130,21 @@ public final class TableColumnInfo {
             return Integer.compare(position, o.position);
         }
     }
-    
+
     public static final class ColumnSortInfo {
         public final List<Tuple2<String,SortType>> sorts = new ArrayList();
-        
+
         public ColumnSortInfo() {}
-        
+
         public ColumnSortInfo(TableView<?> table) {
             fromTable(table);
         }
-        
+
         public void fromTable(TableView<?> table) {
             sorts.clear();
             sorts.addAll(map(table.getSortOrder(),c->Tuples.t(c.getText(), c.getSortType())));
         }
-        
+
         public void toTable(TableView<?> table) {
             List<TableColumn> so = new ArrayList();
             table.getSortOrder().clear();
@@ -161,7 +161,7 @@ public final class TableColumnInfo {
         public String toString() {
             return toS(sorts, t->t._1 + S3 + t._2, S2);
         }
-        
+
         public static ColumnSortInfo fromString(String s) {
             ColumnSortInfo tsi = new ColumnSortInfo();
                            tsi.sorts.addAll(split(s, S2, str-> {
@@ -170,7 +170,7 @@ public final class TableColumnInfo {
                            }));
             return tsi;
         }
-        
+
     }
-    
+
 }

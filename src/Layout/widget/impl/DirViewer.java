@@ -27,7 +27,6 @@ import Configuration.IsConfig;
 import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
-import gui.objects.Window.stage.Window;
 import gui.objects.image.Thumbnail;
 import gui.pane.CellPane;
 import util.File.AudioFileFormat;
@@ -49,6 +48,7 @@ import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.Async.runFX;
+import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.graphics.Util.layAnchor;
@@ -103,7 +103,9 @@ public class DirViewer extends ClassController {
     @Override
     public void refresh() {
         initialized = true;
+        runLater(() -> {
         viewDir(new TopCell());
+        });
     }
 
     @Override
@@ -146,7 +148,7 @@ public class DirViewer extends ClassController {
                    });
                    log(DirViewer.class).info("Cells loading {} finished", l);
                 },executor)
-               .showProgress(Window.windows.get(0).taskAdd())
+               .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }
     }
@@ -177,8 +179,6 @@ public class DirViewer extends ClassController {
         boolean isFirstTimeCover = true;
         Image cover = null;
         public File getCoverFile() {
-
-            if(all_children==null) System.out.println("children null " + val);
             if(all_children==null) buildChildren();
             if(val.isDirectory())
                 return getImageT(val,"cover");
@@ -234,7 +234,6 @@ public class DirViewer extends ClassController {
             for(ImageFileFormat format: ImageFileFormat.values()) {
                 if (format.isSupported()) {
                     File f = new File(dir,name + "." + format.toString());
-                    System.out.println(file_exists(this,f) + " " + f + " " +val);
                     if(file_exists(this,f)) return f;
                 }
             }

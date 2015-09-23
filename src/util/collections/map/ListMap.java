@@ -1,4 +1,4 @@
-/*
+    /** {@inheritDoc} */    /** {@inheritDoc} *//*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -20,7 +20,7 @@ container.
 Cache factory returns new list and accumulator adds element to the list, key
 mapper remains unimplemented.
 <p>
-Defines a 
+Defines a
 
  @author Plutonium_
  */
@@ -30,11 +30,11 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     public ListMap(Function<E,K> keyMapper) {
         super(keyMapper, () -> new ArrayList(), (e,cache) -> cache.add(e));
     }
-    
+
     public ListMap(Supplier<List<E>> cacheFactory, Function<E,K> keyMapper) {
         super(keyMapper, cacheFactory, (e,cache) -> cache.add(e));
     }
-    
+
     /** Deaccumulates (removes) given element from this map. */
     public void deaccumulate(E e) {
         // get key
@@ -46,7 +46,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
             c.remove(e);
         }
     }
-    
+
     /** Multi key get returning the combined content of the cache buckets.
     @return list containing all elements of all cache buckets / accumulation
     containers assigned to keys in the given collection. */
@@ -58,7 +58,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
         }
         return out;
     }
-    
+
     /** Array version of {@link #getElementsOf(java.util.Collection)}. */
     public List<E> getElementsOf(K... keys) {
         List<E> out = cacheFactory.get();
@@ -68,10 +68,10 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
         }
         return out;
     }
-    
+
     /**
      * Same as {@link #getElementsOf(java.util.Collection)}.
-     * Avoids creating intermediary collection of keys (parameter) and reduce 
+     * Avoids creating intermediary collection of keys (parameter) and reduce
      * memory.
      */
     public List<E> getElementsOf(Stream<K> keys) {

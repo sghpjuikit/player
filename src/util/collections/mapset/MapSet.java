@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.collections.map;
+package util.collections.mapset;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -33,12 +33,32 @@ import static util.dev.TODO.Severity.SEVERE;
  */
 public class MapSet<K,E> implements Set<E> {
 
-    /** 
+/****************************************** FACTORIES *********************************************/
+
+    public static <E> MapSet<Integer,E> mapHashSet() {
+        return new MapSet<>(Object::hashCode);
+    }
+
+    public static <E> MapSet<Integer,E> mapHashSet(Map<Integer,E> backing_map) {
+        return new MapSet<>(backing_map, Object::hashCode);
+    }
+
+    public static <E> MapSet<Integer,E> mapHashSet(Map<Integer,E> backing_map, Collection<E> c) {
+        return new MapSet<>(backing_map, Object::hashCode, c);
+    }
+
+    public static <E> MapSet<Integer,E> mapHashSet(Map<Integer,E> backing_map, E... c) {
+        return new MapSet<>(backing_map, Object::hashCode, c);
+    }
+
+/**************************************************************************************************/
+
+    /**
      * Function transforming element to its key. Used for all collection
      * operations, e.g add(), addAll(), remove(), etc. Two elements are mapped
      * to the same key if this function produces the same key for them.
      * <p>
-     * Note, that if the function returned a constant, this set would become 
+     * Note, that if the function returned a constant, this set would become
      * singleton set. Using hashCode() would result in same mapping strategy
      * as default maps and collections use.
      */
@@ -48,32 +68,32 @@ public class MapSet<K,E> implements Set<E> {
     public MapSet(Function<E,K> keyMapper) {
         this(new HashMap<>(),keyMapper);
     }
-    
+
     public MapSet(Function<E,K> keyMapper, Collection<E> c) {
         this(new HashMap<>(),keyMapper,c);
     }
-    
+
     public MapSet(Function<E,K> keyMapper, E... c) {
         this(new HashMap<>(),keyMapper,c);
     }
-    
+
     public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper) {
         this.m = backing_map;
         this.keyMapper = keyMapper;
     }
-    
+
     public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper, Collection<E> c) {
         this.m = backing_map;
         this.keyMapper = keyMapper;
         addAll(c);
     }
-    
+
     public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper, E... c) {
         this.m = backing_map;
         this.keyMapper = keyMapper;
         addAll(c);
     }
-    
+
     @Override
     public int size() {
         return m.size();
@@ -117,11 +137,11 @@ public class MapSet<K,E> implements Set<E> {
         m.put(k, e);
         return true;
     }
-    
+
     public E get(K key) {
         return m.get(key);
     }
-    
+
     public E getOr(K key, E e) {
         return m.containsKey(key) ? m.get(key) : e;
     }
@@ -142,7 +162,7 @@ public class MapSet<K,E> implements Set<E> {
                 return false;
         return true;
     }
-    
+
     /** Adds all not yet contained items to this mapset.
     Element identity is obtained using {@link #keyMapper} */
     @Override
@@ -153,7 +173,7 @@ public class MapSet<K,E> implements Set<E> {
                 modified = true;
         return modified;
     }
-    
+
     /** Array version of {@link #addAll(java.util.Collection)}*/
     public boolean addAll(E... c) {
         boolean modified = false;
@@ -162,13 +182,13 @@ public class MapSet<K,E> implements Set<E> {
                 modified = true;
         return modified;
     }
-    
+
     @TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
     @Override
     public boolean retainAll(Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
     @Override
     public boolean removeAll(Collection<?> c) {
@@ -179,7 +199,7 @@ public class MapSet<K,E> implements Set<E> {
     public void clear() {
         m.clear();
     }
-    
+
     /** @return this.entrySet().stream() */
     public Stream<Entry<K,E>> streamE() {
         return m.entrySet().stream();
@@ -192,7 +212,7 @@ public class MapSet<K,E> implements Set<E> {
     public Stream<E> streamV() {
         return m.values().stream();
     }
-    
+
     public void ifHasK(K k, Consumer<E> action) {
         E e = m.get(k);
         if(e != null)
@@ -203,5 +223,5 @@ public class MapSet<K,E> implements Set<E> {
         if(e != null)
             action.accept(e);
     }
-    
+
 }

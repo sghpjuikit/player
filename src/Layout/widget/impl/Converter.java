@@ -194,7 +194,7 @@ public class Converter extends ClassController implements SongWriter {
                     }
                     Player.refreshItemsWith(MetadataReader.readMetadata(songs));
                },Player.IO_THREAD)
-               .showProgress(App.getWindow().taskAdd())
+               .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }));
         acts.accumulate(new WriteFileAct());

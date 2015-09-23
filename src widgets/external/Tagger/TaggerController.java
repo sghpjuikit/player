@@ -55,7 +55,7 @@ import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Ѵ;
 import util.async.future.Fut;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;

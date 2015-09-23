@@ -335,7 +335,7 @@ public class FileInfoController extends FXMLController implements SongReader {
             : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
         return ff.use(f1(a).passNull())
                  .then(cover_source::applyValue,FX)         // refresh cover
-                 .showProgress(App.getWindow().taskAdd());
+                 .showProgress(getWidget().getWindow().taskAdd());
     }
 
     private Fut tagAsCover(Fut<File> ff, boolean includeAlbum) {
@@ -353,7 +353,7 @@ public class FileInfoController extends FXMLController implements SongReader {
             Player.refreshItems(items);
         };
         return ff.use(f1(a).passNull())
-                 .showProgress(App.getWindow().taskAdd());
+                 .showProgress(getWidget().getWindow().taskAdd());
     }
 
     private void setOverrun(OverrunStyle os) {

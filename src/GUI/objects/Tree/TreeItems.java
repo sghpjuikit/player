@@ -110,7 +110,7 @@ public class TreeItems {
                  ),
                  tree("UI",
                    widgetT,
-                   tree("Windows", () -> Window.windows.stream()),
+                   tree("Windows", () -> Window.WINDOWS.stream()),
                    tree("Layouts", () -> LayoutManager.getLayouts().sorted(by(l -> l.getName())))
                  ),
                  tree("Location", listFiles(App.getLocation())),
@@ -375,7 +375,7 @@ public class TreeItems {
         return emptifyString(n.getId()) + ":" + APP.className.get(n.getClass());
     }
     private static String windowToName(Window w) {
-        String n = "window " + Window.windows.indexOf(w);
+        String n = "window " + list(Window.WINDOWS).indexOf(w);
         if(w==App.getWindow()) n += " (main)";
         if(w==WindowManager.miniWindow) n += " (mini-docked)";
         return n;

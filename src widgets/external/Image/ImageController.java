@@ -12,7 +12,6 @@ import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
-import main.App;
 import util.access.Ѵ;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
@@ -67,7 +66,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
             e -> {
                 Fut<File> future = DragUtil.getImage(e);
                 future.use(img -> showImage(img),FX)
-                      .showProgress(!future.isDone(),App.getWindow()::taskAdd)
+                      .showProgress(!future.isDone(),getWidget().getWindow()::taskAdd)
                       .run();
             }
         );

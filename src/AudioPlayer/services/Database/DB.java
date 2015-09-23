@@ -21,7 +21,7 @@ import AudioPlayer.tagging.Metadata;
 import Layout.widget.controller.io.InOutput;
 import main.App;
 import util.async.future.Fut;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ2;
 
 import static java.util.UUID.fromString;
@@ -34,16 +34,16 @@ import static util.functional.Util.stream;
  * @author Plutonium_
  */
 public class DB {
-    
+
     private static final File MOODS_FILE = new File(App.DATA_FOLDER(), "MoodList.cfg");
-    
+
     public static EntityManagerFactory emf;
     public static EntityManager em;
-    
+
     public static void start() {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
-        
+
         new Fut<>()
             // load database
             .supply(DB::getAllItems)
@@ -52,7 +52,7 @@ public class DB {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
                 string_pool = sss.isEmpty() ? new StringStore() : sss.get(0);
-             
+
              // populate metadata fields strings if empty
                 if(string_pool.getStrings("album").isEmpty() && !items_byId.isEmpty()) {
                     stream(Metadata.Field.values())
@@ -66,46 +66,46 @@ public class DB {
                                  // .peek(System.out::println) // debug
                                  .forEach(pool::add);
                         });
-                    
+
                     // add default moods (stored in file)
                     Set<String> pool = string_pool.getStrings(Metadata.Field.MOOD.name());
                     readFileLines(MOODS_FILE).forEach(pool::add);
-                    
+
                     // persist
                     em.getTransaction().begin();
                     em.merge(string_pool);
                     em.getTransaction().commit();
                 }
-                
+
                     // add default moods (stored in file)
                     Set<String> pool = string_pool.getStrings(Metadata.Field.MOOD.name());
                     readFileLines(MOODS_FILE).forEach(pool::add);
-                    
+
                     // persist
                     em.getTransaction().begin();
                     em.merge(string_pool);
                     em.getTransaction().commit();
-                
+
             })
             .showProgress(App.getWindow().taskAdd())
             .run();
     }
-    
+
     public static void stop() {
         if(em!=null && em.isOpen()) em.close();
         if(emf!=null) emf.close();
     }
-    
+
 /******************************** OBTAINING ***********************************/
-    
+
     public static boolean exists(Item item) {
         return exists(item.getURI());
     }
-    
+
     public static boolean exists(URI uri) {
         return null != em.find(Metadata.class, uri.toString());
     }
-    
+
     /**
      * Returns item from library.
      * <p>
@@ -116,7 +116,7 @@ public class DB {
     public static Metadata getItem(Item item) {
         return getItem(item.getURI());
     }
-    
+
     /**
      * Returns item from library.
      * <p>
@@ -127,26 +127,26 @@ public class DB {
     public static Metadata getItem(URI uri) {
         return em.find(Metadata.class, uri.toString());
     }
-    
+
     public static List<Metadata> getAllItems() {
         return em.createQuery("SELECT p FROM MetadataItem p", Metadata.class)
                  .getResultList();
     }
-//    
+//
 //    public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
 //        return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
 //    }
-//    
+//
 //    public static List<String> getAllArtists() {
 //        return em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class)
 //                 .getResultList();
 //    }
-//    
+//
 //    public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
 //        List result;
-//        
+//
 //            Accessor<String> filter = new Accessor("");
-//            
+//
 //            filters.forEachBoth((field,values) -> {
 //
 //                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
@@ -156,13 +156,13 @@ public class DB {
 //                    : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'";
 //                filter.setValue(filter.getValue() + f);
 //            });
-//            
+//
 //        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
 //        result = query.getResultList();
 //
 //        return result;
 //    }
-    
+
     public static void addItems(Collection<? extends Metadata> items) {
         if (items.isEmpty()) return;
         // add to db
@@ -174,7 +174,7 @@ public class DB {
        // update model
         updateMemFromPer();
     }
-    
+
     public static void removeItems(Collection<? extends Metadata> items) {
         // remove in db
         em.getTransaction().begin();
@@ -186,18 +186,18 @@ public class DB {
        // update model
         updateMemFromPer();
     }
-    
+
     public static void removeAllItems() {
         removeItems(items.i.getValue());
     }
-    
+
     public static void updatePer(Collection<? extends Metadata> items) {
         // update db
         em.getTransaction().begin();
         items.forEach(em::merge);
         em.getTransaction().commit();
     }
-    
+
     private static void updateMem(List<Metadata> l) {
         items_byId.clear();
         items_byId.addAll(l);
@@ -208,20 +208,20 @@ public class DB {
         updateMem(getAllItems());
     }
 
-    
-    /** 
+
+    /**
      * In memory item database. Use for library.
      * <p>
      * Items are hashed by {@link Item#getId()}.
      * <p>
-     * Thread-safe, accessible (write/read) from any thread, uses 
+     * Thread-safe, accessible (write/read) from any thread, uses
      * {@link ConcurrentHashMap} underneath.
      */
     public static final MapSet<String,Metadata> items_byId = new MapSet<>(new ConcurrentHashMap<>(2000,1,3),Metadata::getId);
     public static final InOutput<List<Metadata>> items = new InOutput<>(fromString("396d2407-7040-401e-8f85-56bc71288818"),"All library songs", List.class);
-    
-    
-    /** 
+
+
+    /**
      * Comparator defining the sorting for items in operations that wish to
      * provide consistent sorting across the application.
      * <p>
@@ -236,19 +236,19 @@ public class DB {
      * The store is loaded when DB starts. Changes persist immediately.
      */
     public static StringStore string_pool;
-    
+
     public static boolean autocompltn_contains = true;
     public static final Ƒ2<String,String,Boolean> autocmplt_filter = (text,phrase) -> autocompltn_contains
                                         ? text.contains(phrase) : text.startsWith(phrase);
 
 /******************************************************************************/
-    
+
     @Entity(name = "StringStore")
     public static class StringStore {
         private HashMap<String,HashSet<String>> pool = new HashMap();
 
         private StringStore() {}
-        
+
         public Set<String> getStrings(String name) {
             String n = name.toLowerCase();
             if (!string_pool.pool.containsKey(n)) string_pool.pool.put(n, new HashSet());
@@ -272,7 +272,7 @@ public class DB {
                 em.getTransaction().commit();
             }
         }
-        
+
         @Override
         public int hashCode() {
             return 143635;

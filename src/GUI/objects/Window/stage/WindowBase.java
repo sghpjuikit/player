@@ -462,7 +462,7 @@ public class WindowBase {
         
         
         // snap to other window edges
-        for(Window w: Window.windows) {
+        for(Window w: Window.WINDOWS) {
             double WXS = w.getX()+w.getWidth();
             double WXE = w.getX();
             double WYS = w.getY()+w.getHeight();

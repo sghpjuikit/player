@@ -24,7 +24,7 @@ import Layout.widget.controller.io.InOutput;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
-import util.collections.map.MapSet;
+import util.collections.mapset.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;

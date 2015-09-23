@@ -211,7 +211,7 @@ public class GUI {
 
     public static void setZoomMode(boolean val) {
         Window w = Window.getFocused();
-        if(w!=null) w.getSwitchPane().zoom(val);
+        if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().zoom(val);
     }
 
     /** Toggles layout mode. */
@@ -224,7 +224,7 @@ public class GUI {
     @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
         Window w = Window.getFocused();
-        if(w!=null) w.getSwitchPane().toggleZoom();
+        if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().toggleZoom();
     }
 
     public static void setLayoutNzoom(boolean v) {

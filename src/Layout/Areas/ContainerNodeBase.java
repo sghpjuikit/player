@@ -132,10 +132,10 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
 
         // switch container/normal layout mode using right/left click
-        root.setOnMouseClicked(e -> {
+        root.setOnMouseClicked(e -> {System.out.println("clicked");
             // close on right click
             if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-//                closeAndDo(container.getRoot(), container::close);
+//                closeAndDo(container.getRoot(), container::close); // causes serious prolems, why?
                 container.close();
                 e.consume();
                 return;
@@ -222,7 +222,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
 
     private void toggleAbsSize() {
-	Container c = container.getParent();
+	Container c = container;
 	if (c != null && c instanceof BiContainer) {
 	    Splitter s = BiContainer.class.cast(c).ui;
 	    s.toggleAbsoluteSizeFor(container.indexInParent());
@@ -230,9 +230,9 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
     }
 
     void updateAbsB() {
-	Container c = container.getParent();
+	Container c = container;
 	if (c != null && c instanceof BiContainer) {
-	    boolean l = c.properties.getI("abs_size") == container.indexInParent();
+	    boolean l = c.properties.getI("abs_size") != 0;
             absB.icon(l ? UNLINK : LINK);
 	    if (!icons.getChildren().contains(absB))
 		icons.getChildren().add(5, absB);

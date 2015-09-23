@@ -31,6 +31,7 @@ import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.functional.Util.isInR;
 import static util.functional.Util.stream;
+import static util.graphics.Util.layAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
 
@@ -47,7 +48,7 @@ public final class Layouter implements ContainerNode {
     private final int index;
 
     public final Picker<String> cp = new Picker();
-    public final AnchorPane root = new AnchorPane(cp.root);
+    public final AnchorPane root = new AnchorPane();
 
     private final FadeTransition a1;
     private final ScaleTransition a2;
@@ -79,8 +80,7 @@ public final class Layouter implements ContainerNode {
         cp.itemSupply = () -> stream("Split Vertically", "Split Horizontally",
                                         "Widget", "FreeForm"); // , "Tabs"
         cp.buildContent();
-
-        setAnchors(cp.root, 0d);
+        layAnchor(root, cp.root,0d);
 
         Interpolator i = new CircularInterpolator(EASE_OUT);
         a1 = new FadeTransition(ANIM_DUR, cp.root);
@@ -113,9 +113,11 @@ public final class Layouter implements ContainerNode {
         };
 //        exitHider =  e -> cp.onCancel.run();
         exitHider = e -> {
-            // rely on the public show() implementation, not internal one
-            cp.onCancel.run();
-            e.consume();
+            if(cp.root.getScaleX()==1 && wp.root.getScaleX()==1) {
+                // rely on the public show() implementation, not internal one
+                cp.onCancel.run();
+                e.consume();
+            }
         };
 
         // setParentRec mode
@@ -187,12 +189,12 @@ public final class Layouter implements ContainerNode {
         return clickMode;
     }
 
+    WidgetPicker wp = new WidgetPicker();
 
     private void showWidgetArea() {
-        WidgetPicker w = new WidgetPicker();
-        w.onSelect = factory -> {
-            closeAndDo(w.root, () -> {
-                root.getChildren().remove(w.root);
+        wp.onSelect = factory -> {
+            closeAndDo(wp.root, () -> {
+                root.getChildren().remove(wp.root);
                 root.setOnMouseExited(null);
                 // this is the crucial part
                 container.addChild(index, factory.create());
@@ -200,15 +202,15 @@ public final class Layouter implements ContainerNode {
                 APP.actionStream.push("New widget");
             });
         };
-        w.onCancel = () -> closeAndDo(w.root, () -> {
-            root.getChildren().remove(w.root);
+        wp.onCancel = () -> closeAndDo(wp.root, () -> {
+            root.getChildren().remove(wp.root);
             showControls(true);
         });
-        w.consumeCancelClick = true;
-        w.buildContent();
-        root.getChildren().add(w.root);
-        setAnchors(w.root, 0d);
-        openAndDo(w.root, null);
+        wp.consumeCancelClick = true;
+        wp.buildContent();
+        root.getChildren().add(wp.root);
+        setAnchors(wp.root, 0d);
+        openAndDo(wp.root, null);
     }
     private void showSplitV() {
         container.addChild(index, new BiContainer(HORIZONTAL));

@@ -484,7 +484,7 @@ public class Window extends WindowBase {
      @return layout aggregator, never null.
      */
     public SwitchPane getSwitchPane() {
-	return topContainer.ui;
+	return topContainer==null ? null : topContainer.ui;
     }
 
     public SwitchContainer getTopContainer() {

@@ -982,7 +982,7 @@
  ******************************************************************************/
 
 .scroll-bar {
-    -fx-skin: "gui.objects.ImprovedScrollBarSkin"; // let us use custom skin
+    -fx-skin: "gui.objects.ImprovedScrollBarSkin";
     -fx-background-color: null;
     -fx-background-insets: 0, 1 0 1 0;
 }
@@ -1898,32 +1898,33 @@
 *                                                                              *
 *******************************************************************************/
 
+.split-pane {
+    -fx-skin: "gui.objects.ImprovedSplitPaneSkin";
+}
 .split-pane:horizontal > .split-pane-divider {
-   -fx-opacity: 0.0;
    -fx-border-color: transparent;
-   -fx-background-color: rgba(0, 0, 0, 2);
+   -fx-background-color: transparent;
    -fx-padding: 1;
 }
-.split-pane:vertical > .split-pane-divider{
-   -fx-opacity: 0.0;
+.split-pane:vertical > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: rgba(0, 0, 0, 1);
+   -fx-background-color: transparent;
    -fx-padding: 1;
 }
-/*.split-pane-divider:hover {
-   -fx-padding: 10   //interesting idea
-}*/
 .split-pane *.vertical-grabber {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    
 }
 .split-pane *.horizontal-grabber {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    
+}
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-background-color: -fx-pane-color;
+   -fx-padding: 6;
 }
 
 /*******************************************************************************

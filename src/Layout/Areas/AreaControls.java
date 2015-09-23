@@ -384,17 +384,17 @@ public final class AreaControls {
     }
 
     private void toggleAbsSize() {
-	Container c = area.container.getParent();
-	if (c != null && c instanceof BiContainer) {
+	Container c = area.container;
+	if (c instanceof BiContainer) {
 	    Splitter s = BiContainer.class.cast(c).ui;
-	    s.toggleAbsoluteSizeFor(area.container.indexInParent());
+	    s.toggleAbsoluteSizeFor(area.index);
 	}
     }
 
     void updateAbsB() {
-	Container c = area.container.getParent();
+	Container c = area.container;
 	if (c instanceof BiContainer) {
-	    boolean l = c.properties.getI("abs_size") == area.container.indexInParent();
+	    boolean l = c.properties.getI("abs_size") == area.index;
             absB.icon(l ? UNLINK : LINK);
 	    if (!header_buttons.getChildren().contains(absB))
 		header_buttons.getChildren().add(6, absB);

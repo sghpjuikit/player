@@ -226,7 +226,6 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         int i = getAbsoluteSize();
             i = i==2 ? 0 : i+1;
         setAbsoluteSize(i);
-
     }
 
     public void toggleAbsoluteSizeFor(int i) {

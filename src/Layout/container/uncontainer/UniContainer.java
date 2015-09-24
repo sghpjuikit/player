@@ -86,6 +86,7 @@ public class UniContainer extends Container<ContainerNode> {
     public void addChild(Integer index, Component c) {
         if(index==null) return;
 
+        if(c instanceof Container) ((Container)c).setParent(this);
         child = c;
         load();
         setParentRec();

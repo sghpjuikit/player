@@ -1,9 +1,6 @@
 
 package Layout.container.switchcontainer;
 
-import Layout.container.Container;
-import Layout.container.uncontainer.UniContainer;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +8,7 @@ import java.util.Map.Entry;
 import javafx.animation.*;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
+import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -20,7 +18,13 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Areas.ContainerNode;
+import Layout.Areas.Layouter;
+import Layout.Areas.WidgetArea;
 import Layout.Component;
+import Layout.container.Container;
+import Layout.widget.Widget;
+import Layout.widget.controller.Controller;
+import gui.GUI;
 import gui.objects.Window.stage.Window;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
@@ -213,52 +217,27 @@ public class SwitchPane implements ContainerNode {
 
 /********************************    TABS   ***********************************/
 
-    public final Map<Integer,AnchorPane> tabs = new HashMap();
+    public final Map<Integer,AnchorPane> tabs = new HashMap<>();
     boolean changed = false;
-    int at = Integer.MAX_VALUE;
 
-    /**
-     * Adds specified layout as new tab on the first empty tab from 0 to right
-     *
-     * @return tab index
-     */
-    public int addTabToRight(Container layout) {
-        int i = 0;
-        while(!layouts.containsKey(i)) i+=1;
-        addTab(i, layout);
-        return i;
-    }
-
-    public void addTab(int i, Container layout) {
-        if(layouts.get(i)==layout) return;
-        // remove first
-        if(layout==null) {
+    public void addTab(int i, Component layout) {
+        if(layout==layouts.get(i)) {
+            return;
+        } else if(layout==null) {
             removeTab(i);
         } else {
-            // add layout, if we dont an empty one will be provided
+            removeTab(i);
             layouts.put(i, layout);
             changed = true;
             // reload tab
-            addTab(i);
-            // setParentRec layouts to left & right
-//            addTab(i+1);
-//            addTab(i-1);
-
-            if(at==Integer.MAX_VALUE) {
-                at = i;
-                if(!container.getChildren().containsKey(i+1)) container.addChild(i+1, new UniContainer());
-                if(!container.getChildren().containsKey(i-1)) container.addChild(i-1, new UniContainer());
-                at = Integer.MAX_VALUE;
-            }
+            loadTab(i);
+            // left & right
+            addTab(i+1);
+            addTab(i-1);
         }
     }
 
-    /**
-     * Adds mew tab at specified position and initializes new empty layout. If tab
-     * already exists this method is a no-op.
-     * @param i
-     */
-    public void addTab(int i) {
+    private AnchorPane initTab(int i) {
         if (!tabs.containsKey(i)) {
             double width = uiWidth();
             double pos = getTabX(i);
@@ -276,19 +255,40 @@ public class SwitchPane implements ContainerNode {
             AnchorPane.setTopAnchor(t, 0.0);
             AnchorPane.setBottomAnchor(t, 0.0);
         }
+        AnchorPane p = tabs.get(i);
+        p.getChildren().clear();
+        return tabs.get(i);
+    }
 
-        AnchorPane t = tabs.get(i);
+    public void addTab(int i) {
+        if(!container.getChildren().containsKey(i+1)) loadTab(i);
+    }
+    /**
+     * Adds mew tab at specified position and initializes new empty layout. If tab
+     * already exists this method is a no-op.
+     * @param i
+     */
+    public void loadTab(int i) {
+        AnchorPane root = initTab(i);
+        Component c = layouts.get(i);
+        Node n = null;
 
-        if(!layouts.containsKey(i)) {
-            Container c =  new UniContainer();
-            if(container!=null) c.setParent(container);
-            if(container!=null) container.getChildren().put(i,c);
-            layouts.put(i,c);
-            changed = true;
+        if(c==null) {
+            Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
+            if(GUI.isLayoutMode()) l.show();
+            n = l.getRoot();
+        } else if (c instanceof Container) {
+            layouters.remove(i);
+            n = ((Container)c).load(root);
+        } else if (c instanceof Widget) {
+            layouters.remove(i);
+            WidgetArea wa = new WidgetArea(container, i);
+            wa.loadWidget((Widget)c);
+            n = wa.root;
         }
 
-        if(changed) layouts.get(i).load(t);
-        changed = false;
+        root.getChildren().setAll(n);
+        setAnchors(n,0d);
     }
 
     void removeTab(int i) {
@@ -296,17 +296,26 @@ public class SwitchPane implements ContainerNode {
             // detach from scene graph
             ui.getChildren().remove(tabs.get(i));
             // remove layout
-            layouts.get(i).close();
+            Component c = layouts.get(i);
+            if(c==null) {
+            } else if (c instanceof Container) {
+                ((Container)c).close();
+            } else if (c instanceof Widget) {
+                Controller cnt = ((Widget)c).getController();
+                if(cnt!=null) cnt.close();
+            }
+//            layouters.remove(i);
             layouts.remove(i);
             // remove from tabs
             tabs.remove(i);
         }
+
+        if(currTab()==i) addTab(i);
     }
 
     void removeAllTabs() {
         layouts.keySet().forEach(this::removeTab);
     }
-
 
 /****************************  DRAG ANIMATIONS   ******************************/
 
@@ -433,24 +442,6 @@ public class SwitchPane implements ContainerNode {
     }
 
     /**
-     * Scrolls to tab containing given layout.
-     *
-     * @param l layout
-     * @return index of current tab after aligning
-     */
-    public int alignTab(Container l) {
-        int i = -1;
-        for(Entry<Integer,Container> e : layouts.entrySet()) {
-            if(e.getValue().equals(l)) {
-                i = e.getKey();
-                alignTab(i);
-                break;
-            }
-        }
-        return i;
-    }
-
-    /**
      * Scrolls to tab containing given component in its layout.
      *
      * @param c component
@@ -458,8 +449,9 @@ public class SwitchPane implements ContainerNode {
      */
     public int alignTab(Component c) {
         int i = -1;
-        for(Entry<Integer,Container> e : layouts.entrySet()) {
-            boolean has = e.getValue().getAllChildren().anyMatch(ch -> ch==c);
+        for(Entry<Integer,Component> e : layouts.entrySet()) {
+            Component cm = e.getValue();
+            boolean has = cm==c || (cm instanceof Container && ((Container)cm).getAllChildren().anyMatch(ch -> ch==c));
             if(has) {
                 i = e.getKey();
                 alignTab(i);
@@ -604,9 +596,10 @@ public class SwitchPane implements ContainerNode {
 /******************************************************************************/
 
     public final SwitchContainer container;
-    private final Map<Integer,Container> layouts = new HashMap<>();
+    private final Map<Integer,Component> layouts = new HashMap<>();
+    private final Map<Integer,Layouter> layouters = new HashMap<>();
 
-    public Map<Integer,Container> getComponents() {
+    public Map<Integer,Component> getComponents() {
         return layouts;
     }
 
@@ -614,7 +607,7 @@ public class SwitchPane implements ContainerNode {
         return Long.MAX_VALUE;
     }
 
-    public Container getActive() {
+    public Component getActive() {
         return layouts.get(currTab());
     }
 
@@ -625,11 +618,25 @@ public class SwitchPane implements ContainerNode {
 
     @Override
     public void show() {
-        layouts.values().forEach(Container::show);
+        layouts.values().forEach(c -> {
+            if(c instanceof Container) ((Container)c).show();
+            if(c instanceof Widget) {
+                Controller ct = ((Widget)c).getController();
+                if(ct!=null && ct.getArea()!=null) ct.getArea().show();
+            }
+        });
+        layouters.forEach((i,l) -> l.show());
     }
 
     @Override
     public void hide() {
-        layouts.values().forEach(Container::hide);
+        layouts.values().forEach(c -> {
+            if(c instanceof Container) ((Container)c).hide();
+            if(c instanceof Widget) {
+                Controller ct = ((Widget)c).getController();
+                if(ct!=null && ct.getArea()!=null) ct.getArea().hide();
+            }
+        });
+        layouters.forEach((i,l) -> l.hide());
     }
 }

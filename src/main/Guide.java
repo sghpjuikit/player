@@ -26,6 +26,7 @@ import Layout.container.bicontainer.BiContainer;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.WidgetManager;
 import action.Action;
+import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
@@ -33,10 +34,12 @@ import gui.objects.icon.Icon;
 import main.Guide.Hint;
 import util.animation.Anim;
 
+import static Layout.container.Container.testContainer1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DEBUG_STEP_OVER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PALETTE_ADVANCED;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK;
 import static gui.objects.icon.Icon.createInfoIcon;
@@ -253,10 +256,18 @@ public final class Guide implements Configurable {
         hint("Layout mode", "For layout mode, there is also fast-shortcut reacting on key press and release." +
              "\n\nPress '" + Action.Shortcut_ALTERNATE + "' to temporarily enter layout mode. (If the shortcut " +
              "is empty (disabled) go to next hint manually).");
-        hint("Container control", "You can control container similarly to a widget, but you need "
-           + "to navigate to its controls first. Use mouse buttons:"
+        hint("Container control", "Container can be controleld just like a widget, but you need "
+           + "to navigate to its controls first. Use mouse buttons:\n"
            + "\n\t• Right click: go 'up' - visit parent container"
            + "\n\t• Left click: go 'down' - visit children"
+           + "\n\n Try out container navigation:",
+             new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
+                 Window w = App.getWindow();
+                 int i = w.getTopContainer().getEmptySpot();
+                 w.getTopContainer().addChild(i, testContainer1());
+                 w.getTopContainer().ui.alignTab(i);
+                 runFX(1000,() -> GUI.setLayoutMode(true));
+             })
         );
         hint("Layout lock", "Because automatic layout mode can be intrusive, the layout can be "
            + "locked. Locked layout will enter layout mode only with shortcut."
@@ -366,7 +377,7 @@ public final class Guide implements Configurable {
 //                if(p.isShowing())
                     handleAction(action);
             });
-        goToStart();
+        proceed();
     }
 
     public void stop() {
@@ -391,7 +402,7 @@ public final class Guide implements Configurable {
     public void goToStart() {
         if(hints.isEmpty()) return;
         first_time = false;
-        prev_at = at;
+        prev_at = -1;
         at = 0;
         proceed();
     }

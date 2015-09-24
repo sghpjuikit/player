@@ -12,7 +12,6 @@ import javafx.scene.layout.Pane;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.freeformcontainer.FreeFormContainer;
-import Layout.container.tabcontainer.TabContainer;
 import gui.GUI;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
@@ -68,8 +67,6 @@ public final class Layouter implements ContainerNode {
                 case "Split Horizontally" : closeAndDo(cp.root, this::showSplitH);
                                         break;
                 case "Widget" : closeAndDo(cp.root, this::showWidgetArea);
-                                break;
-                case "Tabs"   : closeAndDo(cp.root, this::showTabs);
                                 break;
                 case "FreeForm" : closeAndDo(cp.root, this::showFreeform);
                                   break;
@@ -219,9 +216,6 @@ public final class Layouter implements ContainerNode {
     private void showSplitH() {
         container.addChild(index, new BiContainer(VERTICAL));
         APP.actionStream.push("Divide layout");
-    }
-    private void showTabs() {
-        container.addChild(index, new TabContainer());
     }
     private void showFreeform() {
         container.addChild(index, new FreeFormContainer());

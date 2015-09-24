@@ -18,6 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import Layout.AltState;
 import Layout.Areas.ContainerNode;
 import Layout.Component;
+import Layout.container.bicontainer.BiContainer;
 import Layout.container.layout.Layout;
 import Layout.container.uncontainer.UniContainer;
 import Layout.widget.Widget;
@@ -27,6 +28,8 @@ import util.dev.TODO;
 import util.graphics.drag.DragUtil.WidgetTransfer;
 
 import static java.util.stream.Collectors.toList;
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
 import static util.functional.Util.*;
 
@@ -68,6 +71,31 @@ import static util.functional.Util.*;
  index if component is not found. Therefore such index must be ignored.
  */
 public abstract class Container<G extends ContainerNode> extends Component implements AltState {
+
+    public static Container testContainer1() {
+        BiContainer root = new BiContainer(HORIZONTAL);
+
+        BiContainer c11 = new BiContainer(VERTICAL);
+        BiContainer c12 = new BiContainer(VERTICAL);
+        root.addChild(1, c11);
+        root.addChild(2, c12);
+
+        BiContainer c21 = new BiContainer(HORIZONTAL);
+        BiContainer c22 = new BiContainer(HORIZONTAL);
+        c12.addChild(1, c21);
+        c12.addChild(2, c22);
+
+        c11.addChild(1, Widget.EMPTY());
+        c11.addChild(2, Widget.EMPTY());
+        c21.addChild(1, Widget.EMPTY());
+        c21.addChild(2, Widget.EMPTY());
+        c22.addChild(1, Widget.EMPTY());
+        c22.addChild(2, Widget.EMPTY());
+
+        return root;
+    }
+
+
 
     @XStreamOmitField protected AnchorPane root;
     @XStreamOmitField private Container parent;

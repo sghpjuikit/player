@@ -33,7 +33,7 @@ public class FreeFormContainer extends Container<FreeFormArea> {
         if(c==null) children.remove(index);
         else children.put(index, c);
 
-        ui.loadWindow(index, c);
+        if(ui!=null) ui.loadWindow(index, c);
         setParentRec();
     }
 

@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- guide dposition !restore on app start
+- remove Areas
+- bicontainer orientation button install to children instead
 - action for importing files
 - DirViewer needs virtual flow
 - ability to switch main window
@@ -49,8 +52,11 @@
   order in random playorder
 - unify & clean up Var, Ref, SingleRef
 - tab area
-- generic FileType class, particularly need separation on 'groups' like
-  audio, video, image, etc...
+- Generic FileType class, particularly need separation on 'groups' like
+  audio, video, image, etc... See:
+  http://stackoverflow.com/questions/51438/getting-a-files-mime-type-in-java
+  http://stackoverflow.com/questions/7904497/is-there-an-enum-with-mime-types-in-java
+  http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/net/MediaType.html
 - unify table column resizing, namely getMain column and autoresize with 
   main column taking all space, maybe signal locked columns with icon and add
   menu item for on/off autoresize columns option

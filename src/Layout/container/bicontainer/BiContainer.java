@@ -28,8 +28,8 @@ import static javafx.geometry.Orientation.VERTICAL;
 public class BiContainer extends Container<Splitter> {
 
     /** Orientation of this container. */
-    public final ObjectProperty<Orientation> orientation = new SimpleObjectProperty(VERTICAL);
-    private final Map<Integer, Component> children = new HashMap();
+    public final ObjectProperty<Orientation> orientation = new SimpleObjectProperty<>(VERTICAL);
+    private final Map<Integer, Component> children = new HashMap<>();
 
     public BiContainer(Orientation o) {
         orientation.set(o);
@@ -69,7 +69,9 @@ public class BiContainer extends Container<Splitter> {
         if(c==null) children.remove(index);
         else children.put(index, c);
 
-        ui.setComponent(index, c);
+        if(c instanceof Container) ((Container)c).setParent(this);
+
+        if(ui!=null) ui.setComponent(index, c);
         setParentRec();
     }
 

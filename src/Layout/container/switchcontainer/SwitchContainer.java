@@ -5,7 +5,6 @@
  */
 package Layout.container.switchcontainer;
 
-import java.io.ObjectStreamException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,11 +12,6 @@ import javafx.scene.Node;
 
 import Layout.Component;
 import Layout.container.Container;
-import Layout.container.uncontainer.UniContainer;
-import Layout.widget.Widget;
-
-import static util.functional.Util.list;
-
 
 /**
  *
@@ -33,22 +27,14 @@ public class SwitchContainer extends Container<SwitchPane> {
     }
 
     @Override
-    public void addChild(Integer index, Component c) {
+    public void addChild(Integer index, Component c) {System.out.println(index + " " + c);
         if(index==null) return;
 
-        if(c==null) {
-            children.remove(index);
-            load();
-            setParentRec();
-        } else if(c instanceof Container) {
-            children.put(index, c);
-            setParentRec();
-            load();
-        } else if (c instanceof Widget) {
-            UniContainer wrap = new UniContainer();
-            addChild(index, wrap);
-            wrap.setChild(c);
-        }
+        if(c==null) children.remove(index);
+        else children.put(index, c);
+
+        if(ui!=null) ui.addTab(index, c);
+        setParentRec();
     }
 
     @Override
@@ -65,18 +51,6 @@ public class SwitchContainer extends Container<SwitchPane> {
         if(ui==null) ui = new SwitchPane(this);
         new HashMap<>(children).forEach((i,c) -> ui.addTab(i,(Container)c));
         return ui.getRoot();
-    }
-
-    /** Invoked just before the serialization. */
-    protected Object writeReplace() throws ObjectStreamException {
-        // both an optimization & bugfix
-        // close empty children containers
-        list(getChildren().values()).forEach(c -> {
-            if(c instanceof Container && ((Container)c).getAllWidgets().count()==0)
-                removeChild(c);
-        });
-
-        return this;
     }
 
 }

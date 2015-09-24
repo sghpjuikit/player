@@ -132,7 +132,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
 
         // switch container/normal layout mode using right/left click
-        root.setOnMouseClicked(e -> {System.out.println("clicked");
+        root.setOnMouseClicked(e -> {
             // close on right click
             if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
 //                closeAndDo(container.getRoot(), container::close); // causes serious prolems, why?

@@ -164,7 +164,7 @@ public class Window extends WindowBase {
     public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
+    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
 
     @IsConfig(name = "Headerless", info = "Hides header.")
     public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
@@ -210,9 +210,8 @@ public class Window extends WindowBase {
 
     // root is assigned '.window' styleclass
     @FXML public AnchorPane root = new AnchorPane();
-    @FXML public AnchorPane back;
-    @FXML public AnchorPane front;
-    @FXML public AnchorPane borders;
+    @FXML public AnchorPane back, front;
+    @FXML public AnchorPane bordersVisual;
     @FXML public AnchorPane content;
     @FXML private HBox rightHeaderBox;
 
@@ -266,6 +265,12 @@ public class Window extends WindowBase {
 	resizing.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 	moving.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	fullscreen.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
+
+        // disable borders when not resizable
+        // makes gui consistent & prevents potential bugs
+        //
+        // note the poor impl. only borders must be Regions!
+        maintain(resizable, v->!v, v -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(v)));
 
 	// set local shortcuts
         Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
@@ -672,7 +677,7 @@ public class Window extends WindowBase {
         double p = v ? 0 : 5;
         util.graphics.Util.setAnchors(content, tp,p,p,p);
         header.setPrefHeight(tp);
-	borders.setVisible(!v);
+	bordersVisual.setVisible(!v);
     }
     public boolean isBorderlessApplied() {
 	return AnchorPane.getBottomAnchor(content) == 0;

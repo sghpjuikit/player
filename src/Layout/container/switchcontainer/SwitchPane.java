@@ -229,7 +229,6 @@ public class SwitchPane implements ContainerNode {
             removeTab(i);
             layouts.put(i, layout);
             changed = true;
-            // reload tab
             loadTab(i);
             // left & right
             addTab(i+1);
@@ -261,7 +260,7 @@ public class SwitchPane implements ContainerNode {
     }
 
     public void addTab(int i) {
-        if(!container.getChildren().containsKey(i+1)) loadTab(i);
+        if(!container.getChildren().containsKey(i)) loadTab(i);
     }
     /**
      * Adds mew tab at specified position and initializes new empty layout. If tab

@@ -116,11 +116,10 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         root_child2.setOnMouseDragged(Event::consume);
 
         splitPane.addEventHandler(MOUSE_CLICKED, e -> {
-            System.out.println("click " + e.getClickCount());
             boolean dividerclicked = false;
             if(splitPane.getOrientation()==VERTICAL && (e.getY()<5 || e.getY()>splitPane.getHeight()-5)) dividerclicked = true;
-            if(splitPane.getOrientation()==HORIZONTAL && (e.getX()<5 || e.getX()>splitPane.getWidth()-5)) dividerclicked = true;System.out.println(dividerclicked);
-            if(e.getClickCount()==2 && isCollapsed()) {System.out.println("decoll");
+            if(splitPane.getOrientation()==HORIZONTAL && (e.getX()<5 || e.getX()>splitPane.getWidth()-5)) dividerclicked = true;
+            if(e.getClickCount()==2 && isCollapsed()) {
                 setCollapsed(0);
             }
         });
@@ -132,6 +131,11 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
             if(splitPane.isPressed()) {
                 if(v<0.01) v=0;
                 if(v>0.99) v=1;
+                // It is important we do this only when the value changes manually - by user (hence
+                // the isPressed()).
+                // This way initialization and rounding errors will never affect the value
+                // and can not produce a domino effect. No matter how badly the value gets
+                // distorted when applying to the layout, its stored value will be always exact.
                 position.setValue(v);
             // occurs as a result of node parent resizing
             } else {
@@ -156,10 +160,10 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
                     // position, use the workaround for initialisation
                 } else {
                     double p = prop.getD("pos");
-                    if(v<p-0.08||v>p+0.08)
+                    if(v<p-0.08 || v>p+0.08)
                         runFX(this::applyPos);
                     else
-                        run(5000, ()->initialized=true);
+                        run(5000, () -> initialized=true);
                 }
             }
 

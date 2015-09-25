@@ -256,7 +256,7 @@ public final class Guide implements Configurable {
         hint("Layout mode", "For layout mode, there is also fast-shortcut reacting on key press and release." +
              "\n\nPress '" + Action.Shortcut_ALTERNATE + "' to temporarily enter layout mode. (If the shortcut " +
              "is empty (disabled) go to next hint manually).");
-        hint("Container control", "Container can be controleld just like a widget, but you need "
+        hint("Container control", "Container can be controlled just like a widget, but you need "
            + "to navigate to its controls first. Use mouse buttons:\n"
            + "\n\t• Right click: go 'up' - visit parent container"
            + "\n\t• Left click: go 'down' - visit children"

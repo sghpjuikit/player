@@ -173,9 +173,6 @@ public abstract class Area<T extends Container> implements ContainerNode {
     }
     public final boolean isUnderLock() {
         Component c = getActiveWidget();
-
-        System.out.println(c.lockedUnder.get() + " " + container.lockedUnder.get());
-
         return c==null ? container.lockedUnder.get() : c.lockedUnder.get();
     }
     @FXML

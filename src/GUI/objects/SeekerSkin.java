@@ -21,6 +21,8 @@ import com.sun.javafx.scene.control.skin.SliderSkin;
 
 import util.animation.Anim;
 
+import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
@@ -88,8 +90,10 @@ public class SeekerSkin extends BehaviorSkinBase<Slider, SliderBehavior> {
 
         // hover scaling animation
         Anim scaling = new Anim(millis(350),p -> thumb.setScaleX(1+4*p*p));
-        thumb.addEventHandler(MOUSE_ENTERED, e -> scaling.playOpen());
-        thumb.addEventHandler(MOUSE_EXITED, e -> scaling.playClose());
+        thumb.addEventFilter(MOUSE_ENTERED, e -> scaling.playOpen());
+        thumb.addEventFilter(MOUSE_EXITED, e -> scaling.playClose());
+        getSkinnable().addEventFilter(DRAG_DETECTED, e -> scaling.playOpen());
+        getSkinnable().addEventFilter(MOUSE_DRAG_RELEASED, e -> scaling.playClose());
 
         getChildren().clear();
         getChildren().addAll(track, thumb);

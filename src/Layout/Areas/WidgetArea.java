@@ -22,7 +22,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static gui.GUI.openAndDo;
-import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.isInR;
 import static util.functional.Util.listRO;
@@ -117,9 +116,7 @@ public final class WidgetArea extends Area<Container> {
         wNode.setUserData(this); // in effect sets container parent to the widget
 
         // workaround code
-        runLater(() -> {
         w.lockedUnder.initLocked(container);
-        });
         if(s!=null) s.unsubscribe();
         s = maintain(w.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
     }

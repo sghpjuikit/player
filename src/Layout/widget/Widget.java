@@ -334,7 +334,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * Resolve object by initializing non-deserializable fields or providing an
      * alternative instance (e.g. to adhere to singleton pattern).
      */
-    protected Object readResolve() throws ObjectStreamException {System.out.println("ttt " + this);
+    protected Object readResolve() throws ObjectStreamException {
         super.readResolve();
 
         // try to assign factory

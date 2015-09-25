@@ -19,7 +19,9 @@ import Layout.container.bicontainer.BiContainer;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import Layout.widget.controller.Controller;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import util.dev.TODO;
+import util.graphics.drag.DragUtil;
 import util.graphics.drag.DragUtil.WidgetTransfer;
 
 import static java.util.stream.Collectors.toList;
@@ -27,6 +29,7 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
 import static util.functional.Util.*;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * @author uranium
@@ -67,7 +70,7 @@ import static util.functional.Util.*;
  */
 public abstract class Container<G extends ContainerNode> extends Component implements AltState {
 
-    public static Container testContainer1() {
+    public static Container testControlContainer() {
         BiContainer root = new BiContainer(HORIZONTAL);
 
         BiContainer c11 = new BiContainer(VERTICAL);
@@ -86,6 +89,34 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         c21.addChild(2, Widget.EMPTY());
         c22.addChild(1, Widget.EMPTY());
         c22.addChild(2, Widget.EMPTY());
+
+        return root;
+    }
+
+    public static Container testDragContainer() {
+        Widget w = Widget.EMPTY();
+        BiContainer root = new BiContainer(HORIZONTAL);
+        root.addChild(1,w);
+
+        root.load();
+        installDrag(
+            root.getRoot(),
+            MaterialDesignIcon.DICE_2,
+            "Accepts text containing digit '2' and does nothing"
+          + "\n\t• Release mouse to drop drag and execute action"
+          + "\n\t• Continue moving to try elsewhere",
+            e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2"),
+            e -> {}
+        );
+        installDrag(
+            w.load(),
+            MaterialDesignIcon.DICE_2,
+            "Accepts text containing digit '2' and does nothing"
+          + "\n\t• Release mouse to drop drag and execute action"
+          + "\n\t• Continue moving to try elsewhere",
+            e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2"),
+            e -> {}
+        );
 
         return root;
     }

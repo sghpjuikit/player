@@ -152,7 +152,7 @@ public abstract class Component {
 
 //*************************************** SERIALIZATION *******************************************/
 
-    protected Object readResolve() throws ObjectStreamException {System.out.println(this);
+    protected Object readResolve() throws ObjectStreamException {
         if(lockedUnder == null)
             util.Util.setField(this, "lockedUnder", new LockedProperty());
         return this;

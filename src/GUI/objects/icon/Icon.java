@@ -14,12 +14,15 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.css.*;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
@@ -56,6 +59,7 @@ import static main.App.APP;
 import static util.Util.getEnumConstants;
 import static util.Util.getFieldValue;
 import static util.functional.Util.stream;
+import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.setScaleXY;
 
 public class Icon<I extends Icon> extends Text {
@@ -64,6 +68,7 @@ public class Icon<I extends Icon> extends Text {
     private static final Ƒ1<Icon,Anim> A = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
     private static final Double DEFAULT_ICON_SIZE = 12.0;
     private static final String DEFAULT_FONT_SIZE = "1em";
+    private static final EventHandler<Event> CONSUMER = Event::consume;
 
     static {
         try {
@@ -228,6 +233,10 @@ public class Icon<I extends Icon> extends Text {
     /** Equivalent to {@code setOnMouseClicked(action);}. Returns this icon (fluent API). */
     public final I onClick(EventHandler<MouseEvent> action) {
         setOnMouseClicked(action);
+
+        if(action==null) removeEventHandler(Event.ANY, CONSUMER);
+        else addEventHandler(Event.ANY, CONSUMER);
+
         return (I)this;
     }
 
@@ -256,6 +265,13 @@ public class Icon<I extends Icon> extends Text {
             }
         });
     }
+
+
+
+    public VBox withText(String text) {
+        return layHeaderBottom(5, Pos.CENTER, this, new Label(text));
+    }
+
 
 /******************************************************************************/
 

@@ -281,8 +281,7 @@ public class SwitchPane implements ContainerNode {
             n = ((Container)c).load(root);
         } else if (c instanceof Widget) {
             layouters.remove(i);
-            WidgetArea wa = new WidgetArea(container, i);
-            wa.loadWidget((Widget)c);
+            WidgetArea wa = new WidgetArea(container, i, (Widget)c);
             n = wa.root;
         }
 

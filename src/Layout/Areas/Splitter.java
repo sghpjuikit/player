@@ -184,8 +184,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
 
         Node n = null;
         if (c instanceof Widget) {
-            WidgetArea wa = new WidgetArea(container, i);
-            wa.loadWidget((Widget)c);
+            WidgetArea wa = new WidgetArea(container,i,(Widget)c);
             if(i==1) wa1 = wa; else wa2 = wa;
             n = wa.root;
         } else if (c instanceof Container) {

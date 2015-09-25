@@ -149,10 +149,9 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 ((ContainerNodeBase)c.ui).icons.getChildren().add(1,lb);
         } else
         if(cm instanceof Widget) {
-            WidgetArea wa = new WidgetArea(container,i);
+            WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
             // add maximize button
             wa.controls.header_buttons.getChildren().add(1,lb);
-            wa.loadWidget((Widget)cm);
             w.moveOnDragOf(wa.content_root);
             n = wa.root;
         } else {

@@ -135,6 +135,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
                 Exception ex = null;
                 try {
                     root = loadInitial();
+
+                    // we cant call this as parent is injected after this method returns
+                    // in WidgetArea
+                    // lockedUnder.init();
+
+                    // this call must execute after this widget is attached to the scenegraph
+                    // so initialization can access it
+                    // however that does not happen here. The root Container and Node should be passed
+                    // as parameters of this method
                     loadInitialize();
                 } catch(Exception e) {
                     ex = e;
@@ -325,7 +334,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * Resolve object by initializing non-deserializable fields or providing an
      * alternative instance (e.g. to adhere to singleton pattern).
      */
-    protected Object readResolve() throws ObjectStreamException {
+    protected Object readResolve() throws ObjectStreamException {System.out.println("ttt " + this);
+        super.readResolve();
+
         // try to assign factory
         if (factory==null) factory = WidgetManager.getFactory(name);
         // use empty widget when no factory available

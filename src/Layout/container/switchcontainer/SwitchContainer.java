@@ -27,7 +27,7 @@ public class SwitchContainer extends Container<SwitchPane> {
     }
 
     @Override
-    public void addChild(Integer index, Component c) {System.out.println(index + " " + c);
+    public void addChild(Integer index, Component c) {
         if(index==null) return;
 
         if(c==null) children.remove(index);
@@ -49,7 +49,7 @@ public class SwitchContainer extends Container<SwitchPane> {
     @Override
     public Node load() {
         if(ui==null) ui = new SwitchPane(this);
-        new HashMap<>(children).forEach((i,c) -> ui.addTab(i,(Container)c));
+        children.forEach(ui::addTab);
         return ui.getRoot();
     }
 

@@ -1,15 +1,12 @@
 
 package Layout.container;
 
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 
@@ -20,10 +17,8 @@ import Layout.Areas.ContainerNode;
 import Layout.Component;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.layout.Layout;
-import Layout.container.uncontainer.UniContainer;
 import Layout.widget.Widget;
 import Layout.widget.controller.Controller;
-import gui.GUI;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil.WidgetTransfer;
 
@@ -101,24 +96,6 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     @XStreamOmitField private Container parent;
     @XStreamOmitField public G ui;
 
-    /**
-     * Whether the container is locked. The effect of lock is not implicit and
-     * might vary. Generally, the container becomes immune against certain
-     * layout changes.
-     * <p>
-     * Note that the method {@link #isUnderLock()} may be better fit for use,
-     * because unlocked container can still be under lock from any of its parents.
-     *
-     * @return true if this container is locked.
-     */
-    public final BooleanProperty locked = new SimpleBooleanProperty(false);
-    @XStreamOmitField
-    public final BooleanProperty lockedUnder = new SimpleBooleanProperty(false){
-        {
-            bind(locked.or(GUI.locked_layout));
-        }
-    };
-
     /** {@inheritDoc} */
     @Override
     public String getName() {
@@ -133,8 +110,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     @TODO(note = "make private")
     public void setParent(Container c) {
         parent = c;
-        lockedUnder.unbind();
-        lockedUnder.bind(c.lockedUnder.or(locked).or(GUI.locked_layout));
+        lockedUnder.initLocked(c);
     }
 
     /**
@@ -210,15 +186,6 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 
         // im pretty sure container could be null, e.g., when copying Layout (has no parent)
         // should be investigated and fixed
-
-        // avoid pointless operation but dont rely on equals
-        // subclass can overide it and cause problems
-        // note: we can rely on this check only because we
-        // use Unary Container for all widgets.
-        // If we had polynary Container (multiple children) this would prevent their swapping
-        // edit: but we do have them now... hence the instanceof checks
-        // i think this is largely useless now, but dont want to break anything, fix it later...
-        if (c1 instanceof UniContainer && c2 instanceof UniContainer && c1==c2) return;
 
         Component w1 = c1.getChildren().get(i1);
         Component w2 = toChild;
@@ -366,7 +333,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         if (parent!=null) {
             // remove from layout graph
             parent.removeChild(this);
-            lockedUnder.unbind();
+            lockedUnder.close();
             // remove from scene graph if attached to it
             removeGraphicsFromSceneGraph();
         } else {
@@ -422,16 +389,6 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         hash = 67 * hash + Objects.hashCode(this.parent);
         hash = 67 * hash + (this.b ? 1 : 0);
         return hash;
-    }
-
-/******************************************************************************/
-
-    protected Object readResolve() throws ObjectStreamException {
-        if(lockedUnder == null) {   // for some reason this happens, investigate, remove
-            util.Util.setField(this, "lockedUnder", new SimpleBooleanProperty(false));
-            lockedUnder.bind(locked.or(GUI.locked_layout));
-        }
-        return this;
     }
 
 /******************************************************************************/

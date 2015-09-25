@@ -111,8 +111,9 @@ public class Picker<E> {
         root.setOnMouseClicked(e->{
             if(e.getButton()==SECONDARY) {
                 onCancel.run();
-                if(consumeCancelClick) e.consume(); // causes problems for layouter, off for now
+                if(consumeCancelClick) e.consume();
             }
+            e.consume();
         });
         root.getStyleClass().add(STYLE_CLASS);
     }

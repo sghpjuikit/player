@@ -264,9 +264,11 @@ public final class Guide implements Configurable {
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
                  Window w = App.getWindow();
                  int i = w.getTopContainer().getEmptySpot();
-                 w.getTopContainer().addChild(i, testContainer1());
                  w.getTopContainer().ui.alignTab(i);
-                 runFX(1000,() -> GUI.setLayoutMode(true));
+                 runFX(
+                     1000, () -> w.getTopContainer().addChild(i, testContainer1()),
+                     1000, () -> GUI.setLayoutMode(true)
+                 );
              })
         );
         hint("Layout lock", "Because automatic layout mode can be intrusive, the layout can be "
@@ -277,7 +279,7 @@ public final class Guide implements Configurable {
         hint("Widget layout lock", "Widgets and containers can be locked as well. Locking widget "
            + "is useful if automatic layout mode gets in the way of the particular widget. Locking "
            + "a container will lock all its children."
-           + "\nWidget will behave as locked if it or any of its parent containers or whole layout "
+           + "\n\nWidget will behave as locked if it or any of its parent containers or whole layout "
            + "is locked. Thus, you can combine locks however you wish. "
            + "other controls in the corner activation area." +
              "\n\nClick on the lock button in the widget's header.");

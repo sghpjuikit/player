@@ -465,5 +465,11 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         public double c_width() {
             return 60;
         }
+
+        @Override
+        public boolean c_visible() {
+            return this==NAME || this==LENGTH;
+        }
+
     }
 }

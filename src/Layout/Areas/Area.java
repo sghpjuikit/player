@@ -163,17 +163,26 @@ public abstract class Area<T extends Container> implements ContainerNode {
     }
     @FXML
     public void setLocked(boolean val) {
-        container.locked.set(val);
+        Component c = getActiveWidget();
+        if(c!=null)
+            c.locked.set(val);
     }
     public boolean isLocked() {
-        return container.locked.get();
+        Component c = getActiveWidget();
+        return c==null ? false : c.locked.get();
     }
     public final boolean isUnderLock() {
-        return container.lockedUnder.get();
+        Component c = getActiveWidget();
+
+        System.out.println(c.lockedUnder.get() + " " + container.lockedUnder.get());
+
+        return c==null ? container.lockedUnder.get() : c.lockedUnder.get();
     }
     @FXML
     public void toggleLocked() {
-        container.locked.set(!container.locked.get());
+        Component c = getActiveWidget();
+        if(c!=null)
+            c.locked.set(!c.locked.get());
     }
 
 /**************************** activity node ***********************************/

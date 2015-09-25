@@ -5,8 +5,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.util.UUID;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 
@@ -15,11 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import Layout.container.Container;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import Layout.widget.WidgetManager;
+import gui.GUI;
 import gui.objects.Window.stage.Window;
 import main.App;
 import util.collections.map.PropertyMap;
@@ -142,6 +147,53 @@ public abstract class Component {
             X.toXML(this, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             LOGGER.error("Unable to export component launcher for {} into {}", getName(),f);
+        }
+    }
+
+//*************************************** SERIALIZATION *******************************************/
+
+    protected Object readResolve() throws ObjectStreamException {System.out.println(this);
+        if(lockedUnder == null)
+            util.Util.setField(this, "lockedUnder", new LockedProperty());
+        return this;
+    }
+
+//***************************************** LOCKING ***********************************************/
+
+    /**
+     * Whether the container is locked. The effect of lock is not implicit and
+     * may vary. Generally, the container becomes immune against certain
+     * layout changes.
+     * <p>
+     * Note that the method {@link #isUnderLock()} may be better fit for use,
+     * because unlocked container can still be under lock from any of its parents.
+     *
+     * @return true if this container is locked.
+     */
+    public final BooleanProperty locked = new SimpleBooleanProperty(false);
+    /**
+     * @return true if this container is locked or any parent is locked or entire ui is locked
+     */
+    @XStreamOmitField
+    public final LockedProperty lockedUnder = new LockedProperty();
+
+    public class LockedProperty extends SimpleBooleanProperty {
+
+        public LockedProperty() {
+            super(false);
+            initLocked(null);
+        }
+
+        // cal when component parent changes
+        public void initLocked(Component p) {
+            unbind();
+            if(p==null) bind(locked.or(GUI.locked_layout));
+            else bind(p.lockedUnder.or(locked).or(GUI.locked_layout));
+        }
+
+        // call when cosing component
+        public void close() {
+            unbind();
         }
     }
 }

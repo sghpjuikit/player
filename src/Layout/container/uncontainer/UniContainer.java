@@ -47,9 +47,8 @@ public class UniContainer extends Container<ContainerNode> {
         if (child instanceof Widget) {
             if (!(ui instanceof WidgetArea)) {
                 removeGraphicsFromSceneGraph();
-                ui = new WidgetArea(this, 1);
+                ui = new WidgetArea(this,1,(Widget)child);
             }
-            WidgetArea.class.cast(ui).loadWidget((Widget)child);
             out = ui.getRoot();
         } else {
             ui = new Layouter(this,1);

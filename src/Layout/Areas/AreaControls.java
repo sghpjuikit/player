@@ -54,9 +54,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static main.App.APP;
-import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
-import static util.reactive.Util.maintain;
 
 /**
  FXML Controller class
@@ -120,7 +118,7 @@ public final class AreaControls {
     @FXML public Label title;
     public Icon propB;
     public @FXML TilePane header_buttons;
-    Icon infoB, absB;
+    Icon infoB, absB, lockB;
 
     // animations // dont setParentRec here or make final
     private final FadeTransition contrAnim;
@@ -154,11 +152,11 @@ public final class AreaControls {
         );
 	propB = new Icon(COGS, 12, propbTEXT, this::settings);
 	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
-	Icon lockB = new Icon(null, 12, lockbTEXT, () -> {
+	lockB = new Icon(null, 12, lockbTEXT, () -> {
             toggleLocked();
 	    APP.actionStream.push("Widget layout lock");
         });
-        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
+//        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, absbTEXT, e -> {
 	    toggleAbsSize();
 	    updateAbsB();

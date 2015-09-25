@@ -76,7 +76,6 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
             APP.actionPane.show(Container.class, container)
         );
-	Icon propB = new Icon(COGS, 12, "Settings", ()->{});
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
 	    APP.actionStream.push("Widget layout lock");
@@ -126,7 +125,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         AnchorPane.setTopAnchor(icons,0d);
         AnchorPane.setRightAnchor(icons,0d);
         AnchorPane.setLeftAnchor(icons,0d);
-        icons.getChildren().addAll(infoB, dragB, absB, lockB, propB, actB, detachB, changeB, closeB);
+        icons.getChildren().addAll(infoB, dragB, absB, lockB, actB, detachB, changeB, closeB);
 
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));

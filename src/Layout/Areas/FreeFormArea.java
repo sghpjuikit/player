@@ -35,7 +35,6 @@ import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
 import static util.functional.Util.findFirstEmpty;
-import static util.functional.Util.isInR;
 import static util.graphics.Util.layAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -82,11 +81,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         DragUtil.installDrag(
             root, EXCHANGE, () -> "Move component here",
             DragUtil::hasComponent,
-            e -> isInR(container, DragUtil.getComponent(e).child,DragUtil.getComponent(e).container),
-            e -> {
-                int i = addEmptyWindowAt(e.getX(), e.getY());
-                container.swapChildren(i,DragUtil.getComponent(e));
-            },
+            e -> container==DragUtil.getComponent(e),
+            e -> DragUtil.getComponent(e).swapWith(container,addEmptyWindowAt(e.getX(), e.getY())),
             e -> bestRecBounds(e.getX(),e.getY(),null)
         );
 

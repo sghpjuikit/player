@@ -156,7 +156,7 @@ public class IOPane extends StackPane {
                         in.bind(DragUtil.getWidgetOutput(e));
                         drawWidgetIO();
                     } else {
-                        Object o = DragUtil.hasComponent(e) ? DragUtil.getComponent(e).child : DragUtil.getAny(e);
+                        Object o = DragUtil.getAny(e);
                         Class c = o.getClass();
                         if(in.getType().isAssignableFrom(c)) {
                             in.setValue((T)o);

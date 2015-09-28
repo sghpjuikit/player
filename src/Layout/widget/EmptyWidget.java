@@ -4,6 +4,7 @@
  */
 package Layout.widget;
 
+import java.io.ObjectStreamException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -22,8 +23,6 @@ import static java.util.Collections.EMPTY_MAP;
  * Empty widget.
  * <p>
  * Useful for certain layout operations and as a fill in for null.
- * <p>
- * Also its own Controller. Loading returns empty {@link Region}.
  */
 @Widget.Info(
     author = "Martin Polakovic",
@@ -42,6 +41,8 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
 
     public EmptyWidget() {
         super("Empty", new EmptyWidgetFactory());
+        controller = this;
+        root = new Region();
     }
 
     @Override
@@ -52,12 +53,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     }
 
     @Override public Node loadInitial() {
-        return new Region();
-    }
-
-
-    @Override public Controller getController() {
-        return this;
+        return root;
     }
 
     /** This implementation is no-op */
@@ -85,6 +81,12 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     @Override
     public Map<String, Config<Object>> getFieldsMap() {
         return EMPTY_MAP;
+    }
+
+    protected Object readResolve() throws ObjectStreamException {
+        root = new Region();
+        controller = this;
+        return super.readResolve();
     }
 
 }

@@ -22,7 +22,6 @@ import Layout.widget.controller.Controller;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
-import util.graphics.drag.DragUtil.WidgetTransfer;
 
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -211,15 +210,17 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * @param toParent container containing the child to swap with
      * @param toChild child to swap with
      */
-    public void swapChildren(Container toParent, int i1, Component toChild) {
+    public void swapChildren(Container toParent, Integer i1, Component toChild) {
         Container<?> c1 = this;
         Container<?> c2 = toParent;
 
-        // im pretty sure container could be null, e.g., when copying Layout (has no parent)
-        // should be investigated and fixed
+        if(toParent==null || i1==null ) return;
 
         Component w1 = c1.getChildren().get(i1);
         Component w2 = toChild;
+
+        if(w2==null) return;
+
         int i2 = c2.indexOf(w2);
 
         String w1n = w1==null ? "null" : w1.getName();
@@ -231,21 +232,11 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     }
 
     /**
-     * Convenience method. Equivalent to: swapChildren(wt.container, i1, wt.child)
-     * @see #swapChildren(Layout.Container, int, Layout.Component)
-     * @see WidgetTransfer
-     */
-    public void swapChildren(int i1, WidgetTransfer wt) {
-        swapChildren(wt.container, i1, wt.child);
-    }
-
-    /**
      * Returns index of a child or null if no child or parameter null.
      * @param c component
      * @return index of a child or null if no child
      */
     public Integer indexOf(Component c) {
-//        if (c==null) return null;
         if (c==null) return null;
 
         for (Map.Entry<Integer, ? extends Component> entry: getChildren().entrySet()) {
@@ -258,11 +249,10 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 
     /**
      * Equivalent to: parent.indexOf(this)
-     * @throws NullPointerException when this container is root
-     * @return
+     * @return parent.indexOf(this) or null if parent null
      */
-    public final int indexInParent() {
-        return parent.indexOf(this);
+    public final Integer indexInParent() {
+        return parent==null ? null : parent.indexOf(this);
     }
 
     /** @return available index for child or null if none available. */

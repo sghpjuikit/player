@@ -20,7 +20,6 @@ import javafx.scene.input.Dragboard;
 import AudioPlayer.Item;
 import AudioPlayer.SimpleItem;
 import Layout.Component;
-import Layout.container.Container;
 import Layout.widget.controller.io.Output;
 import de.jensd.fx.glyphs.GlyphIcons;
 import main.App;
@@ -147,6 +146,7 @@ public final class DragUtil {
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
         if(hasItemList(e)) return getItemsList(e);
+        if(hasComponent(e)) return getComponent(e);
         if(d.hasFiles()) return d.getFiles();
         if(d.hasImage()) return d.getImage();
         if(d.hasUrl()) return d.getUrl();
@@ -159,6 +159,7 @@ public final class DragUtil {
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
         if(hasItemList(e)) return getItemsList(e);
+        if(hasComponent(e)) return getComponent(e);
         if(d.hasFiles()) return d.getFiles();
         if(d.hasImage()) return d.getImage();
         if(d.hasUrl()) return futUrl(d.getUrl());
@@ -257,16 +258,16 @@ public final class DragUtil {
         return e.getDragboard().hasContent(itemsDF);
     }
 
-/********************************** LAYOUT ************************************/
+/********************************** COMPONENT *********************************/
 
-    public static void setComponent(Container parent, Component child, Dragboard db) {
-        data = new WidgetTransfer(parent, child);
+    public static void setComponent(Component c, Dragboard db) {
+        data = c;
         db.setContent(singletonMap(componentDF, ""));   // fake data
     }
 
-    public static WidgetTransfer getComponent(DragEvent e) {
+    public static Component getComponent(DragEvent e) {
         if(!hasComponent(e)) throw new RuntimeException("No component in data available.");
-        return (WidgetTransfer) data;
+        return (Component) data;
     }
 
     public static boolean hasComponent(DragEvent e) {
@@ -467,25 +468,4 @@ public final class DragUtil {
         });
     }
 
-    /**
-     * Used for drag transfer of components. When drag starts the component and
-     * its parent are wrapped into this object and when drag ends the component
-     * is switched with the other one in the second parent.
-     * <p>
-     * This makes for one portion of the component swap. The one that initializes
-     * the transfer.
-     *
-     * @author uranium
-     */
-    public static class WidgetTransfer {
-
-        public final Container container;
-        public final Component child;
-
-        public WidgetTransfer(Container container, Component child) {
-            super();
-            this.child = child;
-            this.container = container;
-        }
-    }
 }

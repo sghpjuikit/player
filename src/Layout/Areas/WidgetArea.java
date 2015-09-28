@@ -62,8 +62,8 @@ public final class WidgetArea extends Area<Container> {
         DragUtil.installDrag(
             root, EXCHANGE, "Switch components",
             DragUtil::hasComponent,
-            e -> isInR(DragUtil.getComponent(e).child, container,widget),
-            e -> container.swapChildren(index,DragUtil.getComponent(e))
+            e -> isInR(DragUtil.getComponent(e), container,widget),
+            e -> DragUtil.getComponent(e).swapWith(container,index)
         );
 
         loadWidget();

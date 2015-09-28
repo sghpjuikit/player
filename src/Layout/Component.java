@@ -150,6 +150,12 @@ public abstract class Component {
         }
     }
 
+    public void swapWith(Container c, int i) {
+        if(c!=null) {
+            c.swapChildren(getParent(), i, this);
+        }
+    }
+
 //*************************************** SERIALIZATION *******************************************/
 
     protected Object readResolve() throws ObjectStreamException {

@@ -95,11 +95,8 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         DragUtil.installDrag(
             ctrls, EXCHANGE, "Switch components",
             DragUtil::hasComponent,
-            e -> DragUtil.getComponent(e).child == container,
-            e -> {
-                Container c = container.getParent();
-                c.swapChildren(c.indexOf(container),DragUtil.getComponent(e));
-            }
+            e -> DragUtil.getComponent(e) == container,
+            e -> DragUtil.getComponent(e).swapWith(container.getParent(),container.indexInParent())
         );
 
         // not that dragging children will drag those, dragging container
@@ -107,7 +104,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(container.getParent(),container,db);
+                DragUtil.setComponent(container,db);
                 // signal dragging graphically with css
                 ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();

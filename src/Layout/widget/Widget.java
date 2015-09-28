@@ -61,7 +61,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     @XStreamOmitField private WidgetFactory factory;
     @XStreamOmitField protected C controller;
-    @XStreamOmitField private Node root;
+    @XStreamOmitField protected Node root;
     @XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
     // configuration

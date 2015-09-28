@@ -167,7 +167,7 @@ public final class AreaControls {
         EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(area.container,area.getActiveWidget(),db);
+                DragUtil.setComponent(area.getActiveWidget(),db);
                 // signal dragging graphically with css
                 root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();

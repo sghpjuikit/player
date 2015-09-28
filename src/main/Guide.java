@@ -405,12 +405,9 @@ public final class Guide implements Configurable {
     private final Anim proceed_anim = new Anim(millis(400),x -> p.getContentNode().setOpacity(-(x*x-1)));
 
     private void proceed() {
-        if (at<0) at=0;
-        if (at<hints.size()) {
-            proceed_anim.playOpenDoClose(this::proceedDo);
-        } else {
-            // stop();
-        }
+        if(hints.isEmpty()) return;
+        if (at<0 || at>=hints.size()) at=0;
+        proceed_anim.playOpenDoClose(this::proceedDo);
     }
     private void proceedDo() {
         // exit old hint

@@ -93,8 +93,8 @@ public final class Layouter implements ContainerNode {
         installDrag(
             root, EXCHANGE, "Switch components",
             DragUtil::hasComponent,
-            e -> isInR(container, DragUtil.getComponent(e).child,DragUtil.getComponent(e).container),
-            e -> container.swapChildren(index,DragUtil.getComponent(e))
+            e -> isInR(container, DragUtil.getComponent(e),DragUtil.getComponent(e).getParent()),
+            e -> DragUtil.getComponent(e).swapWith(container,index)
         );
 
         clickShowHider =  e -> {

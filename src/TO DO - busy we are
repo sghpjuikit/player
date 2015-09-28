@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- if guide is completed it can not start again
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order
 - remove Areas
 - bicontainer orientation button install to children instead

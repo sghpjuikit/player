@@ -6,11 +6,13 @@
 package gui.pane;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -159,7 +161,8 @@ public class ActionPane extends OverlayPane implements Configurable {
 /************************************ DATA ************************************/
 
     private Object data;
-    private List<ActionData> dactions;
+    private List<ActionData> iactions;
+    private final List<ActionData> dactions = new ArrayList<>();
 
     @Override
     public void show() {
@@ -168,24 +171,20 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
 
     public void show(Object value) {
-        if(value instanceof Collection) {
-            Collection c = (Collection)value;
-            if(c.isEmpty()) value=null;
-            if(c.size()==1) value=c.stream().findAny().get();
-        }
+        value = collectionUnwrap(value);
         Class c = value==null ? Void.class : value.getClass();
         show(c, value);
     }
 
     public <T> void show(Class<T> type, T value, ActionData<?,?>... actions) {
         data = value;
-        dactions = list(actions);
+        iactions = list(actions);
         show();
     }
 
     public <T> void show(Class<T> type, Fut<T> value, SlowAction<T,?>... actions) {
         data = value;
-        dactions = list(actions);
+        iactions = list(actions);
         show();
     }
 
@@ -205,55 +204,24 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 /*********************************** HELPER ***********************************/
 
-    private void setData(Object o) {
+    // retrieve set data
+    private Object getData() {
+        return data instanceof Collection ? list(table.getItems()) : data;
+    }
+
+    // set data to retrieve
+    private void setData(Object d) {
         // clear content
         setActionInfo(null);
         icons.clear();
 
-        // prepare data
-        data = o;
-        if(data instanceof Collection) {
-            Collection c = (Collection)data;
-            if(c.isEmpty()) data=null;
-            if(c.size()==1) data=c.stream().findAny().get();
-        }
-
         // set content
+        data = collectionUnwrap(d);
         boolean dataready = !(data instanceof Fut && !((Fut)data).isDone());
         if(dataready) {
-            // if data is future, it is done => get data & data type, no more future from here on
-            data = data instanceof Fut ? ((Fut)data).getDone() : data;
-            Class dtype = data==null ? Void.class : data instanceof Collection ? ((Collection)data).stream().findFirst().orElse(null).getClass() : data.getClass();
-            // get suitable actions
-            dactions.addAll(actions.getElementsOfSuperV(dtype));
-            dactions.removeIf(a -> !a.condition.test(data));
-
+            data = futureUnwrap(data);
             setDataInfo(data, true);
-            icons.setAll(dactions.stream().sorted(by(a -> a.name)).map(a -> {
-                Icon i = new Icon()
-                      .icon(a.icon)
-                      .styleclass(ICON_STYLECLASS)
-                      .onClick(() -> {
-                          if (a instanceof FastAction) {
-                              a.run(getData());
-                              doneHide();
-                          }
-                          if (a instanceof SlowAction) {
-                              Fut<?> datafut = fut(data);
-                              futAfter(datafut)
-                                    .then(() -> actionProgress.setProgress(-1),FX)
-                                    .then((Ƒ1)a.action)
-                                    .then(() -> actionProgress.setProgress(1),FX)
-                                    .then(this::doneHide,FX);
-                          }
-                       });
-                     i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(a));
-                     i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
-                return i;
-            }).collect(toList()));
-            // animate
-            Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*200))
-                .play();
+            showIcons(data);
         } else {
             setDataInfo(null, false);
             // obtain data & invoke again
@@ -263,10 +231,6 @@ public class ActionPane extends OverlayPane implements Configurable {
             f.run();
             data = f;
         }
-    }
-
-    private Object getData() {
-        return data instanceof Collection ? list(table.getItems()) : data;
     }
 
     private void setActionInfo(ActionData a) {
@@ -294,6 +258,7 @@ public class ActionPane extends OverlayPane implements Configurable {
                 tablePane.getChildren().setAll(t.getRoot());
                 table = t;
                 t.setItemsRaw((Collection)data);
+                t.getSelectedItems().addListener((Change<?> c) -> showIcons(t.getSelectedOrAllItemsCopy()));
             }
         }
     }
@@ -309,10 +274,72 @@ public class ActionPane extends OverlayPane implements Configurable {
                           .map(e -> e.getKey() + ": " + e.getValue()).sorted().collect(joining("\n"));
         if(!dinfo.isEmpty()) dinfo = "\n" + dinfo;
 
-        return "Data: " + dname
-             + "\nType: " + dkind
-             + dinfo ;
+        return "Data: " + dname + "\nType: " + dkind + dinfo ;
     }
+
+    private void showIcons(Object d) {
+        Class dt = d==null ? Void.class : d instanceof Collection ? ((Collection)d).stream().findFirst().orElse(null).getClass() : d.getClass();
+        // get suitable actions
+        dactions.clear();
+        dactions.addAll(iactions);
+        dactions.addAll(actions.getElementsOfSuperV(dt));
+        dactions.removeIf(a -> {
+            if(a.groupApply==FOR_ALL)
+                return false;
+            if(a.groupApply==FOR_EACH) {
+                List ds = list(d instanceof Collection ? (Collection)d : listRO(d));
+                return ds.stream().filter(a.condition).count()==0;
+            }
+            if(a.groupApply==NONE) {
+                Object o = collectionUnwrap(d);
+                return o instanceof Collection ? true : !a.condition.test(o);
+            }
+            throw new RuntimeException("Illegal switch case");
+        });
+
+        icons.setAll(dactions.stream().sorted(by(a -> a.name)).map(a -> {
+            Icon i = new Icon()
+                  .icon(a.icon)
+                  .styleclass(ICON_STYLECLASS)
+                  .onClick(() -> {
+                      if (a instanceof FastAction) {
+                          a.run(getData());
+                          doneHide();
+                      }
+                      if (a instanceof SlowAction) {
+                          Fut<?> datafut = fut(getData());
+                          futAfter(datafut)
+                                .then(() -> actionProgress.setProgress(-1),FX)
+                                .then((Ƒ1)a.action)
+                                .then(() -> actionProgress.setProgress(1),FX)
+                                .then(this::doneHide,FX);
+                      }
+                   });
+                 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(a));
+                 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
+            return i.withText(a.name);
+        }).collect(toList()));
+        // animate
+        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*200))
+            .play();
+    }
+
+
+
+    private static Object collectionUnwrap(Object o) {
+        if(o instanceof Collection) {
+            Collection c = (Collection)o;
+            if(c.isEmpty()) o=null;
+            if(c.size()==1) o=c.stream().findAny().get();
+        }
+        return o;
+    }
+
+    private static Object futureUnwrap(Object o) {
+        return o instanceof Fut ? ((Fut)o).getDone() : o;
+    }
+
+
 
 
     public static abstract class ActionData<T,F> {
@@ -340,6 +367,28 @@ public class ActionPane extends OverlayPane implements Configurable {
             if(groupApply!=NONE && !(data instanceof Collection)) data=listRO(data); // wrap into collection
             return run(data, data instanceof Collection);
         };
+
+        public boolean isColl() {
+            return groupApply==FOR_ALL;
+        }
+
+        public boolean canUse(Object o) {
+            return o instanceof Collection ? groupApply!=NONE : groupApply!=FOR_ALL;
+        }
+
+        public Object maptToUsable(Object o) {
+            if(groupApply==FOR_ALL) {
+                return o instanceof Collection ? o : listRO(o);
+            }
+            if(groupApply==FOR_EACH) {
+                return o;
+            }
+            if(groupApply==NONE) {
+                if(o instanceof Collection) throw new RuntimeException("Action can not use collection");
+                else return o;
+            }
+            throw new RuntimeException("Illegal switch case");
+        }
     }
     public static class FastAction<T> extends ActionData<T,Consumer<T>> {
 

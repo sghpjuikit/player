@@ -174,7 +174,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 String st = e.getText().toLowerCase();
                 // update scroll text
                 long now = System.currentTimeMillis();
-                boolean append = searchTime==-1 || now-searchTime<scrolFTimeMax.toMillis();
+                boolean append = searchTime==-1 || now-searchTime<searchTimeMax.toMillis();
                 searchQuery.set(append ? searchQuery.get()+st : st);
                 searchTime = now;
                 search(searchQuery.get());
@@ -415,7 +415,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     private static final PseudoClass SEARCHMATCHNOTPC = getPseudoClass("searchmatchnot");
 
     @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
-    private static Duration scrolFTimeMax = millis(500);
+    private static Duration searchTimeMax = millis(500);
     @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
     private static boolean scrolFautocancel = true;
     @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
@@ -445,7 +445,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     public void search(String s) {
         APP.actionStream.push("Table search");
         searchQuery.set(s);
-        // scroll to first item beginning with search string
+        // scroll to first found item
         TableColumn c = getColumn(searchField).orElse(null);
         if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
             for(int i=0;i<getItems().size();i++) {

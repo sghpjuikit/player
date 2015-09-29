@@ -376,7 +376,7 @@ public class Functors {
      */
     // this class is ~pointless, yes we dont have to return null in lambda as with F1E, but
     // thats only possible if some method takes parameter of this class. which will prevent
-    // other F1E from being used 
+    // other F1E from being used
     public static interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
 
         @Override
@@ -493,13 +493,13 @@ public class Functors {
     private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 
     static {
-        add("Is null",      Object.class, Boolean.class, ISØ);
-        add("Is not null",  Object.class, Boolean.class, ISNTØ);
 
         // adding identity function as Object -> Object creates problems, it acually needs to be
         // added per every class, not sure how though. The only way to guarantee it, is to add it
         // to result every time function is requested from the map.
         add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
+        add("Is null",      Object.class, Boolean.class, ISØ);
+        add("Is not null",  Object.class, Boolean.class, ISNTØ);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
 

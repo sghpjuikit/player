@@ -3,7 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- if guide is completed it can not start again
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order
 - remove Areas
 - bicontainer orientation button install to children instead
@@ -26,7 +25,6 @@
 - implement smooth volume on seek
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
-- make containers & widgets more lightweight
 - Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo

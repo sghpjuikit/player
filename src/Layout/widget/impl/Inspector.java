@@ -27,7 +27,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.widget.Widget.Group.APP;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.layAnchor;
 
 @IsWidget
 @Widget.Info(
@@ -49,21 +49,21 @@ import static util.graphics.Util.setAnchors;
     group = APP
 )
 public class Inspector extends ClassController implements FileExplorerFeature {
-    
+
     private static final PseudoClass csPC = getPseudoClass("configselected");
     private Node sel_node = null;
     private TreeView<Object> tree = new TreeView<>();
-    
-    public Inspector() {        
-        getChildren().add(tree);
-        setAnchors(tree,0d);
+
+    public Inspector() {
+        layAnchor(this, tree,0d);
+        
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
         tree.setCellFactory(TreeItems::buildTreeCell);
         tree.setRoot(TreeItems.treeApp());
         tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             Object oi = ov==null ? null : ov.getValue();
             Object ni = nv==null ? null : nv.getValue();
-            
+
             // selected node highlighting
             if(sel_node!=null) {
                 sel_node.pseudoClassStateChanged(csPC, false);
@@ -77,28 +77,28 @@ public class Inspector extends ClassController implements FileExplorerFeature {
                 n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
             }
         });
-        
+
         setOnDragOver(DragUtil.fileDragAccepthandler);
         setOnDragDropped(e -> exploreFiles(DragUtil.getFiles(e)));
-        
+
         // prevent scrolling event from propagating
         setOnScroll(Event::consume);
     }
-    
+
     @Override
     public void exploreFile(File f) {
         TreeItem<File> root = (TreeItem) tree.getRoot().getChildren().get(2);
-        
+
         // expand up to root + partitions
         tree.getRoot().setExpanded(true);
         root.setExpanded(true);
-        
+
         // expand the most possible
         Path p = f.toPath().getRoot();
         Optional<TreeItem<File>> item = root.getChildren().stream().filter(i -> i.getValue().toString().contains(f.toPath().getRoot().toString())).findFirst();
         item.ifPresent(e->e.setExpanded(true));
         ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty(item.orElse(null));
-        
+
         f.getAbsoluteFile().toPath().forEach(pth -> {
             if(it.get()==null) return;
             else {
@@ -106,19 +106,19 @@ public class Inspector extends ClassController implements FileExplorerFeature {
                 it.set(it.get().getChildren().stream().filter(i -> i.getValue().toString().contains(pth.toString())).findFirst().orElse(null));
             }
         });
-        
+
         // expand if last==directory
         if(it.get()!=null && it.get().getValue().isDirectory()) it.get().setExpanded(true);
-        
+
     }
-    
+
     @Override
     public void onClose() {
         if(sel_node!=null) unhighlightNode(sel_node);
     }
-    
-    
-    
+
+
+
     private static void highlightNode(Node n) {
         n.pseudoClassStateChanged(csPC, true);
         n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");

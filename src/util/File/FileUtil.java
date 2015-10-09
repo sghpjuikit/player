@@ -29,7 +29,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.filenamizeString;
 import static util.dev.Util.noØ;
 import static util.functional.Util.ISNTØ;
-import static util.functional.Util.listRO;
+import static util.functional.Util.stream;
 
 /**
  * Provides file operations.
@@ -163,23 +163,39 @@ public final class FileUtil {
 
     /**
      * Same as {@link File#listFiles() }, but never returns null (instead, empty
-     * list).
-     * Normally, the method in File returns null if parameter is not a directory,
-     * but also when error occurs. For example when directory refers to a
-     * directory on a partition residing on hdd that has been disconnected.
+     * list) and returns stream.
      * <p>
-     * Returning null instead of collection is never a good idea anyway!
+     * Normally, the method in File returns null if parameter is not a directory, but also when I/O
+     * error occurs. For example when parameter refers to a directory on a non existent partition,
+     * e.g., residing on hdd that has been disconnected temporarily. Returning null instead of
+     * collection is never a good idea anyway!
      *
      * @throws SecurityException - If a security manager exists and its
      * SecurityManager.checkRead(String) method denies read access to the
      * directory
      *
      * @return unmodifiable list of files in the directory, it is empty if
-     * parameter is not a directory or is inaccessible or null
+     * parameter null, not a directory or I/O error occurs
      */
-    public static List<File> listFiles(File dir) {
+    public static Stream<File> listFiles(File dir) {
         File[] l = dir==null ? null : dir.listFiles();
-        return l==null ? listRO() : listRO(l);
+        return l==null ? stream() : stream(l);
+    }
+
+    /**
+     * Multiple parameter version of {@link #listFiles(java.io.File)} returning an union of the
+     * respective results with no order guarantees.
+     *
+     * @param dirs
+     * @return stream of children
+     */
+    public static Stream<File> listFiles(File... dirs) {
+        return listFiles(stream(dirs));
+    }
+
+    /** Stream parameter version of {@link #listFiles(java.io.File...)}. */
+    public static Stream<File> listFiles(Stream<File> dirs) {
+        return dirs.filter(ISNTØ).flatMap(d -> listFiles(d));
     }
 
     /**

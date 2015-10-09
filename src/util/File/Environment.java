@@ -9,13 +9,15 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
+
+import org.controlsfx.tools.Platform;
 
 import AudioPlayer.playlist.PlaylistManager;
 import Layout.widget.WidgetManager;
@@ -29,8 +31,9 @@ import util.dev.TODO;
 
 import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static java.awt.Desktop.Action.*;
+import static java.util.stream.Collectors.groupingBy;
+import static org.controlsfx.tools.Platform.WINDOWS;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.dev.TODO.Severity.MEDIUM;
 import static util.dev.Util.log;
 import static util.functional.Util.filter;
 import static util.functional.Util.map;
@@ -41,8 +44,8 @@ import static util.functional.Util.map;
  *
  * @author uranium
  */
-@TODO(purpose = FUNCTIONALITY,
-      note = "printing, mailing if needed (but can be easily implemented")
+@TODO(purpose = FUNCTIONALITY, note = "support printing, mailing")
+@TODO(note = "File highlighting, test non windows platforms")
 public class Environment {
 
     /** Equivalent to {@code browse(f.toURI()); } */
@@ -51,35 +54,41 @@ public class Environment {
     }
 
     /**
-     * Browses file's parent directory or directory.
+     * Browses uri - opens it in its respective browser, e.g. internet browser or file explorer.
      * <p>
      * On some platforms the operation may be unsupported.
-     * @param uri to brose, for files call file.toURI()
+     *
+     * @param uri to browse
      */
-    @TODO(purpose = FUNCTIONALITY, severity = MEDIUM,
-          note = "make this work so the file is selected in the explorer")
     public static void browse(URI uri) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(BROWSE)) {
             log(Environment.class).warn("Unsupported operation : " + BROWSE + " uri");
             return;
         }
         try {
-            // if uri denotes a file open its parent directory instead
-            // 'bug' fix where the file opens anyway which makes this browse()
-            // method the same as open() which we avoid here
+            // If uri denotes a file, file explorer should be open, highlighting the file
+            // However Desktop.browse does nothing (a bug?). We have 2 alterntives: open the parent
+            // directory of the file (and sacrifice the file highlighting functionality) or open
+            // the file with Desktop.open() which opens the file in the associated program. Both
+            // are out of the question.
+            //
+            // Ultimately, for Windows we run explorer.exe manually and select the file. For
+            // other systems we browse the parent directory instead. Non Windows platforms
+            // need some testing to do...
             try {
-                File file = new File(uri);
-                if (file.isFile()) {
-                    // get parent
-                    File parent = file.getParentFile();
-                    // change uri if uri file and has a parent
-                    uri = parent==null ? uri : parent.toURI();
+                File f = new File(uri);
+                if (f.exists()) {
+                    if(Platform.getCurrent()==WINDOWS) {
+                        Runtime.getRuntime().exec("explorer.exe /select," + f.getPath());
+                    } else {
+                        open(f.isFile() ? f.getParentFile() : f);
+                    }
                 }
+                return;
             } catch (IllegalArgumentException e) {
                 // ignore exception, it just means the uri does not denote a
                 // file which is fine
             }
-
             Desktop.getDesktop().browse(uri);
         } catch (IOException e) {
             log(Environment.class).error("Browsing uri {} failed", uri, e);
@@ -87,22 +96,18 @@ public class Environment {
     }
 
     /**
-     * Browses file or directory. On some platforms the operation may be unsupported.
+     * Browses files or directories. On some platforms the operation may be unsupported.
+     *
      * @param files
-     * @param uniqify None of the resulting locations is browsed twice, if the
-     * file list will be filtered, which can be specified by setting the filter
-     * parameter to true.
      */
-    public static void browse(List<File> files, boolean uniqify) {
-        List<File> to_browse = new ArrayList();
-        if (uniqify)
-            for (File f: files)
-                if (!to_browse.contains(f))
-                    to_browse.add(f);
-        else
-            to_browse.addAll(files);
-
-        to_browse.stream().forEach( f -> browse(f.toURI()));
+    public static void browse(Stream<File> files) {
+        files.distinct()
+             .collect(groupingBy(f -> f.isFile() ? f.getParentFile() : f))
+             .forEach((dir,children) -> {
+                 if(children.size()==1) browse(children.get(0));
+                 else if(children.stream().anyMatch(f -> f==dir)) browse(dir);
+                 else open(dir);
+             });
     }
 
     /**
@@ -191,7 +196,7 @@ public class Environment {
                     WidgetManager.use(ImagesDisplayFeature.class,NO_LAYOUT, w->w.showImages(images));
                 }
             } else {
-                browse(files, true);
+                browse(files.stream());
             }
         }
     }

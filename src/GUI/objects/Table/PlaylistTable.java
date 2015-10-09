@@ -1,7 +1,6 @@
 
 package gui.objects.Table;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -379,11 +378,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     PlaylistManager.use(p -> p.duplicateItemsByOne(m.getValue()));
                 }),
                 menuItem("Explore items's directory", e -> {
-                    List<File> files = m.getValue().stream()
-                            .filter(Item::isFileBased)
-                            .map(Item::getLocation)
-                            .collect(Collectors.toList());
-                    Environment.browse(files,true);
+                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
                 }),
                 menuItem("Add items to library", e -> {
                     List<Metadata> items = m.getValue().stream()

@@ -5,19 +5,22 @@
  */
 package Layout.widget.gamelib;
 
-import gui.objects.image.cover.Cover;
-import gui.objects.image.cover.FileCover;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import util.File.FileUtil;
-import static util.File.FileUtil.readFileKeyValues;
+
+import gui.objects.image.cover.Cover;
+import gui.objects.image.cover.FileCover;
 import util.File.ImageFileFormat;
+
+import static util.File.FileUtil.listFiles;
+import static util.File.FileUtil.readFileKeyValues;
 
 /**
  <p>
@@ -28,12 +31,13 @@ public class GameItem {
     private File location;
     private boolean portable;
     private File installocation;
+    private Map<String,String> settings;
 
     public GameItem(File f) {
         location = f.getAbsoluteFile();
         name = f.getName();
     }
-    
+
     public String getName() {
         return name;
     }
@@ -44,23 +48,18 @@ public class GameItem {
     public File getLocation() {
         return location;
     }
-    
+
     public Cover getCover() {
-        
         File dir = getLocation();
-        if (!FileUtil.isValidDirectory(dir)) return null;
-                
-        File[] files;
-        files = dir.listFiles( f -> {
+        File cf = listFiles(dir).filter(f -> {
             String filename = f.getName();
             int i = filename.lastIndexOf('.');
-            if(i == -1) return false; 
+            if(i == -1) return false;
             String name = filename.substring(0, i);
             return (ImageFileFormat.isSupported(f.toURI()) && name.equalsIgnoreCase("cover"));
-        });
-        
-        File f = (files.length == 0) ? null : files[0];
-        return new FileCover(f, "");
+        }).findFirst().orElse(null);
+
+        return new FileCover(cf, "");
     }
 
     /**
@@ -76,32 +75,40 @@ public class GameItem {
     public File getInstallocation() {
         return installocation;
     }
-    
+
     public File getExe() {
         return new File(location,"play.lnk");
     }
-    
+
+    public Map<String,String> loadMetadata() {
+        if(settings==null) {
+            File f = new File(location,"settings.cfg");
+            settings = f.exists() ? readFileKeyValues(f) : new HashMap<>();
+        }
+        return settings;
+    }
+
     public String play() {
-        Map<String,String> settings = readFileKeyValues(new File(location,"settings.cfg"));
+        loadMetadata();
         List<String> command = new ArrayList();
 
         try {
             File exe =null ;
             String pathA = settings.get("pathAbs");
-            
+
             if(pathA!=null) {
                 exe = new File(pathA);
             }
-            
+
             if(exe==null) {
                 String pathR = settings.get("path");
                 if(pathR==null) return "No path is set up.";
                 exe = new File(location,pathR);
             }
-            
+
             // run this program
             command.add(exe.getAbsolutePath());
-            
+
             // with optional parameter
             String arg = settings.get("arguments");
             if(arg!=null) {
@@ -125,7 +132,7 @@ public class GameItem {
                 return ex.getMessage();
             }
         }
-        
+
     }
 
     @Override
@@ -141,8 +148,8 @@ public class GameItem {
         hash = 53 * hash + Objects.hashCode(this.name);
         return hash;
     }
-    
-    
-    
-    
+
+
+
+
 }

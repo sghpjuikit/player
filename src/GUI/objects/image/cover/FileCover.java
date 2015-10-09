@@ -6,10 +6,12 @@
 
 package gui.objects.image.cover;
 
-import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
+
 import javafx.scene.image.Image;
+
+import gui.objects.image.Thumbnail;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
@@ -19,17 +21,17 @@ import util.Util;
  * This class is fully polymorphic
  * Should never be used directly but instead use the {@Cover} interface
  * and leverage polymorphism.
- * 
+ *
  * @author Plutonium_
  */
 @Immutable
 public class FileCover implements Cover {
     private final File file;
     private final String info;
-    
+
     public FileCover(File image, String description) {
         Objects.requireNonNull(description);
-        
+
         this.file = image;
         this.info = description;
     }
@@ -39,7 +41,7 @@ public class FileCover implements Cover {
     public Image getImage() {
         return file==null ? null : new Image(file.toURI().toString());
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Image getImage(double width, double height) {
@@ -68,7 +70,7 @@ public class FileCover implements Cover {
     @Override
     public boolean equals(Object o) {
         if(this==o) return true; // this line can make a difference
-        
+
         if(o != null && o instanceof FileCover) {
             FileCover other = (FileCover)o;
             return file.equals(other.file);
@@ -82,6 +84,6 @@ public class FileCover implements Cover {
         hash = 43 * hash + Objects.hashCode(this.file);
         return hash;
     }
-    
-    
+
+
 }

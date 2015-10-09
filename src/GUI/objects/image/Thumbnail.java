@@ -69,10 +69,10 @@ import static util.graphics.Util.setAnchors;
  * Features:
  * <ul>
  * <li> Resizable. The image resizes in layout automatically. For manual resize
- * set preferred, minimal and maximal size of the root {@link #getPane()}. 
+ * set preferred, minimal and maximal size of the root {@link #getPane()}.
  * <p>
  * This size is applied on the root of this thubmnail, which contains the image.
- * The image will try to use maximum space available, depending on the aspect 
+ * The image will try to use maximum space available, depending on the aspect
  * ratios of the image and this thumbnail.
  * <p>
  * The image retains aspect ratio and is always fully visible inside this thumbnail.
@@ -82,8 +82,8 @@ import static util.graphics.Util.setAnchors;
  * to the the image, which is useful for context menu
  * <li> Aspect ratio aware. See {@link #ratioALL} and {@link #ratioIMG}. Used
  * for layout.
- * <li> Resolution aware. The images are loaded only up to required size to 
- * reduce memory. For details see {@link ImageNode#LOAD_COEFICIENT} and 
+ * <li> Resolution aware. The images are loaded only up to required size to
+ * reduce memory. For details see {@link ImageNode#LOAD_COEFICIENT} and
  * {@link ImageNode#calculateImageLoadSize(javafx.scene.layout.Region) }.
  * <li> Size aware. If this thumbnail is resized then the image will only resize up
  * to a certain maximum size to prevent blurry result of scaling small image
@@ -101,7 +101,7 @@ import static util.graphics.Util.setAnchors;
  *  - display no background and frame image only.
  * <p>
  * Define border style in css.
- * <li> Context menu. Shown on right click. Has additional menu items if the 
+ * <li> Context menu. Shown on right click. Has additional menu items if the
  * file is set.
  * <p>
  * Image can be opened in native application, edited in native editor,
@@ -112,22 +112,22 @@ import static util.graphics.Util.setAnchors;
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable("Images")
 public class Thumbnail extends ImageNode {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Thumbnail.class);
     private static final String bgr_styleclass = "thumbnail";
     private static final String border_styleclass = "thumbnail-border";
     private static final String image_styleclass = "thumbnail-image";
-    
+
     @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
     public static Duration animDur = millis(100);
     public static boolean animated = false;
-    
+
     AnchorPane root = new AnchorPane();
     @FXML ImageView imageView;
     @FXML StackPane img_container;
     @FXML BorderPane content_container;
     @FXML Pane img_border;
-    
+
     /**
      * Optional file representing the image. Not needed, but recommended. Its
      * needed to achieve context menu functionality that allows manipulation with
@@ -135,8 +135,8 @@ public class Thumbnail extends ImageNode {
      * More/other file-related functionalities could be supported in the future.
      */
     File img_file;
-    /** 
-     * Displayed image. Editable, but it is recommended to use one of the load 
+    /**
+     * Displayed image. Editable, but it is recommended to use one of the load
  methods instead. Note, that those load the image on bgr thread and setting
  this property is delayed until the image fully loads. Until then this
  thumbnail will keep showing the previous image and this property will
@@ -144,45 +144,45 @@ public class Thumbnail extends ImageNode {
  expected result.
      */
     public final ObjectProperty<Image> image;
-    
-    /** Constructor. 
+
+    /** Constructor.
      * Use if you need  default thumbnail size and the image is expected to
      * change during life cycle.
      */
     public Thumbnail() {
         this(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
     }
-    
+
     /**
      * Use when you want to use default sized thumbnail no post-initial changes
      * of the image are expected. In other words situations, where thumbnail object
      * is viewed as immutable create-destroy type.
-     * @param img 
+     * @param img
      */
     public Thumbnail(Image img) {
         this(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
         loadImage(img);
     }
-    
+
     /** Use to create more specific thumbnail object from the getM go. */
     public Thumbnail (Image img, double size) {
         this(size,size);
         loadImage(img);
     }
-    
+
     /**
      * Use if you need different size than default thumbnail size and the image
      * is expected to change during life cycle.
-     * @param size 
+     * @param size
      */
     public Thumbnail (double width, double height) {
-        
+
         // load fxml part
         new ConventionFxmlLoader(Thumbnail.class, root, this).loadNoEx();
 
         image = imageView.imageProperty();
         imageView.getStyleClass().add(image_styleclass);
-        
+
         // set size
         root.setMinSize(width,height);
         root.setPrefSize(width,height);
@@ -193,7 +193,7 @@ public class Thumbnail extends ImageNode {
         imageView.fitHeightProperty().bind(Bindings.min(root.heightProperty(), maxIMGH));
         imageView.fitWidthProperty().bind(Bindings.min(root.widthProperty(), maxIMGW));
 
-        
+
         // update ratios
         ratioALL.bind(root.widthProperty().divide(root.heightProperty()));
         imageView.imageProperty().addListener((o,ov,nv) ->
@@ -212,15 +212,15 @@ public class Thumbnail extends ImageNode {
         setDragEnabled(true);
         setContextMenuOn(true);
     }
-    
-    
+
+
     public final ObservableList<String> getStyleClass() {
         return root.getStyleClass();
     }
-    
+
 /******************************************************************************/
-    
-    
+
+
     @Override
     public void loadImage(Image img) {
         setImgA(img, null);
@@ -229,7 +229,7 @@ public class Thumbnail extends ImageNode {
     public void loadImage(File img) {
         Point2D size = calculateImageLoadSize(root);
         img_file = img;
-        
+
         Image c = getCached(img, size.getX(), size.getY());
         Image i = c!=null ? c : Util.loadImage(img_file, size.getX(), size.getY());
         setImgA(i, img);
@@ -243,7 +243,7 @@ public class Thumbnail extends ImageNode {
             setImgA(i, img.getFile());
         }
     }
-    
+
     private long loadId = 0;    // prevents wastful set image operatins
     static HashMap<File,Image> IMG_CACHE = new HashMap();   // caches images
     public static Image getCached(File f, double w, double h) {
@@ -251,7 +251,7 @@ public class Thumbnail extends ImageNode {
         Image ci = IMG_CACHE.get(f);
         return ci!=null && (ci.getWidth()>=w || ci.getHeight()>=h) ? ci : null;
     }
-    
+
     // set asynchronously
     private void setImgA(Image i, File f) {
         loadId++;   // load next image
@@ -263,10 +263,10 @@ public class Thumbnail extends ImageNode {
                 setImg(i, f, id);
             } else {
                 i.progressProperty().addListener((o,ov,nv) -> {
-                    if(nv.doubleValue()==1) 
+                    if(nv.doubleValue()==1)
                         setImg(i, f, id);
                 });
-            } 
+            }
         }
     }
     // set synchronously
@@ -278,9 +278,9 @@ public class Thumbnail extends ImageNode {
                 IMG_CACHE.put(f, i);
         }
 
-        // ignore outdated loadings 
+        // ignore outdated loadings
         if(id!=loadId) return;
-        
+
         img_file = f;
         imageView.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
@@ -288,13 +288,13 @@ public class Thumbnail extends ImageNode {
             maxIMGW.set(i.getWidth()*maxScaleFactor);
             maxIMGH.set(i.getHeight()*maxScaleFactor);
         }
-    }   
-    
+    }
+
     @Override
     public File getFile() {
         return img_file;
     }
-    
+
     @Override
     public Image getImage() {
         return imageView.getImage();
@@ -306,7 +306,7 @@ public class Thumbnail extends ImageNode {
     protected ImageView getView() {
         return imageView;
     }
-    
+
     /**
      * Returns root pane. Also image drag gesture source {@see #setDragEnabled(boolean)}.
      * <p>
@@ -320,24 +320,24 @@ public class Thumbnail extends ImageNode {
     public AnchorPane getPane() {
         return root;
     }
-    
+
 /*******************************  properties  *********************************/
-    
+
     private double maxScaleFactor = 1.3;
-    
+
     /**
-     * Sets maximum allowed scaling factor for the image. 
+     * Sets maximum allowed scaling factor for the image.
      * <p>
      * The image in the thumbnail scales with it, but only up to its own maximal
      * size defined by:    imageSize * maximumScaleFactor
      * <p>
-     * 
+     *
      * Default value is 1.3.
      * <p>
      * Note that original size in this context means size (width and height) the
      * image has been loaded with. The image can be loaded with any size, even
      * surpassing that of the resolution of the file.
-     * 
+     *
      * @see #calculateImageLoadSize()
      * @throws IllegalArgumentException if parameter < 1
      */
@@ -345,9 +345,9 @@ public class Thumbnail extends ImageNode {
         if(val < 1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
         maxScaleFactor = val;
     }
-    
-    
-    /** 
+
+
+    /**
      * Whether border envelops thumbnail or image specifically.
      * This is important for when the picture doesnt have the same aspect ratio
      * as the thumbnail. Setting the border for thumbnail (false) will frame
@@ -357,26 +357,26 @@ public class Thumbnail extends ImageNode {
      * or vertically.
      */
     private boolean borderToImage = false;
-    
+
     /** Returns value of {@link #borderToImage}. */
     public boolean isBorderToImage() {
         return borderToImage;
     }
-    
+
     /** Sets the {@link #borderToImage}. */
     public void setBorderToImage(boolean val) {
         if(borderToImage==val) return;
         borderToImage = val;
         border_sizer.changed(null, null, ratioIMG.get()>ratioALL.get());
     }
-    
+
     public void setBorderVisible(boolean val) {
         if(val) img_border.getStyleClass().add(border_styleclass);
         else img_border.getStyleClass().remove(border_styleclass);
     }
-    
-    
-    /** 
+
+
+    /**
      * Sets visibility of the background. The bgr is visible only when the image
      * size ratio and thumbnail size ratio does not match.
      * Default value is true. Invisible background becomes transparent.
@@ -389,13 +389,13 @@ public class Thumbnail extends ImageNode {
         }
         else root.getStyleClass().remove(bgr_styleclass);
     }
-    
-    
+
+
     /**
      * Allow image file drag from this thumbnail.
      * <p>
-     * Dragging is done with left button and only possible if this thumbnail 
-     * has file set. The file will be put into dragboard, use Dataformat.FILES 
+     * Dragging is done with left button and only possible if this thumbnail
+     * has file set. The file will be put into dragboard, use Dataformat.FILES
      * to retrieve it.
      * <p>
      * The gesture source can be obtained by {@link #getPane()}
@@ -411,7 +411,7 @@ public class Thumbnail extends ImageNode {
             dragHandler = null;
         }
     }
-    
+
     private EventHandler<MouseEvent> dragHandler;
     private EventHandler<MouseEvent> buildDH() {
         return e -> {
@@ -427,8 +427,8 @@ public class Thumbnail extends ImageNode {
             }
         };
     }
-    
-    
+
+
     /**
      * Set whether thumbnail context menu should be used for thumbnail.
      * Default true.
@@ -437,9 +437,9 @@ public class Thumbnail extends ImageNode {
         if (val) root.addEventHandler(MOUSE_CLICKED,contextMenuHandler);
         else root.removeEventHandler(MOUSE_CLICKED,contextMenuHandler);
     }
-    
+
     public void applyAlignment(Pos val) {
-        content_container.getChildren().clear();        
+        content_container.getChildren().clear();
         switch(val) {
             case BASELINE_CENTER:
             case CENTER: content_container.setCenter(img_container); break;
@@ -455,9 +455,9 @@ public class Thumbnail extends ImageNode {
             case BOTTOM_CENTER: content_container.setBottom(img_container); break;
         }
     }
-    
+
 /********************************  HOVERING  **********************************/
-    
+
     /** Duration of the scaling animation effect when transitioning to gover state. */
     public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", animDur);
     private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
@@ -479,21 +479,21 @@ public class Thumbnail extends ImageNode {
             }
         }
     };
-    
+
     private boolean isH() {
         return hoverable.get();
     }
 
-    
+
 /******************************************************************************/
-    
+
     /** Image aspect ratio. Image width/height. */
     public final DoubleProperty ratioIMG = new SimpleDoubleProperty(1);
     /** Thumbnail aspect ratio. Root width/height. */
     public final DoubleProperty ratioALL = new SimpleDoubleProperty(1);
     private final DoubleProperty maxIMGW = new SimpleDoubleProperty(Double.MAX_VALUE);
     private final DoubleProperty maxIMGH = new SimpleDoubleProperty(Double.MAX_VALUE);
-    
+
     public double getRatioPane() {
         return ratioALL.get();
     }
@@ -506,7 +506,7 @@ public class Thumbnail extends ImageNode {
     public DoubleProperty ratioImgProperty() {
         return ratioIMG;
     }
-    
+
     private final ChangeListener<Boolean> border_sizer = (o,ov,nv)-> {
         img_border.prefHeightProperty().unbind();
         img_border.prefWidthProperty().unbind();
@@ -532,10 +532,10 @@ public class Thumbnail extends ImageNode {
             setAnchors(img_border,0d);
         }
     };
-    
+
 
 /******************************************************************************/
-    
+
     private static final SingleⱤ<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleⱤ<>(
         () -> {
             ImprovedContextMenu<Image> m = new ImprovedContextMenu<>();
@@ -565,19 +565,19 @@ public class Thumbnail extends ImageNode {
             menu.getItems().forEach(m->m.setDisable(i==null));
         }
     );
-    
+
     private static final SingleⱤ<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleⱤ<>(
         () -> {
             ImprovedContextMenu<Thumbnail> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Browse location", e ->
-                    Environment.browse(m.getValue().getFile().toURI())
+                    Environment.browse(m.getValue().getFile())
                 ),
                 menuItem("Edit the image in editor", e ->
                     Environment.edit(m.getValue().getFile())
                 ),
                 menuItem("Fulscreen", e -> {
                     Screen s = WindowBase.getScreen(m.getX(),m.getY());
-                          
+
                     Widget c = WidgetManager.getFactory("Image").create();
                     Popup p = new Popup();
                     AnchorPane n = new AnchorPane();
@@ -591,7 +591,7 @@ public class Thumbnail extends ImageNode {
                     p.getContent().setAll(n);
                     p.show(m.getValue().getPane().getScene().getWindow(), s.getBounds().getMinX(), s.getBounds().getMinY());
                     ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
-                          
+
                 }),
                 menuItem("Open image", e ->
                     Environment.open(m.getValue().getFile())
@@ -606,7 +606,7 @@ public class Thumbnail extends ImageNode {
                        fc.setTitle("Save image as...");
                        fc.setInitialFileName(of.getName());
                        fc.setInitialDirectory(App.getLocation());
-                       
+
                    File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
                    if(nf!=null) {
                     try {
@@ -625,7 +625,7 @@ public class Thumbnail extends ImageNode {
             menu.getItems().forEach(i->i.setDisable(f==null));
         }
     );
-    
+
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
         if(e.getButton()==SECONDARY) {
             // decide mode (image vs file), build lazily & show where requested
@@ -633,14 +633,14 @@ public class Thumbnail extends ImageNode {
                 file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)
                 img_context_menu.getM(this).show(root,e);
-            
+
             e.consume();
         }
     };
-    
-    
-    
-    
+
+
+
+
 //    static Map<File,>
-    
+
 }

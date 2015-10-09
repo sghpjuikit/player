@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- DirViewer improve loading strategy - when not many items, preload thumbnails for all
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order
 - remove Areas
 - bicontainer orientation button install to children instead

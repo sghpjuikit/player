@@ -218,7 +218,7 @@ public class TreeItems {
                 Clipboard.getSystemClipboard().setContent(cc);
             }),
             menuItem("Explore in browser", e -> {
-                Environment.browse(m.getValue(),true);
+                Environment.browse(m.getValue().stream());
             })
         );
     }

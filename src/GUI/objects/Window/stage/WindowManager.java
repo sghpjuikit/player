@@ -226,7 +226,7 @@ public class WindowManager {
         log(WindowManager.class).info("Serializing " + src.size() + " application windows");
 
         // remove serialized files from previous session
-        for(File f: listFiles(dir)) f.delete();
+        listFiles(dir).forEach(File::delete);
 
         // serialize - for now each window to its own file with .ws extension
         for(int ι=0; ι<src.size(); ι++) {

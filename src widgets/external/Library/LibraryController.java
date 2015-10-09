@@ -417,9 +417,7 @@ public class LibraryController extends FXMLController implements SongReader {
                             (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 menuItem("Explore items's directory", e -> {
-                    List<Metadata> items = m.getValue();
-                    List<File> files = filterMap(items,Item::isFileBased,Item::getLocation);
-                    Environment.browse(files,true);
+                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
                 }),
                 new Menu("Explore items's directory in",null,
                     menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(FileExplorerFeature.class),f->f.name()),

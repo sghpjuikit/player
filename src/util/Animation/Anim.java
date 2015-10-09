@@ -20,6 +20,7 @@ import javafx.scene.Node;
 import javafx.util.Duration;
 
 import util.collections.Tuple2;
+import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ2;
 
 import static java.lang.Math.abs;
@@ -311,6 +312,18 @@ public class Anim extends Transition {
         /** Affector that scales node's x and y. */
         public static Consumer<Double> scaleXY(Node n) {
             return x -> util.graphics.Util.setScaleXY(n,x);
+        }
+
+        /**
+         * Text interpolator for 'text typing effect'. Creates function returning string substrings
+         * of all lengths from 0 to string length. Linear and uses rounding (Math.floor).
+         * @param text
+         * @return function transforming {@code <0,1>} double input into substrings of the provided
+         * string, from beginning to character at the position best reflected by the input.
+         */
+        public static Ƒ1<Double,String> typeText(String text) {
+            int length = text.length();
+            return x -> text.substring(0, (int) Math.floor(length * x));
         }
     }
 

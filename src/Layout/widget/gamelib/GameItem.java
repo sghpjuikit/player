@@ -151,5 +151,9 @@ public class GameItem {
 
 
 
+    public static class RunParameter {
+        String value;
+        String description;
+    }
 
 }

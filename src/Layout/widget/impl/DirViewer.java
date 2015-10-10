@@ -17,12 +17,13 @@ import java.util.stream.Stream;
 
 import javafx.event.Event;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 
 import org.controlsfx.control.GridCell;
-import org.controlsfx.control.GridView;
 
 import Configuration.Config;
 import Configuration.Config.VarList;
@@ -53,6 +54,7 @@ import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
 import static util.async.Async.FX;
 import static util.async.Async.newSingleDaemonThreadExecutor;
+import static util.async.Async.runFX;
 import static util.async.Async.runLater;
 import static util.functional.Util.*;
 import static util.graphics.Util.layAnchor;
@@ -84,10 +86,11 @@ public class DirViewer extends ClassController {
     final Ѵ<FFilter> filter = new Ѵ<>(FFilter.ALL, f -> visitDir(new TopItem()));
 
     Item item = null;   // item, children of which are displayed
-    GridView<Item> grid = new ImprovedGridView<>();
+    ImprovedGridView<Item> grid = new ImprovedGridView<>();
     ExecutorService executor = newSingleDaemonThreadExecutor();
     boolean initialized = false;
     private volatile boolean isResizing = false;
+    private boolean scrollflag = true;
 
     public DirViewer() {
         files.onListInvalid(list -> visitDir(new TopItem()));
@@ -109,8 +112,24 @@ public class DirViewer extends ClassController {
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> grid.setManaged(false));
         grid.widthProperty().addListener((o,ov,nv) -> grid.setManaged(false));
-
-        grid.setOnScroll(e -> System.out.println(e.getTextDeltaYUnits()));
+        // decrease scrolling speed (consume scroll events and refire with smaller vertical values)
+        grid.addEventFilter(ScrollEvent.ANY, e -> {
+            if(scrollflag) {
+                Event ne = new ScrollEvent(e.getEventType(),e.getX(),e.getY(),e.getScreenX(),e.getScreenY(),e.isShiftDown(),
+                        e.isControlDown(),e.isAltDown(),e.isMetaDown(),e.isDirect(),
+                        e.isInertia(),e.getDeltaX(),e.getDeltaY()/2,e.getTextDeltaX(),e.getTextDeltaY()/2,
+                        e.getTextDeltaXUnits(),e.getTextDeltaX(),e.getTextDeltaYUnits(),e.getTextDeltaY()/2,
+                        e.getTouchCount(),e.getPickResult());
+                e.consume();
+                scrollflag = false;
+                runLater(() -> {
+                    if (e.getTarget() instanceof Node) {
+                        ((Node) e.getTarget()).fireEvent(ne);
+                    }
+                    scrollflag = true;
+                });
+            }
+        });
 
         grid.setOnMouseClicked(e -> {
             if(e.getButton()==SECONDARY)
@@ -139,15 +158,30 @@ public class DirViewer extends ClassController {
     }
 
     public void visitDir(Item dir) {
-        if(!initialized) return; // prevents pointless & inconsistent operations
+        visitDir(dir, null);
+    }
 
+    public void visitDir(Item dir, Item scrollTo) {
+        if(!initialized) return;
+        // remember last item position
+        if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+        // load new item
         item = dir;
         if(item==null) {
             grid.getItems().clear();
         } if(item!=null) {
             Fut.fut(item)
                .map(Item::children,executor)
-               .use(newcells -> grid.getItems().setAll(newcells),FX)
+               .use(newcells -> {
+                   grid.getItems().setAll(newcells);
+                   if(item.last_gridposition>=0)
+                       grid.getSkinn().getFlow().setPosition(item.last_gridposition);
+
+//                   double i = newcells.indexOf(scrollTo);
+//                   if(i>=0)
+//                       grid.getSkinn().getFlow().scrollTo((int)floor(i/grid.getSkinn().computeMaxCellsInRow()));
+
+               },FX)
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }
@@ -167,7 +201,17 @@ public class DirViewer extends ClassController {
         VBox root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(500, this::setCover);
+        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executor.execute(() -> {
+            try {
+                Thread.sleep(10);
+                runFX(() -> {
+                    if(item==getItem())
+                        setCover(item);
+                });
+            } catch (InterruptedException e) {
+
+            }
+        }));
 
         @Override
         protected void updateItem(Item item, boolean empty) {
@@ -226,6 +270,7 @@ public class DirViewer extends ClassController {
         private void setCover(Item item) {
             item.loadCover((was_loaded,img) -> {
                 thumb.loadImage(img);
+                thumb.setFile(item.cover_file);
                 if(!was_loaded && img!=null) {
                     new Anim(thumb.getPane()::setOpacity).dur(500).intpl(x -> sqrt(x)).play();
                 }
@@ -241,7 +286,9 @@ public class DirViewer extends ClassController {
         Set<Item> children = null;      // filtered files
         Set<String> all_children = null; // all files, cache, use instead File.exists to reduce I/O
         Image cover = null;         // cover cache
+        File cover_file = null;         // cover file cache
         boolean cover_loaded = false;
+        double last_gridposition = -1;
 
         public Item(Item parent, File value) {
             this.val = value;
@@ -302,6 +349,7 @@ public class DirViewer extends ClassController {
                 Image imgc = Thumbnail.getCached(img_file, 160,220);
                 Image img = imgc!=null ? imgc : Util.loadImage(img_file, 160,220);
                 cover = img;
+                cover_file = img_file;
                 cover_loaded = true;
             }
             action.accept(was_loaded,cover);

@@ -156,7 +156,7 @@ public class GameLibController extends FXMLController {
         fh.setShowRoot(false);
         file_tree_root.getChildren().setAll(fh);
 
-        game_list.setCellFactory( listview -> new ListCell<GameItem>(){
+        game_list.setCellFactory(listview -> new ListCell<GameItem>(){
             @Override
             protected void updateItem(GameItem item, boolean empty) {
                 super.updateItem(item, empty);
@@ -179,13 +179,11 @@ public class GameLibController extends FXMLController {
         });
 
         Icon playB = new Icon(GAMEPAD, 40, null, () -> {
-            if(game!=null) {
-                if(at!=PLAY) goTo(PLAY);
-                else {
-                    String s = game.play();
-                    infoL.setText(s);
-                    infoLHider.start();
-                }
+            if(at!=PLAY) goTo(PLAY);
+            else {
+                String s = game.play();
+                infoL.setText(s);
+                infoLHider.start();
             }
         });
         Icon exploreB = new Icon(FOLDER, 40, null, () -> {

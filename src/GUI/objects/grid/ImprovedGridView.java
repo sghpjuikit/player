@@ -5,8 +5,6 @@
  */
 package gui.objects.grid;
 
-import javafx.scene.control.Skin;
-
 import org.controlsfx.control.GridView;
 
 /**
@@ -16,8 +14,12 @@ import org.controlsfx.control.GridView;
 public class ImprovedGridView<T> extends GridView<T>{
 
     @Override
-    protected Skin<?> createDefaultSkin() {
+    protected ImprovedGridViewSkin<T> createDefaultSkin() {
         return new ImprovedGridViewSkin<>(this);
+    }
+
+    public ImprovedGridViewSkin<T> getSkinn() {
+        return (ImprovedGridViewSkin<T>)getSkin();
     }
 
 }

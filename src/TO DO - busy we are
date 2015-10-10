@@ -3,13 +3,14 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- DirViewer improve loading strategy - when not many items, preload thumbnails for all
+- layout manager + mock widgets
+- main window switching
+- window standalone
+
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order
 - remove Areas
 - bicontainer orientation button install to children instead
 - action for importing files
-- DirViewer needs virtual flow
-- ability to switch main window
 - IDENTITY function
 - playlist playing item is busted for item duplicates
 - add played first, played last, added to lib & tags metadata fields
@@ -73,7 +74,6 @@ GENERAL
 - deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
-- Enviromment Dektop.browse() doesnt select files in explorer but opens them    (unsolvable?)
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind

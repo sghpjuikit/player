@@ -86,6 +86,10 @@ public class ImprovedGridViewSkin<T> extends VirtualContainerBase<GridView<T>, B
         registerChangeListener(control.heightProperty(), "HEIGHT_PROPERTY"); //$NON-NLS-1$
     }
 
+    public VirtualFlow<ImprovedGridRow<T>> getFlow() {
+        return flow;
+    }
+
     @Override protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
         if (p == "ITEMS") { //$NON-NLS-1$

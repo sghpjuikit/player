@@ -295,6 +295,11 @@ public class Thumbnail extends ImageNode {
         return img_file;
     }
 
+    @Deprecated
+    public void setFile(File f) {
+        img_file = f;
+    }
+
     @Override
     public Image getImage() {
         return imageView.getImage();

@@ -98,6 +98,7 @@ import util.File.ImageFileFormat;
 import util.InstanceInfo;
 import util.InstanceName;
 import util.access.VarEnum;
+import util.access.Ѵ;
 import util.animation.Anim;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
@@ -124,6 +125,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
+import static gui.objects.Window.stage.Window.WINDOWS;
 import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
@@ -141,12 +143,14 @@ import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
 
-/**
- * Application. Launches and terminates program.
- */
+/** Application. Represents the program. Single instance. */
 @IsActionable
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    /** Single instance of the application representing this running application. */
+    public static App APP;
 
     /**
      * Starts program.
@@ -157,16 +161,6 @@ public class App extends Application implements Configurable {
         launch(args);
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-    public static App APP;
-
-
-    public final ClassName className = new ClassName();
-    public final InstanceName instanceName = new InstanceName();
-    public final InstanceInfo instanceInfo = new InstanceInfo();
-
-    public final ServiceManager services = new ServiceManager();
-    public final PluginMap plugins = new PluginMap();
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -187,12 +181,20 @@ public class App extends Application implements Configurable {
     public final Configuration configuration = new Configuration();
 
     public Window window;
-    private Window windowOwner;
+    public Window windowOwner;
+    public final TaskBar taskbarIcon= new TaskBar();
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final Guide guide = new Guide();
     public boolean normalLoad = true;
     private boolean initialized = false;
+
+    public final ServiceManager services = new ServiceManager();
+    public final PluginMap plugins = new PluginMap();
+
+    public final ClassName className = new ClassName();
+    public final InstanceName instanceName = new InstanceName();
+    public final InstanceInfo instanceInfo = new InstanceInfo();
 
 
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
@@ -211,9 +213,12 @@ public class App extends Application implements Configurable {
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
     public final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
 
-    @IsConfig(name = "Debug value", info = "For application testing. Generic number value"
+    @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value"
             + "to control some application value manually.")
-    public final DoubleProperty debug = new SimpleDoubleProperty(0);
+    public final Ѵ<Double> debug = new Ѵ<>(0d);
+    @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value"
+            + "to control some application value manually.")
+    public final Ѵ<Boolean> debug2 = new Ѵ<>(false,taskbarIcon::setVisible);
 
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public String TAG_NO_VALUE = "-- no assigned value --";
@@ -225,7 +230,8 @@ public class App extends Application implements Configurable {
 
 
     public App() {
-        APP = this;
+        if(APP==null) APP = this;
+        else throw new RuntimeException("Multiple application instances disallowed");
     }
 
     /**
@@ -339,7 +345,7 @@ public class App extends Application implements Configurable {
                 + "widget as if it were a standalone application.",
                 EXPORT, w -> {
                     DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setInitialDirectory(DIR_APP);
                                      dc.setTitle("Export to...");
                     File dir = dc.showDialog(Window.getActive().getStage());
                     if(dir!=null) w.exportFxwlDefault(dir);
@@ -433,6 +439,21 @@ public class App extends Application implements Configurable {
             // custom tooltip behavior
             setupCustomTooltipBehavior(1000, 10000, 200);
 
+            taskbarIcon.setTitle(getName());
+            taskbarIcon.setIcon(getIcon());
+            taskbarIcon.setOnClose(this::close);
+            taskbarIcon.setOnMinimize(v -> WINDOWS.forEach(w -> w.setMinimized(v)));
+            taskbarIcon.setOnAltTab(() -> {
+                boolean apphasfocus = Window.getFocused()!=null;
+                if(!apphasfocus) {
+                    boolean allminimized = WINDOWS.stream().allMatch(Window::isMinimized);
+                    if(allminimized)
+                        WINDOWS.stream().forEach(w -> w.setMinimized(false));
+                    else
+                        WINDOWS.stream().filter(w -> w.isShowing()).forEach(Window::focus);
+                }
+            });
+
             // create window owner - all 'top' windows are owned by it
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
@@ -454,7 +475,7 @@ public class App extends Application implements Configurable {
             configuration.collect(this, guide, actionPane);
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
-            configuration.load();
+            configuration.load(FILE_SETTINGS);
 
 
             // initializing, the order is important
@@ -552,7 +573,7 @@ public class App extends Application implements Configurable {
         if(initialized) {
             if(normalLoad) Player.state.serialize();
             if(normalLoad) WindowManager.serialize();
-            configuration.save();
+            configuration.save(getName(),FILE_SETTINGS);
             services.getAllServices()
                     .filter(Service::isRunning)
                     .forEach(Service::stop);
@@ -566,19 +587,6 @@ public class App extends Application implements Configurable {
     public void close() {
         // close app
         Platform.exit();
-    }
-
-    /**
-     * Returns applications' main window. Never null, but be aware that the window
-     * might not be completely initialized. To find out whether it is, run
-     * isGuiInitialized() beforehand.
-     * @return window
-     */
-    public static Window getWindow() {
-        return APP.window;
-    }
-    public static Window getWindowOwner() {
-        return APP.windowOwner;
     }
 
     public <S extends Service> void use(Class<S> type, Consumer<S> action) {
@@ -635,27 +643,20 @@ public class App extends Application implements Configurable {
         return i;
     }
 
-    /**
-     * The root location of the application. Equivalent to new File("").getAbsoluteFile().
-     * @return absolute file of location of the root directory of this
-     * application.
-     */
-    public static File getLocation() {
-        return new File("").getAbsoluteFile();
-    }
-
-    /** @return Name of the application. */
-    public static String getAppName() {
+    /** @return name of the application. */
+    public String getName() {
         return "PlayerFX";
     }
 
-    /** @return image of the icon of the application. */
-    public static Image getIcon() {
-        return new Image(new File("icon512.png").toURI().toString());
+
+    public File getLocation() {
+        return new File("").getAbsoluteFile();
     }
 
-    /** Github url for project of this application. */
-    public static URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
+    /** @return image of the icon of the application. */
+    public Image getIcon() {
+        return new Image(new File("icon512.png").toURI().toString());
+    }
 
     /** @return Player state file. */
     public static String PLAYER_STATE_FILE() {
@@ -693,12 +694,19 @@ public class App extends Application implements Configurable {
         return new File(DATA_FOLDER(),"Playlists");
     }
 
+    /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
+    public final File DIR_APP = new File("").getAbsoluteFile();
     /** Temporary directory of the os. */
-    public static File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
+    public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
+    /** File for application configuration. */
+    public final File FILE_SETTINGS = new File(DIR_APP,"settings.cfg");
     /** Directory for application logging. */
-    public static File DIR_LOG = new File("log").getAbsoluteFile();
+    public final File DIR_LOG = new File("log").getAbsoluteFile();
     /** File for application logging configuration. */
-    public static File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
+    public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
+
+    /** Url for github website for project of this application. */
+    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
 
     // jobs
@@ -706,7 +714,7 @@ public class App extends Application implements Configurable {
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
            .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
-           .showProgress(App.getWindow().taskAdd())
+           .showProgress(APP.window.taskAdd())
            .run();
     }
 
@@ -731,13 +739,13 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open on github", desc = "Opens github page for this application. For developers.")
     public static void openAppGithubPage() {
-        browse(GITHUB_URI);
+        browse(APP.GITHUB_URI);
     }
 
     @IsAction(name = "Open app directory", desc = "Opens directory from which this application is "
             + "running from.")
     public static void openAppLocation() {
-        browse(getLocation());
+        browse(APP.DIR_APP);
     }
 
     @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")

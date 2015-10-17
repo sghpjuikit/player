@@ -31,6 +31,7 @@ import util.File.FileUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static main.App.APP;
 import static util.File.FileUtil.getName;
 import static util.dev.Util.noØ;
 
@@ -167,7 +168,7 @@ public final class UiContext {
             // launch
             if(w!=null) {
                 if(launching1st) {
-                    App.getWindow().setContent(w);
+                    APP.window.setContent(w);
                     launching1st = false;
                 } else {
                     showWindow(w);

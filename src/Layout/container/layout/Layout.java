@@ -1,8 +1,6 @@
 
 package Layout.container.layout;
 
-import Layout.container.uncontainer.UniContainer;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -22,20 +20,23 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 
+import Layout.container.uncontainer.UniContainer;
 import main.App;
 import util.File.FileUtil;
+
+import static main.App.APP;
 
 /**
  * @author uranium
  */
 public final class Layout extends UniContainer {
-    
+
     private static final XStream X = App.APP.serialization.x;
     private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
-    
+
     @XStreamOmitField
     private String name;
-    
+
     /**
      * Creates new layout with unique name. Use to create completely
      * new layouts.
@@ -45,7 +46,7 @@ public final class Layout extends UniContainer {
     public Layout() {
         this(uniqueName());
     }
-    
+
     /**
      * Creates new layout with specified name. Please note that the name must
      * be unique. Use to create layout based on a name parameter, for example
@@ -54,31 +55,31 @@ public final class Layout extends UniContainer {
      * Do not use.
      * This method is not intended to be used outside of serialization context.
      * <p>
-     * Note that creating new Layout with specified name is dangerous due to 
+     * Note that creating new Layout with specified name is dangerous due to
      * how {@link #equals(java.lang.Object)}
      * is implemented. For example creating layout with a name that of a different
      * layout which is currently active will result both of them being equal.
      * Because of that, application could think the new layout is active and loaded
      * while in fact, it isnt connected to any scene graph and has no children at
      * all.
-     * 
+     *
      * @see #setName(java.lang.String)
-     * @param _name 
+     * @param _name
      * @throws IllegalArgumentException if name parameter null or empty
      */
     public Layout(String new_name) {
         setName(new_name);
     }
-    
-    /** 
-     * {@inheritDoc} 
+
+    /**
+     * {@inheritDoc}
      * @see #setName(java.lang.String)
      */
     @Override
     public String getName() {
         return name;
     }
-    
+
     /**
      * Sets name.
      * <p>
@@ -92,7 +93,7 @@ public final class Layout extends UniContainer {
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
         name = new_name;
     }
-    
+
     /**
      * Change name. This method immediately takes care of all file operations
      * needed to maintain consistency -saves layout to the new file, old
@@ -115,19 +116,19 @@ public final class Layout extends UniContainer {
         if (thumb.exists())
             thumb.renameTo(new File(App.LAYOUT_FOLDER(), name + ".png"));
     }
-    
-    /** 
+
+    /**
      * Similar to {@link #isActive()} but this method returns true only if this
      * layout is active layout within layout aggregator of the main application
      * application window.
      * @return true if and only if layout is displayed on the screen as main tab
      */
-    @Deprecated // remove this 
+    @Deprecated // remove this
     public boolean isMain() {
-        return this == App.getWindow().getLayout();
+        return this == APP.window.getLayout();
     }
-    
-    /** 
+
+    /**
      * Returns whether this layout is active. Layout is active if its root is not
      * null and is attached to the scene graph - if the layout is loaded.
      * @return true if and only if layout is active.
@@ -135,7 +136,7 @@ public final class Layout extends UniContainer {
     public boolean isActive() {
         return LayoutManager.getLayouts().anyMatch(l->l.equals(this));
     }
-    
+
     /**
      * Get the thumbnail image. If not available it wil be attempted to create
      * a new one. It is only possible to create new thumbnail if the layout is
@@ -150,7 +151,7 @@ public final class Layout extends UniContainer {
         if (!file.exists()) makeSnapshot();
         return (file.exists()) ? file : null;
     }
-    
+
     /**
      * Takes preview/thumbnail/snapshot of the active layout and saves it as .png
      * under same name.
@@ -163,8 +164,8 @@ public final class Layout extends UniContainer {
             File out = new File(App.LAYOUT_FOLDER(),name + ".png");
             FileUtil.writeImage(i, out);
         }
-    } 
-    
+    }
+
     /**
      * Loads or reloads layout. Its effectively equivalent to loading the root
  Container of this layout and assigning it to the parent node of this layout.
@@ -175,12 +176,12 @@ public final class Layout extends UniContainer {
     @Override
     public Node load(AnchorPane rootPane) {
         Objects.requireNonNull(rootPane);
-        
+
         // load
         Node n = super.load(rootPane);
-        setParentRec();        
+        setParentRec();
         return n;
-    }    
+    }
 
     /**
      * Serializes layout into file according to application specifications.
@@ -188,25 +189,25 @@ public final class Layout extends UniContainer {
     public void serialize() {
         serialize(getFile());
     }
-    
+
     public void serialize(File f) {
         if(getChild() == null) return;
-       
+
         try {
-            
+
             X.toXML(this, new BufferedWriter(new FileWriter(f)));
         } catch (IOException e) {
             LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
         }
     }
-    
+
     /**
      * Deserializes layout from file according to application specifications.
      */
     public void deserialize() {
         deserialize(getFile());
     }
-    
+
     public Layout deserialize(File f) {
         Layout l = null;
         try {
@@ -216,18 +217,18 @@ public final class Layout extends UniContainer {
             LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
             l = new Layout(FileUtil.getName(f));
         }
-        
+
         l.properties.forEach(properties::put);
         child = l.child;
-        
+
         return this;
     }
-    
+
     /**
      * Get file this layout will sarialize as if not put otherwise. The file
      * should always be derived from the layouts name, Specifically name+".l".
-     * 
-     * @return 
+     *
+     * @return
      */
     @Deprecated
     public File getFile() {
@@ -242,7 +243,7 @@ public final class Layout extends UniContainer {
        FileUtil.deleteFile(getFile());
        FileUtil.deleteFile(getThumbnail());
     }
-     
+
      /** @return true if and only if two layouts share the same name. */
     @Override
     public boolean equals(Object o) {
@@ -254,7 +255,7 @@ public final class Layout extends UniContainer {
     public int hashCode() {
         return 59 * 3 + Objects.hashCode(this.name);
     }
-    
+
     /**
      * This implementation returns name of the layout.
      * @return name
@@ -263,10 +264,10 @@ public final class Layout extends UniContainer {
     public String toString() {
         return name;
     }
-    
+
     // create unique name
     private static String uniqueName() {
         return "Layout " + UUID.randomUUID().toString();
-    }    
-    
+    }
+
 }

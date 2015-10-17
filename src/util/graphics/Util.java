@@ -8,6 +8,7 @@ package util.graphics;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
@@ -23,7 +24,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import static javafx.scene.layout.Priority.ALWAYS;
 
@@ -188,10 +188,10 @@ public class Util {
         n.setScaleY(y);
     }
 
-    public static void add1timeEventHandler(Stage etarget, EventType<WindowEvent> etype, Consumer<WindowEvent> ehandler) {
-        etarget.addEventHandler(etype, new EventHandler<WindowEvent>() {
+    public static <E extends Event> void add1timeEventHandler(Stage etarget, EventType<E> etype, Consumer<E> ehandler) {
+        etarget.addEventHandler(etype, new EventHandler<E>() {
             @Override
-            public void handle(WindowEvent e) {
+            public void handle(E e) {
                 ehandler.accept(e);
                 etarget.removeEventHandler(etype, this);
             }

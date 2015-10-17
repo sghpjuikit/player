@@ -27,7 +27,6 @@ import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Output;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import main.App;
 import util.animation.Anim;
 import util.graphics.Util;
 import util.graphics.drag.DragUtil;
@@ -86,7 +85,7 @@ public class IOPane extends StackPane {
         Icon getIcon();
         default Point2D getSceneXY() {
             Icon i = getIcon();
-            AnchorPane widget_io = App.getWindow().getSwitchPane().widget_io;
+            AnchorPane widget_io = APP.window.getSwitchPane().widget_io;
             double translation_x = widget_io.getTranslateX();
             double header = widget_io.localToScene(0,0).getY() - 5;
             Point2D p = i.localToScene(i.getLayoutBounds().getMinX(),i.getLayoutBounds().getMinY());
@@ -235,7 +234,7 @@ public class IOPane extends StackPane {
             output = o;
 
             getStyleClass().add("input-output-line");
-            App.getWindow().getSwitchPane().widget_io.getChildren().add(this);
+            APP.window.getSwitchPane().widget_io.getChildren().add(this);
 
             setOnMouseClicked(e -> {
                 if(e.getButton()==SECONDARY) {
@@ -253,7 +252,7 @@ public class IOPane extends StackPane {
         public void lay(double startx, double starty, double tox, double toy) {
             // System.out.println(startx + " " + starty + " " + tox + " " + toy); // debug
             setLayoutX(0);
-            double h = App.getWindow().getSwitchPane().widget_io.getHeight();
+            double h = APP.window.getSwitchPane().widget_io.getHeight();
             minHeight(h);
             prefHeight(h);
             maxHeight(h);
@@ -323,7 +322,7 @@ public class IOPane extends StackPane {
             os.put(((InOutputNode)n).inoutput.o, (XNode)n);
         });
 
-        AnchorPane widget_io = App.getWindow().getSwitchPane().widget_io;
+        AnchorPane widget_io = APP.window.getSwitchPane().widget_io;
         widget_io.getChildren().retainAll(ionodes);
         if(!widget_io.getChildren().contains(ionodes)) {
             widget_io.getChildren().add(ionodes);

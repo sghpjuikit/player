@@ -17,6 +17,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +71,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
+import static javafx.stage.StageStyle.UTILITY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static main.App.APP;
 import static util.animation.Anim.par;
@@ -140,12 +143,12 @@ public class Window extends WindowBase {
      @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-	return find(WINDOWS, w->w.focused.get()).orElse(App.getWindow());
+	return find(WINDOWS, w->w.focused.get()).orElse(APP.window);
     }
 
     private static double mouse_speed = 0;
-    private static double mouse_x = 0;
-    private static double mouse_y = 0;
+    public static double mouse_x = 0;
+    public static double mouse_y = 0;
     private static final Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();
     private static FxTimer mouse_pulse = new FxTimer(100, -1, () -> {
         double x = robot.getMouseX();
@@ -169,35 +172,39 @@ public class Window extends WindowBase {
     @IsConfig(name = "Headerless", info = "Hides header.")
     public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
 
-/******************************************************************************/
 
     /**
      @return new window or null if error occurs during initialization.
      */
     public static Window create() {
-        Window w = new Window();
+        Stage owner = new Stage(UTILITY); // utility means no taskbar
+              owner.setWidth(0);
+              owner.setHeight(0);
+              owner.setX(0);
+              owner.setY(0);
+              owner.setOpacity(0);
+              owner.show();
+        return create(owner,UNDECORATED);
+    }
 
-        w.getStage().initOwner(App.getWindowOwner().getStage());
-        // load fxml part
-        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
-
-//        System.out.println(windows.);
+    public static Window create(Stage owner, StageStyle style) {
+        Window w = new Window(owner,style);
+        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
         if(WINDOWS.isEmpty()) w.setAsMain();
-        // add to list of active windows
-        WINDOWS.add(w);
-
+        WINDOWS.add(w); // add to list of active windows
         w.initialize();
         return w;
     }
 
     public static Window createWindowOwner() {
 	Window w = new Window();
-//               w.getStage().initStyle(WindowManager.show_taskbar_icon ? TRANSPARENT : UTILITY);
-               w.getStage().initStyle(UNDECORATED);
+               w.getStage().initStyle(UTILITY);
                w.s.setOpacity(0);
                w.s.setScene(new Scene(new Region()));
                ((Region)w.s.getScene().getRoot()).setBackground(null);
                w.s.getScene().setFill(null);
+               w.s.setTitle(APP.getName());
+               w.s.getIcons().add(APP.getIcon());
                w.setSize(20, 20);
 	return w;
     }
@@ -216,7 +223,10 @@ public class Window extends WindowBase {
     @FXML private HBox rightHeaderBox;
 
     private Window() {
-	super();
+        this(null,UNDECORATED);
+    }
+    private Window(Stage owner, StageStyle style) {
+	super(owner,style);
         s.getProperties().put("window", this);
     }
 
@@ -396,22 +406,24 @@ public class Window extends WindowBase {
     }
 
     private void setAsMain() {
-        no(App.getWindow()!=null, "Only one window can be main");
+        no(APP.window!=null, "Only one window can be main");
 
 	APP.window = this;
 	main = true;
+
+        setIcon(null);
+        setTitle(null);
 
         // move the window owner to screen of this window, which
         // moves taskbar icon to respective screen's taskbar
         moving.addListener((o,ov,nv) -> {
             if(ov && !nv)
-                App.getWindowOwner().setX(getCenterX());
+                APP.taskbarIcon.setScreen(getScreen(getCenterXY()));
         });
-        add1timeEventHandler(s, WINDOW_SHOWN, e -> App.getWindowOwner().setX(getCenterX()));
-
-	setIcon(App.getIcon());
-	setTitle(null);
-	// setTitlePosition(Pos.CENTER_LEFT);
+        add1timeEventHandler(s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(getScreen(getCenterXY())));
+//        s.iconifiedProperty().addListener((o,ov,nv) -> {
+//            if(nv) APP.taskbarIcon.iconify(nv);
+//        });
 
         Icon mainw_i = new Icon(FontAwesomeIcon.CIRCLE,5)
                 .tooltip("Main window\n\nThis window is main app window\nClosing it will "
@@ -467,7 +479,7 @@ public class Window extends WindowBase {
         back.setScaleY(scaleFactor);
         // scroll bgr along with the tabs
         // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
-        // -try at: http://www.mathe-fa.de
+        // try at: http://www.mathe-fa.de
         topContainer.ui.translateProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
             double space = back.getWidth() * ((scaleFactor - 1) / 2d);
@@ -647,8 +659,10 @@ public class Window extends WindowBase {
             // javaFX bug fix - close all pop overs first
 	    // new list avoids ConcurrentModificationError
 	    list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
-	    // act as main window and close whole app
-	    App.getWindowOwner().close();
+            // closing app takes a little while, so we close the windows instantly and let it finish
+            // in the bacground. This removes disturbing "lag" effect.
+            WINDOWS.forEach(w -> w.s.hide());
+            APP.close();
 	} else {
             if(layout!=null) layout.close(); // close layout to release resources
             WINDOWS.remove(this);   // remove from window list

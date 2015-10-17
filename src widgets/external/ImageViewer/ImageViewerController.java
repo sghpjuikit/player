@@ -156,8 +156,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         t.setBorderToImage(!v);
         t.setBackgroundVisible(v);
     }));
-    @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Ѵ<Pos> align = new Ѵ<>(CENTER, mainImage::applyAlignment);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
     public final Ѵ<Boolean> theater_mode = new Ѵ<>(false, this::applyTheaterMode);
 
@@ -312,7 +310,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         showThumbnails.applyValue();
         hideThumbEager.applyValue();
         thums_rect.applyValue();
-        align.applyValue();
         theater_mode.applyValue();
         readThumbnails();
     }

@@ -273,7 +273,7 @@ public final class Guide implements Configurable {
            + "\n\t• Left click: go 'down' - visit children"
            + "\n\n Try out container navigation:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window w = App.getWindow();
+                 Window w = APP.window;
                  int i = w.getTopContainer().getEmptySpot();
                  w.getTopContainer().ui.alignTab(i);
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
@@ -344,7 +344,7 @@ public final class Guide implements Configurable {
            + "the mouse within the area can still activate different area (child area)."
            + "\n\nYou can start the tutorial below:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window wd = App.getWindow();
+                 Window wd = APP.window;
                  int i = wd.getTopContainer().getEmptySpot();
                  wd.getTopContainer().ui.alignTab(i);
 

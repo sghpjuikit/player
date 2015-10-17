@@ -29,7 +29,6 @@ import AudioPlayer.services.Service.ServiceBase;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.GUI;
-import main.App;
 import util.access.Ѵ;
 
 import static javafx.application.Platform.runLater;
@@ -61,7 +60,7 @@ public class TrayService extends ServiceBase {
     private ObservableList<javafx.scene.control.MenuItem> menuItems;
     private EventHandler<javafx.scene.input.MouseEvent> onClick;
     private static SystemTray tray;
-    private File image = new File(App.getLocation(), "icon16.png");
+    private File image = new File(APP.DIR_APP, "icon16.png");
     private static TrayIcon trayIcon;
 
     // disposable
@@ -178,7 +177,7 @@ public class TrayService extends ServiceBase {
     public void setTooltipText(String text){
         if(!isRunning()) return;
 
-        tooltip_text = text==null ? null : text.isEmpty() ? App.getAppName() : text;
+        tooltip_text = text==null ? null : text.isEmpty() ? APP.getName() : text;
         String s = showTooltip.getValue() ? text : null;
         EventQueue.invokeLater(() -> trayIcon.setToolTip(s));
     }

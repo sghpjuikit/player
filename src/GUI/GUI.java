@@ -93,9 +93,9 @@ public class GUI {
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static Duration duration_LM = millis(250);
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
-    public static final Ѵ<Boolean> snapping = new Ѵ(true);
+    public static final Ѵ<Boolean> snapping = new Ѵ<>(true);
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-    public static final Ѵ<Double> snapDistance = new Ѵ(6d);
+    public static final Ѵ<Double> snapDistance = new Ѵ<>(6d);
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     public final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {
@@ -241,29 +241,32 @@ public class GUI {
     @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", desc = "Switch minimized mode.", keys = "F10")
     public static void toggleMinimizeFocus() {
-        if(!App.getWindowOwner().isMinimized() && Window.getFocused()==null)
-            Window.getActive().focus();
-        else
-            Window.getActive().toggleMinimize();
+        // After this operation, all windows are either minimized or not, but vefore it, the state
+        // may vary. Thus we need to decide whether we minimize all windows or the opposite.
+        // if any window is not minimized, app
+        boolean m = Window.WINDOWS.stream().map(w -> w.isMinimized()).reduce(false, Boolean::logicalOr);
+        boolean f = Window.WINDOWS.stream().map(w -> w.focused.get()).reduce(false, Boolean::logicalOr);
+        Window.WINDOWS.forEach(w -> {
+            if(!m && !f)
+                w.focus();
+            else
+                w.setMinimized(!m);
+        });
     }
 
     @IsAction(name = "Show application", desc = "Shows application.", global = true)
     public static void showApp() {
-        if(App.getWindowOwner().isMinimized())
-            Window.getActive().setMinimized(false);
-        else {
-            if(Window.getFocused()==null)
-                Window.getActive().focus();
-        }
+        Window.WINDOWS.forEach(w -> w.setMinimized(false));
     }
 
     @IsAction(name = "Hide application", desc = "Hides application.", global = true)
     public static void hideApp() {
-        Window.getActive().minimize();
+        Window.WINDOWS.forEach(w -> w.setMinimized(true));
     }
 
     public static void toggleMinimize() {
-        Window.getActive().toggleMinimize();
+        boolean m = Window.WINDOWS.stream().map(Window::isMinimized).reduce(false, Boolean::logicalOr);
+        Window.WINDOWS.forEach(w -> w.setMinimized(!m));
     }
 
     @IsAction(name = "Maximize", desc = "Switch maximized mode.", keys = "F11")
@@ -371,7 +374,7 @@ public class GUI {
      * still be parsing errors resulting in imperfect skin application.
      */
     public static boolean setSkinExternal(File file) {
-        if (App.getWindowOwner().isInitialized() && FileUtil.isValidSkinFile(file)) {
+        if (APP.windowOwner.isInitialized() && FileUtil.isValidSkinFile(file)) {
             try {
                 String url = file.toURI().toURL().toExternalForm();
                 // remove old skin
@@ -394,7 +397,7 @@ public class GUI {
     }
 
     private static boolean setSkinModena() {
-        if (App.getWindowOwner().isInitialized()) {
+        if (APP.windowOwner.isInitialized()) {
             // remove old skin
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
             // set code skin
@@ -405,7 +408,7 @@ public class GUI {
         return false;
     }
     private static boolean setSkinCaspian() {
-        if (App.getWindowOwner().isInitialized()) {
+        if (APP.windowOwner.isInitialized()) {
             // remove old skin
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
             // set code skin

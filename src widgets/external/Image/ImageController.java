@@ -45,8 +45,6 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     @FXML AnchorPane root;
     private final Thumbnail thumb = new Thumbnail();
 
-    @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Ѵ<Pos> align = new Ѵ<>(CENTER, thumb::applyAlignment);
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private File img = new File("");
 
@@ -74,7 +72,6 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
 
     @Override
     public void refresh() {
-        align.applyValue();
         thumb.loadImage(img);
     }
 

@@ -32,6 +32,7 @@ import util.dev.TODO;
 import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
+import static main.App.APP;
 import static org.controlsfx.tools.Platform.WINDOWS;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.Util.log;
@@ -205,12 +206,12 @@ public class Environment {
         if(dir) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
+            c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
             return c.showDialog(w);
         } else {
             FileChooser c = new FileChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
+            c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
             if (exts !=null) c.getExtensionFilters().addAll(exts);
             return c.showOpenDialog(w);
         }
@@ -219,7 +220,7 @@ public class Environment {
     public static List<File> chooseFiles(String title, File initial, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
+        c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         return c.showOpenMultipleDialog(w);
     }
@@ -227,7 +228,7 @@ public class Environment {
     public static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
+        c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
         c.setInitialFileName(title);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         c.showSaveDialog(w);

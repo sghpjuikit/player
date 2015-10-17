@@ -25,7 +25,6 @@ import Configuration.Config.PropertyConfig;
 import Configuration.Config.ReadOnlyPropertyConfig;
 import Configuration.Config.VarList;
 import action.Action;
-import main.App;
 import util.File.FileUtil;
 import util.access.Ѵo;
 import util.collections.mapset.MapSet;
@@ -100,9 +99,9 @@ public class Configuration {
      * otherwise it is completely overwritten.
      * Loops through Configuration fields and stores them all into file.
      */
-    public void save() {
+    public void save(String title, File file) {
         String header = ""
-            + "# " + App.getAppName() + " configuration file.\n"
+            + "# " + title + " configuration file.\n"
             + "# " + java.time.LocalTime.now() + "\n";
         StringBuilder content = new StringBuilder(header);
 
@@ -111,7 +110,7 @@ public class Configuration {
                    .sorted(util.functional.Util.byNC(f::apply))
                    .forEach(c -> content.append(f.apply(c) + " : " + c.getValueS() + "\n"));
 
-        FileUtil.writeFile("Settings.cfg", content.toString());
+        FileUtil.writeFile(file, content.toString());
     }
 
     /**
@@ -124,8 +123,7 @@ public class Configuration {
      * <p>
      * If field of given name does not exist it will be ignored as well.
      */
-    public void load() {
-        File file = new File("Settings.cfg").getAbsoluteFile();
+    public void load(File file) {
         FileUtil.readFileKeyValues(file).forEach((id,value) -> {
             Config c = configs.get(id);
             if (c!=null) c.setValueS(value);

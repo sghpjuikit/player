@@ -7,11 +7,14 @@ package gui.objects.image;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+
 import java.io.File;
+
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
 /**
@@ -27,7 +30,7 @@ public abstract class ImageNode {
        + "is very noticable. Not worth it if you dont browse large images "
        + "or want to minimize RAM usage.")
     static boolean cache_images = false;
-    
+
     /**
      * To spare memory, images are only loaded up to requested size.
      * This defines how many times should images load bigger than requested.
@@ -53,27 +56,27 @@ public abstract class ImageNode {
        + "\n\tYou may expect the image to be scalable. This removes potential "
        + "blur or artifacts from over-scaling low-resolution version. ")
     public static double LOAD_COEFICIENT = 1.3;
-    
-    
+
+
     /**
      * @return image. Null if no image.
      */
     public abstract Image getImage();
-    
+
     /**
      * Loads image and sets it to show.
      * @param img null to set no image;
      */
     public abstract void loadImage(Image img);
-    
+
     /**
      * Loads image and sets it to show.
      * @param img null to set no image;
      */
     public abstract void loadImage(File img);
-    
+
     public abstract File getFile();
-    
+
     /**
      * Calculates size of the image to load. Returns recommended size for the
      * image.
@@ -86,7 +89,7 @@ public abstract class ImageNode {
      * the size of the specified component will be assumed to be an upper bound
      * of image's loaded size. The image is assumed to be square and the returned
      * size value will be {@link #LOAD_COEFICIENT} * component size.
-     * 
+     *
      * @param from component to use to calculate the size based on
      * @return recommended size of the image
      */
@@ -97,9 +100,9 @@ public abstract class ImageNode {
         double h = Math.max(from.getHeight(),from.getPrefHeight());
         return new Point2D(w,h).multiply(LOAD_COEFICIENT);
     }
-    
-    public abstract AnchorPane getPane();
-    
+
+    public abstract Pane getPane();
+
     /**
      * For internal use only!
      * This method allows shifting the image methods common for all implementations
@@ -111,31 +114,31 @@ public abstract class ImageNode {
      * @return ImageView displaying the image.
      */
     protected abstract ImageView getView();
-    
+
     /**
      * Decides whether the original image's dimension will be adhered to. Set yes
      * to force original ratio at all times. This will cause the image to not fill
      * all of the thumbnail. Setting to no will stretch the picture to fill the
      * thumbnail accordingly.
      * Defaults to true.
-     * @param val 
+     * @param val
      */
     public void setPreserveRatio(boolean val) {
         getView().setPreserveRatio(val);
     }
-    
+
     /**
      * Defaults to false
-     * @param val 
+     * @param val
      */
     public void setSmooth(boolean val) {
         getView().setSmooth(val);
     }
-    
+
     /**
      * Set caching to true for caching the image of the thumbnail. The performance
      * difference (memory and cpu load) remains untested. Default value - false.
-     * @param val 
+     * @param val
      */
     public void cache(boolean val) {
         getView().setCache(val);

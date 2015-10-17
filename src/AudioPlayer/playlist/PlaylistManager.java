@@ -12,12 +12,12 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import action.IsAction;
 import action.IsActionable;
-import main.App;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;
 
 import static java.util.Collections.EMPTY_LIST;
+import static main.App.APP;
 
 /**
  * Provides unified handling to everything playlist related in the application
@@ -49,7 +49,7 @@ public class PlaylistManager implements Configurable {
     }
 
     @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
-    public static File browse = App.getLocation();
+    public static File browse = APP.DIR_APP;
     @IsConfig(name = "File search depth", info = "Depth for recursive search within directories. 0 denotes specified directory.")
     public static int folder_depth = 1;
 

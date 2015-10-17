@@ -25,6 +25,7 @@ import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ2;
 
 import static java.util.UUID.fromString;
+import static main.App.APP;
 import static util.File.FileUtil.readFileLines;
 import static util.async.Async.FX;
 import static util.functional.Util.stream;
@@ -87,7 +88,7 @@ public class DB {
                     em.getTransaction().commit();
 
             })
-            .showProgress(App.getWindow().taskAdd())
+            .showProgress(APP.window.taskAdd())
             .run();
     }
 

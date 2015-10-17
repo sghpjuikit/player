@@ -49,7 +49,6 @@ import javafx.util.Duration;
 
 import gui.objects.Text;
 import gui.objects.Window.stage.WindowBase;
-import main.App;
 
 import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static gui.objects.PopOver.PopOver.ScreenPos.*;
@@ -59,6 +58,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static main.App.APP;
 import static util.functional.Util.*;
 
 /**
@@ -468,7 +468,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
-        showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : App.getWindowOwner().getStage());
+        showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
 
         if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center
@@ -876,9 +876,9 @@ public class PopOver<N extends Node> extends PopupControl {
 
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(App.getWindow().getStage(), this);
+            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.window.getStage(), this);
 //            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
-            WindowBase app = App.getWindow();
+            WindowBase app = APP.window;
             switch(this) {
                 case App_Top_Left:
                 case App_Bottom_Left:     return app.getX();
@@ -895,9 +895,9 @@ public class PopOver<N extends Node> extends PopupControl {
         }
         public double calcY(PopOver popup) {
             double H = popup.getSkinn().root.getHeight();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(App.getWindow().getStage(), this);
+            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.window.getStage(), this);
 //            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
-            WindowBase app = App.getWindow();
+            WindowBase app = APP.window;
             switch(this) {
                 case App_Bottom_Left:
                 case App_Bottom_Right:    return app.getY()+app.getHeight()-H;

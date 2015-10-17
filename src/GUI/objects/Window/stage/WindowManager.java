@@ -100,8 +100,8 @@ public class WindowManager {
     public static void toggleMiniFull() {
         if(!App.APP.normalLoad) return;
 
-        if(mini) App.getWindow().show();
-        else App.getWindow().hide();
+        if(mini) APP.window.show();
+        else APP.window.hide();
         setMini(!mini);
     }
     public static void toggleShowWindows() {
@@ -123,9 +123,10 @@ public class WindowManager {
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow = Window.deserialize(f);
+            // miniWindow = Window.deserialize(f); // disabled for now (but works)
             // if not available, make new one, set initial size
             if(miniWindow == null)  miniWindow = Window.create();
+            Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(false);
             miniWindow.setAlwaysOnTop(true);
@@ -137,13 +138,12 @@ public class WindowManager {
             content.setCenter(w.load());
             miniWindow.setContent(content);
                 // menu
-            Icon closeB = new Icon(CLOSE, 13, "Close window", APP::close);
             Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
 
-            HBox controls = new HBox(8,mainB,miniB,closeB);
+            HBox controls = new HBox(8,mainB,miniB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
                  controls.setFillHeight(false);
                  controls.setPadding(new Insets(5,5,5,25));
@@ -178,6 +178,7 @@ public class WindowManager {
                 if(!mini_hide_onInactive) return;   // if disabled
                 hider.start(mini_inactive_delay);
             });
+            hider.runNow();
 
             FxTimer shower = new FxTimer(0, 1, () ->{
                 if(miniWindow.getY()==0) return;    // if open

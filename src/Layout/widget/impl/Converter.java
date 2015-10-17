@@ -29,6 +29,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
 import Layout.widget.IsWidget;
 import Layout.widget.Widget;
+import Layout.widget.Widget.Group;
 import Layout.widget.controller.ClassController;
 import Layout.widget.feature.SongWriter;
 import gui.itemnode.*;
@@ -38,7 +39,6 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
-import main.App;
 import util.File.FileUtil;
 import util.access.VarEnum;
 import util.access.Ѵ;
@@ -47,7 +47,6 @@ import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
 import util.Ɽ;
 
-import static Layout.widget.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
@@ -58,6 +57,7 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static main.App.APP;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
@@ -106,7 +106,7 @@ import static util.graphics.drag.DragUtil.installDrag;
     notes = "",
     version = "1",
     year = "2015",
-    group = APP
+    group = Group.APP
 )
 public class Converter extends ClassController implements SongWriter {
 
@@ -395,7 +395,7 @@ public class Converter extends ClassController implements SongWriter {
     class WriteFileAct extends Act<Void> {
         Ѵ<String> nam = new Ѵ("new_file");
         Ѵ<String> ext = new Ѵ("txt");
-        Ѵ<File> loc = new Ѵ(App.getLocation());
+        Ѵ<File> loc = new Ѵ(APP.DIR_APP);
 
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);

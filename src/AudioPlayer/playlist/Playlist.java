@@ -47,7 +47,6 @@ import AudioPlayer.playback.PLAYBACK;
 import Configuration.ValueConfig;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
-import main.App;
 import unused.SimpleConfigurator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
@@ -58,6 +57,7 @@ import util.serialize.xstream.PlaylistItemConverter;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.dev.Util.noØ;
 import static util.functional.Util.map;
@@ -673,7 +673,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFiles(boolean add) {
-        List<File> files = Environment.chooseFiles("Choose Audio Files", PlaylistManager.browse, App.getWindowOwner().getStage(), AudioFileFormat.filter(Use.PLAYBACK));
+        List<File> files = Environment.chooseFiles("Choose Audio Files", PlaylistManager.browse, APP.windowOwner.getStage(), AudioFileFormat.filter(Use.PLAYBACK));
         if (files != null) {
             PlaylistManager.browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -694,7 +694,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public void addOrEnqueueFolder(boolean add) {
         File dir = Environment.chooseFile("Choose Audio Files From Directory Tree",
-                true, PlaylistManager.browse, App.getWindowOwner().getStage());
+                true, PlaylistManager.browse, APP.windowOwner.getStage());
         if (dir != null) {
             PlaylistManager.browse = dir;
             List<URI> queue = new ArrayList<>();

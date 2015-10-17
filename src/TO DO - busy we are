@@ -5,8 +5,6 @@
 
 - layout manager + mock widgets
 - main window switching
-- window standalone
-
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order
 - remove Areas
 - bicontainer orientation button install to children instead

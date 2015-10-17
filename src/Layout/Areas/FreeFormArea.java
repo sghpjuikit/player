@@ -53,8 +53,9 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         + "to maximalize used space.";
 
     private final AnchorPane rt = new AnchorPane();
-    private final Map<Integer,PaneWindowControls> windows = new HashMap();
+    private final Map<Integer,PaneWindowControls> windows = new HashMap<>();
     boolean resizing = false;
+
 
     public FreeFormArea(FreeFormContainer con) {
         super(con);
@@ -70,7 +71,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 any_window_clicked.set(any_window_clicked.get() && isHere(e));
                 // add new widget on left click
                 if(e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
-                    addEmptyWindowAt(e.getX(), e.getY());
+                    addEmptyWindowAt(e.getX(),e.getY());
                     e.consume();
                 }
             }
@@ -82,8 +83,10 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             root, EXCHANGE, () -> "Move component here",
             DragUtil::hasComponent,
             e -> container==DragUtil.getComponent(e),
-            e -> DragUtil.getComponent(e).swapWith(container,addEmptyWindowAt(e.getX(), e.getY())),
+            e -> DragUtil.getComponent(e).swapWith(container,addEmptyWindowAt(e.getX(),e.getY())),
             e -> bestRecBounds(e.getX(),e.getY(),null)
+            // alternative implementation
+            // e -> bestRecBounds(e.getX(),e.getY(),getWindow(DragUtil.getComponent(e)))
         );
 
         rt.widthProperty().addListener((o,ov,nv) -> {
@@ -161,6 +164,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         setAnchors(n, 0d);
         if(l!=null) l.show();
     }
+
     public void closeWindow(int i) {
         PaneWindowControls w = windows.get(i);
         if(w!=null) { // null can happen only in illegal call, but cant prevent that for now (layouter calls close 2 times)
@@ -180,6 +184,11 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             windows.put(i,w);
         }
         return w;
+    }
+
+    private PaneWindowControls getWindow(Component c) {
+        Integer i = container.indexOf(c);
+        return i==null ? null : windows.get(i);
     }
 
     private PaneWindowControls buidWindow(int i) {
@@ -309,7 +318,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         // get index
         int i = findFirstEmpty(container.getChildren(), 1);
         // preset viable area
-        storeBestRec(i, x, y, null);
+        storeBestRec(i, x,y, null);
         // add empty window at index (into viable area)
         // the method call eventually invokes load() method below, with
         // component/child == null (3rd case)

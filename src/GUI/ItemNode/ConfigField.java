@@ -59,14 +59,14 @@ import static util.reactive.Util.maintain;
 /**
  * Editable and setable graphic control for configuring {@Config}.
  * <p>
- * Convenient way to create wide and diverse property sheets, that take 
+ * Convenient way to create wide and diverse property sheets, that take
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  *
  * @author uranium
  */
 abstract public class ConfigField<T> extends ConfigNode<T> {
-    
+
     private static final PseudoClass editedPC = getPseudoClass("edited");
     private static final Tooltip okTooltip = new Tooltip("Apply value");
     private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
@@ -83,18 +83,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public boolean applyOnChange = true;
     protected boolean insonsistent_state = false;
     private Icon defB;
-    
+
     private ConfigField(Config<T> c) {
         super(c);
         label.setText(config.getGuiName());
-        
+
         root.setMinSize(0,20);   // miheight actually required to get consistent look
-        root.setPrefSize(-1,-1); // support variable content height 
+        root.setPrefSize(-1,-1); // support variable content height
         root.setMaxSize(-1,-1);  // support variable content height
         root.setSpacing(5);
         root.setAlignment(CENTER_LEFT);
         root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
-        
+
         // display default button when hovered for certain time
         root.addEventFilter(MOUSE_ENTERED, e -> {
             if(!config.isEditable()) return;
@@ -132,7 +132,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             fa.play();
         });
     }
-    
+
     /**
      * Simply compares the current value with the one obtained from Config.
      * Equivalent to: !config.getValue().equals(get());
@@ -141,15 +141,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public boolean hasUnappliedValue() {
         return !config.getValue().equals(get());
     }
-    
+
     /**
      * Sets editability by disabling the Nodes responsible for value change
-     * @param val 
+     * @param val
      */
     public void setEditable(boolean val) {
         getControl().setDisable(!val);
     }
-    
+
     /**
      * Use to get the label to attach it to a scene graph.
      * @return label describing this field
@@ -157,9 +157,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public Label getLabel() {
         return label;
     }
-    
+
     /**
-     * Use to get the control node for setting and displaying the value to 
+     * Use to get the control node for setting and displaying the value to
      * attach it to a scene graph.
      * @return setter control for this field
      */
@@ -170,32 +170,32 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         HBox.setHgrow(getControl(), SOMETIMES);
         return root;
     }
-    
+
     /**
-     * Use to get the control node for setting and displaying the value to 
+     * Use to get the control node for setting and displaying the value to
      * attach it to a scene graph.
      * @return setter control for this field
      */
     abstract Node getControl();
-    
+
     protected String getTooltipText() {
         return config.getInfo();
     }
-    
+
     @Override
     public void focus() {
         getControl().requestFocus();
     }
 
     protected abstract T get();
-    
+
     /**
      * Refreshes the content of this config field. The content is read from the
      * Config and as such reflects the real value. Using this method after the
      * applying the new value will confirm the success visually to the user.
      */
     public abstract void refreshItem();
-    
+
     /**
      * Sets and applies default value of the config if it has different value
      * set.
@@ -208,22 +208,22 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             if(onChange!=null) onChange.run();System.out.println("changed config " + config.getName());
         }
     }
-    
+
     Runnable onChange;
-    
+
     public void apply() {
         apply(true);
     }
-    
+
     protected void apply(boolean user) {
         if(insonsistent_state) return;
         T t = get();
-        
+
         boolean erroneous = t==null;
         if(erroneous) return;
         boolean needsapply = !config.getValue().equals(t);
         if(!needsapply) return;
-        
+
         insonsistent_state = true;
         if(applyOnChange || user) config.setNapplyValue(t);
         else config.setValue(t);
@@ -231,11 +231,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if(onChange!=null) onChange.run();System.out.println("changed config " + config.getName());
         insonsistent_state = false;
     }
-    
+
 /******************************************************************************/
-    
+
     private static Map<Class,Ƒ1<Config,ConfigField>> m = new HashMap();
-    
+
     static {
         m.put(boolean.class, f -> new BooleanField(f));
         m.put(Boolean.class, f -> new BooleanField(f));
@@ -248,21 +248,21 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         m.put(String.class, f -> new StringField(f));
         m.put(ObservableList.class, f -> new ListField(f));
     }
-    
+
     /**
      * Creates ConfigFfield best suited for the specified Field.
      * @param f field for which the GUI will be created
      */
     public static ConfigField create(Config f) {
-        
+
         ConfigField cf = null;
         if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
         else if (f.isTypeEnumerable()) cf = new EnumerableField(f);
         else if(f.isMinMax()) cf = new SliderField(f);
         else cf = m.getOrDefault(f.getType(), GeneralField::new).apply(f);
-        
+
         cf.setEditable(f.isEditable());
-        
+
         String tooltip_text = cf.getTooltipText();
         if(!tooltip_text.isEmpty()) {
             Tooltip t = new Tooltip(tooltip_text);
@@ -274,13 +274,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         return cf;
     }
-    
+
 /***************************** IMPLEMENTATIONS ********************************/
-        
+
     private static class PasswordField extends ConfigField<Password>{
-        
+
         javafx.scene.control.PasswordField passF = new javafx.scene.control.PasswordField();
-        
+
         public PasswordField(Config<Password> c) {
             super(c);
             refreshItem();
@@ -300,14 +300,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public void refreshItem() {
             passF.setText(config.getValue().get());
         }
-        
-    }    
+
+    }
     private static class StringField extends ConfigField<String> {
         private CustomTextField n = new CustomTextField();
-        
+
         private StringField(Config c) {
             super(c);
-            
+
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
             n.setPromptText(c.getName());
@@ -333,7 +333,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
             n.textProperty().addListener((o,ov,nv)-> apply(false));
         }
-        
+
         @Override public Control getControl() {
             return n;
         }
@@ -342,31 +342,31 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.requestFocus();
             n.selectAll();
         }
-        
+
         @Override public String get() {
             return n.getText();
         }
-        
+
         @Override public void refreshItem() {
             if(insonsistent_state) return;
             n.setText(config.getValueS());
         }
-        
+
     }
     private static class GeneralField extends ConfigField<Object> {
         CustomTextField n = new CustomTextField();
         Icon okI= new Icon();
         Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okI);
-        
+
         private GeneralField(Config c) {
             super(c);
-            
+
             // doesnt work because of CustomTextField instead f TextField
             // restrict input
 //            if(c.isTypeNumber())
 //                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
-            
+
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
@@ -376,12 +376,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             warnB.size(11);
             warnB.styleclass("congfig-field-warn-button");
             warnB.tooltip(warnTooltip);
-            
+
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
             n.setPromptText(c.getName());
             n.setText(c.getValueS());
-            
+
             n.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
                     n.pseudoClassStateChanged(editedPC, true);
@@ -398,7 +398,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     refreshItem();
                 }
             });
-            
+
             n.addEventHandler(KEY_RELEASED, e -> {
                 if (e.getCode()==ESCAPE)
                     root.requestFocus();
@@ -416,7 +416,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             okI.setOnMouseClicked( e -> apply(true));
             n.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(true); });
         }
-        
+
         @Override public Control getControl() {
             return n;
         }
@@ -426,7 +426,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.requestFocus();
             n.selectAll();
         }
-        
+
         @Override public Object get() {
             return config.fromS(n.getText());
         }
@@ -459,22 +459,22 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             warnB.setVisible(val);
             if(val) warnTooltip.setText(Parser.getError());
         }
-        
+
     }
     private static class BooleanField extends ConfigField<Boolean> {
         final CheckIcon cBox;
         final boolean observable;
-        
+
         private BooleanField(Config<Boolean> c) {
             super(c);
-            
+
             ObservableValue<Boolean> v = c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
                     ? (ObservableValue)((PropertyConfig)c).getProperty()
-                    : c instanceof ReadOnlyPropertyConfig 
+                    : c instanceof ReadOnlyPropertyConfig
                         ? ((ReadOnlyPropertyConfig)c).getProperty()
                         : null;
             observable = v!=null;
-            
+
             cBox = new CheckIcon();
             cBox.styleclass("boolean-config-field");
             cBox.selected.setValue(config.getValue());
@@ -483,7 +483,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // bind config field -> config
             cBox.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
         }
-        
+
         @Override public CheckIcon getControl() {
             return cBox;
         }
@@ -509,10 +509,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private SliderField(Config<Number> c) {
             super(c);
             double v = c.getValue().doubleValue();
-            
+
             min = new Label(String.valueOf(c.getMin()));
             max = new Label(String.valueOf(c.getMax()));
-            
+
             slider = new Slider(c.getMin(),c.getMax(),v);
             cur = new Label(get().toString());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
@@ -534,12 +534,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
             slider.setMaxWidth(-1);
-            
-            
+
+
             box = new HBox(min,slider,max);
             box.setAlignment(CENTER_LEFT);
             box.setSpacing(5);
-            
+
             Class type = unPrimitivize(config.getType());
             if(isIn(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
@@ -547,7 +547,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 slider.setSnapToTicks(true);
             }
         }
-        
+
         @Override public Node getControl() {
             return box;
         }
@@ -567,7 +567,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class EnumerableField extends ConfigField<Object> {
         ComboBox<Object> n;
-        
+
         private EnumerableField(Config<Object> c) {
             super(c);
             Collection e = c.enumerateValues();
@@ -580,13 +580,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.getStyleClass().add("combobox-field-config");
             n.focusedProperty().addListener((o,ov,nv) -> n.pseudoClassStateChanged(editedPC, nv));
         }
-        
-        @Override 
+
+        @Override
         public Object get() {
             return n.getValue();
         }
 
-        @Override 
+        @Override
         public void refreshItem() {
             n.setValue(config.getValue());
         }
@@ -601,7 +601,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         HBox group;
         String t="";
         Action a;
-        
+
         private ShortcutField(Config<Action> con) {
             super(con);
             a = con.getValue();
@@ -613,8 +613,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (c==BACK_SPACE || c==DELETE) {
                     txtF.setPromptText("");
                     if (!txtF.getText().isEmpty()) txtF.setPromptText(a.getKeys());
-                    
-                    
+
+
                     if (t.isEmpty()) {  // set back to empty
                         txtF.setPromptText(a.getKeys());
                     } else {            // substract one key
@@ -644,7 +644,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                         txtF.setText("");
                 }
             });
-            
+
             globB = new CheckIcon();
             globB.styleclass("shortcut-global-config-field");
             globB.selected.setValue(a.isGlobal());
@@ -654,27 +654,27 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
-        
+
         @Override public Node getControl() {
             return group;
         }
         @Override public boolean hasUnappliedValue() {
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
+            boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
         @Override protected void apply(boolean b) {
             // its pointless to make new Action just for this
-            // config.applyValue(get()); 
+            // config.applyValue(get());
             // rather operate on the Action manually
 
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
+            boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
-            
+
             if(!sameglobal && !sameKeys)
                 a.set(globB.selected.getValue(), txtF.getText());
             else if (!sameKeys)
@@ -698,13 +698,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class ColorField extends ConfigField<Color> {
         ColorPicker picker = new ColorPicker();
-        
+
         private ColorField(Config<Color> c) {
             super(c);
             refreshItem();
             picker.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
-        
+
         @Override public Control getControl() {
             return picker;
         }
@@ -717,13 +717,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class FontField extends ConfigField<Font> {
         FontItemNode txtF = new FontItemNode();
-        
+
         private FontField(Config<Font> c) {
             super(c);
             refreshItem();
             txtF.setOnItemChange((ov,nv) -> apply(false));
         }
-        
+
         @Override public Control getControl() {
             return txtF;
         }
@@ -736,13 +736,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class FileField extends ConfigField<File> {
         FileItemNode txtF = new FileItemNode();
-        
+
         public FileField(Config<File> c) {
             super(c);
             refreshItem();
             txtF.setOnItemChange((ov,nv) -> apply(false));
         }
-        
+
         @Override public Control getControl() {
             return txtF;
         }
@@ -754,23 +754,23 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
-        
-        ListConfigField<T, ConfigurableField> chain;
+
+        ListConfigField<T,ConfigurableField> chain;
         ListConfig<T> lc;
-        
+
         public ListField(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig)c;
-            
+
             // create chain
             chain = new ListConfigField<>(0,() -> new ConfigurableField(lc.a.factory.get()));
             // initialize chain - add existing list values to chain
             lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(v)));
             chain.growTo1();
             // bind list to the chain values (after it was initialized above)
-            chain.onItemChange = ignored -> {lc.a.list.setAll(chain.getValues().collect(toList()));System.out.println("changed large");};
+            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().collect(toList()));
         }
-        
+
         @Override
         Node getControl() {
             return chain.getNode();
@@ -783,15 +783,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         @Override
         public void refreshItem() {}
-        
-        
+
+
         class ConfigurableField extends ValueNode<T> {
             ConfigPane<Object> p = new ConfigPane<>();
-            
+
             public ConfigurableField(T t) {
                 value = t;
                 p.configure(lc.a.toConfigurable.apply(value));
-                p.onChange = () -> {chain.onItemChange.accept(null);System.out.println("changed medium");};
+                p.onChange = () -> chain.onItemChange.accept(null);
             }
 
             @Override
@@ -805,9 +805,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if(value.getClass().equals(o.getClass())) return (T)o;
                 else return super.getValue();
             }
-            
-            
-            
+
+
+
         }
     }
     private static class OverridableField<T> extends ConfigField<T> {
@@ -816,11 +816,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public OverridableField(OverridablePropertyConfig<T> c) {
             super(c);
             Ѵo<T> vo = c.getProperty();
-            
+
 //            root.setMinSize(100,20);
 //            root.setPrefSize(-1,-1);
 //            root.setMaxSize(-1,-1);
-            
+
             BooleanField bf = new OverrideField(Config.forProperty("Override", vo.override)) {
                 @Override
                 public void setNapplyDefault() {
@@ -849,7 +849,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public void setNapplyDefault() {
             config.setDefaultValue();
         }
-        
+
         @Override
         protected String getTooltipText() {
             return config.getInfo() + "\n\nThis value must override global "

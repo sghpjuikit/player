@@ -22,7 +22,6 @@ import AudioPlayer.SimpleItem;
 import Layout.Component;
 import Layout.widget.controller.io.Output;
 import de.jensd.fx.glyphs.GlyphIcons;
-import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
@@ -36,7 +35,7 @@ import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
-import static util.File.AudioFileFormat.Use.APP;
+import static main.App.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
@@ -404,7 +403,7 @@ public final class DragUtil {
             String url = d.getUrl();
             return fut(() -> {
                 try {
-                    File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
+                    File f = FileUtil.saveFileTo(url, APP.DIR_TEMP);
                          f.deleteOnExit();
                     return singletonList(f);
                 } catch(IOException ex) {
@@ -438,11 +437,11 @@ public final class DragUtil {
         }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return fut(() -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
+            return fut(() -> getFilesAudio(files,Use.APP,MAX_VALUE).map(SimpleItem::new));
         }
         if (d.hasUrl()) {
             String url = d.getUrl();
-            return AudioFileFormat.isSupported(url,APP)
+            return AudioFileFormat.isSupported(url,Use.APP)
                         ? fut(Stream.of(new SimpleItem(URI.create(url))))
                         : fut(Stream.empty());
         }
@@ -458,7 +457,7 @@ public final class DragUtil {
                 // e.g. anime-pictures.net
                 //
                 // https://code.google.com/p/jsslutils/wiki/SSLContextFactory
-                File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
+                File f = FileUtil.saveFileTo(url, APP.DIR_TEMP);
                      f.deleteOnExit();
                 return f;
             } catch(IOException e) {

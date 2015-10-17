@@ -46,7 +46,6 @@ import Layout.widget.feature.Feature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
-import main.App;
 import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
@@ -113,7 +112,7 @@ public class TreeItems {
                    tree("Windows", () -> Window.WINDOWS.stream()),
                    tree("Layouts", () -> LayoutManager.getLayouts().sorted(by(l -> l.getName())))
                  ),
-                 tree("Location", listFiles(App.getLocation())),
+                 tree("Location", listFiles(APP.DIR_APP)),
                  tree("File system", map(File.listRoots(),FileTreeItem::new))
                );
     }
@@ -376,7 +375,7 @@ public class TreeItems {
     }
     private static String windowToName(Window w) {
         String n = "window " + list(Window.WINDOWS).indexOf(w);
-        if(w==App.getWindow()) n += " (main)";
+        if(w==APP.window) n += " (main)";
         if(w==WindowManager.miniWindow) n += " (mini-docked)";
         return n;
     }

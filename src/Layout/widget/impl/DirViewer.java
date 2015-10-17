@@ -104,14 +104,14 @@ public class DirViewer extends ClassController {
         // delay cell loading when content is being resized (increases resize performance)
         FxTimer resizeTimer = new FxTimer(200, 1, () -> {
             isResizing = false;
-            grid.setManaged(true);
+//            grid.setManaged(true);
         });
         grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-        grid.heightProperty().addListener((o,ov,nv) -> grid.setManaged(false));
-        grid.widthProperty().addListener((o,ov,nv) -> grid.setManaged(false));
+//        grid.heightProperty().addListener((o,ov,nv) -> grid.setManaged(false));
+//        grid.widthProperty().addListener((o,ov,nv) -> grid.setManaged(false));
         // decrease scrolling speed (consume scroll events and refire with smaller vertical values)
         grid.addEventFilter(ScrollEvent.ANY, e -> {
             if(scrollflag) {
@@ -176,11 +176,6 @@ public class DirViewer extends ClassController {
                    grid.getItems().setAll(newcells);
                    if(item.last_gridposition>=0)
                        grid.getSkinn().getFlow().setPosition(item.last_gridposition);
-
-//                   double i = newcells.indexOf(scrollTo);
-//                   if(i>=0)
-//                       grid.getSkinn().getFlow().scrollTo((int)floor(i/grid.getSkinn().computeMaxCellsInRow()));
-
                },FX)
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
@@ -270,7 +265,6 @@ public class DirViewer extends ClassController {
         private void setCover(Item item) {
             item.loadCover((was_loaded,img) -> {
                 thumb.loadImage(img);
-                thumb.setFile(item.cover_file);
                 if(!was_loaded && img!=null) {
                     new Anim(thumb.getPane()::setOpacity).dur(500).intpl(x -> sqrt(x)).play();
                 }

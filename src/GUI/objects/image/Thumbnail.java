@@ -6,10 +6,12 @@ package gui.objects.image;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 
+import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -38,7 +40,6 @@ import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;
-import main.App;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
@@ -57,6 +58,8 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
+import static util.Util.getFieldValue;
 import static util.Util.menuItem;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.graphics.Util.setAnchors;
@@ -122,19 +125,10 @@ public class Thumbnail extends ImageNode {
     public static Duration animDur = millis(100);
     public static boolean animated = false;
 
-    AnchorPane root = new AnchorPane();
-    @FXML ImageView imageView;
-    @FXML StackPane img_container;
-    @FXML BorderPane content_container;
-    @FXML Pane img_border;
+    protected final StackPane root = new StackPane();
+    protected final ImageView imageView = new ImageView();
+    protected final Pane img_border = new Pane();
 
-    /**
-     * Optional file representing the image. Not needed, but recommended. Its
-     * needed to achieve context menu functionality that allows manipulation with
-     * the image file.
-     * More/other file-related functionalities could be supported in the future.
-     */
-    File img_file;
     /**
      * Displayed image. Editable, but it is recommended to use one of the load
  methods instead. Note, that those load the image on bgr thread and setting
@@ -143,7 +137,7 @@ public class Thumbnail extends ImageNode {
  reflect that. Thus calling getM() on this property may not provide the
  expected result.
      */
-    public final ObjectProperty<Image> image;
+    public final ObjectProperty<Image> image = imageView.imageProperty();
 
     /** Constructor.
      * Use if you need  default thumbnail size and the image is expected to
@@ -177,22 +171,16 @@ public class Thumbnail extends ImageNode {
      */
     public Thumbnail (double width, double height) {
 
-        // load fxml part
-        new ConventionFxmlLoader(Thumbnail.class, root, this).loadNoEx();
-
-        image = imageView.imageProperty();
-        imageView.getStyleClass().add(image_styleclass);
-
-        // set size
         root.setMinSize(width,height);
         root.setPrefSize(width,height);
         root.setMaxSize(width,height);
-        // bind image sizes to size
+        root.getChildren().addAll(imageView,img_border);
         imageView.setFitHeight(height);
         imageView.setFitWidth(width);
         imageView.fitHeightProperty().bind(Bindings.min(root.heightProperty(), maxIMGH));
         imageView.fitWidthProperty().bind(Bindings.min(root.widthProperty(), maxIMGW));
-
+        imageView.getStyleClass().add(image_styleclass);
+        img_border.setMouseTransparent(true);
 
         // update ratios
         ratioALL.bind(root.widthProperty().divide(root.heightProperty()));
@@ -211,6 +199,8 @@ public class Thumbnail extends ImageNode {
         setBackgroundVisible(true);
         setDragEnabled(true);
         setContextMenuOn(true);
+        root.addEventFilter(MOUSE_ENTERED, e -> animationPlay());
+        root.addEventFilter(MOUSE_EXITED, e -> animationPause());
     }
 
 
@@ -220,84 +210,117 @@ public class Thumbnail extends ImageNode {
 
 /******************************************************************************/
 
-
     @Override
     public void loadImage(Image img) {
-        setImgA(img, null);
+        setImgA(img);
     }
+
     @Override
     public void loadImage(File img) {
         Point2D size = calculateImageLoadSize(root);
-        img_file = img;
-
         Image c = getCached(img, size.getX(), size.getY());
-        Image i = c!=null ? c : Util.loadImage(img_file, size.getX(), size.getY());
-        setImgA(i, img);
+        Image i = c!=null ? c : Util.loadImage(img, size.getX(), size.getY());
+        setImgA(i);
     }
+
     public void loadImage(Cover img) {
         if(img==null) {
-            setImgA(null, null);
+            setImgA(null);
         } else {
             Point2D size = calculateImageLoadSize(root);
             Image i = img.getImage(size.getX(), size.getY());
-            setImgA(i, img.getFile());
+            setImgA(i);
         }
     }
 
     private long loadId = 0;    // prevents wastful set image operatins
-    static HashMap<File,Image> IMG_CACHE = new HashMap();   // caches images
-    public static Image getCached(File f, double w, double h) {
-        if(cache_images || f==null) return null;
-        Image ci = IMG_CACHE.get(f);
+    private static HashMap<String,Image> IMG_CACHE = new HashMap<>();   // caches images
+
+    public static Image getCached(String url, double w, double h) {
+        Image ci = url==null ? null : IMG_CACHE.get(url);
         return ci!=null && (ci.getWidth()>=w || ci.getHeight()>=h) ? ci : null;
     }
 
+    public static Image getCached(File file, double w, double h) {
+        String url = null;
+        try {
+            url = file.toURI().toURL().toString();
+        } catch (Exception e) {}
+        return getCached(url, w, h);
+    }
+
     // set asynchronously
-    private void setImgA(Image i, File f) {
+    private void setImgA(Image i) {
         loadId++;   // load next image
         final long id = loadId; // expected id (must match when load finishes)
         if(i==null) {
-            setImg(null, null, id);
+            setImg(null,id);
         } else {
             if(i.getProgress()==1) {
-                setImg(i, f, id);
+                setImg(i,id);
             } else {
                 i.progressProperty().addListener((o,ov,nv) -> {
                     if(nv.doubleValue()==1)
-                        setImg(i, f, id);
+                        setImg(i,id);
                 });
             }
         }
     }
+
     // set synchronously
-    private void setImg(Image i, File f, long id) {
+    private void setImg(Image i, long id) {
         // cache
-        if(i!=null && f!=null) {
-            Image ci = IMG_CACHE.get(f);
+        if(i!=null && cache_images) {
+            Image ci = IMG_CACHE.get(i.impl_getUrl());
             if(ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
-                IMG_CACHE.put(f, i);
+                IMG_CACHE.put(i.impl_getUrl(), i);
         }
 
         // ignore outdated loadings
         if(id!=loadId) return;
 
-        img_file = f;
         imageView.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
         if(i!=null) {
             maxIMGW.set(i.getWidth()*maxScaleFactor);
             maxIMGH.set(i.getHeight()*maxScaleFactor);
         }
+
+        // animation
+        if(i!=null) {
+            Object animWrapper = getFieldValue(i, Object.class, "animation");
+            animation = animWrapper==null ? null : getFieldValue(animWrapper, Timeline.class, "timeline");
+            animationPause();
+        }
     }
 
+/****************************************** ANIMATION *********************************************/
+
+    Timeline animation = null;
+
+    public boolean isAnimated() {
+        return animation!=null;
+    }
+
+    public void animationPlay() {
+        if(animation!=null) animation.play();
+    }
+
+    public void animationPause() {
+        if(animation!=null) animation.pause();
+    }
+
+/**************************************************************************************************/
+
+    /** File representing the displayed image or null if no image displayed or not a file. */
     @Override
     public File getFile() {
-        return img_file;
-    }
-
-    @Deprecated
-    public void setFile(File f) {
-        img_file = f;
+        String url = image.get()==null ? null : image.get().impl_getUrl();
+        try {
+            return url==null ? null : new File(URI.create(url));
+        } catch(IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
@@ -322,7 +345,7 @@ public class Thumbnail extends ImageNode {
      */
     @Dependency("Must return image drag gesture root")
     @Override
-    public AnchorPane getPane() {
+    public Pane getPane() {
         return root;
     }
 
@@ -420,13 +443,14 @@ public class Thumbnail extends ImageNode {
     private EventHandler<MouseEvent> dragHandler;
     private EventHandler<MouseEvent> buildDH() {
         return e -> {
-            if(e.getButton()==PRIMARY && img_file!=null) {
-                Dragboard db = root.startDragAndDrop(TransferMode.COPY);
+            if(e.getButton()==PRIMARY && getFile()!=null) {
+//                TransferMode t = e.isShiftDown() ? TransferMode.MOVE : e.isAltDown() ? TransferMode.
+                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 // set drag image
                 if(getImage()!=null) db.setDragView(getImage());
                 // set content
                 HashMap<DataFormat,Object> c = new HashMap();
-                c.put(FILES, singletonList(img_file));
+                c.put(FILES, singletonList(getFile()));
                 db.setContent(c);
                 e.consume();
             }
@@ -441,24 +465,6 @@ public class Thumbnail extends ImageNode {
     public void setContextMenuOn(boolean val) {
         if (val) root.addEventHandler(MOUSE_CLICKED,contextMenuHandler);
         else root.removeEventHandler(MOUSE_CLICKED,contextMenuHandler);
-    }
-
-    public void applyAlignment(Pos val) {
-        content_container.getChildren().clear();
-        switch(val) {
-            case BASELINE_CENTER:
-            case CENTER: content_container.setCenter(img_container); break;
-            case BOTTOM_LEFT:
-            case BASELINE_LEFT:
-            case CENTER_LEFT:
-            case TOP_LEFT: content_container.setLeft(img_container); break;
-            case BOTTOM_RIGHT:
-            case BASELINE_RIGHT:
-            case CENTER_RIGHT:
-            case TOP_RIGHT: content_container.setRight(img_container); break;
-            case TOP_CENTER: content_container.setTop(img_container); break;
-            case BOTTOM_CENTER: content_container.setBottom(img_container); break;
-        }
     }
 
 /********************************  HOVERING  **********************************/
@@ -518,7 +524,7 @@ public class Thumbnail extends ImageNode {
         img_border.maxHeightProperty().unbind();
         img_border.maxWidthProperty().unbind();
         if(borderToImage) {
-            if(!img_container.getChildren().contains(img_border)) img_container.getChildren().add(img_border);
+            if(!root.getChildren().contains(img_border)) root.getChildren().add(img_border);
 //            DoubleProperty i = nv ? image.fitWidthProperty() : image.fitHeightProperty();
 //            DoubleBinding ii = nv ? i.divide(ratioIMG) : i.multiply(ratioIMG);
             if(nv) {
@@ -550,8 +556,8 @@ public class Thumbnail extends ImageNode {
                         fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
-                        fc.setInitialDirectory(App.getLocation());
-                    File f = fc.showSaveDialog(App.getWindowOwner().getStage());
+                        fc.setInitialDirectory(APP.DIR_APP);
+                    File f = fc.showSaveDialog(APP.windowOwner.getStage());
                     FileUtil.writeImage(m.getValue(), f);
                 }),
                 menuItem("Copy the image to clipboard", e -> {
@@ -610,9 +616,9 @@ public class Thumbnail extends ImageNode {
                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                        fc.setTitle("Save image as...");
                        fc.setInitialFileName(of.getName());
-                       fc.setInitialDirectory(App.getLocation());
+                       fc.setInitialDirectory(APP.DIR_APP);
 
-                   File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
+                   File nf = fc.showSaveDialog(APP.windowOwner.getStage());
                    if(nf!=null) {
                     try {
                         Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -634,7 +640,7 @@ public class Thumbnail extends ImageNode {
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
         if(e.getButton()==SECONDARY) {
             // decide mode (image vs file), build lazily & show where requested
-            if (img_file != null)
+            if (getFile() != null)
                 file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)
                 img_context_menu.getM(this).show(root,e);
@@ -642,10 +648,4 @@ public class Thumbnail extends ImageNode {
             e.consume();
         }
     };
-
-
-
-
-//    static Map<File,>
-
 }

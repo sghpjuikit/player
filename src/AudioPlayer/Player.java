@@ -20,6 +20,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
+import AudioPlayer.tagging.MetadataWriter;
 import Layout.widget.controller.io.InOutput;
 import util.async.Async;
 import util.async.executor.EventReducer;
@@ -79,6 +80,12 @@ public class Player {
 
         // use jaudiotagger for total time value
         playingtem.onChange(m -> state.playback.duration.set(m.getLength()));
+        playingtem.onChange((o,n) -> {
+            MetadataWriter.use(o, w -> {
+                w.setPlayedFirstNowIfEmpty();
+                w.setPlayedLastNow();
+            });
+        });
     }
 
 /**************************************** ITEM REFRESHING *****************************************/

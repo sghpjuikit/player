@@ -73,14 +73,17 @@ public class PlaycountIncrementer extends ServiceBase {
     public void stop() {
         running = false;
         apply();
-         // note that we are potentially losing queued playcounts here. If the service never starts
-         // again, all queued playcounts will never get written to tag
-         // we could just write them all to tag right here, but that may cause problems such as
-         // unwanted application close delay.
-         // This shouldnt be a big problem, unless user listened to single song lot of the times
-         // in a loop and then disabled this service and closed the app. We really dont care about
-         // such scenario. Plus, few lost playcounts are no big deal.
         d.unsubscribe();
+        // note that we are potentially losing queued playcounts here. If the service never starts
+        // again, all queued playcounts will never get written to tag
+        // we could just write them all to tag right here, but that may cause problems such as
+        // unwanted application close delay.
+        // This shouldnt be a big problem, unless user listened to single song lot of the times
+        // in a loop and then disabled this service and closed the app. We really dont care about
+        // such scenario. Plus, few lost playcounts are no big deal.
+        //
+        // fix below:
+        // queue.stream().distinct().forEach(this::incrementQueued);
     }
 
     @Override

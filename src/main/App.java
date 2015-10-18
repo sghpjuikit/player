@@ -143,7 +143,13 @@ import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
 
-/** Application. Represents the program. Single instance. */
+/**
+ * Application. Represents the program.
+ * <p>
+ * Single instance:<br>
+ * Application can only instantiate single instance, any subsequent call to constructor throws
+ * an exception.
+ */
 @IsActionable
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
@@ -713,7 +719,12 @@ public class App extends Application implements Configurable {
 
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
-           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
+//           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
+           .then(() -> {
+               List<Metadata> l = MetadataReader.readMetadata(items);
+               l.forEach(m -> System.out.println(m.getCustom5()));
+               Player.refreshItemsWith(l);
+           },Player.IO_THREAD)
            .showProgress(APP.window.taskAdd())
            .run();
     }
@@ -733,7 +744,13 @@ public class App extends Application implements Configurable {
        }
     }
 
-
+//    public static Metadata itemToMeta(Item i) {
+//       if (i.same(Player.playingtem.get()))
+//           return Player.playingtem.get();
+//
+//       Metadata m = DB.items_byId.get(i.getId());
+//       return m==null ? MetadataReader.create(i) : m;
+//    }
 
 /************************************ actions *********************************/
 

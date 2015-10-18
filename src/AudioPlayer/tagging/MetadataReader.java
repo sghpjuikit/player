@@ -24,6 +24,7 @@ import util.File.AudioFileFormat.Use;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.dev.Util.log;
+import static util.dev.Util.noØ;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -244,10 +245,7 @@ public class MetadataReader{
      * @return
      */
     public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
-        // perform check
-        Objects.requireNonNull(items);
-
-        // create task
+        noØ(items);
         final Task<List<Metadata>> task = new SuccessTask("Adding items to library", onEnd){
             private final int all = items.size();
             private int completed = 0;
@@ -267,6 +265,7 @@ public class MetadataReader{
 
                         Metadata l = em.find(Metadata.class, Metadata.metadataID(i.getURI()));
                         if(l == null) {
+                            MetadataWriter.useNoRefresh(i,w->w.setLibraryAddedNowIfEmpty());
                             m = create(i);
 
                             if (m.isEmpty()) skipped++;
@@ -280,6 +279,8 @@ public class MetadataReader{
                                 out.add(l);
                             }
                         }
+
+
 
                         // update
                         updateMessage(all,completed,skipped);

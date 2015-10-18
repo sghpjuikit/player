@@ -4,13 +4,17 @@ package AudioPlayer.tagging;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -44,15 +48,23 @@ import util.dev.TODO;
 import util.parsing.Parser;
 import util.units.NofX;
 
+import static AudioPlayer.tagging.Metadata.SEPARATOR_GROUP;
+import static AudioPlayer.tagging.Metadata.TAGID_LIB_ADDED;
+import static AudioPlayer.tagging.Metadata.TAGID_PLAYED_FIRST;
+import static AudioPlayer.tagging.Metadata.TAGID_PLAYED_LAST;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
 import static main.App.APP;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
+import static util.Util.emptifyString;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.functional.Util.list;
+import static util.functional.Util.split;
 
 /**
  *
@@ -367,8 +379,6 @@ public class MetadataWriter extends MetaItem {
 
     /** @param increments playcount by 1. */
     public void inrPlaycount(Metadata m) {
-        // we kind of can reread the info from tag instead of parameter
-        // so this should be fixed to no param version
         setPlaycount(m.getPlaycount()+1);
     }
 
@@ -511,7 +521,7 @@ public class MetadataWriter extends MetaItem {
      * @see removeChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
      */
     public void setChapters(List<Chapter> chapters) {
-        setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("|")));
+        setCustom2(chapters.stream().map(Chapter::toString).collect(joining("|")));
     }
 
     /**
@@ -525,8 +535,8 @@ public class MetadataWriter extends MetaItem {
      * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
-    public void addChapter(Chapter chapter, Metadata metadata) {
-        List<Chapter> chaps = metadata.getChapters();
+    public void addChapter(Chapter chapter, Metadata m) {
+        List<Chapter> chaps = m.getChapters();
         int i = chaps.indexOf(chapter);
         if(i==-1) chaps.add(chapter);
         else chaps.set(i, chapter);
@@ -545,14 +555,59 @@ public class MetadataWriter extends MetaItem {
      * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
-    public void removeChapter(Chapter chapter, Metadata metadata) {
-        List<Chapter> cs = metadata.getChapters();
+    public void removeChapter(Chapter chapter, Metadata m) {
+        List<Chapter> cs = m.getChapters();
         if(cs.remove(chapter)) setChapters(cs);
     }
 
     /** @param val the year to set  */
     public void setYear(String val) {
         setGeneralField(FieldKey.YEAR, val);
+    }
+
+
+    private static final ZoneId ZONE_ID = ZoneId.systemDefault();
+
+    public void setPlayedFirst(LocalDateTime at) {
+        long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+        setCustomField(TAGID_PLAYED_FIRST,String.valueOf(epochmillis));
+    }
+
+    public void setPlayedFirstNow() {
+        long epochmillis = System.currentTimeMillis(); // same as LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+        setCustomField(TAGID_PLAYED_FIRST,String.valueOf(epochmillis));
+    }
+
+    public void setPlayedFirstNowIfEmpty() {
+        if(hasCustomField(TAGID_PLAYED_FIRST)) return;
+        long epochmillis = System.currentTimeMillis();
+        setCustomField(TAGID_PLAYED_FIRST,String.valueOf(epochmillis));
+    }
+
+    public void setPlayedLast(LocalDateTime at) {
+        long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+        setCustomField(TAGID_PLAYED_LAST,String.valueOf(epochmillis));
+    }
+
+    public void setPlayedLastNow() {
+        long epochmillis = System.currentTimeMillis();
+        setCustomField(TAGID_PLAYED_LAST,String.valueOf(epochmillis));
+    }
+
+    public void setLibraryAdded(LocalDateTime at) {
+        long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+        setCustomField(TAGID_LIB_ADDED,String.valueOf(epochmillis));
+    }
+
+    public void setLibraryAddedNow() {
+        long epochmillis = System.currentTimeMillis();
+        setCustomField(TAGID_LIB_ADDED,String.valueOf(epochmillis));
+    }
+
+    public void setLibraryAddedNowIfEmpty() {
+        if(hasCustomField(TAGID_LIB_ADDED)) return;
+        long epochmillis = System.currentTimeMillis();
+        setCustomField(TAGID_LIB_ADDED,String.valueOf(epochmillis));
     }
 
     /**
@@ -584,11 +639,14 @@ public class MetadataWriter extends MetaItem {
         setGeneralField(FieldKey.CUSTOM5, val);
     }
 
-    /** sets field for any type (supported by jaudiotagger) */
+
+//*************** general setters *****************************************************************/
+
+    /** Sets field for any format (supported by jaudiotagger) */
     private void setGeneralField(FieldKey field, String val) {
+        boolean empty = val == null || val.isEmpty();
         try {
-            boolean e = val == null || val.isEmpty();
-            if (e) tag.deleteField(field);
+            if (empty) tag.deleteField(field);
             else tag.setField(field, val);
             fields_changed++;
         } catch (KeyNotFoundException ex) {
@@ -599,26 +657,47 @@ public class MetadataWriter extends MetaItem {
             LOGGER.info("Unsupported operation.");
         }
     }
+
     /**
-     * sets field for flac/ogg - use for non standard flac/ogg fields.
+     * Sets field for flac/ogg - use for non standard flac/ogg fields.
      * @param field arbitrary (vorbis is that cool) value denoting the field
      * @param field null or "" deletes field, otherwise value to be set
      */
-    private void setVorbisField(String field, String value) {
+    private void setVorbisField(String field, String val) {
+        boolean empty = val == null || val.isEmpty();
         // get tag
         VorbisCommentTag t = tag instanceof FlacTag
                 ? ((FlacTag)tag).getVorbisCommentTag()
                 : (VorbisCommentTag)tag;
         // set if possible
         try {
-            if(value==null || value.isEmpty()) t.deleteField(field);
-            else t.setField(field,value);
+            if(empty) t.deleteField(field);
+            else t.setField(field,val);
             fields_changed++;
         } catch (KeyNotFoundException | FieldDataInvalidException e) {
 
         }
     }
 
+    /**
+     * Sets field for custom tag recognized only by this application.
+     * @param id
+     * @param val
+     */
+    private void setCustomField(String id, String val) {
+        boolean empty = val == null || val.isEmpty();
+        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptifyString(tag.getFirst(FieldKey.CUSTOM5)) : "";
+        List<String> tagfields = list(split(ov,SEPARATOR_GROUP.toString()));
+        tagfields.removeIf(tagfield -> tagfield.startsWith(id));
+        tagfields.add(id+val);
+        String nv = tagfields.stream().collect(joining(SEPARATOR_GROUP.toString()));
+        setCustom5(nv);
+    }
+
+    private boolean hasCustomField(String id) {
+        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptifyString(tag.getFirst(FieldKey.CUSTOM5)) : "";
+        return ov.contains(id);
+    }
 
     public void setFieldS(Metadata.Field fieldType, String data) {
         switch(fieldType) {
@@ -670,6 +749,9 @@ public class MetadataWriter extends MetaItem {
             case CUSTOM3 : setCustom3(data); break;
             case CUSTOM4 : setCustom4(data); break;
             case CUSTOM5 : setCustom5(data); break;
+            case FIRST_PLAYED : setCustomField(TAGID_PLAYED_FIRST,data); break;
+            case LAST_PLAYED : setCustomField(TAGID_PLAYED_LAST,data); break;
+            case ADDED_TO_LIBRARY : setCustomField(TAGID_LIB_ADDED,data); break;
             default : throw new AssertionError("Default case should never execute");
         }
     }
@@ -754,7 +836,7 @@ public class MetadataWriter extends MetaItem {
     }
 
     public void reset(Item i) {
-        file = i.getFile();
+        file = i.isFileBased() ? i.getFile() : null;
         audioFile = readAudioFile(file);
         tag = audioFile.getTagOrCreateAndSetDefault();
         fields_changed = 0;
@@ -775,9 +857,11 @@ public class MetadataWriter extends MetaItem {
         Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
             for(I i : items) {
-                w.reset(i);
-                setter.accept(w);
-                w.write();
+                if(i.isFileBased()) {
+                    w.reset(i);
+                    setter.accept(w);
+                    w.write();
+                }
             }
             List<Metadata> fresh = MetadataReader.readMetadata(items);
             Player.refreshItemsWith(fresh);
@@ -786,31 +870,37 @@ public class MetadataWriter extends MetaItem {
     }
 
     public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
-        Player.IO_THREAD.execute(()-> {
-            MetadataWriter w = new MetadataWriter();
-            w.reset(item);
-            setter.accept(w);
-            boolean b = w.write();
-            if(action!=null) runFX(() -> action.accept(b));
+        if(item.isFileBased()) {
+            Player.IO_THREAD.execute(()-> {
+                MetadataWriter w = new MetadataWriter();
+                w.reset(item);
+                setter.accept(w);
+                boolean b = w.write();
+                if(action!=null) runFX(() -> action.accept(b));
 
-            Metadata m = MetadataReader.create(item);
-            if(!m.isEmpty()) Player.refreshItemWith(m);
-        });
+                Metadata m = MetadataReader.create(item);
+                if(!m.isEmpty()) Player.refreshItemWith(m);
+            });
+        }
     }
 
     public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
-        MetadataWriter w = new MetadataWriter();
-        w.reset(item);
-        setter.accept(w);
-        w.write();
+        if(item.isFileBased()) {
+            MetadataWriter w = new MetadataWriter();
+            w.reset(item);
+            setter.accept(w);
+            w.write();
+        }
     }
 
     public static <I extends Item> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
         MetadataWriter w = new MetadataWriter();
         for(I i : items) {
-            w.reset(i);
-            setter.accept(w);
-            w.write();
+            if(i.isFileBased()) {
+                w.reset(i);
+                setter.accept(w);
+                w.write();
+            }
         }
     }
 

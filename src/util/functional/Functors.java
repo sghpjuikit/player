@@ -493,18 +493,20 @@ public class Functors {
     private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 
     static {
+        // Negated predicates are disabled, user interface should provide negation ability
+        // or simply generate all the negations when needed (and reuse functors while at it).
 
         // adding identity function as Object -> Object creates problems, it acually needs to be
         // added per every class, not sure how though. The only way to guarantee it, is to add it
         // to result every time function is requested from the map.
         add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
         add("Is null",      Object.class, Boolean.class, ISØ);
-        add("Is not null",  Object.class, Boolean.class, ISNTØ);
+        // add("Is not null",  Object.class, Boolean.class, ISNTØ);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
 
         add("Is true",      Boolean.class, Boolean.class, IS);
-        add("Is false",     Boolean.class, Boolean.class, ISNT);
+        // add("Is false",     Boolean.class, Boolean.class, ISNT);
         add("Negate",       Boolean.class, Boolean.class, b -> !b);
         add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
         add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr, Boolean.class,true);
@@ -578,6 +580,8 @@ public class Functors {
         // fielded values
         for(Metadata.Field f : Metadata.Field.values())
             add(f.name(), Metadata.class, f.getType(), m -> f.getOf(m));
+        for(Metadata.Field f : Metadata.Field.values())
+            add("Has " + f.name(), Metadata.class, Boolean.class, m -> f.isFieldEmpty(m));
         for(PlaylistItem.Field f : PlaylistItem.Field.values())
             add(f.name(), PlaylistItem.class, f.getType(), m -> f.getOf(m));
         for(MetadataGroup.Field f : MetadataGroup.Field.values())
@@ -592,34 +596,33 @@ public class Functors {
         add("Ends with (no case)",  String.class,Boolean.class,(text,b) -> text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
         add("Starts with (no case)",String.class,Boolean.class,(text,b) -> text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
         add("Matches regex",        String.class,Boolean.class,(text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
-        add("Is not",               String.class,Boolean.class,(text,b) -> !text.equals(b), String.class,"");
-        add("Contains not",         String.class,Boolean.class,(text,b) -> !text.contains(b), String.class,"");
-        add("Not ends with",        String.class,Boolean.class,(text,b) -> !text.endsWith(b), String.class,"");
-        add("Not starts with",      String.class,Boolean.class,(text,b) -> !text.startsWith(b), String.class,"");
-        add("Is not (no case)",     String.class,Boolean.class,(text,b) -> !text.equalsIgnoreCase(b), String.class,"");
-        add("Contains not (no case)",        String.class,Boolean.class,(text,b) -> !text.toLowerCase().contains(b.toLowerCase()), String.class,"");
-        add("Not ends with (no case)",       String.class,Boolean.class,(text,b) -> !text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
-        add("Not starts with (no case)",     String.class,Boolean.class,(text,b) -> !text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
-        add("Not matches regex",             String.class,Boolean.class,(text,r) -> !r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
+        // add("Is not",               String.class,Boolean.class,(text,b) -> !text.equals(b), String.class,"");
+        // add("Contains not",         String.class,Boolean.class,(text,b) -> !text.contains(b), String.class,"");
+        // add("Not ends with",        String.class,Boolean.class,(text,b) -> !text.endsWith(b), String.class,"");
+        // add("Not starts with",      String.class,Boolean.class,(text,b) -> !text.startsWith(b), String.class,"");
+        // add("Is not (no case)",     String.class,Boolean.class,(text,b) -> !text.equalsIgnoreCase(b), String.class,"");
+        // add("Contains not (no case)",        String.class,Boolean.class,(text,b) -> !text.toLowerCase().contains(b.toLowerCase()), String.class,"");
+        // add("Not ends with (no case)",       String.class,Boolean.class,(text,b) -> !text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
+        // add("Not starts with (no case)",     String.class,Boolean.class,(text,b) -> !text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
+        // add("Not matches regex",             String.class,Boolean.class,(text,r) -> !r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
         add("More",             String.class,Boolean.class,(x,y) -> x.compareTo(y)>0, String.class,"");
         add("Less",             String.class,Boolean.class,(x,y) -> x.compareTo(y)<0, String.class,"");
-        add("Not more",         String.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, String.class,"");
-        add("Not less",         String.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, String.class,"");
-        add("Longer than",      String.class,Boolean.class,(x,l) -> x.length()>l, Integer.class,0);
-        add("Shorter than",     String.class,Boolean.class,(x,l) -> x.length()<l, Integer.class,0);
-        add("Not longer than",  String.class,Boolean.class,(x,l) -> x.length()<=l, Integer.class,0);
-        add("Not shorter than", String.class,Boolean.class,(x,l) -> x.length()>=l, Integer.class,0);
-        add("Long exactly",     String.class,Boolean.class,(x,l) -> x.length()==l, Integer.class,0);
+        // add("Not more",         String.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, String.class,"");
+        // add("Not less",         String.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, String.class,"");
+        add("Length >",     String.class,Boolean.class,(x,l) -> x.length()>l, Integer.class,0);
+        add("Length <",     String.class,Boolean.class,(x,l) -> x.length()<l, Integer.class,0);
+        // add("Not longer than",  String.class,Boolean.class,(x,l) -> x.length()<=l, Integer.class,0);
+        // add("Not shorter than", String.class,Boolean.class,(x,l) -> x.length()>=l, Integer.class,0);
+        add("Length =",     String.class,Boolean.class,(x,l) -> x.length()==l, Integer.class,0);
         add("Is empty",         String.class,Boolean.class, x -> x.isEmpty());
-        add("Is funny",         String.class,Boolean.class, x -> x.contains("fun") && x.contains("y"));
         add("Is palindrome",    String.class,Boolean.class, x -> isNonEmptyPalindrome(x));
 
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
         add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
-        add("Not more",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, Bitrate.class,new Bitrate(320));
-        add("Is not",    Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)!=0, Bitrate.class,new Bitrate(320));
-        add("Not less",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, Bitrate.class,new Bitrate(320),false,false,true);
+        // add("Not more",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, Bitrate.class,new Bitrate(320));
+        // add("Is not",    Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)!=0, Bitrate.class,new Bitrate(320));
+        // add("Not less",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, Bitrate.class,new Bitrate(320),false,false,true);
         add("Is good",   Bitrate.class,Boolean.class, x -> x.getValue()>=320);
         add("Is bad",    Bitrate.class,Boolean.class, x -> x.getValue()<=128);
         add("Is unknown",Bitrate.class,Boolean.class, x -> x.getValue()==-1);
@@ -628,9 +631,9 @@ public class Functors {
         add("Less",      FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
         add("Is",        FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
         add("More",      FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
-        add("Not less",  FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, FormattedDuration.class, new FormattedDuration(0));
-        add("Is not",    FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)!=0, FormattedDuration.class, new FormattedDuration(0));
-        add("Not more",  FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)<=0, FormattedDuration.class, new FormattedDuration(0));
+        // add("Not less",  FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, FormattedDuration.class, new FormattedDuration(0));
+        // add("Is not",    FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)!=0, FormattedDuration.class, new FormattedDuration(0));
+        // add("Not more",  FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)<=0, FormattedDuration.class, new FormattedDuration(0));
 
         add("<  Less",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
         add("=  Is",        NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
@@ -642,19 +645,18 @@ public class Functors {
         add("<  Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
         add("=  Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
         add(">  More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
-        add(">= Not more",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
-        add("<> Is not",    FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
-        add("<= Not less",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
+        // add(">= Not more",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
+        // add("<> Is not",    FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
+        // add("<= Not less",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
         add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
         add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
-        add("Is 1.21GB", FileSize.class,Boolean.class, x -> x.inGBytes()==1.21);
 
         add("After",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
         add("Is",        Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
         add("Before",    Year.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
-        add("Not After", Year.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, Year.class,Year.now(),false,false,true);
-        add("Not",       Year.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, Year.class,Year.now());
-        add("Not before",Year.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, Year.class,Year.now());
+        // add("Not After", Year.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, Year.class,Year.now(),false,false,true);
+        // add("Not",       Year.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, Year.class,Year.now());
+        // add("Not before",Year.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, Year.class,Year.now());
         add("Is leap",   Year.class,Boolean.class, x -> x.isLeap());
 
         add("After",   LocalDateTime.class,Boolean.class, (x,y) -> x.isAfter(y), LocalDateTime.class,LocalDateTime.now());
@@ -706,9 +708,9 @@ public class Functors {
         add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
         add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
         add("Is more",     c,Boolean.class, (x,y) -> x.compareTo(y)>0,  c,def_val);
-        add("Is not less", c,Boolean.class, (x,y) -> x.compareTo(y)>=0, c,def_val);
-        add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
-        add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
+        // add("Is not less", c,Boolean.class, (x,y) -> x.compareTo(y)>=0, c,def_val);
+        // add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
+        // add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
     }
 
     /** Add function to the pool. */

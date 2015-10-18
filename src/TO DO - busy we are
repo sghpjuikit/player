@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- FieldedValue hasField predicates
 - layout manager + mock widgets
 - main window switching
 - playback order inconsistency if table uses sort, playlist doesnt uphold table order

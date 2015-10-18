@@ -360,9 +360,7 @@ public class LibraryController extends FXMLController implements SongReader {
     }
 
     private void removeInvalid() {
-        Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
-            hideInfo.start();
-        });
+        Task t = MetadataReader.removeMissingFromLibrary((success,result) -> hideInfo.start());
         taskInfo.showNbind(t);
     }
 

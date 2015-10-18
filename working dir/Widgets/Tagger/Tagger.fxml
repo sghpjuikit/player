@@ -21,7 +21,7 @@
                   <Insets left="10.0" right="10.0" />
                </padding>
             </BorderPane>
-          <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="540.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
+          <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="615.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
             <content>
               <AnchorPane id="AnchorPane" fx:id="scrollContent" prefWidth="-1.0">
                 <children>
@@ -132,6 +132,21 @@
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
+                              <Label text="Played First" GridPane.halignment="RIGHT" GridPane.rowIndex="21">
+                                 <GridPane.margin>
+                                    <Insets right="10.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label text="Played Last" GridPane.halignment="RIGHT" GridPane.rowIndex="22">
+                                 <GridPane.margin>
+                                    <Insets right="10.0" />
+                                 </GridPane.margin>
+                              </Label>
+                              <Label text="Added to Library" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
+                                 <GridPane.margin>
+                                    <Insets right="10.0" />
+                                 </GridPane.margin>
+                              </Label>
                       <CustomTextField fx:id="TitleF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
                       <CustomTextField id="AlbumField" fx:id="AlbumF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
                       <CustomTextField fx:id="ArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
@@ -186,6 +201,9 @@
                               <CustomTextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
                               <CustomTextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
                               <CustomTextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
+                              <CustomTextField fx:id="PlayedFirstF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="21" />
+                              <CustomTextField fx:id="PlayedLastF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="22" />
+                              <CustomTextField fx:id="AddedToLibF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="23" />
                     </children>
                     <columnConstraints>
                       <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />
@@ -196,6 +214,9 @@
                       <Insets />
                     </padding>
                     <rowConstraints>
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />

@@ -10,6 +10,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import javax.persistence.*;
 
@@ -18,6 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 
 import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataWriter;
 import Layout.widget.controller.io.InOutput;
 import main.App;
 import util.async.future.Fut;
@@ -166,12 +168,19 @@ public class DB {
 
     public static void addItems(Collection<? extends Metadata> items) {
         if (items.isEmpty()) return;
+        List<Metadata> l = new ArrayList<>();
         // add to db
         em.getTransaction().begin();
         items.forEach( m -> {
-            if(em.find(Metadata.class, m.getId()) == null) em.persist(m);
+            if(em.find(Metadata.class, m.getId()) == null) {
+                em.persist(m);
+                l.add(m);
+            }
         });
         em.getTransaction().commit();
+
+        MetadataWriter.use(l,w -> w.setLibraryAddedNowIfEmpty());
+
        // update model
         updateMemFromPer();
     }

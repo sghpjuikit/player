@@ -73,6 +73,8 @@ import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.FileUtil.EMPTY_COLOR;
@@ -133,11 +135,8 @@ public class TaggerController extends FXMLController implements SongWriter, Song
           MoodItemNode MoodF = new MoodItemNode();
     @FXML ColorPicker ColorFPicker;
     @FXML CustomTextField ColorF;
-    @FXML CustomTextField Custom1F;
-    @FXML CustomTextField Custom2F;
-    @FXML CustomTextField Custom3F;
-    @FXML CustomTextField Custom4F;
-    @FXML CustomTextField Custom5F;
+    @FXML CustomTextField Custom1F,Custom2F,Custom3F,Custom4F,Custom5F;
+    @FXML CustomTextField PlayedFirstF,PlayedLastF,AddedToLibF;
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
     @FXML StackPane coverSuperContainer;
@@ -231,6 +230,9 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         fields.add(new TagField(Custom3F,CUSTOM3));
         fields.add(new TagField(Custom4F,CUSTOM4));
         fields.add(new TagField(Custom5F,CUSTOM5));
+        fields.add(new TagField(PlayedFirstF,FIRST_PLAYED));
+        fields.add(new TagField(PlayedLastF,LAST_PLAYED));
+        fields.add(new TagField(AddedToLibF,ADDED_TO_LIBRARY));
         fields.add(new TagField(LyricsA,LYRICS));
         // associate color picker with custom1 field
         ColorFPicker.disableProperty().bind(ColorF.disabledProperty());
@@ -502,7 +504,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");
             infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIcon.TAG : TAGS));
 
-            fields.forEach(TagField::enable);
+            fields.forEach(f -> f.setEditable(true));
             coverSuperContainer.setDisable(false);
 
             Fut.fut()
@@ -551,6 +553,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                         Custom1F.setDisable(true);
                         Custom2F.setDisable(true);
                         Custom3F.setDisable(true);
+                        Custom5F.setDisable(true);
+                        PlayedFirstF.setDisable(true);
+                        PlayedLastF.setDisable(true);
+                        AddedToLibF.setDisable(true);
 
                         hideProgress();
                     });
@@ -607,13 +613,13 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     private final class TagField {
         private final TextInputControl c;
         private final Metadata.Field f;
-
         public String histogramS;
         public int histogramI;
 
         public TagField(TextInputControl control, Metadata.Field field) {
             this(control, field, null);
         }
+
         public TagField(TextInputControl control, Metadata.Field field, Predicate<String> valCond) {
             c = control;
             f = field;
@@ -638,8 +644,8 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             emptyContent();
 
             // show description
-            c.setOnMouseEntered(e -> fieldDesc.setText(field.description()));
-            c.setOnMouseExited(e -> fieldDesc.setText(""));
+            c.addEventFilter(MOUSE_ENTERED,e -> fieldDesc.setText(field.description()));
+            c.addEventFilter(MOUSE_EXITED,e -> fieldDesc.setText(""));
 
             // restrain input
             if(field.isTypeNumber())
@@ -657,17 +663,14 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                     OnBackspacePressed();
             });
 
-            //autocompletion
+            // autocompletion
             if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String fn = f.name();
                TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.string_pool.getStrings(fn),t -> t.startsWith(p.getUserText())));
             }
         }
-        void enable() {
-            c.setDisable(false);
-        }
-        void disable() {
-            c.setDisable(true);
+        void setEditable(boolean v) {
+             c.setDisable(!v);
         }
         public void setSupported(Collection<AudioFileFormat> formats) {
             boolean v = formats.stream().map(frm->frm.isTagWriteSupported(f))

@@ -7,9 +7,11 @@
 package AudioPlayer.tagging;
 
 import java.time.Year;
+import java.util.Set;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.access.FieldValue.ObjectField;
+import util.collections.Histogram;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -43,7 +45,7 @@ public final class MetadataGroup {
 
     public MetadataGroup(Metadata.Field field, Object value, long item_count,
                          long album_count, double length, long filesize_sum,
-                         double avg_rating, Year year) {
+                         double avg_rating, Set<Year> year) {
         this.field = field;
         this.value = value;
         this.items = item_count;
@@ -52,7 +54,7 @@ public final class MetadataGroup {
         this.size = filesize_sum;
         this.avg_rating = avg_rating;
         this.weigh_rating = avg_rating*item_count;
-        this.year = year;
+        this.year = year.size()==0 ? null : year.size()==1 ? year.stream().findAny().orElseGet(null) : Year.of(-1);
     }
 
     public Metadata.Field getField() {
@@ -131,7 +133,7 @@ public final class MetadataGroup {
         private final Ƒ1<MetadataGroup,?> extr;
 
         Field(Ƒ1<MetadataGroup,?> extractor, String description) {
-            mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
+            mapEnumConstant(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
             this.desc = description;
             this.extr = extractor;
         }
@@ -188,14 +190,14 @@ public final class MetadataGroup {
         @Override
         public String toS(Object o, String empty_val) {
             switch(this) {
-                case VALUE : return "".equals(o) ? empty_val : o.toString();
+                case VALUE : return o==Histogram.ALL ? "All" : "".equals(o) ? "<none>" : o.toString();
                 case ITEMS :
                 case ALBUMS :
                 case LENGTH :
                 case SIZE :
                 case AVG_RATING :
                 case W_RATING : return o.toString();
-                case YEAR : return Year.of(0).equals(o) ? empty_val : Year.of(-1).equals(o) ? "..." : o.toString();
+                case YEAR : return o==null ? empty_val : Year.of(-1).equals(o) ? "..." : o.toString();
                 default : throw new AssertionError("Default case should never execute");
             }
         }

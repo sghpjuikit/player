@@ -49,7 +49,7 @@ public class Util {
     /** Predicate returning false. Matches no object. */
     public static final ƑP<? super Object> ISNT = o -> false;
 
-    /** Predicate returning false. Produces no order change. */
+    /** Comparator returning 0. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;
 
     /**  */

@@ -289,7 +289,7 @@ public class LibraryViewController extends FXMLController {
         setItems(in_items.getValue());
     }
 
-    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
+    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Set<Year>>> h = new Histogram<>();
 
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
@@ -297,20 +297,19 @@ public class LibraryViewController extends FXMLController {
             .use(f -> {
                 // make histogram
                 h.keyMapper = metadata -> metadata.getField(f);
-                h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+                h.histogramFactory = () -> new TupleM6<>(0l,new HashSet<>(),0d,0l,0d,new HashSet<>());
                 h.elementAccumulator = (hist,metadata) -> {
                     hist.a++;
                     hist.b.add(metadata.getAlbum());
                     hist.c += metadata.getLengthInMs();
                     hist.d += metadata.getFilesizeInB();
                     hist.e += metadata.getRatingPercent();
-                    if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
-                        hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
+                    if(metadata.getYear()!=null) hist.f.add(metadata.getYear());
                 };
                 h.clear();
                 h.accumulate(list);
                 // read histogram
-                List<MetadataGroup> l = h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
+                List<MetadataGroup> l = h.toListAll((value,s) -> new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
                 List<Metadata> fl = filerList(list,true,false);
                 runLater(() -> {
                     if(!l.isEmpty()) {
@@ -332,6 +331,9 @@ public class LibraryViewController extends FXMLController {
         table.getSelectedItems().stream().map(m->"").collect(toCSList);
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+
+        // handle special "All" row, selecting it is equivalent to selecting all rows
+        if(mgs.stream().anyMatch(mg -> mg.getValue()==Histogram.ALL)) return list;
 
         // optimization : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList<>(list);

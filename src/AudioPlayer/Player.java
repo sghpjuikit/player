@@ -29,6 +29,7 @@ import util.collections.mapset.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static main.App.APP;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -78,8 +79,12 @@ public class Player {
         anySelected.i.bind(librarySelected.o);
         playingtem.onUpdate(playing.i::setValue);
 
-        // use jaudiotagger for total time value
+        // use jaudiotagger for total time value (fixes incorrect values coming from player classes)
         playingtem.onChange(m -> state.playback.duration.set(m.getLength()));
+        // maintain PLAYED_FIRST_TIME & PLAYED_LAST_TIME metadata
+        // note: for performance reasons we update AFTER song stops playing, not WHEN it starts
+        // as with playcount incrementing, it could discrupt playback, although now we are losing
+        // updates on application closing!
         playingtem.onChange((o,n) -> {
             MetadataWriter.use(o, w -> {
                 w.setPlayedFirstNowIfEmpty();

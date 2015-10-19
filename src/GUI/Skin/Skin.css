@@ -2388,7 +2388,7 @@
    introducing horizontal scrollbars (see RT-14886). */
 .table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:last-visible,
 .tree-table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:last-visible {
-    -fx-border-color: transparent;
+    -fx-border-color: null;
 }
 /***** HEADER **********************************************************************/
 /* The column-resize-line is shown when the user is attempting to resize a column. */

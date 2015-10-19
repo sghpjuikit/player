@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javafx.application.Application;
@@ -49,9 +50,11 @@ import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.playcount.PlaycountIncrementer;
 import AudioPlayer.services.tray.TrayService;
+import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
+import AudioPlayer.tagging.MetadataWriter;
 import Configuration.*;
 import Layout.Component;
 import Layout.widget.Widget;
@@ -102,6 +105,7 @@ import util.access.Ѵ;
 import util.animation.Anim;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
+import util.reactive.RunnableSet;
 import util.serialize.xstream.BooleanPropertyConverter;
 import util.serialize.xstream.DoublePropertyConverter;
 import util.serialize.xstream.IntegerPropertyConverter;
@@ -127,19 +131,25 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static gui.objects.Window.stage.Window.WINDOWS;
 import static java.lang.Math.sqrt;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.Environment.browse;
+import static util.Util.capitalize;
 import static util.Util.getEnumConstants;
 import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.functional.Util.forEachAfter;
 import static util.functional.Util.map;
+import static util.functional.Util.noDups;
+import static util.functional.Util.split;
 import static util.functional.Util.stream;
+import static util.functional.Util.toS;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
 
@@ -192,9 +202,18 @@ public class App extends Application implements Configurable {
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final Guide guide = new Guide();
+
+    /**
+     * Actions ran just before application stopping.
+     * <p>
+     * At the time of execution all parts of application are fully operational, i.e., the stopping
+     * has not started yet. However, this assumption is valid only for operations on fx thread.
+     * Simply put, do not run any more background tasks, as the application will begin closing in
+     * the meantime and be in inconsistent state.
+     */
+    public final RunnableSet onStop = new RunnableSet();
     public boolean normalLoad = true;
     private boolean initialized = false;
-
     public final ServiceManager services = new ServiceManager();
     public final PluginMap plugins = new PluginMap();
 
@@ -577,6 +596,7 @@ public class App extends Application implements Configurable {
     @Override
     public void stop() {
         if(initialized) {
+            onStop.run();
             if(normalLoad) Player.state.serialize();
             if(normalLoad) WindowManager.serialize();
             configuration.save(getName(),FILE_SETTINGS);
@@ -827,6 +847,7 @@ public class App extends Application implements Configurable {
     public static void openLayoutManager() {
         WidgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
     }
+    
     @IsAction(name = "Open guide", desc = "Resume or start the guide.")
     public static void openGuide() {
         APP.guide.open();

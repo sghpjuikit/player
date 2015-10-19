@@ -8,13 +8,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -49,9 +47,11 @@ import util.parsing.Parser;
 import util.units.NofX;
 
 import static AudioPlayer.tagging.Metadata.SEPARATOR_GROUP;
+import static AudioPlayer.tagging.Metadata.TAGID_COLOR;
 import static AudioPlayer.tagging.Metadata.TAGID_LIB_ADDED;
 import static AudioPlayer.tagging.Metadata.TAGID_PLAYED_FIRST;
 import static AudioPlayer.tagging.Metadata.TAGID_PLAYED_LAST;
+import static AudioPlayer.tagging.Metadata.TAGID_TAGS;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
@@ -109,8 +109,6 @@ public class MetadataWriter extends MetaItem {
         return w.audioFile==null ? null : w;
     }
 
-
-
     @Override
     public URI getURI() {
         if(file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
@@ -119,14 +117,6 @@ public class MetadataWriter extends MetaItem {
     @Override
     public File getFile() {
         return file;
-    }
-
-    /**
-     * Changes name of the file of the item.
-     * @param filename without extension
-     */
-    public void changeFilename(String filename) {
-//        this.filename = filename;
     }
 
     /** @param encoder the encoder to set */
@@ -508,7 +498,12 @@ public class MetadataWriter extends MetaItem {
 
     /** @param c the color to set */
     public void setColor(Color c) {
-        setGeneralField(FieldKey.CUSTOM1, Parser.toS(c));
+        setCustomField(TAGID_COLOR,Parser.toS(c));
+    }
+
+    /** @param tags tags to set */
+    public void setColor(String tags) {
+        setCustomField(TAGID_TAGS,tags);
     }
 
     /**
@@ -520,7 +515,7 @@ public class MetadataWriter extends MetaItem {
      * @see addChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
      * @see removeChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
      */
-    public void setChapters(List<Chapter> chapters) {
+    public void setChapters(Collection<Chapter> chapters) {
         setCustom2(chapters.stream().map(Chapter::toString).collect(joining("|")));
     }
 
@@ -610,9 +605,19 @@ public class MetadataWriter extends MetaItem {
         setCustomField(TAGID_LIB_ADDED,String.valueOf(epochmillis));
     }
 
-    /**
-     * Do not use. Used as color field.
-     * @param val custom1 field value to set  */
+    public void setTags(Set<String> tags) {
+        setTags(tags.isEmpty() ? "" :
+                Metadata.SEPARATOR_UNIT+
+                tags.stream().collect(joining(Metadata.SEPARATOR_UNIT.toString()+
+                Metadata.SEPARATOR_UNIT
+            )));
+    }
+
+    public void setTags(String tags) {
+        setCustomField(TAGID_TAGS,tags);
+    }
+
+    /** @param val custom1 field value to set  */
     public void setCustom1(String val) {
         setGeneralField(FieldKey.CUSTOM1, val);
     }
@@ -691,12 +696,13 @@ public class MetadataWriter extends MetaItem {
         tagfields.removeIf(tagfield -> tagfield.startsWith(id));
         tagfields.add(id+val);
         String nv = tagfields.stream().collect(joining(SEPARATOR_GROUP.toString()));
+               nv = SEPARATOR_GROUP + nv + SEPARATOR_GROUP;
         setCustom5(nv);
     }
 
     private boolean hasCustomField(String id) {
         String ov = tag.hasField(FieldKey.CUSTOM5) ? emptifyString(tag.getFirst(FieldKey.CUSTOM5)) : "";
-        return ov.contains(id);
+        return ov.contains(SEPARATOR_GROUP + id);
     }
 
     public void setFieldS(Metadata.Field fieldType, String data) {
@@ -742,7 +748,8 @@ public class MetadataWriter extends MetaItem {
             case COMMENT : setComment(data); break;
             case LYRICS : setLyrics(data); break;
             case MOOD : setMood(data); break;
-            case COLOR : setColor(Parser.fromS(Color.class, data)); break;
+            case COLOR : setCustomField(TAGID_COLOR,data); break;
+            case TAGS : setCustomField(TAGID_TAGS,data); break;
             case CHAPTERS : return;
             case CUSTOM1 : setCustom1(data); break;
             case CUSTOM2 : setCustom2(data); break;

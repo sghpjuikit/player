@@ -136,7 +136,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     @FXML ColorPicker ColorFPicker;
     @FXML CustomTextField ColorF;
     @FXML CustomTextField Custom1F,Custom2F,Custom3F,Custom4F,Custom5F;
-    @FXML CustomTextField PlayedFirstF,PlayedLastF,AddedToLibF;
+    @FXML CustomTextField PlayedFirstF,PlayedLastF,AddedToLibF,TagsF;
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
     @FXML StackPane coverSuperContainer;
@@ -233,6 +233,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         fields.add(new TagField(PlayedFirstF,FIRST_PLAYED));
         fields.add(new TagField(PlayedLastF,LAST_PLAYED));
         fields.add(new TagField(AddedToLibF,ADDED_TO_LIBRARY));
+        fields.add(new TagField(TagsF,Metadata.Field.TAGS));
         fields.add(new TagField(LyricsA,LYRICS));
         // associate color picker with custom1 field
         ColorFPicker.disableProperty().bind(ColorF.disabledProperty());
@@ -445,17 +446,21 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             if ((boolean)MoodF.getUserData())         w.setMood(MoodF.getText());
             ColorFPicker.setUserData(true);
             if ((boolean)ColorFPicker.getUserData()&&ColorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(ColorFPicker.getValue());
-            if ((boolean)ColorF.getUserData())      w.setCustom1(ColorF.getText());
+            if ((boolean)ColorF.getUserData())        w.setCustom1(ColorF.getText());
+            if ((boolean)TagsF.getUserData())         w.setTags(noDups(split(TagsF.getText().replace(", ",","),",")));
+//            if ((boolean)PlayedFirstF.getUserData())  w.setPla(PlayedFirstF.getText());
+//            if ((boolean)PlayedLastF.getUserData())   w.setCustom1(PlayedLastF.getText());
+//            if ((boolean)AddedToLibF.getUserData())   w.setCustom1(AddedToLibF.getText());
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
+            if ((boolean)Custom1F.getUserData())      w.setCustom2(Custom1F.getText());
             if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
-            if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
             // enabling the following these has no effect as they are not
             // editable and graphics are disabled, thus will always be empty
             // we comment it out to prevent needless checking
-            // if ((boolean)Custom1F.getUserData())      w.setCustom2(Custom1F.getText());
             // if ((boolean)Custom2F.getUserData())      w.setCustom2(Custom2F.getText());
             // if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
+            // if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
         }, items -> {
             // post (make sure its on FX)
             runFX(() -> {
@@ -547,10 +552,9 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                         if (c == 1)         CoverV.loadImage(co.getImage());
                         else                CoverV.loadImage((Image)null);
 
-                        // enable/disable playcount field
+                        // enable/disable fields
                         if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
                         RatingF.setDisable(true);
-                        Custom1F.setDisable(true);
                         Custom2F.setDisable(true);
                         Custom3F.setDisable(true);
                         Custom5F.setDisable(true);

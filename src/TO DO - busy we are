@@ -2,7 +2,13 @@
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
-
+- fix disc number not writing to tag
+- Void config which doesnt serialize and has Runnable action executing when
+  gui is clicked, the action may open some kind of manager for the section
+  config belongs to
+- chapters should be searchable, but currently not string representible, so
+  do not show up in filter combobox
+- reimplement playcount, chapters tags as custom tags
 - FieldedValue hasField predicates
 - layout manager + mock widgets
 - main window switching

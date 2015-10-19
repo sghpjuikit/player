@@ -331,6 +331,7 @@ public final class FileUtil {
         int i = n.lastIndexOf('.');
         return i==-1 ? n : n.substring(0,i);
     }
+
     /**
      * For files 'filename.extension' is returned.
      * For directories only name is returned.
@@ -345,6 +346,7 @@ public final class FileUtil {
         String n = f.getName();
         return n.isEmpty() ? f.toString() : n;
     }
+
     /**
      * Returns name of the file without suffix denoted by this URI. This is just
      * the last name in the pathname's name sequence.

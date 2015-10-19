@@ -93,7 +93,7 @@ public final class Layouter implements ContainerNode {
         installDrag(
             root, EXCHANGE, "Switch components",
             DragUtil::hasComponent,
-            e -> isInR(container, DragUtil.getComponent(e),DragUtil.getComponent(e).getParent()),
+            e -> container == DragUtil.getComponent(e),
             e -> DragUtil.getComponent(e).swapWith(container,index)
         );
 

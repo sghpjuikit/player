@@ -78,7 +78,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip overTooltip = new Tooltip("Override value"
             + "\n\nUses local value if true and global value if false.");
 
-    private final Label label = new Label();
     protected final HBox root = new HBox();
     public boolean applyOnChange = true;
     protected boolean insonsistent_state = false;
@@ -86,7 +85,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     private ConfigField(Config<T> c) {
         super(c);
-        label.setText(config.getGuiName());
 
         root.setMinSize(0,20);   // miheight actually required to get consistent look
         root.setPrefSize(-1,-1); // support variable content height
@@ -151,11 +149,21 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
     /**
-     * Use to get the label to attach it to a scene graph.
+     * Creates label with config field name and tooltip with config field description.
      * @return label describing this field
      */
-    public Label getLabel() {
-        return label;
+    public Label createLabel() {
+        Label l = new Label(config.getGuiName());
+
+        String tooltip_text = getTooltipText();
+        if(!tooltip_text.isEmpty()) {
+            Tooltip t = new Tooltip(tooltip_text);
+                    t.setWrapText(true);
+                    t.setMaxWidth(300);
+            l.setTooltip(t);
+        }
+
+        return l;
     }
 
     /**
@@ -263,15 +271,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         cf.setEditable(f.isEditable());
 
-        String tooltip_text = cf.getTooltipText();
-        if(!tooltip_text.isEmpty()) {
-            Tooltip t = new Tooltip(tooltip_text);
-                    t.setWrapText(true);
-                    t.setMaxWidth(300);
-            cf.getLabel().setTooltip(t);
-//            if(!cf.getClass().isInstance(ShortcutField.class))
-//                Tooltip.install(cf.getControl(),t);
-        }
         return cf;
     }
 

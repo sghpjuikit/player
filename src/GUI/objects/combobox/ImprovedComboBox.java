@@ -41,7 +41,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
     public final String emptyText;
 
     public ImprovedComboBox() {
-        this(Object::toString, "<none>");
+        this(Object::toString);
     }
 
     public ImprovedComboBox(Function<T, String> toS) {
@@ -51,6 +51,19 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
     public ImprovedComboBox(Function<T, String> toS, String empty_text) {
         requireNonNull(toS);
         toStringConverter = toS;
+        // we need to set the converter specifically or the combobox cell wont get updated sometimes
+        setConverter(new javafx.util.StringConverter<T>() {
+
+            @Override
+            public String toString(T object) {
+                return toStringConverter.apply(object);
+            }
+
+            @Override
+            public T fromString(String string) {
+                return (T) string;
+            }
+        });
         setCellFactory(view -> new ListCell<T>(){ // do not use ComboBoxListCell! causes problems!
             @Override
             public void updateItem(T item, boolean empty) {
@@ -59,10 +72,11 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
             }
         });
         setButtonCell(getCellFactory().call(null));
+        setValue(null);
         emptyText = empty_text;
 
 
-
+        // we need this to obtains listView
         skinProperty().addListener(new ChangeListener<Skin<?>>() {
             @Override
             public void changed(ObservableValue<? extends Skin<?>> o, Skin<?> ov, Skin<?> nv) {

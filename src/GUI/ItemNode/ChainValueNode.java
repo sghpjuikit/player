@@ -318,7 +318,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                 ConfigField cf = ConfigField.create(c);
                             cf.onChange = () -> { if(onChange!=null) onChange.run(); };
                 this.configs.add(cf);
-                Label l = cf.getLabel();
+                Label l = cf.createLabel();
                       l.setMinWidth(100);
                       l.setPrefWidth(100);
                       l.setTextAlignment(TextAlignment.RIGHT);

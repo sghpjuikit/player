@@ -279,8 +279,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
 
     private void setUseFilterForPlayback(boolean v) {
         playlist.setTransformation(v
-            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList())
-            : orig -> orig
+//            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList())
+//            : orig -> orig
+            ? orig -> list(table.getItems())
+            : orig -> orig.stream().sorted(table.itemsComparator.get()).collect(toList())
         );
     }
 

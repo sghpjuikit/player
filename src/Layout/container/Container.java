@@ -133,6 +133,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     }
 
     /** {@inheritDoc} */
+    @Override
     public Container getParent() {
         return parent;
     }
@@ -245,14 +246,6 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         }
 
         return null;
-    }
-
-    /**
-     * Equivalent to: parent.indexOf(this)
-     * @return parent.indexOf(this) or null if parent null
-     */
-    public final Integer indexInParent() {
-        return parent==null ? null : parent.indexOf(this);
     }
 
     /** @return available index for child or null if none available. */

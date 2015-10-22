@@ -1,9 +1,7 @@
 
 package LibraryView;
 
-import java.time.Year;
 import java.util.*;
-import java.util.function.Predicate;
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -46,8 +44,6 @@ import util.access.FieldValue.ObjectField.ColumnField;
 import util.access.VarEnum;
 import util.access.Ѵo;
 import util.async.executor.ExecuteN;
-import util.collections.Histogram;
-import util.collections.TupleM6;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import web.HttpSearchQueryBuilder;
@@ -62,7 +58,6 @@ import static java.time.Duration.ofMillis;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static javafx.application.Platform.runLater;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -75,6 +70,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static main.App.APP;
 import static util.Util.menuItem;
 import static util.Util.menuItems;
+import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
@@ -175,7 +171,7 @@ public class LibraryViewController extends FXMLController {
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
                 // additional css styleclasses
-                .styleRuleAdd("played", mg -> Player.playingtem.get().getField(fieldFilter.getValue()).equals(mg.getValue()))
+                .styleRuleAdd("played", mg -> equalNonNull(Player.playingtem.get().getField(fieldFilter.getValue()),mg.getValue()))
                 // add behavior
                 .onLeftDoubleClick((row,e) -> playSelected())
                 .onRightSingleClick((row,e) -> {
@@ -241,7 +237,7 @@ public class LibraryViewController extends FXMLController {
         // forward on selection
         EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b, ofMillis(60)).subscribe(c -> {
             if(!sel_lock)
-                out_sel_met.setValue(filerList(in_items.getValue(),true,false));
+                out_sel_met.setValue(filterList(in_items.getValue(),true,false));
         });
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             if(!sel_lock)
@@ -271,16 +267,17 @@ public class LibraryViewController extends FXMLController {
 
 /******************************** PRIVATE API *********************************/
 
-    //applies lvl & fieldFilter
+    // applies lvl & fieldFilter
     private void applyData(Object o) {
         Metadata.Field f = fieldFilter.getValue();
 
         // rebuild value column
-        find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
+        table.getColumn(VALUE).ifPresent(c -> {
             TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
             c.setText(t.getText());
-            c.setCellFactory((Callback)t.getCellFactory());
             c.setCellValueFactory((Callback)t.getCellValueFactory());
+            c.setCellFactory((Callback)t.getCellFactory());
+            table.refreshColumn(c);
         });
         // update filters
         table.filterPane.setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
@@ -289,32 +286,21 @@ public class LibraryViewController extends FXMLController {
         setItems(in_items.getValue());
     }
 
-    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Set<Year>>> h = new Histogram<>();
-
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
+        if(list==null) return;
+
         fut(fieldFilter.getValue())
             .use(f -> {
-                // make histogram
-                h.keyMapper = metadata -> metadata.getField(f);
-                h.histogramFactory = () -> new TupleM6<>(0l,new HashSet<>(),0d,0l,0d,new HashSet<>());
-                h.elementAccumulator = (hist,metadata) -> {
-                    hist.a++;
-                    hist.b.add(metadata.getAlbum());
-                    hist.c += metadata.getLengthInMs();
-                    hist.d += metadata.getFilesizeInB();
-                    hist.e += metadata.getRatingPercent();
-                    if(metadata.getYear()!=null) hist.f.add(metadata.getYear());
-                };
-                h.clear();
-                h.accumulate(list);
-                // read histogram
-                List<MetadataGroup> l = h.toListAll((value,s) -> new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
-                List<Metadata> fl = filerList(list,true,false);
+                List<MetadataGroup> mgs = stream(
+                    MetadataGroup.ofAll(f,list),
+                    groupBy(list.stream(),f::getOf).values().stream().map(ms -> MetadataGroup.of(f,ms))
+                ).collect(toList());
+                List<Metadata> fl = filterList(list,true,false);
                 runLater(() -> {
-                    if(!l.isEmpty()) {
+                    if(!mgs.isEmpty()) {
                         selectionStore();
-                        table.setItemsRaw(l);
+                        table.setItemsRaw(mgs);
                         selectionReStore();
                     }
                     out_sel_met.setValue(fl);
@@ -323,7 +309,7 @@ public class LibraryViewController extends FXMLController {
             .run();
     }
 
-    private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
+    private List<Metadata> filterList(List<Metadata> list, boolean orAll, boolean orEmpty) {
         if(list==null || list.isEmpty()) return EMPTY_LIST;
 
         // bug fix, without this line, which does exactly nothing,
@@ -333,42 +319,18 @@ public class LibraryViewController extends FXMLController {
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
-        if(mgs.stream().anyMatch(mg -> mg.getValue()==Histogram.ALL)) return list;
-
-        // optimization : if empty, dont bother filtering
-        if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList<>(list);
-
-        // composed predicate, performs badly
-        // Predicate<Metadata> p = mgs.parallelStream()
-        //        .map(MetadataGroup::toMetadataPredicate)
-        //        .reduce(Predicate::or)
-        //        .orElse(NONE);
-
-        Field f = fieldFilter.getValue();
-        Predicate<Metadata> p;
-        // optimization : if only 1, dont use list
-        // optimization : dont use equals for primitive types
-        if(mgs.size()==1) {
-            boolean prim = f.getType().isPrimitive();
-            Object v = mgs.get(0).getValue();
-            p = prim ? m -> m.getField(f)==v : m -> v.equals(m.getField(f));
-        } else {
-            Set<?> l = mgs.stream().map(mg->mg.getValue()).collect(toSet());
-            p = m -> l.contains(m.getField(f));
-        }
-
-        // optimization : use parallel stream
-        return list.parallelStream().filter(p).collect(toList());
+        if(mgs.stream().anyMatch(mg -> mg.isAll())) return list;
+        else return mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
 
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
-        List<Metadata> l = filerList(in_items.getValue(),false,true);
+        List<Metadata> l = filterList(in_items.getValue(),false,true);
                        l.sort(DB.library_sorter.get());
         return l;
     }
     private void playSelected() {
-        play(filerList(in_items.getValue(),false,true));
+        play(filterList(in_items.getValue(),false,true));
     }
 
 /******************************* SELECTION RESTORE ****************************/

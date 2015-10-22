@@ -240,19 +240,11 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         if(!container.hasParent()) return;
         // get first active component
         Component c = container;
-        Container p = container.getParent();
-
+        c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
-        // create new window with no content (not even empty widget)
-        Window w = UiContext.showWindow(null);
-               // put size to that of a source (also add jeader & border space)
-               w.setSize(root.getWidth()+10, root.getHeight()+30);
-        // change content
-        Container c2 = w.getLayout();
-        Component w2 = w.getLayout().getChild();
-        // indexOf returns null if param null, but that will not happen here
-        int i1 = p.indexOf(c);
-        p.swapChildren(c2,i1,w2);
+        Window w = UiContext.showWindow(c);
+        // set size to that of a source (also add header & border space)
+        w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
 
 }

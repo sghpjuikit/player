@@ -24,6 +24,7 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT;
@@ -33,6 +34,7 @@ import org.jaudiotagger.tag.images.ArtworkFactory;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
+import org.jaudiotagger.tag.wav.WavTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,30 @@ public class MetadataWriter extends MetaItem {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetadataWriter.class);
 
+    /**
+     * Constructs metadata writer for given item.
+     * @return writer or null if error occurs.
+     * @throws UnsupportedOperationException if item not file based
+     */
+    private static MetadataWriter create(Item item) {
+        if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
+
+        MetadataWriter w = new MetadataWriter();
+                       w.reset(item);
+        return w.audioFile==null ? null : w;
+    }
+
+    private static AbstractID3v2Tag wavToId3(WavTag tag) {
+        AbstractID3v2Tag t = tag.getID3Tag();
+        if(t==null) {
+            tag.setID3Tag(new org.jaudiotagger.tag.id3.ID3v24Tag());
+            t = tag.getID3Tag();
+        }
+        return t;
+    }
+
+/**************************************************************************************************/
+
     // state
     private File file;
     private AudioFile audioFile;
@@ -94,19 +120,6 @@ public class MetadataWriter extends MetaItem {
     private MetadataWriter(File file, AudioFile audioFile) {
         this.file = file;
         this.audioFile = audioFile;
-    }
-
-    /**
-     * Constructs metadata writer for given item.
-     * @return writer or null if error occurs.
-     * @throws UnsupportedOperationException if item not file based
-     */
-    private static MetadataWriter create(Item item) {
-        if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
-
-        MetadataWriter w = new MetadataWriter();
-                       w.reset(item);
-        return w.audioFile==null ? null : w;
     }
 
     @Override
@@ -275,7 +288,8 @@ public class MetadataWriter extends MetaItem {
 
         AudioFileFormat f = getFormat();
         switch(f) {
-            case mp3:   setRatingMP3(val); break;
+            case mp3:   setRatingMP3((AbstractID3v2Tag)tag,val); break;
+            case wav:   setRatingMP3(wavToId3((WavTag)tag),val); break;
             case flac:
             case ogg:   setRatingVorbisOgg(val); break;
             case mp4:
@@ -285,11 +299,8 @@ public class MetadataWriter extends MetaItem {
         // increment fields_changed in implementations
     }
 
-    // dont make this public, we need to guarantee we stay in range
-    private void setRatingMP3(double val) {
-        MP3File mp3File = ((MP3File)audioFile);
-                mp3File.getTagOrCreateAndSetDefault();
-        AbstractID3v2Frame f = mp3File.getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+    private void setRatingMP3(AbstractID3v2Tag tag, double val) {
+        AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         if ( f == null) {
              f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
              f.setBody(new FrameBodyPOPM());
@@ -297,10 +308,10 @@ public class MetadataWriter extends MetaItem {
         try {
             if (val == -1) {
                 ((FrameBodyPOPM) f.getBody()).setRating(0);
-                ((MP3File)audioFile).getID3v2Tag().setField(f);
+                tag.setField(f);
             } else {
                 ((FrameBodyPOPM) f.getBody()).setRating((long)val);
-                ((MP3File)audioFile).getID3v2Tag().setField(f);
+                tag.setField(f);
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
@@ -324,8 +335,6 @@ public class MetadataWriter extends MetaItem {
         String sv = v<0 ? null : Integer.toString((int)v); // lets stay decimal
         setVorbisField("RATING", sv);
     }
-
-
 
     /** @param title the title to set  */
     public void setTitle(String title) {
@@ -362,9 +371,9 @@ public class MetadataWriter extends MetaItem {
     public void setPlaycount(int val) {
         // set universally
         setGeneralField(CUSTOM3, val<0 ? "" : String.valueOf(val));
-        AudioFileFormat f = getFormat();
-        // set also mp3 specific
-        if(f==mp3) setPlaycountMP3(val);
+        // set to id3 tag if available
+        if(tag instanceof AbstractID3v2Tag) setPlaycountID3((AbstractID3v2Tag)tag,val);
+        else if(tag instanceof WavTag) setPlaycountID3(wavToId3((WavTag)tag), val);
     }
 
     /** @param increments playcount by 1. */
@@ -372,18 +381,18 @@ public class MetadataWriter extends MetaItem {
         setPlaycount(m.getPlaycount()+1);
     }
 
-    private void setPlaycountMP3(int val) {
+    private void setPlaycountID3(AbstractID3v2Tag tag, int val) {
         // POPM COUNT
         try {
             // get tag
-            AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+            AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
             if ( f == null) {
                  f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
                  f.setBody(new FrameBodyPOPM());
             }
             // set value
             ((FrameBodyPOPM) f.getBody()).setCounter(max(0,val));
-            ((MP3File)audioFile).getID3v2Tag().setField(f);
+            tag.setField(f);
             // fields_changed++;
         } catch (FieldDataInvalidException ex) {
             LOGGER.info("Ignoring playcount field. Data invalid.");
@@ -391,14 +400,14 @@ public class MetadataWriter extends MetaItem {
         // PLAY COUNT
         try {
             // get tag
-            AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
+            AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
             if ( f == null) {
                  f = new ID3v24Frame(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
                  f.setBody(new FrameBodyPCNT());
             }
             // set value
             ((FrameBodyPCNT) f.getBody()).setCounter((max(0,val)));
-            ((MP3File)audioFile).getID3v2Tag().setField(f);
+            tag.setField(f);
             // fields_changed++;
         } catch (FieldDataInvalidException ex) {
             LOGGER.info("Ignoring playcount field. Data invalid.");
@@ -412,7 +421,8 @@ public class MetadataWriter extends MetaItem {
         switch(f) {
             case flac:
             case ogg:   setVorbisField("PUBLISHER", val); break;
-            case mp3:   setPublisherMP3(val); break;
+            case mp3:   setPublisherID3((AbstractID3v2Tag)tag, val); break;
+            case wav:   setPublisherID3(wavToId3((WavTag)tag), val); break;
             case mp4:
             case m4a:   setPublisherMP4(val); break;
             default:    // rest not supported
@@ -420,8 +430,8 @@ public class MetadataWriter extends MetaItem {
         // increment fields_changed in implementations
     }
 
-    private void setPublisherMP3(String val) {
-        AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_PUBLISHER);
+    private void setPublisherID3(AbstractID3v2Tag tag, String val) {
+        AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_PUBLISHER);
         if ( f == null) {
              f = new ID3v24Frame(ID3v24Frames.FRAME_ID_PUBLISHER);
              f.setBody(new FrameBodyTPUB());
@@ -429,10 +439,10 @@ public class MetadataWriter extends MetaItem {
         // set value, prevent writing corrupt data
         try {
             if (val == null || val.isEmpty())
-                ((MP3File)audioFile).getID3v2Tag().removeFrameOfType(f.getIdentifier());
+                tag.removeFrameOfType(f.getIdentifier());
             else {
                 ((FrameBodyTPUB) f.getBody()).setText(val);
-                ((MP3File)audioFile).getID3v2Tag().setField(f);
+                tag.setField(f);
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
@@ -531,7 +541,7 @@ public class MetadataWriter extends MetaItem {
      * of the chapters, the metadata for the item are necessary.
      */
     public void addChapter(Chapter chapter, Metadata m) {
-        List<Chapter> chaps = m.getChapters();
+        List<Chapter> chaps = list(m.getChapters());
         int i = chaps.indexOf(chapter);
         if(i==-1) chaps.add(chapter);
         else chaps.set(i, chapter);
@@ -559,7 +569,6 @@ public class MetadataWriter extends MetaItem {
     public void setYear(String val) {
         setGeneralField(FieldKey.YEAR, val);
     }
-
 
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
@@ -651,8 +660,13 @@ public class MetadataWriter extends MetaItem {
     private void setGeneralField(FieldKey field, String val) {
         boolean empty = val == null || val.isEmpty();
         try {
+//            System.out.println("BEFORE");
+//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
+//            System.out.println(field + " " + val + " " + tag.getClass());
             if (empty) tag.deleteField(field);
             else tag.setField(field, val);
+//            System.out.println("AFTER");
+//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
             fields_changed++;
         } catch (KeyNotFoundException ex) {
             LOGGER.info(field.toString() + " field not found.");
@@ -782,12 +796,19 @@ public class MetadataWriter extends MetaItem {
 
         // save tag
         try {
+//            System.out.println("WRITING_PRE");
+//            audioFile.getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
             audioFile.commit();
+//            System.out.println("WRITING_POST");
+//            audioFile.getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
+//            System.out.println("WRITING_POST_2");
+//            MetaItem.readAudioFile(getFile()).getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
         } catch (Exception ex) {
             if (isPlayingSame()) {
                 LOGGER.info("File being played, will attempt to suspend playback");
-                PLAYBACK.suspend();
-                for(int i=0; i<=2; i++) {
+                PLAYBACK.suspend(); // asynchronous, we dont know how long it will take
+                // we sleep the thread and try tagging again
+                for(int i=1; i<=3; i+=2) {
                     int tosleep = i*i*250;
                     LOGGER.info("Attempt {}, sleeping for {}",i,tosleep);
                     try {
@@ -795,7 +816,7 @@ public class MetadataWriter extends MetaItem {
                         audioFile.commit();
                         break;
                     } catch (CannotWriteException | InterruptedException e) {
-                        if(i==2) {
+                        if(i==3) {
                             LOGGER.info("Can not write file tag: {} {}",audioFile.getFile().getPath(),e);
                             PLAYBACK.activate();
                             return false;
@@ -845,7 +866,7 @@ public class MetadataWriter extends MetaItem {
     public void reset(Item i) {
         file = i.isFileBased() ? i.getFile() : null;
         audioFile = readAudioFile(file);
-        tag = audioFile.getTagOrCreateAndSetDefault();
+        tag = audioFile.getTagOrCreateAndSetDefault(); // tag must NEVER be null
         fields_changed = 0;
         isWriting.set(false);
     }

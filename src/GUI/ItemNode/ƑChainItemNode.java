@@ -73,10 +73,11 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
         fp = functionPool;
         chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
         isHomogeneous = (i,f) -> {
-            // Link is homogeneous if removing the function poses no problem
-            // for function f this is when previous function return type is same as next function
-            // input type (whis is same as f's return type.
+            // Link is homogeneous if removing the function poses no problem.
+            // For function f this is when previous function return type is same as next function
+            // input type (whis is same as f's return type).
 
+            // Identity function always produces homogeneous link.
             // Workaround for identity function erasing its own return type to Object.class
             // Identity function (x -> x) has same input type and output type, but this is
             // generalized to Object since it works for any object. We either handle this manually

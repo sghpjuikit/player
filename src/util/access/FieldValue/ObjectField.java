@@ -30,6 +30,10 @@ public interface ObjectField<V> extends TypedValue {
      */
     public String toS(Object o, String empty_val);
 
+    public default String toS(V v, Object o, String empty_val) {
+        return ObjectField.this.toS(o, empty_val);
+    };
+
     /**
      * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case.

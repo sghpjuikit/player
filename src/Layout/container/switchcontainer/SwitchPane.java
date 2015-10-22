@@ -220,14 +220,14 @@ public class SwitchPane implements ContainerNode {
     public final Map<Integer,AnchorPane> tabs = new HashMap<>();
     boolean changed = false;
 
-    public void addTab(int i, Component layout) {
-        if(layout==layouts.get(i)) {
+    public void addTab(int i, Component c) {
+        if(c==layouts.get(i)) {
             return;
-        } else if(layout==null) {
+        } else if(c==null) {
             removeTab(i);
         } else {
             removeTab(i);
-            layouts.put(i, layout);
+            layouts.put(i, c);
             changed = true;
             loadTab(i);
             // left & right
@@ -294,15 +294,6 @@ public class SwitchPane implements ContainerNode {
             // detach from scene graph
             ui.getChildren().remove(tabs.get(i));
             // remove layout
-            Component c = layouts.get(i);
-            if(c==null) {
-            } else if (c instanceof Container) {
-                ((Container)c).close();
-            } else if (c instanceof Widget) {
-                Controller cnt = ((Widget)c).getController();
-                if(cnt!=null) cnt.close();
-            }
-//            layouters.remove(i);
             layouts.remove(i);
             // remove from tabs
             tabs.remove(i);

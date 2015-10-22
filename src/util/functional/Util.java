@@ -52,6 +52,25 @@ public class Util {
     /** Comparator returning 0. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;
 
+    /**
+     * Returns true if the arguments are equal to each other and false otherwise.
+     * If any argument is null, false is returned.
+     * Otherwise, equality is determined by using the equals method of the first argument.
+     */
+    public static boolean equalNonNull(Object a, Object b) {
+        return a!=null && b!=null && a.equals(b);
+    }
+
+    /**
+     * Returns true if the arguments are equal to each other and false otherwise.
+     * If both arguments are null, true is returned and if exactly one argument is null, false is
+     * returned.
+     * Otherwise, equality is determined by using the equals method of the first argument.
+     */
+    public static boolean equalNull(Object a, Object b) {
+        return a == b || (a!=null && a.equals(b));
+    }
+
     /**  */
     public static <E> boolean isIn(E o, E... es) {
         for(E e : es)
@@ -799,10 +818,24 @@ public class Util {
         return c.filter(f).map(m).collect(toList());
     }
 
+    /**
+     * Alternative to {@link Stream#collect(java.util.stream.Collector)} and
+     * {@link Collectors#groupingBy(java.util.function.Function) }, doesn't support
+     * null keys (even for maps that allow them, and even if it has been specifically supplied for
+     * the collector to use)!
+     */
+    public static <E,K> Map<K,List<E>> groupBy(Stream<E> s, Function<E,K> key_extractor) {
+        Map<K,List<E>> m = new HashMap<>();
+        s.forEach(e -> m.computeIfAbsent(key_extractor.apply(e), key -> new ArrayList<>()).add(e));
+        return m;
+    }
 
+    /** Convenience method. */
     public static <K,V,E> Map<K,E> toMap(Function<V,K> key_extractor, Function<V,E> val_extractor, V... c) {
         return Stream.of(c).collect(Collectors.toMap(key_extractor, val_extractor));
     }
+
+    /** Convenience method. */
     public static <K,V,E> Map<K,E> toMap(Collection<V> c, Function<V,K> key_extractor, Function<V,E> val_extractor) {
         return c.stream().collect(Collectors.toMap(key_extractor, val_extractor));
     }

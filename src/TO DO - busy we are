@@ -2,6 +2,13 @@
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
+
+- implement filesize grouping buckets
+- new switchpane doesnt get settings applied
+- make sure all components close properly
+- remove artwork caching?
+- improve skin performance
+- implement stitched widgets
 - fix disc number not writing to tag
 - Void config which doesnt serialize and has Runnable action executing when
   gui is clicked, the action may open some kind of manager for the section
@@ -12,11 +19,7 @@
 - FieldedValue hasField predicates
 - layout manager + mock widgets
 - main window switching
-- playback order inconsistency if table uses sort, playlist doesnt uphold table order
-- remove Areas
-- bicontainer orientation button install to children instead
 - action for importing files
-- IDENTITY function
 - playlist playing item is busted for item duplicates
 - add played first, played last, added to lib & tags metadata fields
 - improve tagger description label - add animation, support disabled fields & cover
@@ -56,7 +59,6 @@
 - cleanup PopOver positioning
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
   order in random playorder
-- unify & clean up Var, Ref, SingleRef
 - tab area
 - Generic FileType class, particularly need separation on 'groups' like
   audio, video, image, etc... See:
@@ -66,6 +68,9 @@
 - unify table column resizing, namely getMain column and autoresize with 
   main column taking all space, maybe signal locked columns with icon and add
   menu item for on/off autoresize columns option
+- cleanups: ActionPane, GridView, Area, Var, Ref, SingleRef
+- idea: MetadataGroup stores Metadatas it groups
+        move histogram code into metadata group + tables dont need filtering
 
 -------------------------------------------------------------------------------- 
 ------------------------ BUGS - what i dont want to hear about -----------------

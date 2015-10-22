@@ -127,16 +127,26 @@ public abstract class Area<T extends Container> implements ContainerNode {
      * if no active component available.
      */
     public void detach() {
-        // get first active component
-        Component c = getActiveWidget();
+//        // get first active component
+//        Component c = getActiveWidget();
+//
+//        // detach into new window
+//        // create new window with no content (not even empty widget)
+//        Window w = UiContext.showWindow(null);
+//               // set size to that of a source (also add header & border space)
+//               w.setSize(root.getWidth()+10, root.getHeight()+30);
+//        // change content
+//        w.getLayout().swapChildren(container,0,c);
 
+
+
+        Component c = getActiveWidget();
+        if(c==null) return;
+        c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
-        // create new window with no content (not even empty widget)
-        Window w = UiContext.showWindow(null);
-               // set size to that of a source (also add header & border space)
-               w.setSize(root.getWidth()+10, root.getHeight()+30);
-        // change content
-        w.getLayout().swapChildren(container,0,c);
+        Window w = UiContext.showWindow(c);
+        // set size to that of a source (also add header & border space)
+        w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
 
 /******************************************************************************/

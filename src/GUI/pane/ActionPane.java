@@ -303,11 +303,11 @@ public class ActionPane extends OverlayPane implements Configurable {
                   .styleclass(ICON_STYLECLASS)
                   .onClick(() -> {
                       if (a instanceof FastAction) {
-                          a.run(getData());
+                          ((FastAction)a).run(d,d instanceof Collection);
                           doneHide();
                       }
                       if (a instanceof SlowAction) {
-                          Fut<?> datafut = fut(getData());
+                          Fut<?> datafut = fut(d);
                           futAfter(datafut)
                                 .then(() -> actionProgress.setProgress(-1),FX)
                                 .then((Ƒ1)a.action)
@@ -329,8 +329,8 @@ public class ActionPane extends OverlayPane implements Configurable {
     private static Object collectionUnwrap(Object o) {
         if(o instanceof Collection) {
             Collection c = (Collection)o;
-            if(c.isEmpty()) o=null;
-            if(c.size()==1) o=c.stream().findAny().get();
+            if(c.isEmpty()) return null;
+            if(c.size()==1) return c.stream().findAny().get();
         }
         return o;
     }
@@ -416,7 +416,7 @@ public class ActionPane extends OverlayPane implements Configurable {
                 for(T t : (Collection<T>)data)
                     action.accept(t);
             } else {
-                action.accept((T)data);
+                action.accept((T) (groupApply==NONE ? collectionUnwrap(data) : data));
             }
             return data;
         }

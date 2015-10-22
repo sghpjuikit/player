@@ -275,6 +275,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     public void refreshColumn(ObjectField<? super T> f) {
         getColumn(f).ifPresent(this::refreshColumn);
     }
+
     public void refreshCoumns() {
         if(!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
@@ -337,7 +338,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             @Override
             protected void updateItem(Object item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : f.toS(item,""));
+                setText(empty ? "" : f.toS((T)getTableRow().getItem(),item,""));
             }
         };
         cell.setAlignment(a);
@@ -349,7 +350,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             @Override
             protected void updateItem(Object item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : f.toS(item,""));
+                setText(empty ? "" : f.toS((T)getTableRow().getItem(),item,""));
             }
         };
         cell.setAlignment(a);
@@ -362,8 +363,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     private void updateComparator(Object ignored) {
         Comparator<? super T> c = getSortOrder().stream().map(column -> {
                 F f = (F) column.getUserData();
-                int type = column.getSortType()==ASCENDING ? 1 : -1;
-                return (Comparator<T>)(m1,m2) -> type*((Comparable)f.getOf(m1)).compareTo((f.getOf(m2)));
+                int dir = column.getSortType()==ASCENDING ? 1 : -1;
+                return (Comparator<T>)(m1,m2) -> dir*((Comparable)f.getOf(m1)).compareTo((f.getOf(m2)));
             })
             .reduce(Comparator::thenComparing).orElse(SAME);
         itemsComparator.setValue(c);

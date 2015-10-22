@@ -30,8 +30,7 @@ public enum AudioFileFormat {
     wav,
     m4a,
     mp4,
-    
-    
+
     spx,
     snd,
     aifc,
@@ -40,9 +39,9 @@ public enum AudioFileFormat {
     mp1,
     mp2,
     aac,
-    
+
     UNKNOWN;
-    
+
     /**
      * Checks whether this format supported audio format. Unsupported formats
      * dont get any official support for any of the app's features and by default
@@ -69,15 +68,15 @@ public enum AudioFileFormat {
             default: throw new AssertionError("corrupted switch statement");
         }
     }
-    
+
     public String toExt() {
         return "*." + toString();
     }
-    
+
     public FileChooser.ExtensionFilter toExtFilter() {
         return new FileChooser.ExtensionFilter(toString(), toExt());
     }
-    
+
     /** Returns whether writing the field to tag for this format is supported. */
     public boolean isTagWriteSupported(Metadata.Field f) {
         switch(this) {
@@ -85,8 +84,8 @@ public enum AudioFileFormat {
             case m4a  :
             case mp3  :
             case ogg  :
+            case wav  :
             case flac : return true;
-            case wav  : return false; // is not and never will be supported
             case spx  :
             case snd  :
             case aifc :
@@ -99,7 +98,7 @@ public enum AudioFileFormat {
             default: throw new AssertionError("corrupted switch statement");
         }
     }
-    
+
     /**
      * Checks whether the item is of supported audio format. Unsupported file
      * dont get any official support for any of the app's features and by default
@@ -110,7 +109,7 @@ public enum AudioFileFormat {
     public static boolean isSupported(Item item, Use use) {
         return of(item.getURI()).isSupported(use);
     }
-    
+
     /**
      * Checks whether the file has supported audio format. Unsupported file
      * dont get any official support for any of the app's features and by default
@@ -123,24 +122,24 @@ public enum AudioFileFormat {
         Objects.requireNonNull(uri);
         return of(uri).isSupported(use);
     }
-    
+
     /**
      * Equivalent to {@link #isSupported(java.io.URI)} using file.toURI().
      * @param file
-     * @return 
+     * @return
      * @throws NullPointerException if param is null
      */
     public static boolean isSupported(File file, Use use) {
         Objects.requireNonNull(file);
         return of(file.toURI()).isSupported(use);
     }
-    
+
     /**
      * Equivalent to {@link #isSupported(java.io.URI)} using URI.create(url). If
      * the provided url can not be used to construct an URI, false is returned.
      * On the other hand, if true is returned the validity of the url is guaranteed.
      * @param url
-     * @return 
+     * @return
      * @throws NullPointerException if param is null
      */
     public static boolean isSupported(String url, Use use) {
@@ -151,20 +150,20 @@ public enum AudioFileFormat {
             return false;
         }
     }
-    
+
     /**
      * Labels file as one of the audio file types the application recognizes.
      * @param uri
-     * @return 
+     * @return
      */
     public static AudioFileFormat of(URI uri) {
         return of(uri.getPath());
     }
-    
+
     /**
      * Labels file as one of the audio file types the application recognizes.
      * @param uri
-     * @return 
+     * @return
      */
     public static AudioFileFormat of(String path) {
         // do a quick job of it
@@ -178,33 +177,33 @@ public enum AudioFileFormat {
                 return f;
         // no match
         return UNKNOWN;
-    }    
-    
+    }
+
 /******************************************************************************/
-    
-    /** Writes up list of all supported values. */    
+
+    /** Writes up list of all supported values. */
     public static String supportedExtensionsS(Use use) {
         String out = "";
         for(String ft: exts(use))
             out = out + ft +"\n";
         return out;
     }
-    
+
     public static List<AudioFileFormat> supportedValues(Use use) {
         return Stream.of(values()).filter(f->f.isSupported(use)).collect(Collectors.toList());
     }
-    
+
     public static FileChooser.ExtensionFilter filter(Use use) {
         return new FileChooser.ExtensionFilter("Audio files", exts(use));
     }
-    
-    
+
+
     // List of supported extension strings in the format: '*.extension'
     private static List<String> exts(Use use) {
         return supportedValues(use).stream().map(f->f.toExt()).collect(Collectors.toList());
     }
-    
-    
+
+
     public static enum Use {
         APP,
         PLAYBACK,

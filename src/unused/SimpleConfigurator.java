@@ -81,7 +81,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
          .forEach( f -> { 
             ConfigField cf = ConfigField.create(f);                 // create
             configFields.add(cf);                                   // add
-            fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
+            fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
             fields.add(cf.getNode(), 1, configFields.size()-1);
         });
         

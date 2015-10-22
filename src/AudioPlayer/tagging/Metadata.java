@@ -25,20 +25,20 @@ import javafx.util.Duration;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
-import org.jaudiotagger.audio.mp3.MP3File;
-import org.jaudiotagger.audio.wav.WavTag;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.TagOptionSingleton;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
-import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
+import org.jaudiotagger.tag.wav.WavTag;
 
 import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
@@ -67,11 +67,14 @@ import static java.lang.Integer.parseInt;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
 import static main.App.APP;
+import static org.jaudiotagger.audio.wav.WavOptions.READ_ID3_UNLESS_ONLY_INFO;
+import static org.jaudiotagger.audio.wav.WavSaveOptions.SAVE_BOTH;
+import static org.jaudiotagger.tag.reference.ID3V2Version.ID3_V24;
 import static util.File.FileUtil.EMPTY_URI;
 import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
 import static util.dev.Util.log;
-import static util.functional.Util.ISNTØ;
+import static util.functional.Util.equalNull;
 import static util.functional.Util.isIn;
 import static util.functional.Util.list;
 import static util.functional.Util.split;
@@ -131,6 +134,13 @@ public final class Metadata extends MetaItem<Metadata> {
     static final String TAGID_COLOR =         "COLOR_____";
     static final String TAGID_TAGS =          "TAG_______";
 
+    static {
+        // configure jaudiotagger
+        TagOptionSingleton.getInstance().setID3V2Version(ID3_V24);
+        TagOptionSingleton.getInstance().setWavOptions(READ_ID3_UNLESS_ONLY_INFO);
+        TagOptionSingleton.getInstance().setWavSaveOptions(SAVE_BOTH);
+    }
+
     // use to debug tag
     // tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
 
@@ -167,7 +177,7 @@ public final class Metadata extends MetaItem<Metadata> {
     @Id
     private String uri = FileUtil.EMPTY_URI.toString();
 
-    // header fields
+            // header fields
     private long filesize = 0;
     private String encoding = "";
     private int bitrate = -1;
@@ -175,11 +185,11 @@ public final class Metadata extends MetaItem<Metadata> {
     private String channels = "";
     private String sample_rate = "";
     private double duration = 0;
-    // tag fields
+            // tag fields
     private String title = "";
     private String album = "";
     private String artist = "";
-    @Transient
+            @Transient
     private List<String> artists = null; // unsupported as of now
     private String album_artist = "";
     private String composer = "";
@@ -190,17 +200,17 @@ public final class Metadata extends MetaItem<Metadata> {
     private int discs_total = -1;
     private String genre = "";
     private int year = -1;
-    @Transient
+            @Transient
     private Artwork cover = null;
     private int rating = -1;
-    @Transient
+            @Transient
     private double ratingP = -1;
     private int playcount = -1;
     private String category = "";
     private String comment = "";
     private String lyrics = "";
     private String mood = "";
-    // some custom fields contain synthetic field's values
+            // some custom fields contain synthetic field's values
     private String custom1 = "";
     private String custom2 = "";
     private String custom3 = "";
@@ -250,40 +260,45 @@ public final class Metadata extends MetaItem<Metadata> {
         uri = file.toURI().toString();
         filesize = FileSize.inBytes(file);
 
-        Tag tag = audiofile.getTagOrCreateAndSetDefault();
-        loadGeneralFields(audiofile, tag);
-        switch (getFormat()) {
-            case mp3:  loadSpecificFieldsMP3((MP3File)audiofile);              break;
-            case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag()); break;
-            case ogg:  loadFieldsVorbis((VorbisCommentTag)tag);                break;
-            case wav:  loadFieldsWAV((WavTag)tag);                             break;
-            case mp4:
-            case m4a:  loadFieldsMP4((Mp4Tag)tag);                             break;
-            default:   // do nothing for the rest;
+        loadHeaderFields(audiofile);
+
+        // We would like to make sure tag always exists, but this probably involves
+        // writing the tag. We want to stay just reading. If we don mind, use:
+        // audiofile.getTagOrCreateAndSetDefault();
+        // If the tag is null, we skip reading
+        Tag tag = audiofile.getTag();
+        if(tag!=null) {
+            loadGeneralFields(tag);
+            switch (getFormat()) {
+                case mp3:  loadFieldsID3((AbstractID3v2Tag)tag);                   break;
+                case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag()); break;
+                case ogg:  loadFieldsVorbis((VorbisCommentTag)tag);                break;
+                case wav:  loadFieldsWAV((WavTag)tag);                             break;
+                case mp4:
+                case m4a:  loadFieldsMP4((Mp4Tag)tag);                             break;
+                default:   // do nothing for the rest;
+            }
         }
 
     }
-    /** loads all generally supported fields  */
-    private void loadGeneralFields(AudioFile aFile, Tag tag) {
+
+    /** loads all header fields  */
+    private void loadHeaderFields(AudioFile aFile) {
         AudioHeader header = aFile.getAudioHeader();
-
         if(header==null) {  // just in case
-            log(this).info("Tag unsupported in item being read: " + getURI());
-            return;
+            log(this).info("Header not found: " + getURI());
+        } else {
+            bitrate = (int)header.getBitRateAsNumber();
+            duration = 1000 * header.getTrackLength();
+            // format and encoding type are switched in jaudiotagger library...
+            encoding = emptifyString(header.getFormat());
+            channels = emptifyString(header.getChannels());
+            sample_rate = emptifyString(header.getSampleRate());
         }
+    }
 
-        bitrate = (int)header.getBitRateAsNumber();
-        duration = 1000 * header.getTrackLength();
-        // format and encoding type are switched in jaudiotagger library...
-        encoding = emptifyString(header.getFormat());
-        channels = emptifyString(header.getChannels());
-        sample_rate = emptifyString(header.getSampleRate());
-
-        if(tag==null) {
-            log(this).info("Tag unsupported in item being read: " + getURI());
-            return;
-        }
-
+    /** loads all generally supported fields  */
+    private void loadGeneralFields(Tag tag) {
         encoder = getGeneral(tag,FieldKey.ENCODER);
 
         title = getGeneral(tag,FieldKey.TITLE);
@@ -330,38 +345,43 @@ public final class Metadata extends MetaItem<Metadata> {
         custom4 = getGeneral(tag,FieldKey.CUSTOM4);
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
 
-        // get special tags (recognized only by this application)
-        if(!custom5.isEmpty())
-        for(String tagfield : list(split(custom5,SEPARATOR_GROUP.toString()))) {
-            if(tagfield.length()<10) continue;      // skip deformed to avoid exception
-            String tagid = tagfield.substring(0,10);
-            String tagvalue = tagfield.substring(10);
-            switch(tagid) {
-                case TAGID_PLAYED_FIRST: playedFirst = tagvalue; continue;
-                case TAGID_PLAYED_LAST: playedLast = tagvalue; continue;
-                case TAGID_LIB_ADDED: libraryAdded = tagvalue; continue;
-                case TAGID_COLOR: color = tagvalue; continue;
-                case TAGID_TAGS: tags = tagvalue; continue;
+        // Following acquire data from special tag
+        if(!custom5.isEmpty()) {
+            for(String tagfield : list(split(custom5,SEPARATOR_GROUP.toString()))) {
+                if(tagfield.length()<10) continue;      // skip deformed to avoid exception
+                String tagid = tagfield.substring(0,10);
+                String tagvalue = tagfield.substring(10);
+                switch(tagid) {
+                    case TAGID_PLAYED_FIRST: playedFirst = tagvalue; continue;
+                    case TAGID_PLAYED_LAST: playedLast = tagvalue; continue;
+                    case TAGID_LIB_ADDED: libraryAdded = tagvalue; continue;
+                    case TAGID_COLOR: color = tagvalue; continue;
+                    case TAGID_TAGS: tags = tagvalue; continue;
+                }
             }
         }
     }
 
-    private String getGeneral(Tag tag, FieldKey f) {
-        if (!tag.hasField(f)) return "";
-        return Util.emptifyString(tag.getFirst(f));
+    private static String getGeneral(Tag tag, FieldKey f) {
+        String s = tag.getFirst(f);
+        if(s==null || "null".equalsIgnoreCase(s)) throw new RuntimeException("Illegal string value in tag: '" + s + "'");
+        return s;
     }
-    private int getNumber(Tag tag, FieldKey field) {
+
+    private static int getNumber(Tag tag, FieldKey field) {
         return number(getGeneral(tag, field));
     }
-    private int number(String s) {
+
+    private static int number(String s) {
         try {
             return s.isEmpty() ? -1 : parseInt(s);
         } catch(NumberFormatException e){
             return -1;
         }
     }
+
     // use this to get comment, not getField(COMMENT); because it is bugged
-    private String getComment(Tag tag) {
+    private static String getComment(Tag tag) {
         // there is a bug where getField(Comment) returns CUSTOM1 field, this is workaround
         // this is how COMMENT field look like:
         //      Language="English"; Text="example";
@@ -377,7 +397,8 @@ public final class Metadata extends MetaItem<Metadata> {
         if(i>-1) return tag.getValue(FieldKey.COMMENT, i);
         else return "";
     }
-    private List<String> getGenerals(Tag tag, FieldKey f) {
+
+    private static List<String> getGenerals(Tag tag, FieldKey f) {
         List<String> out = new ArrayList<>();
         if (!tag.hasField(f)) return out;
 
@@ -399,13 +420,23 @@ public final class Metadata extends MetaItem<Metadata> {
         return out;
     }
 
+    // There are three types of fields in terms of  how they are stored/read:
+    // tag agnostic - jaudiotagger handles the field transparently in a tag independent way
+    // tag specific - we have to handle the field manually per tag type, using jaudiotagger
+    // special - Custom fields just for this application. They are all aggregated in a single
+    //           field, but that is an implementation detail (This works similar to a vorbis
+    //           tag, where each field has a string id and there is no limit to order,
+    //           multiplicity or content of the fields).
 
-    private void loadSpecificFieldsMP3(MP3File mp3) {
-        ID3v24Tag tag = mp3.getID3v2TagAsv24();
-        // null == no tag == nothing to read -> leave default values
-        if(tag==null) return;
+    // Following methods acquire data from tag type specific fields
+    // RATING - Each tag handles rating differently, simply read it
+    // PLAYCOUNT - We store playcount separately, but some tag types support it, so we check it
+    //             and use it if we have no data on our own
+    // PUBLISHER - Each tag handles it differently, simply read it
+    // CATEGORY - Each tag handles it differently, simply read it
 
-        // RATING +PLAYCOUNT ---------------------------------------------------
+    private void loadFieldsID3(AbstractID3v2Tag tag) {
+        // RATING + PLAYCOUNT ---------------------------------------------------
         // we use POPM field (rating + counter + mail/user)
         AbstractID3v2Frame frame1 = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         // if not present we get null and leave default values
@@ -432,13 +463,32 @@ public final class Metadata extends MetaItem<Metadata> {
                 } catch (ArithmeticException e) {}
             }
         }
+        // todo: also check ID3v24Frames.FRAME_ID_PLAY_COUNTER
 
         // PUBLISHER -----------------------------------------------------------
         publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
+
+        // CATEGORY ------------------------------------------------------------
+        // the general acquisition is good enough
     }
 
+    // wav
     private void loadFieldsWAV(WavTag tag) {
-        // WAV doesnt support tag
+        AbstractID3v2Tag t = tag.getID3Tag();
+        if(t!=null) {
+            loadFieldsID3(t);
+        } else {
+            // todo: implement fallback
+            // i dont know how this works, so for now unimplemented
+            // tag.getInfoTag();
+            // RATING --------------------------------------------------------------
+
+            // PLAYCOUNT -----------------------------------------------------------
+
+            // PUBLISHER -----------------------------------------------------------
+
+            // CATEGORY ------------------------------------------------------------
+        }
     }
 
     // mp4 & m4a
@@ -461,6 +511,9 @@ public final class Metadata extends MetaItem<Metadata> {
         // handle normally
         else rating = (r<0 || r>100) ? -1 : r;
 
+        // PLAYCOUNT -----------------------------------------------------------
+        // no support
+
         // PUBLISHER -----------------------------------------------------------
         // id: '----:com.nullsoft.winamp:publisher'
         //      tag.getFirst(FieldKey.PRODUCER) // nope
@@ -469,11 +522,14 @@ public final class Metadata extends MetaItem<Metadata> {
         //      tag.getFirst(FieldKey.KEY)
         publisher = emptifyString(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
         if(publisher.isEmpty()) publisher = emptifyString(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
+
+        // CATEGORY ------------------------------------------------------------
+        // the general acquisition is good enough
     }
 
     // ogg & flac
-    // both use vorbis tag, the only difference between the two is cover
-    // handling, which jaudiotagger takes care of in type agnostic way
+    // both use vorbis tag
+    // the only difference between the two is cover handling, which jaudiotagger takes care of
     private void loadFieldsVorbis(VorbisCommentTag tag) {
         // RATING --------------------------------------------------------------
         // some players use 0-5 value, so extends it to 100
@@ -711,6 +767,11 @@ public final class Metadata extends MetaItem<Metadata> {
         } catch (DateTimeException e) {
             return null;
         }
+    }
+
+    /** @return year integer or -1 if none. */
+    public int getYearAsInt() {
+        return year;
     }
 
     /**
@@ -1128,7 +1189,7 @@ public final class Metadata extends MetaItem<Metadata> {
         }
 
         public boolean isFieldEmpty(Metadata m) {
-            return Objects.deepEquals(getOf(m), getOf(EMPTY));
+            return equalNull(getOf(m), getOf(EMPTY));
         }
 
         /** {@inheritDoc} */
@@ -1165,9 +1226,13 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public String toS(Object o, String empty_val) {
-            if(o==null) return empty_val;
+            if(o==null || "".equals(o)) return empty_val;
             switch(this) {
-                case PLAYCOUNT :    return EMPTY.getField(this).equals(o) ? empty_val : o.toString();
+                case DISC :
+                case DISCS_TOTAL :
+                case TRACK :
+                case TRACKS_TOTAL :
+                case PLAYCOUNT : return equalNull(getOf(EMPTY),o) ? empty_val : o.toString();
                 default : return o.toString();
             }
         }

@@ -288,7 +288,7 @@ public class MetadataReader{
                     }
                     em.getTransaction().commit();
                     // update library model
-                    runFX(DB::updateMemFromPer);
+                    runFX(DB::updateInMemoryDBfromPersisted);
                 } catch (Exception e ) {
                     e.printStackTrace();
                 }
@@ -333,7 +333,7 @@ public class MetadataReader{
 
                 DB.em.getTransaction().commit();
                 // update library model
-                runFX(DB::updateMemFromPer);
+                runFX(DB::updateInMemoryDBfromPersisted);
 
                 // update state
                 updateMessage(all,completed,removed);

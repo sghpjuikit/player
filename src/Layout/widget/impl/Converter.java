@@ -6,6 +6,8 @@
 package Layout.widget.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -56,14 +58,18 @@ import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
+import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.graphics.Util.layAnchor;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
+import static util.graphics.Util.layVertically;
 import static util.graphics.drag.DragUtil.installDrag;
 
 @IsWidget
@@ -198,6 +204,7 @@ public class Converter extends ClassController implements SongWriter {
                .run();
         }));
         acts.accumulate(new WriteFileAct());
+        acts.accumulate(new ActCreateDirs());
 
         // set empty content
         applier.fillActs(Void.class);
@@ -225,7 +232,7 @@ public class Converter extends ClassController implements SongWriter {
 
 /******************************* helper classes *******************************/
 
-    // generates unique name in format 'CustomN', where N is integer number
+    /* Generates unique name in format 'CustomN', where N is integer. */
     String taname() {
         Ɽ<Integer> i = new Ɽ<>(0);
         do {
@@ -393,9 +400,9 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class WriteFileAct extends Act<Void> {
-        Ѵ<String> nam = new Ѵ("new_file");
-        Ѵ<String> ext = new Ѵ("txt");
-        Ѵ<File> loc = new Ѵ(APP.DIR_APP);
+        Ѵ<String> nam = new Ѵ<>("new_file");
+        Ѵ<String> ext = new Ѵ<>("txt");
+        Ѵ<File> loc = new Ѵ<>(APP.DIR_APP);
 
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
@@ -405,14 +412,62 @@ public class Converter extends ClassController implements SongWriter {
                 writeFile(filepath, contents);
             };
         }
-        @Override public Node getNode() {
-            HBox hb = new HBox(5,ConfigField.create(Config.forProperty("File name", nam)).getNode(),
-                                 new Label("."),
-                                 ConfigField.create(Config.forProperty("Extension", ext)).getNode());
-            VBox vb = new VBox(5,hb,ConfigField.create(Config.forProperty("Location", loc)).getNode());
-            return vb;
+
+        @Override
+        public Node getNode() {
+            return layVertically(5,TOP_CENTER,
+                layHorizontally(5,CENTER_LEFT,
+                    ConfigField.create(Config.forProperty("File name", nam)).getNode(),
+                    new Label("."),
+                    ConfigField.create(Config.forProperty("Extension", ext)).getNode()
+                ),
+                ConfigField.create(Config.forProperty("Location", loc)).getNode()
+            );
         }
     }
+    class ActCreateDirs extends Act<Void> {
+        Ѵ<Boolean> use_loc = new Ѵ<>(false);
+        Ѵ<File> loc = new Ѵ<>(APP.DIR_HOME);
+
+        public ActCreateDirs() {
+            super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer)null);
+            actionImpartial = data -> {
+                Fut.fut(data.get("Names (Paths)"))
+                   .use(names -> {
+                       File dir = loc.get();
+                       names.forEach(name -> {
+                           try {
+                               File newf;
+                               if(use_loc.get()) {
+                                   name = name.startsWith(File.separator) ? name.substring(1) : name;
+                                   newf = new File(dir,filenamizeString(name));
+                               } else {
+                                   newf = new File(name);
+                               }
+                               Files.createDirectories(newf.toPath());
+                           } catch (IOException e) {
+                               log(Converter.class).info("couldnt create file/directory",e);
+                           }
+                       });
+                   })
+                   .run();
+            };
+        }
+
+        @Override
+        public Node getNode() {
+            Node n = ConfigField.create(Config.forProperty("Location", loc)).getNode();
+            use_loc.maintain(v -> n.setDisable(!v));
+            return layVertically(5,TOP_CENTER,
+                layHorizontally(5,CENTER_LEFT,
+                    new Label("In directory"),
+                    ConfigField.create(Config.forProperty("In directory", use_loc)).getNode()
+                ),
+                n
+            );
+        }
+    }
+
     class In {
         String name;
         Ta ta;

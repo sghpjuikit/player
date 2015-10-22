@@ -55,7 +55,7 @@ public class FunctionPlotter extends ClassController  {
         ConfigField c = ConfigField.create(Config.forProperty("Function", sdf));
 
         
-        StackPane la = new StackPane(new HBox(5,c.getLabel(),c.getNode()));
+        StackPane la = new StackPane(new HBox(5,c.createLabel(),c.getNode()));
         StackPane lb = new StackPane(plot);
         VBox l = new VBox(5,la,lb);
              l.setPadding(new Insets(20));

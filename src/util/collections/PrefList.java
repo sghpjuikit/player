@@ -16,12 +16,20 @@ import java.util.function.UnaryOperator;
  */
 public class PrefList<E> extends ArrayList<E> {
     private E pref;
-    
+
     /**
-     * Get preferred item. First item if no preferred is set.
-     * @return preferred item or null if no preferred is set and list empty.
+     * Get preferred item.
+     * @return preferred item or null if none
      */
     public E getPrefered() {
+        return pref;
+    }
+
+    /**
+     * Get preferred item. First item if no preferred is set.
+     * @return preferred item or first if none or null list empty
+     */
+    public E getPreferedOrFirst() {
         return pref!=null ? pref : isEmpty() ? null : get(0);
     }
 
@@ -29,7 +37,7 @@ public class PrefList<E> extends ArrayList<E> {
         pref = e;
         super.add(e);
     }
-    
+
     public void addPreferred(E e, boolean preferred) {
         if(preferred) addPreferred(e);
         else add(e);
@@ -86,5 +94,5 @@ public class PrefList<E> extends ArrayList<E> {
         }
         super.removeRange(fromIndex, toIndex);
     }
-    
+
 }

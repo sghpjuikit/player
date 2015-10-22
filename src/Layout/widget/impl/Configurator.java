@@ -142,7 +142,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
             // add to grid
             g.grid.getRowConstraints().add(new RowConstraints());
-            g.grid.add(cf.getLabel(), 0, g.grid.getRowConstraints().size()-1);
+            g.grid.add(cf.createLabel(), 0, g.grid.getRowConstraints().size()-1);
             g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size()-1);
         });
 

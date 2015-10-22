@@ -10,7 +10,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 import javax.persistence.*;
 
@@ -30,6 +29,7 @@ import static java.util.UUID.fromString;
 import static main.App.APP;
 import static util.File.FileUtil.readFileLines;
 import static util.async.Async.FX;
+import static util.async.Async.runFX;
 import static util.functional.Util.stream;
 
 /**
@@ -50,7 +50,7 @@ public class DB {
         new Fut<>()
             // load database
             .supply(DB::getAllItems)
-            .use(DB::updateMem, FX)
+            .use(DB::setInMemoryDB, FX)
             .then(() -> {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
@@ -182,7 +182,7 @@ public class DB {
         MetadataWriter.use(l,w -> w.setLibraryAddedNowIfEmpty());
 
        // update model
-        updateMemFromPer();
+        updateInMemoryDBfromPersisted();
     }
 
     public static void removeItems(Collection<? extends Metadata> items) {
@@ -194,7 +194,7 @@ public class DB {
         });
         em.getTransaction().commit();
        // update model
-        updateMemFromPer();
+        updateInMemoryDBfromPersisted();
     }
 
     public static void removeAllItems() {
@@ -208,14 +208,20 @@ public class DB {
         em.getTransaction().commit();
     }
 
-    private static void updateMem(List<Metadata> l) {
+    /**
+     * Thread safe.
+     */
+    private static void setInMemoryDB(List<Metadata> l) {
         items_byId.clear();
         items_byId.addAll(l);
-        items.i.setValue(l);
+        runFX(() -> items.i.setValue(l));
     }
 
-    public static void updateMemFromPer() {
-        updateMem(getAllItems());
+    /**
+     * Thread safe.
+     */
+    public static void updateInMemoryDBfromPersisted() {
+        setInMemoryDB(getAllItems());
     }
 
 

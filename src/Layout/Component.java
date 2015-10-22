@@ -85,6 +85,15 @@ public abstract class Component {
     abstract public Container<?> getParent();
 
     /**
+     * Equivalent to nullsafe version of: getParent().indexOf(this)
+     * @return parent.indexOf(this) or null if no parent
+     */
+    public final Integer indexInParent() {
+        Container p = getParent();
+        return p==null ? null : p.indexOf(this);
+    }
+
+    /**
      * Top level parent - root of the hierarchy.
      * <p>
      * If this component has no parent:

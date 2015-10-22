@@ -155,7 +155,7 @@ public class Util {
      * @return "" if String should be empty, otherwise does nothing..
      */
     public static String emptifyString(String str) {
-        return (shouldBeEmpty(str)) ? "" : str;
+        return shouldBeEmpty(str) ? "" : str;
     }
 
     /**
@@ -170,7 +170,7 @@ public class Util {
      * @return true if any of the above is met.
      */
     public static boolean shouldBeEmpty(String str) {
-        return str == null || str.equalsIgnoreCase("null") || str.trim().isEmpty();
+        return str == null || str.trim().isEmpty() || str.equalsIgnoreCase("null");
     }
 
     /**

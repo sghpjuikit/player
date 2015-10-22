@@ -58,6 +58,7 @@ import static util.animation.Anim.mapTo01;
 import static util.async.Async.run;
 import static util.functional.Util.minBy;
 import static util.graphics.Util.layAnchor;
+import static util.reactive.Util.maintain;
 
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.
@@ -94,9 +95,7 @@ public final class Seeker extends AnchorPane {
 
         // mouse drag
         seeker.addEventFilter(MOUSE_PRESSED, e -> {
-            if(e.getButton()==PRIMARY)
-                user_drag = true;
-
+            if(e.getButton()==PRIMARY) user_drag = true;
             e.consume();
         });
         seeker.addEventFilter(DRAG_DETECTED, e -> {
@@ -286,7 +285,7 @@ public final class Seeker extends AnchorPane {
         if (!showChapters) return;
 
         // populate
-        for (Chapter ch: m.getChapters()) {
+        for(Chapter ch: m.getChapters()) {
             Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
             getChildren().add(c);
             chapters.add(c);
@@ -306,7 +305,7 @@ public final class Seeker extends AnchorPane {
      * Default true.
      */
     public void setChaptersShowPopUp(boolean val) {
-//        popupChapters = val;
+        popupChapters = val;
     }
 
     /** Set whether chapters should be displayed on the seeker. Default true */
@@ -340,7 +339,7 @@ public final class Seeker extends AnchorPane {
 
     private ObjectProperty<Duration> timeTot = null;
     private ObjectProperty<Duration> timeCur = null;
-    private final ChangeListener timeUpdater = (o,ov,nv) -> timeUpdate();
+    private final ChangeListener<Object> timeUpdater = (o,ov,nv) -> timeUpdate();
     private final Loop timeLoop = new Loop(this::timeUpdateDo);
     private double posLast = 0;
     private long posLastFrame = 0;
@@ -503,6 +502,7 @@ public final class Seeker extends AnchorPane {
         final double position;
         final Chapter c;
         boolean just_created;
+        private final Ѵ<Boolean> isEdited = new Ѵ<>(false);
 
         StackPane content;
         Text message;
@@ -549,6 +549,8 @@ public final class Seeker extends AnchorPane {
                 content = new StackPane(message);
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 content.setPadding(new Insets(10));
+                content.addEventHandler(Event.ANY, e -> { if(isEdited.getValue()) e.consume(); });
+                content.addEventHandler(KeyEvent.ANY, Event::consume);
                 content.autosize();
                 // buttons
                 editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
@@ -589,24 +591,26 @@ public final class Seeker extends AnchorPane {
                 p = new PopOver<>(content);
                 p.getSkinn().setContentPadding(new Insets(10));
                 p.setArrowLocation(TOP_CENTER);
-                p.setAutoHide(true);
+                maintain(isEdited,v->!v,p::setAutoHide); // breaks editing >> p.setAutoHide(true);
                 p.setHideOnEscape(true);
-                p.setHideOnClick(false); // we will emulate it on our own
+                p.setHideOnClick(false); // will emulate on our own
                 p.setAutoFix(false);
                 p.setOnHidden(e -> {
-                    if(editOn) cancelEdit();
+                    if(isEdited.getValue()) cancelEdit();
                     hover.playCloseDo(just_created ? () -> Seeker.this.getChildren().remove(this) : null);
                 });
                 p.title.setValue(c.getTime().toString());
                 p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
-                content.setOnMouseClicked( e -> {
+                content.setOnMouseClicked(e -> {
                     // if info popup displayed close it and act as if content is
                     // mouse transparent to prevent any action
                     if(helpP!=null && helpP.isShowing()) {
                         helpP.hideStrong();
-                        e.consume();
                         return;
                     }
+
+                    if(isEdited.getValue()) return;
+
                     // otherwise handle click event
                     if(e.getClickCount()==1 && e.isStillSincePress())
                         // attempt to hide but wait to check if the click is not
@@ -619,12 +623,9 @@ public final class Seeker extends AnchorPane {
                         if (e.getButton()==SECONDARY) startEdit();
                         else if (e.getButton()==PRIMARY) seekTo();
                     }
-                    // consume to prevent real hide on click (just in case
-                    // even if disabled)
+                    // consume to prevent real hide on click (just in case even if disabled)
                     e.consume();
                 });
-                // consume all key events to prevent accidents
-                content.addEventHandler(KeyEvent.ANY, Event::consume);
             }
             // show if not already
             if(!p.isShowing()) p.show(this);
@@ -636,39 +637,31 @@ public final class Seeker extends AnchorPane {
             if(can_hide) p.hideStrong();
             can_hide = true;
         });
-        private boolean editOn = false;
 
 
         /** Returns whether editing is currently active. */
         public boolean isEdited() {
-            return editOn;
+            return isEdited.getValue();
         }
 
         /** Starts editable mode. */
         public void startEdit() {
-            if (!editableChapters) return;
+            if (!editableChapters || isEdited.getValue()) return;
             // start edit
-            editOn = true;
-            // create editable text area
+            isEdited.setValue(true);
             ta = new TextArea();
-            ta.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-                // maintain 'sensible' width dynamically by content
-            ChangeListener<String> resizer = (o,ov,nv) -> {
-                int len = nv==null ? 0 : nv.length();
-                ta.setPrefWidth(100+len/3);
-                ta.setPrefHeight(ta.getPrefWidth() * 0.8);
-            };
-            ta.textProperty().addListener(resizer);
-                // initialize size, resizer wont fire if the setText() below
-                // does not change text value! fire manually here
-            resizer.changed(null,null,"");
-                // set more properties
+            // resize on text change
+            maintain(ta.textProperty(), text -> {
+                int len = text==null ? 0 : text.length();
+                double w = 110 + len/3;
+                ta.setPrefWidth(w);
+                ta.setPrefHeight(0.8*w);
+            });
             ta.setWrapText(true);
             ta.setText(message.getText());
             ta.setOnKeyPressed(e -> {
-                if (e.getCode()==ENTER) {   // BUG!! the event propagates from popup to window
-                                            // and may start playing new song if selected in playlist
-                    if(e.isShiftDown()) appendToCaret(ta, "\n");    //dont use ta.appendText("\n");
+                if (e.getCode()==ENTER) {
+                    if(e.isShiftDown()) ta.insertText(ta.getCaretPosition(),"\n");
                     else commitEdit();
                     e.consume();
                 }
@@ -678,22 +671,9 @@ public final class Seeker extends AnchorPane {
                 }
             });
             // maintain proper content
+            content.getChildren().remove(message);
             content.getChildren().add(ta);
-            message.setVisible(false);
             p.getHeaderIcons().setAll(helpB,commitB,cancelB);
-        }
-
-        private void appendToCaret(TextArea a, String s) {
-            String t = a.getText();
-            int i = a.getCaretPosition();
-            if(i>=t.length())
-                a.appendText(s);
-            else {
-                String s1 = t.substring(0, i);
-                String s2 = t.substring(i, t.length());
-                a.setText(s1+s+s2);
-                // actually we should somehow move caret to i+s/length but HOW?
-            }
         }
 
         /** Ends editable mode and applies changes. */
@@ -711,10 +691,10 @@ public final class Seeker extends AnchorPane {
             }
             // maintain proper content
             content.getChildren().remove(ta);
-            message.setVisible(true);
+            content.getChildren().add(message);
             p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
             // stop edit
-            editOn = false;
+            isEdited.setValue(false);
             if(just_created) Seeker.this.getChildren().remove(this);
         }
 
@@ -724,15 +704,13 @@ public final class Seeker extends AnchorPane {
                 hidePopup();
                 chapters.remove(this);
             } else {
-                // go back & dont persist changes
-                content.getChildren().remove(ta);
-                message.setVisible(true);
                 // maintain proper content
-                p.getHeaderIcons().set(0, editB);
-                p.getHeaderIcons().remove(cancelB);
+                content.getChildren().remove(ta);
+                content.getChildren().add(message);
+                p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
             }
             // stop edit
-            editOn = false;
+            isEdited.setValue(false);
         }
 
         public void seekTo() {

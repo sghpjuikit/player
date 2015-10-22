@@ -60,6 +60,7 @@
     -fx-scale-x: 1;
     -fx-scale-y: 1;
 }
+
 // inherits: .icon
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {
@@ -70,9 +71,11 @@
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: -fx-focus-color;
-    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
     -fx-underline: false;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
 }
+.indexed-cell,
+.table-row-cell,
 .table-row-cell:played,
 .table-row-cell:played:selected {
     -fx-effect: none;

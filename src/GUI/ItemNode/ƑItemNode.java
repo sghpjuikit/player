@@ -35,13 +35,13 @@ import static util.functional.Util.*;
 public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
-    private final List<ConfigField> configs = new ArrayList();
+    private final List<ConfigField> configs = new ArrayList<>();
     private final ComboBox<PƑ<IN,OUT>> fCB;
 
     public ƑItemNode(Supplier<PrefList<PƑ<IN,OUT>>> functionPool) {
-        fCB = new ImprovedComboBox<>(f->f.name);
+        fCB = new ImprovedComboBox<>(f -> f.name);
         fCB.getItems().setAll(functionPool.get());
-        fCB.getItems().sort(byNC(f->f.name));
+        fCB.getItems().sort(byNC(f -> f.name));
         fCB.valueProperty().addListener((o,ov,nv) -> {
             configs.clear();
             paramB.getChildren().clear();
@@ -55,7 +55,7 @@ public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
             if(!configs.isEmpty()) HBox.setHgrow(configs.get(configs.size()-1).getNode(), ALWAYS);
             generateValue();
         });
-        fCB.setValue(functionPool.get().getPrefered()); // generate
+        fCB.setValue(functionPool.get().getPreferedOrFirst()); // generate
 
         root.getChildren().addAll(fCB,paramB);
     }

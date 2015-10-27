@@ -241,7 +241,7 @@ public class LibraryViewController extends FXMLController {
         });
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             if(!sel_lock)
-                sel_last = nv==null ? "null" : nv.getField().toS(nv.getValue(), "");
+                sel_last = nv==null ? "null" : VALUE.toS(nv,nv.getValue(), "");
         });
 
         // prevent volume change
@@ -359,7 +359,7 @@ public class LibraryViewController extends FXMLController {
         // restore last selected from previous session
         if(!sel_last_restored && !"null".equals(sel_last)) {
             forEachWithI(table.getItems(), (i,mg) -> {
-                if(mg.getField().toS(mg.getValue(), "").equals(sel_last)) {
+                if(VALUE.toS(mg,mg.getValue(), "").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
                     return;

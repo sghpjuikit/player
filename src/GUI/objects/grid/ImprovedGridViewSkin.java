@@ -167,9 +167,6 @@ public class ImprovedGridViewSkin<T> extends VirtualContainerBase<GridView<T>, B
      */
     @Override public int getItemCount() {
         final ObservableList<?> items = getSkinnable().getItems();
-        // Fix for #98 : int division should be cast to get the result as
-        // double and ceiled to get the max int of it (as we are looking for
-        // the max number of necessary row)
         return items == null ? 0 : (int)Math.ceil((double)items.size() / computeMaxCellsInRow());
     }
 
@@ -187,11 +184,6 @@ public class ImprovedGridViewSkin<T> extends VirtualContainerBase<GridView<T>, B
      *  @return Computed width of a row
      */
     protected double computeRowWidth() {
-        // Fix for #98 : width calculation should take the scrollbar size
-        // into account
-
-        // TODO: need to figure out how to get the real scrollbar width and
-        // replace the 18 value
         return getSkinnable().getWidth() - getVScrollbarWidth();
     }
 

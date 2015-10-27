@@ -1,8 +1,11 @@
 
 package gui.objects.Window.stage;
 
+import java.util.List;
+
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -85,9 +88,19 @@ public class WindowBase {
     public void update() {
         s.setOpacity(Window.windowOpacity.getValue());
 
-        // the order is important
         s.setWidth(WProp.get());
         s.setHeight(HProp.get());
+
+        List<Screen> scrs = Screen.getScreens();
+        Rectangle2D psb = Screen.getPrimary().getBounds();
+        double sxmin = scrs.stream().mapToDouble(s->s.getBounds().getMinX()).min().orElse(psb.getMinX());
+        double symin = scrs.stream().mapToDouble(s->s.getBounds().getMinY()).min().orElse(psb.getMinY());
+        double sxmax = scrs.stream().mapToDouble(s->s.getBounds().getMaxX()).min().orElse(psb.getMaxX());
+        double symax = scrs.stream().mapToDouble(s->s.getBounds().getMaxY()).min().orElse(psb.getMaxY());
+        if(YProp.get()<symin) YProp.setValue(symin);
+        if(YProp.get()>symax) YProp.setValue(symax);
+        if(XProp.get()<sxmin) XProp.setValue(sxmin);
+        if(XProp.get()>sxmax) XProp.setValue(sxmax);
         s.setX(XProp.get());
         s.setY(YProp.get());
 

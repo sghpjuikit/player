@@ -160,17 +160,6 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
         double xPos = 0;
         double yPos = 0;
 
-        // This has been commented out as I removed the API from GridView until
-        // a use case was created.
-//        HPos currentHorizontalAlignment = getSkinnable().gridViewProperty().get().getHorizontalAlignment();
-//        if (currentHorizontalAlignment != null) {
-//            if (currentHorizontalAlignment.equals(HPos.CENTER)) {
-//                xPos = (currentWidth % computeCellWidth()) / 2;
-//            } else if (currentHorizontalAlignment.equals(HPos.RIGHT)) {
-//                xPos = currentWidth % computeCellWidth();
-//            }
-//        }
-
         // here we alter the horizontal spacing to get rid of the gap on the right
         int columns = ((ImprovedGridViewSkin)getSkinnable().getGridView().getSkin()).computeMaxCellsInRow();
         horizontalCellSpacing = (w-columns*cellWidth)/(columns+1);

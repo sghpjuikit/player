@@ -17,10 +17,8 @@ import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -48,7 +46,6 @@ import util.Util;
 import util.animation.Anim;
 import util.dev.Dependency;
 import util.dev.TODO;
-import util.graphics.fxml.ConventionFxmlLoader;
 
 import static java.util.Collections.singletonList;
 import static javafx.scene.input.DataFormat.FILES;
@@ -290,7 +287,7 @@ public class Thumbnail extends ImageNode {
         if(i!=null) {
             Object animWrapper = getFieldValue(i, Object.class, "animation");
             animation = animWrapper==null ? null : getFieldValue(animWrapper, Timeline.class, "timeline");
-            animationPause();
+//            animationPause();
         }
     }
 

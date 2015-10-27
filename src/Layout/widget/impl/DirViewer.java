@@ -117,8 +117,8 @@ public class DirViewer extends ClassController {
             if(scrollflag) {
                 Event ne = new ScrollEvent(e.getEventType(),e.getX(),e.getY(),e.getScreenX(),e.getScreenY(),e.isShiftDown(),
                         e.isControlDown(),e.isAltDown(),e.isMetaDown(),e.isDirect(),
-                        e.isInertia(),e.getDeltaX(),e.getDeltaY()/2,e.getTextDeltaX(),e.getTextDeltaY()/2,
-                        e.getTextDeltaXUnits(),e.getTextDeltaX(),e.getTextDeltaYUnits(),e.getTextDeltaY()/2,
+                        e.isInertia(),e.getDeltaX(),e.getDeltaY()/3,e.getTextDeltaX(),e.getTextDeltaY()/3,
+                        e.getTextDeltaXUnits(),e.getTextDeltaX(),e.getTextDeltaYUnits(),e.getTextDeltaY()/3,
                         e.getTouchCount(),e.getPickResult());
                 e.consume();
                 scrollflag = false;

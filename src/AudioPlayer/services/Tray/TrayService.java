@@ -29,7 +29,7 @@ import AudioPlayer.services.Service.ServiceBase;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.GUI;
-import util.access.Ѵ;
+import util.access.V;
 
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.*;
@@ -52,9 +52,9 @@ public class TrayService extends ServiceBase {
 
     private String tooltip_text = null;
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-    public final Ѵ<Boolean> showTooltip = new Ѵ<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
+    public final V<Boolean> showTooltip = new V<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-    public final Ѵ<Boolean> showplaying_inTooltip = new Ѵ<>(true);
+    public final V<Boolean> showplaying_inTooltip = new V<>(true);
 
     private boolean running = false;
     private ObservableList<javafx.scene.control.MenuItem> menuItems;

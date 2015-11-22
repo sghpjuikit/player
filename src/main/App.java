@@ -89,6 +89,7 @@ import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.CellPane;
+import gui.pane.InfoPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
@@ -98,7 +99,7 @@ import util.File.ImageFileFormat;
 import util.InstanceInfo;
 import util.InstanceName;
 import util.access.VarEnum;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
@@ -123,6 +124,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.BRUSH;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMATION_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
@@ -192,6 +194,7 @@ public class App extends Application implements Configurable {
     public final TaskBar taskbarIcon= new TaskBar();
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
+    public final InfoPane infoPane = new InfoPane();
     public final Guide guide = new Guide();
 
     /**
@@ -231,10 +234,10 @@ public class App extends Application implements Configurable {
 
     @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value"
             + "to control some application value manually.")
-    public final Ѵ<Double> debug = new Ѵ<>(0d);
+    public final V<Double> debug = new V<>(0d);
     @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value"
             + "to control some application value manually.")
-    public final Ѵ<Boolean> debug2 = new Ѵ<>(false,taskbarIcon::setVisible);
+    public final V<Boolean> debug2 = new V<>(false,taskbarIcon::setVisible);
 
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public String TAG_NO_VALUE = "-- no assigned value --";
@@ -869,6 +872,7 @@ public class App extends Application implements Configurable {
                 }
             ),
             new FastAction<Void>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+            new FastAction<Void>(INFORMATION_OUTLINE,Action.get("Show system info")),
             new FastAction<Void>(GITHUB,Action.get("Open on github")),
             new FastAction<Void>(CSS3,Action.get("Open css guide")),
             new FastAction<Void>(IMAGE,Action.get("Open icon viewer")),
@@ -879,6 +883,11 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
     public static void showShortcuts() {
         APP.shortcutPane.show();
+    }
+
+    @IsAction(name = "Show system info", desc = "Display system information.")
+    public static void showSysInfo() {
+        APP.infoPane.show();
     }
 
 }

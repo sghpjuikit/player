@@ -23,7 +23,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.objects.Window.stage.Window;
 import main.App;
-import util.access.Ѵ;
+import util.access.V;
 
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.App.APP;
@@ -38,17 +38,17 @@ public class ClickEffect extends ServiceBase {
 
     // configuration
     @IsConfig(name = "Show click effect", info = "Show effect on click.")
-    public final Ѵ<Boolean> show_clickEffect = new Ѵ<>(true,this::applyC);
+    public final V<Boolean> show_clickEffect = new V<>(true,this::applyC);
     @IsConfig(name = "Click effect duration", info = "Duration of the click effect in milliseconds.")
-    public final Ѵ<Double> DURATION = new Ѵ<>(350d,this::apply);
+    public final V<Double> DURATION = new V<>(350d,this::apply);
     @IsConfig(name = "Click effect min", info = "Starting scale value of cursor click effect animation.")
-    public final Ѵ<Double> MIN_SCALE = new Ѵ<>(0.2d,this::apply);
+    public final V<Double> MIN_SCALE = new V<>(0.2d,this::apply);
     @IsConfig(name = "Click effect max", info = "Ending scale value of cursor click effect animation.")
-    public final Ѵ<Double> MAX_SCALE = new Ѵ<>(0.7d,this::apply);
+    public final V<Double> MAX_SCALE = new V<>(0.7d,this::apply);
     @IsConfig(name="Click effect delay", info = "Delay of the click effect in milliseconds.")
-    public final Ѵ<Double> DELAY = new Ѵ<>(0d,this::apply);
+    public final V<Double> DELAY = new V<>(0d,this::apply);
     @IsConfig(name="Blend Mode", info = "Blending mode for the effect.")
-    public final Ѵ<BlendMode> blend_mode = new Ѵ<>(BlendMode.SRC_OVER,this::apply);
+    public final V<BlendMode> blend_mode = new V<>(BlendMode.SRC_OVER,this::apply);
 
     private void applyC() {
         if(show_clickEffect.get()) Window.WINDOWS.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));

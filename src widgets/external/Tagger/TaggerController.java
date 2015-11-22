@@ -53,7 +53,7 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
-import util.access.Ѵ;
+import util.access.V;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import util.graphics.Icons;
@@ -159,11 +159,11 @@ public class TaggerController extends FXMLController implements SongWriter, Song
 
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
-    public final Ѵ<Pos> field_text_alignment = new Ѵ<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
+    public final V<Pos> field_text_alignment = new V<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final Ѵ<NodePos> popupPos = new Ѵ<>(DownCenter, MoodF::setPos);
+    public final V<NodePos> popupPos = new V<>(DownCenter, MoodF::setPos);
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
-    public final Ѵ<Boolean> allow_playcount_change = new Ѵ<>(false, v -> {
+    public final V<Boolean> allow_playcount_change = new V<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
     });
 

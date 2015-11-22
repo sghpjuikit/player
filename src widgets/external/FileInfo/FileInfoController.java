@@ -37,7 +37,7 @@ import gui.objects.image.cover.Cover.CoverSource;
 import gui.pane.ActionPane.SlowAction;
 import gui.pane.ImageFlowPane;
 import main.App;
-import util.access.Ѵ;
+import util.access.V;
 import util.async.executor.EventReducer;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
@@ -66,7 +66,7 @@ import static util.async.executor.EventReducer.toLast;
 import static util.functional.Functors.Ƒ1.f1;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 
 /**
  * File info widget controller.
@@ -133,19 +133,19 @@ public class FileInfoController extends FXMLController implements SongReader {
 
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Ѵ<Double> minColumnWidth = new Ѵ<>(150.0, tiles::layout);
+    public final V<Double> minColumnWidth = new V<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public final Ѵ<CoverSource> cover_source = new Ѵ<>(ANY, this::setCover);
+    public final V<CoverSource> cover_source = new V<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
-    public final Ѵ<OverrunStyle> overrun_style = new Ѵ<>(ELLIPSIS, this::setOverrun);
+    public final V<OverrunStyle> overrun_style = new V<>(ELLIPSIS, this::setOverrun);
     @IsConfig(name = "Show cover", info = "Show cover.")
-    public final Ѵ<Boolean> showCover = new Ѵ<>(true, layout::setImageVisible);
+    public final V<Boolean> showCover = new V<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
-    public final Ѵ<Boolean> showFields = new Ѵ<>(true, layout::setContentVisible);
+    public final V<Boolean> showFields = new V<>(true, layout::setContentVisible);
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final Ѵ<Boolean> showEmptyFields = new Ѵ<>(true, v -> update());
+    public final V<Boolean> showEmptyFields = new V<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final Ѵ<Sort> groupFields = new Ѵ<>(Sort.SEMANTIC,this::update);
+    public final V<Sort> groupFields = new V<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     // generate show {field} configs
@@ -200,7 +200,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                         f -> tagAsCover(f,true))
             );
 
-        layAnchor(root,layout,0d);
+        setAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
         layout.setGap(5);
         tiles.setPadding(new Insets(5));
@@ -366,13 +366,13 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     private class Lfield extends Label {
         final Field field;
-        final Ѵ<Boolean> visibleConfig;
+        final V<Boolean> visibleConfig;
         final String name;
         final int semantic_index;
 
         public Lfield(Field field, int i) {
             this.field = field;
-            this.visibleConfig = new Ѵ<>(true,FileInfoController.this::update);
+            this.visibleConfig = new V<>(true,FileInfoController.this::update);
             this.semantic_index = i;
 
             if(field==DISCS_TOTAL) name = "disc";

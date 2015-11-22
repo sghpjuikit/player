@@ -27,8 +27,8 @@ import Configuration.IsConfigurable;
 import action.Action;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import util.access.Ѵ;
-import util.Ɽ;
+import util.access.V;
+import util.R;
 
 import static action.Action.getActions;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
@@ -59,7 +59,7 @@ public class ShortcutPane extends OverlayPane {
     private static final String STYLECLASS_GROUP = "shortcut-pane-group-label";
 
     @IsConfig(name = HE_TITLE, info = HE_INFO)
-    public static final Ѵ<Boolean> hideEmpty = new Ѵ(true);
+    public static final V<Boolean> hideEmpty = new V(true);
 
 
     private final GridPane g = new GridPane();
@@ -108,7 +108,7 @@ public class ShortcutPane extends OverlayPane {
         g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
         // build rows
-        Ɽ<Integer> i = new Ɽ<>(-1);
+        R<Integer> i = new R<>(-1);
         getActions().stream()
                     .filter(a -> !hideEmpty.getValue() || a.hasKeysAssigned())
                     .collect(groupingBy(Action::getGroup))

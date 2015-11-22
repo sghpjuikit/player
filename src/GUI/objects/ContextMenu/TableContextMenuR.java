@@ -17,12 +17,12 @@ import javafx.scene.input.MouseEvent;
  *
  * @author Plutonium_
  */
-public class TableContextMenuⱤ<E> extends TableContextMenuMⱤ<E,TableView<E>> {
+public class TableContextMenuR<E> extends TableContextMenuMR<E,TableView<E>> {
     
-    public TableContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder) {
+    public TableContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TableView<E>> mutator) {
+    public TableContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TableView<E>> mutator) {
         super(builder, mutator);
     }
     

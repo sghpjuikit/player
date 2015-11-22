@@ -22,7 +22,7 @@ import util.graphics.Util;
 
 import static javafx.css.PseudoClass.getPseudoClass;
 import static util.functional.Util.list;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 
 /**
  * Graphical part of the container within layout.
@@ -51,7 +51,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     public final AnchorPane content_root = new AnchorPane();
     /** The root of this area. */
     public final AnchorPane root = new AnchorPane();
-    AreaControls controls;
+    public AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
     public IOPane actionpane;
@@ -66,7 +66,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         container = c;
         index = i;
 
-        layAnchor(root, content_root,0d);
+        setAnchor(root, content_root,0d);
 
         // init properties
         c.properties.initProperty(Double.class, "padding", 0d);

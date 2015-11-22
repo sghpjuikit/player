@@ -30,6 +30,8 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.TagOptionSingleton;
 import org.jaudiotagger.tag.flac.FlacTag;
+import org.jaudiotagger.tag.id3.AbstractID3Tag;
+import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
@@ -270,7 +272,7 @@ public final class Metadata extends MetaItem<Metadata> {
         if(tag!=null) {
             loadGeneralFields(tag);
             switch (getFormat()) {
-                case mp3:  loadFieldsID3((AbstractID3v2Tag)tag);                   break;
+                case mp3:  loadFieldsID3((AbstractID3Tag)tag);                     break;
                 case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag()); break;
                 case ogg:  loadFieldsVorbis((VorbisCommentTag)tag);                break;
                 case wav:  loadFieldsWAV((WavTag)tag);                             break;
@@ -435,41 +437,48 @@ public final class Metadata extends MetaItem<Metadata> {
     // PUBLISHER - Each tag handles it differently, simply read it
     // CATEGORY - Each tag handles it differently, simply read it
 
-    private void loadFieldsID3(AbstractID3v2Tag tag) {
-        // RATING + PLAYCOUNT ---------------------------------------------------
-        // we use POPM field (rating + counter + mail/user)
-        AbstractID3v2Frame frame1 = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
-        // if not present we get null and leave default values
-        if (frame1 != null) {
-            // we obtain body for the field
-            FrameBodyPOPM body1 = (FrameBodyPOPM) frame1.getBody();
-            // once again the body of the field might not be there
-            if (body1 != null) {
-                long rat = body1.getRating(); //returns null if empty
-                long cou = body1.getCounter(); //returns null if empty
+    private void loadFieldsID3(AbstractID3Tag tag) {
+        if(tag instanceof AbstractID3v1Tag) {
+            // RATING + PLAYCOUNT +PUBLISHER + CATEGORY ----------------------------
+            // id3 has no fields for this (note that when we write these fields we convert tag to
+            // ID3v2, so this only happens with untagged songs, which we dont care about
+        } else if(tag instanceof AbstractID3v2Tag) {
+            AbstractID3v2Tag t = (AbstractID3v2Tag) tag;
+            // RATING + PLAYCOUNT --------------------------------------------------
+            // we use POPM field (rating + counter + mail/user)
+            AbstractID3v2Frame frame1 = t.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+            // if not present we get null and leave default values
+            if (frame1 != null) {
+                // we obtain body for the field
+                FrameBodyPOPM body1 = (FrameBodyPOPM) frame1.getBody();
+                // once again the body of the field might not be there
+                if (body1 != null) {
+                    long rat = body1.getRating(); //returns null if empty
+                    long cou = body1.getCounter(); //returns null if empty
 
-                // i do not know why the values themselves are Long, but we only need int
-                // both for rating and playcount.
-                // all is good until the tag is actually damaged and the int can really
-                // overflow during conversion and we get ArithmeticException
-                // so we catch it and ignore the value
-                try {
-                    rating = Math.toIntExact(rat);
-                } catch (ArithmeticException e){}
+                    // i do not know why the values themselves are Long, but we only need int
+                    // both for rating and playcount.
+                    // all is good until the tag is actually damaged and the int can really
+                    // overflow during conversion and we get ArithmeticException
+                    // so we catch it and ignore the value
+                    try {
+                        rating = Math.toIntExact(rat);
+                    } catch (ArithmeticException e){}
 
-                try {
-                    int pc = Math.toIntExact(cou);
-                    if(pc>playcount) playcount = pc;
-                } catch (ArithmeticException e) {}
+                    try {
+                        int pc = Math.toIntExact(cou);
+                        if(pc>playcount) playcount = pc;
+                    } catch (ArithmeticException e) {}
+                }
             }
+            // todo: also check ID3v24Frames.FRAME_ID_PLAY_COUNTER
+
+            // PUBLISHER -----------------------------------------------------------
+            publisher = emptifyString(t.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
+
+            // CATEGORY ------------------------------------------------------------
+            // the general acquisition is good enough
         }
-        // todo: also check ID3v24Frames.FRAME_ID_PLAY_COUNTER
-
-        // PUBLISHER -----------------------------------------------------------
-        publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
-
-        // CATEGORY ------------------------------------------------------------
-        // the general acquisition is good enough
     }
 
     // wav

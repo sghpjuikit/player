@@ -37,7 +37,7 @@ import gui.InfoNode.ItemInfo;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
 import main.App;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -126,38 +126,38 @@ public class ImageViewerController extends FXMLController implements ImageDispla
 
     // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public final Ѵ<Double> thumbSize = new Ѵ<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
+    public final V<Double> thumbSize = new V<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
-    public final Ѵ<Double> thumbGap = new Ѵ<>(2d, v -> {
+    public final V<Double> thumbGap = new V<>(2d, v -> {
         thumb_pane.setHgap(v);
         thumb_pane.setVgap(v);
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public final Ѵ<Duration> slideshow_dur = new Ѵ<>(seconds(15), slideshow::setTimeoutAndRestart);
+    public final V<Duration> slideshow_dur = new V<>(seconds(15), slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public final Ѵ<Boolean> slideshow_on = new Ѵ<>(true, slideshow::setRunning);
+    public final V<Boolean> slideshow_on = new V<>(true, slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final Ѵ<Boolean> showImage = new Ѵ<>(true, mainImage.getPane()::setVisible);
+    public final V<Boolean> showImage = new V<>(true, mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Ѵ<Boolean> showThumbnails = new Ѵ<>(true, this::applyShowThumbs);
+    public final V<Boolean> showThumbnails = new V<>(true, this::applyShowThumbs);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final Ѵ<Boolean> hideThumbEager = new Ѵ<>(true, v ->
+    public final V<Boolean> hideThumbEager = new V<>(true, v ->
        root.setOnMouseExited(!v ? null : e -> {
            if(!root.contains(e.getX(), e.getY())) // make sur emouse really is out
                showThumbnails.setNapplyValue(false);
        })
     );
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
-    public final Ѵ<Boolean> showThumbEager = new Ѵ<>(false, v ->
+    public final V<Boolean> showThumbEager = new V<>(false, v ->
         root.setOnMouseEntered(!v ? null : e -> showThumbnails.setNapplyValue(true))
     );
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
-    public final Ѵ<Boolean> thums_rect = new Ѵ<>(false, v -> thumbnails.forEach(t -> {
+    public final V<Boolean> thums_rect = new V<>(false, v -> thumbnails.forEach(t -> {
         t.setBorderToImage(!v);
         t.setBackgroundVisible(v);
     }));
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
-    public final Ѵ<Boolean> theater_mode = new Ѵ<>(false, this::applyTheaterMode);
+    public final V<Boolean> theater_mode = new V<>(false, this::applyTheaterMode);
 
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
@@ -179,7 +179,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
-        layAnchor(root,mainImage.getPane(),0d);
+        setAnchor(root,mainImage.getPane(),0d);
 
         // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
@@ -200,8 +200,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
              prevP.setMinWidth(20);
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
              prevP.setBackground(bgr(Color.color(0,0,0, 0.2)));
-        layAnchor(root, prevP, 0d,null,0d,0d);
-        layAnchor(root, nextP, 0d,0d,0d,null);
+        setAnchor(root, prevP, 0d,null,0d,0d);
+        setAnchor(root, nextP, 0d,0d,0d,null);
 
         navigAnim = new Anim(millis(300), p -> {
             prevP.setOpacity(p);

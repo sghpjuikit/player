@@ -22,12 +22,12 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
     from = CONSTRUCTOR_STR, to = TO_STRING_METHOD, 
     ex = {IllegalStateException.class,IllegalArgumentException.class}
 )
-public class StrExƑ implements Ƒ1<Double,Double> {
+public class StrExF implements Ƒ1<Double,Double> {
     
     private final String ex;
     private final Expression e;
     
-    public StrExƑ(String s) {
+    public StrExF(String s) {
         try {
             ex = s;
             e = new ExpressionBuilder(s).variables("x").build();

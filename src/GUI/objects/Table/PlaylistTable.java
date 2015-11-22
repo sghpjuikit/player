@@ -29,12 +29,12 @@ import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
-import gui.objects.ContextMenu.TableContextMenuⱤ;
+import gui.objects.ContextMenu.TableContextMenuR;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
 import util.Util;
-import util.access.Ѵ;
+import util.access.V;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -72,7 +72,7 @@ import static util.reactive.Util.maintain;
 @TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
 
-    public final Ѵ<Boolean> scrollToPlaying = new Ѵ<>(true);
+    public final V<Boolean> scrollToPlaying = new V<>(true);
     private final TableColumn<PlaylistItem,String> columnName;
     private final TableColumn<PlaylistItem,FormattedDuration> columnTime;
 
@@ -350,7 +350,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
 /****************************** CONTEXT MENU **********************************/
 
-    private static final TableContextMenuⱤ<PlaylistItem> contxt_menu = new TableContextMenuⱤ<> (
+    private static final TableContextMenuR<PlaylistItem> contxt_menu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {

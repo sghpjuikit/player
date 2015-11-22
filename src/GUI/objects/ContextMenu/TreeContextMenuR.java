@@ -12,18 +12,18 @@ import java.util.function.Supplier;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 
-import util.SingleⱤ;
+import util.SingleR;
 
 /**
  *
  * @author Plutonium_
  */
-public class TreeContextMenuⱤ<E> extends SingleⱤ<ImprovedContextMenu<List<E>>,TreeView<E>> {
+public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,TreeView<E>> {
     
-    public TreeContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder) {
+    public TreeContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TreeContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TreeView<E>> mutator) {
+    public TreeContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TreeView<E>> mutator) {
         super(builder, mutator);
     }
     

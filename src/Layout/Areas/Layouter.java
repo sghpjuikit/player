@@ -30,7 +30,7 @@ import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.functional.Util.isInR;
 import static util.functional.Util.stream;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
 
@@ -77,7 +77,7 @@ public final class Layouter implements ContainerNode {
         cp.itemSupply = () -> stream("Split Vertically", "Split Horizontally",
                                         "Widget", "FreeForm"); // , "Tabs"
         cp.buildContent();
-        layAnchor(root, cp.root,0d);
+        setAnchor(root, cp.root,0d);
 
         Interpolator i = new CircularInterpolator(EASE_OUT);
         a1 = new FadeTransition(ANIM_DUR, cp.root);

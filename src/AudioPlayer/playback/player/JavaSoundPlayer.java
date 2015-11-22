@@ -17,6 +17,7 @@ import AudioPlayer.playback.player.xtrememp.audio.PlayerException;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
 import static javafx.util.Duration.millis;
+import static util.async.Async.runFX;
 import static util.async.Async.runLater;
 
 /**
@@ -24,10 +25,10 @@ import static util.async.Async.runLater;
  * @author Plutonium_
  */
 public class JavaSoundPlayer implements Play {
-    
+
     private final AudioPlayer p = new AudioPlayer();
     private double seeked = 0;
-    
+
     public JavaSoundPlayer() {
         p.addPlaybackListener(new PlaybackListener() {
 
@@ -55,10 +56,10 @@ public class JavaSoundPlayer implements Play {
                     });
                 }
             }
-            
+
             // state changes, impl detail is whether we update playback status
             // here (when takes effect) or below (when it is invoked)
-            
+
             @Override public void playbackPlaying(PlaybackEvent pe) {
                 if (PLAYBACK.startTime!=null) {
                     seek(PLAYBACK.startTime);
@@ -76,30 +77,39 @@ public class JavaSoundPlayer implements Play {
             @Override public void playbackStopped(PlaybackEvent pe) {}
         });
     }
-    
+
     @Override
-    public void createPlayback(Item item, PlaybackState state){
-        try {
-            p.open(item.getFile());
-            p.setVolume(PLAYBACK.state.volume.get());
-            p.setMute(PLAYBACK.state.mute.get());
-            p.setBalance(PLAYBACK.state.balance.get());
-            PLAYBACK.state.volume.addListener((o,ov,nv) -> p.setVolume(nv.doubleValue()));
-            PLAYBACK.state.mute.addListener((o,ov,nv) -> p.setMute(nv));
-            PLAYBACK.state.balance.addListener((o,ov,nv) -> p.setBalance(nv.doubleValue()));
-            
-            
-            Status s = state.status.get();
-            if(PLAYBACK.startTime!=null) {
-                if (s == PLAYING) p.play();
-                else if (s == PAUSED) p.pause();
+    public void createPlayback(Item item, PlaybackState state, Runnable after){
+        Player.IO_THREAD.execute( () -> {
+            try {
+                p.open(item.getFile());
+                p.setVolume(state.volume.get());
+                p.setMute(state.mute.get());
+                p.setBalance(state.balance.get());
+                runFX(() -> {
+                    try {
+                        state.volume.addListener((o,ov,nv) -> p.setVolume(nv.doubleValue()));
+                        state.mute.addListener((o,ov,nv) -> p.setMute(nv));
+                        state.balance.addListener((o,ov,nv) -> p.setBalance(nv.doubleValue()));
+
+
+                        Status s = state.status.get();
+                        if(PLAYBACK.startTime!=null) {
+                            if (s == PLAYING) p.play();
+                            else if (s == PAUSED) p.pause();
+                        }
+
+                        after.run();
+                    } catch (PlayerException ex) {
+                        Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                });
+            } catch (PlayerException ex) {
+                Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-        } catch (PlayerException ex) {
-            Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        });
     }
-    
+
     @Override
     public void dispose() {
         p.stop();
@@ -108,12 +118,13 @@ public class JavaSoundPlayer implements Play {
     @Override
     public void play() {
         seeked = 0;
-        try {
-            p.play();
-        } catch (PlayerException ex) {
-            Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        Player.IO_THREAD.execute( () -> {
+            try {
+                p.play();
+            } catch (PlayerException ex) {
+                Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         PLAYBACK.state.status.set(PLAYING);
     }
 

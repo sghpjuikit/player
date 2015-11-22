@@ -39,7 +39,7 @@ import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -57,7 +57,7 @@ import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.Async.runFX;
 import static util.async.Async.runLater;
 import static util.functional.Util.*;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 
 /**
  *
@@ -83,7 +83,7 @@ public class DirViewer extends ClassController {
             + "visit parent of this directory.")
     final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final Ѵ<FFilter> filter = new Ѵ<>(FFilter.ALL, f -> visitDir(new TopItem()));
+    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visitDir(new TopItem()));
 
     Item item = null;   // item, children of which are displayed
     ImprovedGridView<Item> grid = new ImprovedGridView<>();
@@ -99,7 +99,7 @@ public class DirViewer extends ClassController {
         grid.setVerticalCellSpacing(5);
         grid.setHorizontalCellSpacing(5);
         grid.setCellFactory(grid -> new Cell());
-        layAnchor(this,grid,0d);
+        setAnchor(this,grid,0d);
 
         // delay cell loading when content is being resized (increases resize performance)
         FxTimer resizeTimer = new FxTimer(200, 1, () -> {

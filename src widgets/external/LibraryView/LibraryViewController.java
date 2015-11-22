@@ -32,7 +32,7 @@ import Layout.widget.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.ContextMenu.TableContextMenuMⱤ;
+import gui.objects.ContextMenu.TableContextMenuMR;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
@@ -42,7 +42,7 @@ import main.App;
 import util.File.Environment;
 import util.access.FieldValue.ObjectField.ColumnField;
 import util.access.VarEnum;
-import util.access.Ѵo;
+import util.access.Vo;
 import util.async.executor.ExecuteN;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -112,15 +112,15 @@ public class LibraryViewController extends FXMLController {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Ѵo<Boolean> zeropad = new Ѵo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Ѵo<Boolean> orig_index = new Ѵo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Ѵo<Boolean> show_header = new Ѵo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Ѵo<Boolean> show_footer = new Ѵo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
@@ -302,8 +302,8 @@ public class LibraryViewController extends FXMLController {
                         selectionStore();
                         table.setItemsRaw(mgs);
                         selectionReStore();
-                    }
                     out_sel_met.setValue(fl);
+                    }
                 });
             })
             .run();
@@ -314,7 +314,11 @@ public class LibraryViewController extends FXMLController {
 
         // bug fix, without this line, which does exactly nothing,
         // mgs list contains nulls sometimes (no idea why)
-        table.getSelectedItems().stream().map(m->"").collect(toCSList);
+        //
+        // how to reproduce bug:
+        // select two records in a table
+        // then select only one of them -> bam! null!
+        table.getSelectedItems().stream().map(m->null).collect(() -> null, (a,b) -> {},(a,b) -> {});
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
@@ -384,7 +388,7 @@ public class LibraryViewController extends FXMLController {
 /******************************** CONTEXT MENU ********************************/
 
     private static Menu searchMenu;
-    private static final TableContextMenuMⱤ<Metadata, LibraryViewController> contxt_menu = new TableContextMenuMⱤ<>(
+    private static final TableContextMenuMR<Metadata, LibraryViewController> contxt_menu = new TableContextMenuMR<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             MenuItem[] is = menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),

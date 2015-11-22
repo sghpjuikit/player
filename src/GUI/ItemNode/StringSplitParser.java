@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
 import static util.functional.Util.forEachBoth;
 import static util.functional.Util.repeat;
 
@@ -19,7 +20,7 @@ import static util.functional.Util.repeat;
  * <p>
  * Defined by parsing expression, e.g. "%first% - %second%". The 'first'
  * and 'second' are parse keys and the ' - ' is delimiter. There can be any
- * number of parse keys (and delimiters). 
+ * number of parse keys (and delimiters).
  * <p>
  * The parsing expression must:
  * <ul>
@@ -30,21 +31,21 @@ import static util.functional.Util.repeat;
  * </ul>
  * <p>
  * Te output list is always of the
- * same size as number of parsing keys (e.g. "%one% - %two%" will produce 
+ * same size as number of parsing keys (e.g. "%one% - %two%" will produce
  * list of size 2). If the text parsing failed at any point, the remaining
  * strings will be null. Parsing fails when the delimiter can not be found in
  * the parsed text.
  * <p>
- * For example parsing expression '%one%:%two%,%three%' will split string 
- * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string 
- * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is 
+ * For example parsing expression '%one%:%two%,%three%' will split string
+ * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string
+ * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is
  * not present.
- * 
+ *
  * @author Plutonium_
  */
 public class StringSplitParser implements Function<String, List<String>> {
     public static final char PARRSE_KEY_LIMITER = '%';
-    
+
     public final String pex;
     public final List<String> parse_keys = new ArrayList();
     public final List<String> key_separators = new ArrayList();
@@ -55,7 +56,7 @@ public class StringSplitParser implements Function<String, List<String>> {
      */
     public StringSplitParser(String expression) {
         this.pex = expression;
-        
+
         int limiter = 0;
         String key = "";
         String sep = "";
@@ -81,7 +82,7 @@ public class StringSplitParser implements Function<String, List<String>> {
         if(limiter==1) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
         if(parse_keys.isEmpty()) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
     }
-    
+
     /**
      * Parses text into parts.
      * @param text text to parse
@@ -105,8 +106,8 @@ public class StringSplitParser implements Function<String, List<String>> {
             out.add(text);  //add last value (N values, N-1 separators)
         return out;
     }
-    
-    /** 
+
+    /**
      * Same as {@link #apply(java.lang.String)}, but returns the keys too.
      * @param text text to parse
      * @throws IllegalArgumentException if text parsing fails
@@ -122,7 +123,7 @@ public class StringSplitParser implements Function<String, List<String>> {
     public String toString() {
         return pex;
     }
-    
+
     public static class Split {
         public String parse_key;
         public String split;

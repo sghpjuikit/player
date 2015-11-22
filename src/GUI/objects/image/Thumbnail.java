@@ -41,7 +41,7 @@ import gui.objects.image.cover.Cover;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
-import util.SingleⱤ;
+import util.SingleR;
 import util.Util;
 import util.animation.Anim;
 import util.dev.Dependency;
@@ -56,6 +56,7 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static util.File.Environment.copyToSysClipboard;
 import static util.Util.getFieldValue;
 import static util.Util.menuItem;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -544,7 +545,7 @@ public class Thumbnail extends ImageNode {
 
 /******************************************************************************/
 
-    private static final SingleⱤ<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleⱤ<>(
+    private static final SingleR<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleR<>(
         () -> {
             ImprovedContextMenu<Image> m = new ImprovedContextMenu<>();
             m.getItems().addAll(
@@ -557,13 +558,7 @@ public class Thumbnail extends ImageNode {
                     File f = fc.showSaveDialog(APP.windowOwner.getStage());
                     FileUtil.writeImage(m.getValue(), f);
                 }),
-                menuItem("Copy the image to clipboard", e -> {
-                    if (m.getValue()==null) return;
-                    Clipboard clipboard = Clipboard.getSystemClipboard();
-                    ClipboardContent content = new ClipboardContent();
-                                     content.putImage(m.getValue());
-                    clipboard.setContent(content);
-                })
+                menuItem("Copy the image to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE,m.getValue()))
             );
             return m;
         },
@@ -574,7 +569,7 @@ public class Thumbnail extends ImageNode {
         }
     );
 
-    private static final SingleⱤ<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleⱤ<>(
+    private static final SingleR<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleR<>(
         () -> {
             ImprovedContextMenu<Thumbnail> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Browse location", e ->

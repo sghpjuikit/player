@@ -12,7 +12,7 @@ import Configuration.CachedConfigurable;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
-import util.access.Ѵ;
+import util.access.V;
 
 /**
  *
@@ -30,10 +30,10 @@ public interface Service extends Configurable {
         private final HashMap<String,Config<Object>> configs = new HashMap<>();
         
         @IsConfig(name = "Enabled", info = "Starts or stops the service")
-        private final Ѵ<Boolean> enabled;
+        private final V<Boolean> enabled;
         
         public ServiceBase(boolean isEnabled) {
-             enabled = new Ѵ<>(isEnabled, this::enable);
+             enabled = new V<>(isEnabled, this::enable);
         }
         
         private void enable(boolean isToBeRunning) {

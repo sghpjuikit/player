@@ -78,7 +78,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     private static final Tooltip negTooltip = new Tooltip("Negate");
 
     private final ComboBox<Tuple3<String,Class,F>> typeCB = new ImprovedComboBox<>(t -> t._1);
-    private ƑItemNode<Object,Boolean> config;
+    private FItemNode<Object,Boolean> config;
     private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
     private final HBox root = new HBox(5,negB,typeCB);
 
@@ -94,7 +94,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
         typeCB.setVisibleRowCount(25);
         typeCB.valueProperty().addListener((o,ov,nv) -> {
             if(config!=null) root.getChildren().remove(config.getNode());
-            config = new ƑItemNode(() -> pPool.call(nv._2));
+            config = new FItemNode(() -> pPool.call(nv._2));
             root.getChildren().add(config.getNode());
             HBox.setHgrow(config.getNode(), ALWAYS);
             config.onItemChange = v -> generatePredicate();

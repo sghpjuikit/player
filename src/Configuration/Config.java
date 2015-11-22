@@ -21,8 +21,8 @@ import util.Util;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
-import util.access.Ѵ;
-import util.access.Ѵo;
+import util.access.V;
+import util.access.Vo;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
@@ -53,11 +53,11 @@ import static util.functional.Util.*;
  * Because config is convertible from String and back it also provides convert
  * methods and implements {@link StrinParser}.
  *
- * @param <V> type of value of this config
+ * @param <T> type of value of this config
  *
  * @author uranium
  */
-public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, StringConverter<V>, TypedValue<V>, EnumerableValue<V> {
+public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringConverter<T>, TypedValue<T>, EnumerableValue<T> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -76,11 +76,11 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * </pre>
      */
     @Override
-    public abstract V getValue();
+    public abstract T getValue();
 
     /** {@inheritDoc} */
     @Override
-    public abstract void setValue(V val);
+    public abstract void setValue(T val);
 
     /**
      * {@inheritDoc}
@@ -89,7 +89,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * potentially better performing.
      */
     @Override
-    abstract public Class<V> getType();
+    abstract public Class<T> getType();
 
     /**
      * Alternative name of this config. Intended to be human readable and
@@ -148,7 +148,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * contained.
      * @return default value. Never null.
      */
-    abstract public V getDefaultValue();
+    abstract public T getDefaultValue();
 
     public void setDefaultValue() {
         setValue(getDefaultValue());
@@ -174,7 +174,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * @param str
      */
     public void setValueS(String str) {
-        V v = fromS(str);
+        T v = fromS(str);
         if(v!=null) setValue(v);
     }
 
@@ -185,7 +185,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * {@inheritDoc}
      */
     @Override
-    public String toS(V v) {
+    public String toS(T v) {
         return Parser.toS(v);
     }
 
@@ -196,7 +196,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * {@inheritDoc}
      */
     @Override
-    public V fromS(String str) {
+    public T fromS(String str) {
         if(isTypeEnumerable()) {
             // 1 Notice we are traversing all enumarated values to look up the one which we want to
             //   deserialize.
@@ -212,7 +212,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             //   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
             //   by having OverridableConfig provide its own implementation, but I dont want to
             //   spread problematic code such as this around. Not till 1 gets fixed up.
-            for(V v : enumerateValues())
+            for(T v : enumerateValues())
                 if(Parser.toS(v).equalsIgnoreCase(str)) return v;
 
             log(this).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
@@ -224,7 +224,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
 /*************************** configurable methods *****************************/
 
-    Supplier<Collection<V>> valueEnumerator;
+    Supplier<Collection<T>> valueEnumerator;
     private boolean init = false;
 
     public boolean isTypeEnumerable() {
@@ -236,7 +236,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     }
 
     @Override
-    public Collection<V> enumerateValues() {
+    public Collection<T> enumerateValues() {
         if(isTypeEnumerable()) return valueEnumerator.get();
         throw new RuntimeException(getType() + " not enumerable.");
     }
@@ -261,7 +261,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * @throws IllegalArgumentException if name doent equal name of this config.
      */
     @Override
-    public final Config<V> getField(String name) {
+    public final Config<T> getField(String name) {
         if(!name.equals(getName())) throw new IllegalArgumentException("Name mismatch");
         else return this;
     }
@@ -277,7 +277,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * @return
      */
     @Override
-    public final List<Config<V>> getFields() {
+    public final List<Config<T>> getFields() {
         return Collections.singletonList(this);
     }
 
@@ -301,12 +301,12 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         noØ(value, "Config can not be created for null");
         if(value instanceof Config ||
            value instanceof VarList ||
-           value instanceof Ѵo ||
+           value instanceof Vo ||
            value instanceof WritableValue ||
            value instanceof ReadOnlyProperty)
             throw new RuntimeException("Value " + value + "is a property and can"
                     + "not be turned into Config as value.");
-        return forProperty(name, new Ѵ<>(value));
+        return forProperty(name, new V<>(value));
     }
 
     /**
@@ -333,8 +333,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             return (Config<T>)property;
         if(property instanceof VarList)
             return new ListConfig(name,(VarList)property);
-        if(property instanceof Ѵo)
-            return new OverridablePropertyConfig<>(name,(Ѵo<T>)property);
+        if(property instanceof Vo)
+            return new OverridablePropertyConfig<>(name,(Vo<T>)property);
         if(property instanceof WritableValue)
             return new PropertyConfig<>(name,(WritableValue<T>)property);
         if(property instanceof ReadOnlyProperty)
@@ -663,25 +663,25 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public static class OverridablePropertyConfig<T> extends PropertyConfig<T> {
         private final boolean defaultOverride_value;
 
-        public OverridablePropertyConfig(String _name, IsConfig c, Ѵo<T> property, String category) {
+        public OverridablePropertyConfig(String _name, IsConfig c, Vo<T> property, String category) {
             super(_name, c, property, category);
             util.Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
-        public OverridablePropertyConfig(String name, Ѵo<T> property) {
+        public OverridablePropertyConfig(String name, Vo<T> property) {
             this(name, name, property, "", "", true, Double.NaN, Double.NaN);
         }
-        public OverridablePropertyConfig(String name, Ѵo<T> property, String info) {
+        public OverridablePropertyConfig(String name, Vo<T> property, String info) {
             this(name, name, property, "", info, true, Double.NaN, Double.NaN);
         }
-        public OverridablePropertyConfig(String name, String gui_name, Ѵo<T> property, String category, String info, boolean editable, double min, double max) {
+        public OverridablePropertyConfig(String name, String gui_name, Vo<T> property, String category, String info, boolean editable, double min, double max) {
             super(name, gui_name, property, category, info, editable, min, max);
             util.Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
 
-        public Ѵo<T> getProperty() {
-            return (Ѵo)value;
+        public Vo<T> getProperty() {
+            return (Vo)value;
         }
 
         public boolean getDefaultOverrideValue() {
@@ -725,7 +725,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
          */
         @Override
         public String toS(T v) {
-            return "overrides:"+((Ѵo)value).override.getValue() + ", " + ((Ѵo)value).real.getValue();
+            return "overrides:"+((Vo)value).override.getValue() + ", " + ((Vo)value).real.getValue();
         }
 
         /**
@@ -843,7 +843,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
     }
 
-    public static class VarList<T> extends Ѵ<ObservableList<T>> {
+    public static class VarList<T> extends V<ObservableList<T>> {
         public final ObservableList<T> list;
         public final Supplier<T> factory;
         public final Ƒ1<T,Configurable<?>> toConfigurable;

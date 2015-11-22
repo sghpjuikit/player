@@ -246,7 +246,7 @@ public final class MetadataGroup {
                 if(v.yearmin==v.yearmax)
                     return (v.yearexistsunknown ? "? " : "") + Year.of(v.yearmin);
                 else {
-                    String delimiter = v.yearexistsunknown ? " -? " : " - ";
+                    String delimiter = v.yearexistsunknown ? " ? " : " - ";
                     return Year.of(v.yearmin) + delimiter + Year.of(v.yearmax);
                 }
             } else {
@@ -265,7 +265,7 @@ public final class MetadataGroup {
         }
 
     }
-    
+
     @util.dev.TODO(note = "this may need some work")
     private static Object getAllValue(Metadata.Field f) {
         return f.isTypeString() ? "" : null;

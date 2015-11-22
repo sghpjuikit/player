@@ -109,7 +109,7 @@ public class WindowBase {
         setMaximized(Maximized.NONE);
         setMaximized(m);
 
-        // setFullscreen(FullProp.get())  produces a bug probably because the
+        // setFullscreen(FullProp.get()) produces a bug probably because the
         // window is not yet ready. Delay execution. Avoid the whole process
         // when the value is not true
         if(FullProp.get()) run(322, ()->setFullscreen(true));

@@ -3859,7 +3859,7 @@
 
 // Overlay displaying shortcuts and their keys
 // inherits: .overlay-pane
-shortcut-pane{
+.shortcut-pane{
     
 }
 // Group title label for shortcut group
@@ -3867,7 +3867,17 @@ shortcut-pane{
 .shortcut-pane-group-label {
     -fx-font-weight: bold;
 }
+
+// Overlay displaying system properties
+// inherits: .overlay-pane
+.info-pane{
     
+}
+// Group title label for shortcut group
+// inherits: .label
+.info-pane-group-label {
+    -fx-font-weight: bold;
+}
     
 
 .node:configselected {
@@ -3895,4 +3905,11 @@ shortcut-pane{
 // inherits: .text
 .guide-text {
     -fx-font-weight: bold;
+}
+
+
+
+.comet-bgr {
+/*    -fx-background-image: url("cometbgr.jpg");
+    -fx-background-size: stretch;*/
 }

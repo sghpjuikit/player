@@ -55,7 +55,7 @@ public class ItemInfo extends AnchorPane implements SongReader {
         }
 
     }
-    
+
     @Override
     public void read(List<? extends Item> items) {
         read(items.isEmpty() ? null : items.get(0));
@@ -65,7 +65,7 @@ public class ItemInfo extends AnchorPane implements SongReader {
     public void read(Item m) {
         setValue("", m.toMeta());
     }
-    
+
     /**
      Displays metadata information and title.
      <p>
@@ -77,7 +77,7 @@ public class ItemInfo extends AnchorPane implements SongReader {
 	typeL.setText(title);
 	if (thumb != null) thumb.loadImage(m.getCover(ANY));
 	indexL.setText(m.getPlaylistIndexInfo());
-	songL.setText(m.getTitle());
+	songL.setText(m.getTitle().isEmpty() ? (m.isFileBased() ? m.getFilename() : m.getPath()) : m.getTitle());
 	artistL.setText(m.getArtist());
 	albumL.setText(m.getAlbum());
     }

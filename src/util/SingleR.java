@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  *
  * @author Plutonium_
  */
-public class SingleⱤ<T,M> extends Ɽ<T> {
+public class SingleR<T,M> extends R<T> {
 
     private final Supplier<T> builder;
     private final BiConsumer<T,M> mutator;
@@ -32,7 +32,7 @@ public class SingleⱤ<T,M> extends Ɽ<T> {
      *
      * @param builder produces the instance when it is requested.
      */
-    public SingleⱤ(Supplier<T> builder) {
+    public SingleR(Supplier<T> builder) {
         this(builder, null);
     }
 
@@ -42,7 +42,7 @@ public class SingleⱤ<T,M> extends Ɽ<T> {
      * @param mutator mutates instance's state for certain dependency object. use
      * null if no mutation is desired.
      */
-    public SingleⱤ(Supplier<T> builder, BiConsumer<T,M> mutator) {
+    public SingleR(Supplier<T> builder, BiConsumer<T,M> mutator) {
         Objects.requireNonNull(builder);
 
         this.builder = builder;

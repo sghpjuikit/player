@@ -22,7 +22,7 @@ import Layout.widget.feature.ConfiguringFeature;
 import action.Action;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
-import util.access.Ѵ;
+import util.access.V;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -63,11 +63,11 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
     // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final Ѵ<HPos> alignemnt = new Ѵ<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
+    public final V<HPos> alignemnt = new V<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
     public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(CENTER);
     @IsConfig(editable = false)
-    public final Ѵ<String> expanded = new Ѵ<>("", v -> {
+    public final V<String> expanded = new V<>("", v -> {
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });

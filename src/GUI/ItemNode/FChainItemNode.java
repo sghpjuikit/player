@@ -50,7 +50,7 @@ import static util.functional.Util.IDENTITY;
  *
  * @author Plutonium_
  */
-public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNode<Object,Object>> {
+public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<Object,Object>> {
 
     private final Function<Class,PrefList<PƑ<Object,Object>>> fp;
     private Class type_in = Void.class;
@@ -58,20 +58,20 @@ public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNod
     private NullOut handleNullOut = NullOut.NULL;
 
     /** Creates unlimited chain starting with Void.class. */
-    public ƑChainItemNode(Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+    public FChainItemNode(Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
         this(Void.class, Integer.MAX_VALUE, functionPool);
     }
     /** Creates unlimited chain starting with specified type. */
-    public ƑChainItemNode(Class in, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+    public FChainItemNode(Class in, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
         this(in, Integer.MAX_VALUE, functionPool);
     }
 
     /** Creates limited chain starting with specified type. */
-    public ƑChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+    public FChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
 //        super(len, max_len, () -> new ƑItemNode(functionPool));
 //        homogeneous = false;
         fp = functionPool;
-        chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
+        chainedFactory = () -> new FItemNode<>(() -> fp.apply(getTypeOut()));
         isHomogeneous = (i,f) -> {
             // Link is homogeneous if removing the function poses no problem.
             // For function f this is when previous function return type is same as next function

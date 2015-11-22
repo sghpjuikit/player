@@ -26,7 +26,7 @@ import Configuration.Config.ReadOnlyPropertyConfig;
 import Configuration.Config.VarList;
 import action.Action;
 import util.File.FileUtil;
-import util.access.Ѵo;
+import util.access.Vo;
 import util.collections.mapset.MapSet;
 
 import static util.Util.getAllFields;
@@ -227,8 +227,8 @@ public class Configuration {
             f.setAccessible(true);      // make sure the field is accessible
             if(VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig(name, anotation, (VarList)f.get(instance), group);
-            if(Ѵo.class.isAssignableFrom(f.getType()))
-                return new OverridablePropertyConfig(name, anotation, (Ѵo)f.get(instance), group);
+            if(Vo.class.isAssignableFrom(f.getType()))
+                return new OverridablePropertyConfig(name, anotation, (Vo)f.get(instance), group);
             if(WritableValue.class.isAssignableFrom(f.getType()))
                 return new PropertyConfig(name, anotation, (WritableValue)f.get(instance), group);
             if(ReadOnlyProperty.class.isAssignableFrom(f.getType()))

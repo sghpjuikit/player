@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javafx.util.Callback;
 
@@ -28,7 +27,7 @@ import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
-import util.access.Ѵ;
+import util.access.V;
 import util.collections.PrefList;
 import util.collections.map.PrefListMap;
 import util.units.Bitrate;
@@ -40,6 +39,7 @@ import static java.lang.Integer.min;
 import static java.lang.Math.max;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toCollection;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
@@ -374,9 +374,9 @@ public class Functors {
      * Consumer version of {@link Ƒ1E}, so lambda expression does not need to return void (null)
      * at the end
      */
-    // this class is ~pointless, yes we dont have to return null in lambda as with F1E, but
-    // thats only possible if some method takes parameter of this class. which will prevent
-    // other F1E from being used
+    // this class is ~pointless, although now lambda doenst have to return null like in case of F1E,
+    // but now the some method takes parameter of this class. Which will prevent
+    // other F1E from being used!
     public static interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
 
         @Override
@@ -566,11 +566,11 @@ public class Functors {
         add("Remove all (regex)",   String.class,String.class, (t,r) -> r.matcher(t).replaceAll(""), Pattern.class, Pattern.compile(""));
         add("Text",         String.class,String.class, (t,r) -> r, String.class,"");
         add("Add text",     String.class,String.class, (t,a,d) -> d==FROM_START ? a+t : t+a, String.class, StringDirection.class,"",FROM_START);
-        add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(min(i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
-        add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(min(i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
+        add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(clip(0,i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
+        add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(clip(0,t.length()-i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
         add("Trim",         String.class,String.class, (t) -> t.trim());
         add("Split",        String.class,SplitData.class, (t,splitter) ->
-                splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(Collectors.toCollection(SplitData::new))
+                splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(toCollection(SplitData::new))
             , StringSplitParser.class,new StringSplitParser("%all%"));
         add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
                 Map<String,String> splits = spliter.applyM(t);
@@ -586,23 +586,6 @@ public class Functors {
                     o.append(splits.get(keys.get(keys.size()-1)));
                 return o.toString();
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
-
-        add("Name",       File.class,String.class, FileUtil::getName);
-        add("Suffix",     File.class,String.class, FileUtil::getSuffix);
-        add("Name.Suffix",File.class,String.class, File::getName);
-        add("Path",       File.class,String.class, File::getAbsolutePath);
-        add("Size",       File.class,FileSize.class, FileSize::new);
-
-        // fielded values
-        for(Metadata.Field f : Metadata.Field.values())
-            add(f.name(), Metadata.class, f.getType(), m -> f.getOf(m));
-        for(Metadata.Field f : Metadata.Field.values())
-            add("Has " + f.name(), Metadata.class, Boolean.class, m -> f.isFieldEmpty(m));
-        for(PlaylistItem.Field f : PlaylistItem.Field.values())
-            add(f.name(), PlaylistItem.class, f.getType(), m -> f.getOf(m));
-        for(MetadataGroup.Field f : MetadataGroup.Field.values())
-            add(f.name(), MetadataGroup.class, f.getType(), m -> f.getOf(m));
-
         add("Is",                   String.class,Boolean.class, (text,b) -> text.equals(b), String.class,"");
         add("Contains",             String.class,Boolean.class, (text,b) -> text.contains(b), String.class,"");
         add("Ends with",            String.class,Boolean.class, (text,b) -> text.endsWith(b), String.class,"");
@@ -625,6 +608,8 @@ public class Functors {
         add("Less",             String.class,Boolean.class,(x,y) -> x.compareTo(y)<0, String.class,"");
         // add("Not more",         String.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, String.class,"");
         // add("Not less",         String.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, String.class,"");
+        add("Char at",      String.class,Character.class,(x,i,dir) -> i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length()-1-i), Integer.class,StringDirection.class,0,FROM_START);
+        add("Length",       String.class,Integer.class,(x) -> x.length());
         add("Length >",     String.class,Boolean.class,(x,l) -> x.length()>l, Integer.class,0);
         add("Length <",     String.class,Boolean.class,(x,l) -> x.length()<l, Integer.class,0);
         // add("Not longer than",  String.class,Boolean.class,(x,l) -> x.length()<=l, Integer.class,0);
@@ -632,6 +617,14 @@ public class Functors {
         add("Length =",     String.class,Boolean.class,(x,l) -> x.length()==l, Integer.class,0);
         add("Is empty",         String.class,Boolean.class, x -> x.isEmpty());
         add("Is palindrome",    String.class,Boolean.class, x -> isNonEmptyPalindrome(x));
+
+        add("to ASCII",    Character.class,Integer.class, x -> (int)x);
+
+        add("Name",       File.class,String.class, FileUtil::getName, true,true,true);
+        add("Suffix",     File.class,String.class, FileUtil::getSuffix);
+        add("Name.Suffix",File.class,String.class, File::getName);
+        add("Path",       File.class,String.class, File::getAbsolutePath);
+        add("Size",       File.class,FileSize.class, FileSize::new);
 
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
@@ -689,6 +682,14 @@ public class Functors {
         addPredicatesComparable(Long.class, 0l);
         addPredicatesComparable(Double.class, 0d);
         addPredicatesComparable(Float.class, 0f);
+
+        // fielded values
+        for(Metadata.Field f : Metadata.Field.values())
+            add(f.name(), Metadata.class, f.getType(), m -> f.getOf(m));
+        for(PlaylistItem.Field f : PlaylistItem.Field.values())
+            add(f.name(), PlaylistItem.class, f.getType(), m -> f.getOf(m));
+        for(MetadataGroup.Field f : MetadataGroup.Field.values())
+            add(f.name(), MetadataGroup.class, f.getType(), m -> f.getOf(m));
     }
 
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
@@ -984,7 +985,7 @@ public class Functors {
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(),p->{
-                Ѵ a = new Ѵ(p.defaultValue);
+                V a = new V(p.defaultValue);
                 return new AccessorConfig("",a::setValue,a::getValue);
             }));
         }

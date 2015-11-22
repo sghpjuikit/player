@@ -44,7 +44,7 @@ import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;
 import util.Util;
 import util.access.FieldValue.ObjectField;
-import util.access.Ѵ;
+import util.access.V;
 import util.async.executor.FxTimer;
 import util.collections.Tuple3;
 import util.functional.Functors;
@@ -421,7 +421,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
     private static Duration scrolFautocancelTime = millis(3000);
     @IsConfig(name = "Search algorithm", info = "Algorithm for string matching.")
-    private static final  Ѵ<Search> searchAlg = new Ѵ<>(CONTAINS);
+    private static final  V<Search> searchAlg = new V<>(CONTAINS);
     @IsConfig(name = "Search ignore case", info = "Algorithm for string matching will ignore case.")
     private static boolean searchAlg_caseless = true;
 

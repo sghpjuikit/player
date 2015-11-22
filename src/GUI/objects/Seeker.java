@@ -29,7 +29,7 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.animation.Loop;
 import util.animation.interpolator.CircularInterpolator;
@@ -57,7 +57,7 @@ import static util.animation.Anim.mapConcave;
 import static util.animation.Anim.mapTo01;
 import static util.async.Async.run;
 import static util.functional.Util.minBy;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
 
 /**
@@ -91,7 +91,7 @@ public final class Seeker extends AnchorPane {
 
     public Seeker() {
         seeker.getStyleClass().add(STYLECLASS);
-        layAnchor(this,seeker,null,0d,null,0d);
+        setAnchor(this,seeker,null,0d,null,0d);
 
         // mouse drag
         seeker.addEventFilter(MOUSE_PRESSED, e -> {
@@ -138,12 +138,19 @@ public final class Seeker extends AnchorPane {
                     // if out of proximity -> unselect
                     // if chapter closer than selected one -> select it
                     double dist = abs(e.getX()-selectedChap.getCenterX());
-                    minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))
-                       .map(c -> c!=selectedChap ? c : null)
-                       .ifPresentOrElse(addB::select, () -> {
-                            if(dist > chapSnapDist.get())
-                                addB.unselect();
-                       });
+                    Chap mc = minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))
+                       .map(c -> c!=selectedChap ? c : null).orElse(null);
+                    if(mc==null) {
+                        addB.select(mc);
+                    } else {
+                        if(dist > chapSnapDist.get())
+                            addB.unselect();
+                    }
+                    // java 9
+//                       .ifPresentOrElse(addB::select, () -> {
+//                            if(dist > chapSnapDist.get())
+//                                addB.unselect();
+//                       });
                 } else {
                     // if chapter in proximity -> select it
                     minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))
@@ -298,7 +305,7 @@ public final class Seeker extends AnchorPane {
     public final DoubleProperty chapSnapDist = new SimpleDoubleProperty(7);
     boolean editableChapters = true;
     boolean singleChapterPopupMode = false;
-    public final Ѵ<Boolean> selectChapOnHover = new Ѵ<>(true);
+    public final V<Boolean> selectChapOnHover = new V<>(true);
 
     /**
      * Set whether chapters should display whole information in a pop up.
@@ -502,7 +509,7 @@ public final class Seeker extends AnchorPane {
         final double position;
         final Chapter c;
         boolean just_created;
-        private final Ѵ<Boolean> isEdited = new Ѵ<>(false);
+        private final V<Boolean> isEdited = new V<>(false);
 
         StackPane content;
         Text message;

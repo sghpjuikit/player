@@ -223,3 +223,12 @@
 .congfig-field-warn-button {
     -fx-fill: -fx-focus-color;
 }
+
+.comet-bgr {
+    //-fx-background-image: url("cometbgr.jpg");
+    //-fx-background-size: stretch;
+}
+
+.comet-rocket {
+    -fx-effect: none;
+}

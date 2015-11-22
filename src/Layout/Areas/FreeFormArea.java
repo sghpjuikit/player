@@ -34,8 +34,8 @@ import static gui.GUI.closeAndDo;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
-import static util.functional.Util.findFirstEmpty;
-import static util.graphics.Util.layAnchor;
+import static util.functional.Util.findFirst;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -59,7 +59,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     public FreeFormArea(FreeFormContainer con) {
         super(con);
-        layAnchor(root, rt,0d);
+        setAnchor(root, rt,0d);
 
         Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, this::bestLayout);
         icons.getChildren().add(1,layB);
@@ -316,7 +316,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     private int addEmptyWindowAt(double x, double y) {
         // get index
-        int i = findFirstEmpty(container.getChildren(), 1);
+        int i = findFirst(container.getChildren(), 1);
         // preset viable area
         storeBestRec(i, x,y, null);
         // add empty window at index (into viable area)

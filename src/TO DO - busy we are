@@ -3,13 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- implement YearRange instead of Year in MetadataGroup
 - implement filesize grouping buckets
 - new switchpane doesnt get settings applied
 - make sure all components close properly
 - remove artwork caching?
 - improve skin performance
 - implement stitched widgets
-- fix disc number not writing to tag
 - Void config which doesnt serialize and has Runnable action executing when
   gui is clicked, the action may open some kind of manager for the section
   config belongs to

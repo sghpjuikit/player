@@ -816,7 +816,7 @@ public class MetadataWriter extends MetaItem {
                         audioFile.commit();
                         break;
                     } catch (CannotWriteException | InterruptedException e) {
-                        if(i==3) {
+                        if(i>=3) {
                             LOGGER.info("Can not write file tag: {} {}",audioFile.getFile().getPath(),e);
                             PLAYBACK.activate();
                             return false;

@@ -106,6 +106,14 @@ public class Util {
         return l;
     }
 
+    /**
+     * Constructs ordinary {@link StackPane)} with children aligned to {@link Pos#CENTER}.
+     * Convenience constructor for more fluent style.
+     */
+    public static StackPane layStack(Node... ns) {
+        return new StackPane(ns);
+    }
+
     /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n,Pos a) {
         StackPane l = new StackPane(n);
@@ -129,6 +137,7 @@ public class Util {
         StackPane.setAlignment(n3, a3);
         return l;
     }
+
     /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
         StackPane l = new StackPane(n1,n2,n3,n4);
@@ -140,17 +149,35 @@ public class Util {
     }
 
     /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
-    public static void layAnchor(AnchorPane pane, Node n, Double a) {
-        pane.getChildren().add(n);
-        setAnchors(n, a);
+    public static AnchorPane layAnchor(Node n, Double a) {
+        AnchorPane p = new AnchorPane();
+        setAnchor(p, n, a);
+        return p;
     }
 
     /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
-    public static void layAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
-        pane.getChildren().add(n);
-        setAnchors(n, top, right, bottom, left);
+    public static AnchorPane layAnchor(Node n, Double top, Double right, Double bottom, Double left) {
+        AnchorPane p = new AnchorPane();
+        setAnchor(p, n, top, right, bottom, left);
+        return p;
     }
 
+    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
+                                                  Node n2, Double top2, Double right2, Double bottom2, Double left2) {
+        AnchorPane p = new AnchorPane();
+        setAnchor(p, n1, top1, right1, bottom1, left1, n2, top2, right2, bottom2, left2);
+        return p;
+    }
+
+    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
+                                                  Node n2, Double top2, Double right2, Double bottom2, Double left2,
+                                                  Node n3, Double top3, Double right3, Double bottom3, Double left3) {
+        AnchorPane p = new AnchorPane();
+        setAnchor(p, n1, top1, right1, bottom1, left1, n2, top2, right2, bottom2, left2, n3, top3, right3, bottom3, left3);
+        return p;
+    }
 
     /** Sets {@link AnchorPane} anchors to the same value. Null clears all anchors. */
     public static void setAnchors(Node n, Double a) {
@@ -171,6 +198,34 @@ public class Util {
         if (right != null) AnchorPane.setRightAnchor(n, right);
         if (bottom != null) AnchorPane.setBottomAnchor(n, bottom);
         if (left != null) AnchorPane.setLeftAnchor(n, left);
+    }
+
+    /** Sets {@link AnchorPane)} anchors for node. Convenience method for more fluent style. */
+    public static void setAnchor(AnchorPane pane, Node n, Double a) {
+        pane.getChildren().add(n);
+        setAnchors(n, a);
+    }
+
+    /** Sets {@link AnchorPane)} anchors for node. Convenience method for more fluent style. */
+    public static void setAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
+        pane.getChildren().add(n);
+        setAnchors(n, top, right, bottom, left);
+    }
+
+    /** Sets {@link AnchorPane)} anchors for nodes. Convenience method for more fluent style. */
+    public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
+                                                  Node n2, Double top2, Double right2, Double bottom2, Double left2) {
+        setAnchor(pane, n1, top1, right1, bottom1, left1);
+        setAnchor(pane, n2, top2, right2, bottom2, left2);
+    }
+
+    /** Sets {@link AnchorPane)} anchors for nodes. Convenience method for more fluent style. */
+    public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
+                                                  Node n2, Double top2, Double right2, Double bottom2, Double left2,
+                                                  Node n3, Double top3, Double right3, Double bottom3, Double left3) {
+        setAnchor(pane, n1, top1, right1, bottom1, left1);
+        setAnchor(pane, n2, top2, right2, bottom2, left2);
+        setAnchor(pane, n3, top3, right3, bottom3, left3);
     }
 
     /** Creates most simple background with solid bgr color fill and no radius or insets.*/

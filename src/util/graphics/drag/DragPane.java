@@ -18,7 +18,7 @@ import javafx.scene.layout.StackPane;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.objects.icon.Icon;
-import util.SingleⱤ;
+import util.SingleR;
 import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
@@ -53,7 +53,7 @@ public class DragPane extends StackPane {
     private static final String INSTALLED = "DRAG_PANE_INSTALLED";
     private static final String STYLECLASS = "drag-pane";
     private static final String STYLECLASS_ICON = "drag-pane-icon";
-    public static final SingleⱤ<DragPane,Data> PANE = new SingleⱤ<>(DragPane::new,
+    public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
         (p,data) -> {
             p.icon.setIcon(data.icon == null ? CLIPBOARD : data.icon);
             p.desc.setText(data.name.get());

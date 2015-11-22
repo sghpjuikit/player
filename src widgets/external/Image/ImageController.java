@@ -12,7 +12,7 @@ import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
-import util.access.Ѵ;
+import util.access.V;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
@@ -20,7 +20,7 @@ import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.geometry.Pos.CENTER;
 import static util.async.Async.FX;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
@@ -54,7 +54,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         thumb.setBackgroundVisible(false);
         thumb.setBorderVisible(false);
         thumb.setDragEnabled(true);
-        layAnchor(root,thumb.getPane(),0d);
+        setAnchor(root,thumb.getPane(),0d);
 
         // drag&drop
         installDrag(

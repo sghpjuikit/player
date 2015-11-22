@@ -43,11 +43,11 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import util.File.FileUtil;
 import util.access.VarEnum;
-import util.access.Ѵ;
+import util.access.V;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
-import util.Ɽ;
+import util.R;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
@@ -66,7 +66,7 @@ import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
@@ -131,7 +131,7 @@ public class Converter extends ClassController implements SongWriter {
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
-        layAnchor(this, ll,0d);
+        setAnchor(this, ll,0d);
 
         // drag&drop
         installDrag(
@@ -234,7 +234,7 @@ public class Converter extends ClassController implements SongWriter {
 
     /* Generates unique name in format 'CustomN', where N is integer. */
     String taname() {
-        Ɽ<Integer> i = new Ɽ<>(0);
+        R<Integer> i = new R<>(0);
         do {
             i.setOf(x -> x+1);
         }while(tas.stream().map(t->t.name.get()).anyMatch(n -> n.equals("Custom"+i.get())));
@@ -400,9 +400,9 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class WriteFileAct extends Act<Void> {
-        Ѵ<String> nam = new Ѵ<>("new_file");
-        Ѵ<String> ext = new Ѵ<>("txt");
-        Ѵ<File> loc = new Ѵ<>(APP.DIR_APP);
+        V<String> nam = new V<>("new_file");
+        V<String> ext = new V<>("txt");
+        V<File> loc = new V<>(APP.DIR_APP);
 
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
@@ -426,8 +426,8 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class ActCreateDirs extends Act<Void> {
-        Ѵ<Boolean> use_loc = new Ѵ<>(false);
-        Ѵ<File> loc = new Ѵ<>(APP.DIR_HOME);
+        V<Boolean> use_loc = new V<>(false);
+        V<File> loc = new V<>(APP.DIR_HOME);
 
         public ActCreateDirs() {
             super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer)null);
@@ -478,8 +478,8 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class InPane extends ValueNode<In> {
-        Ѵ<String> name;
-        Ѵ<Ta> input;
+        V<String> name;
+        V<Ta> input;
         ConfigField<String> configfieldA;
         ConfigField<Ta> configfieldB;
         HBox root;
@@ -510,7 +510,7 @@ public class Converter extends ClassController implements SongWriter {
         ConfigPane<Ta> ins;
         public InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                Ѵ<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                V<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
                 return Config.forProperty(name, input);
             }));
         }

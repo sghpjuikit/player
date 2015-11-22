@@ -36,7 +36,7 @@ import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import util.SingleⱤ;
+import util.SingleR;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -95,7 +95,7 @@ public final class AreaControls {
         + "closed.";
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
-    private static SingleⱤ<PopOver<Text>, AreaControls> helpP = new SingleⱤ<>(
+    private static SingleR<PopOver<Text>, AreaControls> helpP = new SingleR<>(
 	() -> PopOver.createHelpPopOver(""),
 	(p, ac) -> {
             // set text
@@ -375,7 +375,7 @@ public final class AreaControls {
     void close() {
         // if area belongs to the container, setØ container
         if (area.index==null)
-            closeAndDo(area.container.ui.getRoot(), area.container::close);
+            closeAndDo(area.container.ui.getRoot(), () -> area.container.close());
         // if area belongs to the child, setØ child only
         else
             closeAndDo(area.content_root, () -> area.container.removeChild(area.index));

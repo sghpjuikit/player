@@ -17,13 +17,13 @@ import static java.util.Arrays.asList;
 
 /**
  * Accessor which can list all its possible values.
- * {@link Ѵ} implementing {@link EnumerableValue}.
+ * {@link V} implementing {@link EnumerableValue}.
  * <p>
  *
  * @param <T> the value. The value should have properly implemented toString
  * method for popuating controls like ComboBox with human readable text.
  */
-public class VarEnum<T> extends Ѵ<T> implements EnumerableValue<T> {
+public class VarEnum<T> extends V<T> implements EnumerableValue<T> {
     
     private final Supplier<Collection<T>> valueEnumerator;
     

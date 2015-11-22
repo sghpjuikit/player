@@ -5,24 +5,24 @@
  */
 package AudioPlayer.playback.player;
 
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.Item;
-
 import javafx.util.Duration;
+
+import AudioPlayer.Item;
+import AudioPlayer.playback.PlaybackState;
 
 /**
  *
  * @author Plutonium_
  */
 public interface Play {
-    
+
     void play();
     void pause();
     void resume();
     void seek(Duration duration);
     void stop();
-    
-    void createPlayback(Item item, PlaybackState state);
+
+    void createPlayback(Item item, PlaybackState state, Runnable after);
     /**
      * Stops playback if any and disposes of the player resources.
      */

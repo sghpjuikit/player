@@ -13,18 +13,18 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 
-import util.SingleⱤ;
+import util.SingleR;
 
 /**
  *
  * @author Plutonium_
  */
-public class TableContextMenuMⱤ<E,M> extends SingleⱤ<ImprovedContextMenu<List<E>>,M> {
+public class TableContextMenuMR<E,M> extends SingleR<ImprovedContextMenu<List<E>>,M> {
     
-    public TableContextMenuMⱤ(Supplier<ImprovedContextMenu<List<E>>> builder) {
+    public TableContextMenuMR(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuMⱤ(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, M> mutator) {
+    public TableContextMenuMR(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, M> mutator) {
         super(builder, mutator);
     }
     

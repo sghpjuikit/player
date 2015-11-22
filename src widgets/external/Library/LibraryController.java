@@ -42,7 +42,7 @@ import gui.GUI;
 import gui.InfoNode.InfoTask;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.ContextMenu.TableContextMenuⱤ;
+import gui.objects.ContextMenu.TableContextMenuR;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable;
 import gui.objects.Table.ImprovedTable.PojoV;
@@ -54,7 +54,7 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
 import util.access.FieldValue.ObjectField.ColumnField;
-import util.access.Ѵo;
+import util.access.Vo;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
@@ -151,15 +151,15 @@ public class LibraryController extends FXMLController implements SongReader {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Ѵo<Boolean> zeropad = new Ѵo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Ѵo<Boolean> orig_index = new Ѵo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Ѵo<Boolean> show_header = new Ѵo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Ѵo<Boolean> show_footer = new Ѵo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
     @IsConfig(editable = false)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
@@ -389,7 +389,7 @@ public class LibraryController extends FXMLController implements SongReader {
 
 /****************************** CONTEXT MENU **********************************/
 
-    private static final TableContextMenuⱤ<Metadata> contxt_menu = new TableContextMenuⱤ<> (
+    private static final TableContextMenuR<Metadata> contxt_menu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e ->

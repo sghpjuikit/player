@@ -34,7 +34,7 @@ import gui.objects.Seeker;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
 import util.Util;
-import util.access.Ѵ;
+import util.access.V;
 import util.graphics.drag.DragUtil;
 
 import static AudioPlayer.tagging.Metadata.Field.BITRATE;
@@ -100,13 +100,13 @@ public class PlayerControlsController extends FXMLController implements Playback
     Icon loopB = new GlowIcon(RANDOM,15);
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
-    public final Ѵ<Boolean> showChapters = new Ѵ<>(true, seeker::setChaptersVisible);
+    public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Open chapters", info = "Display pop up information for chapter marks on seeker.")
-    public final Ѵ<Boolean> popupChapters = new Ѵ<>(true, seeker::setChaptersShowPopUp);
+    public final V<Boolean> popupChapters = new V<>(true, seeker::setChaptersShowPopUp);
     @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
-    public final Ѵ<Boolean> snapToChap = new Ѵ<>(true, seeker::setSnapToChapters);
+    public final V<Boolean> snapToChap = new V<>(true, seeker::setSnapToChapters);
     @IsConfig(name = "Open max 1 chapter", info = "Allows only one chapter open. Opening chapter closes all open chapters.")
-    public final Ѵ<Boolean> singleChapMode = new Ѵ<>(true, seeker::setSinglePopupMode);
+    public final V<Boolean> singleChapMode = new V<>(true, seeker::setSinglePopupMode);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")

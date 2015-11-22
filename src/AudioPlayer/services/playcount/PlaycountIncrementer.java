@@ -19,7 +19,7 @@ import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import util.access.Ѵ;
+import util.access.V;
 
 import static AudioPlayer.services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
 import static java.awt.TrayIcon.MessageType.INFO;
@@ -33,20 +33,20 @@ import static util.functional.Util.min;
 public class PlaycountIncrementer extends ServiceBase {
 
     @IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    public final Ѵ<PlaycountIncrStrategy> when = new Ѵ<>(ON_PERCENT,this::apply);
+    public final V<PlaycountIncrStrategy> when = new V<>(ON_PERCENT,this::apply);
     @IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
-    public final Ѵ<Double> when_percent = new Ѵ<>(0.4,this::apply);
+    public final V<Double> when_percent = new V<>(0.4,this::apply);
     @IsConfig(name="Increment at time", info = "Time at which playcount is incremented.")
-    public final Ѵ<Duration> when_time = new Ѵ<>(seconds(5),this::apply);
+    public final V<Duration> when_time = new V<>(seconds(5),this::apply);
     @IsConfig(name="Show notification", info = "Shows notification when playcount is incremented.")
-    public final Ѵ<Boolean> show_notif = new Ѵ<>(false);
+    public final V<Boolean> show_notif = new V<>(false);
     @IsConfig(name="Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
-    public final Ѵ<Boolean> show_bubble = new Ѵ<>(false);
+    public final V<Boolean> show_bubble = new V<>(false);
     @IsConfig(name="Delay writing", info = "Delays writing playcount to tag for more seamless "
             + "playback experience. In addition, reduces multiple consecutive increments in a row "
             + "to a single operation. The writing happens when different song starts playing "
             + "(but the data in the application may update visually even later).")
-    public final Ѵ<Boolean> delay = new Ѵ<>(true);
+    public final V<Boolean> delay = new V<>(true);
 
     private final Runnable incr = this::increment;
     private PlayTimeHandler incrHand;

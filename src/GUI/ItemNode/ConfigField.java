@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -22,6 +23,8 @@ import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 import org.controlsfx.control.textfield.CustomTextField;
+
+import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 
 import Configuration.Config;
 import Configuration.Config.ListConfig;
@@ -38,7 +41,7 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import util.Password;
-import util.access.Ѵo;
+import util.access.Vo;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 
@@ -213,7 +216,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if(!config.getValue().equals(t)) {
             config.setNapplyValue(t);
             refreshItem();
-            if(onChange!=null) onChange.run();System.out.println("changed config " + config.getName());
+            if(onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
         }
     }
 
@@ -236,7 +239,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if(applyOnChange || user) config.setNapplyValue(t);
         else config.setValue(t);
         refreshItem();
-        if(onChange!=null) onChange.run();System.out.println("changed config " + config.getName());
+        if(onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
         insonsistent_state = false;
     }
 
@@ -254,6 +257,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         m.put(Font.class, f -> new FontField(f));
         m.put(Password.class, f -> new PasswordField(f));
         m.put(String.class, f -> new StringField(f));
+        m.put(KeyCode.class, f -> new KeyCodeField(f));
         m.put(ObservableList.class, f -> new ListField(f));
     }
 
@@ -265,7 +269,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         ConfigField cf = null;
         if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
-        else if (f.isTypeEnumerable()) cf = new EnumerableField(f);
+        else if (f.isTypeEnumerable()) cf = f.getType()==KeyCode.class ? new KeyCodeField(f) : new EnumerableField(f);
         else if(f.isMinMax()) cf = new SliderField(f);
         else cf = m.getOrDefault(f.getType(), GeneralField::new).apply(f);
 
@@ -594,6 +598,20 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return n;
         }
     }
+    private static class KeyCodeField extends EnumerableField {
+
+        public KeyCodeField(Config<KeyCode> c) {
+            super((Config)c);
+            n.addEventFilter(KeyEvent.ANY,e -> {
+                if(e.getEventType()==KEY_RELEASED) {
+                    n.setValue(e.getCode());
+                    ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext();
+                }
+                e.consume();
+            });
+        }
+
+    }
     private static class ShortcutField extends ConfigField<Action> {
         TextField txtF;
         CheckIcon globB;
@@ -814,7 +832,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         public OverridableField(OverridablePropertyConfig<T> c) {
             super(c);
-            Ѵo<T> vo = c.getProperty();
+            Vo<T> vo = c.getProperty();
 
 //            root.setMinSize(100,20);
 //            root.setPrefSize(-1,-1);

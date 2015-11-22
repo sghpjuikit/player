@@ -16,7 +16,7 @@ import Configuration.AccessorConfig;
 import Configuration.Config;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
-import util.access.Ѵ;
+import util.access.V;
 import util.collections.PrefList;
 import util.functional.Functors.PƑ;
 import util.functional.Functors.Ƒ1;
@@ -32,13 +32,13 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
+public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList<>();
     private final ComboBox<PƑ<IN,OUT>> fCB;
 
-    public ƑItemNode(Supplier<PrefList<PƑ<IN,OUT>>> functionPool) {
+    public FItemNode(Supplier<PrefList<PƑ<IN,OUT>>> functionPool) {
         fCB = new ImprovedComboBox<>(f -> f.name);
         fCB.getItems().setAll(functionPool.get());
         fCB.getItems().sort(byNC(f -> f.name));
@@ -46,7 +46,7 @@ public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
             configs.clear();
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
-                Ѵ a = new Ѵ(p.defaultValue, v -> generateValue());
+                V a = new V(p.defaultValue, v -> generateValue());
                 Config cg = new AccessorConfig("",a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);

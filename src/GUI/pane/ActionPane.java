@@ -41,7 +41,7 @@ import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import util.access.FieldValue.FileField;
 import util.access.FieldValue.ObjectField;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.Fut;
@@ -98,7 +98,7 @@ public class ActionPane extends OverlayPane implements Configurable {
     private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
     @IsConfig(name = COD_TITLE, info = COD_INFO)
-    public final Ѵ<Boolean> closeOnDone = new Ѵ<>(false);
+    public final V<Boolean> closeOnDone = new V<>(false);
 
     public ActionPane() {
         getStyleClass().add(ROOT_STYLECLASS);

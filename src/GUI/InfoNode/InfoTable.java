@@ -16,7 +16,6 @@ import javafx.scene.control.TableView;
 import org.reactfx.Subscription;
 
 import static org.atteo.evo.inflector.English.plural;
-import static util.functional.Util.toCSList;
 
 /**
  * Provides information about table items and table item selection.
@@ -103,7 +102,11 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
     public void updateText(List<E> all, List<E> selected) {
         // bug fix, without this line, which does exactly nothing,
         // mgs list contains nulls sometimes (no idea why)
-        selected.stream().map(m->"").collect(toCSList);
+        //
+        // how to reproduce bug:
+        // select two records in a table
+        // then select only one of them -> bam! null!
+        selected.stream().map(m->null).collect(() -> null, (a,b) -> {},(a,b) -> {});
 
         boolean isAll = selected.isEmpty();
         List<E> l = isAll ? all : selected;

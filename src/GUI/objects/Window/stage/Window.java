@@ -48,7 +48,7 @@ import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import gui.pane.IOPane;
 import main.App;
-import util.access.Ѵ;
+import util.access.V;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
@@ -164,13 +164,13 @@ public class Window extends WindowBase {
 /******************************** Configs *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
+    public static final V<Double> windowOpacity = new V<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
+    public static final V<Boolean> window_borderless = new V<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
 
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
+    public static final V<Boolean> window_headerless = new V<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
 
 
     /**

@@ -36,8 +36,8 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.icon.Icon;
 import main.App;
 import unused.SimpleConfigurator;
-import util.access.Ѵ;
-import util.access.Ѵo;
+import util.access.V;
+import util.access.Vo;
 import util.async.executor.ExecuteN;
 import util.units.FormattedDuration;
 
@@ -97,19 +97,19 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Ѵo<Boolean> zeropad = new Ѵo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Ѵo<Boolean> orig_index = new Ѵo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Ѵo<Boolean> show_header = new Ѵo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Ѵo<Boolean> show_footer = new Ѵo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
-    public final Ѵ<Boolean> scrollToPlaying = new Ѵ<>(true);
+    public final V<Boolean> scrollToPlaying = new V<>(true);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
-    public final Ѵ<Boolean> filter_for_playback = new Ѵ<>(false, v -> {
+    public final V<Boolean> filter_for_playback = new V<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
                   + "to play only displayed items.";
         String on = "Disable filter for playback. Causes the playback "

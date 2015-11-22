@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javafx.util.Callback;
@@ -23,7 +24,6 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.IntStream.iterate;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.noØ;
 import static util.dev.Util.yes;
@@ -594,7 +594,7 @@ public class Util {
 /************************************ for *************************************/
 
     /** Functional equivalent of a for loop. */
-    public static<I> void forEachBoth(List<I> items, Consumer<I> action) {
+    public static<I> void forEach(List<I> items, Consumer<I> action) {
         for(I item : items)
             action.accept(item);
     }
@@ -636,6 +636,67 @@ public class Util {
             action.accept(i, item);
             i++;
         }
+    }
+
+    /** Loops over cartesian product C x C of a collection C. */
+    public static <E> void forEachCartesian(Collection<E> c, BiConsumer<? super E, ? super E> action) {
+        forEachCartesian(c, c, action);
+    }
+
+    /** Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j) (j;i). */
+    public static <E> void forEachCartesianHalf(Collection<E> c, BiConsumer<? super E, ? super E> action) {
+//        for(int i=0; i<c.size(); i++)
+//            for(int j=i; j<c.size(); j++)
+//                action.accept(c.get(i), c.get(j));
+
+//        int j = 0;
+//        for(E e : c) {
+//            c.stream().skip(j).forEach(t -> action.accept(e,t));
+//            j++;
+//        }
+
+        int j = 1;
+        for(E e : c) {
+            int i = j;
+            for(E t : c) {
+                if(i>0)i--;
+                if(i==0) action.accept(e,t);
+            }
+            j++;
+        }
+    }
+
+    /**
+     * Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j)(j;i) and
+     * self elements (i,i).
+     */
+    public static <E> void forEachCartesianHalfNoSelf(Collection<E> c, BiConsumer<? super E, ? super E> action) {
+//        for(int i=0; i<c.size(); i++)
+//            for(int j=i+1; j<c.size(); j++)
+//                action.accept(c.get(i), c.get(j));
+
+//        int j = 1;
+//        for(E e : c) {
+//            c.stream().skip(j).forEach(t -> action.accept(e,t));
+//            j++;
+//        }
+
+        int j = 1;
+        for(E e : c) {
+            int i = j;
+            for(E t : c) {
+                if(i==0) action.accept(e,t);
+                if(i>0)i--;
+            }
+            j++;
+        }
+    }
+
+    /** Loops over cartesian product C1 x C2 of collections C1, C2.
+     * @param action 1st parameter is element from 1st collection, 2nd parameter is el. from 2nd
+     */
+    public static <E,T> void forEachCartesian(Collection<E> c1, Collection<T> c2, BiConsumer<? super E, ? super T> action) {
+        for(E e : c1) for(T t : c2) action.accept(e,t);
     }
 
     /** Loops over list zipping each item with a companion derived from it. */
@@ -713,6 +774,11 @@ public class Util {
         return b.build();
     }
 
+    public static<T> Set<T> set(T... ts) {
+        Set<T> l = new HashSet<>(ts.length);
+        for(T t : ts) l.add(t);
+        return l;
+    }
     /** Returns modifiable list containing specified elements. */
     public static<T> List<T> list(T... ts) {
         List<T> l = new ArrayList<>(ts.length);
@@ -735,26 +801,36 @@ public class Util {
     }
     /** Returns modifiable list containing elements in the specified collection. */
     public static<T> List<T> list(Collection<T> a) {
-        return new ArrayList(a);
+        return new ArrayList<>(a);
     }
     /** Returns modifiable list containing elements in both specified collection and array. */
     public static<T> List<T> list(Collection<T> a, T... ts) {
-        List<T> out = new ArrayList(a);
+        List<T> out = new ArrayList<>(a);
         for(int i=0; i<ts.length; i++) out.add(ts[i]);
         return out;
     }
 
-    /** Returns modifiable list containing specified element i times */
+    /** Returns modifiable list containing specified element i times. */
     public static<T> List<T> list(int i, T a) {
-        List<T> l = new ArrayList(i);
+        List<T> l = new ArrayList<>(i);
         for(int j=0; j<i; j++) l.add(a);
         return l;
     }
 
     /** Returns modifiable list containing element supplied by specified supplier i times. */
     public static<T> List<T> list(int i, Supplier<T> factory) {
-        List<T> l = new ArrayList(i);
+        List<T> l = new ArrayList<>(i);
         for(int j=0; j<i; j++) l.add(factory.get());
+        return l;
+    }
+
+    /**
+     * Returns modifiable list containing element supplied by specified supplier i times. Integer
+     * params range from 1 to i;
+     */
+    public static<T> List<T> listF(int i, Function<Integer,T> factory) {
+        List<T> l = new ArrayList<>(i);
+        for(int j=0; j<i; j++) l.add(factory.apply(j));
         return l;
     }
 
@@ -762,7 +838,7 @@ public class Util {
         return Stream.of(t);
     }
 
-    public static <T> Stream<T> stream(Stream<T> s1, Stream<T> s2) {
+    public static <T,A extends T,B extends T> Stream<T> stream(Stream<A> s1, Stream<B> s2) {
         return Stream.concat(s1,s2);
     }
 
@@ -862,7 +938,11 @@ public class Util {
 
 
 
-    public static int findFirstEmpty(Map<Integer, ?> m, int from) {
-        return iterate(from, i -> i+1).filter(i->m.get(i)==null).findFirst().getAsInt();
+    public static int findFirst(Map<Integer, ?> m, int from) {
+        return IntStream.iterate(from, i -> i+1).filter(i->m.get(i)==null).findFirst().getAsInt();
+    }
+
+    public static int findFirst(IntPredicate condition, int from) {
+        return IntStream.iterate(from, i -> i+1).filter(condition).findFirst().getAsInt();
     }
 }

@@ -27,7 +27,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.widget.Widget.Group.APP;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 
 @IsWidget
 @Widget.Info(
@@ -55,7 +55,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     private TreeView<Object> tree = new TreeView<>();
 
     public Inspector() {
-        layAnchor(this, tree,0d);
+        setAnchor(this, tree,0d);
         
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
         tree.setCellFactory(TreeItems::buildTreeCell);

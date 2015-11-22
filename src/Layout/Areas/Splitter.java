@@ -16,7 +16,7 @@ import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
 import gui.GUI;
 import gui.objects.icon.Icon;
-import util.access.Ѵ;
+import util.access.V;
 import util.collections.map.PropertyMap;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -27,7 +27,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.access.SequentialValue.next;
 import static util.async.Async.run;
 import static util.async.Async.runFX;
-import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -52,7 +52,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     public Splitter(BiContainer c) {
         super(c);
 
-        layAnchor(root, splitPane,0d);
+        setAnchor(root, splitPane,0d);
         splitPane.setMinSize(0,0);
         root_child1.setMinSize(0,0);
         root_child2.setMinSize(0,0);
@@ -83,7 +83,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         // activate animation if mouse if leaving area
         splitPane.setOnMouseClicked(root.getOnMouseClicked());
 
-        Ѵ<Double> position = new Ѵ<>(splitPane.getDividers().get(0).getPosition());
+        V<Double> position = new V<>(splitPane.getDividers().get(0).getPosition());
         splitPane.setOnMouseReleased(e -> {
             double v = position.getValue();
             if(v>0.01 && v<0.99)

@@ -12,6 +12,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -40,14 +43,29 @@ import static util.functional.Util.filter;
 import static util.functional.Util.map;
 
 /**
- * Provides methods to handle external often platform specific tasks. Browsing
- * files, opening files in external apps etc.
+ * Provides methods to handle external platform specific tasks. Browsing
+ * files, opening files in external apps, clipboard, etc.
  *
  * @author uranium
  */
 @TODO(purpose = FUNCTIONALITY, note = "support printing, mailing")
 @TODO(note = "File highlighting, test non windows platforms")
 public class Environment {
+
+    /** Copies the string to system clipboard. Does nothing if null. */
+    public static void copyToSysClipboard(String s) {
+        copyToSysClipboard(DataFormat.PLAIN_TEXT, s);
+    }
+
+    /** Puts given object to system clipboard. Does nothing if object null. */
+    public static void copyToSysClipboard(DataFormat df, Object o) {
+        if(o != null) {
+            ClipboardContent c = new ClipboardContent();
+                             c.put(df,o);
+            Clipboard.getSystemClipboard().setContent(c);
+        }
+    }
+
 
     /** Equivalent to {@code browse(f.toURI()); } */
     public static void browse(File f) {

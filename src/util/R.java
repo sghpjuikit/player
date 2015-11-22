@@ -15,15 +15,15 @@ import util.functional.Functors.Ƒ1;
  *
  * @author Plutonium_
  */
-public class Ɽ<T> {
+public class R<T> {
 
     protected T t;
 
-    public Ɽ() {
+    public R() {
         this(null);
     }
 
-    public Ɽ(T value) {
+    public R(T value) {
         t = value;
     }
 

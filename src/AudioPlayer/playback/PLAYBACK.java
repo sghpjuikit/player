@@ -105,6 +105,7 @@ public final class PLAYBACK implements Configurable {
         if (s == PAUSED || s == PLAYING)
             startTime = state.currentTime.get();
         if (s == PAUSED) {
+            // THIS NEEDS TO GET FIXED
             player.play(PlaylistManager.use(p -> p.getPlaying(),null));
             util.async.Async.runFX(1000, player::pause);
         }

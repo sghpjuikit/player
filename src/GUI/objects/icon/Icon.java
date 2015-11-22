@@ -45,7 +45,7 @@ import gui.objects.PopOver.PopOver;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
-import util.Ɽ;
+import util.R;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -136,7 +136,7 @@ public class Icon<I extends Icon> extends Text {
         setCache(true);
 
         // install click animation
-        Ɽ<Anim> ra = new Ɽ<>(); // lazy singleton
+        R<Anim> ra = new R<>(); // lazy singleton
         addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
         addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
     }

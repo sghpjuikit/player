@@ -9,15 +9,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javafx.geometry.Bounds;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 
 import de.jensd.fx.glyphs.GlyphIcons;
-import gui.objects.icon.Icon;
 import util.SingleR;
 import util.functional.Functors.Ƒ1;
 
@@ -25,12 +21,10 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
 import static util.functional.Util.IS;
-import static util.graphics.Util.layHeaderBottom;
-import static util.graphics.Util.removeFromParent;
 
 /**
- * Visual aid for drag operations. Is shown when drag enters drag accepting {@link Node} and hidden
- * when it exists.
+ * Placeholder node as a visual aid for mouse drag operations. Shown when drag enters drag
+ * accepting {@link Node} and hidden when it exists.
  * <p>
  * This pane shows icon and description of the action that will take place when
  * drag is dropped and accepted and highlights the drag accepting area.
@@ -47,15 +41,16 @@ import static util.graphics.Util.removeFromParent;
  *
  * @author Plutonium_
  */
-public class DragPane extends StackPane {
+public class DragPane extends PlaceholderPane {
 
     private static final String ACTIVE = "DRAG_PANE";
     private static final String INSTALLED = "DRAG_PANE_INSTALLED";
     private static final String STYLECLASS = "drag-pane";
     private static final String STYLECLASS_ICON = "drag-pane-icon";
+    private static final GlyphIcons DEFAULT_ICON = CLIPBOARD;
     public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
         (p,data) -> {
-            p.icon.setIcon(data.icon == null ? CLIPBOARD : data.icon);
+            p.icon.setIcon(data.icon == null ? DEFAULT_ICON : data.icon);
             p.desc.setText(data.name.get());
         }
     );
@@ -191,39 +186,11 @@ public class DragPane extends StackPane {
         }
     }
 
-
-    private final Icon icon = new Icon().styleclass(STYLECLASS_ICON);
-    private final Label desc = new Label();
-
     private DragPane() {
+        super(DEFAULT_ICON,null,null);
+        icon.styleclass(STYLECLASS_ICON);
         getStyleClass().add(STYLECLASS);
         setMouseTransparent(true);   // must not interfere with events
         setManaged(false);           // must not interfere with layout
-        getChildren().add(
-            layHeaderBottom(8, Pos.CENTER, icon,desc)
-        );
-    }
-
-    public void showFor(Node n) {
-        Pane p = n instanceof Pane ? (Pane)n : n.getParent()==null ? null : (Pane)n.getParent();
-        if(p!=null && !p.getChildren().contains(this)) {
-//            p.getProperties().put(ACTIVE, ACTIVE);
-            p.getChildren().add(this);
-            Bounds b = n.getLayoutBounds();
-            double w = b.getWidth();
-            double h = b.getHeight();
-            setMaxSize(w,h);
-            setPrefSize(w,h);
-            setMinSize(w,h);
-            resizeRelocate(b.getMinX(),b.getMinY(),w,h);
-            toFront();
-        }
-    }
-
-    public void hide() {
-//        if(getParent()!=null) {
-//            getParent().getProperties().remove(ACTIVE);
-//        }
-        removeFromParent(this);
     }
 }

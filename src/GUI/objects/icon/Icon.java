@@ -68,12 +68,13 @@ public class Icon<I extends Icon> extends Text {
     private static final String DEFAULT_FONT_SIZE = "1em";
     private static final EventHandler<Event> CONSUMER = Event::consume;
 
+    // load fonts
     static {
         try {
-            Font.loadFont(Icon.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(Icon.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(Icon.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(Icon.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(FontAwesomeIconView.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(WeatherIconView.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(MaterialDesignIconView.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(MaterialIconView.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
         } catch (IOException e) {
             LoggerFactory.getLogger(Icon.class).error("Couldnt load font",e);
         }
@@ -277,7 +278,7 @@ public class Icon<I extends Icon> extends Text {
     GlyphIcons glyph = null;    // cache
     // the problem is the name is not necessarily unique across different fonts
     // however the cache already guarantees correct icon when loading programmatically
-    // css however remains a problem, should be reimplemented
+    // css however remains a problem and should be reimplemented to  ICON_PACK_NAME.ICON_NAME
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
         if(glyph==null || !glyph.name().equalsIgnoreCase(n)) {
@@ -351,7 +352,9 @@ public class Icon<I extends Icon> extends Text {
 
     private void updateIcon() {
         GlyphIcons i = getGlyph();
-        Font f = new Font(i.getFontFamily(), getFont().getSize());
+        // .replace("\'", "") is bugfix for some fonts having wrong font family or something
+        // WeatherIcon & MaterialDesign
+        Font f = new Font(i.getFontFamily().replace("\'", ""), getFont().getSize());
         setFont(f);
         setText(i.characterToString());
     }
@@ -420,7 +423,7 @@ public class Icon<I extends Icon> extends Text {
 
     public Number convert(String sizeString) {
         Double d = Parser.fromS(Double.class, sizeString);
-        return d==null ? 12 : d;
+        return d==null ? DEFAULT_ICON_SIZE : d;
     }
 
 }

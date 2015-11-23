@@ -21,7 +21,7 @@ import Layout.container.Container;
 import Layout.container.freeformcontainer.FreeFormContainer;
 import Layout.widget.Widget;
 import gui.GUI;
-import gui.objects.Window.Pane.PaneWindowControls;
+import gui.objects.Window.pane.PaneWindowControls;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import util.collections.TupleM4;

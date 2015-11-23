@@ -225,7 +225,7 @@ public class Window extends WindowBase {
     private Window() {
         this(null,UNDECORATED);
     }
-    
+
     private Window(Stage owner, StageStyle style) {
 	super(owner,style);
         s.getProperties().put("window", this);

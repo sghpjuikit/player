@@ -50,6 +50,7 @@ import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.App.APP;
 import static util.Util.*;
@@ -202,15 +203,17 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         });
 
         // move items on drag
-        setOnMouseDragged( e -> {
+        // setOnMouseDragged(e -> { // handler !work since java 9
+        // addEventFilter(MOUSE_DRAGGED, e -> { // same here
+        addEventFilter(MOUSE_DRAGGED, e -> {
             if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
-
             // we cant move ites when fiter on & we cant cancel filter, user would freak out
-//            if(itemsPredicate.get()!=null) return;
+            //  if(itemsPredicate.get()!=null) return; // unreliable as non null predicates may have no effect
             if(getItems().size()!=getItemsRaw().size()) return;
 
             // transform any sort (if in effect) to actual table items, we cant change order on
             // items out of natural order
+            // note this is only called the 1st time (or not at all), not repeatedly
             if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
                 movingitems = true;
                 List l = list(getItems());
@@ -221,7 +224,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 selectRows(sl,getSelectionModel()); // set selection back
                 movingitems = false;
             }
-
 
             double h = getFixedCellSize();
             double dist = e.getScreenY()- last;
@@ -234,7 +236,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         });
 
         // set key-induced actions
-        setOnKeyReleased( e -> {
+        setOnKeyReleased(e -> {
             if (e.getCode() == KeyCode.ENTER) {     // play first of the selected
                 if(!getSelectedItems().isEmpty())
                     getPlaylist().playItem(getSelectedItems().get(0));
@@ -248,7 +250,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 getSelectionModel().clearSelection();
             }
         });
-        setOnKeyPressed( e -> {
+        setOnKeyPressed(e -> {
             if(e.isControlDown()) {
                 if(e.getCode()==KeyCode.UP) {
 //                    table.getFocusModel().focus(-1);

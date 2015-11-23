@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Window.Pane;
+package gui.objects.Window.pane;
 
 import gui.objects.Window.Resize;
 import gui.objects.Window.stage.WindowBase.Maximized;

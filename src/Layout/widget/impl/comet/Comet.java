@@ -29,6 +29,7 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.effect.Bloom;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
@@ -164,7 +165,7 @@ import static util.reactive.Util.maintain;
     description = "Port of the game Comet.",
     howto = "",
     notes = "",
-    version = "0.5",
+    version = "0.6",
     year = "2015",
     group = Widget.Group.OTHER
 )
@@ -212,7 +213,7 @@ public class Comet extends ClassController {
 //            Effect ef1 = new GaussianBlur(6);
 //            Bloom ef2 = new Bloom(0.7);
 //            ef2.setInput(ef1);
-//        canvas_bgr.setEffect(ef2);
+        canvas_bgr.setEffect(new Bloom(0.5));
 
         // player stats
         double G = 10; // padding

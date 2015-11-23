@@ -40,6 +40,7 @@ import static org.controlsfx.tools.Platform.WINDOWS;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.Util.log;
 import static util.functional.Util.filter;
+import static util.functional.Util.list;
 import static util.functional.Util.map;
 
 /**
@@ -111,6 +112,7 @@ public class Environment {
             Desktop.getDesktop().browse(uri);
         } catch (IOException e) {
             log(Environment.class).error("Browsing uri {} failed", uri, e);
+            APP.parameterProcessor.process(list(uri.getPath())); // try open with this app
         }
     }
 
@@ -133,17 +135,20 @@ public class Environment {
      * Edits file in default associated editor program.
      * On some platforms the operation may be unsupported.
      *
-     * @param file
+     * @param f
      */
-    public static void edit(File file) {
+    public static void edit(File f) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(EDIT)) {
             log(Environment.class).warn("Unsupported operation : " + EDIT + " uri");
             return;
         }
         try {
-            Desktop.getDesktop().edit(file);
+            Desktop.getDesktop().edit(f);
         } catch (IOException e) {
-            log(Environment.class).error("Opening file {} in editor failed", file, e);
+            log(Environment.class).error("Opening file {} in editor failed", f, e);
+            APP.parameterProcessor.process(list(f.getPath())); // try open with this app
+        } catch (IllegalArgumentException e) {
+            // file doesnt exists, nothing for us to do
         }
     }
 
@@ -159,6 +164,9 @@ public class Environment {
                 Desktop.getDesktop().open(f);
             } catch (IOException e) {
                 log(Environment.class).error("Opening file {} in native app failed", f, e);
+                APP.parameterProcessor.process(list(f.getPath())); // try open with this app
+            } catch (IllegalArgumentException e) {
+                // file doesnt exists, nothing for us to do
             }
         } else {
             log(Environment.class).warn("Unsupported operation : " + OPEN + " file");

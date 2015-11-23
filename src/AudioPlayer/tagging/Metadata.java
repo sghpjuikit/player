@@ -982,14 +982,15 @@ public final class Metadata extends MetaItem<Metadata> {
         }
     }
 
-    public String getFulltext() {
-        String s = stream(Field.values())
+    private static final Field[] STRING_FIELDS = stream(Field.values())
                 .filter(f -> String.class.equals(f.getType()))
-                .filter(f -> f!=FULLTEXT && f!=COVER_INFO)   // stackoverlow, duh
+                .filter(f -> f!=FULLTEXT && f!=COVER_INFO).toArray(Field[]::new);   // stackoverlow, duh
+
+    public String getFulltext() {
+        return stream(STRING_FIELDS)
                 .map(f -> (String)f.getOf(this))
-                .collect(joining(SEPARATOR_UNIT.toString()));
-        // s += SEPARATOR_UNIT + chapters; // chapters included as CUSTOM2 for now...
-        return s;
+                .collect(() -> new StringBuilder(150),StringBuilder::append,StringBuilder::append)
+                .toString();
     }
 
 /******************************************************************************/

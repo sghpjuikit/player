@@ -29,9 +29,11 @@ import Layout.widget.Widget;
 import Layout.widget.WidgetManager;
 import action.IsAction;
 import action.IsActionable;
+import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
+import util.access.V;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 
@@ -72,7 +74,7 @@ public class WindowManager {
     public static Duration mini_hover_delay = millis(500);
 
     @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
-    public static boolean mini_hide_onInactive = true;
+    public static final V<Boolean> mini_hide_onInactive = new V<>(true);
 
     @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
     public static Duration mini_inactive_delay = millis(500);
@@ -138,12 +140,14 @@ public class WindowManager {
             content.setCenter(w.load());
             miniWindow.setContent(content);
                 // menu
+            Icon autohideB = new CheckIcon(mini_hide_onInactive).size(13).icons(EYE,EYE_SLASH)
+                    .tooltip("Autohide dock when inactive");
             Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
 
-            HBox controls = new HBox(8,mainB,miniB);
+            HBox controls = new HBox(8,autohideB,mainB,miniB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
                  controls.setFillHeight(false);
                  controls.setPadding(new Insets(5,5,5,25));
@@ -161,9 +165,7 @@ public class WindowManager {
             // autohiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
-            Anim a = new Anim(millis(300),frac -> {
-                miniWindow.setY(-H*frac, false);
-            });
+            Anim a = new Anim(millis(300),frac -> miniWindow.setY(-H*frac, false));
 
             FxTimer hider = new FxTimer(0, 1, () -> {
                 if(miniWindow.getY()!=0) return;    // if not open
@@ -175,7 +177,7 @@ public class WindowManager {
                 a.playFrom(millis(300).subtract(d));
             });
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
-                if(!mini_hide_onInactive) return;   // if disabled
+                if(!mini_hide_onInactive.get()) return;   // if disabled
                 hider.start(mini_inactive_delay);
             });
             hider.runNow();

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Table;
+package gui.objects.table;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -21,15 +21,14 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.control.skin.TableHeaderRow;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkin;
-import com.sun.javafx.scene.control.skin.TableViewSkinBase;
-
 import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
+import gui.objects.table.TableColumnInfo.ColumnInfo;
 import util.access.FieldValue.ObjectField;
 import util.access.FieldValue.ObjectField.ColumnField;
 import util.dev.TODO;
@@ -44,6 +43,7 @@ import static javafx.scene.control.TableColumn.SortType.ASCENDING;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.getEnumConstants;
+import static util.Util.invokeMethodP0;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
 
@@ -190,7 +190,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public TableColumnInfo getColumnState() {
-        columnState.update(this);
+        columnState.update(this); if(columnState==null) throw new RuntimeException("column state null");
         return columnState;
     }
 
@@ -233,7 +233,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
             // link table column button to our menu instead of an old one
             if(getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
-            TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
+            // TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow(); // java9 no longer supports this
+            TableHeaderRow h = (TableHeaderRow)invokeMethodP0(TableViewSkinBase.class,(TableViewSkinBase)getSkin(),"getTableHeaderRow");
 
             try {
                 // cornerRegion is the context menu button, use reflection

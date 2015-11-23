@@ -25,6 +25,7 @@ import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ2;
 
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.UUID.fromString;
 import static main.App.APP;
 import static util.File.FileUtil.readFileLines;
@@ -106,7 +107,7 @@ public class DB {
     }
 
     public static boolean exists(URI uri) {
-        return null != em.find(Metadata.class, uri.toString());
+        return em==null ? false : em.find(Metadata.class, uri.toString())!=null;
     }
 
     /**
@@ -122,51 +123,20 @@ public class DB {
 
     /**
      * Returns item from library.
-     * <p>
-     * Never pass the returned item into the application before making sure it
-     * is not null.
+     *
      * @return item from library with the specified URI or null if not found.
      */
     public static Metadata getItem(URI uri) {
-        return em.find(Metadata.class, uri.toString());
+        return em==null ? null : em.find(Metadata.class, uri.toString());
     }
 
     public static List<Metadata> getAllItems() {
-        return em.createQuery("SELECT p FROM MetadataItem p", Metadata.class)
-                 .getResultList();
+        return em==null ? EMPTY_LIST : em.createQuery("SELECT p FROM MetadataItem p", Metadata.class).getResultList();
     }
-//
-//    public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
-//        return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
-//    }
-//
-//    public static List<String> getAllArtists() {
-//        return em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class)
-//                 .getResultList();
-//    }
-//
-//    public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
-//        List result;
-//
-//            Accessor<String> filter = new Accessor("");
-//
-//            filters.forEachBoth((field,values) -> {
-//
-//                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
-//
-//                String f = field.isTypeNumber()
-//                    ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString().replaceAll("'", "''")
-//                    : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'";
-//                filter.setValue(filter.getValue() + f);
-//            });
-//
-//        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
-//        result = query.getResultList();
-//
-//        return result;
-//    }
 
     public static void addItems(Collection<? extends Metadata> items) {
+        if(em==null) return;
+
         if (items.isEmpty()) return;
         List<Metadata> l = new ArrayList<>();
         // add to db
@@ -186,6 +156,8 @@ public class DB {
     }
 
     public static void removeItems(Collection<? extends Metadata> items) {
+        if(em==null) return;
+
         // remove in db
         em.getTransaction().begin();
         items.forEach( m -> {
@@ -202,6 +174,8 @@ public class DB {
     }
 
     public static void updatePer(Collection<? extends Metadata> items) {
+        if(em==null) return;
+
         // update db
         em.getTransaction().begin();
         items.forEach(em::merge);

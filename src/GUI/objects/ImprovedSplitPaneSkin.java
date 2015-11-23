@@ -1,12 +1,31 @@
 /*
- * Copyright (c) 2010, 2014, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2015, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package gui.objects;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -22,22 +41,47 @@ import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Control;
+import javafx.scene.control.SkinBase;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 
-import com.sun.javafx.scene.control.behavior.BehaviorBase;
-import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+/**
+ * Custom skin for the {@link SplitPane} which does not consume mouse events. Otherwise identical
+ * to official impl.
+ */
+public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
 
-public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorBase<SplitPane>>  {
+    /***************************************************************************
+     *                                                                         *
+     * Private fields                                                          *
+     *                                                                         *
+     **************************************************************************/
 
     private ObservableList<Content> contentRegions;
     private ObservableList<ContentDivider> contentDividers;
     private boolean horizontal;
 
-    public ImprovedSplitPaneSkin(final SplitPane splitPane) {
-        super(splitPane, new BehaviorBase<>(splitPane, Collections.emptyList()));
-//        splitPane.setManaged(false);
+
+
+    /***************************************************************************
+     *                                                                         *
+     * Constructors                                                            *
+     *                                                                         *
+     **************************************************************************/
+
+    /**
+     * Creates a new SplitPaneSkin instance, installing the necessary child
+     * nodes into the Control {@link Control#getChildren() children} list, as
+     * well as the necessary {@link Node#getInputMap() input mappings} for
+     * handling key, mouse, etc events.
+     *
+     * @param control The control that this skin should be installed onto.
+     */
+    public ImprovedSplitPaneSkin(final SplitPane control) {
+        super(control);
+//        control.setManaged(false);
         horizontal = getSkinnable().getOrientation() == Orientation.HORIZONTAL;
 
         contentRegions = FXCollections.<Content>observableArrayList();
@@ -53,483 +97,36 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
             addDivider(d);
         }
 
-        registerChangeListener(splitPane.orientationProperty(), "ORIENTATION");
-        registerChangeListener(splitPane.widthProperty(), "WIDTH");
-        registerChangeListener(splitPane.heightProperty(), "HEIGHT");
-    }
-
-    private void addContent(int index, Node n) {
-        Content c = new Content(n);
-        contentRegions.add(index, c);
-        getChildren().add(index, c);
-    }
-
-    private void removeContent(Node n) {
-        for (Content c: contentRegions) {
-            if (c.getContent().equals(n)) {
-                getChildren().remove(c);
-                contentRegions.remove(c);
-                break;
-            }
-        }
-    }
-
-    private void initializeContentListener() {
-        getSkinnable().getItems().addListener((ListChangeListener<Node>) c -> {
-            while (c.next()) {
-                if (c.wasPermutated() || c.wasUpdated()) {
-                    /**
-                     * the contents were either moved, or updated.
-                     * rebuild the contents to re-sync
-                     */
-                    getChildren().clear();
-                    contentRegions.clear();
-                    int index = 0;
-                    for (Node n : c.getList()) {
-                        addContent(index++, n);
-                    }
-
-                } else {
-                    for (Node n : c.getRemoved()) {
-                        removeContent(n);
-                    }
-
-                    int index = c.getFrom();
-                    for (Node n : c.getAddedSubList()) {
-                        addContent(index++, n);
-                    }
-                }
-            }
-            // TODO there may be a more efficient way than rebuilding all the dividers
-            // everytime the list changes.
-            removeAllDividers();
-            for (SplitPane.Divider d: getSkinnable().getDividers()) {
-                addDivider(d);
-            }
-        });
-    }
-
-    // This listener is to be removed from 'removed' dividers and added to 'added' dividers
-    class PosPropertyListener implements ChangeListener<Number> {
-        ContentDivider divider;
-
-        public PosPropertyListener(ContentDivider divider) {
-            this.divider = divider;
-        }
-
-        @Override public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-            if (checkDividerPos) {
-                // When checking is enforced, we know that the position was set explicitly
-                divider.posExplicit = true;
-            }
-            getSkinnable().requestLayout();
-        }
-    }
-
-    private void checkDividerPosition(ContentDivider divider, double newPos, double oldPos) {
-        double dividerWidth = divider.prefWidth(-1);
-        Content left = getLeft(divider);
-        Content right = getRight(divider);
-        double minLeft = left == null ? 0 : (horizontal) ? left.minWidth(-1) : left.minHeight(-1);
-        double minRight = right == null ? 0 : (horizontal) ? right.minWidth(-1) : right.minHeight(-1);
-        double maxLeft = left == null ? 0 :
-            left.getContent() != null ? (horizontal) ? left.getContent().maxWidth(-1) : left.getContent().maxHeight(-1) : 0;
-        double maxRight = right == null ? 0 :
-            right.getContent() != null ? (horizontal) ? right.getContent().maxWidth(-1) : right.getContent().maxHeight(-1) : 0;
-
-        double previousDividerPos = 0;
-        double nextDividerPos = getSize();
-        int index = contentDividers.indexOf(divider);
-
-        if (index - 1 >= 0) {
-            previousDividerPos = contentDividers.get(index - 1).getDividerPos();
-            if (previousDividerPos == -1) {
-                // Get the divider position if it hasn't been initialized.
-                previousDividerPos = getAbsoluteDividerPos(contentDividers.get(index - 1));
-            }
-        }
-        if (index + 1 < contentDividers.size()) {
-            nextDividerPos = contentDividers.get(index + 1).getDividerPos();
-            if (nextDividerPos == -1) {
-                // Get the divider position if it hasn't been initialized.
-                nextDividerPos = getAbsoluteDividerPos(contentDividers.get(index + 1));
-            }
-        }
-
-        // Set the divider into the correct position by looking at the max and min content sizes.
-        checkDividerPos = false;
-        if (newPos > oldPos) {
-            double max = previousDividerPos == 0 ? maxLeft : previousDividerPos + dividerWidth + maxLeft;
-            double min = nextDividerPos - minRight - dividerWidth;
-            double stopPos = Math.min(max, min);
-            if (newPos >= stopPos) {
-                setAbsoluteDividerPos(divider, stopPos);
-            } else {
-                double rightMax = nextDividerPos - maxRight - dividerWidth;
-                if (newPos <= rightMax) {
-                    setAbsoluteDividerPos(divider, rightMax);
-                } else {
-                    setAbsoluteDividerPos(divider, newPos);
-                }
-            }
-        } else {
-            double max = nextDividerPos - maxRight - dividerWidth;
-            double min = previousDividerPos == 0 ? minLeft : previousDividerPos + minLeft + dividerWidth;
-            double stopPos = Math.max(max, min);
-            if (newPos <= stopPos) {
-                setAbsoluteDividerPos(divider, stopPos);
-            } else {
-                double leftMax = previousDividerPos + maxLeft + dividerWidth;
-                if (newPos >= leftMax) {
-                    setAbsoluteDividerPos(divider, leftMax);
-                } else {
-                    setAbsoluteDividerPos(divider, newPos);
-                }
-            }
-        }
-        checkDividerPos = true;
-    }
-
-    private void addDivider(SplitPane.Divider d) {
-        ContentDivider c = new ContentDivider(d);
-        c.setInitialPos(d.getPosition());
-        c.setDividerPos(-1);
-        ChangeListener<Number> posPropertyListener = new PosPropertyListener(c);
-        c.setPosPropertyListener(posPropertyListener);
-        d.positionProperty().addListener(posPropertyListener);
-        initializeDivderEventHandlers(c);
-        contentDividers.add(c);
-        getChildren().add(c);
-    }
-
-    private void removeAllDividers() {
-        ListIterator<ContentDivider> dividers = contentDividers.listIterator();
-        while (dividers.hasNext()) {
-            ContentDivider c = dividers.next();
-            getChildren().remove(c);
-            c.getDivider().positionProperty().removeListener(c.getPosPropertyListener());
-            dividers.remove();
-        }
-        lastDividerUpdate = 0;
-    }
-
-    private void initializeDivderEventHandlers(final ContentDivider divider) {
-//        // TODO: do we need to consume all mouse events?
-//        // they only bubble to the skin which consumes them by default
-//        divider.addEventHandler(MouseEvent.ANY, event -> {
-//            event.consume();
-//        });
-
-        divider.setOnMousePressed(e -> {
-            if (horizontal) {
-                divider.setInitialPos(divider.getDividerPos());
-                divider.setPressPos(e.getSceneX());
-                divider.setPressPos(getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
-                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX());
-            } else {
-                divider.setInitialPos(divider.getDividerPos());
-                divider.setPressPos(e.getSceneY());
-            }
-//            e.consume();
-        });
-
-        divider.setOnMouseDragged(e -> {
-            double delta = 0;
-            if (horizontal) {
-                delta = getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
-                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX();
-            } else {
-                delta = e.getSceneY();
-            }
-            delta -= divider.getPressPos();
-            setAndCheckAbsoluteDividerPos(divider, Math.ceil(divider.getInitialPos() + delta));
-//            e.consume();
-        });
-    }
-
-    private Content getLeft(ContentDivider d) {
-        int index = contentDividers.indexOf(d);
-        if (index != -1) {
-            return contentRegions.get(index);
-        }
-        return null;
-    }
-
-    private Content getRight(ContentDivider d) {
-        int index = contentDividers.indexOf(d);
-        if (index != -1) {
-            return contentRegions.get(index + 1);
-        }
-        return null;
-    }
-
-    @Override protected void handleControlPropertyChanged(String property) {
-        super.handleControlPropertyChanged(property);
-        if ("ORIENTATION".equals(property)) {
+        registerChangeListener(control.orientationProperty(), e -> {
             this.horizontal = getSkinnable().getOrientation() == Orientation.HORIZONTAL;
             this.previousSize = -1;
             for (ContentDivider c: contentDividers) {
                 c.setGrabberStyle(horizontal);
             }
             getSkinnable().requestLayout();
-        } else if ("WIDTH".equals(property) || "HEIGHT".equals(property)) {
-            getSkinnable().requestLayout();
-        }
+        });
+        registerChangeListener(control.widthProperty(), e -> getSkinnable().requestLayout());
+        registerChangeListener(control.heightProperty(), e -> getSkinnable().requestLayout());
     }
 
-    // Value is the left edge of the divider
-    private void setAbsoluteDividerPos(ContentDivider divider, double value) {
-        if (getSkinnable().getWidth() > 0 && getSkinnable().getHeight() > 0 && divider != null) {
-            SplitPane.Divider paneDivider = divider.getDivider();
-            divider.setDividerPos(value);
-            double size = getSize();
-            if (size != 0) {
-                // Adjust the position to the center of the
-                // divider and convert its position to a percentage.
-                double pos = value + divider.prefWidth(-1)/2;
-                paneDivider.setPosition(pos / size);
-            } else {
-                paneDivider.setPosition(0);
-            }
-        }
-    }
 
-    // Updates the divider with the SplitPane.Divider's position
-    // The value updated to SplitPane.Divider will be the center of the divider.
-    // The returned position will be the left edge of the divider
-    private double getAbsoluteDividerPos(ContentDivider divider) {
-        if (getSkinnable().getWidth() > 0 && getSkinnable().getHeight() > 0 && divider != null) {
-            SplitPane.Divider paneDivider = divider.getDivider();
-            double newPos = posToDividerPos(divider, paneDivider.getPosition());
-            divider.setDividerPos(newPos);
-            return newPos;
-        }
-        return 0;
-    }
 
-    // Returns the left edge of the divider at pos
-    // Pos is the percentage location from SplitPane.Divider.
-    private double posToDividerPos(ContentDivider divider, double pos) {
-        double newPos = getSize() * pos;
-        if (pos == 1) {
-            newPos -= divider.prefWidth(-1);
-        } else {
-            newPos -= divider.prefWidth(-1)/2;
-        }
-        return Math.round(newPos);
-    }
+    /***************************************************************************
+     *                                                                         *
+     * Public API                                                              *
+     *                                                                         *
+     **************************************************************************/
 
-    private double totalMinSize() {
-        double dividerWidth = !contentDividers.isEmpty() ? contentDividers.size() * contentDividers.get(0).prefWidth(-1) : 0;
-        double minSize = 0;
-        for (Content c: contentRegions) {
-            if (horizontal) {
-                minSize += c.minWidth(-1);
-            } else {
-                minSize += c.minHeight(-1);
-            }
-        }
-        return minSize + dividerWidth;
-    }
-
-    private double getSize() {
-        final SplitPane s = getSkinnable();
-        double size = totalMinSize();
-        if (horizontal) {
-            if (s.getWidth() > size) {
-                size = s.getWidth() - snappedLeftInset() - snappedRightInset();
-            }
-        } else {
-            if (s.getHeight() > size) {
-                size = s.getHeight() - snappedTopInset() - snappedBottomInset();
-            }
-        }
-        return size;
-    }
-
-    // Evenly distribute the size to the available list.
-    // size is the amount to distribute.
-    private double distributeTo(List<Content> available, double size) {
-        if (available.isEmpty()) {
-            return size;
-        }
-
-        size = snapSize(size);
-        int portion = (int)(size)/available.size();
-        int remainder;
-
-        while (size > 0 && !available.isEmpty()) {
-            Iterator<Content> i = available.iterator();
-            while (i.hasNext()) {
-                Content c = i.next();
-                double max = Math.min((horizontal ? c.maxWidth(-1) : c.maxHeight(-1)), Double.MAX_VALUE);
-                double min = horizontal ? c.minWidth(-1) : c.minHeight(-1);
-
-                // We have too much space
-                if (c.getArea() >= max) {
-                    c.setAvailable(c.getArea() - min);
-                    i.remove();
-                    continue;
-                }
-                // Not enough space
-                if (portion >= (max - c.getArea())) {
-                    size -= (max - c.getArea());
-                    c.setArea(max);
-                    c.setAvailable(max - min);
-                    i.remove();
-                } else {
-                    // Enough space
-                    c.setArea(c.getArea() + portion);
-                    c.setAvailable(c.getArea() - min);
-                    size -= portion;
-                }
-                if ((int)size == 0) {
-                    return size;
-                }
-            }
-            if (available.isEmpty()) {
-                // We reached the max size for everything just return
-                return size;
-            }
-            portion = (int)(size)/available.size();
-            remainder = (int)(size)%available.size();
-            if (portion == 0 && remainder != 0) {
-                portion = remainder;
-                remainder = 0;
-            }
-        }
-        return size;
-    }
-
-    // Evenly distribute the size from the available list.
-    // size is the amount to distribute.
-    private double distributeFrom(double size, List<Content> available) {
-        if (available.isEmpty()) {
-            return size;
-        }
-
-        size = snapSize(size);
-        int portion = (int)(size)/available.size();
-        int remainder;
-
-        while (size > 0 && !available.isEmpty()) {
-            Iterator<Content> i = available.iterator();
-            while (i.hasNext()) {
-                Content c = i.next();
-                //not enough space taking available and setting min
-                if (portion >= c.getAvailable()) {
-                    c.setArea(c.getArea() - c.getAvailable()); // Min size
-                    size -= c.getAvailable();
-                    c.setAvailable(0);
-                    i.remove();
-                } else {
-                    //enough space
-                    c.setArea(c.getArea() - portion);
-                    c.setAvailable(c.getAvailable() - portion);
-                    size -= portion;
-                }
-                if ((int)size == 0) {
-                    return size;
-                }
-            }
-            if (available.isEmpty()) {
-                // We reached the min size for everything just return
-                return size;
-            }
-            portion = (int)(size)/available.size();
-            remainder = (int)(size)%available.size();
-            if (portion == 0 && remainder != 0) {
-                portion = remainder;
-                remainder = 0;
-            }
-        }
-        return size;
-    }
-
-    private void setupContentAndDividerForLayout() {
-        // Set all the value to prepare for layout
-        double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
-        double startX = 0;
-        double startY = 0;
-        for (Content c: contentRegions) {
-            if (resize && !c.isResizableWithParent()) {
-                c.setArea(c.getResizableWithParentArea());
-            }
-
-            c.setX(startX);
-            c.setY(startY);
-            if (horizontal) {
-                startX += (c.getArea() + dividerWidth);
-            } else {
-                startY += (c.getArea() + dividerWidth);
-            }
-        }
-
-        startX = 0;
-        startY = 0;
-        // The dividers are already in the correct positions.  Disable
-        // checking the divider positions.
-        checkDividerPos = false;
-        for (int i = 0; i < contentDividers.size(); i++) {
-            ContentDivider d = contentDividers.get(i);
-            if (horizontal) {
-                startX += getLeft(d).getArea() + (i == 0 ? 0 : dividerWidth);
-            } else {
-                startY += getLeft(d).getArea() + (i == 0 ? 0 : dividerWidth);
-            }
-            d.setX(startX);
-            d.setY(startY);
-            setAbsoluteDividerPos(d, (horizontal ? d.getX() : d.getY()));
-            d.posExplicit = false;
-        }
-        checkDividerPos = true;
-    }
-
-    private void layoutDividersAndContent(double width, double height) {
-        final double paddingX = snappedLeftInset();
-        final double paddingY = snappedTopInset();
-        final double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
-
-        for (Content c: contentRegions) {
-//            System.out.println("LAYOUT " + c.getId() + " PANELS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? c.getArea() : width) + " H " + (horizontal ? height : c.getArea()));
-            if (horizontal) {
-                c.setClipSize(c.getArea(), height);
-                layoutInArea(c, c.getX() + paddingX, c.getY() + paddingY, c.getArea(), height,
-                    0/*baseline*/,HPos.CENTER, VPos.CENTER);
-            } else {
-                c.setClipSize(width, c.getArea());
-                layoutInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, c.getArea(),
-                    0/*baseline*/,HPos.CENTER, VPos.CENTER);
-            }
-        }
-        for (ContentDivider c: contentDividers) {
-//            System.out.println("LAYOUT DIVIDERS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? dividerWidth : width) + " H " + (horizontal ? height : dividerWidth));
-            if (horizontal) {
-                c.resize(dividerWidth, height);
-                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, dividerWidth, height,
-                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
-            } else {
-                c.resize(width, dividerWidth);
-                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, dividerWidth,
-                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
-            }
-        }
-    }
-
-    private double previousSize = -1;
-    private int lastDividerUpdate = 0;
-    private boolean resize = false;
-    private boolean checkDividerPos = true;
-
+    /** {@inheritDoc} */
     @Override protected void layoutChildren(final double x, final double y,
-            final double w, final double h) {
+                                            final double w, final double h) {
         final SplitPane s = getSkinnable();
         final double sw = s.getWidth();
         final double sh = s.getHeight();
 
         if (!s.isVisible() ||
-            (horizontal ? sw == 0 : sh == 0) ||
-            contentRegions.isEmpty()) {
+                (horizontal ? sw == 0 : sh == 0) ||
+                contentRegions.isEmpty()) {
             return;
         }
 
@@ -815,12 +412,7 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
         resize = false;
     }
 
-    private void setAndCheckAbsoluteDividerPos(ContentDivider divider, double value) {
-        double oldPos = divider.getDividerPos();
-        setAbsoluteDividerPos(divider, value);
-        checkDividerPosition(divider, value, oldPos);
-    }
-
+    /** {@inheritDoc} */
     @Override protected double computeMinWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
         double minWidth = 0;
         double maxMinWidth = 0;
@@ -838,6 +430,7 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
         }
     }
 
+    /** {@inheritDoc} */
     @Override protected double computeMinHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
         double minHeight = 0;
         double maxMinHeight = 0;
@@ -855,6 +448,7 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
         }
     }
 
+    /** {@inheritDoc} */
     @Override protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
         double prefWidth = 0;
         double prefMaxWidth = 0;
@@ -872,6 +466,7 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
         }
     }
 
+    /** {@inheritDoc} */
     @Override protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
         double prefHeight = 0;
         double maxPrefHeight = 0;
@@ -890,27 +485,475 @@ public class ImprovedSplitPaneSkin extends BehaviorSkinBase<SplitPane, BehaviorB
     }
 
 
-//    private void printDividerPositions() {
-//        for (int i = 0; i < contentDividers.size(); i++) {
-//            System.out.print("DIVIDER[" + i + "] " + contentDividers.get(i).getDividerPos() + " ");
-//        }
-//        System.out.println("");
-//    }
-//
-//    private void printAreaAndAvailable() {
-//        for (int i = 0; i < contentRegions.size(); i++) {
-//            System.out.print("AREA[" + i + "] " + contentRegions.get(i).getArea() + " ");
-//        }
-//        System.out.println("");
-//        for (int i = 0; i < contentRegions.size(); i++) {
-//            System.out.print("AVAILABLE[" + i + "] " + contentRegions.get(i).getAvailable() + " ");
-//        }
-//        System.out.println("");
-//        for (int i = 0; i < contentRegions.size(); i++) {
-//            System.out.print("RESIZABLEWTIHPARENT[" + i + "] " + contentRegions.get(i).getResizableWithParentArea() + " ");
-//        }
-//        System.out.println("");
-//    }
+
+    /***************************************************************************
+     *                                                                         *
+     * Private implementation                                                  *
+     *                                                                         *
+     **************************************************************************/
+
+    private void addContent(int index, Node n) {
+        Content c = new Content(n);
+        contentRegions.add(index, c);
+        getChildren().add(index, c);
+    }
+
+    private void removeContent(Node n) {
+        for (Content c: contentRegions) {
+            if (c.getContent().equals(n)) {
+                getChildren().remove(c);
+                contentRegions.remove(c);
+                break;
+            }
+        }
+    }
+
+    private void initializeContentListener() {
+        getSkinnable().getItems().addListener((ListChangeListener<Node>) c -> {
+            while (c.next()) {
+                if (c.wasPermutated() || c.wasUpdated()) {
+                    /**
+                     * the contents were either moved, or updated.
+                     * rebuild the contents to re-sync
+                     */
+                    getChildren().clear();
+                    contentRegions.clear();
+                    int index = 0;
+                    for (Node n : c.getList()) {
+                        addContent(index++, n);
+                    }
+
+                } else {
+                    for (Node n : c.getRemoved()) {
+                        removeContent(n);
+                    }
+
+                    int index = c.getFrom();
+                    for (Node n : c.getAddedSubList()) {
+                        addContent(index++, n);
+                    }
+                }
+            }
+            // TODO there may be a more efficient way than rebuilding all the dividers
+            // everytime the list changes.
+            removeAllDividers();
+            for (SplitPane.Divider d: getSkinnable().getDividers()) {
+                addDivider(d);
+            }
+        });
+    }
+
+    private void checkDividerPosition(ContentDivider divider, double newPos, double oldPos) {
+        double dividerWidth = divider.prefWidth(-1);
+        Content left = getLeft(divider);
+        Content right = getRight(divider);
+        double minLeft = left == null ? 0 : (horizontal) ? left.minWidth(-1) : left.minHeight(-1);
+        double minRight = right == null ? 0 : (horizontal) ? right.minWidth(-1) : right.minHeight(-1);
+        double maxLeft = left == null ? 0 :
+            left.getContent() != null ? (horizontal) ? left.getContent().maxWidth(-1) : left.getContent().maxHeight(-1) : 0;
+        double maxRight = right == null ? 0 :
+            right.getContent() != null ? (horizontal) ? right.getContent().maxWidth(-1) : right.getContent().maxHeight(-1) : 0;
+
+        double previousDividerPos = 0;
+        double nextDividerPos = getSize();
+        int index = contentDividers.indexOf(divider);
+
+        if (index - 1 >= 0) {
+            previousDividerPos = contentDividers.get(index - 1).getDividerPos();
+            if (previousDividerPos == -1) {
+                // Get the divider position if it hasn't been initialized.
+                previousDividerPos = getAbsoluteDividerPos(contentDividers.get(index - 1));
+            }
+        }
+        if (index + 1 < contentDividers.size()) {
+            nextDividerPos = contentDividers.get(index + 1).getDividerPos();
+            if (nextDividerPos == -1) {
+                // Get the divider position if it hasn't been initialized.
+                nextDividerPos = getAbsoluteDividerPos(contentDividers.get(index + 1));
+            }
+        }
+
+        // Set the divider into the correct position by looking at the max and min content sizes.
+        checkDividerPos = false;
+        if (newPos > oldPos) {
+            double max = previousDividerPos == 0 ? maxLeft : previousDividerPos + dividerWidth + maxLeft;
+            double min = nextDividerPos - minRight - dividerWidth;
+            double stopPos = Math.min(max, min);
+            if (newPos >= stopPos) {
+                setAbsoluteDividerPos(divider, stopPos);
+            } else {
+                double rightMax = nextDividerPos - maxRight - dividerWidth;
+                if (newPos <= rightMax) {
+                    setAbsoluteDividerPos(divider, rightMax);
+                } else {
+                    setAbsoluteDividerPos(divider, newPos);
+                }
+            }
+        } else {
+            double max = nextDividerPos - maxRight - dividerWidth;
+            double min = previousDividerPos == 0 ? minLeft : previousDividerPos + minLeft + dividerWidth;
+            double stopPos = Math.max(max, min);
+            if (newPos <= stopPos) {
+                setAbsoluteDividerPos(divider, stopPos);
+            } else {
+                double leftMax = previousDividerPos + maxLeft + dividerWidth;
+                if (newPos >= leftMax) {
+                    setAbsoluteDividerPos(divider, leftMax);
+                } else {
+                    setAbsoluteDividerPos(divider, newPos);
+                }
+            }
+        }
+        checkDividerPos = true;
+    }
+
+    private void addDivider(SplitPane.Divider d) {
+        ContentDivider c = new ContentDivider(d);
+        c.setInitialPos(d.getPosition());
+        c.setDividerPos(-1);
+        ChangeListener<Number> posPropertyListener = new PosPropertyListener(c);
+        c.setPosPropertyListener(posPropertyListener);
+        d.positionProperty().addListener(posPropertyListener);
+        initializeDivderEventHandlers(c);
+        contentDividers.add(c);
+        getChildren().add(c);
+    }
+
+    private void removeAllDividers() {
+        ListIterator<ContentDivider> dividers = contentDividers.listIterator();
+        while (dividers.hasNext()) {
+            ContentDivider c = dividers.next();
+            getChildren().remove(c);
+            c.getDivider().positionProperty().removeListener(c.getPosPropertyListener());
+            dividers.remove();
+        }
+        lastDividerUpdate = 0;
+    }
+
+    private void initializeDivderEventHandlers(final ContentDivider divider) {
+        // TODO: do we need to consume all mouse events? // no we dont and YOU WONT!
+        // divider.addEventHandler(MouseEvent.ANY, event -> {
+        //    event.consume();
+        // });
+
+        divider.setOnMousePressed(e -> {
+            if (horizontal) {
+                divider.setInitialPos(divider.getDividerPos());
+                divider.setPressPos(e.getSceneX());
+                divider.setPressPos(getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
+                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX());
+            } else {
+                divider.setInitialPos(divider.getDividerPos());
+                divider.setPressPos(e.getSceneY());
+            }
+            e.consume();
+        });
+
+        divider.setOnMouseDragged(e -> {
+            double delta = 0;
+            if (horizontal) {
+                delta = getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
+                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX();
+            } else {
+                delta = e.getSceneY();
+            }
+            delta -= divider.getPressPos();
+            setAndCheckAbsoluteDividerPos(divider, Math.ceil(divider.getInitialPos() + delta));
+            e.consume();
+        });
+    }
+
+    private Content getLeft(ContentDivider d) {
+        int index = contentDividers.indexOf(d);
+        if (index != -1) {
+            return contentRegions.get(index);
+        }
+        return null;
+    }
+
+    private Content getRight(ContentDivider d) {
+        int index = contentDividers.indexOf(d);
+        if (index != -1) {
+            return contentRegions.get(index + 1);
+        }
+        return null;
+    }
+
+    // Value is the left edge of the divider
+    private void setAbsoluteDividerPos(ContentDivider divider, double value) {
+        if (getSkinnable().getWidth() > 0 && getSkinnable().getHeight() > 0 && divider != null) {
+            SplitPane.Divider paneDivider = divider.getDivider();
+            divider.setDividerPos(value);
+            double size = getSize();
+            if (size != 0) {
+                // Adjust the position to the center of the
+                // divider and convert its position to a percentage.
+                double pos = value + divider.prefWidth(-1)/2;
+                paneDivider.setPosition(pos / size);
+            } else {
+                paneDivider.setPosition(0);
+            }
+        }
+    }
+
+    // Updates the divider with the SplitPane.Divider's position
+    // The value updated to SplitPane.Divider will be the center of the divider.
+    // The returned position will be the left edge of the divider
+    private double getAbsoluteDividerPos(ContentDivider divider) {
+        if (getSkinnable().getWidth() > 0 && getSkinnable().getHeight() > 0 && divider != null) {
+            SplitPane.Divider paneDivider = divider.getDivider();
+            double newPos = posToDividerPos(divider, paneDivider.getPosition());
+            divider.setDividerPos(newPos);
+            return newPos;
+        }
+        return 0;
+    }
+
+    // Returns the left edge of the divider at pos
+    // Pos is the percentage location from SplitPane.Divider.
+    private double posToDividerPos(ContentDivider divider, double pos) {
+        double newPos = getSize() * pos;
+        if (pos == 1) {
+            newPos -= divider.prefWidth(-1);
+        } else {
+            newPos -= divider.prefWidth(-1)/2;
+        }
+        return Math.round(newPos);
+    }
+
+    private double totalMinSize() {
+        double dividerWidth = !contentDividers.isEmpty() ? contentDividers.size() * contentDividers.get(0).prefWidth(-1) : 0;
+        double minSize = 0;
+        for (Content c: contentRegions) {
+            if (horizontal) {
+                minSize += c.minWidth(-1);
+            } else {
+                minSize += c.minHeight(-1);
+            }
+        }
+        return minSize + dividerWidth;
+    }
+
+    private double getSize() {
+        final SplitPane s = getSkinnable();
+        double size = totalMinSize();
+        if (horizontal) {
+            if (s.getWidth() > size) {
+                size = s.getWidth() - snappedLeftInset() - snappedRightInset();
+            }
+        } else {
+            if (s.getHeight() > size) {
+                size = s.getHeight() - snappedTopInset() - snappedBottomInset();
+            }
+        }
+        return size;
+    }
+
+    // Evenly distribute the size to the available list.
+    // size is the amount to distribute.
+    private double distributeTo(List<Content> available, double size) {
+        if (available.isEmpty()) {
+            return size;
+        }
+
+        size = snapSize(size);
+        int portion = (int)(size)/available.size();
+        int remainder;
+
+        while (size > 0 && !available.isEmpty()) {
+            Iterator<Content> i = available.iterator();
+            while (i.hasNext()) {
+                Content c = i.next();
+                double max = Math.min((horizontal ? c.maxWidth(-1) : c.maxHeight(-1)), Double.MAX_VALUE);
+                double min = horizontal ? c.minWidth(-1) : c.minHeight(-1);
+
+                // We have too much space
+                if (c.getArea() >= max) {
+                    c.setAvailable(c.getArea() - min);
+                    i.remove();
+                    continue;
+                }
+                // Not enough space
+                if (portion >= (max - c.getArea())) {
+                    size -= (max - c.getArea());
+                    c.setArea(max);
+                    c.setAvailable(max - min);
+                    i.remove();
+                } else {
+                    // Enough space
+                    c.setArea(c.getArea() + portion);
+                    c.setAvailable(c.getArea() - min);
+                    size -= portion;
+                }
+                if ((int)size == 0) {
+                    return size;
+                }
+            }
+            if (available.isEmpty()) {
+                // We reached the max size for everything just return
+                return size;
+            }
+            portion = (int)(size)/available.size();
+            remainder = (int)(size)%available.size();
+            if (portion == 0 && remainder != 0) {
+                portion = remainder;
+                remainder = 0;
+            }
+        }
+        return size;
+    }
+
+    // Evenly distribute the size from the available list.
+    // size is the amount to distribute.
+    private double distributeFrom(double size, List<Content> available) {
+        if (available.isEmpty()) {
+            return size;
+        }
+
+        size = snapSize(size);
+        int portion = (int)(size)/available.size();
+        int remainder;
+
+        while (size > 0 && !available.isEmpty()) {
+            Iterator<Content> i = available.iterator();
+            while (i.hasNext()) {
+                Content c = i.next();
+                //not enough space taking available and setting min
+                if (portion >= c.getAvailable()) {
+                    c.setArea(c.getArea() - c.getAvailable()); // Min size
+                    size -= c.getAvailable();
+                    c.setAvailable(0);
+                    i.remove();
+                } else {
+                    //enough space
+                    c.setArea(c.getArea() - portion);
+                    c.setAvailable(c.getAvailable() - portion);
+                    size -= portion;
+                }
+                if ((int)size == 0) {
+                    return size;
+                }
+            }
+            if (available.isEmpty()) {
+                // We reached the min size for everything just return
+                return size;
+            }
+            portion = (int)(size)/available.size();
+            remainder = (int)(size)%available.size();
+            if (portion == 0 && remainder != 0) {
+                portion = remainder;
+                remainder = 0;
+            }
+        }
+        return size;
+    }
+
+    private void setupContentAndDividerForLayout() {
+        // Set all the value to prepare for layout
+        double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
+        double startX = 0;
+        double startY = 0;
+        for (Content c: contentRegions) {
+            if (resize && !c.isResizableWithParent()) {
+                c.setArea(c.getResizableWithParentArea());
+            }
+
+            c.setX(startX);
+            c.setY(startY);
+            if (horizontal) {
+                startX += (c.getArea() + dividerWidth);
+            } else {
+                startY += (c.getArea() + dividerWidth);
+            }
+        }
+
+        startX = 0;
+        startY = 0;
+        // The dividers are already in the correct positions.  Disable
+        // checking the divider positions.
+        checkDividerPos = false;
+        for (int i = 0; i < contentDividers.size(); i++) {
+            ContentDivider d = contentDividers.get(i);
+            if (horizontal) {
+                startX += getLeft(d).getArea() + (i == 0 ? 0 : dividerWidth);
+            } else {
+                startY += getLeft(d).getArea() + (i == 0 ? 0 : dividerWidth);
+            }
+            d.setX(startX);
+            d.setY(startY);
+            setAbsoluteDividerPos(d, (horizontal ? d.getX() : d.getY()));
+            d.posExplicit = false;
+        }
+        checkDividerPos = true;
+    }
+
+    private void layoutDividersAndContent(double width, double height) {
+        final double paddingX = snappedLeftInset();
+        final double paddingY = snappedTopInset();
+        final double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
+
+        for (Content c: contentRegions) {
+//            System.out.println("LAYOUT " + c.getId() + " PANELS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? c.getArea() : width) + " H " + (horizontal ? height : c.getArea()));
+            if (horizontal) {
+                c.setClipSize(c.getArea(), height);
+                layoutInArea(c, c.getX() + paddingX, c.getY() + paddingY, c.getArea(), height,
+                    0/*baseline*/,HPos.CENTER, VPos.CENTER);
+            } else {
+                c.setClipSize(width, c.getArea());
+                layoutInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, c.getArea(),
+                    0/*baseline*/,HPos.CENTER, VPos.CENTER);
+            }
+        }
+        for (ContentDivider c: contentDividers) {
+//            System.out.println("LAYOUT DIVIDERS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? dividerWidth : width) + " H " + (horizontal ? height : dividerWidth));
+            if (horizontal) {
+                c.resize(dividerWidth, height);
+                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, dividerWidth, height,
+                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
+            } else {
+                c.resize(width, dividerWidth);
+                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, dividerWidth,
+                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
+            }
+        }
+    }
+
+    private double previousSize = -1;
+    private int lastDividerUpdate = 0;
+    private boolean resize = false;
+    private boolean checkDividerPos = true;
+
+    private void setAndCheckAbsoluteDividerPos(ContentDivider divider, double value) {
+        double oldPos = divider.getDividerPos();
+        setAbsoluteDividerPos(divider, value);
+        checkDividerPosition(divider, value, oldPos);
+    }
+
+
+
+    /***************************************************************************
+     *                                                                         *
+     * Support classes                                                         *
+     *                                                                         *
+     **************************************************************************/
+
+    // This listener is to be removed from 'removed' dividers and added to 'added' dividers
+    class PosPropertyListener implements ChangeListener<Number> {
+        ContentDivider divider;
+
+        public PosPropertyListener(ContentDivider divider) {
+            this.divider = divider;
+        }
+
+        @Override public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            if (checkDividerPos) {
+                // When checking is enforced, we know that the position was set explicitly
+                divider.posExplicit = true;
+            }
+            getSkinnable().requestLayout();
+        }
+    }
+
 
     class ContentDivider extends StackPane {
         private double initialPos;

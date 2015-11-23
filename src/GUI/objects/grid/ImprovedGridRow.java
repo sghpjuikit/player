@@ -11,20 +11,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Skin;
 
-import org.controlsfx.control.GridView;
 
 class ImprovedGridRow<T> extends IndexedCell<T>{
 
-
-    /**************************************************************************
-     *
-     * Constructors
-     *
-     **************************************************************************/
-
-    /**
-     *
-     */
     public ImprovedGridRow() {
         super();
         getStyleClass().add("grid-row"); //$NON-NLS-1$
@@ -46,34 +35,26 @@ class ImprovedGridRow<T> extends IndexedCell<T>{
         return new ImprovedGridRowSkin<>(this);
     }
 
-
-
-    /**************************************************************************
-     *
-     * Properties
-     *
-     **************************************************************************/
-
     /**
      * The {@link GridView} that this GridRow exists within.
      */
-    public SimpleObjectProperty<GridView<T>> gridViewProperty() {
+    public SimpleObjectProperty<ImprovedGridView<T>> gridViewProperty() {
         return gridView;
     }
-    private final SimpleObjectProperty<GridView<T>> gridView =
+    private final SimpleObjectProperty<ImprovedGridView<T>> gridView =
             new SimpleObjectProperty<>(this, "gridView"); //$NON-NLS-1$
 
     /**
      * Sets the {@link GridView} that this GridRow exists within.
      */
-    public final void updateGridView(GridView<T> gridView) {
+    public final void updateGridView(ImprovedGridView<T> gridView) {
         this.gridView.set(gridView);
     }
 
     /**
      * Returns the {@link GridView} that this GridRow exists within.
      */
-    public GridView<T> getGridView() {
+    public ImprovedGridView<T> getGridView() {
         return gridView.get();
     }
 }

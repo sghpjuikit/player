@@ -33,8 +33,8 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
-import gui.objects.Table.FilteredTable;
-import gui.objects.Table.ImprovedTable.PojoV;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
@@ -51,7 +51,7 @@ import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
-import static gui.objects.Table.FieldedTable.defaultCell;
+import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static gui.pane.ActionPane.GroupApply.FOR_EACH;
@@ -244,7 +244,7 @@ public class ActionPane extends OverlayPane implements Configurable {
         if(data instanceof Collection && !((Collection)data).isEmpty()) {
             Class coltype = ((Collection<?>)data).stream().findFirst().map(Object::getClass).orElse(Void.class);
             if(fieldmap.containsKey(coltype)) {
-                FilteredTable<Object,?> t = new gui.objects.Table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
+                FilteredTable<Object,?> t = new gui.objects.table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
                 t.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {

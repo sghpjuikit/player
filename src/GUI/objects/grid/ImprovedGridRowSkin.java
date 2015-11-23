@@ -27,41 +27,21 @@
  */
 package gui.objects.grid;
 
-import java.util.Collections;
-
 import javafx.scene.Node;
+import javafx.scene.control.skin.CellSkinBase;
 
-import org.controlsfx.control.GridCell;
-import org.controlsfx.control.GridView;
-
-import com.sun.javafx.scene.control.behavior.BehaviorBase;
-import com.sun.javafx.scene.control.behavior.KeyBinding;
-import com.sun.javafx.scene.control.skin.CellSkinBase;
-
-public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, BehaviorBase<ImprovedGridRow<T>>> {
+public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
 
     public ImprovedGridRowSkin(ImprovedGridRow<T> control) {
-        super(control, new BehaviorBase<>(control, Collections.<KeyBinding> emptyList()));
+        super(control);
 
         // Remove any children before creating cells (by default a LabeledText exist and we don't need it)
         getChildren().clear();
         updateCells();
 
-        registerChangeListener(getSkinnable().indexProperty(), "INDEX"); //$NON-NLS-1$
-        registerChangeListener(getSkinnable().widthProperty(), "WIDTH"); //$NON-NLS-1$
-        registerChangeListener(getSkinnable().heightProperty(), "HEIGHT"); //$NON-NLS-1$
-    }
-
-    @Override protected void handleControlPropertyChanged(String p) {
-        super.handleControlPropertyChanged(p);
-
-        if ("INDEX".equals(p)) { //$NON-NLS-1$
-            updateCells();
-        } else if ("WIDTH".equals(p)) { //$NON-NLS-1$
-            updateCells();
-        } else if ("HEIGHT".equals(p)) { //$NON-NLS-1$
-            updateCells();
-        }
+        registerChangeListener(getSkinnable().indexProperty(), e -> updateCells());
+        registerChangeListener(getSkinnable().widthProperty(), e -> updateCells());
+        registerChangeListener(getSkinnable().heightProperty(), e -> updateCells());
     }
 
     /**
@@ -70,9 +50,9 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
      *  @return Cell element if exist else null
      */
     @SuppressWarnings("unchecked")
-	public GridCell<T> getCellAtIndex(int index) {
+	public ImprovedGridCell<T> getCellAtIndex(int index) {
         if( index < getChildren().size() ) {
-            return (GridCell<T>)getChildren().get(index);
+            return (ImprovedGridCell<T>)getChildren().get(index);
         }
         return null;
     }
@@ -84,7 +64,7 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
     public void updateCells() {
         int rowIndex = getSkinnable().getIndex();
         if (rowIndex >= 0) {
-            GridView<T> gridView = getSkinnable().getGridView();
+            ImprovedGridView<T> gridView = getSkinnable().getGridView();
             int maxCellsInRow = ((ImprovedGridViewSkin<?>)gridView.getSkin()).computeMaxCellsInRow();
             int totalCellsInGrid = gridView.getItems().size();
             int startCellIndex = rowIndex * maxCellsInRow;
@@ -94,7 +74,7 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
             for (int cellIndex = startCellIndex; cellIndex <= endCellIndex; cellIndex++, cacheIndex++) {
                 if (cellIndex < totalCellsInGrid) {
                     // Check if we can re-use a cell at this index or create a new one
-                    GridCell<T> cell = getCellAtIndex(cacheIndex);
+                    ImprovedGridCell<T> cell = getCellAtIndex(cacheIndex);
                     if( cell == null ) {
                         cell = createCell();
                         getChildren().add(cell);
@@ -112,9 +92,9 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
         }
     }
 
-    private GridCell<T> createCell() {
-        GridView<T> gridView = getSkinnable().gridViewProperty().get();
-        GridCell<T> cell;
+    private ImprovedGridCell<T> createCell() {
+        ImprovedGridView<T> gridView = getSkinnable().gridViewProperty().get();
+        ImprovedGridCell<T> cell;
         if (gridView.getCellFactory() != null) {
             cell = gridView.getCellFactory().call(gridView);
         } else {
@@ -124,8 +104,8 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
         return cell;
     }
 
-    private GridCell<T> createDefaultCellImpl() {
-        return new GridCell<T>() {
+    private ImprovedGridCell<T> createDefaultCellImpl() {
+        return new ImprovedGridCell<T>() {
             @Override protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
                 if(empty) {
@@ -146,7 +126,7 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>, Beh
     }
 
     @Override protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        GridView<T> gv = getSkinnable().gridViewProperty().get();
+        ImprovedGridView<T> gv = getSkinnable().gridViewProperty().get();
         return gv.getCellHeight() + gv.getVerticalCellSpacing() * 2;
     }
 

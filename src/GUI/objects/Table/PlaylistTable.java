@@ -1,13 +1,15 @@
 
-package gui.objects.Table;
+package gui.objects.table;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.*;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
 import javafx.scene.layout.Priority;
@@ -95,12 +97,21 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
         // initialize column factories
         setColumnFactory( f -> {
-            TableColumn<PlaylistItem,?> c = new TableColumn(f.toString());
-            c.setCellValueFactory( f==NAME || f==LENGTH
+            TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
+//            c.setCellValueFactory(f==NAME || f==LENGTH
+//                    ? new PropertyValueFactory(f.name().toLowerCase())
+//                    : cf -> cf.getValue()== null ? null : new PojoV<>(cf.getValue().getField(f))
+//            );
+            c.setCellValueFactory(f==NAME || f==LENGTH
                     ? new PropertyValueFactory(f.name().toLowerCase())
-                    : cf -> cf.getValue()== null ? null : new PojoV(cf.getValue().getField(f))
+                    : new Callback<CellDataFeatures<PlaylistItem,Object>, ObservableValue<Object>>() {
+                        @Override
+                        public ObservableValue<Object> call(CellDataFeatures<PlaylistItem,Object> cf) {
+                            return cf.getValue()== null ? null : new PojoV<>(cf.getValue().getField(f));
+                        }
+                    }
             );
-            c.setCellFactory((Callback)col->buildDefaultCell(f));
+            c.setCellFactory((Callback)col -> buildDefaultCell(f));
             c.setResizable(true);
             return c;
         });

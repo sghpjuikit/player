@@ -7,6 +7,7 @@
 package gui.itemnode.TextFieldItemNode;
 
 import java.io.File;
+
 import util.File.Environment;
 import util.parsing.Parser;
 
@@ -17,7 +18,7 @@ import util.parsing.Parser;
  * @author Plutonium_
  */
 public class FileItemNode extends TextFieldItemNode<File> {
-    
+
     public FileItemNode() {
         super(Parser.toConverter(File.class));
     }
@@ -40,5 +41,5 @@ public class FileItemNode extends TextFieldItemNode<File> {
         else
             return "";
     }
-    
+
 }

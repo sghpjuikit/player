@@ -23,14 +23,13 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 
-import org.controlsfx.control.GridCell;
-
 import Configuration.Config;
 import Configuration.Config.VarList;
 import Configuration.IsConfig;
 import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
+import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.image.Thumbnail;
 import util.File.AudioFileFormat;
@@ -192,7 +191,7 @@ public class DirViewer extends ClassController {
     // Graphics representing the file. Cells are virtualized just like ListView or TableView does
     // it, but both vertically & horizontally. This avoids loading all files at once and allows
     // unlimited scaling.
-    private class Cell extends GridCell<Item>{
+    private class Cell extends ImprovedGridCell<Item>{
         VBox root;
         Label name;
         Thumbnail thumb;

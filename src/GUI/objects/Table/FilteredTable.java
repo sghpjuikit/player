@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Table;
+package gui.objects.table;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -52,7 +52,7 @@ import util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
-import static gui.objects.Table.FilteredTable.Search.CONTAINS;
+import static gui.objects.table.FilteredTable.Search.CONTAINS;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import static java.util.stream.Collectors.toList;

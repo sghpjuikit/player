@@ -28,9 +28,6 @@ import javafx.scene.text.Text;
 
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.css.ParsedValueImpl;
-import com.sun.javafx.css.parser.CSSParser;
-
 import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -42,10 +39,11 @@ import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.PopOver.PopOver;
+import util.R;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
-import util.R;
+import util.parsing.Parser;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -419,11 +417,10 @@ public class Icon<I extends Icon> extends Text {
         return getClassCssMetaData();
     }
 
-    private static final CSSParser CSS_PARSER = CSSParser.getInstance();
 
     public Number convert(String sizeString) {
-        ParsedValueImpl parsedValueImpl = CSS_PARSER.parseExpr("", sizeString);
-        return (Number) parsedValueImpl.convert(getFont());
+        Double d = Parser.fromS(Double.class, sizeString);
+        return d==null ? 12 : d;
     }
 
 }

@@ -1,26 +1,29 @@
 
 package gui.itemnode.TextFieldItemNode;
 
+import java.util.function.Consumer;
+
+import javafx.scene.layout.Region;
+
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import gui.objects.Pickers.MoodPicker;
 import gui.objects.PopOver.PopOver;
-import java.util.function.Consumer;
-import javafx.scene.layout.Region;
+import util.parsing.Parser;
+
 import static org.controlsfx.control.textfield.TextFields.bindAutoCompletion;
 import static util.functional.Util.filter;
-import util.parsing.Parser;
 
 /**
  * Text field intended for mood tagging specifically. It provides two additional
- * functionalities - auto-completion from list moods registered in application 
+ * functionalities - auto-completion from list moods registered in application
  * and button to open mood picker popup. The position of the picker popup can be
- * customized. 
+ * customized.
  *
  * @author Plutonium_
  */
 public class MoodItemNode extends TextFieldItemNode<String> {
-    
+
     private final Consumer<String> pickMood = this::setValue;
     private PopOver.NodePos pos = PopOver.NodePos.RightCenter;
 
@@ -30,7 +33,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
         // set autocompletion
         bindAutoCompletion(this, p -> filter(DB.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> DB.autocmplt_filter.apply(t,p.getUserText())));
     }
-    
+
     /** @return the position for the picker to show on */
     public PopOver.NodePos getPos() {
         return pos;
@@ -58,12 +61,12 @@ public class MoodItemNode extends TextFieldItemNode<String> {
         };
         ((Region)picker.getNode()).setPrefSize(800,600);
         p.show(this, pos);
-    }    
-    
+    }
+
 /******************************* CONTEXT MENU *********************************/
-    
+
     private static MoodPicker cm;
-    
+
     private static MoodPicker getCM() {
         if(cm==null) cm = new MoodPicker();
         return cm;

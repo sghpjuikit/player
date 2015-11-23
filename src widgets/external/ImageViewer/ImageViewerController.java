@@ -14,7 +14,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -53,7 +52,6 @@ import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
-import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -143,7 +141,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
     public final V<Boolean> hideThumbEager = new V<>(true, v ->
        root.setOnMouseExited(!v ? null : e -> {
-           if(!root.contains(e.getX(), e.getY())) // make sur emouse really is out
+           double x = e.getX(), y = e.getY();
+           if(!root.contains(x,y)) // make sure mouse really is out
                showThumbnails.setNapplyValue(false);
        })
     );

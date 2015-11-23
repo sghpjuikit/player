@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
@@ -761,8 +762,8 @@ public class Util {
 
        if (f!=null) return f;
 
-       Class superClazz = c.getSuperclass();
        // get super class' fields recursively
+       Class superClazz = c.getSuperclass();
        if (superClazz != null) return getField(superClazz, n);
        else throw new NoSuchFieldException();
     }
@@ -811,6 +812,32 @@ public class Util {
             fl.setAccessible(false);
         } catch (Exception x) {
             throw new RuntimeException(x);
+        }
+    }
+
+    /** Invokes method with no parameters on given object and returns the result. */
+    public static <T> Object invokeMethodP0(Class<T> exactclass, T o, String name) {
+        try {
+            Method m = exactclass.getDeclaredMethod(name);
+            m.setAccessible(true);
+            Object r = m.invoke(o);
+            m.setAccessible(false);
+            return r;
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new RuntimeException("Failed to invoke method: " + name, e);
+        }
+    }
+
+    /** Invokes method with no parameters on given object and returns the result. */
+    public static <T,P> Object invokeMethodP1(Class<T>  exactclass, T o, String name, Class<P> paramtype, P param) {
+        try {
+            Method m = exactclass.getDeclaredMethod(name,paramtype);
+            m.setAccessible(true);
+            Object r = m.invoke(o,param);
+            m.setAccessible(false);
+            return r;
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new RuntimeException("Failed to invoke method: " + name, e);
         }
     }
 

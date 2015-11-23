@@ -22,9 +22,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
-import org.controlsfx.control.textfield.CustomTextField;
-
-import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+import com.sun.javafx.scene.traversal.Direction;
 
 import Configuration.Config;
 import Configuration.Config.ListConfig;
@@ -40,6 +38,7 @@ import gui.itemnode.TextFieldItemNode.FontItemNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
+import gui.objects.textfield.DecoratedTextField;
 import util.Password;
 import util.access.Vo;
 import util.functional.Functors.Ƒ1;
@@ -50,6 +49,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -306,7 +306,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     }
     private static class StringField extends ConfigField<String> {
-        private CustomTextField n = new CustomTextField();
+        private DecoratedTextField n = new DecoratedTextField();
 
         private StringField(Config c) {
             super(c);
@@ -357,7 +357,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     }
     private static class GeneralField extends ConfigField<Object> {
-        CustomTextField n = new CustomTextField();
+        DecoratedTextField n = new DecoratedTextField();
         Icon okI= new Icon();
         Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okI);
@@ -604,8 +604,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             super((Config)c);
             n.addEventFilter(KeyEvent.ANY,e -> {
                 if(e.getEventType()==KEY_RELEASED) {
+                    // conveniently traverse focus by simulating TAB behavior
+                    // currently only hacks allow this
+                    //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
+                    n.impl_traverse(Direction.NEXT);
+                } else
+                if(e.getEventType()==KEY_PRESSED) {
                     n.setValue(e.getCode());
-                    ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext();
                 }
                 e.consume();
             });

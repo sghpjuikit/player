@@ -9,11 +9,13 @@ package gui.itemnode.TextFieldItemNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
-import org.controlsfx.control.textfield.CustomTextField;
+
+import gui.objects.textfield.DecoratedTextField;
 import util.access.AccessibleValue;
 import util.parsing.StringConverter;
 
@@ -28,7 +30,7 @@ import util.parsing.StringConverter;
  * have to be implemented.
  * <p>
  * It is recommended for classes to provide default parser implementations to
- * allow simple instantiation hiding any parsing related matters from the 
+ * allow simple instantiation hiding any parsing related matters from the
  * programmer. Different parser can be used to specify different string
  * representation of the objects.
  * <p>
@@ -47,45 +49,45 @@ import util.parsing.StringConverter;
  * <p>
  * @author Plutonium_
  */
-public abstract class TextFieldItemNode<T> extends CustomTextField implements AccessibleValue<T> {
-    
+public abstract class TextFieldItemNode<T> extends DecoratedTextField implements AccessibleValue<T> {
+
     T v;
     private StringConverter<T> converter;
     private BiConsumer<T,T> onItemChange;
     private Callback<T, String> valueFactory;
-    
+
     /**
      * Constructor. Creates instance of the item text field utilizing parser
      * of the provided type.
      */
     public TextFieldItemNode() {
         // default implementation of value factory
-        valueFactory = this::itemToString;   
-        
+        valueFactory = this::itemToString;
+
         // set the button to the right & action
         setRight(new ArrowDialogButton());
         getRight().setOnMouseClicked( e -> onDialogAction());
-        
+
         setEditable(false);
-        
+
         //set same css style as TextField
         getStyleClass().setAll(STYLECLASS());
     }
-    
+
     /***/
     public TextFieldItemNode(StringConverter<T> parser) {
         this();
         converter = parser;
     }
-    
-    
-    /** 
+
+
+    /**
      * Behavior to be executed on dialog button click. Executes specified
      * method that gets ahold of new Item.
      */
     abstract void onDialogAction();
-   
-    /** 
+
+    /**
      * Sets item for this text field. Sets text and prompt text according to
      * provided implementation. The item change event is fired.
      */
@@ -100,8 +102,8 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
              if(onItemChange!=null) onItemChange.accept(oldItem,val);
          }
     }
-    
-    /** 
+
+    /**
      * Sets behavior to execute when item changes. The item change ignores
      * equality check and will fire even for same object to be set. */
     public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
@@ -113,7 +115,7 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
     public T getValue() {
         return v;
     }
-    
+
     /**
      * Sets value factory that specifies how the item will be parsed to
      * String. This an alternative to using String Parser.
@@ -125,7 +127,7 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
     public void setValueFactory(Callback<T,String> factory) {
         valueFactory = factory;
     }
-   
+
     /**
      * Default implementation uses provided parser. Default implementation of the
      * value factory invokes this method.
@@ -133,15 +135,15 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
      * @return String as a representation of the item.
      * @throws RuntimeException if no parser is provided
      */
-    String itemToString(T item) {        
+    String itemToString(T item) {
         if(item!=null) return converter.toS(item);
         else return "";
     }
-    
+
 /******************************************************************************/
-   
-   
-    /** 
+
+
+    /**
      * Returns style class as text field.
      * <p>
      * Should be: text-input, text-field.
@@ -149,15 +151,15 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
     public static List<String> STYLECLASS() {
         // debug (prints: text-input, text-field.)
         // new TextField().getStyleClass().forEach(System.out::println);
-        
+
         // manually
         List<String> out = new ArrayList();
                      out.add("text-input");
                      out.add("text-field");
         return out;
-    }   
-    
-    
+    }
+
+
 /******************************************************************************/
 
     /**

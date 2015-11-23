@@ -5,8 +5,6 @@
  */
 package gui.objects.spinner;
 
-import java.util.Collections;
-
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Transition;
@@ -14,20 +12,18 @@ import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Skin;
+import javafx.scene.control.SkinBase;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Arc;
 import javafx.util.Duration;
-
-import com.sun.javafx.scene.control.behavior.BehaviorBase;
-import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static javafx.util.Duration.ZERO;
 
 /**
- <p>
- @author Plutonium_
+ * Very simple custom {@link ProgressIndicator}.
+ * @author Plutonium_
  */
 public class Spinner extends ProgressIndicator {
 
@@ -48,7 +44,7 @@ public class Spinner extends ProgressIndicator {
     }
 
 
-    private static class SpinnerSkin extends BehaviorSkinBase<Spinner, BehaviorBase<Spinner>> {
+    private static class SpinnerSkin extends SkinBase<Spinner> {
 
         StackPane root = new StackPane();
         @FXML StackPane inner;
@@ -59,17 +55,17 @@ public class Spinner extends ProgressIndicator {
         boolean playing = false;
 
         public SpinnerSkin(Spinner spinner) {
-            super(spinner, new BehaviorBase(spinner, Collections.emptyList()));
+            super(spinner);
 
             // load fxml part
             new ConventionFxmlLoader(Spinner.class, root, this).loadNoEx();
 
             // register listeners
-            registerChangeListener(spinner.indeterminateProperty(), "INDETERMINATE");
-            registerChangeListener(spinner.progressProperty(), "PROGRESS");
-            registerChangeListener(spinner.visibleProperty(), "VISIBLE");
-            registerChangeListener(spinner.parentProperty(), "PARENT");
-            registerChangeListener(spinner.sceneProperty(), "SCENE");
+            registerChangeListener(spinner.indeterminateProperty(), e -> update());
+            registerChangeListener(spinner.progressProperty(), e -> update());
+            registerChangeListener(spinner.visibleProperty(), e -> update());
+            registerChangeListener(spinner.parentProperty(), e -> update());
+            registerChangeListener(spinner.sceneProperty(), e -> update());
 
             outer.rotateProperty().bind(Bindings.subtract(360, inner.rotateProperty()));
             getChildren().add(root);
@@ -79,22 +75,6 @@ public class Spinner extends ProgressIndicator {
         public void dispose() {
             if(rt!=null) rt.stop();
             outer.rotateProperty().unbind();
-        }
-
-        @Override protected void handleControlPropertyChanged(String p) {
-            super.handleControlPropertyChanged(p);
-
-            if ("INDETERMINATE".equals(p)) {
-                update();
-            } else if ("PROGRESS".equals(p)) {
-                update();
-            } else if ("VISIBLE".equals(p)) {
-                update();
-            } else if ("PARENT".equals(p)) {
-                update();
-            } else if ("SCENE".equals(p)) {
-                update();
-            }
         }
 
         private void update() {
@@ -115,6 +95,5 @@ public class Spinner extends ProgressIndicator {
                 playing = false;
             }
         }
-
     }
 }

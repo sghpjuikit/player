@@ -397,7 +397,7 @@
 .toggle-button,
 .radio-button > .radio,
 .check-box > .box,
-//.menu-button,  // enable this if you want menu button to look like normal button
+/*.menu-button,  // enable this if you want menu button to look like normal button*/
 .color-picker.split-button > .color-picker-label{
    /* -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -435,7 +435,7 @@
 .menu-button:hover,
 .split-menu-button > .label:hover,
 .split-menu-button > .arrow-button:hover,
-//.slider .thumb:hover,
+/*.slider .thumb:hover,*/
 .color-picker.split-button > .arrow-button:hover,
 .color-picker.split-button > .color-picker-label:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
@@ -456,8 +456,8 @@
 .split-menu-button:armed > .label,
 .split-menu-button > .arrow-button:pressed,
 .split-menu-button:showing > .arrow-button,
-//.slider .thumb:pressed,
-//.choice-box:showing,
+/*.slider .thumb:pressed,*/
+/*.choice-box:showing,*/
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -472,7 +472,7 @@
 .toggle-button:focused,
 .radio-button:focused > .radio,
 .menu-button:focused,
-//.choice-box:focused,
+/*.choice-box:focused,*/
 .color-picker.split-button:focused > .color-picker-label{
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -1358,13 +1358,13 @@
                           rgba(255, 255, 255, 0.92);
 }
 
-// editable combobox
-//.combo-box-base:editable > .arrow-button,
-//.combo-box-base:editable > .text-field,
-//.combo-box-base:editable:contains-focus,
-//.combo-box-base:editable:focused > .text-field,
-//.combo-box-base:editable > .text-field:focused,
-//.combo-box-base:editable:contains-focus > .arrow-button,*
+/* editable combobox*/
+.combo-box-base:editable > .arrow-button,
+.combo-box-base:editable > .text-field,
+.combo-box-base:editable:contains-focus,
+.combo-box-base:editable:focused > .text-field,
+.combo-box-base:editable > .text-field:focused,
+.combo-box-base:editable:contains-focus > .arrow-button {}
 
 
 .date-picker > .arrow-button {
@@ -3582,7 +3582,9 @@
  * inherits: .slider
  */
 
-.seeker {}
+.seeker {
+    -fx-skin: "gui.objects.SeekerSkin";
+}
 .seeker .thumb {}
 .seeker .thumb:hover,
 .seeker .thumb:pressed {}

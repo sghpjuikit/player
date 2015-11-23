@@ -40,6 +40,7 @@ import static main.App.APP;
 import static util.Util.clip;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.functional.Util.ISNTØ;
 import static util.graphics.Util.setAnchors;
 
 /**
@@ -87,14 +88,14 @@ public class SwitchPane implements ContainerNode {
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
         Window.WINDOWS.stream()
-               .map(Window::getSwitchPane)
+               .map(Window::getSwitchPane).filter(ISNTØ)
                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
 
     @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
         Window.WINDOWS.stream()
-              .map(Window::getSwitchPane)
+              .map(Window::getSwitchPane).filter(ISNTØ)
               .forEach(sp -> sp.snapTabs());
     }
 

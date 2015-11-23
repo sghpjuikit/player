@@ -10,7 +10,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.scene.control.Skin;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyEvent;
@@ -76,12 +75,7 @@ public final class Seeker extends AnchorPane {
     private static final String STYLECLASS_CHAP_ADD_BUTTON = "seeker-add-chapter-button";
     private static final PseudoClass STYLE_CHAP_NEW = getPseudoClass("newly-created");
 
-    private final Slider seeker = new Slider(0,1,0){
-        @Override
-        protected Skin<?> createDefaultSkin() {
-            return new SeekerSkin(this);
-        }
-    };
+    private final Slider seeker = new Slider(0,1,0);
     private final AddChapButton addB = new AddChapButton();
     private final List<Chap> chapters = new ArrayList<>();
     private final DoubleProperty seekerScaleY = seeker.scaleYProperty();
@@ -267,10 +261,10 @@ public final class Seeker extends AnchorPane {
 
     private final Anim selectChapAnim = new Anim(millis(500), p -> {
         double h = getHeight();
-        double κ = max(0,h-20-10)/3;
-        double Δy = κ * p*p*p;
-        r1.setTranslateY(Δy);
-        r2.setTranslateY(-Δy);
+        double y = max(0,h-20-10)/3;
+        double dy = y * p*p*p;
+        r1.setTranslateY(dy);
+        r2.setTranslateY(-dy);
     } );
 
 //********************************** chapters *********************************/
@@ -376,15 +370,15 @@ public final class Seeker extends AnchorPane {
     private void timeUpdate() {
         if(timeTot.get()==null) return; // bugfix
         posLast = timeCur.get().toMillis()/timeTot.get().toMillis();
-        posLastFrame = 0;   // when we seek Δt must be 0
+        posLastFrame = 0;   // when we seek dt must be 0
         posUpdateInterval = clip(0,timeTot.get().toMillis()/getWidth(),60);
     }
 
     private void timeUpdateDo(long frame) {
         if(!user_drag && PLAYBACK.state.status.get()==PLAYING) {
-            long Δt = posLastFrame==0 ? 0 : (frame-posLastFrame)/1000000;
-            double Δp = Δt/timeTot.get().toMillis();
-            posLast += Δp;
+            long dt = posLastFrame==0 ? 0 : (frame-posLastFrame)/1000000;
+            double dp = dt/timeTot.get().toMillis();
+            posLast += dp;
 
             long now = System.currentTimeMillis();
             if(now-polastUpdate>posUpdateInterval) {

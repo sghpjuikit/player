@@ -6,9 +6,8 @@
 package gui.objects;
 
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.skin.ScrollBarSkin;
 import javafx.scene.layout.StackPane;
-
-import com.sun.javafx.scene.control.skin.ScrollBarSkin;
 
 import util.animation.Anim;
 
@@ -20,7 +19,7 @@ import static util.Util.getFieldValue;
 
 /**
  * ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover.
- * 
+ *
  * @author Plutonium_
  */
 public class ImprovedScrollBarSkin extends ScrollBarSkin {

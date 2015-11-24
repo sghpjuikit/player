@@ -34,6 +34,7 @@ import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.NofX;
+import util.units.RangeYear;
 
 import static java.lang.Integer.min;
 import static java.lang.Math.max;
@@ -660,13 +661,23 @@ public class Functors {
         add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
         add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
 
-        add("After",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
-        add("Is",        Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
-        add("Before",    Year.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
+        add("Is after",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
+        add("Is",           Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
+        add("Is before",    Year.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
+        add("Is in the future",  Year.class,Boolean.class, x -> x.compareTo(Year.now())> 0);
+        add("Is now",            Year.class,Boolean.class, x -> x.compareTo(Year.now())==0);
+        add("Is in the past",    Year.class,Boolean.class, x -> x.compareTo(Year.now())< 0);
         // add("Not After", Year.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, Year.class,Year.now(),false,false,true);
         // add("Not",       Year.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, Year.class,Year.now());
         // add("Not before",Year.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, Year.class,Year.now());
         add("Is leap",   Year.class,Boolean.class, x -> x.isLeap());
+
+        add("Contains year",RangeYear.class,Boolean.class, RangeYear::contains, Year.class,Year.now());
+        add("Is after",     RangeYear.class,Boolean.class, RangeYear::isAfter, Year.class,Year.now());
+        add("Is before",    RangeYear.class,Boolean.class, RangeYear::isBefore, Year.class,Year.now());
+        add("Is in the future",  RangeYear.class,Boolean.class, x -> x.contains(Year.now()));
+        add("Is now",            RangeYear.class,Boolean.class, x -> x.isAfter(Year.now()));
+        add("Is in the past",    RangeYear.class,Boolean.class, x -> x.isBefore(Year.now()));
 
         add("After",   LocalDateTime.class,Boolean.class, (x,y) -> x.isAfter(y), LocalDateTime.class,LocalDateTime.now());
         add("Before",  LocalDateTime.class,Boolean.class, (x,y) -> x.isBefore(y), LocalDateTime.class,LocalDateTime.now());

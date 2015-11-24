@@ -944,6 +944,9 @@
  * pseudoclasses: vertical
  */
 
+.slider {
+    -fx-skin: "gui.objects.ImprovedSliderSkin";
+}
 .slider .thumb {
     -fx-background-color: -fx-def-font-color;
     -fx-padding: 2;

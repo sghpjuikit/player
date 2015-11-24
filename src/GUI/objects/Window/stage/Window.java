@@ -190,7 +190,8 @@ public class Window extends WindowBase {
     public static Window create(Stage owner, StageStyle style) {
         Window w = new Window(owner,style);
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
-        if(WINDOWS.isEmpty()) w.setAsMain();
+//        if(WINDOWS.isEmpty()) w.setAsMain();
+        if(APP.window==null) w.setAsMain();
         WINDOWS.add(w); // add to list of active windows
         w.initialize();
         return w;

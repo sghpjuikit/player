@@ -285,20 +285,19 @@ public class WindowManager {
             }
          }
 
-        // make sure there is at least one window
+        // show windows
         if(ws.isEmpty()) {
             Window w = Window.create();
                    w.setXyNsizeToInitial();
                    w.initLayout();
+                   w.update();
+                   w.show();
             ws.add(w);
+        } else {
+            ws.forEach(w -> add1timeEventHandler(w.s,WINDOW_SHOWING, e -> w.update()));
+            log(WindowManager.class).info("Deserialized " + ws.size() + " windows.");
+            Widget.deserializeWidgetIO();
         }
-
-        // show
-        ws.forEach(w -> add1timeEventHandler(w.s,WINDOW_SHOWING, e -> w.update()));
-
-
-        log(WindowManager.class).info("Deserialized " + ws.size() + " windows.");
-        Widget.deserializeWidgetIO();
     }
 
 /******************************** NO TASKBAR MODE *****************************/

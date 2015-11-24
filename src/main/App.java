@@ -98,8 +98,8 @@ import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.InstanceInfo;
 import util.InstanceName;
-import util.access.VarEnum;
 import util.access.V;
+import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
@@ -423,6 +423,10 @@ public class App extends Application implements Configurable {
         parameterProcessor.addFileProcessor(f -> f.getPath().endsWith(".fxwl"),
             fs -> fs.forEach(UiContext::launchComponent)
         );
+        parameterProcessor.addStringProcessor(
+            s -> WidgetManager.getFactories().anyMatch(f -> f.name().equals(s)),
+            ws -> ws.forEach(UiContext::launchComponent)
+        );
     }
 
     /**
@@ -501,7 +505,12 @@ public class App extends Application implements Configurable {
             Player.initialize();
 
             List<String> ps = fetchParameters();
-            normalLoad = !ps.stream().anyMatch(s->s.endsWith(".fxwl"));
+            normalLoad = ps.stream().noneMatch(s -> s.endsWith(".fxwl") || WidgetManager.getFactory(s)!=null);
+
+            // use for faster widget testing
+            // Set project to run with application parameters and use widget name
+            // This will only load the widget and start app faster
+            // normalLoad = false;
 
             // load windows, layouts, widgets
             // we must apply skin before we load graphics, solely because if skin defines custom
@@ -618,8 +627,8 @@ public class App extends Application implements Configurable {
     public List<String> fetchParameters() {
         List<String> params = new ArrayList<>();
         getParameters().getRaw().forEach(params::add);
-        // getParameters().getUnnamed().forEach(params::add);
-        // getParameters().getNamed().forEach( (t,tt) -> s.add(t+" "+tt) );
+         getParameters().getUnnamed().forEach(params::add);
+         getParameters().getNamed().forEach( (t,value) -> params.add(value) );
         return params;
     }
 

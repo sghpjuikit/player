@@ -33,11 +33,11 @@ import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuMR;
+import gui.objects.TableCell.NumberRatingCellFactory;
+import gui.objects.TableRow.ImprovedTableRow;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
-import gui.objects.TableCell.NumberRatingCellFactory;
-import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
 import util.access.FieldValue.ObjectField.ColumnField;
@@ -293,8 +293,8 @@ public class LibraryViewController extends FXMLController {
         fut(fieldFilter.getValue())
             .use(f -> {
                 List<MetadataGroup> mgs = stream(
-                    MetadataGroup.ofAll(f,list),
-                    groupBy(list.stream(),f::getOf).values().stream().map(ms -> MetadataGroup.of(f,ms))
+                    MetadataGroup.groupOf(f,list),
+                    MetadataGroup.groupsOf(f,list)
                 ).collect(toList());
                 List<Metadata> fl = filterList(list,true,false);
                 runLater(() -> {
@@ -302,7 +302,7 @@ public class LibraryViewController extends FXMLController {
                         selectionStore();
                         table.setItemsRaw(mgs);
                         selectionReStore();
-                    out_sel_met.setValue(fl);
+                        out_sel_met.setValue(fl);
                     }
                 });
             })
@@ -313,12 +313,12 @@ public class LibraryViewController extends FXMLController {
         if(list==null || list.isEmpty()) return EMPTY_LIST;
 
         // bug fix, without this line, which does exactly nothing,
-        // mgs list contains nulls sometimes (no idea why)
+        // selected mgs list contains nulls sometimes (no idea why)
         //
         // how to reproduce bug:
         // select two records in a table
         // then select only one of them -> bam! null!
-        table.getSelectedItems().stream().map(m->null).collect(() -> null, (a,b) -> {},(a,b) -> {});
+        table.getSelectedItems().stream().limit(3).map(m->null).collect(() -> null, (a,b) -> {},(a,b) -> {});
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 

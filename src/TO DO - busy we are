@@ -3,8 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- make Configurator config field button single instance, use vertical animation
+- Configurator implement drag & drop of Configurables
 - dir viewer allow visiting up if parent  is only 1
-- implement YearRange instead of Year in MetadataGroup
 - implement filesize grouping buckets
 - new switchpane doesnt get settings applied
 - make sure all components close properly

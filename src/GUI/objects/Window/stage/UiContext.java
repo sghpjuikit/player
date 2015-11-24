@@ -168,17 +168,26 @@ public final class UiContext {
                 if(wf!=null) w = wf.create();
             }
 
-            // launch
-            if(w!=null) {
-                if(launching1st) {
-                    APP.window.setContent(w);
-                    launching1st = false;
-                } else {
-                    showWindow(w);
-                }
-            }
+            launchComponent(w);
         }catch(Exception x) {
             LOGGER.error("Could not load component from file {}", launcher,x);
+        }
+    }
+
+    public static void launchComponent(String componentName) {
+        WidgetFactory wf = WidgetManager.getFactory(componentName);
+        Component w = wf==null ? null : wf.create();
+        launchComponent(w);
+    }
+
+    private static void launchComponent(Component w) {
+        if(w!=null) {
+            if(launching1st) {
+                APP.window.setContent(w);
+                launching1st = false;
+            } else {
+                showWindow(w);
+            }
         }
     }
 

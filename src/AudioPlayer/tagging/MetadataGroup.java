@@ -6,22 +6,23 @@
 
 package AudioPlayer.tagging;
 
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.access.FieldValue.ObjectField;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
+import util.units.RangeYear;
 
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
-import static util.functional.Util.by;
+import static util.functional.Util.groupBy;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -38,58 +39,51 @@ import static util.functional.Util.by;
 @Immutable
 public final class MetadataGroup {
     private final Metadata.Field field;
-    private final Object value;
+    private final Object val;
     private final long items;
     private final long albums;
     private final double length;
     private final long size;
     private final double avg_rating;
     private final double weigh_rating;
-    private final Year year;
-    private final int yearmin;
-    private final int yearmax;
-    private final boolean yearexistsunknown;
+    private final RangeYear years;
     private final List<Metadata> metadatas;
     private final boolean all_flag;
 
-    public static MetadataGroup ofAll(Metadata.Field f, Collection<Metadata> ms) {
+    public static MetadataGroup groupOf(Metadata.Field f, Collection<Metadata> ms) {
         return new MetadataGroup(f, true, getAllValue(f), ms);
     }
 
-    public static MetadataGroup of(Metadata.Field f, Collection<Metadata> ms) {
-        return new MetadataGroup(f, false, ms.isEmpty() ? null : f.getOf(ms.stream().findAny().get()), ms);
+    public static Stream<MetadataGroup> groupsOf(Metadata.Field f, Collection<Metadata> ms) {
+        return groupBy(ms.stream(),f::getOf).entrySet().stream().map(e -> new MetadataGroup(f, false,e.getKey(),e.getValue()));
     }
 
     private MetadataGroup(Metadata.Field f, boolean isAll, Object value, Collection<Metadata> ms) {
-        this.metadatas = new ArrayList<>(ms);
-        this.field = f;
-        this.items = ms.size();
-        this.value = value;
-        this.all_flag = isAll;
+        metadatas = new ArrayList<>(ms);
+        field = f;
+        items = ms.size();
+        val = value;
+        all_flag = isAll;
+        years = new RangeYear();
 
-        Set<String> albums = new HashSet<>();
+        Set<String> albumset = new HashSet<>();
         double lengthsum = 0;
         long sizesum = 0;
         double ratingsum = 0;
-        Set<Integer> years = new HashSet<>();
 
         for(Metadata m : ms) {
-            albums.add(m.getAlbum());
+            albumset.add(m.getAlbum());
             lengthsum += m.getLengthInMs();
             sizesum += m.getFilesizeInB();
             ratingsum += m.getRatingPercent();
-            years.add(m.getYearAsInt());
+            years.accumulate(m.getYearAsInt());
         }
 
-        this.albums = albums.size();
-        this.length = lengthsum;
-        this.size = sizesum;
-        this.avg_rating = ratingsum/items;
-        this.weigh_rating = avg_rating*items;
-        this.year = years.size()==0 ? null : Year.of(years.size()==1 ? years.stream().findAny().orElseGet(null) : -1);
-        this.yearmin = years.stream().filter(x->x!=-1).min(by(x->x)).orElse(-1);
-        this.yearmax = years.stream().max(by(x->x)).orElse(-1);
-        this.yearexistsunknown = years.stream().anyMatch(x -> x==-1);
+        albums = albumset.size();
+        length = lengthsum;
+        size = sizesum;
+        avg_rating = ratingsum/items;
+        weigh_rating = avg_rating*items;
     }
 
     public List<Metadata> getGrouped() {
@@ -101,7 +95,7 @@ public final class MetadataGroup {
     }
 
     public Object getValue() {
-        return value;
+        return val;
     }
 
     public boolean isAll() {
@@ -143,8 +137,8 @@ public final class MetadataGroup {
         return weigh_rating;
     }
 
-    public Year getYear() {
-        return year;
+    public RangeYear getYear() {
+        return years;
     }
 
     /** {@inheritDoc} */
@@ -170,7 +164,7 @@ public final class MetadataGroup {
         SIZE(FileSize.class, MetadataGroup::getFileSize,"Total file size of the group"),
         AVG_RATING(Double.class, MetadataGroup::getAvgRating,"Average rating of the group = sum(rating)/items"),
         W_RATING(Double.class, MetadataGroup::getWeighRating,"Weighted rating of the group = sum(rating) = avg_rating*items"),
-        YEAR(Year.class, MetadataGroup::getYear,"Year of songs in the group or '...' if multiple");
+        YEAR(RangeYear.class, MetadataGroup::getYear,"Year or years of songs in the group");
 
         private final String desc;
         private final Ƒ1<MetadataGroup,?> extr;
@@ -231,7 +225,7 @@ public final class MetadataGroup {
                 case SIZE :
                 case AVG_RATING :
                 case W_RATING : return o.toString();
-                case YEAR : return o==null ? empty_val : Year.of(-1).equals(o) ? "..." : o.toString();
+                case YEAR : throw new AssertionError("YEAR case should never execute in this method");
                 default : throw new AssertionError("Default case should never execute");
             }
         }
@@ -242,13 +236,7 @@ public final class MetadataGroup {
                 if(v==null || v.all_flag) return "<any>";
                 return v.getField().toS(o, "<none>");
             } else if(this==YEAR) {
-                if(v==null || v.yearmax==-1) return empty_val;
-                if(v.yearmin==v.yearmax)
-                    return (v.yearexistsunknown ? "? " : "") + Year.of(v.yearmin);
-                else {
-                    String delimiter = v.yearexistsunknown ? " ? " : " - ";
-                    return Year.of(v.yearmin) + delimiter + Year.of(v.yearmax);
-                }
+                return v==null || !v.years.hasSpecific() ? empty_val : v.years.toString();
             } else {
                 return toS(o,empty_val);
             }
@@ -270,4 +258,17 @@ public final class MetadataGroup {
     private static Object getAllValue(Metadata.Field f) {
         return f.isTypeString() ? "" : null;
     }
+
+//     grouping buckets - requires standalone classes...
+//    private static final FileSize FILESIZE_UNKNOWN = new FileSize(-1);
+//    private static final FileSize FILESIZE_UNKNOWN = new FileSize(1024);
+//
+//    private static Object getGroupValue(Metadata.Field f, Metadata m) {
+//        if(f==FILESIZE) {
+//            FileSize s = (FileSize) FILESIZE.getOf(m);
+//            double b = s.inBytes();
+//            if(b==-1) return
+//        }
+//        return f.getOf(m);
+//    }
 }

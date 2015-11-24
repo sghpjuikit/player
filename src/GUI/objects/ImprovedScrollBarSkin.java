@@ -27,17 +27,17 @@ public class ImprovedScrollBarSkin extends ScrollBarSkin {
     public ImprovedScrollBarSkin(ScrollBar scrollbar) {
         super(scrollbar);
 
+        // install hover animation
         StackPane thumb = getFieldValue(this, StackPane.class, "thumb");
         Anim v = new Anim(millis(350),p -> thumb.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> thumb.setScaleY(1+p*p));
-        getSkinnable().addEventHandler(MOUSE_ENTERED, e -> {
+        scrollbar.addEventHandler(MOUSE_ENTERED, e -> {
             if(scrollbar.getOrientation()==VERTICAL) v.playOpen();
             else h.playOpen();
         });
-        getSkinnable().addEventHandler(MOUSE_EXITED, e -> {
+        scrollbar.addEventHandler(MOUSE_EXITED, e -> {
             if(scrollbar.getOrientation()==VERTICAL) v.playClose();
             else h.playClose();
         });
     }
-
 }

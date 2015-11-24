@@ -132,19 +132,12 @@ public final class Seeker extends AnchorPane {
                     // if out of proximity -> unselect
                     // if chapter closer than selected one -> select it
                     double dist = abs(e.getX()-selectedChap.getCenterX());
-                    Chap mc = minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))
-                       .map(c -> c!=selectedChap ? c : null).orElse(null);
-                    if(mc==null) {
-                        addB.select(mc);
-                    } else {
-                        if(dist > chapSnapDist.get())
-                            addB.unselect();
-                    }
-                    // java 9
-//                       .ifPresentOrElse(addB::select, () -> {
-//                            if(dist > chapSnapDist.get())
-//                                addB.unselect();
-//                       });
+                    minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))
+                       .map(c -> c!=selectedChap ? c : null)
+                       .ifPresentOrElse(addB::select, () -> {
+                            if(dist > chapSnapDist.get())
+                                addB.unselect();
+                        });
                 } else {
                     // if chapter in proximity -> select it
                     minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX()-e.getX()))

@@ -15,12 +15,17 @@ import Layout.container.Container;
 import Layout.widget.Widget;
 import gui.GUI;
 import gui.pane.IOPane;
+import util.SingleR;
 import util.graphics.drag.DragUtil;
+import util.graphics.drag.PlaceholderPane;
 import util.graphics.fxml.ConventionFxmlLoader;
 
+import static Layout.widget.Widget.LoadType.AUTOMATIC;
+import static Layout.widget.Widget.LoadType.MANUAL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
+import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static gui.GUI.openAndDo;
 import static util.dev.Util.noØ;
 import static util.functional.Util.isInR;
@@ -30,15 +35,29 @@ import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
- * Implementation of Area for UniContainer.
+ * Graphical wrapper for {@link Widget}. Any widget is always contained in this area. It manages
+ * widget's lifecycle, provides user interface for interacting (configuration, etc.) with the
+ * widget and is a sole entry point for widget loading.
+ * <p>
+ * Maintains 1:1 relationship with the widget.
  */
 public final class WidgetArea extends Area<Container> {
 
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;
-
-    Subscription s;
-    private final Widget w;
+    private Subscription s;
+    private Widget widget;
+    private final SingleR<PlaceholderPane,Widget> passiveLoadPane = new SingleR<>(() -> {
+            return new PlaceholderPane(UNFOLD, "", () -> {
+                widget.loadType.set(AUTOMATIC);
+                loadWidget();
+                widget.loadType.set(MANUAL);
+            });
+        },
+        (placeholder,w) -> {
+            placeholder.desc.setText("Unfold " + w.getName() + " (Left Click)");
+        }
+    );
 
     /**
      @param c container to make contract with
@@ -46,7 +65,9 @@ public final class WidgetArea extends Area<Container> {
      */
     public WidgetArea(Container c,  int i, Widget widget) {
         super(c,i);
-        w = widget;
+        this.widget = widget;
+        this.widget.parentTemp = container;
+        this.widget.areaTemp = this;
 
         // fxml
         new ConventionFxmlLoader(WidgetArea.class, content_root, this).loadNoEx();
@@ -72,16 +93,10 @@ public final class WidgetArea extends Area<Container> {
     }
 
 
-    /** @return currently active widget. */
-    public Widget getWidget() {
-        return w;
-    }
-    /**
-     * This implementation returns widget of this area.
-     */
+    /** @return widget of this area */
     @Override
-    public Widget getActiveWidget() {
-        return w;
+    public Widget getWidget() {
+        return widget;
     }
 
     /**
@@ -91,39 +106,59 @@ public final class WidgetArea extends Area<Container> {
      */
     @Override
     public List<Widget> getActiveWidgets() {
-        return listRO(w);
+        return listRO(widget);
     }
 
     private void loadWidget() {
-        noØ(w);
+        noØ(widget);
 
-        // load widget
-        Node wNode = w.load();
-        content.getChildren().clear();
-        content.getChildren().add(wNode);
-        setAnchors(wNode,0d);
-        openAndDo(content_root, null);
+        if(widget.loadType.get()==AUTOMATIC) {
+            // load widget
+            Node wNode = widget.load();
+            content.getChildren().clear();
+            content.getChildren().add(wNode);
+            setAnchors(wNode,0d);
+            openAndDo(content_root, null);
 
-        // put controls to new widget
-        controls.title.setText(w.getInfo().name());
-        controls.propB.setDisable(w.getFields().isEmpty());
+            // put controls to new widget
+            controls.title.setText(widget.getInfo().name());
+            controls.propB.setDisable(widget.getFields().isEmpty());
 
-        // put up activity node
-        IOPane an = new gui.pane.IOPane(w.getController());
-        an.setUserData(this);
-        setActivityContent(an);
-        setActivityVisible(false);
-        wNode.setUserData(this); // in effect sets container parent to the widget
+            // put up activity node
+            IOPane an = new gui.pane.IOPane(widget.getController());
+            an.setUserData(this);
+            setActivityContent(an);
+            setActivityVisible(false);
 
-        // workaround code
-        w.lockedUnder.initLocked(container);
-        if(s!=null) s.unsubscribe();
-        s = maintain(w.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
+            // workaround code
+            widget.lockedUnder.initLocked(container);
+            if(s!=null) s.unsubscribe();
+            s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
+        }
+        if(widget.loadType.get()==MANUAL) {
+            content.getChildren().clear();
+            openAndDo(content_root, null);
+
+            // put controls to new widget
+            controls.title.setText(widget.getInfo().name());
+            controls.propB.setDisable(widget.getFields().isEmpty());
+
+            // put up activity node
+            setActivityVisible(false);
+
+
+            // workaround code
+            widget.lockedUnder.initLocked(container);
+            if(s!=null) s.unsubscribe();
+            s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
+
+            passiveLoadPane.getM(widget).showFor(content);
+        }
     }
 
     @Override
     public void refresh() {
-        w.getController().refresh();
+        widget.getController().refresh();
     }
 
     @Override

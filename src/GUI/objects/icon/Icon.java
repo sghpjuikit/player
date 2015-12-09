@@ -36,6 +36,8 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
+import de.jensd.fx.glyphs.octicons.OctIcon;
+import de.jensd.fx.glyphs.octicons.OctIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.PopOver.PopOver;
@@ -75,6 +77,7 @@ public class Icon<I extends Icon> extends Text {
             Font.loadFont(WeatherIconView.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
             Font.loadFont(MaterialDesignIconView.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
             Font.loadFont(MaterialIconView.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(OctIconView.class.getResource(OctIconView.TTF_PATH).openStream(), 10.0);
         } catch (IOException e) {
             LoggerFactory.getLogger(Icon.class).error("Couldnt load font",e);
         }
@@ -282,7 +285,7 @@ public class Icon<I extends Icon> extends Text {
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
         if(glyph==null || !glyph.name().equalsIgnoreCase(n)) {
-            glyph = (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
+            glyph = (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class,OctIcon.class)
                 .flatMap(c -> stream(getEnumConstants(c)))
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
                 .findFirst().orElseGet(this::getDefaultGlyph);

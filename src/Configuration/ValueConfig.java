@@ -6,9 +6,10 @@
 
 package Configuration;
 
-import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import Configuration.Config.ConfigBase;
 
 /**
  * {@link Config} wrapper for a standalone object. This is the only implementation
@@ -31,63 +32,63 @@ import java.util.function.Consumer;
  * <p>
  * An expected example for the mentioned use case is to pass values into a method
  * or object that takes Configurable as a parameter. This object usually operates
- * with the configs in order to change state of the configured object (in this 
+ * with the configs in order to change state of the configured object (in this
  * case we simply change the values itself - each value represented by one
  * ValueConfig and aggregated by ValueConfigurable). The modification is could
  * be done by the user through GUI.
  * <p>
  * Basically, this class can be used to pass an object somewhere to modify its
  * value and then provide the result.
- * 
+ *
  * @param V - type of value - wrapped object
  *
  * @author Plutonium_
  */
 public final class ValueConfig<V> extends ConfigBase<V> {
-    
+
     private V value;
     private Consumer<V> applier;
-    
-    public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, double min, double max, Consumer<V> applier) {
-        super(name, gui_name, value, name, info, editable, min, max);
+
+    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, boolean editable, double min, double max, Consumer<V> applier) {
+        super(type, name, gui_name, value, name, info, editable, min, max);
         this.value = value;
         this.applier = applier;
     }
-    
-    public ValueConfig(String name, V value) {
-        super(name, name, value, "", "", true, Double.NaN, Double.NaN);
+
+    public ValueConfig(Class<V> type, String name, V value) {
+        super(type, name, name, value, "", "", true, Double.NaN, Double.NaN);
         this.value = value;
     }
-    
-    public ValueConfig(String name, V value, Consumer<V> applier) {
-        super(name, name, value, "", "", true, Double.NaN, Double.NaN);
-        this.value = value;
-        this.applier = applier;
-    }
-    
-    public ValueConfig(String name, V value, String info) {
-        super(name, name, value, "", info, true, Double.NaN, Double.NaN);
-        this.value = value;
-    }
-    
-    public ValueConfig(String name, V value, String info, Consumer<V> applier) {
-        super(name, name, value, "", info, true, Double.NaN, Double.NaN);
+
+    public ValueConfig(Class<V> type, String name, V value, Consumer<V> applier) {
+        super(type, name, name, value, "", "", true, Double.NaN, Double.NaN);
         this.value = value;
         this.applier = applier;
     }
-    
-    /** 
-     * {@inheritDoc} 
+
+    public ValueConfig(Class<V> type, String name, V value, String info) {
+        super(type, name, name, value, "", info, true, Double.NaN, Double.NaN);
+        this.value = value;
+    }
+
+    public ValueConfig(Class<V> type, String name, V value, String info, Consumer<V> applier) {
+        super(type, name, name, value, "", info, true, Double.NaN, Double.NaN);
+        this.value = value;
+        this.applier = applier;
+    }
+
+    /**
+     * {@inheritDoc}
      * <p>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
-     * the returned object reference will most likely be entirely new one. 
+     * the returned object reference will most likely be entirely new one.
      * Dont store the old object in order to avoid using this getter and directly
      * access the value with the expectation it will have changed. What is changing
      * is the object itself not its value (if you wish to only change the value
-     * use {@link PropertyConfig}). After the change the result can only be 
-     * obtained by calling this method and the old results will not == equal 
+     * use {@link PropertyConfig}). After the change the result can only be
+     * obtained by calling this method and the old results will not == equal
      * with it anymore.
-     * 
+     *
      * @return the wrapped value. Never null. The wrapped value must no be
      * null.
      */
@@ -95,18 +96,18 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     public V getValue() {
         return value;
     }
-    
-    /** {@inheritDoc} 
+
+    /** {@inheritDoc}
      * <p>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
-     * the returned object reference will most likely be entirely new one. 
+     * the returned object reference will most likely be entirely new one.
      * Dont store the old object in order to avoid using this getter and directly
      * access the value with the expectation it will have changed. What is changing
      * is the object itself not its value (if you wish to only change the value
-     * use {@link PropertyConfig}). After the change the result can only be 
-     * obtained by calling this method and the old results will not == equal 
+     * use {@link PropertyConfig}). After the change the result can only be
+     * obtained by calling this method and the old results will not == equal
      * with it anymore.
-     * 
+     *
      * @throws NullPointerException if param null. The wrapped value must no be
      * null.
      */
@@ -116,8 +117,8 @@ public final class ValueConfig<V> extends ConfigBase<V> {
         value = val;
     }
 
-    /** 
-     * {@inheritDoc} 
+    /**
+     * {@inheritDoc}
      * Runs the associated applier to apply the changes of the value or to
      * simply execute its code. Does nothing if no applier available.
      * <p>
@@ -128,12 +129,6 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     @Override
     public void applyValue(V val) {
         if(applier!=null) applier.accept(val);
-    }
-    
-    /** {@inheritDoc} */
-    @Override
-    public Class getType() {
-        return value.getClass();
     }
 
     /**
@@ -159,7 +154,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     /**
      * Equivalent to this==o
      * @param o
-     * @return 
+     * @return
      */
     @Override
     public boolean equals(Object o) {
@@ -171,7 +166,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
         int hash = 7;
         return hash;
     }
-    
-    
-    
+
+
+
 }

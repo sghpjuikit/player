@@ -30,6 +30,7 @@ import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
 import util.File.Environment;
 import util.File.FileUtil;
+import util.SwitchException;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.Async;
@@ -97,7 +98,7 @@ public class GameLibController extends FXMLController {
     FxTimer infoLHider = new FxTimer(7000, 1, () -> infoL.setText(null));
 
     @IsConfig(name = "Location", info = "Location of the library.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
+    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 
     GameItem game;
     InfoType at;
@@ -252,7 +253,7 @@ public class GameLibController extends FXMLController {
             case PLAY:      cover_root.setVisible(true);
                             file_tree_root.setVisible(false);
                             break;
-            default: throw new AssertionError("Illegal switch case: " + to);
+            default: throw new SwitchException(to);
         }
         at = to;
     }

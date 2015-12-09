@@ -24,9 +24,9 @@ import Layout.widget.feature.Feature;
 import gui.objects.Window.stage.UiContext;
 import main.App;
 import util.File.FileUtil;
+import util.SwitchException;
 
 import static Layout.widget.WidgetManager.WidgetSource.*;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Handles operations with Widgets.
@@ -109,7 +109,7 @@ public final class WidgetManager {
             case OPEN:
             case ANY:
                 return Stream.concat(findAll(STANDALONE),findAll(LAYOUT));
-            default: throw new AssertionError(source + " in default switch value.");
+            default: throw new SwitchException(source);
         }
     }
 

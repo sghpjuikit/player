@@ -198,6 +198,7 @@ public class Parser {
     public static <T> T fromS(Class<T> c, String s) {
         noØ(c,"Parsing type must be specified!");
         noØ(s,"Parsing null not allowed!");
+        if(s.equals("<NULL>")) return null;
         return getParserFromS(c).apply(s);
     }
 
@@ -211,7 +212,7 @@ public class Parser {
      * @throws NullPointerException if parameter null
      */
     public static <T> String toS(T o) {
-        noØ(o,"Parsing null not allowed!");
+        if(o==null) return "<NULL>";
         return getParserToS((Class<T>)o.getClass()).apply(o);
     }
 

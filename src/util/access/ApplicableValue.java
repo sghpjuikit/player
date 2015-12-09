@@ -14,7 +14,6 @@ import java.util.function.Consumer;
  */
 public interface ApplicableValue<V> extends AccessibleValue<V> {
 
-    
     /**
      * Applies contained value using the applier.
      * Equivalent to {@code applyValue(getValue()); }.
@@ -22,7 +21,7 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
     public default void applyValue() {
         applyValue(getValue());
     }
-    
+
     /**
      * Similar to {@link #applyValue()}, but instead of value of this accessor,
      * provided value is used
@@ -34,31 +33,30 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      * Useful for internal application within the object, where the value should
      * change, but when queried (getValue)) from outside, this should not be
      * reflected.
-     * 
-     * @param val 
+     *
+     * @param val
      */
     public void applyValue(V val);
-    
+
     /**
-     * Applies contained value using provided applier. 
+     * Applies contained value using provided applier.
      * Equivalent to calling {@code applier.accept(getValue()); }.
      */
     public default void applyValue(Consumer<V> applier) {
         applier.accept(getValue());
     }
-    
+
     /**
      * Sets value and applies using the applier.
      * Equivalent to {@code setValue(val); applyValue(); }.
      */
     public default void setNapplyValue(V v) {
-        V cv = getValue();
-        if(!cv.equals(v)) {
-            setValue(v);
-            applyValue(v);
-        }
+        V ov = getValue();
+        if(ov==v || (ov!=null && v!=null && ov.equals(v))) return;
+        setValue(v);
+        applyValue(v);
     }
-    
+
     /**
      * Equivalent to calling {@link #setNextValue()} and then {@link #applyValue()}
      * subsequently.
@@ -80,6 +78,6 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
     public default void setCycledNapplyValue() {
         setNapplyValue(cycle());
     }
-    
-    
+
+
 }

@@ -8,7 +8,6 @@
 - dir viewer allow visiting up if parent  is only 1
 - implement filesize grouping buckets
 - new switchpane doesnt get settings applied
-- make sure all components close properly
 - remove artwork caching?
 - improve skin performance
 - implement stitched widgets
@@ -69,18 +68,23 @@
 - cleanups: ActionPane, GridView, Area, Var, Ref, SingleRef
 
 -------------------------------------------------------------------------------- 
+--------------------------------- TESTING  -------------------------------------
+--------------------------------------------------------------------------------
+
+- make sure all components close properly
+
+-------------------------------------------------------------------------------- 
 ------------------------ BUGS - what i dont want to hear about -----------------
 --------------------------------------------------------------------------------
 
 GENERAL
 - cant hide index column, shows artefacts                                       (medium)
 - transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
-  problem: transparent skins, mouse effects unsupported, windows as node
-           implementation impossible
+  problem: transparent skins, window shadows & screen mouse effects unsupported
 - deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
-- playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
+- playlist item moving change order when moving fast even for jsut 1 block      (minor)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind
   problem: jintellitype '\' works only for right '\' not left one (yes there are
@@ -95,17 +99,14 @@ GENERAL
 - Configurator group title alignment doesnt get applied immediately             (minor)
   its partially fixed now
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug?)
-  length as half of the real one (very irritating bug)
-  (dev note: SmilePrecure OST, also a sole bug case)
+  length as twice of the real (note: SmilePrecure OST)
+- sometimes not even suspending playback allows jaudiotagger renaming songs
+  and thus prevents successful tagging. see unabletorename in autdio test files
 - when app starts with paused song, playing some other songs starts from that
   point rather than the beginning
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
-- seeking mp3 files                                                             (major, javaFX bug)
-  - track plays after seeker is at the end
-  - seeking to the beginning of the track (10-20s) seeks to 0 instead
-  - the current time value (and seeker position) is shifted
 - variable bitrate oggs not playing
 - dragOver event is called repeatedly, we cant use just any code in there
   (like Fut, which oddly gets computed immediately when created)
@@ -132,7 +133,8 @@ SOLVED (but the underlying cause still deserves attention)
   solution: Text class extending javafx.scene.text.Text and adding custom 
   styleclass. Use instead of the original if default behavior (skin) is expected
   Also got a nice additional method.
-  note: there actually is a styleclass for the Text: .Text
+  note: there actually is a styleclass for the Text: .Text  
+  investigate, test, reimplement
 - open PopOvers prevent app to close normally.                                  (medium-major)
   cause: javaFX bug
   solution: Manually close them all when main window closes (introduces some    (good)
@@ -154,12 +156,11 @@ SOLVED (but the underlying cause still deserves attention)
   cause: unknown, so far affects only some F keys (some F keys are fine)
   solution: delay registering in runLater()                                     (great)
   details: see Action.class register()
-- when table selection changes from 2 selected items, the selectedItems()       (major, javaFX bug?)
+- when table selection changes from 2 selected items, the selectedItems()       (medium, javaFX bug?)
   list will contain null instead of the newly selected element (the one added, 
   or the one remaining)
   cause: unknown
-  solution: iterate over the list with toS() method, this makes no sense, but 
-  thats all i know works right now, this is dangerous
+  solution: iterate over the list with stream().limit(3)
   affected: LibraryView filterList(), InfoTable
 - Icon does not support disabled style (opacity 0.4). Thus it was added in css. (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 

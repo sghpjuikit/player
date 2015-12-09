@@ -1,6 +1,7 @@
 
 package Configuration;
 
+import java.lang.invoke.MethodHandle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.function.Supplier;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -31,6 +32,7 @@ import util.parsing.StringConverter;
 import static Configuration.Configuration.configsOf;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
+import static util.Util.getValueFromFieldMethodHandle;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
 import static util.dev.Util.log;
@@ -59,26 +61,9 @@ import static util.functional.Util.*;
  */
 public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringConverter<T>, TypedValue<T>, EnumerableValue<T> {
 
-    /**
-     * Value wrapped in this config. Always {@link Object}. Primitives are
-     * wrapped automatically.
-     * <p>
-     * The inspection of the value's class might be used. In such case checking
-     * for primitives is unnecessary.
-     * <pre>
-     * To check for type use:
-     *     value instanceof SomeClass.class
-     * or
-     *     value instanceof SomeClass
-     *
-     * For enumerations use:
-     *     value instance of Enum
-     * </pre>
-     */
     @Override
     public abstract T getValue();
 
-    /** {@inheritDoc} */
     @Override
     public abstract void setValue(T val);
 
@@ -179,9 +164,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
 
     /**
-     * Inherited method from {@link StringConverter}
-     * Note: this config remains intact.
-     * <p>66 139 221
+     * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
+     * Note: invoking this method produces no effects on this config instance. Consider this method static.
+     * <p>
      * {@inheritDoc}
      */
     @Override
@@ -190,8 +175,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
 
     /**
-     * Inherited method from {@link StringConverter}
-     * Note: this config remains intact.
+     * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
+     * Note: invoking this method produces no effects on this config instance. Consider this method static.
      * <p>
      * {@inheritDoc}
      */
@@ -242,7 +227,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
 
     private static <T> Supplier<Collection<T>> buildEnumEnumerator(T v) {
-        Class c = v.getClass();
+        Class c = v==null ? Void.class : v.getClass();
         return isEnum(c) ? () -> list((T[]) Util.getEnumConstants(c)) : null;
     }
 
@@ -297,16 +282,16 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * Equivalent of: {@code return forProperty(name, new Accessor(property));}
      * or is null, runtime exception is thrown.
      */
-    public static <T> Config<T> forValue(String name, Object value) {
+    public static <T> Config<T> forValue(Class type, String name, Object value) {
         noØ(value, "Config can not be created for null");
         if(value instanceof Config ||
            value instanceof VarList ||
            value instanceof Vo ||
            value instanceof WritableValue ||
-           value instanceof ReadOnlyProperty)
+           value instanceof ObservableValue)
             throw new RuntimeException("Value " + value + "is a property and can"
                     + "not be turned into Config as value.");
-        return forProperty(name, new V<>(value));
+        return forProperty(type, name, new V<>(value));
     }
 
     /**
@@ -323,27 +308,41 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * <li> {@link Config}
      * <li> {@link VarList}
      * <li> {@link WritableValue}
-     * <li> {@link ReadOnlyProperty}
+     * <li> {@link ObservableValue}
      * </ul>
      * so standard javafx properties will all work. If not instance of any of
      * the above, runtime exception will be thrown.
      */
-    public static <T> Config<T> forProperty(String name, Object property) {
+    public static <T> Config<T> forProperty(Class<T> type, String name, Object property) {
         if(property instanceof Config)
             return (Config<T>)property;
         if(property instanceof VarList)
             return new ListConfig(name,(VarList)property);
         if(property instanceof Vo)
-            return new OverridablePropertyConfig<>(name,(Vo<T>)property);
+            return new OverridablePropertyConfig<>(type,name,(Vo<T>)property);
         if(property instanceof WritableValue)
-            return new PropertyConfig<>(name,(WritableValue<T>)property);
-        if(property instanceof ReadOnlyProperty)
-            return new ReadOnlyPropertyConfig<>(name,(ReadOnlyProperty<T>)property);
+            return new PropertyConfig<>(type,name,(WritableValue<T>)property);
+        if(property instanceof ObservableValue)
+            return new ReadOnlyPropertyConfig<>(type,name,(ObservableValue<T>)property);
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
     }
 
+    public static <T> Config<T> forPropertyOfType(Class<T> type, String name, Object property) {
+        if(property instanceof Config)
+            return (Config<T>)property;
+        if(property instanceof VarList)
+            return new ListConfig(name,(VarList)property);
+        if(property instanceof Vo)
+            return new OverridablePropertyConfig<>(type,name,(Vo<T>)property);
+        if(property instanceof WritableValue)
+            return new PropertyConfig<>(type,name,(WritableValue<T>)property);
+        if(property instanceof ObservableValue)
+            return new ReadOnlyPropertyConfig<>(type,name,(ObservableValue<T>)property);
+        throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
+    }
 
-    public static Collection<Config> configs(Object o) {
+
+    public static Collection<Config<?>> configs(Object o) {
         return configsOf(o.getClass(), o, false, true);
     }
 
@@ -351,6 +350,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
     public static abstract class ConfigBase<T> extends Config<T> {
 
+        private final Class<T> type;
         private final String gui_name;
         private final String name;
         private final String group;
@@ -377,8 +377,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * no be null.
          */
         @TODO(note = "make static map for valueEnumerators")
-        ConfigBase(String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
-            Objects.requireNonNull(val);
+        ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
+            this.type = type;
             this.gui_name = gui_name;
             this.name = name;
             this.defaultValue = val;
@@ -387,6 +387,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.editable = editable;
             this.min = min;
             this.max = max;
+            if(val==null) log(ConfigBase.class).info("Config '{}' initial value is null. {}",name);
         }
 
         /**
@@ -399,64 +400,134 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws NullPointerException if val parameter null. The wrapped value must
          * no be null.
          */
-        ConfigBase(String name, IsConfig c, T val, String category) {
-            this(name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable(), c.min(), c.max());
+        ConfigBase(Class<T> type, String name, IsConfig c, T val, String category) {
+            this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable(), c.min(), c.max());
         }
 
-        /** {@inheritDoc} */
         @Override
         public final String getGuiName() {
             return gui_name;
         }
 
-        /** {@inheritDoc} */
         @Override
         public final String getName() {
             return name;
         }
 
-        /** {@inheritDoc} */
         @Override
         public final String getGroup() {
             return group;
         }
 
-        /** {@inheritDoc} */
+        @Override
+        public Class<T> getType() {
+            return type;
+        }
+
         @Override
         public final String getInfo() {
             return info;
         }
 
-        /** {@inheritDoc} */
         @Override
         public final boolean isEditable() {
             return editable;
         }
 
-        /** {@inheritDoc} */
         @Override
         public final double getMin() {
             return min;
         }
 
-        /** {@inheritDoc} */
         @Override
         public final double getMax() {
             return max;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isMinMax() {
             return !(Double.compare(min, Double.NaN)==0 || Double.compare(max, Double.NaN)==0) &&
                     Number.class.isAssignableFrom(unPrimitivize(getType()));
         }
 
-        /** {@inheritDoc} */
         @Override
         public T getDefaultValue() {
             return defaultValue;
         }
+    }
+    /** {@link Config} wrapping {@link Field}. Can wrap both static or instance fields. */
+    public static class FieldConfig<T> extends ConfigBase<T> {
+
+        private final Object instance;
+        private final MethodHandle getter;
+        private final MethodHandle setter;
+        MethodHandle applier = null;
+
+        /**
+         * @param name
+         * @param c
+         * @param category
+         * @param instance owner of the field or null if static
+         */
+        FieldConfig(String name, IsConfig c, Object instance, String category, MethodHandle getter, MethodHandle setter) {
+            super((Class)getter.type().returnType(), name, c, getValueFromFieldMethodHandle(getter, instance), category);
+            this.getter = getter;
+            this.setter = setter;
+            this.instance = instance;
+        }
+
+        @Override
+        public T getValue() {
+            return getValueFromFieldMethodHandle(getter, instance);
+        }
+
+        @Override
+        public void setValue(T val) {
+            try {
+                if(instance==null) setter.invokeWithArguments(val);
+                else setter.invokeWithArguments(instance,val);
+            } catch (Throwable e) {
+                throw new RuntimeException("Error setting config field " + getName(),e);
+            }
+        }
+
+        @Override
+        public void applyValue(T val) {
+            if(applier != null) {
+                try {
+                    int i = applier.type().parameterCount();
+
+                    if(i==1) applier.invokeWithArguments(val);
+                    else applier.invoke();
+                } catch (Throwable e) {
+                    throw new RuntimeException("Error applying config field " + getName(),e);
+                }
+            }
+        }
+
+        /**
+         * Equals if and only if non null, is Config type and source field is equal.
+         */
+        @Override
+        public boolean equals(Object o) {
+            if(this==o) return true;
+
+            if (o == null || !(o instanceof FieldConfig)) return false;
+
+            FieldConfig c = (FieldConfig)o;
+            return setter.equals(c.setter) && getter.equals(c.getter) &&
+                   applier.equals(c.applier);
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 5;
+            hash = 23 * hash + Objects.hashCode(this.applier);
+            hash = 23 * hash + Objects.hashCode(this.getter);
+            hash = 23 * hash + Objects.hashCode(this.setter);
+            return hash;
+        }
+
     }
     public static class PropertyConfig<T> extends ConfigBase<T> {
 
@@ -464,39 +535,23 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         /**
          * Constructor to be used with framework
-         * @param _name
+         * @param name
          * @param c the annotation
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category
          * @throws IllegalStateException if the property field is not final
          */
-        public PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
-            super(_name, c, property.getValue(), category);
+        public PropertyConfig(Class<T> property_type, String name, IsConfig c, WritableValue<T> property, String category) {
+            super(property_type, name, c, property.getValue(), category);
             value = property;
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
+
         /**
-         * @param _name
-         * @param property WritableValue to wrap. Mostly a {@link Property}.
-         * @throws IllegalStateException if the property field is not final
-         */
-        public PropertyConfig(String name, WritableValue<T> property) {
-            this(name, name, property, "", "", true, Double.NaN, Double.NaN);
-        }
-         /**
-         * @param _name
-         * @param property WritableValue to wrap. Mostly a {@link Property}.
-         * @param info description, for tooltip for example
-         * @throws IllegalStateException if the property field is not final
-         */
-        public PropertyConfig(String name, WritableValue<T> property, String info) {
-            this(name, name, property, "", info, true, Double.NaN, Double.NaN);
-        }
-        /**
-         * @param _name
+         * @param name
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category category, for generating config groups
          * @param info description, for tooltip for example
@@ -505,13 +560,32 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param max use in combination with min if value is Number
          * @throws IllegalStateException if the property field is not final
          */
-        public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
-            super(name, gui_name, property.getValue(), category, info, editable, min, max);
+        public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
+            super(property_type, name, gui_name, property.getValue(), category, info, editable, min, max);
             value = property;
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+        }
+
+        /**
+         * @param name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property) {
+            this(property_type, name, name, property, "", "", true, Double.NaN, Double.NaN);
+        }
+
+        /**
+         * @param name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param info description, for tooltip for example
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property, String info) {
+            this(property_type, name, name, property, "", info, true, Double.NaN, Double.NaN);
         }
 
         @Override
@@ -534,11 +608,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         public void applyValue(T val) {
             if (value instanceof ApplicableValue)
                 ApplicableValue.class.cast(value).applyValue(val);
-        }
-
-        @Override
-        public Class<T> getType() {
-            return (Class<T>) getValue().getClass();
         }
 
         public WritableValue<T> getProperty() {
@@ -565,43 +634,27 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
     public static class ReadOnlyPropertyConfig<T> extends ConfigBase<T> {
 
-        private final ReadOnlyProperty<T> value;
+        private final ObservableValue<T> value;
 
         /**
          * Constructor to be used with framework
-         * @param _name
+         * @param name
          * @param c the annotation
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category
          * @throws IllegalStateException if the property field is not final
          */
-        ReadOnlyPropertyConfig(String _name, IsConfig c, ReadOnlyProperty<T> property, String category) {
-            super(_name, c, property.getValue(), category);
+        ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, ObservableValue<T> property, String category) {
+            super(property_type, name, c, property.getValue(), category);
             value = property;
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
+
         /**
-         * @param _name
-         * @param property WritableValue to wrap. Mostly a {@link Property}.
-         * @throws IllegalStateException if the property field is not final
-         */
-        public ReadOnlyPropertyConfig(String name, ReadOnlyProperty<T> property) {
-            this(name, name, property, "", "", Double.NaN, Double.NaN);
-        }
-         /**
-         * @param _name
-         * @param property WritableValue to wrap. Mostly a {@link Property}.
-         * @param info description, for tooltip for example
-         * @throws IllegalStateException if the property field is not final
-         */
-        public ReadOnlyPropertyConfig(String name, ReadOnlyProperty<T> property, String info) {
-            this(name, name, property, "", info, Double.NaN, Double.NaN);
-        }
-        /**
-         * @param _name
+         * @param name
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category category, for generating config groups
          * @param info description, for tooltip for example
@@ -610,12 +663,31 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param max use in combination with min if value is Number
          * @throws IllegalStateException if the property field is not final
          */
-        public ReadOnlyPropertyConfig(String name, String gui_name, ReadOnlyProperty<T> property, String category, String info, double min, double max) {
-            super(name, gui_name, property.getValue(), category, info, false, min, max);
+        public ReadOnlyPropertyConfig(Class<T> property_type, String name, String gui_name, ObservableValue<T> property, String category, String info, double min, double max) {
+            super(property_type, name, gui_name, property.getValue(), category, info, false, min, max);
             value = property;
 
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+        }
+
+        /**
+         * @param name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @throws IllegalStateException if the property field is not final
+         */
+        public ReadOnlyPropertyConfig(Class<T> property_type, String name, ObservableValue<T> property) {
+            this(property_type, name, name, property, "", "", Double.NaN, Double.NaN);
+        }
+
+        /**
+         * @param name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param info description, for tooltip for example
+         * @throws IllegalStateException if the property field is not final
+         */
+        public ReadOnlyPropertyConfig(Class<T> property_type, String name, ObservableValue<T> property, String info) {
+            this(property_type, name, name, property, "", info, Double.NaN, Double.NaN);
         }
 
         @Override
@@ -633,12 +705,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public void applyValue(T val) {}
 
-        @Override
-        public Class<T> getType() {
-            return (Class) getValue().getClass();
-        }
-
-        public ReadOnlyProperty<T> getProperty() {
+        public ObservableValue<T> getProperty() {
             return value;
         }
 
@@ -663,19 +730,22 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public static class OverridablePropertyConfig<T> extends PropertyConfig<T> {
         private final boolean defaultOverride_value;
 
-        public OverridablePropertyConfig(String _name, IsConfig c, Vo<T> property, String category) {
-            super(_name, c, property, category);
+        public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Vo<T> property, String category) {
+            super(property_type, name, c, property, category);
             util.Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
-        public OverridablePropertyConfig(String name, Vo<T> property) {
-            this(name, name, property, "", "", true, Double.NaN, Double.NaN);
+
+        public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property) {
+            this(property_type, name, name, property, "", "", true, Double.NaN, Double.NaN);
         }
-        public OverridablePropertyConfig(String name, Vo<T> property, String info) {
-            this(name, name, property, "", info, true, Double.NaN, Double.NaN);
+
+        public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property, String info) {
+            this(property_type, name, name, property, "", info, true, Double.NaN, Double.NaN);
         }
-        public OverridablePropertyConfig(String name, String gui_name, Vo<T> property, String category, String info, boolean editable, double min, double max) {
-            super(name, gui_name, property, category, info, editable, min, max);
+
+        public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, boolean editable, double min, double max) {
+            super(property_type, name, gui_name, property, category, info, editable, min, max);
             util.Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
@@ -754,11 +824,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         public final VarList<T> a;
 
         public ListConfig(String name, IsConfig c, VarList<T> val, String category) {
-            super(name, c, val.getValue(), category);
+            super((Class)ObservableList.class, name, c, val.getValue(), category);
             a = val;
         }
         public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable, double min, double max) {
-            super(name, gui_name, val.getValue(), category, info, editable, min, max);
+            super((Class)ObservableList.class, name, gui_name, val.getValue(), category, info, editable, min, max);
             a = val;
         }
         public ListConfig(String name, VarList<T> val) {
@@ -772,11 +842,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         @Override
         public void setValue(ObservableList<T> val) {}
-
-        @Override
-        public Class<ObservableList<T>> getType() {
-            return (Class) ObservableList.class;
-        }
 
         @Override
         public void applyValue(ObservableList<T> val) {}

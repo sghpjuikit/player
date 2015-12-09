@@ -35,6 +35,7 @@ import gui.GUI;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
+import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import util.SingleR;
 import util.animation.Anim;
@@ -42,7 +43,11 @@ import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
+import static Layout.widget.Widget.LoadType.AUTOMATIC;
+import static Layout.widget.Widget.LoadType.MANUAL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
+import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static gui.GUI.OpenStrategy.INSIDE;
 import static gui.GUI.OpenStrategy.POPUP;
 import static gui.GUI.closeAndDo;
@@ -54,7 +59,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static main.App.APP;
+import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
+import static util.reactive.Util.maintain;
 
 /**
  FXML Controller class
@@ -125,9 +132,9 @@ public final class AreaControls {
     private final FadeTransition contAnim;
     private final Transition blurAnim;
 
-    Area<?> area;
+    WidgetArea area;
 
-    public AreaControls(Area area) {
+    public AreaControls(WidgetArea area) {
 	this.area = area;
 
         // load fxml
@@ -148,7 +155,7 @@ public final class AreaControls {
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
 	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
 	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
-            APP.actionPane.show(Widget.class, area.getActiveWidget())
+            APP.actionPane.show(Widget.class, area.getWidget())
         );
 	propB = new Icon(COGS, 12, propbTEXT, this::settings);
 	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
@@ -162,12 +169,18 @@ public final class AreaControls {
 	    updateAbsB();
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, dragbTEXT);
+        CheckIcon loadB = new CheckIcon();
+        maintain(area.getWidget().loadType, lt -> lt==AUTOMATIC, loadB.selected);
+        maintain(loadB.selected, mapB(UNFOLD,FOLD), loadB::icon);
+        loadB.selected.addListener((o,ov,nv) -> area.getWidget().loadType.set(nv ? AUTOMATIC : MANUAL));
+        // ^ technically we've got ourselves bidirectional binding and risk stackoverflow. We know
+        // the value changes fire only when value is different, so we ara safe
 
         // dragging
         EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(area.getActiveWidget(),db);
+                DragUtil.setComponent(area.getWidget(),db);
                 // signal dragging graphically with css
                 root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();
@@ -184,7 +197,7 @@ public final class AreaControls {
 	// build header
 	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
 	header_buttons.setAlignment(Pos.CENTER_RIGHT);
-	header_buttons.getChildren().addAll(infoB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
+	header_buttons.getChildren().addAll(infoB, loadB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
 
 	// build animations
 	contrAnim = new FadeTransition(GUI.duration_LM, root);
@@ -401,11 +414,11 @@ public final class AreaControls {
     }
 
     private void showWeak() {
-        Node n = area.getActiveWidget().getController().getActivityNode();
-        if(n!=null && !root.getChildren().contains(n)) {
-            root.getChildren().add(n);
-            setAnchors(n, 0d);
-            n.toBack();
+        Node ap = area.iopane;
+        if(ap!=null && !root.getChildren().contains(ap)) {
+            root.getChildren().add(ap);
+            setAnchors(ap, 0d);
+            ap.toBack();
         }
         //set state
 	isShowingWeak = true;
@@ -428,8 +441,7 @@ public final class AreaControls {
     }
 
     private void hideWeak() {
-        Node n = area.getActiveWidget().getController().getActivityNode();
-        if(n!=null) root.getChildren().remove(n);
+        if(area.iopane!=null) root.getChildren().remove(area.iopane);
 	isShowingWeak = false;
 	contrAnim.stop();
 	contAnim.stop();
@@ -474,7 +486,7 @@ public final class AreaControls {
 /******************************************************************************/
 
     public String getInfo() {
-        Widget w = area.getActiveWidget();
+        Widget w = area.getWidget();
         return ""
             + "Controls for managing user interface (ui). UI is comprised of "
             + "widgets, containers and layouts. Widgets provide the functionality "

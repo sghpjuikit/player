@@ -9,7 +9,9 @@ import java.io.ObjectStreamException;
 import java.util.UUID;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 
@@ -20,14 +22,18 @@ import org.slf4j.LoggerFactory;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+import Configuration.IsConfig;
 import Layout.container.Container;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
+import Layout.widget.Widget.LoadType;
 import Layout.widget.WidgetManager;
 import gui.GUI;
 import gui.objects.Window.stage.Window;
 import main.App;
 import util.collections.map.PropertyMap;
+
+import static Layout.widget.Widget.LoadType.AUTOMATIC;
 
 /**
  * @author uranium
@@ -170,25 +176,22 @@ public abstract class Component {
     protected Object readResolve() throws ObjectStreamException {
         if(lockedUnder == null)
             util.Util.setField(this, "lockedUnder", new LockedProperty());
+        if(loadType == null)
+            util.Util.setField(this, "loadType", new SimpleObjectProperty<Widget.LoadType>(AUTOMATIC));
         return this;
     }
 
 //***************************************** LOCKING ***********************************************/
 
     /**
-     * Whether the container is locked. The effect of lock is not implicit and
+     * Whether the container is locked. The effect of lock is not specifically defined and
      * may vary. Generally, the container becomes immune against certain
      * layout changes.
      * <p>
-     * Note that the method {@link #isUnderLock()} may be better fit for use,
-     * because unlocked container can still be under lock from any of its parents.
-     *
-     * @return true if this container is locked.
+     * @see #lockedUnder which may be better fit for use, as any of the parents may be locked
      */
     public final BooleanProperty locked = new SimpleBooleanProperty(false);
-    /**
-     * @return true if this container is locked or any parent is locked or entire ui is locked
-     */
+    /** True if this container is locked or any parent is locked or entire ui is locked. */
     @XStreamOmitField
     public final LockedProperty lockedUnder = new LockedProperty();
 
@@ -211,4 +214,9 @@ public abstract class Component {
             unbind();
         }
     }
+
+
+//    @XStreamOmitField
+//    @IsConfig(name = "Load", info = "")
+    public final ObjectProperty<LoadType> loadType = new SimpleObjectProperty<>(AUTOMATIC);
 }

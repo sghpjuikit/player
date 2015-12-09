@@ -72,6 +72,7 @@ public class GeneralPlayer {
             realTime.synchroRealTime_onPlayed();
             // throw item change event
             Player.playingtem.itemChanged(item);
+            suspension_flag = false;
             // fire other events (may rely on the above)
             PLAYBACK.playbackStartDistributor.run();
             if(post_activating_1st || !post_activating)

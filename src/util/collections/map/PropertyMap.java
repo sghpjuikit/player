@@ -6,19 +6,20 @@
 package util.collections.map;
 
 import java.util.HashMap;
+
 import javafx.geometry.Orientation;
 
 /** HashMap for properties with additional utility methods. */
 public final class PropertyMap extends HashMap<String, Object>{
-    
+
     /**
      * Returns value of the property with specified name. If no such property is
      * found, property is created and initialized to provided value and returned.
      * Always returns back usable value.
-     * 
+     *
      * The value needs to be cast to desired value. The casting will always
      * succeed as only correct value can be returned back.
-     * 
+     *
     * @param name
      * @param default_value
      * @return always value for given property.
@@ -27,22 +28,22 @@ public final class PropertyMap extends HashMap<String, Object>{
         putIfAbsent(name, default_value);
         return get(name);
     }
-    
+
     /**
      * Returns type of value with specified key. Null If it doesn't exist.
      * @param name
-     * @return 
+     * @return
      */
     public Class<?> getType(String name) {
         if(!containsKey(name)) return null;
         return get(name).getClass();
     }
-    
+
 /******************************************************************************/
-    
+
     /**
      * Initializes and returns the property.
-     * Effectively the same as all other get() methods, but it performs a type 
+     * Effectively the same as all other get() methods, but it performs a type
      * check and throws an exception if initialization value doesnt conform to the
      * specified type. Type check is not needed more than once.
      * This method is not necessity, but it conveniently points to wrong code.
@@ -71,27 +72,27 @@ public final class PropertyMap extends HashMap<String, Object>{
             throw new ClassCastException("The value doesnt match the type of property");
         return get(name, val);
     }
-    
+
     public boolean getB(String key) {
         return (boolean) get(key);
-    }    
+    }
     public double getD(String key) {
         return (double) get(key);
     }
     public int getI(String key) {
         return (int) get(key);
-    }    
+    }
     public long getL(String key) {
         return (long) get(key);
-    }    
+    }
     public float getF(String key) {
         return (float) get(key);
-    }  
+    }
     public String getS(String key) {
         return (String) get(key);
     }
     public Orientation getOriet(String key) {
         return (Orientation) get(key);
     }
-    
+
 }

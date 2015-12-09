@@ -5,17 +5,16 @@
  */
 package gui.objects.image;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-
 import java.io.File;
 
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 
 /**
  *

@@ -189,7 +189,7 @@ public class Thumbnail extends ImageNode {
         ratioIMG.greaterThan(ratioALL).addListener(border_sizer);
 
         // initialize values
-        imageView.setCache(false);
+//        imageView.setCache(false);
         setSmooth(true);
         setPreserveRatio(true);
         setBorderToImage(false);

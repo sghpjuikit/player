@@ -45,16 +45,16 @@ import static util.graphics.Util.setAnchors;
 public class FunctionPlotter extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
-    
+
     public FunctionPlotter() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        
-        V<StrExF> sdf = new V<>(new StrExF("x"),this::plot);
-        ConfigField c = ConfigField.create(Config.forProperty("Function", sdf));
 
-        
+        V<StrExF> sdf = new V<>(new StrExF("x"),this::plot);
+        ConfigField<StrExF> c = ConfigField.create(Config.forProperty(StrExF.class, "Function", sdf));
+
+
         StackPane la = new StackPane(new HBox(5,c.createLabel(),c.getNode()));
         StackPane lb = new StackPane(plot);
         VBox l = new VBox(5,la,lb);
@@ -63,16 +63,16 @@ public class FunctionPlotter extends ClassController  {
         this.getChildren().add(l);
         setAnchors(l, 0d);
     }
-    
-    public void plot(Function<Double,Double> ƒ) {        
+
+    public void plot(Function<Double,Double> ƒ) {
         plot.plot(ƒ);
     }
-    
+
     @Override public void refresh() {
         plot.plot(x->x);
     }
-    
-    
+
+
     private class Axes extends Pane {
         private NumberAxis xAxis;
         private NumberAxis yAxis;
@@ -114,17 +114,17 @@ public class FunctionPlotter extends ClassController  {
         private double xmin;
         private double xmax;
         private Axes a;
-        
+
         public Plot(double xMin, double xMax, Axes axes) {
             xmin = xMin;
             xmax = xMax;
             a = axes;
-            
+
             setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
             setPrefSize(a.getPrefWidth(), a.getPrefHeight());
             setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
         }
-        
+
         public void plot(Function<Double,Double> ƒ) {
             Path path = new Path();
             path.setStroke(Color.ORANGE);
@@ -148,7 +148,7 @@ public class FunctionPlotter extends ClassController  {
 
         private double mapX(double x) {
             double tx = a.getPrefWidth() / 2;
-            double sx = a.getPrefWidth() / 
+            double sx = a.getPrefWidth() /
                (a.getXAxis().getUpperBound() - a.getXAxis().getLowerBound());
 
             return x * sx + tx;
@@ -156,7 +156,7 @@ public class FunctionPlotter extends ClassController  {
 
         private double mapY(double y) {
             double ty = a.getPrefHeight() / 2;
-            double sy = a.getPrefHeight() / 
+            double sy = a.getPrefHeight() /
                 (a.getYAxis().getUpperBound() - a.getYAxis().getLowerBound());
 
             return -y * sy + ty;

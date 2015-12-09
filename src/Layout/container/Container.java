@@ -1,28 +1,34 @@
 
 package Layout.container;
 
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+import Configuration.IsConfig;
 import Layout.AltState;
 import Layout.Areas.ContainerNode;
 import Layout.Component;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
+import Layout.widget.Widget.LoadType;
 import Layout.widget.controller.Controller;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 
+import static Layout.widget.Widget.LoadType.AUTOMATIC;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -125,6 +131,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     @XStreamOmitField protected AnchorPane root;
     @XStreamOmitField private Container parent;
     @XStreamOmitField public G ui;
+
 
     /** {@inheritDoc} */
     @Override

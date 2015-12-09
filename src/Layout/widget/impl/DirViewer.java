@@ -7,6 +7,7 @@ package Layout.widget.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +38,9 @@ import util.File.AudioFileFormat.Use;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
+import util.Sort;
 import util.Util;
+import util.access.FieldValue.FileField;
 import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
@@ -55,6 +58,7 @@ import static main.App.APP;
 import static util.File.Environment.chooseFile;
 import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
+import static util.access.FieldValue.FileField.NAME;
 import static util.async.Async.FX;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.Async.runFX;
@@ -84,9 +88,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
-    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visitDir(new TopItem()));
+    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 
     final PlaceholderPane placeholder = new PlaceholderPane(FOLDER_PLUS,"Click to view directory", () -> {
         File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
@@ -98,6 +100,13 @@ public class DirViewer extends ClassController {
     boolean initialized = false;
     private volatile boolean isResizing = false;
     private boolean scrollflag = true;
+
+    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
+    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visitDir(new TopItem()));
+    @IsConfig(name = "Sort", info = "Sorting effect.")
+    final V<Sort> sort = new V<>(Sort.ASCENDING, s -> resort());
+    @IsConfig(name = "Sort by", info = "Sorting criteria.")
+    final V<FileField> sortBy = new V<>(NAME, f -> resort());
 
     public DirViewer() {
         files.onListInvalid(list -> visitDir(new TopItem()));
@@ -193,6 +202,16 @@ public class DirViewer extends ClassController {
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }
+    }
+
+    /** Resorts grid's items according to current sort criteria. */
+    private void resort() {
+        grid.getItems().sort(buildSortComparator());
+    }
+    private Comparator<? super Item> buildSortComparator() {
+        Sort s = sort.get();
+        FileField by = sortBy.get();
+        return s.cmp(by(i -> (Comparable)by.getOf(i.val)));
     }
 
     private boolean filter(File f) {
@@ -305,7 +324,7 @@ public class DirViewer extends ClassController {
         public List<Item> children() {
             if (children == null) buildChildren();
             List<Item> l = list(children);
-                       l.sort(by(c -> c.val.getName()));
+                       l.sort(buildSortComparator());
             return l;
         }
 

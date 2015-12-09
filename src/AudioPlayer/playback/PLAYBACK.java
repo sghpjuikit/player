@@ -6,6 +6,7 @@ import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
@@ -33,10 +34,13 @@ import util.File.Environment;
 import static AudioPlayer.playback.PlayTimeHandler.at;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static util.async.Async.runFX;
 
 /**
  * Provides methods for player.
@@ -92,6 +96,7 @@ public final class PLAYBACK implements Configurable {
     }
 
     public static void suspend() {
+        suspension_flag = true;
         LOGGER.info("Suspending playback");
         state.realTime.set(getRealTime());
         Player.state.serialize();
@@ -111,6 +116,10 @@ public final class PLAYBACK implements Configurable {
         }
         if (s == PLAYING) {
             player.play(PlaylistManager.use(p -> p.getPlaying(),null));
+            // suspension_flag = false; // set inside player.play();
+            runFX(200, () -> suspension_flag = false); // just in case som condition prevents resetting flag
+        } else {
+            suspension_flag = false;
         }
     }
 
@@ -120,6 +129,8 @@ public final class PLAYBACK implements Configurable {
     public static boolean post_activating = false;
     // this negates the above when app starts and playback is activated 1st time
     public static boolean post_activating_1st = true;
+    // this prevents update/change playing song events on suspension/activating, it is important (see where it is used)
+    public static boolean suspension_flag = false;
 
 
 /******************************************************************************/
@@ -245,6 +256,11 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
     public static void toggleLoopMode() {
         setLoopMode(getLoopMode().next());
+    }
+
+    public static void toggleLoopMode(MouseEvent e) {
+        if(e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
+        if(e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
     }
 
     public static void setLoopMode(LoopMode mode) {

@@ -2,18 +2,18 @@
 package Configuration;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 
 import util.Util;
 
 import static Configuration.Configuration.configsOf;
-import static java.util.stream.Collectors.toList;
-import static util.functional.Util.forEachIStream;
-import static util.functional.Util.map;
+import static util.Util.forEachJavaFXProperty;
 
 /**
  * Defines object that can be configured.
@@ -22,7 +22,7 @@ import static util.functional.Util.map;
  * encapsulate the configurable values.
  * This can be used to save, restore, serialization or manipulate this state.
  * <p>
- * Any object can be configurable - an object with 
+ * Any object can be configurable - an object with
  * some state (fields) or properties {@link Property}, composite object composed
  * of sub Configurables exposing all its aggregated
  * subparts as one or it could even be a simple collection of unrelated Configs.
@@ -57,19 +57,19 @@ import static util.functional.Util.map;
  * <p>
  * If all configs of this configurable contain the same type of value,
  * use this generic parameter.
- * 
+ *
  * @see MapConfigurable
  * @see ListConfigurable
- * 
+ *
  * @author uranium
  */
 public interface Configurable<T> {
-    
-    /** 
+
+    /**
      * Get all configs of this configurable.
      * <p>
      * Configs know the type of its value, but that is lost since configs with
-     * different values can form the state of this configurable. Casting is 
+     * different values can form the state of this configurable. Casting is
      * necessary when accessing configs' value directly.
      * <p>
      * There are three possible resolutions:<br>
@@ -82,118 +82,110 @@ public interface Configurable<T> {
        <p>
      * {@code String val = ((Config<String>) c.getFields().get(0)).getValue()}
        <p>
-     * 3:   Or obtaining the value and then casting it to the correct type. This 
+     * 3:   Or obtaining the value and then casting it to the correct type. This
      * should be the preferred way of doing this. Like this:
        <p>
      * {@code String val = (String) c.getFields().get(0).getValue()}
        <p>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
-     * 
+     *
      * @return Configs of this configurable
      */
     default public Collection<Config<T>> getFields() {
         return (Collection) configsOf(getClass(), this, false, true);
     }
-    
+
     /**
-     * Get config of this configurable for field with provided name.
+     * Get config of this configurable with provided name. Null if not found.
      * <p>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
-     * <p>
-     * Note: implementation must not throw exception, but return null on error.
-     * @param n unique name of the field
+     *
+     * @param name unique name of the field
      * @return config with given name or null if does not exist.
      */
-    default public Config<T> getField(String n) {
+    default public Config<T> getField(String name) {
         try {
-            Class c = this.getClass();
-            Field f = Util.getField(c,n);
-            return Configuration.createConfig(c, f, this, false, true);
-        } catch (NoSuchFieldException | SecurityException e) {
+            return getFieldOrThrow(name);
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }
-    
+
     /**
-     * Get config of this configurable for field with provided name or dummy
-     * config wrapping the provided value if not found.
+     * Get config of this configurable with provided name. Throws {@link IllegalArgumentException} if not found.
      * <p>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
-     * 
+     *
      * @param name unique name of the field
-     * @param dv default value to wrap in case the config does not exist
-     * @return config with given name, never null
+     * @return config with given name or null if does not exist.
      */
-    default public Config<T> getFieldOr(String name, T dv) {
-        Config<T> c = getField(name);
-        return c==null ? new ValueConfig(name,dv) : c;
+    default public Config<T> getFieldOrThrow(String name) {
+        try {
+            Class c = this.getClass();
+            Field f = Util.getField(c,name);
+            return Configuration.createConfig(c, f, this, false, true);
+        } catch (NoSuchFieldException | SecurityException e) {
+            throw new IllegalArgumentException("Config field '" + name + "' not found.");
+        }
     }
-    
+
     /**
      * Safe set method.
      * Sets value of config with given name if it exists.
      * Non null equivalent to: return getField(name).setValue(value);
      * <p>
      * Use when input isnt guaranteed to be valid, e.g. contents of a file.
-    
-     * @param n unique name of the field
+
+     * @param name unique name of the field
      * @param v value
      */
-    default public void setField(String n, T v) {
-        Config<T> c = getField(n);
+    default public void setField(String name, T v) {
+        Config<T> c = getField(name);
         if(c!=null) c.setValue(v);
     }
-    
+
     /**
      * Unsafe set method.
      * Sets value of config with given name if it exists or throws an exceptioon.
      * Equivalent to: return getField(name).setValue(value);
      * <p>
      * Use when input is guaranteed to be valid, e.g. using valid value in source code.
-    
-     * @param n unique name of the field
+
+     * @param name unique name of the field
      * @param v value
      */
-    default public void setFieldOrThrow(String n, T v) {
-        Config<T> c = getField(n);
+    default public void setFieldOrThrow(String name, T v) {
+        Config<T> c = getField(name);
         if(c!=null) c.setValue(v);
-        else throw new IllegalArgumentException("Config field '" + n + "' not found.");
+        else throw new IllegalArgumentException("Config field '" + name + "' not found.");
     }
-    
+
     /**
      * Safe set method.
      * Sets value of config with given name if it exists, parsing the text input.
      * <p>
      * No exception equivalent to: return getField(name).setValueS(value);
      * Use when deserializing.
-    
-     * @param n unique name of the field
-     * @param v text value to be parsed 
+
+     * @param name unique name of the field
+     * @param v text value to be parsed
      */
-    default public void setField(String n, String v) {
-        Config<T> c = getField(n);
+    default public void setField(String name, String v) {
+        Config<T> c = getField(name);
         if(c!=null) c.setValueS(v);
     }
-    
-    
-    
-    
-    public static Collection<Config> configsFromValues(Collection<WritableValue> vals) {
-        return forEachIStream(vals, (i,v) -> Config.forProperty(String.valueOf(i),v)).collect(toList());
-    }
-    
-    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(Collection<E> vals) {
-        return map(vals,v -> Config.forProperty(v.getName(),v));
-    }
-    
-    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(E... vals) {
-        return map(vals,v -> Config.forProperty(v.getName(),v));
-    }
-    
-    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromFieldsOf(Object o) {
+
+
+    public static <E extends ObservableValue & WritableValue> Collection<Config<?>> configsFromFieldsOf(Object o) {
         return configsOf(o.getClass(), o, false, true);
+    }
+
+    public static Configurable configsFromFxPropertiesOf(Object o) {
+        List<Config<?>> cs = new ArrayList<>();
+        forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forPropertyOfType(type,name,p)));
+        return new ListConfigurable(cs);
     }
 }

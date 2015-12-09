@@ -144,7 +144,7 @@ public class Picker<E> {
         )).play();
     }
 
-    public Node getNode() {
+    public Region getNode() {
         buildContent();
         return root;
     }

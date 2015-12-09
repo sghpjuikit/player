@@ -92,15 +92,15 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
      * provided implementation. The item change event is fired.
      */
     @Override
-    public void setValue(T val) {
-         if(val!=null) {
-             T oldItem = v;
-             this.v = val;
-             String text = valueFactory.call(val);    // use factory to convert
-             setText(text);
-             setPromptText(text);
-             if(onItemChange!=null) onItemChange.accept(oldItem,val);
-         }
+    public void setValue(T nv) {
+        T ov = v;
+        if(ov==nv || (ov!=null && nv!=null && ov.equals(nv))) return;
+
+        v = nv;
+        String text = valueFactory.call(nv);    // use factory to convert
+        setText(text);
+        setPromptText(text);
+        if(onItemChange!=null) onItemChange.accept(ov,nv);
     }
 
     /**

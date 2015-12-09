@@ -6,9 +6,10 @@
 
 package Configuration;
 
-import Configuration.Config.ConfigBase;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import Configuration.Config.ConfigBase;
 import util.access.FunctAccessibleValue;
 import util.access.FunctAccessor;
 
@@ -24,77 +25,64 @@ import util.access.FunctAccessor;
  * @author Plutonium_
  */
 public class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleValue<T> {
-    
+
     private final Consumer<T> setter;
     private final Supplier<T> getter;
-    
+
     /**
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, String gui_name, Consumer<T> setter,
+    public AccessorConfig(Class<T> type, String name, String gui_name, Consumer<T> setter,
             Supplier<T> getter, String category, String info, boolean editable, double min, double max) {
-        super(name, gui_name, getter.get(), name, info, editable, min, max);
+        super(type, name, gui_name, getter.get(), name, info, editable, min, max);
         this.getter = getter;
         this.setter = setter;
     }
-    
+
     /**
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, Consumer<T> setter, Supplier<T> getter) {
-        super(name, name, getter.get(), "", "", true, Double.NaN, Double.NaN);
+    public AccessorConfig(Class<T> type, String name, Consumer<T> setter, Supplier<T> getter) {
+        super(type, name, name, getter.get(), "", "", true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
     }
-    
+
     /**
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, Consumer<T> setter, Supplier<T> getter, String info) {
-        super(name, name, getter.get(), "", info, true, Double.NaN, Double.NaN);
+    public AccessorConfig(Class<T> type, String name, Consumer<T> setter, Supplier<T> getter, String info) {
+        super(type, name, name, getter.get(), "", info, true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
     }
-    
-    
-    /** {@inheritDoc} */
+
     @Override
     public Consumer<T> getSetter() {
         return setter;
     }
-    
-    /** {@inheritDoc} */
+
     @Override
     public Supplier<T> getGetter() {
         return getter;
     }
-    
-    
-    /** {@inheritDoc} */
+
     @Override
     public T getValue() {
         return getter.get();
     }
-    
-    /** {@inheritDoc} */
+
     @Override
     public void setValue(T val) {
         setter.accept(val);
     }
-    
-    /** {@inheritDoc} */
+
     @Override
     public void applyValue(T val) {
         // do nothing
     }
-    
-    /** {@inheritDoc} */
-    @Override
-    public Class getType() {
-        return getValue().getClass();
-    }
-    
+
 }

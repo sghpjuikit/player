@@ -995,9 +995,9 @@ public class Functors {
 
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
-            cs.addAll(map(pf.getParameters(),p->{
+            cs.addAll(map(pf.getParameters(), p -> {
                 V a = new V(p.defaultValue);
-                return new AccessorConfig("",a::setValue,a::getValue);
+                return new AccessorConfig(p.type,"",a::setValue,a::getValue);
             }));
         }
 

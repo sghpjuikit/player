@@ -13,6 +13,7 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -33,6 +34,7 @@ import action.Action;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
+import gui.itemnode.TextFieldItemNode.EffectItemNode;
 import gui.itemnode.TextFieldItemNode.FileItemNode;
 import gui.itemnode.TextFieldItemNode.FontItemNode;
 import gui.objects.combobox.ImprovedComboBox;
@@ -245,28 +247,32 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 /******************************************************************************/
 
-    private static Map<Class,Ƒ1<Config,ConfigField>> m = new HashMap();
+    private static Map<Class,Ƒ1<Config,ConfigField>> m = new HashMap<>();
 
     static {
-        m.put(boolean.class, f -> new BooleanField(f));
-        m.put(Boolean.class, f -> new BooleanField(f));
-        m.put(String.class, f -> new GeneralField(f));
-        m.put(Action.class, f -> new ShortcutField(f));
-        m.put(Color.class, f -> new ColorField(f));
-        m.put(File.class, f -> new FileField(f));
-        m.put(Font.class, f -> new FontField(f));
-        m.put(Password.class, f -> new PasswordField(f));
-        m.put(String.class, f -> new StringField(f));
-        m.put(KeyCode.class, f -> new KeyCodeField(f));
-        m.put(ObservableList.class, f -> new ListField(f));
+        m.put(boolean.class, BooleanField::new);
+        m.put(Boolean.class, BooleanField::new);
+        m.put(String.class, GeneralField::new);
+        m.put(Action.class, ShortcutField::new);
+        m.put(Color.class, ColorField::new);
+        m.put(File.class, FileField::new);
+        m.put(Font.class, FontField::new);
+        m.put(Effect.class, config -> new EffectField(config,Effect.class));
+        m.put(Password.class, PasswordField::new);
+        m.put(String.class, StringField::new);
+        m.put(KeyCode.class, KeyCodeField::new);
+        m.put(ObservableList.class, ListField::new);
+        EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type!=null)
+                      .forEach(et -> m.put(et.type,config -> new EffectField(config,et.type)));
     }
 
     /**
      * Creates ConfigFfield best suited for the specified Field.
      * @param f field for which the GUI will be created
      */
-    public static ConfigField create(Config f) {
+    public static <T> ConfigField<T> create(Config<T> config) {
 
+        Config f = (Config)config;
         ConfigField cf = null;
         if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
         else if (f.isTypeEnumerable()) cf = f.getType()==KeyCode.class ? new KeyCodeField(f) : new EnumerableField(f);
@@ -557,11 +563,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Number get() {
             Double d = slider.getValue();
             Class type = unPrimitivize(config.getType());
-            if(Integer.class.equals(type)) return d.intValue();
-            if(Double.class.equals(type)) return d;
-            if(Float.class.equals(type)) return d.floatValue();
-            if(Long.class.equals(type)) return d.longValue();
-            if(Short.class.equals(type)) return d.shortValue();
+            if(Integer.class==type) return d.intValue();
+            if(Double.class==type) return d;
+            if(Float.class==type) return d.floatValue();
+            if(Long.class==type) return d.longValue();
+            if(Short.class==type) return d.shortValue();
             throw new IllegalStateException("wrong number type: " + type);
         }
         @Override public void refreshItem() {
@@ -757,22 +763,54 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class FileField extends ConfigField<File> {
-        FileItemNode txtF = new FileItemNode();
+        FileItemNode editor = new FileItemNode();
 
         public FileField(Config<File> c) {
             super(c);
             refreshItem();
-            txtF.setOnItemChange((ov,nv) -> apply(false));
+            editor.setOnItemChange((ov,nv) -> apply(false));
         }
 
         @Override public Control getControl() {
-            return txtF;
+            return editor;
         }
         @Override public File get() {
-            return txtF.getValue();
+            return editor.getValue();
         }
         @Override public void refreshItem() {
-            txtF.setValue(config.getValue());
+            editor.setValue(config.getValue());
+        }
+    }
+    private static class EffectField extends ConfigField<Effect> {
+
+        private final EffectItemNode editor;
+
+        public EffectField(Config<Effect> c, Class<? extends Effect> effect_type) {
+            super(c);
+            editor = new EffectItemNode(effect_type);
+            refreshItem();
+            editor.setOnItemChange((ov,nv) -> apply(false));
+        }
+
+        @Override public Control getControl() {
+            return editor;
+        }
+        @Override public Effect get() {
+            return editor.getValue();
+        }
+        @Override public void refreshItem() {
+            editor.setValue(config.getValue());
+        }
+        // The problem here is that officially Configs and ConfigFields do not support null value
+        // but obviously there are cases null makes sense, such as with Effect. For now we add
+        // support for null here
+        @Override
+        protected void apply(boolean user) {
+            Effect t = get();
+            if(applyOnChange || user) config.setNapplyValue(t);
+            else config.setValue(t);
+            refreshItem();
+            if(onChange!=null) onChange.run();
         }
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
@@ -843,15 +881,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 //            root.setPrefSize(-1,-1);
 //            root.setMaxSize(-1,-1);
 
-            BooleanField bf = new OverrideField(Config.forProperty("Override", vo.override)) {
+            BooleanField bf = new OverrideField(Config.forProperty(Boolean.class, "Override", vo.override)) {
                 @Override
                 public void setNapplyDefault() {
                     vo.override.setValue(c.getDefaultOverrideValue());
                 }
             };
-            ConfigField cf = create(Config.forProperty("", vo.real));
+            ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
             util.Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            maintain(vo.override,b->!b,cf.getControl().disableProperty());
+            maintain(vo.override, b -> !b, cf.getControl().disableProperty());
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override

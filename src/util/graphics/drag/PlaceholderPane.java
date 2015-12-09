@@ -25,7 +25,7 @@ import static util.reactive.Util.maintain;
  * add items".
  * <p>
  * Normally it highlights on hover/mouse over to signal possible interaction.
- * 
+ *
  * @author Plutonium_
  */
 public class PlaceholderPane extends StackPane {

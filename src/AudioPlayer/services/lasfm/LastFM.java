@@ -123,10 +123,14 @@ public class LastFM {
 
     public static SimpleConfigurator getLastFMconfig(){
         return new SimpleConfigurator<String>(
-            new MapConfigurable(new ValueConfig("name", acquireUserName()),
-                                new ValueConfig("pwd", acquirePassword())),
-            c -> saveLogin(c.getField("name").getValue(),
-                           new Password(c.getField("pwd").getValue()))
+            new MapConfigurable(
+                new ValueConfig(String.class, "name", acquireUserName()),
+                new ValueConfig(Password.class, "pwd", acquirePassword())
+            ),
+            c -> saveLogin(
+                c.getField("name").getValue(),
+                new Password(c.getField("pwd").getValue())
+            )
         );
 
     }

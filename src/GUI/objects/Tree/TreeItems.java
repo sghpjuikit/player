@@ -6,18 +6,12 @@
 package gui.objects.tree;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WritableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -31,9 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 import AudioPlayer.services.Service;
-import Configuration.Config;
 import Configuration.Configurable;
-import Configuration.ListConfigurable;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.container.layout.LayoutManager;
@@ -50,6 +42,7 @@ import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
 
+import static Configuration.Configurable.configsFromFxPropertiesOf;
 import static Layout.widget.WidgetManager.WidgetSource.*;
 import static gui.objects.tree.FileTree.createTreeItem;
 import static java.util.stream.Collectors.toList;
@@ -170,7 +163,7 @@ public class TreeItems {
 
     public static void doOnDoubleClick(Object o) {
         if(o instanceof Configurable) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
-        if(o instanceof Node) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(toC(o)));
+        if(o instanceof Node) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
         if(o instanceof File) {
             File f = (File)o;
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
@@ -378,31 +371,5 @@ public class TreeItems {
         if(w==APP.window) n += " (main)";
         if(w==WindowManager.miniWindow) n += " (mini-docked)";
         return n;
-    }
-    private static Map<ObservableValue,String> propertes(Object target) {
-        Map<ObservableValue,String> out = new HashMap();
-        for (final Method method : target.getClass().getMethods()) {
-            if (method.getName().endsWith("Property")) {
-                try {
-                    final Class returnType = method.getReturnType();
-                    if (ObservableValue.class.isAssignableFrom(returnType)) {
-                        final String propertyName = method.getName().substring(0, method.getName().lastIndexOf("Property"));
-                        method.setAccessible(true);
-                        final ObservableValue property = (ObservableValue) method.invoke(target);
-                        out.put(property, propertyName);
-                    }
-                } catch(Exception e) {}
-            }
-        }
-        return out;
-    }
-    public static Configurable toC(Object o) {
-        List<Config> cs = new ArrayList();
-        propertes(o).forEach((p,name) -> {
-            if((p instanceof WritableValue || p instanceof ReadOnlyProperty) && p.getValue()!=null)
-                cs.add(Config.forProperty(name,p));
-        });
-        ListConfigurable c = new ListConfigurable(cs);
-        return c;
     }
 }

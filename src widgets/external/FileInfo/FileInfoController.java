@@ -150,7 +150,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     public boolean allowNoContent = false;
     // generate show {field} configs
     private final Map<String,Config> fieldconfigs = fields.stream()
-            .map(f -> new PropertyConfig<>("show_"+f.name, "Show " + f.name, f.visibleConfig,
+            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig,
                     "FileInfoController","Show this field",true,NaN,NaN))
             .collect(toMap(c -> c.getName(), c -> c));
 

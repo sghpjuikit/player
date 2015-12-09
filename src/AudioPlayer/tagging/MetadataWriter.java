@@ -44,6 +44,7 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import util.File.AudioFileFormat;
+import util.SwitchException;
 import util.dev.TODO;
 import util.parsing.Parser;
 import util.units.NofX;
@@ -64,6 +65,7 @@ import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
 import static util.Util.emptifyString;
 import static util.async.Async.runFX;
+import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.list;
 import static util.functional.Util.split;
@@ -719,8 +721,8 @@ public class MetadataWriter extends MetaItem {
         return ov.contains(SEPARATOR_GROUP + id);
     }
 
-    public void setFieldS(Metadata.Field fieldType, String data) {
-        switch(fieldType) {
+    public void setFieldS(Metadata.Field field, String data) {
+        switch(field) {
             case PATH :
             case FILENAME :
             case FORMAT :
@@ -773,7 +775,7 @@ public class MetadataWriter extends MetaItem {
             case FIRST_PLAYED : setCustomField(TAGID_PLAYED_FIRST,data); break;
             case LAST_PLAYED : setCustomField(TAGID_PLAYED_LAST,data); break;
             case ADDED_TO_LIBRARY : setCustomField(TAGID_LIB_ADDED,data); break;
-            default : throw new AssertionError("Default case should never execute");
+            default : throw new SwitchException(field);
         }
     }
 
@@ -807,17 +809,17 @@ public class MetadataWriter extends MetaItem {
             if (isPlayingSame()) {
                 LOGGER.info("File being played, will attempt to suspend playback");
                 PLAYBACK.suspend(); // asynchronous, we dont know how long it will take
-                // we sleep the thread and try tagging again
+                // so we sleep the thread and try tagging again, twice once quickly, once longer
                 for(int i=1; i<=3; i+=2) {
                     int tosleep = i*i*250;
-                    LOGGER.info("Attempt {}, sleeping for {}",i,tosleep);
+                    LOGGER.info("Attempt {}, sleeping for {}",1+i/2,tosleep);
                     try {
                         Thread.sleep(tosleep);
                         audioFile.commit();
                         break;
                     } catch (CannotWriteException | InterruptedException e) {
                         if(i>=3) {
-                            LOGGER.info("Can not write file tag: {} {}",audioFile.getFile().getPath(),e);
+                            LOGGER.info("Can not write file tag (attempt {}): {} {}",1+i/2,audioFile.getFile().getPath(),e);
                             PLAYBACK.activate();
                             return false;
                         }
@@ -863,9 +865,11 @@ public class MetadataWriter extends MetaItem {
         isWriting.set(false);
     }
 
+    @TODO(purpose = BUG, note = "audiofile can be null, needs to be checked and any taggng prevented in such case")
     public void reset(Item i) {
         file = i.isFileBased() ? i.getFile() : null;
         audioFile = readAudioFile(file);
+        // PROBLEM HERE, this is clear case for custom exception, but how do we handle it
         tag = audioFile.getTagOrCreateAndSetDefault(); // tag must NEVER be null
         fields_changed = 0;
         isWriting.set(false);
@@ -904,10 +908,10 @@ public class MetadataWriter extends MetaItem {
                 w.reset(item);
                 setter.accept(w);
                 boolean b = w.write();
-                if(action!=null) runFX(() -> action.accept(b));
 
                 Metadata m = MetadataReader.create(item);
                 if(!m.isEmpty()) Player.refreshItemWith(m);
+                if(action!=null) runFX(() -> action.accept(b));
             });
         }
     }

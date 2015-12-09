@@ -6,6 +6,7 @@ import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
@@ -16,11 +17,13 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.feature.PlaybackFeature;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.GUI;
 import gui.objects.Seeker;
 import gui.objects.icon.Icon;
@@ -28,8 +31,12 @@ import util.Util;
 import util.access.V;
 import util.graphics.drag.DragUtil;
 
+import static AudioPlayer.playlist.sequence.PlayingSequence.LoopMode.OFF;
+import static AudioPlayer.playlist.sequence.PlayingSequence.LoopMode.SONG;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
@@ -60,12 +67,14 @@ import static util.reactive.Util.maintain;
 )
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
 
+    private static final double ICON_SIZE = 14;
+
     @FXML AnchorPane root;
     @FXML HBox layout, controlBox, volBox;
     @FXML Slider volume;
     @FXML Label currTime, titleL, artistL;
     private Seeker seeker = new Seeker();
-    private Icon prevB, playB, stopB, nextB, volB;
+    private Icon prevB, playB, stopB, nextB, loopB, volB;
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -102,19 +111,21 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         HBox.setHgrow(seeker, ALWAYS);
 
         // make icons
-        prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);
-        playB = new Icon(null, 14, null, PLAYBACK::pause_resume);
-        stopB = new Icon(STOP, 14, null, PLAYBACK::stop);
-        nextB = new Icon(STEP_FORWARD, 14, null, PlaylistManager::playNextItem);
-        controlBox.getChildren().addAll(prevB,playB,stopB,nextB);
-        volB = new Icon(null, 14, null, PLAYBACK::toggleMute);
+        prevB = new Icon(STEP_BACKWARD, ICON_SIZE, null, PlaylistManager::playPreviousItem);
+        playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume);
+        stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop);
+        nextB = new Icon(STEP_FORWARD, ICON_SIZE, null, PlaylistManager::playNextItem);
+        loopB = new Icon<>(null, ICON_SIZE, null, e -> PLAYBACK.toggleLoopMode(e));
+        controlBox.getChildren().addAll(prevB,playB,stopB,nextB,new Label(),loopB);
+        volB = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
         volBox.getChildren().add(0,volB);
 
         // monitor properties and update graphics + initialize
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
         d(maintain(ps.status, this::statusChanged));
-        d(maintain(ps.currentTime,t->currentTimeChanged()));
+        d(maintain(ps.currentTime,t -> currentTimeChanged()));
+        d(maintain(ps.loopMode,this::loopModeChanged));
         d(Player.playingtem.onUpdate(this::playbackItemChanged));
 
         // drag & drop
@@ -137,7 +148,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
 
 /******************************************************************************/
 
-    @FXML private void cycleElapsed() {
+    @FXML
+    private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         currentTimeChanged();
     }
@@ -174,6 +186,24 @@ public class PlayerControlsTinyController extends FXMLController implements Play
             if (PLAYBACK.getTotalTime() == null) return;
             Duration remaining = PLAYBACK.getRemainingTime();
             currTime.setText("- " + Util.formatDuration(remaining));
+        }
+    }
+
+    private void loopModeChanged(LoopMode looping) {
+        loopB.size(looping==LoopMode.RANDOM ? ICON_SIZE : ICON_SIZE+3); //bugfix
+        switch (looping) {
+            case OFF:       loopB.setIcon(REPEAT_OFF);
+                            Tooltip.install(loopB, new Tooltip("Loop mode: off"));
+                            break;
+            case PLAYLIST:  loopB.setIcon(MaterialDesignIcon.REPEAT);
+                            Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
+                            break;
+            case SONG:      loopB.setIcon(REPEAT_ONCE);
+                            Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
+                            break;
+            case RANDOM:    loopB.setIcon(RANDOM);
+                            Tooltip.install(loopB, new Tooltip("Play mode: random"));
+                            break;
         }
     }
 }

@@ -21,7 +21,6 @@ import AudioPlayer.playlist.PlaylistItem.Field;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
 import Layout.widget.Widget;
 import Layout.widget.WidgetManager;
@@ -31,9 +30,9 @@ import Layout.widget.feature.PlaylistFeature;
 import Layout.widget.feature.SongReader;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
+import gui.objects.icon.Icon;
 import gui.objects.table.PlaylistTable;
 import gui.objects.table.TableColumnInfo;
-import gui.objects.icon.Icon;
 import main.App;
 import unused.SimpleConfigurator;
 import util.access.V;
@@ -245,9 +244,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         if(l.isEmpty()) return;
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        MapConfigurable mc = new MapConfigurable(
-                new ValueConfig("Name", initialName)
-        );
+        ValueConfig mc = new ValueConfig(String.class, "Name", initialName);
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
@@ -263,9 +260,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         List<PlaylistItem> l = table.getSelectedItems();
         if(l.isEmpty()) return;
 
-        MapConfigurable mc = new MapConfigurable(
-                        new ValueConfig("Name", "My Playlist")
-        );
+        ValueConfig mc = new ValueConfig(String.class, "Name", "My Playlist");
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());

@@ -36,37 +36,37 @@ public class JavaFxPlayer implements Play {
 
     @Override
     public void play() {
-        Player.IO_THREAD.execute(() -> {
-            player.play();
-        });
+//        Player.IO_THREAD.execute(() -> {
+            if(player!=null) player.play();
+//        });
     }
 
     @Override
     public void pause() {
-        Player.IO_THREAD.execute(() -> {
-            player.pause();
-        });
+//        Player.IO_THREAD.execute(() -> {
+            if(player!=null) player.pause();
+//        });
     }
 
     @Override
     public void resume() {
-        Player.IO_THREAD.execute(() -> {
-            player.play();
-        });
+//        Player.IO_THREAD.execute(() -> {
+            if(player!=null) player.play();
+//        });
     }
 
     @Override
     public void seek(Duration duration) {
-        Player.IO_THREAD.execute(() -> {
-            player.seek(duration);
-        });
+//        Player.IO_THREAD.execute(() -> {
+            if(player!=null) player.seek(duration);
+//        });
     }
 
     @Override
     public void stop() {
-        Player.IO_THREAD.execute(() -> {
-            player.stop();
-        });
+//        Player.IO_THREAD.execute(() -> {
+            if(player!=null) player.stop();
+//        });
     }
 
     @Override
@@ -83,6 +83,7 @@ public class JavaFxPlayer implements Play {
             player = new MediaPlayer(media);
 
             runFX(() -> {
+                player.setStartTime(Duration.ZERO);
                 player.setAudioSpectrumInterval(0.1);
                 player.setAudioSpectrumNumBands(64);
                 // player.setAudioSpectrumThreshold(i) // ? what val is ok?
@@ -146,7 +147,7 @@ public class JavaFxPlayer implements Play {
         if(d5!=null) d5.unsubscribe();
         if(d6!=null) d6.unsubscribe();
         if(d7!=null) d7.unsubscribe();
-        
+
         // stop() not necessary, wouldnt even work since these calls are
         // asynchronous, calling dispose stops playback and frees resources
         player.dispose();

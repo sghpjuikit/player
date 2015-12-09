@@ -19,6 +19,7 @@ import javafx.beans.value.WritableValue;
 
 import org.atteo.classindex.ClassIndex;
 
+import Configuration.Config.FieldConfig;
 import Configuration.Config.ListConfig;
 import Configuration.Config.OverridablePropertyConfig;
 import Configuration.Config.PropertyConfig;
@@ -30,6 +31,7 @@ import util.access.Vo;
 import util.collections.mapset.MapSet;
 
 import static util.Util.getAllFields;
+import static util.Util.getGenericPropertyType;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
 
@@ -169,12 +171,12 @@ public class Configuration {
         }
     }
 
-    static List<Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
+    static List<Config<?>> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments
         if(include_instance && instnc==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
-        List<Config> out = new ArrayList();
+        List<Config<?>> out = new ArrayList();
 
         for (Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instnc, include_static, include_instance);
@@ -227,12 +229,21 @@ public class Configuration {
             f.setAccessible(true);      // make sure the field is accessible
             if(VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig(name, anotation, (VarList)f.get(instance), group);
-            if(Vo.class.isAssignableFrom(f.getType()))
-                return new OverridablePropertyConfig(name, anotation, (Vo)f.get(instance), group);
-            if(WritableValue.class.isAssignableFrom(f.getType()))
-                return new PropertyConfig(name, anotation, (WritableValue)f.get(instance), group);
-            if(ReadOnlyProperty.class.isAssignableFrom(f.getType()))
-                return new ReadOnlyPropertyConfig(name, anotation, (ReadOnlyProperty)f.get(instance), group);
+            if(Vo.class.isAssignableFrom(f.getType())) {
+                Vo property = (Vo)f.get(instance);
+                Class property_type = getGenericPropertyType(f.getGenericType());
+                return new OverridablePropertyConfig(property_type, name, anotation, property, group);
+            }
+            if(WritableValue.class.isAssignableFrom(f.getType())) {
+                WritableValue property = (WritableValue)f.get(instance);
+                Class property_type = getGenericPropertyType(f.getGenericType());
+                return new PropertyConfig(property_type, name, anotation, property, group);
+            }
+            if(ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
+                ReadOnlyProperty property = (ReadOnlyProperty)f.get(instance);
+                Class property_type = getGenericPropertyType(f.getGenericType());
+                return new ReadOnlyPropertyConfig(property_type, name, anotation, property, group);
+            }
             throw new IllegalArgumentException("Wrong class");
         } catch (IllegalAccessException | SecurityException e) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());

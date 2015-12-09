@@ -49,6 +49,7 @@ import javafx.util.Duration;
 
 import gui.objects.Text;
 import gui.objects.Window.stage.WindowBase;
+import util.SwitchException;
 
 import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static gui.objects.PopOver.PopOver.ScreenPos.*;
@@ -811,7 +812,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case LeftUp:        return RightDown;
                 case LeftCenter:    return RightCenter;
                 case LeftDown:      return RightUp;
-                default: throw new AssertionError(this + " in default switch value.");
+                default: throw new SwitchException(this);
             }
         }
         public double calcX(Node n, PopOver popup) {
@@ -831,7 +832,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case DownLeft:  return X;
                 case UpRight:
                 case DownRight: return X + n.getBoundsInParent().getWidth() - W;
-                default: throw new AssertionError(this + " in default switch value.");
+                default: throw new SwitchException(this);
             }
         }
         public double calcY(Node n, PopOver popup) {
@@ -851,7 +852,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case RightCenter:return Y + n.getBoundsInParent().getHeight()/2-H/2;
                 case LeftDown:
                 case RightDown: return Y + n.getBoundsInParent().getHeight()-H;
-                default: throw new AssertionError(this + " in default switch value.");
+                default: throw new SwitchException(this);
             }
         }
     }
@@ -890,7 +891,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case Screen_Top_Right:
                 case Screen_Bottom_Right: return screen.getMaxX()-W-GAP;
                 case Screen_Center:      return screen.getMinX()+screen.getWidth()/2-W/2;
-                default: throw new AssertionError(this + " in default switch value.");
+                default: throw new SwitchException(this);
             }
         }
         public double calcY(PopOver popup) {
@@ -909,7 +910,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case Screen_Top_Left:
                 case Screen_Top_Right:    return screen.getMinY()+GAP;
                 case Screen_Center:      return screen.getMinY()+screen.getHeight()/2-H/2;
-                default: throw new AssertionError(this + " in default switch value.");
+                default: throw new SwitchException(this);
             }
         }
     }

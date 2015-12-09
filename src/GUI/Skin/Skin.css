@@ -3701,6 +3701,17 @@
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
+/* Effect type chooser button for effect config field. */
+.effect-config-field-type-button {
+    -glyph-name: AUTO_FIX;
+    -glyph-size: 11;
+}
+
+/* Effect properties button for effect config field. */
+.effect-config-field-prop-button {
+    -glyph-name: GEAR;
+    -glyph-size: 11;
+}
 
 /******************************************************************************/
 

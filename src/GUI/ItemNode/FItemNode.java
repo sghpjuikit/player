@@ -47,7 +47,7 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
                 V a = new V(p.defaultValue, v -> generateValue());
-                Config cg = new AccessorConfig("",a::setNapplyValue,a::getValue);
+                Config cg = new AccessorConfig(p.type,"",a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);
                 paramB.getChildren().add(cf.getNode());

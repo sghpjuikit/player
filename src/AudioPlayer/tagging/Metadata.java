@@ -28,7 +28,6 @@ import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
-import org.jaudiotagger.tag.TagOptionSingleton;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3Tag;
 import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
@@ -53,6 +52,7 @@ import gui.objects.image.cover.ImageCover;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
+import util.SwitchException;
 import util.Util;
 import util.access.FieldValue.ObjectField;
 import util.dev.TODO;
@@ -69,9 +69,6 @@ import static java.lang.Integer.parseInt;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
 import static main.App.APP;
-import static org.jaudiotagger.audio.wav.WavOptions.READ_ID3_UNLESS_ONLY_INFO;
-import static org.jaudiotagger.audio.wav.WavSaveOptions.SAVE_BOTH;
-import static org.jaudiotagger.tag.reference.ID3V2Version.ID3_V24;
 import static util.File.FileUtil.EMPTY_URI;
 import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
@@ -129,7 +126,7 @@ public final class Metadata extends MetaItem<Metadata> {
     public static final Character SEPARATOR_UNIT = 31;
 
     // Custom tag ids. Ordinary string. Length 10 mandatory. Unique. Dev is free to use any
-    // value - there is no predefined set of ids.
+    // value - there is no predefined set of ids. Once set, never change!
     static final String TAGID_PLAYED_LAST =   "PLAYED_LST";
     static final String TAGID_PLAYED_FIRST =  "PLAYED_1ST";
     static final String TAGID_LIB_ADDED =     "LIB_ADDED_";
@@ -138,9 +135,9 @@ public final class Metadata extends MetaItem<Metadata> {
 
     static {
         // configure jaudiotagger
-        TagOptionSingleton.getInstance().setID3V2Version(ID3_V24);
-        TagOptionSingleton.getInstance().setWavOptions(READ_ID3_UNLESS_ONLY_INFO);
-        TagOptionSingleton.getInstance().setWavSaveOptions(SAVE_BOTH);
+//        TagOptionSingleton.getInstance().setID3V2Version(ID3_V24);
+//        TagOptionSingleton.getInstance().setWavOptions(READ_ID3_UNLESS_ONLY_INFO);
+//        TagOptionSingleton.getInstance().setWavSaveOptions(SAVE_BOTH);
     }
 
     // use to debug tag
@@ -265,10 +262,10 @@ public final class Metadata extends MetaItem<Metadata> {
         loadHeaderFields(audiofile);
 
         // We would like to make sure tag always exists, but this probably involves
-        // writing the tag. We want to stay just reading. If we don mind, use:
-        // audiofile.getTagOrCreateAndSetDefault();
+        // writing the tag. We want to stay just reading. If we dont mind, use:
+        Tag tag = audiofile.getTagOrCreateAndSetDefault();
         // If the tag is null, we skip reading
-        Tag tag = audiofile.getTag();
+//        Tag tag = audiofile.getTag();
         if(tag!=null) {
             loadGeneralFields(tag);
             switch (getFormat()) {
@@ -797,7 +794,7 @@ public final class Metadata extends MetaItem<Metadata> {
                         ? c
                         : new FileCover(getCoverFromDirAsFile(), "");
             }
-            default: throw new AssertionError("Corrupted switch statement");
+            default: throw new SwitchException(source);
         }
     }
 
@@ -951,6 +948,14 @@ public final class Metadata extends MetaItem<Metadata> {
     }
 
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
+
+    public static final LocalDateTime localDateTimeFromMillis(long epochMillis) {
+        try {
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),ZONE_ID);
+        } catch(DateTimeException e) {
+            return null;
+        }
+    }
 
     public LocalDateTime getTimePlayedFirst() {
         if(playedFirst.isEmpty()) return null;

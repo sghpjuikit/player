@@ -75,6 +75,7 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.GUI;
@@ -797,19 +798,9 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-
-        try {
-            Font.loadFont(App.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(App.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(App.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
-            Font.loadFont(App.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
-        } catch (IOException e) {
-            LOGGER.error("Couldnt load font",e);
-        }
-
         StackPane root = new StackPane();
                   root.setPrefSize(600, 720);
-        List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,
+        List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
                                       MaterialDesignIcon.class,MaterialIcon.class)
                 .map((Class c) -> {
                     Button b = new Button(c.getSimpleName());

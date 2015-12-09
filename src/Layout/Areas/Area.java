@@ -54,7 +54,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     public AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
-    public IOPane actionpane;
+    public IOPane iopane;
 
     /**
      * @param c container to make contract with
@@ -90,7 +90,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     abstract public List<Widget> getActiveWidgets();
 
     /** @return the primary active component. */
-    abstract public Widget getActiveWidget();
+    abstract public Widget getWidget();
 
     /**
      * Refresh area. Refreshes the content - wrapped components by calling their
@@ -140,7 +140,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
 
 
 
-        Component c = getActiveWidget();
+        Component c = getWidget();
         if(c==null) return;
         c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
@@ -173,21 +173,21 @@ public abstract class Area<T extends Container> implements ContainerNode {
     }
     @FXML
     public void setLocked(boolean val) {
-        Component c = getActiveWidget();
+        Component c = getWidget();
         if(c!=null)
             c.locked.set(val);
     }
     public boolean isLocked() {
-        Component c = getActiveWidget();
+        Component c = getWidget();
         return c==null ? false : c.locked.get();
     }
     public final boolean isUnderLock() {
-        Component c = getActiveWidget();
+        Component c = getWidget();
         return c==null ? container.lockedUnder.get() : c.lockedUnder.get();
     }
     @FXML
     public void toggleLocked() {
-        Component c = getActiveWidget();
+        Component c = getWidget();
         if(c!=null)
             c.locked.set(!c.locked.get());
     }
@@ -195,19 +195,13 @@ public abstract class Area<T extends Container> implements ContainerNode {
 /**************************** activity node ***********************************/
 
     public final void setActivityVisible(boolean v) {
-        setActivityContent(actionpane);
-        activityPane.setVisible(v);
-//        activityPane.getStyleClass().setAll(bgr_STYLECLASS);
-//        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
+        if(iopane!=null) setActivityContent(iopane);
+        if(activityPane!=null) activityPane.setVisible(v);
         getContent().setOpacity(v ? 0.2 : 1);
-//        getContent().setEffect(v ? new BoxBlur(2, 2, 1) : null);
-//        getContent().setMouseTransparent(v);
-//        if(v)activityPane.requestFocus();
-//        if(v)activityPane.toFront();
-//        if(v)progress.getParent().toFront();
     }
 
-    public final void setActivityContent(IOPane n) {actionpane = n;
+    protected final void setActivityContent(IOPane n) {
+        iopane = n;
 //        if(!activityPane.getChildren().contains(n)) {
             activityPane.getChildren().setAll(n);
             activityPane.toFront();

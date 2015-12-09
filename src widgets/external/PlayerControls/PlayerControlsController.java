@@ -42,8 +42,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.formatDuration;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
@@ -162,11 +160,11 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setLeftAnchor(addB, 5d);
 
         // loopmode
-        loopB.setOnMouseClicked(this::cycleLoopMode);
+        loopB.setOnMouseClicked(PLAYBACK::toggleLoopMode);
         infoBox.getChildren().add(1, loopB);
 
         // volume button
-        muteB.setOnMouseClicked(e->cycleMute());
+        muteB.setOnMouseClicked(e -> PLAYBACK.toggleMute());
         soundGrid.add(muteB, 0, 0);
 
         // set gui updating
@@ -228,15 +226,6 @@ public class PlayerControlsController extends FXMLController implements Playback
         PLAYBACK.seekBackward();
     }
 
-    private void cycleLoopMode(MouseEvent e) {
-        if(e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
-        if(e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
-    }
-
-    @FXML private void cycleMute() {
-        PLAYBACK.toggleMute();
-    }
-
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         timeChanged();
@@ -275,8 +264,8 @@ public class PlayerControlsController extends FXMLController implements Playback
         }
     }
 
-    private void loopModeChanged(LoopMode new_mode) {
-        switch (new_mode) {
+    private void loopModeChanged(LoopMode looping) {
+        switch (looping) {
             case OFF:       loopB.setIcon(REPEAT_OFF);
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));
                             break;

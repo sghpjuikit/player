@@ -29,7 +29,6 @@ import util.collections.mapset.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;
-import static main.App.APP;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -222,10 +221,10 @@ public class Player {
 
 
     public static class CurrentItem {
-        Metadata val = EMPTY;
-        Metadata nextMetadataCache = EMPTY;
-        List<BiConsumer<Metadata,Metadata>> itemPlayedES = new ArrayList<>();
-        List<BiConsumer<Metadata,Metadata>> itemUpdatedES = new ArrayList<>();
+        private Metadata val = EMPTY;
+        private Metadata nextMetadataCache = EMPTY;
+        private final List<BiConsumer<Metadata,Metadata>> changes = new ArrayList<>();
+        private final List<BiConsumer<Metadata,Metadata>> updates = new ArrayList<>();
         private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
 
         /**
@@ -238,17 +237,32 @@ public class Player {
             return val;
         }
 
-        void set(boolean change, Metadata m) {
+        void set(boolean change, Metadata new_metadata) {
             Metadata ov = val;
-            Metadata nv = m;
+            Metadata nv = new_metadata;
             val = nv;
-            if(change) itemPlayedES.forEach(h -> h.accept(ov,nv));
-            itemUpdatedES.forEach(h -> h.accept(ov,nv));
+
+            // There is a small problem
+            // During tagging it is possible the playback needs to be suspended and activated
+            // This unfortunately cascades and fires this method, but suspending/activating
+            // should be transparent to playback song change/update events (not when app starts,
+            // only when tagging)
+            //
+            // This can lead to dangerous situations (rarely) for example when tagging suspends
+            // playback and calls this method and there is a listener to this which calls tagging
+            // this will cause infinite loop!
+            //
+            // for now we will use flag as dirty solution
+            if(PLAYBACK.suspension_flag) return;
+
+
+            if(change) changes.forEach(h -> h.accept(ov,nv));
+            updates.forEach(h -> h.accept(ov,nv));
         }
 
         public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {
-            itemPlayedES.add(bc);
-            return () -> itemPlayedES.remove(bc);
+            changes.add(bc);
+            return () -> changes.remove(bc);
         }
 
         /**
@@ -292,8 +306,8 @@ public class Player {
         }
 
         public Subscription onUpdate(BiConsumer<Metadata,Metadata> bc) {
-            itemUpdatedES.add(bc);
-            return () -> itemUpdatedES.remove(bc);
+            updates.add(bc);
+            return () -> updates.remove(bc);
         }
 
         public void update() {
@@ -303,6 +317,7 @@ public class Player {
             set(false, m);
         }
 
+        /** Execute when song starts playing. */
         public void itemChanged(Item item) {
             if(item == null) {
                 set(true,EMPTY);

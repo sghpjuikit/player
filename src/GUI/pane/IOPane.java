@@ -311,7 +311,7 @@ public class IOPane extends StackPane {
         Map<Input,XNode> is = new HashMap();
         Map<Output,XNode> os = new HashMap();
 
-        WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
+        WidgetManager.findAll(WidgetSource.ANY).map(w -> w.areaTemp.iopane)
             .filter(ISNTØ)
             .forEach(c -> {
                 c.in_nodes.forEach(i -> is.put(((InputNode)i).input, ((XNode)i)));

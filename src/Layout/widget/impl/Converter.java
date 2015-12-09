@@ -42,12 +42,12 @@ import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import util.File.FileUtil;
-import util.access.VarEnum;
+import util.R;
 import util.access.V;
+import util.access.VarEnum;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
-import util.R;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
@@ -66,10 +66,10 @@ import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
-import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
 @IsWidget
@@ -334,6 +334,7 @@ public class Converter extends ClassController implements SongWriter {
 
         public Applier() {
             actCB.valueProperty().addListener((o,ov,nv) -> {
+                if(nv==null) return;
                 if(ins!=null) root.getChildren().remove(ins.node());
                 if(root.getChildren().size()==4) root.getChildren().remove(2);
                 ins = nv.isNamesDeterminate ? new InsSimple(nv) : new InsComplex(nv);
@@ -417,11 +418,11 @@ public class Converter extends ClassController implements SongWriter {
         public Node getNode() {
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
-                    ConfigField.create(Config.forProperty("File name", nam)).getNode(),
+                    ConfigField.create(Config.forProperty(String.class, "File name", nam)).getNode(),
                     new Label("."),
-                    ConfigField.create(Config.forProperty("Extension", ext)).getNode()
+                    ConfigField.create(Config.forProperty(String.class, "Extension", ext)).getNode()
                 ),
-                ConfigField.create(Config.forProperty("Location", loc)).getNode()
+                ConfigField.create(Config.forProperty(File.class, "Location", loc)).getNode()
             );
         }
     }
@@ -456,12 +457,12 @@ public class Converter extends ClassController implements SongWriter {
 
         @Override
         public Node getNode() {
-            Node n = ConfigField.create(Config.forProperty("Location", loc)).getNode();
+            Node n = ConfigField.create(Config.forProperty(File.class, "Location", loc)).getNode();
             use_loc.maintain(v -> n.setDisable(!v));
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
                     new Label("In directory"),
-                    ConfigField.create(Config.forProperty("In directory", use_loc)).getNode()
+                    ConfigField.create(Config.forProperty(Boolean.class, "In directory", use_loc)).getNode()
                 ),
                 n
             );
@@ -487,8 +488,8 @@ public class Converter extends ClassController implements SongWriter {
         public InPane(Supplier<Collection<String>> actions) {
             name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
             input = new VarEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
-            configfieldA = ConfigField.create(Config.forProperty("", name));
-            configfieldB = ConfigField.create(Config.forProperty("", input));
+            configfieldA = ConfigField.create(Config.forProperty(String.class, "", name));
+            configfieldB = ConfigField.create(Config.forProperty(Ta.class, "", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
         }
 
@@ -511,7 +512,7 @@ public class Converter extends ClassController implements SongWriter {
         public InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
                 V<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
-                return Config.forProperty(name, input);
+                return Config.forProperty(String.class, name, input);
             }));
         }
 

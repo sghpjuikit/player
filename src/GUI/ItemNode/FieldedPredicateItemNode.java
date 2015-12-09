@@ -82,19 +82,20 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
     private final HBox root = new HBox(5,negB,typeCB);
 
-    private final Callback<Class,PƑ<?,Boolean>> ppPool;
-    private final Callback<Class,PrefList<PƑ<?,Boolean>>> pPool;
+    private final Callback<Class,PƑ<Object,Boolean>> ppPool;
+    private final Callback<Class,PrefList<PƑ<Object,Boolean>>> pPool;
     private Supplier<Tuple3<String,Class,F>> prefTypeSupplier;
-    boolean inconsistentState = false;
+    private boolean inconsistentState = false;
 
-    public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<?,Boolean>>> predicatePool, Callback<Class,PƑ<?,Boolean>> prefPredicatePool) {
+    public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
         pPool = predicatePool;
         ppPool = prefPredicatePool;
         root.setAlignment(CENTER_LEFT);
         typeCB.setVisibleRowCount(25);
         typeCB.valueProperty().addListener((o,ov,nv) -> {
+            if(inconsistentState) return;
             if(config!=null) root.getChildren().remove(config.getNode());
-            config = new FItemNode(() -> pPool.call(nv._2));
+            config = new FItemNode<>(() -> pPool.call(nv._2));
             root.getChildren().add(config.getNode());
             HBox.setHgrow(config.getNode(), ALWAYS);
             config.onItemChange = v -> generatePredicate();
@@ -121,7 +122,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
      * @param classes
      */
     public void setData(List<Tuple3<String,Class,F>> classes) {
-        List<Tuple3<String,Class,F>> cs = new ArrayList(classes);
+        List<Tuple3<String,Class,F>> cs = new ArrayList<>(classes);
         // cs.removeIf(e->pPool.call(unPrimitivize(e._2)).isEmpty()); // remove unsupported
         inconsistentState = true;
         typeCB.getItems().setAll(cs);

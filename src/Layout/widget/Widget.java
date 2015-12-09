@@ -62,9 +62,19 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @XStreamOmitField private WidgetFactory factory;
     @XStreamOmitField protected C controller;
     @XStreamOmitField protected Node root;
+
     @XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
-    // configuration
+    // Temporary workaround for bad design. Widget-COntainer-Controller-Area relationship is badly
+    // designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
+    // use controller (null) to obtain area.
+    //
+    // I think this is the best and most painless way to wire widget with area & container (parent)
+    // All the pseudo wiring through Controller is pure chaos.
+    @XStreamOmitField @Deprecated public Container parentTemp;
+    @XStreamOmitField @Deprecated public Area areaTemp;
+
+    // configuration (we avoid serializing as the fields already serialize as configs)
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
             + "for widget, preferred one will be selected. ")
@@ -96,14 +106,12 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     /**
      * Non null only if within container and loaded.
-     * {@inheritDoc} */
+     * <p>
+     * {@inheritDoc}
+     */
     @Override
     public Container getParent() {
-        if(controller!=null) {
-            Area a = controller.getArea();
-            if(a!=null) return a.container;
-        }
-        return null;
+        return parentTemp;
     }
 
     /**
@@ -145,6 +153,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     // however that does not happen here. The root Container and Node should be passed
                     // as parameters of this method
                     loadInitialize();
+                    deserializeIO();
                 } catch(Exception e) {
                     ex = e;
                 }
@@ -315,14 +324,33 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     /** Invoked just before the serialization. */
     protected Object writeReplace() throws ObjectStreamException {
-        // prepare input-output bindings
-        getController().getInputs().getInputs().forEach(i ->
-            properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
-        );
-        // prepare configs
-        Map<String,String> m = new HashMap();
-        getFields().forEach(c -> m.put(c.getName(), c.getValueS()));
-        properties.put("configs", m);
+        boolean isLoaded = controller!=null;
+
+        // Prepare input-outputs
+        // If widget is loaded, we serialize inputs & outputs
+        // else we pass in the deserielized inputs & outputs not yet restored
+        if(isLoaded) {
+            getController().getInputs().getInputs().forEach(i ->
+                properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
+            );
+        } else {
+
+        }
+
+        // Prepare configs
+        // If widget is loaded, we serialize name:value pairs
+        // else we pass in the deserielized pairs not yet restored
+        Map<String,String> serialized_configs = new HashMap<>();
+        if(isLoaded) {
+            getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
+        } else {
+            Map<String,String> deserialized_configs = (Map) properties.get("configs");
+            if(deserialized_configs!=null) {
+                serialized_configs.forEach(serialized_configs::put);
+                properties.remove("configs"); // restoration can only ever happen once
+            }
+        }
+        properties.put("configs", serialized_configs);
 
         return this;
     }
@@ -342,24 +370,26 @@ public abstract class Widget<C extends Controller> extends Component implements 
         // use empty widget when no factory available
         if (factory==null) return Widget.EMPTY();
 
-        if(configs==null) configs = configs = new HashMap<>();
+        if(configs==null) configs = new HashMap<>();
 
         // accumulate serialized inputs for later deserialiation when all widgets are ready
         properties.entrySet().stream()
-                  .filter(e->e.getKey().startsWith("io"))
+                  .filter(e -> e.getKey().startsWith("io"))
                   .map(e -> new IO(this,e.getKey().substring(2), (String)e.getValue()))
                   .forEach(ios::add);
 
         return this;
     }
 
-    // normally we would do this in readResolve, but controller ready only after
-    // widget loads
+    /**
+     * Restores deserialized config values. Called when widget loads (not deserializes) as
+     * controller must be instantiated first.
+     */
     protected void restoreConfigs() {
-        if(properties.containsKey("configs")) {
-            Map<String,String> m = (Map) properties.get("configs");
-            m.forEach(this::setField);
-            properties.remove("configs");
+        Map<String,String> deserialized_configs = (Map) properties.get("configs");
+        if(deserialized_configs!=null) {
+            deserialized_configs.forEach(this::setField);
+            properties.remove("configs"); // restoration can only ever happen once
         }
     }
 
@@ -377,20 +407,34 @@ public abstract class Widget<C extends Controller> extends Component implements 
         }
     }
 
-    static final ArrayList<IO> ios = new ArrayList();
+    static boolean ioloadedglobal = false;
+    static final ArrayList<IO> ios = new ArrayList<>();
+
     public static void deserializeWidgetIO() {
-        Set<Input> is = new HashSet();
+        ioloadedglobal = true;
+        Set<Input> is = new HashSet<>();
         Map<Output.Id,Output> os = WidgetManager.findAll(ANY)
-                     .peek((Widget w) -> w.getController().getInputs().getInputs().forEach(is::add))
-                     .flatMap(w -> w.getController().getOutputs().getOutputs().stream())
+                     .filter(w -> w.controller != null)
+                     .peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
+                     .peek(w -> w.ioloaded = true)
+                     .flatMap(w -> w.controller.getOutputs().getOutputs().stream())
                      .collect(Collectors.toMap(i->i.id, i->i));
         InOutput.inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
         ios.forEach(io -> {
-            Input i = io.widget.getController().getInputs().getInput(io.input_name);
-            if(i!=null)
-                io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
+            if(io.widget.controller==null) return;
+            Input i = io.widget.controller.getInputs().getInput(io.input_name);
+            if(i==null) return;
+            io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
+    }
+
+    private boolean ioloaded = false;
+    public void deserializeIO() {
+        if(!ioloadedglobal && ioloaded) return;
+        ioloaded = true;
+
+        deserializeWidgetIO();
     }
 
 
@@ -478,5 +522,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
         OTHER,
         DEVELOPMENT,
         UNKNOWN;
+    }
+    public enum LoadType {
+        AUTOMATIC, MANUAL;
     }
 }

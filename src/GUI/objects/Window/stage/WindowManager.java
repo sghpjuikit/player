@@ -168,6 +168,7 @@ public class WindowManager {
             Anim a = new Anim(millis(300),frac -> miniWindow.setY(-H*frac, false));
 
             FxTimer hider = new FxTimer(0, 1, () -> {
+                if(miniWindow==null) return;
                 if(miniWindow.getY()!=0) return;    // if not open
                 if(mw_root.isHover()) return;       // if mouse still in
                 Duration d = a.getCurrentTime();
@@ -183,6 +184,7 @@ public class WindowManager {
             hider.runNow();
 
             FxTimer shower = new FxTimer(0, 1, () ->{
+                if(miniWindow==null) return;
                 if(miniWindow.getY()==0) return;    // if open
                 if(!mw_root.isHover()) return;      // if mouse left
                 Duration d = a.getCurrentTime();

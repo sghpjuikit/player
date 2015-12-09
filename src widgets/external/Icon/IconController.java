@@ -35,7 +35,7 @@ import static util.reactive.Util.maintain;
     group = Widget.Group.OTHER
 )
 public class IconController extends FXMLController {
-    
+
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
     @IsConfig(name = "Icons", info = "List of icons to show")
@@ -45,14 +45,14 @@ public class IconController extends FXMLController {
             return i;
         }, i ->
         new ListConfigurable(
-            Config.forProperty("Icon", new FunctAccessor<>(i::icon,i::getGlyph)),
-            Config.forProperty("Action",new VarAction(i.getOnClickAction(),i::onClick))
+            Config.forProperty(Icon.class, "Icon", new FunctAccessor<>(i::icon,i::getGlyph)),
+            Config.forProperty(String.class, "Action",new VarAction(i.getOnClickAction(),i::onClick))
         )
     );
     @FXML private StackPane root;
     private final FlowPane box = new FlowPane(5,5);
-    
-    
+
+
     @Override
     public void init() {
         root.getChildren().add(new VBox(30,box));

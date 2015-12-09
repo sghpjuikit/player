@@ -30,6 +30,7 @@ import AudioPlayer.tagging.Metadata;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
+import util.SwitchException;
 import util.access.FieldValue.ObjectField;
 import util.async.Async;
 import util.functional.Functors.Ƒ1;
@@ -457,7 +458,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
                 case LENGTH :
                 case PATH :
                 case FORMAT : return o.toString();
-                default : throw new AssertionError("Default case should never execute");
+                default : throw new SwitchException(this);
             }
         }
 

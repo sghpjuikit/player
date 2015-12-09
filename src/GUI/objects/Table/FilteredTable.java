@@ -345,8 +345,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 g.setData(d(prefFilterType));
                 return g;
             });
-            onItemChange = v -> filtereditems.setPredicate(v);
             setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+            onItemChange = v -> filtereditems.setPredicate(v);
             if(prefFilterType instanceof Enum) {
                 setData(d(prefFilterType));
             } else

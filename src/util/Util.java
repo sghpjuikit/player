@@ -8,10 +8,12 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -21,6 +23,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -39,6 +42,7 @@ import javafx.util.Duration;
 
 import org.jaudiotagger.tag.images.Artwork;
 
+import unused.TriConsumer;
 import util.File.FileUtil;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
@@ -612,7 +616,43 @@ public class Util {
             .toArray(MenuItem[]::new);
     }
 
-/***************************** REFLECTION *************************************/
+/***************************** REFLECTION - OBJECT *************************************/
+
+    /**
+     * Execute action for each observable value representing a javafx property of an object o.
+     * Additional provided arguments are name of the property and its generic type.
+     */
+    public static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
+        for (Method method : getAllMethods(o.getClass())) {
+            if (method.getName().endsWith("Property")) {
+                try {
+                    Class<?> returnType = method.getReturnType();
+                    if (ObservableValue.class.isAssignableFrom(returnType)) {
+                        String propertyName = method.getName().substring(0, method.getName().lastIndexOf("Property"));
+                        method.setAccessible(true);
+                        ObservableValue<?> property = (ObservableValue) method.invoke(o);
+                        Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
+                        action.accept(property, propertyName, propertyType);
+                    }
+                } catch(IllegalAccessException | InvocationTargetException e) {
+                    util.dev.Util.log(Util.class).error("Couldnt obtain property from object",e);
+                }
+            }
+        }
+    }
+
+/***************************** REFLECTION - FIELD *************************************/
+
+    public static<T> T getValueFromFieldMethodHandle(MethodHandle mh, Object instance) {
+        try {
+            if(instance==null) return (T) mh.invoke();
+            else return (T) mh.invokeWithArguments(instance);
+        } catch (Throwable e) {
+            throw new RuntimeException("Error during getting value from a config field. ",e);
+        }
+    }
+
+/***************************** REFLECTION - METHOD *************************************/
 
     /**
      * Returns all declared fields of the class including inherited ones.
@@ -648,6 +688,8 @@ public class Util {
        return methods;
    }
 
+/***************************** REFLECTION - ANNOTATION *************************************/
+
     public static <A extends Annotation> Method getMethodAnnotated(Class c, Class<A> ca) {
         for(Method m: c.getDeclaredMethods()) {
             A a = m.getAnnotation(ca);
@@ -655,6 +697,8 @@ public class Util {
         }
         return null;
     }
+
+/***************************** REFLECTION - CLASS *************************************/
 
     /**
      * Returns all superclasses and interfaces.
@@ -664,6 +708,7 @@ public class Util {
     public static List<Class> getSuperClasses(Class c) {
         return getSuperClasses(c, new ArrayList());
     }
+
     /**
      * Returns all superclasses and interfaces and the class.
      * @return list containing the class and all its superclasses
@@ -730,6 +775,70 @@ public class Util {
      */
     public static Class getGenericClass(Class c, int i) {
         return (Class) ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()[i];
+    }
+
+    /**
+     * Intended use case: discovering the generic type of a javafx property in the runtime
+     * using reflection on parent object's Field or Method return type (javafx property specification).
+     * <p>
+     * This works around java's type erasure and makes it possible to determine exact property type
+     * even when property value is null or when the value is subtype of the property's generic type.
+     * <p>
+     * Returns generic type of a {@link javafx.beans.property.Property} or formally the 1st generic
+     * parameter type of the first generic superclass or interface the provided type inherits from or
+     * implements.
+     * <p>
+     * The method inspects the class hierarchy and interfaces (if previous yields no result) and
+     * looks for generic types. If any class or interface found is generic and its 1st generic
+     * parameter type is available it is returned. Otherwise the inspection continues. In case of no
+     * success, null is returned
+     *
+     * @return class of the 1st generic parameter of the specified type of some of its supertype or
+     * null if none.
+     */
+    public static Class getGenericPropertyType(Type t) {
+        // debug, reveals the class inspection order
+        // System.out.println("inspecting " + t.getTypeName());
+
+        // Workaround for all number properties returning Number.class instead of their respective
+        // class, due to all implementing something along the lines Property<Number>. As per
+        // javadock review, the affected are the four classses : Double, Float, Long, Integer.
+        String typename = t.getTypeName(); // classname
+        if(typename.contains("Double")) return Double.class;
+        if(typename.contains("Integer")) return Integer.class;
+        if(typename.contains("Float")) return Float.class;
+        if(typename.contains("Long")) return Double.class;
+
+        // This method is called recursively, but if ParameterizedType is passed in, we are halfway
+        // there. We just return generic type if it is available. If not we return null and the
+        // iteration will continue on upper level.
+        if(t instanceof ParameterizedType) {
+            Type[] generictypes = ((ParameterizedType)t).getActualTypeArguments();
+            if(generictypes.length>0 && generictypes[0] instanceof Class)
+                return (Class)generictypes[0];
+            else return null;
+        }
+
+        if(t instanceof Class) {
+            // recursively traverse class hierarchy until we find ParameterizedType
+            // and return result if not null.
+            Type supertype = ((Class)t).getGenericSuperclass();
+            Class output = null;
+            if(supertype!=null && supertype!=Object.class)
+                output = getGenericPropertyType(supertype);
+            if(output!=null) return output;
+
+            // else try interfaces
+            Type[] superinterfaces = ((Class)t).getGenericInterfaces();
+            for(Type superinterface : superinterfaces) {
+                if(superinterface instanceof ParameterizedType) {
+                    output = getGenericPropertyType(superinterface);
+                    if(output!=null) return output;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

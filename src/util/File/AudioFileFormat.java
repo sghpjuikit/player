@@ -16,6 +16,7 @@ import javafx.stage.FileChooser;
 
 import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
+import util.SwitchException;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -65,7 +66,7 @@ public enum AudioFileFormat {
             case mp2  :
             case aac  :
             case UNKNOWN : return false;
-            default: throw new AssertionError("corrupted switch statement");
+            default: throw new SwitchException(this);
         }
     }
 
@@ -95,7 +96,7 @@ public enum AudioFileFormat {
             case mp2  :
             case aac  :
             case UNKNOWN : return false;
-            default: throw new AssertionError("corrupted switch statement");
+            default: throw new SwitchException(this);
         }
     }
 

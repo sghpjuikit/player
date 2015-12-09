@@ -417,6 +417,27 @@ public class Util {
         return a.compareTo(b)>0 ? a : b;
     }
 
+    /** Collector returning the minimum element. */
+    public static <V,C extends Comparable<C>> Collector<V, ?, Optional<V>> minBy(Ƒ1<? super V,C> by) {
+        return Collectors.reducing(BinaryOperator.minBy(by(by)));
+    }
+
+    /** Collector returning the maximum element. */
+    public static <V,C extends Comparable<C>> Collector<V, ?, Optional<V>> maxBy(Ƒ1<? super V,C> by) {
+        return Collectors.reducing(BinaryOperator.maxBy(by(by)));
+    }
+
+    /** Collector returning the minimum element. */
+    public static <V,C extends Comparable<C>> Collector<V, ?, V> minBy(V identity, Ƒ1<? super V,C> by) {
+        return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
+    }
+
+    /** Collector returning the maximum element. */
+    public static <V,C extends Comparable<C>> Collector<V, ?, V> maxBy(V identity, Ƒ1<? super V,C> by) {
+        return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
+    }
+
+
     /**
      * Specialization of {@link #minBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
      * with atMost parameter null - maximum value.
@@ -424,7 +445,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, Ƒ1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, Ƒ1<? super V,C> by) {
         return minBy(c, null, by);
     }
 
@@ -438,7 +459,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
         V minv = null;
         C minc = atMost;
         for(V v : c) {
@@ -457,7 +478,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, Ƒ1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, Ƒ1<? super V,C> by) {
         return maxBy(c, null, by);
     }
 
@@ -471,7 +492,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<? super V,C> by) {
         V maxv = null;
         C maxc = atleast;
         for(V v : c) {
@@ -779,6 +800,12 @@ public class Util {
         for(T t : ts) l.add(t);
         return l;
     }
+
+    /** Creates an array filled with provided elements. The array's length will equal element count. */
+    public static <T> T[] array(T... elements) {
+        return elements;
+    }
+
     /** Returns modifiable list containing specified elements. */
     public static<T> List<T> list(T... ts) {
         List<T> l = new ArrayList<>(ts.length);
@@ -854,6 +881,19 @@ public class Util {
     public static <T> Stream<T> stream(T seed, Predicate<T> cond, UnaryOperator<T> op) {
         Stream.Builder<T> b = Stream.builder();
         for(T t = seed; cond.test(t); t=op.apply(t)) b.accept(t);
+        return b.build();
+    }
+
+    /** Creates stream of {@link Integer} in range from-to inclusive. */
+    public static final Stream<Integer> range(int fromInclusive, int toInclusive) {
+        Stream.Builder<Integer> b = Stream.builder();
+        for(int i=fromInclusive; i<=toInclusive; i++) b.accept(i);
+        return b.build();
+    }
+
+    public static final Stream<Double> range(double fromInclusive, double toInclusive) {
+        Stream.Builder<Double> b = Stream.builder();
+        for(double i=fromInclusive; i<=toInclusive; i++) b.accept(i);
         return b.build();
     }
 

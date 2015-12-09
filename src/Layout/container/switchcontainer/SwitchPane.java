@@ -17,13 +17,13 @@ import javafx.util.Duration;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
 import Layout.Areas.Layouter;
 import Layout.Areas.WidgetArea;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
-import Layout.widget.controller.Controller;
 import gui.GUI;
 import gui.objects.Window.stage.Window;
 import util.animation.interpolator.CircularInterpolator;
@@ -42,6 +42,7 @@ import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.functional.Util.ISNTØ;
 import static util.graphics.Util.setAnchors;
+import static util.reactive.Util.maintain;
 
 /**
  * Pane with switchable content.
@@ -121,7 +122,7 @@ public class SwitchPane implements ContainerNode {
         setAnchors(ui, 0d);
         zoom.getChildren().add(widget_io);
         setAnchors(widget_io, 0d);
-//        widget_io.setMouseTransparent(true);
+        // widget_io.setMouseTransparent(true);
         widget_io.setPickOnBounds(false);
         widget_io.translateXProperty().bind(ui.translateXProperty());
         widget_io.visibleProperty().bind(gui.GUI.layout_mode);
@@ -211,6 +212,13 @@ public class SwitchPane implements ContainerNode {
             tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
             ui.setTranslateX(-getTabX(currTab()));
         });
+
+        
+        // initializee values
+        double translate = (double)container.properties.computeIfAbsent("translate", key -> ui.getTranslateX());
+        ui.setTranslateX(translate);
+        // remember latest position for deserialisation (we must not rewrite init value above)
+        maintain(ui.translateXProperty(), v -> container.properties.put("translate",v));
     };
 
     double byx = 0;
@@ -263,6 +271,7 @@ public class SwitchPane implements ContainerNode {
     public void addTab(int i) {
         if(!container.getChildren().containsKey(i)) loadTab(i);
     }
+
     /**
      * Adds mew tab at specified position and initializes new empty layout. If tab
      * already exists this method is a no-op.
@@ -611,8 +620,8 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if(c instanceof Container) ((Container)c).show();
             if(c instanceof Widget) {
-                Controller ct = ((Widget)c).getController();
-                if(ct!=null && ct.getArea()!=null) ct.getArea().show();
+                Area ct = ((Widget)c).areaTemp;
+                if(ct!=null) ct.show();
             }
         });
         layouters.forEach((i,l) -> l.show());
@@ -623,8 +632,8 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if(c instanceof Container) ((Container)c).hide();
             if(c instanceof Widget) {
-                Controller ct = ((Widget)c).getController();
-                if(ct!=null && ct.getArea()!=null) ct.getArea().hide();
+                Area ct = ((Widget)c).areaTemp;
+                if(ct!=null) ct.hide();
             }
         });
         layouters.forEach((i,l) -> l.hide());

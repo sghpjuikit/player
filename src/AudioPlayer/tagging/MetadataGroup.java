@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import util.SwitchException;
 import util.access.FieldValue.ObjectField;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
@@ -169,6 +170,7 @@ public final class MetadataGroup {
         private final String desc;
         private final Ƒ1<MetadataGroup,?> extr;
         private final Class type;
+
         <T> Field(Class<T> type, Ƒ1<MetadataGroup,?> extractor, String description) {
             mapEnumConstant(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
             this.desc = description;
@@ -225,8 +227,8 @@ public final class MetadataGroup {
                 case SIZE :
                 case AVG_RATING :
                 case W_RATING : return o.toString();
-                case YEAR : throw new AssertionError("YEAR case should never execute in this method");
-                default : throw new AssertionError("Default case should never execute");
+                case YEAR : throw new SwitchException(this); // year case should never execute
+                default : throw new SwitchException(this);
             }
         }
 

@@ -6,22 +6,28 @@
 package util.access.FieldValue;
 
 import java.io.File;
+import java.time.LocalDateTime;
 
 import util.File.FileUtil;
 import util.Util;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 
+import static AudioPlayer.tagging.Metadata.localDateTimeFromMillis;
 import static util.Util.mapEnumConstant;
 
 /**
- * 
+ *
  * @author Plutonium_
  */
 public enum FileField implements ObjectField<File> {
 
     PATH("Path",File::getPath, String.class),
+    NAME("Name",FileUtil::getName, String.class),
+    NAME_FULL("Gilename",FileUtil::getNameFull, String.class),
+    EXTENSION("Extension",FileUtil::getSuffix, String.class),
     SIZE("Size",FileSize::new, FileSize.class),
+    TIME_MODIFIED("Time Modified",f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class),
     TYPE("Type",f -> f.isDirectory() ? "Directory" : FileUtil.getSuffix(f), String.class);
 
     private final String description;

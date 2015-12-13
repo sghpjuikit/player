@@ -7,39 +7,10 @@ package util.collections.map;
 
 import java.util.HashMap;
 
-import javafx.geometry.Orientation;
+import static util.dev.Util.noØ;
 
 /** HashMap for properties with additional utility methods. */
-public final class PropertyMap extends HashMap<String, Object>{
-
-    /**
-     * Returns value of the property with specified name. If no such property is
-     * found, property is created and initialized to provided value and returned.
-     * Always returns back usable value.
-     *
-     * The value needs to be cast to desired value. The casting will always
-     * succeed as only correct value can be returned back.
-     *
-    * @param name
-     * @param default_value
-     * @return always value for given property.
-     */
-    public Object get(String name, Object default_value) {
-        putIfAbsent(name, default_value);
-        return get(name);
-    }
-
-    /**
-     * Returns type of value with specified key. Null If it doesn't exist.
-     * @param name
-     * @return
-     */
-    public Class<?> getType(String name) {
-        if(!containsKey(name)) return null;
-        return get(name).getClass();
-    }
-
-/******************************************************************************/
+public final class PropertyMap<K> extends HashMap<K, Object>{
 
     /**
      * Initializes and returns the property.
@@ -59,40 +30,80 @@ public final class PropertyMap extends HashMap<String, Object>{
      * specify default return value, but they pollute the code and most
      * importantly silently swallow the error and always return def value.
      * @param type doesnt allow primitive types. Use their wrapper class type instead.
-     * @param name of the property
+     * @param key of the property
      * @param val of the property to be initialized to, primitive types supported
      * @return newly initialized property or old one with old value if already exists.
      * @throws ClassFormatError for primitive types type parameter value
      * @throws ClassCastException when parameter types dont match.
      */
-    public Object initProperty(Class<?> type, String name, Object val) {
+    public Object initProperty(Class<?> type, K key, Object val) {
         if (type.isPrimitive())
             throw new ClassFormatError("Type of property must not be primitive. (Value of course can)");
         if (!type.equals(val.getClass()))
             throw new ClassCastException("The value doesnt match the type of property");
-        return get(name, val);
+        return getOrDefault(key, val);
     }
 
-    public boolean getB(String key) {
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if null or wrong type.
+     */
+    public boolean getB(K key) {
         return (boolean) get(key);
     }
-    public double getD(String key) {
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if null or wrong type.
+     */
+    public double getD(K key) {
         return (double) get(key);
     }
-    public int getI(String key) {
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if null or wrong type.
+     */
+    public int getI(K key) {
         return (int) get(key);
     }
-    public long getL(String key) {
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if null or wrong type.
+     */
+    public long getL(K key) {
         return (long) get(key);
     }
-    public float getF(String key) {
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if null or wrong type.
+     */
+    public float getF(K key) {
         return (float) get(key);
     }
-    public String getS(String key) {
-        return (String) get(key);
+
+    /**
+     * Type and null safe alternative to {@link #get(java.lang.Object)}.
+     * Throws nullpointer exception if null.
+     */
+    public String getSorThrow(K key) {
+        Object o = get(key);
+        noØ(o);
+        return (String) o;
     }
-    public Orientation getOriet(String key) {
-        return (Orientation) get(key);
+
+    /**
+     * Type safe alternative to {@link #get(java.lang.Object)}.
+     * Throws exception if wrong type. However nulls are valid return value.
+     *
+     * @return the value or null if none
+     */
+    public String getS(K key) {
+        Object o = get(key);
+        return o==null ? null : (String) o;
     }
 
 }

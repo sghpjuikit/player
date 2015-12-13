@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import Configuration.AppliesConfig;
@@ -19,6 +20,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
+import Layout.Areas.IOLayer;
 import Layout.Areas.Layouter;
 import Layout.Areas.WidgetArea;
 import Layout.Component;
@@ -89,8 +91,8 @@ public class SwitchPane implements ContainerNode {
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
         Window.WINDOWS.stream()
-               .map(Window::getSwitchPane).filter(ISNTØ)
-               .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
+              .map(Window::getSwitchPane).filter(ISNTØ)
+              .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
 
     @AppliesConfig( "snap_tabs")
@@ -100,12 +102,25 @@ public class SwitchPane implements ContainerNode {
               .forEach(sp -> sp.snapTabs());
     }
 
+    public static void applyGlobalSettings(SwitchPane p) {
+        p.setAlwaysAlignTabs(align_tabs);
+        p.snapTabs();
+    }
+
 /******************************************************************************/
 
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
-    private final AnchorPane ui = new AnchorPane();
-    public final AnchorPane widget_io = new AnchorPane();
+    private final AnchorPane ui = new AnchorPane() {
+        @Override
+        protected void layoutChildren() {
+            double H = getHeight();
+            double W = getWidth();
+            double tW = tabWidth();
+            tabs.forEach((index,tab) -> tab.resizeRelocate(tab.index*tW,0,W,H));
+        }
+    };
+    public final IOLayer widget_io = new IOLayer(this);
 
     // use when outside of container
     public SwitchPane() {
@@ -120,12 +135,15 @@ public class SwitchPane implements ContainerNode {
         setAnchors(zoom, 0d);
         zoom.getChildren().add(ui);
         setAnchors(ui, 0d);
-        zoom.getChildren().add(widget_io);
+        root.getChildren().add(widget_io);
         setAnchors(widget_io, 0d);
-        // widget_io.setMouseTransparent(true);
-        widget_io.setPickOnBounds(false);
-        widget_io.translateXProperty().bind(ui.translateXProperty());
-        widget_io.visibleProperty().bind(gui.GUI.layout_mode);
+
+        // Clip mask.
+        // Hides content 'outside' of this pane
+        Rectangle mask = new Rectangle();
+        root.setClip(mask);
+        mask.widthProperty().bind(root.widthProperty());
+        mask.heightProperty().bind(root.heightProperty());
 
         // always zoom x:y == 1:1, to zoom change x, y will simply follow
         zoom.scaleYProperty().bind(zoom.scaleXProperty());
@@ -136,39 +154,6 @@ public class SwitchPane implements ContainerNode {
             if(uiDragActive) e.consume();
             else if(e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
         });
-
-//        PerspectiveTransform pt = new PerspectiveTransform();
-//            pt.setUlx(0);
-//            pt.setUly(0);
-//            pt.setLlx(0);
-//            pt.setLly(1440/2);
-//            pt.setUrx(2560/2);
-//            pt.setUry(0);
-//            pt.setLrx(2560/2);
-//            pt.setLry(1440/2);
-//        root.setEffect(pt);
-//        root.addEventFilter(MOUSE_MOVED, e -> {
-//            if(isZoomed()) {
-//                double x = abs((e.getX()-root.getWidth()/2)/root.getWidth());
-//                double y = -1*(e.getY()-root.getHeight()/2)/root.getHeight();
-//                pt.setUlx(50*x);
-//                pt.setUly(50*y);
-//                pt.setLlx(50*x);
-//                pt.setLly(50*y);
-//                pt.setUrx(root.getWidth()-50*x);
-//                pt.setUry(root.getHeight()-50*y);
-//                pt.setLrx(root.getWidth()-50*x);
-//                pt.setLry(root.getHeight()-50*y);
-//            pt.setUlx(0+50*x);
-//            pt.setUly(0+50*y);
-//            pt.setLlx(0+50*x);
-//            pt.setLly(1440/2+50*y);
-//            pt.setUrx(2560/2-50*x);
-//            pt.setUry(0-50*y);
-//            pt.setLrx(2560/2-50*x);
-//            pt.setLry(1440/2-50*y);
-//            }
-//        });
 
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
@@ -208,13 +193,10 @@ public class SwitchPane implements ContainerNode {
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
 
         // bind widths for automatic dynamic resizing (works perfectly)
-        ui.widthProperty().addListener(l -> {
-            tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
-            ui.setTranslateX(-getTabX(currTab()));
-        });
+        ui.widthProperty().addListener(o -> ui.setTranslateX(-getTabX(currTab())));
 
-        
-        // initializee values
+
+        // Maintain container properties
         double translate = (double)container.properties.computeIfAbsent("translate", key -> ui.getTranslateX());
         ui.setTranslateX(translate);
         // remember latest position for deserialisation (we must not rewrite init value above)
@@ -226,7 +208,7 @@ public class SwitchPane implements ContainerNode {
 
 /********************************    TABS   ***********************************/
 
-    public final Map<Integer,AnchorPane> tabs = new HashMap<>();
+    public final Map<Integer,TabPane> tabs = new HashMap<>();
     boolean changed = false;
 
     public void addTab(int i, Component c) {
@@ -245,29 +227,6 @@ public class SwitchPane implements ContainerNode {
         }
     }
 
-    private AnchorPane initTab(int i) {
-        if (!tabs.containsKey(i)) {
-            double width = uiWidth();
-            double pos = getTabX(i);
-
-            AnchorPane t = new AnchorPane();
-            ui.getChildren().add(t);
-            tabs.put(i,t);
-            t.setMinSize(0,0);
-            t.setPrefWidth(width);      // standard width
-            t.setLayoutX(pos);
-            t.prefWidthProperty().bind(ui.widthProperty());
-            // id love this to wokr but something tries to set LayoutX behind
-            // the curtains and we get bound value could not be set error
-//            t.layoutXProperty().bind(ui.widthProperty().add(5).multiply(i));
-            AnchorPane.setTopAnchor(t, 0.0);
-            AnchorPane.setBottomAnchor(t, 0.0);
-        }
-        AnchorPane p = tabs.get(i);
-        p.getChildren().clear();
-        return tabs.get(i);
-    }
-
     public void addTab(int i) {
         if(!container.getChildren().containsKey(i)) loadTab(i);
     }
@@ -278,9 +237,13 @@ public class SwitchPane implements ContainerNode {
      * @param i
      */
     public void loadTab(int i) {
-        AnchorPane root = initTab(i);
-        Component c = layouts.get(i);
         Node n = null;
+        Component c = layouts.get(i);
+        TabPane tab = tabs.computeIfAbsent(i, index -> {
+            TabPane t = new TabPane(i);
+            ui.getChildren().add(t);
+            return t;
+        });
 
         if(c==null) {
             Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
@@ -288,15 +251,13 @@ public class SwitchPane implements ContainerNode {
             n = l.getRoot();
         } else if (c instanceof Container) {
             layouters.remove(i);
-            n = ((Container)c).load(root);
+            n = ((Container)c).load(tab);
         } else if (c instanceof Widget) {
             layouters.remove(i);
             WidgetArea wa = new WidgetArea(container, i, (Widget)c);
             n = wa.root;
         }
-
-        root.getChildren().setAll(n);
-        setAnchors(n,0d);
+        tab.getChildren().setAll(n);
     }
 
     void removeTab(int i) {
@@ -434,7 +395,7 @@ public class SwitchPane implements ContainerNode {
      */
     public int alignTab(int i) {
         uiDrag.stop();
-        uiDrag.setOnFinished( a -> addTab(i));
+        uiDrag.setOnFinished(a -> addTab(i));
         uiDrag.setToX(-getTabX(i));
         uiDrag.play();
         return i;
@@ -488,12 +449,16 @@ public class SwitchPane implements ContainerNode {
      * of the view space on the layout screen.
      */
     public final int currTab() {
-        return (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
+        return (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
     }
 
     // get current ui width
     private double uiWidth() { // must never return 0 (divisio by zero)
         return ui.getWidth()==0 ? 50 : ui.getWidth();
+    }
+
+    private double tabWidth() {
+        return uiWidth(); // + tab_spacing; // we can set gap between tabs easily here
     }
 
     // get current X position of the tab with the specified index
@@ -503,7 +468,7 @@ public class SwitchPane implements ContainerNode {
         else if (tabs.containsKey(i))
             return tabs.get(i).getLayoutX();
         else
-            return (uiWidth()+5)*i;
+            return tabWidth()*i;
     }
 
     // align to next tab
@@ -516,7 +481,7 @@ public class SwitchPane implements ContainerNode {
         if (dAbs > Math.min(treshold1, treshold2))
             byT = (int) -Math.signum(dist);
 
-        int currentT = (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
+        int currentT = (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
         int toT = currentT + byT;
         uiDrag.stop();
         uiDrag.setOnFinished( a -> addTab(toT));
@@ -637,5 +602,20 @@ public class SwitchPane implements ContainerNode {
             }
         });
         layouters.forEach((i,l) -> l.hide());
+    }
+
+    private class TabPane extends AnchorPane {
+        final int index;
+
+        TabPane(int index) {
+            this.index = index;
+        }
+
+        @Override
+        protected void layoutChildren() {
+            for(Node n : getChildren())
+                n.resizeRelocate(0,0,getWidth(),getHeight());
+        }
+
     }
 }

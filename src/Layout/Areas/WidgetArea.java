@@ -14,7 +14,6 @@ import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
 import gui.GUI;
-import gui.pane.IOPane;
 import util.SingleR;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.PlaceholderPane;
@@ -124,10 +123,6 @@ public final class WidgetArea extends Area<Container> {
             controls.title.setText(widget.getInfo().name());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
-            // put up activity node
-            IOPane an = new gui.pane.IOPane(widget.getController());
-            an.setUserData(this);
-            setActivityContent(an);
             setActivityVisible(false);
 
             // workaround code
@@ -143,9 +138,7 @@ public final class WidgetArea extends Area<Container> {
             controls.title.setText(widget.getInfo().name());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
-            // put up activity node
             setActivityVisible(false);
-
 
             // workaround code
             widget.lockedUnder.initLocked(container);

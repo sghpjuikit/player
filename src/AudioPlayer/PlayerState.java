@@ -37,7 +37,7 @@ import static util.functional.Util.find;
  */
 public final class PlayerState {
 
-    private static final XStream X = App.APP.serialization.x;
+    private static final XStream X = App.APP.serializators.x;
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerState.class);
 
     @XStreamOmitField

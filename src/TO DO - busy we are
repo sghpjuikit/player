@@ -3,14 +3,23 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- finish widget i/o graphics integration into the app (multiple windows, minimize redrawing & relayout)
+- Thumbnails should reload image when they are resized. Im not sure making this global
+  behavior is a good idea, maybe it is. Hm. DirViewer suffers when user changes thumb size. This
+  sure can be solved manually, but...
+- Thumbnail border has inconsistent border width and can be blurry, probably
+  problem with drawing at non-integer coordinates.
+- optimize GridView. Virtualize rows and cells as nongraphical objects providing
+  only x,y,width,height for the custom graphics to resizeRelocate within a single
+  parent for all cells' graphics rendered all at once in gridview's layoutChildren()
+  This may or may not be possible depending on whether it requires virtual flow modification
+- explicit config for song enqueue order
 - make Configurator config field button single instance, use vertical animation
 - Configurator implement drag & drop of Configurables
 - dir viewer allow visiting up if parent  is only 1
 - implement filesize grouping buckets
-- new switchpane doesnt get settings applied
 - remove artwork caching?
-- improve skin performance
-- implement stitched widgets
+- improve table performance
 - Void config which doesnt serialize and has Runnable action executing when
   gui is clicked, the action may open some kind of manager for the section
   config belongs to
@@ -36,7 +45,6 @@
 - Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
-- app animated loading
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
 - decide what exactly is plugin and service. Stuff avaiable in app from the

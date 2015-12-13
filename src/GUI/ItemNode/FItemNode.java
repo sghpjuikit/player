@@ -17,7 +17,7 @@ import Configuration.Config;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import util.access.V;
-import util.collections.PrefList;
+import util.collections.list.PrefList;
 import util.functional.Functors.PƑ;
 import util.functional.Functors.Ƒ1;
 

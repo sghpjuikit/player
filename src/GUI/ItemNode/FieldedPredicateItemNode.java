@@ -21,7 +21,7 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import util.access.FieldValue.ObjectField;
-import util.collections.PrefList;
+import util.collections.list.PrefList;
 import util.collections.Tuple3;
 import util.dev.TODO;
 import util.functional.Functors.PƑ;

@@ -811,7 +811,12 @@ public final class Metadata extends MetaItem<Metadata> {
             loadCover();
             if(cover==null) return new ImageCover((Image)null, getCoverInfo());
             else return new ImageCover((BufferedImage) cover.getImage(), getCoverInfo());
-        } catch (IOException ex) {
+        } catch (IOException e) {
+            return new ImageCover((Image)null, getCoverInfo());
+        } catch(NullPointerException ex) {
+            // jaudiotagger bug, Artwork.getImage() can throw Nullpointer sometimes
+            // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
+            // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
             return new ImageCover((Image)null, getCoverInfo());
         }
     }
@@ -826,6 +831,7 @@ public final class Metadata extends MetaItem<Metadata> {
                        + ((RenderedImage)cover.getImage()).getWidth() + "x"
                        + ((RenderedImage)cover.getImage()).getHeight();
         } catch(IOException | NullPointerException e) {
+            // ^ why do we catch Nullpointer here? Not a bugfix! Investigate & remove!
             // nevermind errors. Return "" on fail.
             return "";
         }

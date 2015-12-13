@@ -226,7 +226,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @Override
     public void refresh() {
         columnInitializer.execute(() -> {
-            String c = getWidget().properties.getS("columns");
+            String c = getWidget().properties.getSorThrow("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
         filter_for_playback.applyValue();

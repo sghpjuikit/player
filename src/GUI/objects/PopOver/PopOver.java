@@ -1122,7 +1122,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
 /**************************** IN/OUT ANIMATIONS *******************************/
 
-    private static final Duration DEFAULT_FADE_IN_DURATION = Duration.seconds(.5);
+    private static final Duration DEFAULT_FADE_IN_DURATION = Duration.seconds(.3);
     private static boolean animated = true;
 
     // Lazily initialized, might be null, use getter

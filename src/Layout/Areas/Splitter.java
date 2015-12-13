@@ -42,7 +42,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     private final AnchorPane root_child2 = new AnchorPane();
     private final SplitPane splitPane = new SplitPane(root_child1,root_child2);
 
-    private final PropertyMap prop;
+    private final PropertyMap<String> prop;
     private boolean initialized = false;
 
     private void applyPos() {

@@ -7,9 +7,8 @@ package Layout.widget.controller.io;
 
 import java.util.UUID;
 
-import javafx.collections.ObservableList;
-
-import static javafx.collections.FXCollections.observableArrayList;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 /**
  *
@@ -18,13 +17,13 @@ import static javafx.collections.FXCollections.observableArrayList;
 public class InOutput<T> {
     public final Input<T> i;
     public final Output<T> o;
-    
+
     public InOutput(UUID id, String name, Class<? super T> c) {
         o = new Output<>(id, name, c);
         i = new Input<>(name, c, o::setValue);
 
         inoutputs.add(this);
     }
-    
-    public static ObservableList<InOutput> inoutputs = observableArrayList();
+
+    public static ObservableSet<InOutput> inoutputs = FXCollections.observableSet();
 }

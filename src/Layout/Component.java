@@ -16,13 +16,9 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 
 import org.atteo.classindex.IndexSubclasses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import Configuration.IsConfig;
 import Layout.container.Container;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
@@ -34,6 +30,7 @@ import main.App;
 import util.collections.map.PropertyMap;
 
 import static Layout.widget.Widget.LoadType.AUTOMATIC;
+import static util.dev.Util.log;
 
 /**
  * @author uranium
@@ -44,14 +41,15 @@ import static Layout.widget.Widget.LoadType.AUTOMATIC;
 @IndexSubclasses()
 public abstract class Component {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Component.class);
-    private static final XStream X = App.APP.serialization.x;
-
     /** Unique ID. Permanent. Persists application life cycle. */
     public final UUID id = UUID.randomUUID();
-    /** Simple storage. Persists application life cycle. */
-    public final PropertyMap properties = new PropertyMap();
-
+    /**
+     * Simple storage for component state. Persists application life cycle. All data will serialize
+     * and deserialize.
+     */
+    public final PropertyMap<String> properties = new PropertyMap<>();
+    /** Denotes weather component loading is delayed until user manually requests it.  */
+    public final ObjectProperty<LoadType> loadType = new SimpleObjectProperty<>(AUTOMATIC);
 
     /** @return name */
     abstract public String getName();
@@ -159,9 +157,9 @@ public abstract class Component {
     public void exportFxwl(File dir) {
         File f = new File(dir,getName() + ".fxwl");
         try {
-            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+            App.APP.serializators.x.toXML(this, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
-            LOGGER.error("Unable to export component launcher for {} into {}", getName(),f);
+            log(Component.class).error("Failed to export component {} to {}", getName(),f);
         }
     }
 
@@ -216,7 +214,4 @@ public abstract class Component {
     }
 
 
-//    @XStreamOmitField
-//    @IsConfig(name = "Load", info = "")
-    public final ObjectProperty<LoadType> loadType = new SimpleObjectProperty<>(AUTOMATIC);
 }

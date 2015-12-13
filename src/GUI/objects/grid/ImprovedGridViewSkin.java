@@ -156,7 +156,8 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
      *  @return Max cell number per row
      */
     public int computeMaxCellsInRow() {
-        return Math.max((int) Math.floor(computeRowWidth() / computeCellWidth()), 1);
+        double gap = getSkinnable().horizontalCellSpacingProperty().doubleValue();
+        return Math.max((int) Math.floor((computeRowWidth()+gap) / computeCellWidth()), 1);
     }
 
     /**

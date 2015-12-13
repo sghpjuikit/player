@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import javafx.collections.ListChangeListener;
 
-import util.collections.PrefList;
+import util.collections.list.PrefList;
 import util.functional.Functors.NullIn;
 import util.functional.Functors.NullOut;
 import util.functional.Functors.PƑ;

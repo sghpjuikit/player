@@ -48,7 +48,10 @@ public class SwitchContainer extends Container<SwitchPane> {
 
     @Override
     public Node load() {
-        if(ui==null) ui = new SwitchPane(this);
+        if(ui==null) {
+            ui = new SwitchPane(this);
+            SwitchPane.applyGlobalSettings(ui);
+        }
         children.forEach(ui::addTab);
         return ui.getRoot();
     }

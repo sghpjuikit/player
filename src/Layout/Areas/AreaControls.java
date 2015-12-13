@@ -16,7 +16,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BoxBlur;
@@ -414,12 +413,6 @@ public final class AreaControls {
     }
 
     private void showWeak() {
-        Node ap = area.iopane;
-        if(ap!=null && !root.getChildren().contains(ap)) {
-            root.getChildren().add(ap);
-            setAnchors(ap, 0d);
-            ap.toBack();
-        }
         //set state
 	isShowingWeak = true;
 	// stop animations if active
@@ -441,7 +434,6 @@ public final class AreaControls {
     }
 
     private void hideWeak() {
-        if(area.iopane!=null) root.getChildren().remove(area.iopane);
 	isShowingWeak = false;
 	contrAnim.stop();
 	contAnim.stop();

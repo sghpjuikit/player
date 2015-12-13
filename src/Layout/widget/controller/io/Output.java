@@ -15,12 +15,10 @@ import java.util.UUID;
 public class Output<T> extends Put<T> {
     public final Id id;
 
-
     public Output(UUID id, String name, Class<? super T> c) {
         super(c, null);
         this.id = new Id(id, name);
     }
-
 
     public String getName() {
         return id.name;

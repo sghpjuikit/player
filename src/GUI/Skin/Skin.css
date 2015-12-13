@@ -3572,13 +3572,12 @@
 
 // root - background for thumbnail
 .thumbnail {
-    -fx-background-color: null;
 }
 // border of thumbnail
 .thumbnail-border {
     -fx-border-color: black;
     -fx-border-width: 2;
-}
+ }
 
 /********************************** SEEKER *************************************
  * 
@@ -3835,11 +3834,13 @@
 // Edge
 // inherits: .path
 .input-output-line {
+    -fx-opacity: 0.8;
     -fx-stroke: -fx-def-font-color; 
     -fx-stroke-width: 2;
     -fx-fill: null; // bgr of the shape the path makes - we dont want any 
 }
 .input-output-line:hover {
+    -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
 }
@@ -3945,4 +3946,20 @@
 .comet-bgr {
 /*    -fx-background-image: url("cometbgr.jpg");
     -fx-background-size: stretch;*/
+}
+
+/***************************** GRID VIEW *****************************
+ * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView
+ */
+.grid-view {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+.grid-row {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+.grid-cell {
+    -fx-border-width: 0;
+    -fx-padding: 0;
 }

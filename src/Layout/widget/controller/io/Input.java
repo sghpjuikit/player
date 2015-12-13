@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 
 import org.reactfx.Subscription;
 
+import Layout.Areas.IOLayer;
+
 /**
  *
  * @author Plutonium_
@@ -19,42 +21,45 @@ import org.reactfx.Subscription;
 public class Input<T> extends Put<T>{
     final String name;
     final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
-    
+
     public Input(String name, Class<? super T> c, Consumer<? super T> action) {
         this(name, c, null, action);
     }
-    
+
     public Input(String name, Class<? super T> c, T init_val, Consumer<? super T> action) {
         super(c, init_val);
         this.name = name;
         monitor(action);
     }
-    
-    
+
+
     public String getName() {
         return name;
     }
-    
-    public Subscription bind(Output<? extends T> o) {
-        Subscription s = sources.get(o);
-        if(s==null) {
-            s = o.monitor(this::setValue);
-            sources.put(o, s);
-        }
-        return () -> unbind(o);
+
+    /**
+     * Binds to the output.
+     * Sets its value immediately and then every time it changes.
+     * Binding multiple times has no effect.
+     */
+    public Subscription bind(Output<? extends T> output) {
+        sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
+        IOLayer.addConnectionE(this, output);
+        return () -> unbind(output);
     }
-    
-    public void unbind(Output<? extends T> o) {
-        Subscription s = sources.get(o);
+
+    public void unbind(Output<? extends T> output) {
+        Subscription s = sources.get(output);
         if(s!=null) s.unsubscribe();
-        sources.remove(o);
+        sources.remove(output);
+        IOLayer.remConnectionE(this, output);
     }
-    
+
     public void unbindAll() {
         sources.values().forEach(Subscription::unsubscribe);
         sources.clear();
     }
-    
+
     public Set<Output<? extends T>> getSources() {
         return sources.keySet();
     }
@@ -63,4 +68,5 @@ public class Input<T> extends Put<T>{
     public String toString() {
         return name + ", " + type;
     }
+
 }

@@ -22,37 +22,46 @@ import static util.reactive.Util.maintain;
 public class Outputs {
     private final Map<String,Output> m;
 
-    
+
     public Outputs() {
-        m = new HashMap();
+        m = new HashMap<>();
     }
-    
+
     public <T> Output<T> create(UUID id, String name, Class<? super T> type, T val) {
-        Output<T> o = new Output(id,name,type);
+        Output<T> o = new Output<>(id,name,type);
                   o.setValue(val);
         m.put(name, o);
         return o;
     }
-    
+
     public int getSize() {
         return m.size();
     }
-    
+
     public Output getOutput(String name) {
         return m.get(name);
     }
-    
+
+    public boolean contains(String name) {
+        return m.containsKey(name);
+    }
+
+    public boolean contains(Output i) {
+         return m.containsValue(i); // slow impl./ w can rely on the below:
+//        return m.containsKey(i.id.name); // doesnt guarantee correctness
+    }
+
     public Collection<Output> getOutputs() {
         return m.values();
     }
-    
+
     public <T> Subscription monitor(String name, Consumer<T> action) {
         Output<T> o = m.get(name);
         if(o==null) return Subscription.EMPTY;
-        
+
         return maintain(o.val, action);
     }
-    
-    
-    
+
+
+
 }

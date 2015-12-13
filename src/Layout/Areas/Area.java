@@ -7,7 +7,6 @@ import java.util.Objects;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -17,7 +16,6 @@ import Layout.container.Container;
 import Layout.widget.Widget;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
-import gui.pane.IOPane;
 import util.graphics.Util;
 
 import static javafx.css.PseudoClass.getPseudoClass;
@@ -54,7 +52,6 @@ public abstract class Area<T extends Container> implements ContainerNode {
     public AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
-    public IOPane iopane;
 
     /**
      * @param c container to make contract with
@@ -82,7 +79,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     /** @return all oomponents wrapped in the area. By default returns all
      * components of the container associated with the area.*/
     public final List<Component> getAllComponents() {
-        return new ArrayList(container.getChildren().values());
+        return new ArrayList<>(container.getChildren().values());
     }
 
     /** @return all active coponents - components that are being actively
@@ -195,17 +192,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
 /**************************** activity node ***********************************/
 
     public final void setActivityVisible(boolean v) {
-        if(iopane!=null) setActivityContent(iopane);
         if(activityPane!=null) activityPane.setVisible(v);
         getContent().setOpacity(v ? 0.2 : 1);
-    }
-
-    protected final void setActivityContent(IOPane n) {
-        iopane = n;
-//        if(!activityPane.getChildren().contains(n)) {
-            activityPane.getChildren().setAll(n);
-            activityPane.toFront();
-            StackPane.setAlignment(n, Pos.CENTER);
-//        }
     }
 }

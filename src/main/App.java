@@ -187,7 +187,7 @@ public class App extends Application implements Configurable {
     public final EventSource<String> actionStream = new EventSource<>();
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-    public final AppSerializator serialization = new AppSerializator();
+    public final AppSerializator serializators = new AppSerializator();
     public final Configuration configuration = new Configuration();
 
     public Window window;
@@ -284,7 +284,7 @@ public class App extends Application implements Configurable {
         Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error(thread.getName(), ex));
 
         // configure serialization
-        XStream x = serialization.x;
+        XStream x = serializators.x;
         Mapper xm = x.getMapper();
         x.autodetectAnnotations(true);
         x.registerConverter(new StringPropertyConverter(xm));

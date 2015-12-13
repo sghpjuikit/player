@@ -281,7 +281,7 @@ public class LibraryViewController extends FXMLController {
         });
         // update filters
         table.filterPane.setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
-        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf -> tuple(mgf.toString(f),mgf.getType(f),mgf)));
 
         setItems(in_items.getValue());
     }

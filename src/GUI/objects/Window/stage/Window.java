@@ -46,7 +46,6 @@ import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
-import gui.pane.IOPane;
 import main.App;
 import util.access.V;
 import util.animation.Anim;
@@ -75,6 +74,7 @@ import static javafx.stage.StageStyle.UTILITY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static main.App.APP;
 import static util.animation.Anim.par;
+import static util.async.Async.runLater;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.no;
 import static util.dev.Util.yes;
@@ -332,7 +332,11 @@ public class Window extends WindowBase {
 	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
-                if(e.getEventType().equals(KEY_PRESSED)) IOPane.drawWidgetIO();
+                if(e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
+                    runLater(() ->{
+                                    getSwitchPane().widget_io.layout();
+                                    getSwitchPane().widget_io.drawGraph();
+                    });
 	    }
 	});
 
@@ -840,7 +844,7 @@ public class Window extends WindowBase {
 
 /**************************** SERIALIZATION ***********************************/
 
-    private static final XStream X = App.APP.serialization.x;
+    private static final XStream X = App.APP.serializators.x;
 
     public void serialize(File f) {
         try {

@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -101,6 +102,8 @@ public class DirViewer extends ClassController {
     private volatile boolean isResizing = false;
     private boolean scrollflag = true;
 
+    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+    final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     final V<FFilter> filter = new V<>(FFilter.ALL, f -> visitDir(new TopItem()));
     @IsConfig(name = "Sort", info = "Sorting effect.")
@@ -108,11 +111,13 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, f -> resort());
 
+    private static final double CELL_TEXT_HEIGHT = 20;
+
     public DirViewer() {
         files.onListInvalid(list -> visitDir(new TopItem()));
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
-        grid.setCellHeight(220);
-        grid.setCellWidth(160);
+        grid.setCellWidth(CellSize.NORMAL.width);
+        grid.setCellHeight(CellSize.NORMAL.height);
         grid.setVerticalCellSpacing(5);
         grid.setHorizontalCellSpacing(5);
         grid.setCellFactory(grid -> new Cell());
@@ -128,7 +133,6 @@ public class DirViewer extends ClassController {
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-//        grid.heightProperty().addListener((o,ov,nv) -> grid.setManaged(false));
 //        grid.widthProperty().addListener((o,ov,nv) -> grid.setManaged(false));
         // decrease scrolling speed (consume scroll events and refire with smaller vertical values)
         grid.addEventFilter(ScrollEvent.ANY, e -> {
@@ -163,7 +167,11 @@ public class DirViewer extends ClassController {
     @Override
     public void refresh() {
         initialized = true;
-        runLater(() -> { // temporary bugfix, dont mind
+        cellSize.applyValue();
+        // temporary bugfix, dont mind (we use progress indicator of the window this widget is loaded
+        // in, but when this refresh() method is called its just during loading and window is not yet
+        // available, so we delay
+        runLater(() -> {
             visitDir(new TopItem());
         });
     }
@@ -225,7 +233,7 @@ public class DirViewer extends ClassController {
     // it, but both vertically & horizontally. This avoids loading all files at once and allows
     // unlimited scaling.
     private class Cell extends ImprovedGridCell<Item>{
-        VBox root;
+        Pane root;
         Label name;
         Thumbnail thumb;
         EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executor.execute(() -> {
@@ -252,7 +260,7 @@ public class DirViewer extends ClassController {
                 if(root==null) {
                     // we create graphics only once and only when frst requested
                     createGraphics();
-                    // we set graphics only once (creating it)
+                    // we set graphics only once (when creating it)
                     setGraphic(root);
                 }
                 // if cell was previously empty, we set graphics back
@@ -268,7 +276,6 @@ public class DirViewer extends ClassController {
                 //     - reduce ui performance when resizing
                 // We solve this by delaying the image loading & drawing. We reduce subsequent
                 // invokes into single update (last).
-                // When we are
                 if(item.cover_loaded && !isResizing)
                     setCover(item);
                 else {
@@ -279,11 +286,9 @@ public class DirViewer extends ClassController {
         }
 
         private void createGraphics() {
-            root = new VBox();
-            root.setPrefSize(160,220);
-            root.setAlignment(Pos.CENTER);
             name = new Label();
-            thumb = new Thumbnail(160,200);
+            name.setAlignment(Pos.CENTER);
+            thumb = new Thumbnail();
             thumb.getPane().setOnMouseClicked(e -> {
                 if(e.getButton()==PRIMARY && e.getClickCount()==2) {
                     if(getItem().val.isDirectory()) visitDir(getItem());
@@ -291,14 +296,28 @@ public class DirViewer extends ClassController {
                     e.consume();
                 }
             });
-            root.getChildren().addAll(thumb.getPane(),name);
+            root = new Pane(thumb.getPane(),name) {
+                // Cell layouting should be fast - gets called multiple times when grid resizes.
+                // Why not use custom pane for more speed if we can.
+                @Override
+                protected void layoutChildren() {
+                    double w = getWidth();
+                    double h = getHeight();
+                    thumb.getPane().resizeRelocate(0,0,w,h-CELL_TEXT_HEIGHT);
+                    name.resizeRelocate(0,h-CELL_TEXT_HEIGHT,w,CELL_TEXT_HEIGHT);
+                }
+            };
+            root.setPadding(Insets.EMPTY);
+            root.setMinSize(-1,-1);
+            root.setPrefSize(-1,-1);
+            root.setMaxSize(-1,-1);
         }
 
         private void setCover(Item item) {
             item.loadCover((was_loaded,img) -> {
                 thumb.loadImage(img);
                 if(!was_loaded && img!=null) {
-                    new Anim(thumb.getPane()::setOpacity).dur(500).intpl(x -> sqrt(x)).play();
+                    new Anim(thumb.getView()::setOpacity).dur(500).intpl(x -> sqrt(x)).play();
                 }
             });
         }
@@ -372,8 +391,8 @@ public class DirViewer extends ClassController {
             boolean was_loaded = cover_loaded;
             if(!cover_loaded) {
                 File img_file = getCoverFile();
-                Image imgc = Thumbnail.getCached(img_file, 160,220);
-                Image img = imgc!=null ? imgc : Util.loadImage(img_file, 160,220);
+                Image imgc = Thumbnail.getCached(img_file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+                Image img = imgc!=null ? imgc : Util.loadImage(img_file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
                 cover = img;
                 cover_file = img_file;
                 cover_loaded = true;
@@ -427,4 +446,23 @@ public class DirViewer extends ClassController {
             filter = f;
         }
     }
+    public static enum CellSize {
+        SMALL(80,100+CELL_TEXT_HEIGHT),
+        NORMAL(160,200+CELL_TEXT_HEIGHT),
+        LARGE(240,300+CELL_TEXT_HEIGHT);
+
+        final double width;
+        final double height;
+
+        CellSize(double width, double height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        void apply(ImprovedGridView grid) {
+            grid.setCellWidth(width);
+            grid.setCellHeight(height);
+        }
+    }
+
 }

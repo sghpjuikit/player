@@ -24,6 +24,7 @@ import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Areas.Area;
+import Layout.Areas.IOLayer;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.controller.Controller;
@@ -151,7 +152,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     // this call must execute after this widget is attached to the scenegraph
                     // so initialization can access it
                     // however that does not happen here. The root Container and Node should be passed
-                    // as parameters of this method
+                    // as parameters to this method
                     loadInitialize();
                     deserializeIO();
                 } catch(Exception e) {
@@ -328,29 +329,21 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
         // Prepare input-outputs
         // If widget is loaded, we serialize inputs & outputs
-        // else we pass in the deserielized inputs & outputs not yet restored
         if(isLoaded) {
             getController().getInputs().getInputs().forEach(i ->
                 properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
             );
-        } else {
-
-        }
+        // Otherwise we still have the deserialized inputs/outputs leave them as they are
+        } else {}
 
         // Prepare configs
         // If widget is loaded, we serialize name:value pairs
-        // else we pass in the deserielized pairs not yet restored
-        Map<String,String> serialized_configs = new HashMap<>();
         if(isLoaded) {
+            Map<String,String> serialized_configs = new HashMap<>();
             getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
-        } else {
-            Map<String,String> deserialized_configs = (Map) properties.get("configs");
-            if(deserialized_configs!=null) {
-                serialized_configs.forEach(serialized_configs::put);
-                properties.remove("configs"); // restoration can only ever happen once
-            }
-        }
-        properties.put("configs", serialized_configs);
+            properties.put("configs", serialized_configs);
+        // Otherwise we still have the deserialized name:value pairs and leave them as they are
+        } else {}
 
         return this;
     }
@@ -407,11 +400,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
         }
     }
 
-    static boolean ioloadedglobal = false;
     static final ArrayList<IO> ios = new ArrayList<>();
 
     public static void deserializeWidgetIO() {
-        ioloadedglobal = true;
         Set<Input> is = new HashSet<>();
         Map<Output.Id,Output> os = WidgetManager.findAll(ANY)
                      .filter(w -> w.controller != null)
@@ -427,13 +418,17 @@ public abstract class Widget<C extends Controller> extends Component implements 
             if(i==null) return;
             io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
+
+        InOutput.inoutputs.forEach(io -> is.remove(io.i));
+        InOutput.inoutputs.forEach(io -> os.remove(io.o.id));
+        IOLayer.all_inputs.addAll(is);
+        IOLayer.all_outputs.addAll(os.values());
     }
 
     private boolean ioloaded = false;
     public void deserializeIO() {
-        if(!ioloadedglobal && ioloaded) return;
+        if(!ioloaded) return;
         ioloaded = true;
-
         deserializeWidgetIO();
     }
 

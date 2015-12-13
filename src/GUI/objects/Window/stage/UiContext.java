@@ -156,7 +156,7 @@ public final class UiContext {
             // try to deserialize normally
             if(w==null) {
                 try {
-                    w = (Component) App.APP.serialization.x.fromXML(launcher);
+                    w = (Component) App.APP.serializators.x.fromXML(launcher);
                 } catch (ClassCastException | StreamException ignored) {
                     LOGGER.error("Could not load .fxwl {}", launcher);
                 }

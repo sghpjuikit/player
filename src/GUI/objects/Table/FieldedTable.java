@@ -172,8 +172,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     public void setColumnState(TableColumnInfo state) {
         requireNonNull(state);
 
-        List<TableColumn<T,?>> visibleColumns = new ArrayList();
-        state.columns.stream().sorted().filter(c->c.visible).forEach(c->{
+        List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
+        state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
             // get or build column
             TableColumn tc = getColumn(nameToCF(c.name)).orElse(colFact.call(nameToF(c.name)));
             // set width
@@ -190,7 +190,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public TableColumnInfo getColumnState() {
-        columnState.update(this); if(columnState==null) throw new RuntimeException("column state null");
+        columnState.update(this);
         return columnState;
     }
 

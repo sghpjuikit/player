@@ -28,7 +28,7 @@ import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
 import util.access.V;
-import util.collections.PrefList;
+import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
 import util.units.Bitrate;
 import util.units.FileSize;

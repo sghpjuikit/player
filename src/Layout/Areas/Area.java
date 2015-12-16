@@ -66,7 +66,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         setAnchor(root, content_root,0d);
 
         // init properties
-        c.properties.initProperty(Double.class, "padding", 0d);
+        c.properties.getOrPut(Double.class, "padding", 0d);
 
         // load controls
         activityPane = new StackPane();

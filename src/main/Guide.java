@@ -28,7 +28,6 @@ import Configuration.IsConfigurable;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.Widget;
-import Layout.widget.WidgetManager;
 import action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
@@ -126,8 +125,8 @@ public final class Guide implements Configurable {
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
                 // load widgets
-                bc.addChild(1,WidgetManager.getFactory("Playlist").create());
-                bc.addChild(2,WidgetManager.getFactory("PlayerControls").create());
+                bc.addChild(1,APP.widgetManager.factories.getOrOther("Playlist","Empty").create());
+                bc.addChild(2,APP.widgetManager.factories.getOrOther("Playback","Empty").create());
                 // go to layout
                 la.ui.alignTab(bc);
                 // go to next guide

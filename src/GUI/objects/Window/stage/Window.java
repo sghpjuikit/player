@@ -204,7 +204,7 @@ public class Window extends WindowBase {
                w.s.setScene(new Scene(new Region()));
                ((Region)w.s.getScene().getRoot()).setBackground(null);
                w.s.getScene().setFill(null);
-               w.s.setTitle(APP.getName());
+               w.s.setTitle(APP.name);
                w.s.getIcons().add(APP.getIcon());
                w.setSize(20, 20);
 	return w;

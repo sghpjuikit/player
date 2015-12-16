@@ -69,9 +69,9 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         maintain(c.orientation,o -> o==HORIZONTAL ? ARROW_LEFT : ARROW_UP, coll2B::icon);
 
         // setParentRec properties
-        prop.initProperty(Double.class, "pos", 0.5d);
-        prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
-        prop.initProperty(Integer.class, "col", 0);
+        prop.getOrPut(Double.class, "pos", 0.5d);
+        prop.getOrPut(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
+        prop.getOrPut(Integer.class, "col", 0);
 
         // maintain proper orientation
         maintain(container.orientation, splitPane.orientationProperty());

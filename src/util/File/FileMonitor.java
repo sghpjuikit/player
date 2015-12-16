@@ -37,7 +37,7 @@ public class FileMonitor {
     private BiConsumer<Kind<Path>,File> action;
 
     public static FileMonitor monitorFile(File toMonitor, Consumer<Kind<Path>> handler) {
-        if(!toMonitor.isFile()) throw new IllegalArgumentException("Can not monitor a directory.");
+//        if(!toMonitor.isFile()) throw new IllegalArgumentException("Can not monitor a directory.");
 
         FileMonitor fm = new FileMonitor();
         fm.monitoredFile = toMonitor;
@@ -86,7 +86,7 @@ public class FileMonitor {
     }
 
     public static FileMonitor monitorDirectory(File toMonitor, BiConsumer<Kind<Path>,File> handler) {
-        if(!toMonitor.isDirectory()) throw new IllegalArgumentException("Can not monitor a file.");
+//        if(!toMonitor.isDirectory()) throw new IllegalArgumentException("Can not monitor a file.");
 
         FileMonitor fm = new FileMonitor();
         fm.monitoredFile = toMonitor;

@@ -9,14 +9,15 @@ package gui.objects.Pickers;
 import javafx.scene.control.Tooltip;
 
 import Layout.widget.WidgetFactory;
-import Layout.widget.WidgetManager;
+
+import static main.App.APP;
 
 /** Widget factory picker. */
 public class WidgetPicker extends Picker<WidgetFactory<?>>{
 
     public WidgetPicker() {
         super();
-        itemSupply = WidgetManager::getFactories;
+        itemSupply = APP.widgetManager::getFactories;
         textCoverter = WidgetFactory::name;
         cellFactory = cellFactory.andApply((w,cell) -> {
             Tooltip t = new Tooltip(w.toStr());

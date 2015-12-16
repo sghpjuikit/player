@@ -22,7 +22,6 @@ import Configuration.IsConfigurable;
 import Layout.Component;
 import Layout.widget.Widget;
 import Layout.widget.WidgetFactory;
-import Layout.widget.WidgetManager;
 import Layout.widget.impl.Configurator;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
@@ -113,7 +112,7 @@ public final class UiContext {
                 p.getHeaderIcons().addAll(propB);
                 p.show(Window.getActive().getStage(),getX(),getY());
                 // unregister the widget from active eidgets manually
-                p.addEventFilter(WINDOW_HIDING, we -> WidgetManager.standaloneWidgets.remove(w));
+                p.addEventFilter(WINDOW_HIDING, we -> APP.widgetManager.standaloneWidgets.remove(w));
         return p;
     }
 
@@ -150,7 +149,7 @@ public final class UiContext {
 
             // simple launcher version, contains widget name on 1st line
             String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
-            wf = WidgetManager.getFactory(wn);
+            wf = APP.widgetManager.factories.get(wn);
             if(wf!=null) w = wf.create();
 
             // try to deserialize normally
@@ -164,7 +163,7 @@ public final class UiContext {
 
             // try to build widget using just launcher filename
             if(w==null) {
-                wf = WidgetManager.getFactory(getName(launcher));
+                wf = APP.widgetManager.factories.get(getName(launcher));
                 if(wf!=null) w = wf.create();
             }
 
@@ -175,7 +174,7 @@ public final class UiContext {
     }
 
     public static void launchComponent(String componentName) {
-        WidgetFactory wf = WidgetManager.getFactory(componentName);
+        WidgetFactory wf = APP.widgetManager.factories.get(componentName);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }

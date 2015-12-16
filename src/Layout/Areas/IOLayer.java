@@ -29,7 +29,6 @@ import javafx.scene.shape.Path;
 
 import AudioPlayer.services.ClickEffect;
 import Layout.container.switchcontainer.SwitchPane;
-import Layout.widget.WidgetManager;
 import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.controller.Controller;
 import Layout.widget.controller.io.InOutput;
@@ -280,11 +279,17 @@ public class IOLayer extends StackPane {
         double header_offset = switchpane.getRoot().localToScene(0,0).getY();
         double translation_offset = translation.get();
         double iconhalfsize = 5;
-        WidgetManager.findAll(WidgetSource.ANY)
+        APP.widgetManager.findAll(WidgetSource.LAYOUT)
             .map(w -> w.getController()).filter(ISNTØ)
             .forEach(c -> {
                 List<XNode> is = c.getInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
                 List<XNode> os = c.getOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
+
+                // Apparently during initiaization we are not ready yet
+                // I dont like this, but Im not going to hunt for this subtle bug, which may
+                // not be a bug at all
+                if(c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.root==null) return;
+
                 Bounds b = c.getWidget().areaTemp.root.localToScene(c.getWidget().areaTemp.root.getBoundsInLocal());
                 double basex = b.getMinX()/scalex.doubleValue()-translation_offset;
                 double basey = b.getMinY()-header_offset;
@@ -304,6 +309,7 @@ public class IOLayer extends StackPane {
                     o.graphics.relocate(o.cx + iconhalfsize -o.graphics.getWidth(),o.cy-o.graphics.getHeight()/2);
                 });
             });
+
         forEachWithI(inoutputnodes.values(), (i,o) -> {
             o.cx = (i+1)*200;
             o.cy = H-120;

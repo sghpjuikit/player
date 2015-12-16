@@ -28,7 +28,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.functional.Util.isInR;
 import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
@@ -186,9 +185,10 @@ public final class Layouter implements ContainerNode {
         return clickMode;
     }
 
-    WidgetPicker wp = new WidgetPicker();
 
+    WidgetPicker wp = new WidgetPicker();
     private void showWidgetArea() {
+        wp = new WidgetPicker();
         wp.onSelect = factory -> {
             closeAndDo(wp.root, () -> {
                 root.getChildren().remove(wp.root);

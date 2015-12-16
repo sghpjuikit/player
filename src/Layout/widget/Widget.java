@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -36,6 +37,7 @@ import Layout.widget.controller.io.Output;
 import static Layout.widget.WidgetManager.WidgetSource.ANY;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static main.App.APP;
 import static util.File.FileUtil.writeFile;
 import static util.functional.Util.*;
 
@@ -52,7 +54,7 @@ import static util.functional.Util.*;
  *
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object> {
+public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 
@@ -97,6 +99,11 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /**
      * @param {@link Widget#name}
      */
+    public Widget(String name) {
+        this.name = name;
+        this.factory = APP.widgetManager.factories.get(name);
+    }
+
     public Widget(String name, WidgetFactory factory) {
         this.name = name;
         this.factory = factory;
@@ -119,7 +126,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * {@inheritDoc}
      */
     @Override
-    public Container getParent() {
+    public Container<?> getParent() {
         return parentTemp;
     }
 
@@ -178,7 +185,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     private C instantiateController() {
         // instantiate controller
-        Class cc = factory.getControllerClass();
+        Class<?> cc = factory.getControllerClass();
         C c;
         try {
             c = (C) cc.newInstance();
@@ -188,7 +195,13 @@ public abstract class Widget<C extends Controller> extends Component implements 
         }
 
         // inject this widget into the controller
-        util.Util.setField(c, "widget", this);
+        // temporary 'dirty' solution
+        try {
+            Field f = util.Util.getField(c.getClass(), "widget"); // we use this as a check
+            util.Util.setField(c, "widget", this); // executes only if the field exists
+        } catch (NoSuchFieldException ex) {
+
+        }
 
         // generate inputs
         for(Method m : cc.getDeclaredMethods()) {
@@ -355,7 +368,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
         super.readResolve();
 
         // try to assign factory
-        if (factory==null) util.Util.setField(this, "factory", WidgetManager.getFactory(name));
+        if (factory==null) util.Util.setField(this, "factory", APP.widgetManager.factories.get(name));
+
         // use empty widget when no factory available
         if (factory==null) return Widget.EMPTY();
 
@@ -400,10 +414,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     public static void deserializeWidgetIO() {
         Set<Input> is = new HashSet<>();
-        Map<Output.Id,Output> os = WidgetManager.findAll(ANY)
+        Map<Output.Id,Output> os = APP.widgetManager.findAll(ANY)
                      .filter(w -> w.controller != null)
                      .peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
-                     .peek(w -> w.ioloaded = true)
                      .flatMap(w -> w.controller.getOutputs().getOutputs().stream())
                      .collect(Collectors.toMap(i->i.id, i->i));
         InOutput.inoutputs.forEach(io -> os.put(io.o.id, io.o));
@@ -421,10 +434,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
         IOLayer.all_outputs.addAll(os.values());
     }
 
-    private boolean ioloaded = false;
-    public void deserializeIO() {
-        if(!ioloaded) return;
-        ioloaded = true;
+    private void deserializeIO() {
+        IOLayer.all_inputs.addAll(controller.getInputs().getInputs());
+        IOLayer.all_outputs.addAll(controller.getOutputs().getOutputs());
         deserializeWidgetIO();
     }
 

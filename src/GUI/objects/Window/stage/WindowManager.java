@@ -26,7 +26,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
-import Layout.widget.WidgetManager;
 import action.IsAction;
 import action.IsActionable;
 import gui.objects.icon.CheckIcon;
@@ -135,7 +134,7 @@ public class WindowManager {
 
             // create
                 // widget
-            Widget w = WidgetManager.getFactory("PlayerControlsTiny").create();
+            Widget w = APP.widgetManager.factories.getOrOther("Playback Mini","Empty").create();
             BorderPane content = new BorderPane();
             content.setCenter(w.load());
             miniWindow.setContent(content);
@@ -160,7 +159,7 @@ public class WindowManager {
             miniWindow.update();
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
-            miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> WidgetManager.standaloneWidgets.remove(w));
+            miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> APP.widgetManager.standaloneWidgets.remove(w));
 
             // autohiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible

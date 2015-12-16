@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.*;
 import javafx.collections.ObservableListBase;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.Button;
@@ -98,6 +97,7 @@ import util.access.V;
 import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.future.Fut;
+import util.dev.TODO;
 import util.plugin.PluginMap;
 import util.reactive.RunnableSet;
 import util.serialize.xstream.BooleanPropertyConverter;
@@ -136,6 +136,7 @@ import static util.Util.getEnumConstants;
 import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.forEachAfter;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
@@ -153,9 +154,9 @@ import static util.graphics.Util.layVertically;
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     /** Single instance of the application representing this running application. */
     public static App APP;
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     /**
      * Starts program.
@@ -166,6 +167,33 @@ public class App extends Application implements Configurable {
         launch(args);
     }
 
+
+    /** Name of this application. */
+    public final String name = "PlayerFX";
+
+    /** Jar file of the application. */
+    public final File FILE_SRC_JAR = obtainAppSourceJar();
+    /** Directory of the {@link #FILE_SRC_JAR}. */
+    public final File DIR_APP_SRC = FILE_SRC_JAR.getParentFile();
+    /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
+    public final File DIR_APP = new File("").getAbsoluteFile();
+    /** Temporary directory of the os. */
+    public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
+    /** Home directory of the os. */
+    public final File DIR_HOME = new File(System.getProperty("user.home"));
+    /** File for application configuration. */
+    public final File FILE_SETTINGS = new File(DIR_APP,"settings.cfg");
+    /** Directory for application logging. */
+    public final File DIR_LOG = new File("log").getAbsoluteFile();
+    /** File for application logging configuration. */
+    public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
+    /** Directory containing widgets - source files, class files and widget's resources. */
+    public final File DIR_WIDGETS = new File("widgets").getAbsoluteFile();
+    /** Directory containing skins. */
+    public final File DIR_SKINS = new File("skins").getAbsoluteFile();
+
+    /** Url for github website for project of this application. */
+    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -205,6 +233,7 @@ public class App extends Application implements Configurable {
     public boolean normalLoad = true;
     private boolean initialized = false;
     public final ServiceManager services = new ServiceManager();
+    public final WidgetManager widgetManager = new WidgetManager();
     public final PluginMap plugins = new PluginMap();
 
     public final ClassName className = new ClassName();
@@ -217,16 +246,16 @@ public class App extends Application implements Configurable {
             () -> plugins.getPlugins(RatingCellFactory.class));
 
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
-    public final IntegerProperty maxRating = new SimpleIntegerProperty(5);
+    public final V<Integer> maxRating = new V<>(5);
 
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
-    public final BooleanProperty partialRating = new SimpleBooleanProperty(true);
+    public final V<Boolean> partialRating = new V<>(true);
 
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
-    public final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
+    public final V<Boolean> allowRatingChange = new V<>(true);
 
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
-    public final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
+    public final V<Boolean> hoverRating = new V<>(true);
 
     @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value"
             + "to control some application value manually.")
@@ -240,8 +269,6 @@ public class App extends Application implements Configurable {
 
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
     public String TAG_MULTIPLE_VALUE = "-- multiple values --";
-
-    public boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
 
 
     public App() {
@@ -382,13 +409,13 @@ public class App extends Application implements Configurable {
         actionPane.register(Item.class,
             new FastColAction<Item>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
-                is -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(is)))
+                is -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(is)))
         );
         actionPane.register(File.class,
             new FastAction<File>("New playlist", "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> WidgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFile(f))),
+                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFile(f))),
             new FastAction<File>("Apply skin", "Apply skin on the application.",
                 BRUSH,
                 FileUtil::isValidSkinFile,
@@ -396,7 +423,7 @@ public class App extends Application implements Configurable {
             new FastAction<File>("View image", "Opens image in an image browser widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
-                f -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImage(f))),
+                f -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImage(f))),
             new FastAction<File>("Open widget", "Opens exported widget.",
                 IMPORT,
                 f -> f.getPath().endsWith(".fxwl"),
@@ -406,7 +433,7 @@ public class App extends Application implements Configurable {
         // add app parameter handlers
         parameterProcessor.addFileProcessor(
             f -> AudioFileFormat.isSupported(f, Use.APP),
-            fs -> WidgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(fs))
+            fs -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(fs))
         );
         parameterProcessor.addFileProcessor(
             FileUtil::isValidSkinFile,
@@ -414,13 +441,13 @@ public class App extends Application implements Configurable {
         );
         parameterProcessor.addFileProcessor(
             ImageFileFormat::isSupported,
-            fs -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
+            fs -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
         );
         parameterProcessor.addFileProcessor(f -> f.getPath().endsWith(".fxwl"),
             fs -> fs.forEach(UiContext::launchComponent)
         );
         parameterProcessor.addStringProcessor(
-            s -> WidgetManager.getFactories().anyMatch(f -> f.name().equals(s)),
+            s -> widgetManager.getFactories().anyMatch(f -> f.name().equals(s)),
             ws -> ws.forEach(UiContext::launchComponent)
         );
     }
@@ -458,7 +485,7 @@ public class App extends Application implements Configurable {
             // custom tooltip behavior
             setupCustomTooltipBehavior(1000, 10000, 200);
 
-            taskbarIcon.setTitle(getName());
+            taskbarIcon.setTitle(name);
             taskbarIcon.setIcon(getIcon());
             taskbarIcon.setOnClose(this::close);
             taskbarIcon.setOnMinimize(v -> WINDOWS.forEach(w -> w.setMinimized(v)));
@@ -480,7 +507,7 @@ public class App extends Application implements Configurable {
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
-            WidgetManager.initialize();
+            widgetManager.initialize();
 
             // services must be created before Configuration
             services.addService(new TrayService());
@@ -501,7 +528,7 @@ public class App extends Application implements Configurable {
             Player.initialize();
 
             List<String> ps = fetchParameters();
-            normalLoad = ps.stream().noneMatch(s -> s.endsWith(".fxwl") || WidgetManager.getFactory(s)!=null);
+            normalLoad = ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
 
             // use for faster widget testing
             // Set project to run with application parameters and use widget name
@@ -598,7 +625,7 @@ public class App extends Application implements Configurable {
             onStop.run();
             if(normalLoad) Player.state.serialize();
             if(normalLoad) WindowManager.serialize();
-            configuration.save(getName(),FILE_SETTINGS);
+            configuration.save(name,FILE_SETTINGS);
             services.getAllServices()
                     .filter(Service::isRunning)
                     .forEach(Service::stop);
@@ -668,14 +695,15 @@ public class App extends Application implements Configurable {
         return i;
     }
 
-    /** @return name of the application. */
-    public String getName() {
-        return "PlayerFX";
-    }
-
-
-    public File getLocation() {
-        return new File("").getAbsoluteFile();
+    @TODO(purpose = FUNCTIONALITY, note="broken, might work only in dev mode & break if path has spaces")
+    private static File obtainAppSourceJar() {
+        // see: http://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
+        try {
+            return new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (Exception e) {
+            LOGGER.error("Failed to obtain application source directory", e);
+            return null;
+        }
     }
 
     /** @return image of the icon of the application. */
@@ -708,26 +736,6 @@ public class App extends Application implements Configurable {
     public static File PLAYLIST_FOLDER() {
         return new File(DATA_FOLDER(),"Playlists");
     }
-
-    /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
-    public final File DIR_APP = new File("").getAbsoluteFile();
-    /** Temporary directory of the os. */
-    public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
-    /** Home directory of the os. */
-    public final File DIR_HOME = new File(System.getProperty("user.home"));
-    /** File for application configuration. */
-    public final File FILE_SETTINGS = new File(DIR_APP,"settings.cfg");
-    /** Directory for application logging. */
-    public final File DIR_LOG = new File("log").getAbsoluteFile();
-    /** File for application logging configuration. */
-    public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
-    /** Directory containing widgets - source files, class files and widget's resources. */
-    public final File DIR_WIDGETS = new File("widgets").getAbsoluteFile();
-    /** Directory containing skins. */
-    public final File DIR_SKINS = new File("skins").getAbsoluteFile();
-
-    /** Url for github website for project of this application. */
-    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
 
     // jobs
@@ -825,12 +833,12 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
-        WidgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
+        APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
     }
 
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
     public static void openLayoutManager() {
-        WidgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
+        APP.widgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
     }
 
     @IsAction(name = "Open guide", desc = "Resume or start the guide.")
@@ -856,7 +864,7 @@ public class App extends Application implements Configurable {
                     Window aw = Window.getActive();
                     File dir = dc.showDialog(aw.getStage());
                     if(dir!=null) {
-                        WidgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+                        APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
                     }
                 }
             ),

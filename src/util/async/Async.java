@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.util.Duration;
@@ -93,6 +95,19 @@ public final class Async {
      */
     public static void runNew(Runnable r) {
         Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    public static void runNewAfter(Duration delay, Runnable r) {
+        Thread thread = new Thread(() -> {
+            try {
+                Thread.sleep((long)delay.toMillis());
+                r.run();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Async.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         thread.setDaemon(true);
         thread.start();
     }

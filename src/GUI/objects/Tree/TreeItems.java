@@ -31,7 +31,6 @@ import Layout.container.Container;
 import Layout.container.layout.LayoutManager;
 import Layout.widget.Widget;
 import Layout.widget.WidgetFactory;
-import Layout.widget.WidgetManager;
 import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.feature.ConfiguringFeature;
 import Layout.widget.feature.Feature;
@@ -63,9 +62,9 @@ public class TreeItems {
         if(o instanceof TreeItem)       return (TreeItem)o;
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
         if(o instanceof WidgetFactory)  return new TreeItem<>(o);
-        if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
-        if(o instanceof WidgetSource)   return new STreeItem(o,()->WidgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
-        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> WidgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.name())));
+        if(o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
+        if(o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
+        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.name())));
         if(o instanceof Container)      return new LayoutItem((Component)o);
         if(o instanceof File)           return new FileTreeItem((File)o);
         if(o instanceof Node)           return new NodeTreeItem((Node)o);
@@ -91,9 +90,9 @@ public class TreeItems {
     public static TreeItem<Object> treeApp() {
         TreeItem widgetT = tree("Widgets",
                      tree("Categories", (List)list(Widget.Group.values())),
-                     tree("Types", () -> WidgetManager.getFactories().sorted(by(f -> f.name()))),
+                     tree("Types", () -> APP.widgetManager.getFactories().sorted(by(f -> f.name()))),
                      tree("Open", (List)list(ANY,LAYOUT,STANDALONE)),
-                     tree("Features", () -> WidgetManager.getFeatures().sorted(by(f -> f.name())))
+                     tree("Features", () -> APP.widgetManager.getFeatures().sorted(by(f -> f.name())))
                    );
         return tree("App",
                  tree("Behavior",
@@ -162,8 +161,8 @@ public class TreeItems {
     }
 
     public static void doOnDoubleClick(Object o) {
-        if(o instanceof Configurable) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
-        if(o instanceof Node) WidgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
+        if(o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
+        if(o instanceof Node) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
         if(o instanceof File) {
             File f = (File)o;
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);

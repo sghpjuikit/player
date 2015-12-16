@@ -20,10 +20,8 @@ import org.atteo.classindex.IndexSubclasses;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import Layout.container.Container;
-import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import Layout.widget.Widget.LoadType;
-import Layout.widget.WidgetManager;
 import gui.GUI;
 import gui.objects.Window.stage.Window;
 import main.App;
@@ -133,21 +131,21 @@ public abstract class Component {
         return w==null ? Window.getActive() : w;
     }
 
-    /** @return whether this component is currently open*/
-    public boolean isOpen() {
-        // check if this isnt standalone widget (not in a layout)
-        if(WidgetManager.standaloneWidgets.contains(this)) return true;
-
-        Component c = this;
-        Component p = this;
-        do {
-            p = c instanceof Widget ? null : ((Container)c).getParent();
-            if(p!=null) c = p;
-        } while(p!=null);
-
-        // top container is always layout
-        return c instanceof Layout;
-    }
+//    /** @return whether this component is currently open*/
+//    public boolean isOpen() {
+//        // check if this isnt standalone widget (not in a layout)
+//        if(APP.widgetManager.standaloneWidgets.contains(this)) return true;
+//
+//        Component c = this;
+//        Component p = this;
+//        do {
+//            p = c instanceof Widget ? null : ((Container)c).getParent();
+//            if(p!=null) c = p;
+//        } while(p!=null);
+//
+//        // top container is always layout
+//        return c instanceof Layout;
+//    }
 
     /**
      * Creates a launcher for this component in given directory. Launcher is a

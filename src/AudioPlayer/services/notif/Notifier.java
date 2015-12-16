@@ -19,7 +19,6 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.widget.Widget;
-import Layout.widget.WidgetManager;
 import Layout.widget.feature.SongReader;
 import action.IsAction;
 import action.IsActionable;
@@ -98,13 +97,13 @@ public final class Notifier extends ServiceBase {
                 songNotifGui = ii;
                 ((Pane)songNotifGui).setPrefSize(-1,-1);
             } else {
-                Widget wf = WidgetManager.find(w->w.name().equals(v), NEW, true).get();
+                Widget wf = APP.widgetManager.find(w->w.name().equals(v), NEW, true).get();
                 songNotifGui = wf.load();
                 songNotifInfo = (SongReader)wf.getController();
                 ((Pane)songNotifGui).setPrefSize(700, 300);
             }
         },() -> {
-            List<String> l = WidgetManager.getFactories()
+            List<String> l = APP.widgetManager.getFactories()
                         .filter(f->f.hasFeature(SongReader.class))
                         .map(f->f.name()).collect(toList());
             l.add("Normal");

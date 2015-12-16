@@ -33,16 +33,14 @@ import static java.util.Collections.EMPTY_MAP;
     year = "2014",
     group = Widget.Group.OTHER
 )
-class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
+class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget> {
 
-    private final Widget widget = null;
     private final Outputs o = new Outputs();
     private final Inputs i = new Inputs();
 
     public EmptyWidget() {
-        super("Empty", new EmptyWidgetFactory());
+        super("Empty");
         controller = this;
-        root = new Region();
     }
 
     @Override
@@ -54,7 +52,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
 
     @Override
     public Node loadFirstTime() {
-        return root;
+        return new Region();
     }
 
     /** This implementation is no-op */

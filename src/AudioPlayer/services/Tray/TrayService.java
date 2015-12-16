@@ -177,7 +177,7 @@ public class TrayService extends ServiceBase {
     public void setTooltipText(String text){
         if(!isRunning()) return;
 
-        tooltip_text = text==null ? null : text.isEmpty() ? APP.getName() : text;
+        tooltip_text = text==null ? null : text.isEmpty() ? APP.name : text;
         String s = showTooltip.getValue() ? text : null;
         EventQueue.invokeLater(() -> trayIcon.setToolTip(s));
     }

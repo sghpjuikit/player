@@ -5,9 +5,11 @@
  */
 package Layout.widget;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
 
 /**
@@ -16,7 +18,7 @@ import Layout.widget.feature.Feature;
  * @author uranium
  */
 @Widget.Info // empty widget info with default values
-public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
+public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
     final String name;
     final String gui_name;
@@ -30,7 +32,8 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     final String notes;
     final Widget.Group group;
 
-    private final Class<?> controller_class;
+    private final Class<C> controller_class;
+    public final File location;
 
     /** Whether this factory will be preferred over others of the same group. */
     boolean preferred = false;
@@ -42,21 +45,19 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
      * class' constructor with super().
      *
      * @param name name of widget this factory will create
-     * @param c class of the controller of the widget this factory will create.
+     * @param type class of the controller of the widget this factory will create.
      * There are no restrictions here, but other factories might impose some.
      * In any case, it is recommended for the class to implement {@link Controller}
      * and also be annotated with {@link Widget.Info}
      *
-     * @param c controller class
+     * @param type controller class
      */
-    WidgetFactory(String name, Class<?> c) {
-        // init name
+    private WidgetFactory(String name, Class<C> type, File location) {
         this.name = name;
-        this.controller_class = c;
+        this.controller_class = type;
+        this.location = location;
 
-        // init info
-            // grab Controller's class and its annotation or get default
-        Widget.Info i = c.getAnnotation(Widget.Info.class);
+        Widget.Info i = type.getAnnotation(Widget.Info.class);
         if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
 
         gui_name = i.name().isEmpty() ? name : i.name();
@@ -76,10 +77,14 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
      * name derived from the class. If {@link Widget.Info} annotation is present
      * (as it should) the name field will be used. Otherwise the controller class
      * name will be used as widget factory name.
-     * @param c controller class
+     * @param type controller class
      */
-    public WidgetFactory(Class<?> c) {
-        this(getNameFromAnnotation(c), c);
+    public WidgetFactory(Class<C> type) {
+        this(type, null);
+    }
+
+    public WidgetFactory(Class<C> type, File location) {
+        this(getNameFromAnnotation(type), type, location);
     }
 
     private static String getNameFromAnnotation(Class<?> c) {
@@ -91,7 +96,9 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
      * Creates new widget.
      * @return new widget instance or null if creation fails.
      */
-    abstract public W create();
+    public Widget<C> create() {
+        return new Widget<>(name,this);
+    }
 
     public String getName() {
         return name;
@@ -117,24 +124,6 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     public void setIgnored(boolean val) {
         ignored = val;
     }
-
-//
-//     /**
-//     * Registers widget factory. Only registered factories can
-//     * create widgets.
-//     * Registering can only be done once and can not be undone.
-//     * Does nothing if specified factory already is registered. Factory can not
-//     * be registered twice.
-//     * application.
-//     */
-//    void register() {
-//        if (!isRegistered()) WidgetManager.factories.put(name,this);
-//    }
-//
-//    /** @return true if the factory is already registered. */
-//    public boolean isRegistered() {
-//        return WidgetManager.factories.containsKey(name);
-//    }
 
     /** {@inheritDoc} */
     @Override
@@ -188,9 +177,9 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     /** {@inheritDoc} */
     @Override
     public List<Feature> getFeatures() {
-        List<Feature> out = new ArrayList();
-        for(Class c : controller_class.getInterfaces()) {
-            Feature f = (Feature) c.getAnnotation(Feature.class);
+        List<Feature> out = new ArrayList<>();
+        for(Class<?> c : controller_class.getInterfaces()) {
+            Feature f = c.getAnnotation(Feature.class);
             if (f!=null) out.add(f);
         }
         return out;

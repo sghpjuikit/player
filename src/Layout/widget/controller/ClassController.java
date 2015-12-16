@@ -11,7 +11,7 @@ import java.util.Map;
 import javafx.scene.layout.AnchorPane;
 
 import Configuration.Config;
-import Layout.widget.ClassWidget;
+import Layout.widget.Widget;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Inputs;
 import Layout.widget.controller.io.Outputs;
@@ -19,19 +19,19 @@ import util.dev.Dependency;
 
 /**
  * Controller for {@link ClassWidget}
- * 
+ *
  * @author Plutonium_
  */
-abstract public class ClassController extends AnchorPane implements Controller<ClassWidget> {
-    
+abstract public class ClassController extends AnchorPane implements Controller<Widget<?>> {
+
     @Dependency("DO NOT RENAME - accessed using reflection")
-    public final ClassWidget widget = null;
+    public final Widget<?> widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
     private final HashMap<String,Config<Object>> configs = new HashMap<>();
 
     @Override
-    public ClassWidget getWidget() {
+    public Widget<?> getWidget() {
         return widget;
     }
 
@@ -43,15 +43,15 @@ abstract public class ClassController extends AnchorPane implements Controller<C
         onClose();
         inputs.getInputs().forEach(Input::unbindAll);
     }
-    
+
     public void onClose() {}
-    
+
     /** {@inheritDoc} */
     @Override
     public Outputs getOutputs() {
         return outputs;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Inputs getInputs() {

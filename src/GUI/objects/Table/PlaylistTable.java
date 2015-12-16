@@ -26,7 +26,6 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import Layout.widget.WidgetManager;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
 import gui.GUI;
@@ -373,14 +372,14 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     PlaylistManager.use(p -> p.removeAll(m.getValue()));
                 }),
                 new Menu("Show in",null,
-                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
+                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
+                            (String f) -> APP.widgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
+                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
+                            (String f) -> APP.widgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 menuItem("Crop items", e -> {
                     PlaylistManager.use(p -> p.retainAll(m.getValue()));

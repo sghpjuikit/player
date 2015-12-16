@@ -147,12 +147,27 @@ public class MapSet<K,E> implements Set<E> {
         return m.containsKey(key) ? m.get(key) : e;
     }
 
+    public E getOrSupply(K key, Supplier<E> supplier) {
+        return m.containsKey(key) ? m.get(key) : supplier.get();
+    }
+
+    public E getOrOther(K key, K key2) {
+        return m.containsKey(key) ? m.get(key) : get(key2);
+    }
+
     @Override
     public boolean remove(Object o) {
-        K k = keyMapper.apply((E)o);
-        E e = m.get(k);
+        return removeKey(keyMapper.apply((E)o));
+    }
+
+    public boolean removeValue(E o) {
+        return remove(o);
+    }
+
+    public boolean removeKey(K key) {
+        E e = m.get(key);
         if(e==null) return false;
-        m.remove(k);
+        m.remove(key);
         return true;
     }
 

@@ -36,12 +36,15 @@ public final class PropertyMap<K> extends HashMap<K, Object>{
      * @throws ClassFormatError for primitive types type parameter value
      * @throws ClassCastException when parameter types dont match.
      */
-    public Object initProperty(Class<?> type, K key, Object val) {
+    public <T> T getOrPut(Class<T> type, K key, T val) {
         if (type.isPrimitive())
             throw new ClassFormatError("Type of property must not be primitive. (Value of course can)");
-        if (!type.equals(val.getClass()))
+        if (type != val.getClass())
             throw new ClassCastException("The value doesnt match the type of property");
-        return getOrDefault(key, val);
+
+        Object v = get(key);
+        if(v==null || (v!=null && v.getClass()!=type)) put(key,val);
+        return (T) get(key);
     }
 
 

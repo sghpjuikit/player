@@ -68,7 +68,6 @@ import static AudioPlayer.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
-import static main.App.APP;
 import static util.File.FileUtil.EMPTY_URI;
 import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
@@ -692,7 +691,7 @@ public final class Metadata extends MetaItem<Metadata> {
      * "" if empty.
      */
     public String getArtist() {
-        return APP.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
+        return artist;
     }
 
     /** @return the album_artist, "" if empty. */

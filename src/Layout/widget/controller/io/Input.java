@@ -38,6 +38,15 @@ public class Input<T> extends Put<T>{
     }
 
     /**
+     * Return true if this input can receive values from given output. Equivalent to
+     * <p>
+     * {@code getType().isAssignableFrom(output.getType())}
+     */
+    public boolean canBind(Output<?> output) {
+        return getType().isAssignableFrom(output.getType());
+    }
+
+    /**
      * Binds to the output.
      * Sets its value immediately and then every time it changes.
      * Binding multiple times has no effect.

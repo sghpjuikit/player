@@ -15,10 +15,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.shape.LineTo;
@@ -43,6 +45,7 @@ import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.pow;
 import static java.lang.Math.random;
 import static java.lang.Math.signum;
 import static java.util.stream.Collectors.toList;
@@ -50,6 +53,8 @@ import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.DragEvent.*;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.functional.Util.*;
@@ -64,7 +69,9 @@ public class IOLayer extends StackPane {
     public static final String INODE_STYLECLASS = "inode";
     public static final String ONODE_STYLECLASS = "onode";
     public static final String IONODE_STYLECLASS = "ionode";
-    public static final PseudoClass DRAGOVER_PSEUDOCLASS = getPseudoClass("drag-over");
+    public static final String IOLINE_STYLECLASS = "ioline";
+    public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
+    public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
 
     static public final ObservableSet<Input> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output> all_outputs = FXCollections.observableSet();
@@ -88,7 +95,7 @@ public class IOLayer extends StackPane {
         all_inputs.add(i);
         inputnodes.computeIfAbsent(i, k -> {
             InputNode<?> in = new InputNode<>(i);
-            i.getSources().forEach(o -> connections.computeIfAbsent(new Key(i,o), key -> new IOLine(i,o)));
+            i.getSources().forEach(o -> connections.computeIfAbsent(new Key<>(i,o), key -> new IOLine(i,o)));
             getChildren().add(in.graphics);
             return in;
         });
@@ -96,7 +103,7 @@ public class IOLayer extends StackPane {
 
     private void remInput(Input<?> i) {
         all_inputs.remove(i);
-        i.getSources().forEach(o -> removeChild(connections.remove2D(new Key(i,o))));
+        i.getSources().forEach(o -> removeChild(connections.remove2D(new Key<>(i,o))));
         removeXNode(inputnodes.remove(i));
     }
     private void addOutput(Output<?> o) {
@@ -117,14 +124,14 @@ public class IOLayer extends StackPane {
             InOutputNode<?> ion = new InOutputNode<>(io);
             inputnodes.put(io.i, ion);
             outputnodes.put(io.o, ion);
-            io.i.getSources().forEach(o -> connections.computeIfAbsent(new Key(io.i,o), key -> new IOLine(io.i,o)));
+            io.i.getSources().forEach(o -> connections.computeIfAbsent(new Key<>(io.i,o), key -> new IOLine(io.i,o)));
             getChildren().add(ion.graphics);
             return ion;
         });
     }
     private void remInOutput(InOutput<?> io) {
         all_inoutputs.remove(io);
-        io.i.getSources().forEach(o -> removeChild(connections.remove2D(new Key(io.i,o))));
+        io.i.getSources().forEach(o -> removeChild(connections.remove2D(new Key<>(io.i,o))));
         removeXNode(inoutputnodes.remove(io));
         inputnodes.remove(io.i);
         outputnodes.remove(io.o);
@@ -152,12 +159,19 @@ public class IOLayer extends StackPane {
     private final DoubleProperty scalex;
     private final DoubleProperty scaley;
 
+    private EditIOLine edit = null;
+    private XNode selected = null;
+
     public IOLayer(SwitchPane sp) {
         switchpane = sp;
         translation = sp.translateProperty();
         scalex = sp.zoomProperty();
         scaley = sp.zoomProperty();
         scalex.addListener((o,ov,nv) -> layoutChildren());
+
+        parentProperty().addListener((o,ov,nv) ->
+            nv.addEventFilter(MOUSE_CLICKED, e -> selectNode(null))
+        );
 
         setMouseTransparent(false);
         setPickOnBounds(false);
@@ -193,6 +207,62 @@ public class IOLayer extends StackPane {
     }
     private void removeXNode(XNode n) {
         if(n!=null) getChildren().remove(n.graphics);
+    }
+
+    XNode editFrom = null; // editFrom == edit.node, editFrom.output == edit.output
+    XNode editTo = null;
+
+    void editBegin(XNode n) {
+        if(n==null) return;
+
+        editFrom = n;
+        edit = new EditIOLine(n);
+//        getChildren().add(edit);
+
+        // start effect: disable & visually differentiate bindable & unbindable nodes
+        outputnodes.forEach((input,node) -> node.onEditActive(true,false));
+        inputnodes.forEach((input,node) -> node.onEditActive(true, node.input.canBind(editFrom.output)));
+        connections.forEach((input_and_output,line) -> line.onEditActive(true));
+    }
+
+    void editMove(MouseEvent e) {
+        if(edit==null || editFrom ==null) return;
+
+        edit.lay(editFrom.cx, editFrom.cy, e.getX(), e.getY());
+
+        XNode n = inputnodes.values().stream()
+               .filter(in -> pow(in.cx-e.getX(),2)+pow(in.cy-e.getY(),2)<8*8)
+               .filter(in -> in!=editFrom) // inoutput must not bind to self
+               .filter(in -> in.input.canBind(editFrom.output))
+               .findAny().orElse(null);
+
+        if(editTo!=n) {
+            if(editTo!=null) editTo.select(false);
+            editTo = n;
+            if(editTo!=null) editTo.select(true);
+        }
+    }
+
+    void editEnd() {
+        if(edit==null) return;
+
+        if(editTo!=null) editTo.input.bind(editFrom.output);
+        getChildren().remove(edit);
+        edit = null;
+
+        if(editTo!=null) editTo.select(false);
+        editTo = null;
+
+        // stop effect: disable & visually differentiate bindable nodes
+        outputnodes.forEach((input,node) -> node.onEditActive(false,true));
+        inputnodes.forEach((input,node) -> node.onEditActive(false,true));
+        connections.forEach((input_and_output,line) -> line.onEditActive(false));
+    }
+
+    void selectNode(XNode n) {
+        if(selected!=null) selected.select(false);
+        selected = n;
+        if(selected!=null) selected.select(true);
     }
 
     @Override
@@ -263,49 +333,57 @@ public class IOLayer extends StackPane {
     }
 
 
-    abstract class XNode<XPUT, P extends Pane> {
-        XPUT xput;
+    abstract class XNode<XPUT,T,P extends Pane> {
+        final XPUT xput;
+        final Input<T> input;
+        final Output<T> output;
+        final InOutput<T> inoutput;
         P graphics;
         Text t = new Text();
         Icon i = new Icon();
         double cy = 80 + random()*20;
         double cx = 80 + random()*20;
+        boolean selected = false;
+
+        XNode(XPUT xput) {
+            this.xput = xput;
+
+            if(xput instanceof Input) {
+                input = (Input<T>)xput; output = null; inoutput = null;
+            } else
+            if(xput instanceof Output) {
+                input = null; output = (Output<T>)xput; inoutput = null;
+            } else
+            if(xput instanceof InOutput) {
+                input = ((InOutput<T>)xput).i; output = ((InOutput<T>)xput).o; inoutput = (InOutput<T>)xput;
+            } else {
+                throw new IllegalArgumentException("Not a valid type");
+            }
+
+            i.addEventHandler(MOUSE_CLICKED, e -> {
+                selectNode(this);
+                e.consume();
+            });
+        }
 
         Point2D getSceneXY() {
             return new Point2D(i.getLayoutBounds().getMinX()+i.getLayoutBounds().getWidth()/2,i.getLayoutBounds().getMinY()+i.getLayoutBounds().getHeight()/2);
         }
-    }
-    class OutputNode<T> extends XNode<Output<T>,HBox> {
 
-        OutputNode(Output<T> o) {
-            xput = o;
+        void select(boolean v) {
+            if(selected==v) return;
+            selected = v;
+            i.pseudoClassStateChanged(XNODE_SELECTED, v);
+        }
 
-            graphics = new HBox(8, t,i);
-            graphics.setMaxSize(80,120);
-            graphics.setAlignment(Pos.CENTER_RIGHT);
-            i.styleclass(ONODE_STYLECLASS);
-
-            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
-            i.setOnMouseEntered(e -> a.playOpen());
-            t.setOnMouseExited(e -> a.playClose());
-
-            // drag&drop
-            i.addEventFilter(DRAG_DETECTED,e -> {
-                DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
-                e.consume();
-            });
-
-            o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> APP.use(ClickEffect.class, c -> {
-                if(gui.GUI.isLayoutMode())
-                    c.run(getSceneXY());
-            }));
+        void onEditActive(boolean active, boolean canAccept) {
+            graphics.setDisable(active && !canAccept);
         }
     }
-    class InputNode<T> extends XNode<Input<T>,HBox> {
+    class InputNode<T> extends XNode<Input<T>,T,HBox> {
 
-        InputNode(Input<T> in) {
-            xput = in;
+        InputNode(Input<T> input_) {
+            super(input_);
 
             graphics = new HBox(8, i,t);
             graphics.setMaxSize(80,120);
@@ -322,27 +400,55 @@ public class IOLayer extends StackPane {
                 DragUtil::hasAny,
                 e -> {
                     if(DragUtil.hasWidgetOutput(e)) {
-                        in.bind(DragUtil.getWidgetOutput(e));
+                        input.bind(DragUtil.getWidgetOutput(e));
                         drawGraph();
                     } else {
                         Object o = DragUtil.getAny(e);
                         Class c = o.getClass();
-                        if(in.getType().isAssignableFrom(c)) {
-                            in.setValue((T)o);
+                        if(input.getType().isAssignableFrom(c)) {
+                            input.setValue((T)o);
                         }
                     }
                 }
             );
-            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
-            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
+            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
+            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
 
-            t.setText(iToStr(xput));
+            t.setText(iToStr(input));
         }
     }
-    class InOutputNode<T> extends XNode<InOutput<T>,VBox> {
+    class OutputNode<T> extends XNode<Output<T>,T,HBox> {
 
-        InOutputNode(InOutput<T> inout) {
-            xput = inout;
+        OutputNode(Output<T> output_) {
+            super(output_);
+
+            graphics = new HBox(8, t,i);
+            graphics.setMaxSize(80,120);
+            graphics.setAlignment(Pos.CENTER_RIGHT);
+            i.styleclass(ONODE_STYLECLASS);
+
+            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
+            i.setOnMouseEntered(e -> a.playOpen());
+            t.setOnMouseExited(e -> a.playClose());
+
+            // drag&drop
+            i.addEventFilter(DRAG_DETECTED,e -> {
+                if(selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                else editBegin(this);
+                e.consume();
+            });
+
+            output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
+            output.monitor(v -> APP.use(ClickEffect.class, c -> {
+                if(gui.GUI.isLayoutMode())
+                    c.run(getSceneXY());
+            }));
+        }
+    }
+    class InOutputNode<T> extends XNode<InOutput<T>,T,VBox> {
+
+        InOutputNode(InOutput<T> inoutput_) {
+            super(inoutput_);
 
             graphics = new VBox(8, i,t);
             graphics.setMaxSize(80,120);
@@ -359,28 +465,28 @@ public class IOLayer extends StackPane {
                 DragUtil::hasWidgetOutput,
                 e -> {
                     Output o = DragUtil.getWidgetOutput(e);
-                    if(o!=inout.o) {
-                        inout.i.bind(o);
+                    if(o!=output) {
+                        input.bind(o);
                         drawGraph();
                     }
                 }
             );
-            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
-            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
+            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
+            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
             i.addEventFilter(DRAG_DETECTED,e -> {
-                DragUtil.setWidgetOutput(inout.o,i.startDragAndDrop(TransferMode.LINK));
+                if(selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                else editBegin(this);
                 e.consume();
             });
 
-            Output<T> o = inout.o;
-            o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
-            o.monitor(v -> APP.use(ClickEffect.class, c -> {
+            output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
+            output.monitor(v -> APP.use(ClickEffect.class, c -> {
                 if(gui.GUI.isLayoutMode())
                     c.run(getSceneXY());
             }));
         }
     }
-    class IOLine extends Path {
+    class IOLine<T> extends Path {
         static final double GAP = 20;
 
         Output output;
@@ -391,7 +497,7 @@ public class IOLayer extends StackPane {
             output = o;
 
             IOLayer.this.getChildren().add(this);
-            getStyleClass().add("input-output-line");
+            getStyleClass().add(IOLINE_STYLECLASS);
             IOLine.this.setMouseTransparent(false);
             IOLine.this.setPickOnBounds(false);
 
@@ -400,13 +506,13 @@ public class IOLayer extends StackPane {
                 e.consume();
             });
             setOnDragDetected(e -> {
-                DragUtil.setWidgetOutput(output, startDragAndDrop(TransferMode.LINK));
+                editBegin(outputnodes.get(output));
                 e.consume();
             });
-//            hoverProperty().addListener((f,ov,nv) -> {
-//            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
-//            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
-//            });
+        }
+
+        void onEditActive(boolean active) {
+            setDisable(active);
         }
 
         public void lay(double startx, double starty, double tox, double toy) {
@@ -434,7 +540,7 @@ public class IOLayer extends StackPane {
         private boolean not_finished = false;
         private double not_finished_x;
         private double not_finished_y;
-        void layTo(double startx, double starty, double tox, double toy, double h) {
+        private void layTo(double startx, double starty, double tox, double toy, double h) {
             double dx = tox-startx;
             double dy = toy-starty;
             if(dx==0 || dy==0) {
@@ -453,12 +559,37 @@ public class IOLayer extends StackPane {
             }
         }
     }
+    class EditIOLine extends IOLine {
+        final XNode node;
 
-    public static String oToStr(Output o) {
+        public EditIOLine(XNode n) {
+            super(n.input,n.output);
+            node = n;
+
+            EventHandler<MouseEvent> editDrawer = this::layToMouse;
+            EventHandler<MouseEvent> editCanceler = new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    editEnd();
+                    IOLayer.this.removeEventFilter(MOUSE_CLICKED, this);
+                    IOLayer.this.removeEventFilter(MouseEvent.ANY, editDrawer);
+                }
+            };
+            IOLayer.this.addEventFilter(MouseEvent.ANY, editDrawer);
+            IOLayer.this.addEventFilter(MOUSE_RELEASED, editCanceler);
+        }
+
+        public void layToMouse(MouseEvent e) {
+            editMove(e);
+        }
+
+    }
+
+    public static String oToStr(Output<?> o) {
         return APP.className.get(o.getType()) + " : " + o.getName() +
                "\n" + APP.instanceName.get(o.getValue());
     }
-    public static String iToStr(Input i) {
+    public static String iToStr(Input<?> i) {
         return APP.className.get(i.getType()) + " : " + i.getName() + "\n";
     }
 

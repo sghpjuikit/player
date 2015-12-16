@@ -20,7 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -70,14 +69,10 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
-import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
@@ -693,19 +688,9 @@ public class App extends Application implements Configurable {
         return "PlayerState.cfg";
     }
 
-    /** @return absolute file of Location of widgets. */
-    public static File WIDGET_FOLDER() {
-        return new File("Widgets").getAbsoluteFile();
-    }
-
     /** @return absolute file of Location of layouts. */
     public static File LAYOUT_FOLDER() {
         return new File("Layouts").getAbsoluteFile();
-    }
-
-    /** @return absolute file of Location of skins. */
-    public static File SKIN_FOLDER() {
-        return new File("Skins").getAbsoluteFile();
     }
 
     /** @return absolute file of Location of data. */
@@ -736,6 +721,10 @@ public class App extends Application implements Configurable {
     public final File DIR_LOG = new File("log").getAbsoluteFile();
     /** File for application logging configuration. */
     public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
+    /** Directory containing widgets - source files, class files and widget's resources. */
+    public final File DIR_WIDGETS = new File("widgets").getAbsoluteFile();
+    /** Directory containing skins. */
+    public final File DIR_SKINS = new File("skins").getAbsoluteFile();
 
     /** Url for github website for project of this application. */
     public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");

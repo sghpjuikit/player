@@ -3,6 +3,8 @@ package Layout.widget.controller;
 
 import java.util.List;
 
+import javafx.scene.Node;
+
 import Configuration.CachedConfigurable;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
@@ -55,6 +57,23 @@ import Layout.widget.feature.Feature;
  */
 public interface Controller<W extends Widget> extends CachedConfigurable<Object> {
 
+    /** Loads the widget. Called once, before {@link #init()}. The result is then cached. */
+    default Node loadFirstTime() throws Exception {
+        return (Node) this;
+    };
+
+    /**
+     * Initializes the controller. Use as a constructor.
+     * <p>
+     * If the contorller makes use of the {@link Configuration.IsConfig} anotated properties,
+     * they will not be initialized and their values shouldnt be used in this
+     * method.
+     * <p>
+     * Dont invoke this method, it is called automatically at widget's creation.
+     * Invoking this method will have no effect.
+     */
+    default void init() {};
+
     /**
      * Refreshes the controller state.
      * <p>
@@ -104,7 +123,7 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
 
     /** @return all implemented features */
     default List<Feature> getFeatures() {
-        return getWidget().getFactory().getFeatures();
+        return getWidget().factory.getFeatures();
     }
-    
+
 }

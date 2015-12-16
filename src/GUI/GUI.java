@@ -3,8 +3,12 @@ package gui;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
+import java.nio.file.WatchService;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -32,15 +36,17 @@ import action.IsAction;
 import action.IsActionable;
 import gui.objects.Window.stage.Window;
 import main.App;
+import util.File.FileMonitor;
 import util.File.FileUtil;
-import util.access.VarEnum;
 import util.access.V;
+import util.access.VarEnum;
 import util.animation.interpolator.CircularInterpolator;
-import util.dev.TODO;
 
 import static gui.GUI.OpenStrategy.INSIDE;
 import static java.io.File.separator;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.EMPTY_SET;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
@@ -51,9 +57,10 @@ import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static util.File.FileMonitor.monitorDirectory;
+import static util.File.FileMonitor.monitorFile;
 import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 
 /**
  *
@@ -68,9 +75,12 @@ public class GUI {
     private static String skinOldUrl = ""; // set to not sensible non null value
     public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 
+    private static final Map<File,WatchService> fileMonitors = new HashMap<>();
+    private static final Set<String> skins = new HashSet<>();
+
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static final VarEnum<String> skin = new VarEnum<>("Default", GUI::setSkin, GUI::getSkins);
+    public static final VarEnum<String> skin = new VarEnum<>("Default", GUI::setSkin, () -> skins);
     /**
      * Font of the application. Overrides font defined by skin. The font can be
      * overridden programmatically or stylesheet.
@@ -122,6 +132,32 @@ public class GUI {
             info = "Show table controls at the bottom of the table. Displays menubar and table items information")
     public static final BooleanProperty table_show_footer = new SimpleBooleanProperty(true);
 /******************************************************************************/
+
+
+    static {
+        skins.addAll(getSkins());
+        monitorDirectory(APP.DIR_SKINS, (type,file) -> {
+            LOGGER.info("Change {} detected in skin directory for {}", type,file);
+            skins.clear();
+            skins.addAll(getSkins());
+        });
+    }
+    private static File monitoredSkin = null;
+    private static FileMonitor monitorSkin = null;
+    private static void monitorSkinStart(File cssFile) {
+        if(cssFile.equals(monitoredSkin)) return;
+        monitorSkinStop();
+        monitorSkin = monitorFile(cssFile, type -> {
+            if(type==ENTRY_MODIFY)
+                loadSkin();
+        });
+    }
+    private static void monitorSkinStop() {
+        if(monitorSkin!=null) monitorSkin.stop();
+        monitorSkin = null;
+        monitoredSkin = null;
+    }
+
 
     /**
      * Component might rely on this method to alter its behavior. For example
@@ -305,26 +341,26 @@ public class GUI {
      * Searches for .css files in skin folder and registers them as available
      * skins. Use on app start or to discover newly added layouts dynamically.
      */
-    @TODO(purpose = PERFORMANCE_OPTIMIZATION, note = "monitor folder instead")
-    public static List<String> getSkins() {
+    public static Set<String> getSkins() {
+        LOGGER.info("Looking for valid skins");
+
         // get + verify path
-        File dir = App.SKIN_FOLDER();
+        File dir = APP.DIR_SKINS;
         if (!FileUtil.isValidatedDirectory(dir)) {
             LOGGER.error("Search for skins failed." + dir.getPath() + " could not be accessed.");
-            return EMPTY_LIST;
+            return EMPTY_SET;
         }
-        // find skin directories
+
+        // find skins
+        Set<String> skins = new HashSet<>();
         File[] dirs = dir.listFiles(File::isDirectory);
-        // find & register skins
-        LOGGER.info("Registering external skins.");
-        List<String> skins = new ArrayList();
         skins.clear();
         for (File d: dirs) {
             String name = d.getName();
             File css = new File(d, name + ".css");
             if(FileUtil.isValidFile(css)) {
                 skins.add(name);
-                LOGGER.info("    Skin " + name + " registered.");
+                LOGGER.info("\t" + name);
             }
         }
 
@@ -332,8 +368,8 @@ public class GUI {
         LOGGER.info("Registering internal skins.");
         skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
         skins.add(capitalizeStrong(STYLESHEET_MODENA));
-        LOGGER.info("    Skin Modena registered.");
-        LOGGER.info("    Skin Caspian registered.");
+        LOGGER.info("\tModena");
+        LOGGER.info("\tCaspian");
 
         return skins;
     }
@@ -352,19 +388,20 @@ public class GUI {
      */
     public static void setSkin(String s) {
         if (s == null || s.isEmpty()) throw new IllegalArgumentException();
+        LOGGER.info("Skin {} applied", s);
 
         if (s.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
         } else if (s.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
             setSkinCaspian();
         } else {
-            File skin_file = new File(App.SKIN_FOLDER().getPath(), s + separator + s + ".css");
+            File skin_file = new File(APP.DIR_SKINS.getPath(), s + separator + s + ".css");
             setSkinExternal(skin_file);
         }
     }
     /**
      * Changes application's skin.
-     * @param file - css file of the skin to load. It is expected that the skin
+     * @param cssFile - css file of the skin to load. It is expected that the skin
      * file and resources are available.
      * @return true if the skin has been applied.
      * False return value signifies that gui has not been initialized or that
@@ -373,10 +410,11 @@ public class GUI {
      * that the new skin has been applied regardless of the success. There can
      * still be parsing errors resulting in imperfect skin application.
      */
-    public static boolean setSkinExternal(File file) {
-        if (APP.windowOwner.isInitialized() && FileUtil.isValidSkinFile(file)) {
+    public static boolean setSkinExternal(File cssFile) {
+        if (APP.windowOwner.isInitialized() && FileUtil.isValidSkinFile(cssFile)) {
             try {
-                String url = file.toURI().toURL().toExternalForm();
+                monitorSkinStart(cssFile);
+                String url = cssFile.toURI().toURL().toExternalForm();
                 // remove old skin
                 StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
                 // set core skin
@@ -384,7 +422,7 @@ public class GUI {
                 // add new skin
                 StyleManager.getInstance().addUserAgentStylesheet(url);
                 // set current skin
-                skin.setValue(FileUtil.getName(file));
+                skin.setValue(FileUtil.getName(cssFile));
                 // store its url so we can remove the skin later
                 skinOldUrl = url;
                 return true;
@@ -397,6 +435,7 @@ public class GUI {
     }
 
     private static boolean setSkinModena() {
+        monitorSkinStop();
         if (APP.windowOwner.isInitialized()) {
             // remove old skin
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
@@ -408,6 +447,7 @@ public class GUI {
         return false;
     }
     private static boolean setSkinCaspian() {
+        monitorSkinStop();
         if (APP.windowOwner.isInitialized()) {
             // remove old skin
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
@@ -420,7 +460,7 @@ public class GUI {
     }
 
     public static List<File> getGuiImages() {
-        File location = new File(App.SKIN_FOLDER(), skin + separator + "Images");
+        File location = new File(APP.DIR_SKINS, skin + separator + "Images");
         if(FileUtil.isValidDirectory(location)) {
             return FileUtil.getFilesImage(location, 1).collect(toList());
         } else {

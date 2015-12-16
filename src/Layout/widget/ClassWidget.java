@@ -23,16 +23,4 @@ public class ClassWidget extends Widget<Controller> {
         super(name,factory);
     }
 
-    @Override
-    public Node loadInitial() {
-        Node node = (Node) controller;
-        return node;
-    }
-
-    @Override
-    protected void loadInitialize() {
-        restoreConfigs();
-        controller.refresh();
-    }
-
 }

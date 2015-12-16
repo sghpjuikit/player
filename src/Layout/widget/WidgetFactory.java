@@ -118,23 +118,23 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         ignored = val;
     }
 
-
-     /**
-     * Registers widget factory. Only registered factories can
-     * create widgets.
-     * Registering can only be done once and can not be undone.
-     * Does nothing if specified factory already is registered. Factory can not
-     * be registered twice.
-     * application.
-     */
-    void register() {
-        if (!isRegistered()) WidgetManager.factories.put(name,this);
-    }
-
-    /** @return true if the factory is already registered. */
-    public boolean isRegistered() {
-        return WidgetManager.factories.containsKey(name);
-    }
+//
+//     /**
+//     * Registers widget factory. Only registered factories can
+//     * create widgets.
+//     * Registering can only be done once and can not be undone.
+//     * Does nothing if specified factory already is registered. Factory can not
+//     * be registered twice.
+//     * application.
+//     */
+//    void register() {
+//        if (!isRegistered()) WidgetManager.factories.put(name,this);
+//    }
+//
+//    /** @return true if the factory is already registered. */
+//    public boolean isRegistered() {
+//        return WidgetManager.factories.containsKey(name);
+//    }
 
     /** {@inheritDoc} */
     @Override

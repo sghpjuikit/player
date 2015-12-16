@@ -52,12 +52,14 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
         return Collections.EMPTY_LIST;
     }
 
-    @Override public Node loadInitial() {
+    @Override
+    public Node loadFirstTime() {
         return root;
     }
 
     /** This implementation is no-op */
-    @Override public void refresh() { }
+    @Override
+    public void refresh() { }
 
     @Override
     public EmptyWidget getWidget() {

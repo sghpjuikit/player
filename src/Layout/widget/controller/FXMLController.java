@@ -12,12 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 
 import org.reactfx.Subscription;
 
 import Configuration.Config;
 import Layout.widget.FXMLWidget;
+import Layout.widget.FXMLWidgetFactory;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Inputs;
 import Layout.widget.controller.io.Outputs;
@@ -37,25 +40,28 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     private final HashMap<String,Config<Object>> configs = new HashMap<>();
     private final List<Subscription> disposables = new ArrayList<>();
 
-    /** {@inheritDoc} */
+    public FXMLController() {
+
+        String nameClass = getClass().getSimpleName();
+        String nameWidget = nameClass.substring(0, nameClass.length()-"Controller".length());
+
+        System.out.println("Building controller for : " + getClass() + " " + nameWidget);
+
+    }
+
     @Override
     public FXMLWidget getWidget() {
         return widget;
     }
 
-    /**
-     * Initializes the controller. Use as a constructor.
-     * <p>
-     * If the contorller makes use of the {@link Configuration.IsConfig} anotated properties,
-     * they will not be initialized and their values shouldnt be used in this
-     * method.
-     * <p>
-     * Dont invoke this method, it is called automatically at widget's creation.
-     * Invoking this method will have no effect.
-     */
-    abstract public void init();
+    @Override
+    public Node loadFirstTime() throws Exception {
+        FXMLLoader loader = new FXMLLoader();
+                   loader.setLocation(getResource(widget.getName() + ".fxml").toURI().toURL());
+                   loader.setController(this);
+        return loader.load();
+    }
 
-    /** {@inheritDoc} */
     @Override
     abstract public void refresh();
 
@@ -64,7 +70,7 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
      * @param filename of the file with extension. For example: "bgr.jpg"
      */
     public File getResource(String filename) {
-        return new File(getWidget().getLocation(),filename);
+        return new File(((FXMLWidgetFactory)widget.factory).location,filename).getAbsoluteFile();
     }
 
     public void loadSkin(String filename, Pane root) {
@@ -73,13 +79,11 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
         } catch (MalformedURLException ex) {}
     }
 
-    /** {@inheritDoc} */
     @Override
     public Outputs getOutputs() {
         return outputs;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Inputs getInputs() {
         return inputs;

@@ -27,7 +27,6 @@ import Layout.widget.WidgetManager;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import gui.GUI;
-import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
 import util.dev.TODO;
@@ -174,19 +173,19 @@ public class Environment {
     }
 
     public static boolean isOpenableInApp(File f) {
-        return ((f.isDirectory() && App.SKIN_FOLDER().equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) ||
-               ((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) ||
+        return ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) ||
+               ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) ||
                AudioFileFormat.isSupported(f,Use.PLAYBACK) || ImageFileFormat.isSupported(f);
     }
 
     public static void openIn(File f, boolean inApp) {
         // open skin - always in app
-        if((f.isDirectory() && App.SKIN_FOLDER().equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) {
+        if((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) {
             GUI.setSkin(FileUtil.getName(f));
         }
 
         // open widget
-        else if((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
+        else if((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
             String n = FileUtil.getName(f);
             WidgetManager.find(wi -> wi.name().equals(n), NO_LAYOUT);
         }

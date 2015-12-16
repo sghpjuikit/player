@@ -3830,19 +3830,29 @@
     -fx-scale-y: 1.3;
 }
 
+.inode:selected,
+.onode:selected,
+.ionode:selected {
+    -fx-fill: -fx-focus-color;
+    -glyph-size: 15;
+}
 
-// Edge
+
+// Output -> Input connection line.
 // inherits: .path
-.input-output-line {
+.ioline {
     -fx-opacity: 0.8;
     -fx-stroke: -fx-def-font-color; 
     -fx-stroke-width: 2;
     -fx-fill: null; // bgr of the shape the path makes - we dont want any 
 }
-.input-output-line:hover {
+.ioline:hover {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
+}
+.ioline:disabled { // .path doesnt seem to hav this defined
+    -fx-opacity: 0.4;
 }
 
 

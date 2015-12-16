@@ -3,16 +3,12 @@ package Layout.widget;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javafx.scene.Node;
 
 import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
@@ -22,11 +18,13 @@ import Layout.container.layout.LayoutManager;
 import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
 import gui.objects.Window.stage.UiContext;
-import main.App;
 import util.File.FileUtil;
 import util.SwitchException;
+import util.collections.mapset.MapSet;
 
 import static Layout.widget.WidgetManager.WidgetSource.*;
+import static main.App.APP;
+import static util.functional.Util.list;
 
 /**
  * Handles operations with Widgets.
@@ -36,21 +34,65 @@ public final class WidgetManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
 
     /** Collection of registered Widget Factories. Non null, unique.*/
-    static final Map<String,WidgetFactory<?>> factories = new HashMap<>();
+    static final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(factory -> factory.name());
 
-    public static <T extends Node & Controller> void initialize() {
-        // register internal
-        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
-        new EmptyWidgetFactory().register();
-        // register external
-        registerExternalWidgetFactories();
+    public static void initialize() {
+        // register internal factories
+        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> factories.add(new ClassWidgetFactory((Class) c)));
+        factories.add(new EmptyWidgetFactory());
+
+        // register external factories
+        File dir = APP.DIR_WIDGETS;
+        if (!FileUtil.isValidatedDirectory(dir)) {
+            LOGGER.error("External widgets registration failed.");
+            return;
+        }
+        // get .fxml files
+//        try {
+//            Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
+//                 .forEach(f -> registerFactory(FileUtil.getName(f.toUri())));
+//        } catch(IOException e) {
+//            LOGGER.error("Error during looking for widgets. Some widgets might not be available.", e);
+//        }
+        try {
+            for(File widget_dir : dir.listFiles(f -> f.isDirectory())) {
+                List<File> files = list(widget_dir.listFiles(f -> f.isFile()));
+                File fxmlFile = files.stream().filter(f -> f.getPath().endsWith(".fxml")).findAny().orElse(null);
+                if(fxmlFile!=null) registerFxmlFactory(fxmlFile);
+                else {
+                    File classFile = files.stream().filter(f -> f.getPath().endsWith(".class")).findAny().orElse(null);
+                    registerClassFactory(classFile);
+                }
+            }
+            Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
+                 .forEach(path -> registerFxmlFactory(path.toFile()));
+        } catch(IOException e) {
+            LOGGER.error("Error during looking for widgets. Some widgets might not be available.", e);
+        }
+    }
+
+    private static void registerFxmlFactory(File fxmlFile) {
+        String name = FileUtil.getName(fxmlFile);
+        factories.computeIfAbsent(name, () -> {
+            LOGGER.info("registered widget factory: " + name);
+            return new FXMLWidgetFactory(name, fxmlFile);
+        });
+    }
+
+    private static void registerClassFactory(File classFile) {
+        String name = FileUtil.getName(classFile);
+        factories.computeIfAbsent(name, () -> {
+
+            LOGGER.info("registered widget factory" + name);
+            return new ClassWidgetFactory(classFile);
+        });
     }
 
     /**
      * @return read only list of registered widget factories
      */
     public static Stream<WidgetFactory<?>> getFactories() {
-        return factories.values().stream();
+        return factories.streamV();
     }
 
     /**
@@ -68,13 +110,12 @@ public final class WidgetManager {
         // attempt to register new factory for the file (maybe it was added in
         // runtime)
         if(wf==null) {
-            File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
+            File f = new File(APP.DIR_WIDGETS, name + File.separator + name + ".fxml");
             if(f.exists()) {
                 try {
-                    URL source = f.toURI().toURL();
-                    new FXMLWidgetFactory(name, source).register();
+                    factories.add(new FXMLWidgetFactory(name,f));
                     LOGGER.info("registering " + name);
-                } catch(MalformedURLException e) {
+                } catch(RuntimeException e) {
                     LOGGER.error("Error registering wirget: " + name, e);
                 }
             }
@@ -197,18 +238,18 @@ public final class WidgetManager {
      * Equivalent to: {@code
      * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
      */
-    public static<F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
-        return find(w->w.hasFeature(feature), source, ignore).map(w->(F)w.getController());
+    public static <F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
+        return find(w -> w.hasFeature(feature), source, ignore).map(w->(F)w.getController());
     }
-    public static<F> Optional<F> find(Class<F> feature, WidgetSource source) {
-        return find(w->w.hasFeature(feature), source).map(w->(F)w.getController());
+    public static <F> Optional<F> find(Class<F> feature, WidgetSource source) {
+        return find(w -> w.hasFeature(feature), source).map(w->(F)w.getController());
     }
-    public static<F> Optional<F> findExact(Class<? extends Controller> type, WidgetSource source) {
-        return find(w->w.type().equals(type), source).map(w->(F)w.getController());
+    public static <F> Optional<F> findExact(Class<? extends Controller> type, WidgetSource source) {
+        return find(w -> w.type()==type, source).map(w -> (F)w.getController());
     }
 
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
-    public static<F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
+    public static <F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
         find(type, source).ifPresent(action);
     }
 
@@ -292,41 +333,4 @@ public final class WidgetManager {
         WINDOW;
     }
 
-
-/******************************************************************************/
-
-    /**
-     * Registers external widget factories.
-     * Searches for .fxml files in widget folder and registers them as widget
-     * factories.
-     */
-    private static void registerExternalWidgetFactories() {
-        // get folder
-        File dir = App.WIDGET_FOLDER();
-        if (!FileUtil.isValidatedDirectory(dir)) {
-            LOGGER.error("External widgets registration failed.");
-            return;
-        }
-        // get .fxml files
-        try {
-            Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
-                 .forEach(f -> registerFactory(FileUtil.getName(f.toUri())));
-        } catch(IOException e) {
-            LOGGER.error("Error during looking for widgets. Some widgets might not be available.", e);
-        }
-    }
-
-    private static void registerFactory(String name) {
-        // avoid registering twice
-        if(factories.get(name) != null) return;
-
-        try {
-            File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
-            URL source = f.toURI().toURL();
-            new FXMLWidgetFactory(name, source).register();
-            LOGGER.info("registering " + name);
-        } catch(MalformedURLException e) {
-            LOGGER.error("Error registering widget: " + name, e);
-        }
-    }
 }

@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import util.dev.TODO;
@@ -218,10 +219,35 @@ public class MapSet<K,E> implements Set<E> {
         if(e != null)
             action.accept(e);
     }
+
     public void ifHasE(E element, Consumer<E> action) {
         E e = m.get(keyMapper.apply(element));
         if(e != null)
             action.accept(e);
+    }
+
+    public E computeIfAbsent(K key, Function<? super K, ? extends E> mappingFunction) {
+        E v = m.get(key);
+        if (v == null) {
+            E nv = mappingFunction.apply(key);
+            if (nv!= null) {
+                m.put(key, nv);
+                return nv;
+            }
+        }
+        return v;
+    }
+
+    public E computeIfAbsent(K key, Supplier<? extends E> supplier) {
+        E v = m.get(key);
+        if (v == null) {
+            E nv = supplier.get();
+            if (nv!= null) {
+                m.put(key, nv);
+                return nv;
+            }
+        }
+        return v;
     }
 
 }

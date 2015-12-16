@@ -60,7 +60,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
     // it needs to be declared to support deserialization
     final String name;
 
-    @XStreamOmitField private WidgetFactory factory;
+    /**
+     * Factory that produced this widget.
+     * <p>
+     * Note that in case the application creates another version of the factory (e.g., when the
+     * widget source code has been modified and recompiled in runtime), even though the old factory
+     * will be removed from the list of factories (substituted by the new factory), this field will
+     * still point to the old factory, holding true to the description of this field.
+     */
+    @XStreamOmitField public final WidgetFactory<?> factory;
     @XStreamOmitField protected C controller;
     @XStreamOmitField protected Node root;
 
@@ -143,8 +151,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
             } else {
                 Exception ex = null;
                 try {
-                    root = loadInitial();
-
+                    root = controller.loadFirstTime();
                     // we cant call this as parent is injected after this method returns
                     // in WidgetArea
                     // lockedUnder.init();
@@ -153,7 +160,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     // so initialization can access it
                     // however that does not happen here. The root Container and Node should be passed
                     // as parameters to this method
-                    loadInitialize();
+                    controller.init();
+                    restoreConfigs();
+                    controller.refresh();
                     deserializeIO();
                 } catch(Exception e) {
                     ex = e;
@@ -167,17 +176,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return root;
     }
 
-    /**
-     * Loads the widget. Solely used for {@link #load()} method called initially,
-     * before the loaded content is cached. Should be called only once per life
-     * cycle of the widget and internally.
-     */
-    protected abstract Node loadInitial() throws Exception;
-    protected void loadInitialize() {};
-
     private C instantiateController() {
         // instantiate controller
-        Class cc = getFactory().getControllerClass();
+        Class cc = factory.getControllerClass();
         C c;
         try {
             c = (C) cc.newInstance();
@@ -260,11 +261,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /** @param val whether this widget will be ignored on widget request */
     public void setIgnored(boolean val) {
         forbid_use = val;
-    }
-
-    /** @return factory that produces this widget */
-    public WidgetFactory getFactory() {
-        return factory;
     }
 
     /** @return factory information about this widget */
@@ -359,7 +355,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         super.readResolve();
 
         // try to assign factory
-        if (factory==null) factory = WidgetManager.getFactory(name);
+        if (factory==null) util.Util.setField(this, "factory", WidgetManager.getFactory(name));
         // use empty widget when no factory available
         if (factory==null) return Widget.EMPTY();
 

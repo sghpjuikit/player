@@ -21,10 +21,10 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
-import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
 
+import static main.App.APP;
 import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.filenamizeString;
 import static util.dev.Util.noØ;
@@ -145,7 +145,7 @@ public final class FileUtil {
      */
     public static boolean isValidSkinFile(File f) {
         String name = FileUtil.getName(f);
-        String path = App.SKIN_FOLDER().getPath() + File.separator + name +
+        String path = APP.DIR_SKINS.getPath() + File.separator + name +
                       File.separator + name + ".css";
         File test = new File(path);
         return (isValidFile(f) &&                   // is valid
@@ -158,7 +158,7 @@ public final class FileUtil {
         File p2 = p1==null ? null : p1.getParentFile();
         return (isValidFile(f) &&                   // is valid file
                 f.getPath().endsWith(".fxml") &&    // is .fxml file
-                App.WIDGET_FOLDER().equals(p2));    // is located in skins folder in its rightful folder
+                APP.DIR_WIDGETS.equals(p2));    // is located in skins folder in its rightful folder
     }
 
     /**

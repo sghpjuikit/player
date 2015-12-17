@@ -1,3 +1,4 @@
+package PlaylistView;
 
 import java.io.File;
 import java.util.Collection;

@@ -1,3 +1,4 @@
+package WebReader;
 
 import Configuration.IsConfig;
 import Layout.widget.Widget;

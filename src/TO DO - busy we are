@@ -4,6 +4,9 @@
 --------------------------------------------------------------------------------
 
 - container navigation up doesnt work when BiContainers are empty (contain only Layouter)
+- finish widget reloading - test & fix widget dir monitoring, make sure widget factory creation 
+  failure is handled properly. Make sure compiling widget files wont cause widgets not to load
+  when they request not yet created factory - delay app loading?
 - finish widget i/o graphics integration into the app (multiple windows, minimize redrawing & relayout)
 - Thumbnails should reload image when they are resized. Im not sure making this global
   behavior is a good idea, maybe it is. Hm. DirViewer suffers when user changes thumb size. This

@@ -19,6 +19,7 @@ import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import Layout.container.Container;
 import Layout.container.layout.LayoutManager;
 import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
@@ -32,6 +33,7 @@ import static Layout.widget.WidgetManager.WidgetSource.*;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.File.FileUtil.getName;
@@ -97,8 +99,12 @@ public final class WidgetManager {
         File classfile = new File(widgetdir,widgetname + ".class");
         File srcfile = new File(widgetdir,widgetname + ".java");
 
-        boolean classfile_available = classfile.exists();
+        // Source file is available if exists
+        // Class file is available if exists and source file doesnt. But if both do, classfile must
+        // not be outdated, which we check by modification time. This avoids nasty class version
+        // errors as consequently we recompile the sourcefile.
         boolean srcfile_available = srcfile.exists();
+        boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
 
         // monitor source file & recompile on change
         FileMonitor.monitorFile(srcfile, type -> {
@@ -120,7 +126,6 @@ public final class WidgetManager {
 
         // If class file is available, we just create factory for it.
         if(classfile_available) {
-            factories.removeKey(widgetname);
             Class<?> controller_class = loadClass(widgetname, classfile);
             constructFactory(controller_class, widgetdir);
         }
@@ -139,8 +144,24 @@ public final class WidgetManager {
         }
 
         WidgetFactory<?> wf = new WidgetFactory<>((Class<Controller<?>>) controller_class, dir);
+        boolean was_replaced = factories.containsKey(wf.name());
+        factories.removeKey(wf.name());
         factories.add(wf);
         LOGGER.info("Registering widget factory: {}", wf.name());
+//
+        if(was_replaced) {
+            LOGGER.info("Reloading all open widgets '{}'",wf.name());
+            findAll(OPEN)
+            .filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
+            .collect(toList()) // guarantees no concurrency problems due to forEach side effects
+            .forEach(w -> {
+                Container c = w.getParent();
+                int i = w.indexInParent();
+                Widget<?> nw = wf.create();
+                c.addChild(i, nw);
+                ((Widget<?>)w).getFields().forEach(f -> nw.setField(f.getName(),f.getValue()));
+            });
+        }
     }
 
     private void compile(File srcfile) {
@@ -157,13 +178,9 @@ public final class WidgetManager {
     private Class<?> loadClass(String widgetname, File classFile) {
         try {
             File dir = classFile.getParentFile();
-//            String widgetname = FileUtil.getName(classFile);
-            String classname = FileUtil.getName(classFile);
+            String classname = widgetname + "." + FileUtil.getName(classFile);
 
-            // We can use system class loader when we dont need runtime class reloading
-            ClassLoader controllerClassloader =
-                                                createControllerClassLoader(dir, widgetname);
-//                                                ClassLoader.getSystemClassLoader();
+            ClassLoader controllerClassloader = createControllerClassLoader(dir, widgetname);
 
             // debug - checks if the classloader can load the same class multiple times
             // boolean isDifferentClassInstance =
@@ -186,43 +203,70 @@ public final class WidgetManager {
      * loading any class more than once. Thus, multiple instances of this class loader load
      * different class even when loading the same class file!
      * If the controller attempts to load the same class more than once it throws LinkageError
-     * (attempted  duplicate class definition).
+     * (attempted duplicate class definition).
      * <p>
-     * Normally, this be accomplished easily using different instances of URLClassLoader, but
+     * Normally, this can be accomplished easily using different instances of URLClassLoader, but
      * in case the loaded class is on the classpath this will not work because the parent class
-     * loader is consulted first and it will find the class (since it is on the classpath) and load
-     * it (and prevent loading it ever again, unless we use class loader which will not consult it).
+     * loader is consulted first and it will find the class (since it is on the classpath), load and
+     * cache it (and prevent loading it ever again, unless we use custom class loader).
      * <p>
      * We care, because if we limit ourselves (with loading classes multiple times) to classes not
      * on the classpath, all external widget classes must not be on the classpath, meaning we have
      * to create separate project for every widget, since if they were part of this project,
      * Netbeans (which can only put compiled class files into one place) would automatically put
-     * them on classpath. Now we dont need multiple projects as we dont mind widget class files on
+     * them on classpath. Yes, this is purely for developer convenience, to be able to develop
+     * application and widgets as one project.
+     * Now we dont need multiple projects (per widget) as we dont mind widget class files on
      * the classpath since this class loader will load them from their widget location.
      * <p>
      * To explain - yes, external widgets have 2 copies of compiled class files now. One where its
      * source files (.java) are, where they are loaded from and the other in the application jar.
-     * The class files must be copied manually to from classpath widget's locations when they change.
-     * The widget classes belong to no package (have no package declaration).
+     * The class files must be copied manually from classpath to widget's locations when they change.
      */
     private static ClassLoader createControllerClassLoader(File widget_dir, String widget_name) {
+        // Note:
+        // The class (widget 'main' class, i.e., its controlelr class) should have a package
+        // declaration. We use the widge name as package name. Thus if we are about to load
+        // widget Abc represented by Abc.class as controller class, its full name will be
+        // Abc.Abc.class
+        //
+        // Now, because of this, we
+        // 1) load class not from widget directory, but one level higher, since the widget dir
+        //    serves as the package
+        File dir = widget_dir.getParentFile();
+        // 2) to obtain the class file to load from the class name, we change '.' into file
+        //    separators and resolve against the dir.
+        //    We cant hardcode the file from widget name (i.e., .../widgetname/widgetname), because
+        //    the class can contain inner classes, which will also need to be loaded (by this same
+        //    class loader).
+        //
+        //    Notice how we separate which classes should be loaded by parent class loader and
+        //    which by ours - startsWith(widgetname). All inner classes will start with the
+        //    same prefix (main class name), e.g., Abs.Abc$1
+        //
+        //    Lastly, this means only classes starting with the widgetname prefix can be reloaded.
+        //    Hence widget should either be single file - single class (plus inner/annonymous
+        //    classes). I dont think it even makes sense for it to be more than 1 top level class.
+
         return new ClassLoader(){
 
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {
-                return name.startsWith(widget_name)
-                        ? loadCl(name)
-                        : super.loadClass(name);
+                boolean needsReloadAbility = name.startsWith(widget_name);
+                return needsReloadAbility
+                        ? loadClassNoParent(name) // dont delegate to parent to avoid class caching
+                        : super.loadClass(name); // load normally (no reloading ability)
             }
 
-            Class<?> loadCl(final String name) throws ClassNotFoundException {
+            private Class<?> loadClassNoParent(final String name) throws ClassNotFoundException {
                 AccessControlContext acc = AccessController.getContext();
                 try {
                     PrivilegedExceptionAction action = new PrivilegedExceptionAction() {
                         @Override
                         public Object run() throws ClassNotFoundException {
                             try {
-                                FileInputStream fi = new FileInputStream(new File(widget_dir,name+".class"));
+                                File classFile = new File(dir,name.replace(".", File.separator) + ".class");
+                                FileInputStream fi = new FileInputStream(classFile);
                                 byte[] classBytes = new byte[fi.available()];
                                 fi.read(classBytes);
                                 return defineClass(name, classBytes, 0, classBytes.length);
@@ -233,7 +277,7 @@ public final class WidgetManager {
                     };
                     return (Class)AccessController.doPrivileged(action, acc);
                 } catch (java.security.PrivilegedActionException pae) {
-                    return super.findClass(name);
+                    throw new ClassNotFoundException(name);
                 }
             }
         };

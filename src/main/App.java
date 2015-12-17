@@ -517,7 +517,7 @@ public class App extends Application implements Configurable {
 
             // gather configs
             configuration.collectStatic();
-            APP.services.forEach(configuration::collect);
+            services.forEach(configuration::collect);
             configuration.collect(this, guide, actionPane);
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)

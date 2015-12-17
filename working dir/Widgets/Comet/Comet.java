@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Layout.widget.impl.comet;
+package Comet;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -57,16 +57,12 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
+import Comet.Comet.Ship.Engine;
+import Comet.Comet.Ship.Shield;
 import Configuration.IsConfig;
 import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
-import Layout.widget.impl.comet.Comet.Ship.Ability;
-import Layout.widget.impl.comet.Comet.Ship.Engine;
-import Layout.widget.impl.comet.Comet.Ship.KineticShield;
-import Layout.widget.impl.comet.Comet.Ship.KineticShield.KineticShieldPiece;
-import Layout.widget.impl.comet.Comet.Ship.PulseEngine.PulseEngineForceField;
-import Layout.widget.impl.comet.Comet.Ship.Shield;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -84,10 +80,10 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.reactive.RunnableSet;
 
-import static Layout.widget.impl.comet.Comet.AbilityKind.*;
-import static Layout.widget.impl.comet.Comet.AbilityState.*;
-import static Layout.widget.impl.comet.Comet.GunControl.*;
-import static Layout.widget.impl.comet.Comet.Side.*;
+import static Comet.Comet.AbilityKind.*;
+import static Comet.Comet.AbilityState.*;
+import static Comet.Comet.GunControl.*;
+import static Comet.Comet.Side.*;
 import static gui.objects.Window.stage.UiContext.showSettings;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
@@ -532,7 +528,7 @@ public class Comet extends ClassController {
         Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
         boolean isMissionScheduled = false;
         final MapSet<Integer,Mission> missions = new MapSet<>(m -> m.id,
-            new Mission(1,null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.03),null, Inkoid::new), //new Glow(0.3)
+            new Mission(1,null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, Inkoid::new), //new Glow(0.3)
             new Mission(2,null,Color.YELLOW, Color.rgb(0, 8, 0, 0.08), null, Fermi::new),
             new Mission(3,null, Color.DODGERBLUE,Color.rgb(10,10,25,0.08), null,Energ::new),
             new Mission(4,null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, Fermi::new),

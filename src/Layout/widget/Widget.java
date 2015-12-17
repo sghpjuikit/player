@@ -288,6 +288,27 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         if(!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
     }
 
+    /**
+     * Sets any state of this widget to that of a target widget's.
+     * It is generally recommended to use this method before this widget is laoded.
+     * @param w widget to copy state from
+     */
+    public void setStateFrom(Widget<C> w) {
+        // this takes care of any custom state or controller persistence state or deserialized
+        // configs/inputs/outputs
+        properties.clear();
+        properties.putAll(w.properties);
+
+        preferred = w.preferred;
+        forbid_use = w.forbid_use;
+        loadType.set(w.loadType.get());
+        locked.set(w.locked.get());
+
+        if(controller!=null && w.controller!=null) {
+            w.controller.getFields().forEach(f -> controller.setField(f.getName(),f.getValue()));
+        }
+    }
+
 /******************************************************************************/
 
 

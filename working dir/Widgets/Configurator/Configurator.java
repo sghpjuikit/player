@@ -1,4 +1,4 @@
-package Layout.widget.impl;
+package Configurator;
 
 import java.util.*;
 
@@ -15,7 +15,6 @@ import javafx.scene.layout.*;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import Layout.widget.feature.ConfiguringFeature;
@@ -35,7 +34,6 @@ import static util.functional.Util.byNC;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchors;
 
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

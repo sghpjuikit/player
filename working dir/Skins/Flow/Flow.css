@@ -1,5 +1,5 @@
 /* 
-    Document    : Default
+    Document    : Flow
     Author      : Martin Polakovic
     Description : skin
 */
@@ -14,7 +14,7 @@
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgb(165, 165, 165);
     
-    -fx-pane-color: rgba(0,0,20,0.4);
+    -fx-pane-color: rgba(0,10,30,0.5);
     -fx-popup-def-bgr-color: rgba(16,16,35,0.8);
 
     -fx-focus-color: #ffcc66;

@@ -84,8 +84,8 @@ public class JavaFxPlayer implements Play {
 
             runFX(() -> {
                 player.setStartTime(Duration.ZERO);
-                player.setAudioSpectrumInterval(0.1);
-                player.setAudioSpectrumNumBands(64);
+                player.setAudioSpectrumInterval(0.01);
+                player.setAudioSpectrumNumBands(128);
                 // player.setAudioSpectrumThreshold(i) // ? what val is ok?
 
                 // bind (not read only) values

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Layout.widget.impl;
+package Inspector;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -17,7 +17,6 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import Layout.widget.feature.FileExplorerFeature;
@@ -29,7 +28,6 @@ import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static util.graphics.Util.setAnchor;
 
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
@@ -56,7 +54,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
 
     public Inspector() {
         setAnchor(this, tree,0d);
-        
+
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
         tree.setCellFactory(TreeItems::buildTreeCell);
         tree.setRoot(TreeItems.treeApp());

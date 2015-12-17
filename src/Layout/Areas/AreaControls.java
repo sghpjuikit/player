@@ -26,10 +26,10 @@ import javafx.scene.layout.*;
 
 import org.reactfx.EventSource;
 
+import Configurator.Configurator;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
-import Layout.widget.impl.Configurator;
 import gui.GUI;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;

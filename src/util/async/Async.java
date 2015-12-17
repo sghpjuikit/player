@@ -99,6 +99,24 @@ public final class Async {
         thread.start();
     }
 
+    public static void runAfter(Duration delay, Consumer<Runnable> executor, Runnable r) {
+        if(delay.lessThanOrEqualTo(Duration.ZERO)) {
+            executor.accept(r);
+        } else {
+            executor.accept(() -> {
+                if(Platform.isFxApplicationThread()) {
+                    new FxTimer(delay, 1, r).start();
+                } else {
+                    try {
+                        Thread.sleep((long)delay.toMillis());
+                        r.run();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Async.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+        }
+    }
     public static void runNewAfter(Duration delay, Runnable r) {
         Thread thread = new Thread(() -> {
             try {

@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- libraryview placeholder doesnt detect empty table correctly
+- implement widget skins properly
 - container navigation up doesnt work when BiContainers are empty (contain only Layouter)
 - finish widget reloading - test & fix widget dir monitoring, make sure widget factory creation 
   failure is handled properly. Make sure compiling widget files wont cause widgets not to load

@@ -19,10 +19,10 @@ import com.thoughtworks.xstream.io.StreamException;
 
 import Configuration.Configurable;
 import Configuration.IsConfigurable;
+import Configurator.Configurator;
 import Layout.Component;
 import Layout.widget.Widget;
 import Layout.widget.WidgetFactory;
-import Layout.widget.impl.Configurator;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import main.App;

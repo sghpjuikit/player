@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Layout.widget.impl;
+package Converter;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,6 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.Widget.Group;
 import Layout.widget.controller.ClassController;
@@ -72,7 +71,6 @@ import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

@@ -34,19 +34,17 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.toList;
-import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.File.FileUtil.getName;
 import static util.async.Async.runFX;
-import static util.async.Async.runNewAfter;
-import static util.functional.Util.stream;
+import static util.async.Async.runNew;
 
 /**
  * Handles operations with Widgets.
  */
 public final class WidgetManager {
 
-    private final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
+    private static final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
 
     /**
      * Collection of valid widget factories by their name..
@@ -55,17 +53,16 @@ public final class WidgetManager {
      * widgets files are discovered/deleted/modified.
      */
     public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(factory -> factory.name());
-    static final Set<String> DEPENDENCIES = new HashSet<>();
+    private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetname);
+    private boolean initialized = false;
 
     public void initialize() {
-
-        DEPENDENCIES.clear();
-        stream(new File(APP.DIR_APP_SRC,"lib").listFiles()).map(File::getPath).
-                forEach(DEPENDENCIES::add);
-        DEPENDENCIES.add(APP.FILE_SRC_JAR.getPath());
+        if(initialized) throw new IllegalStateException("Already initialized");
 
         // internal factories
-        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> constructFactory(c, null));
+        // Factories for classes known at compile time and packaged along the application requesting
+        // factory generation.
+        ClassIndex.getAnnotated(GenerageWidgetFactory.class).forEach(c -> constructFactory(c, null));
         factories.add(new WidgetFactory<>(EmptyWidget.class));
 
         // external factories
@@ -76,70 +73,36 @@ public final class WidgetManager {
         }
 
         for(File widget_dir : dir.listFiles(f -> f.isDirectory())) {
-            registerExternalFactory(widget_dir);
+            String name = getName(widget_dir);
+            monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
+                    .registerExternalFactory();
         }
 
-        FileMonitor.monitorDirectory(dir, (type,file) -> {
-            if(file.isDirectory()) {
-                String widget_name = getName(file);
-                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-                    LOGGER.info("Discovered widget: {}", widget_name);
-                    registerExternalFactory(dir);
+        FileMonitor.monitorDirectory(dir, (type,widget_dir) -> {
+            if(widget_dir.isDirectory()) {
+                String name = getName(widget_dir);
+                if(type==ENTRY_CREATE) {
+                    LOGGER.info("Discovered widget type: {}", name);
+                    monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
+                            .registerExternalFactory();
                 }
                 if(type==ENTRY_DELETE) {
-                    LOGGER.info("Deleted widget: {}", widget_name);
-                    factories.removeKey(widget_name);
+                    LOGGER.info("Disposing widget type: {}", name);
+                    WidgetDir wd = monitors.get(name);
+                    if(wd!=null) wd.dispose();
                 }
             }
         });
-    }
-
-    private void registerExternalFactory(File widgetdir) {
-        String widgetname = getName(widgetdir);
-        File classfile = new File(widgetdir,widgetname + ".class");
-        File srcfile = new File(widgetdir,widgetname + ".java");
-
-        // Source file is available if exists
-        // Class file is available if exists and source file doesnt. But if both do, classfile must
-        // not be outdated, which we check by modification time. This avoids nasty class version
-        // errors as consequently we recompile the sourcefile.
-        boolean srcfile_available = srcfile.exists();
-        boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
-
-        // monitor source file & recompile on change
-        FileMonitor.monitorFile(srcfile, type -> {
-            if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-                runFX(500, () ->
-                    compile(srcfile)
-                );
-            }
-        });
-        // monitor class file & recreate factory on change
-        FileMonitor.monitorFile(classfile, type -> {
-            if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-                // run on fx thread & give the compilation some time to finish
-                runFX(500, () ->
-                    registerExternalFactory(widgetdir)
-                );
-            }
-        });
-
-        // If class file is available, we just create factory for it.
-        if(classfile_available) {
-            Class<?> controller_class = loadClass(widgetname, classfile);
-            constructFactory(controller_class, widgetdir);
-        }
-
-        // If only source file is available, compile
-        else if(srcfile_available) {
-            runNewAfter(millis(500), () -> compile(srcfile));
-        }
+        initialized = true;
     }
 
     private void constructFactory(Class controller_class, File dir) {
-        if(controller_class==null) return;
+        if(controller_class==null) {
+            LOGGER.warn("Widget class {} is null",controller_class);
+            return;
+        }
         if(!Controller.class.isAssignableFrom(controller_class)) {
-            LOGGER.info("Widget class {} does implement Controller.",controller_class);
+            LOGGER.warn("Widget class {} does not implement Controller",controller_class);
             return;
         }
 
@@ -148,23 +111,136 @@ public final class WidgetManager {
         factories.removeKey(wf.name());
         factories.add(wf);
         LOGGER.info("Registering widget factory: {}", wf.name());
-//
+
         if(was_replaced) {
-            LOGGER.info("Reloading all open widgets '{}'",wf.name());
+            LOGGER.info("Reloading all open widgets of {}", wf.name());
             findAll(OPEN)
             .filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
             .collect(toList()) // guarantees no concurrency problems due to forEach side effects
             .forEach(w -> {
-                Container c = w.getParent();
-                int i = w.indexInParent();
                 Widget<?> nw = wf.create();
+                nw.setStateFrom(w);
+                int i = w.indexInParent();
+                Container c = w.getParent();
+                c.removeChild(i);
                 c.addChild(i, nw);
-                ((Widget<?>)w).getFields().forEach(f -> nw.setField(f.getName(),f.getValue()));
             });
         }
     }
 
-    private void compile(File srcfile) {
+    private class WidgetDir {
+        final String widgetname;
+        final File widgetdir;
+        final File classfile;
+        final File srcfile;
+        final File skinfile;
+        FileMonitor classMonitor;
+        FileMonitor srcMonitor;
+        FileMonitor skinsMonitor;
+        boolean monitorOn = false;
+
+        WidgetDir(String name, File dir) {
+            this.widgetname = name;
+            this.widgetdir = dir;
+            classfile = new File(widgetdir,widgetname + ".class");
+            srcfile = new File(widgetdir,widgetname + ".java");
+            skinfile = new File(widgetdir,"skin.css");
+        }
+
+        void monitorStart() {
+            if(monitorOn) return;
+            monitorOn = true;
+
+            // monitor source file & recompile on change
+            classMonitor = FileMonitor.monitorFile(srcfile, type -> {
+                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                    LOGGER.info("Widget {} source file changed {}", widgetname,type);
+                    runNew(() -> compile(srcfile));
+                }
+            });
+            // monitor class file & recreate factory on change
+            srcMonitor = FileMonitor.monitorFile(classfile, type -> {
+                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                    LOGGER.info("Widget {} class file changed {}", widgetname,type);
+                    // run on fx thread & give the compilation some time to finish
+                    runFX(500, () ->
+                        registerExternalFactory()
+                    );
+                }
+            });
+            // monitor skin file & reload factory on change
+            srcMonitor = FileMonitor.monitorFile(skinfile, type -> {
+                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                    // run on fx thread
+                    runFX(() ->
+                        {}
+                    );
+                }
+            });
+        }
+        void monitorStop() {
+            monitorOn = false;
+            if(classMonitor!=null) classMonitor.stop();
+            if(classMonitor!=null) srcMonitor.stop();
+            if(classMonitor!=null) skinsMonitor.stop();
+        }
+
+        void dispose() {
+            monitorStop();
+            factories.removeKey(widgetname);
+            monitors.removeKey(widgetname);
+        }
+
+        void registerExternalFactory() {
+            File classfile = new File(widgetdir,widgetname + ".class");
+            File srcfile = new File(widgetdir,widgetname + ".java");
+
+            // Source file is available if exists
+            // Class file is available if exists and source file doesnt. But if both do, classfile must
+            // not be outdated, which we check by modification time. This avoids nasty class version
+            // errors as consequently we recompile the sourcefile.
+            boolean srcfile_available = srcfile.exists();
+            boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
+
+            // If class file is available, we just create factory for it.
+            if(classfile_available) {
+                Class<?> controller_class = loadClass(widgetname, classfile);
+                constructFactory(controller_class, widgetdir);
+            }
+
+            // If only source file is available, compile
+            else if(srcfile_available) {
+                // If we are initialized, app is running and some widget has been added (its factory
+                // does not exist yet), so we compile in the bgr as we should.
+                // Else, we are initializing now, and we must be able to
+                // provide all factories before widgets start loading so we compile on this (ui/fx)
+                // thread. This blocks and delays startup, but thats fine, how else are we going to
+                // load widgets if we dont have class files for them?
+                // We could in theory load he widgets lazily - provide a mock up and reload them afrer
+                // factories are ready (we finish compiling on bgr thread). Too much work for no real
+                // benefit - This is developer convenience feature anyway. We only need to compile
+                // once, then any subsequent app start will be compile-free.
+                if(initialized) runNew(() -> compile(srcfile));
+                else {
+                    compile(srcfile);
+                    // File monitoring is not and must not be running yet (as it creates factory
+                    // asynchronously). We do it manually.
+                    registerExternalFactory();
+                }
+            }
+
+            monitorStart();
+        }
+
+    }
+
+    /**
+     * Compiles the .java file into .class file. All project dependencies (including the project
+     * itself - its jar) are available because they are on the classpath.
+     *
+     * @param srcfile .java file to compile
+     */
+    private static void compile(File srcfile) {
         LOGGER.info("Compiling {}", srcfile);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int success = compiler.run(null, null, null, srcfile.getPath());
@@ -175,7 +251,7 @@ public final class WidgetManager {
         }
     }
 
-    private Class<?> loadClass(String widgetname, File classFile) {
+    private static Class<?> loadClass(String widgetname, File classFile) {
         try {
             File dir = classFile.getParentFile();
             String classname = widgetname + "." + FileUtil.getName(classFile);
@@ -282,7 +358,6 @@ public final class WidgetManager {
             }
         };
     }
-
 
 
     /**

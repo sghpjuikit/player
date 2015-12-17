@@ -17,12 +17,16 @@ import java.nio.file.WatchService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import util.async.executor.EventReducer;
+import util.collections.Tuple2;
+
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
+import static util.collections.Tuples.tuple;
 import static util.dev.Util.log;
 
 /**
@@ -31,10 +35,33 @@ import static util.dev.Util.log;
  */
 public class FileMonitor {
 
+    // Relatively simple to monitor a file? Think again.
+    // 1) WatchService allows us to only monitor a directory. We then must simple ignore other
+    //    events of files other than the one we monitor. This is really bad if we want to monitor
+    //    multiple files in a single directory (each on its own). We would have to use 1 thread
+    //    and 1 watch service per each file!
+    // 2) Modification events. Not even goign to tryto understand - modifications events fire
+    //    multiple times! When I edit java source file in Netbeans and save I get 3 events at about
+    //    8-13 ms time gap (tested on SSD)!
+    //    We clearly have to use an event reducer here
+
     private File monitoredFile;
     private File monitoredFileDir;
     private WatchService watchService;
     private BiConsumer<Kind<Path>,File> action;
+    private boolean isFile;
+    private String name; // purely for logging "Directory" or "File"
+
+    EventReducer<Tuple2<Kind<Path>,File>> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e._1,e._2));
+
+    private void emitEvent(Kind<Path> type, File file) {
+        // This works as it should.
+        // If anyone needs logging, they are free to do so in the event handler.
+        // log(FileMonitor.class).info("{} event {} on {}", name,type,file);
+
+        // always run on fx thread
+        runFX(() -> action.accept(type,file));
+    }
 
     public static FileMonitor monitorFile(File toMonitor, Consumer<Kind<Path>> handler) {
 //        if(!toMonitor.isFile()) throw new IllegalArgumentException("Can not monitor a directory.");
@@ -43,13 +70,15 @@ public class FileMonitor {
         fm.monitoredFile = toMonitor;
         fm.monitoredFileDir = fm.monitoredFile.getParentFile();
         fm.action = (type,file) -> handler.accept(type);
+        fm.isFile = true;
+        fm.name = fm.isFile ? "File" : "Directory";
 
         Path dir = fm.monitoredFileDir.toPath();
         try {
             fm.watchService = FileSystems.getDefault().newWatchService();
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
-                boolean valid = true;
+                boolean valid;
                 WatchKey watchKey;
                 do {
                     try {
@@ -64,13 +93,20 @@ public class FileMonitor {
 
                     for (WatchEvent<?> event : watchKey.pollEvents()) {
                         Kind<?> type = event.kind();
-                        if (type!=OVERFLOW) {
-                            WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            String modifiedFileName = ev.context().toString();
-                            File modifiedFile = new File(fm.monitoredFileDir, modifiedFileName);
-                            if(fm.monitoredFile.equals(modifiedFile)) {
-                                log(FileMonitor.class).info("File monitor detected event {} on {}", type,modifiedFile);
-                                runFX(() -> fm.action.accept((Kind)type,modifiedFile));
+
+                        if (type==OVERFLOW) continue;
+
+                        WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                        String modifiedFileName = ev.context().toString();
+                        File modifiedFile = new File(fm.monitoredFileDir, modifiedFileName);
+
+                        if(fm.monitoredFile.equals(modifiedFile)) {
+                            if(type==ENTRY_MODIFY) {
+                                runFX(() ->
+                                    fm.modificationReducer.push(tuple((Kind)type, modifiedFile))
+                                );
+                            } else {
+                                fm.emitEvent((Kind)type, modifiedFile);
                             }
                         }
                     }
@@ -92,6 +128,8 @@ public class FileMonitor {
         fm.monitoredFile = toMonitor;
         fm.monitoredFileDir = toMonitor;
         fm.action = handler;
+        fm.isFile = false;
+        fm.name = fm.isFile ? "File" : "Directory";
 
         Path dir = fm.monitoredFileDir.toPath();
         try {
@@ -117,8 +155,8 @@ public class FileMonitor {
                             WatchEvent<Path> ev = (WatchEvent<Path>) event;
                             String modifiedFileName = ev.context().toString();
                             File modifiedFile = new File(fm.monitoredFileDir, modifiedFileName);
-                            log(FileMonitor.class).info("Directory monitor detected event {} on {}", type,modifiedFile);
-                            runFX(() -> fm.action.accept((Kind)type,modifiedFile));
+
+                            fm.emitEvent((Kind)type, modifiedFile);
                         }
                     }
 

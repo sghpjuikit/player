@@ -60,7 +60,6 @@ import javafx.util.Duration;
 import Comet.Comet.Ship.Engine;
 import Comet.Comet.Ship.Shield;
 import Configuration.IsConfig;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import de.jensd.fx.glyphs.GlyphIcons;
@@ -154,7 +153,6 @@ import static util.reactive.Util.maintain;
  *
  * @author Plutonium_
  */
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

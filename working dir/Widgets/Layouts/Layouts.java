@@ -1,5 +1,5 @@
 
-package Layout.widget.impl;
+package Layouts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,6 @@ import Layout.Component;
 import Layout.container.layout.Layout;
 import Layout.container.layout.LayoutManager;
 import Layout.container.switchcontainer.SwitchContainer;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import gui.objects.Text;
@@ -31,7 +30,6 @@ import static util.functional.Util.toCSList;
  *
  * @author uranium
  */
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

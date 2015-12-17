@@ -453,8 +453,7 @@ public final class PLAYBACK implements Configurable {
      * listener registered in the listener list.
      */
     public final static AudioSpectrumListener spectrumListenerDistributor = (double d, double d1, float[] floats, float[] floats1) -> {
-        // distribute event to all listeners
-        spectrumListeners.forEach(l->l.spectrumDataUpdate(d, d1, floats, floats1));
+        spectrumListeners.forEach(l -> l.spectrumDataUpdate(d, d1, floats, floats1));
     };
 
     /**
@@ -465,9 +464,6 @@ public final class PLAYBACK implements Configurable {
      */
     public static void addAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.add(l);
-//        if(spectrumListeners.size()==1)
-//            if(player.player!=null)
-//                player.player.setAudioSpectrumListener(spectrumListenerDistributor);
     }
 
     /**
@@ -476,8 +472,5 @@ public final class PLAYBACK implements Configurable {
      */
     public static void removeAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.remove(l);
-//        if(spectrumListeners.isEmpty())
-//            if(player.player!=null)
-//                player.player.setAudioSpectrumListener(null);
     }
 }

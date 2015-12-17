@@ -58,7 +58,6 @@ import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.feature.ConfiguringFeature;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.PlaylistFeature;
-import Layout.widget.impl.Layouts;
 import action.Action;
 import action.IsAction;
 import action.IsActionable;
@@ -838,7 +837,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
     public static void openLayoutManager() {
-        APP.widgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
+        APP.widgetManager.find(w -> w.name().equals("Layouts"), WidgetSource.NO_LAYOUT);
     }
 
     @IsAction(name = "Open guide", desc = "Resume or start the guide.")

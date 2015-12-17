@@ -5,7 +5,7 @@
  * and open the template in the editor.
  */
 
-package Layout.widget.impl;
+package FunctionViewer;
 
 import java.util.function.Function;
 
@@ -18,7 +18,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
 import Configuration.Config;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import gui.itemnode.ConfigField;
@@ -30,11 +29,10 @@ import static java.lang.Math.max;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.graphics.Util.setAnchors;
 
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    name = "FunctionPlotter",
+    name = "Function Viewer",
     description = "Plots functions",
     howto = "",
     notes = "",
@@ -42,11 +40,11 @@ import static util.graphics.Util.setAnchors;
     year = "2015",
     group = DEVELOPMENT
 )
-public class FunctionPlotter extends ClassController  {
+public class FunctionViewer extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
 
-    public FunctionPlotter() {
+    public FunctionViewer() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

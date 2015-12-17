@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Layout.widget.impl;
+package DirViewer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,7 +28,6 @@ import javafx.scene.layout.*;
 import Configuration.Config;
 import Configuration.Config.VarList;
 import Configuration.IsConfig;
-import Layout.widget.IsWidget;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import gui.objects.grid.ImprovedGridCell;
@@ -71,7 +70,6 @@ import static util.graphics.Util.setAnchor;
  *
  * @author Plutonium_
  */
-@IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

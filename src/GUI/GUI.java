@@ -31,7 +31,6 @@ import com.sun.javafx.css.StyleManager;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.container.layout.Layout;
-import Layout.container.layout.LayoutManager;
 import action.IsAction;
 import action.IsActionable;
 import gui.objects.Window.stage.Window;
@@ -212,7 +211,7 @@ public class GUI {
     /** Loads/refreshes active layout. */
     @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
     public static void loadLayout() {
-        LayoutManager.getLayouts().forEach(Layout::load);
+        APP.widgetManager.getLayouts().forEach(Layout::load);
     }
 
     /** Toggles layout controlling mode. */
@@ -235,11 +234,11 @@ public class GUI {
         // before invoking hide().
         // This is important to maintain consistency. See documentation.
         if (val) {
-            LayoutManager.getLayouts().forEach(Layout::show);
+            APP.widgetManager.getLayouts().forEach(Layout::show);
             layout_mode.set(val);
         } else {
             layout_mode.set(val);
-            LayoutManager.getLayouts().forEach(Layout::hide);
+            APP.widgetManager.getLayouts().forEach(Layout::hide);
             setZoomMode(false);
         }
         if(val) APP.actionStream.push("Layout mode");

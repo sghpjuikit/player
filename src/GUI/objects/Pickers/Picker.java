@@ -113,7 +113,6 @@ public class Picker<E> {
                 onCancel.run();
                 if(consumeCancelClick) e.consume();
             }
-            e.consume();
         });
         root.getStyleClass().add(STYLE_CLASS);
     }

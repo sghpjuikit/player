@@ -18,6 +18,7 @@ import javafx.util.Duration;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Layout.AltState;
 import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
 import Layout.Areas.IOLayer;
@@ -245,18 +246,22 @@ public class SwitchPane implements ContainerNode {
             return t;
         });
 
-        if(c==null) {
-            Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
-            if(GUI.isLayoutMode()) l.show();
-            n = l.getRoot();
-        } else if (c instanceof Container) {
+        AltState as;
+        if (c instanceof Container) {
             layouters.remove(i);
             n = ((Container)c).load(tab);
+            as = (Container)c;
         } else if (c instanceof Widget) {
             layouters.remove(i);
             WidgetArea wa = new WidgetArea(container, i, (Widget)c);
             n = wa.root;
+            as = wa;
+        } else { // ==null
+            Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
+            n = l.getRoot();
+            as = l;
         }
+        if(GUI.isLayoutMode()) as.show();
         tab.getChildren().setAll(n);
     }
 

@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 
+import Layout.AltState;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
@@ -170,20 +171,24 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
 
         AnchorPane r = i==1 ? root_child1 : root_child2;
 
-        Node n = null;
+        Node n;
+        AltState as;
         if (c instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)c);
             if(i==1) wa1 = wa; else wa2 = wa;
             n = wa.root;
+            as = wa;
         } else if (c instanceof Container) {
             n = ((Container)c).load(r);
-        } else {
+            as = (Container)c;
+        } else { // ==null
             Layouter l = i==1 ? layouter1 : layouter2;
             if(l==null) l = new Layouter(container, i);
             if(i==1) layouter1 = l; else layouter2 = l;
-            if(GUI.isLayoutMode()) l.show();
             n = l.getRoot();
+            as = l;
         }
+        if(GUI.isLayoutMode()) as.show();
 
         r.getChildren().setAll(n);
         setAnchors(n,0d);

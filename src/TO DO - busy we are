@@ -3,26 +3,30 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- ImageViewer handle multiple files drag&drop
+- support collection actions in actionpane on table selection, add audio import actions
+- thumbnail border reposition sometimes not correctly working
+- figure out image animation autoplay def behavior & indicative play/pause mechanism
+- widget compilation - report errors back to user through gui (popup? notfication? else?)
+- widget factory reconsturcting, make sure badly compiled class wont uselessly reload widgets
+  only to end up being unable to load them at all due to corrupted classes
+- widget manager monitor .fxml files too + reload widgets
+- comet lens disruptor - objects should flow around player
+- comet make rotateToForceOrigin()
+- comet BH-BH attraction, should cause BH-BH orbit using small dist repulsion
 - libraryview placeholder doesnt detect empty table correctly
-- implement widget skins properly
-- container navigation up doesnt work when BiContainers are empty (contain only Layouter)
-- finish widget reloading - test & fix widget dir monitoring, make sure widget factory creation 
-  failure is handled properly. Make sure compiling widget files wont cause widgets not to load
-  when they request not yet created factory - delay app loading?
-- finish widget i/o graphics integration into the app (multiple windows, minimize redrawing & relayout)
 - Thumbnails should reload image when they are resized. Im not sure making this global
   behavior is a good idea, maybe it is. Hm. DirViewer suffers when user changes thumb size. This
   sure can be solved manually, but...
-- Thumbnail border has inconsistent border width and can be blurry, probably
-  problem with drawing at non-integer coordinates.
 - optimize GridView. Virtualize rows and cells as nongraphical objects providing
   only x,y,width,height for the custom graphics to resizeRelocate within a single
   parent for all cells' graphics rendered all at once in gridview's layoutChildren()
   This may or may not be possible depending on whether it requires virtual flow modification
 - explicit config for song enqueue order
 - make Configurator config field button single instance, use vertical animation
-- Configurator implement drag & drop of Configurables
-- dir viewer allow visiting up if parent  is only 1
+- Configurator implement drag & drop of Configurables, support any object by turning it into 
+  Configurable (but using which convention?)
+- dir viewer allow visiting up if parent is only 1
 - implement filesize grouping buckets
 - remove artwork caching?
 - improve table performance
@@ -65,8 +69,6 @@
 - LastFM -> service, implement properly
 - popover position jumps on app drag start & fix icon shadows affecting
   layout
-- i think time has come to say goodbye to PlaylistItem, use Metadata instead
-  this is a big thing though, maybe impossible (playlist serialization for instance)
 - item->metadata
 - cleanup PopOver positioning
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
@@ -79,7 +81,7 @@
 - unify table column resizing, namely getMain column and autoresize with 
   main column taking all space, maybe signal locked columns with icon and add
   menu item for on/off autoresize columns option
-- cleanups: ActionPane, GridView, Area, Var, Ref, SingleRef
+- cleanups: ActionPane, GridView, Var, Ref, SingleRef
 
 -------------------------------------------------------------------------------- 
 --------------------------------- TESTING  -------------------------------------
@@ -92,98 +94,104 @@
 --------------------------------------------------------------------------------
 
 GENERAL
-- cant hide index column, shows artefacts                                       (medium)
-- transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
-  problem: transparent skins, window shadows & screen mouse effects unsupported
-- deactivator position | size a bit off when loading first time & into small    (minor)
-  area. It requires area resize call to initialize correct height/y-ccord
-  use black bgr on the buttons pane to see the issue
-- playlist item moving change order when moving fast even for jsut 1 block      (minor)
-- backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
-  status: currently unsolvable, so far one of its kind
-  problem: jintellitype '\' works only for right '\' not left one (yes there are
-  two '\' keys on the keyboard).
-- starting paused playback plays the song for an instant                        (medium)
-- local shortcuts for complex characters (BACK_SLASH, etc) not working
-  solution: solved for some characters by manually rewriting them upon
-  shortcut registering, but thats only partial and incomplete workaround
-- popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
-- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
-  this happens when something has null skin, investigate & fix
-- Configurator group title alignment doesnt get applied immediately             (minor)
-  its partially fixed now
-- some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug?)
-  length as twice of the real (note: SmilePrecure OST)
-- sometimes not even suspending playback allows jaudiotagger renaming songs
-  and thus prevents successful tagging. see unabletorename in autdio test files
-- when app starts with paused song, playing some other songs starts from that
-  point rather than the beginning
-- some images with very long names 'can not be found' - it is probably windows
-  thing as have experienced problems with long image names before when copying
-  the files in windows 
-- variable bitrate oggs not playing
-- dragOver event is called repeatedly, we cant use just any code in there
-  (like Fut, which oddly gets computed immediately when created)
-- Fut computed on creation? see above, investigate
-- investigate how to properly remove image scaling artifacts                    (minor)
-  Not an issue since we are using scale factor when loading images, but
-  investigate. When displaying image very close to its loaded size (+-10%)
-  aliasing appears
-
-SOLVED (but the underlying cause still deserves attention)
-- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
-  nonempty.
-  solution: custom comment reading method filters out CUSTOM fields             (great)
-- split container divider position not applied properly (vertical only).        (medium)
-  note: how does orientation come into this: unknown
-  solution: have each splitter wait 2 seconds and apply the position again
-  problem: arbitrary waiting value might not work in all cases + puttin the
-  divider near edge (1 or 0 value) by resizing the Pane will deform the value
-  and it doesn retain correct position. Re-applying it doesnt work because of
-  this bug. Platform.runLater is the only workaround and it can not be used here
-  See the Splitter class for more information
-- javafx.scene.text.Text doesnt have css style class and as such doesn allow
-  default values and skinning
-  solution: Text class extending javafx.scene.text.Text and adding custom 
-  styleclass. Use instead of the original if default behavior (skin) is expected
-  Also got a nice additional method.
-  note: there actually is a styleclass for the Text: .Text  
-  investigate, test, reimplement
-- open PopOvers prevent app to close normally.                                  (medium-major)
-  cause: javaFX bug
-  solution: Manually close them all when main window closes (introduces some    (good)
-  code pollution). Requires static list.
-- fullscreen not initializing on window deserialization, update() method bug    (minor)
-  cause: unknown                                                                (javafx bug?)
-  problem: fullscreen is set, resizability is set to false, the fs hint is shown
-  but the window does not cover whole screen - maybe its too soon
-  and the window is not really fully initialized
-  solution: delay execution 100ms (see WindowBase.update())                     (not ideal but no problems)
-- app not closing propery on ALT+F4                                             (medium-major)
-  cause: ALT+F4 and closing app from taskbar calling window.closeRequst
-  closes focused window not application. It somehow closes windows
-  without closing them (close() does not get invoked). Because of this closing
-  main window this way doesnt execute the necessary actions. Also, with the
-  hidden owner window app wont close as one window remains open
-  solution: have onCloseRequest event execute close()
-- some local shortucts (F3,F4,F5,...) not registering as app shortcuts          (major)
-  cause: unknown, so far affects only some F keys (some F keys are fine)
-  solution: delay registering in runLater()                                     (great)
-  details: see Action.class register()
-- when table selection changes from 2 selected items, the selectedItems()       (medium, javaFX bug?)
-  list will contain null instead of the newly selected element (the one added, 
-  or the one remaining)
-  cause: unknown
-  solution: iterate over the list with stream().limit(3)
-  affected: LibraryView filterList(), InfoTable
-- Icon does not support disabled style (opacity 0.4). Thus it was added in css. (minor, inconvenience)
+- cant hide index column, shows artefacts                                                           (medium)
+- transparent stage causing massive perfomance degradation for larger stages                        (major, javaFX bug)
+  problem: transparent skins, window shadows & screen mouse effects unsupported 
+- deactivator position | size a bit off when loading first time & into small                        (minor)
+  area. It requires area resize call to initialize correct height/y-ccord 
+  use black bgr on the buttons pane to see the issue 
+- playlist item moving change order when moving fast even for jsut 1 block                          (minor)
+- backslash (\) shortcut not working for left backslash key (left from Z)                           (medium, since more stuff can be affected)
+  status: currently unsolvable, so far one of its kind 
+  problem: jintellitype '\' works only for right '\' not left one (yes there are 
+  two '\' keys on the keyboard). 
+- starting paused playback plays the song for an instant                                            (medium)
+- local shortcuts for complex characters (BACK_SLASH, etc) not working 
+  solution: solved for some characters by manually rewriting them upon 
+  shortcut registering, but thats only partial and incomplete workaround  
+- popup window fullcreen or maximizing(any) breaks popup position                                   (minor, but should be fixed if possible)
+- blurry Configurator graphics in custom3 skin - 99% result of the css warnings                     (javaFX bug ?)
+  this happens when something has null skin, investigate & fix 
+- Configurator group title alignment doesnt get applied immediately                                 (minor)
+  its partially fixed now 
+- some songs (happens to be album specific, but specific cause unknown) read                        (jaudiotagger bug?)
+  length as twice of the real (note: SmilePrecure OST) 
+- sometimes not even suspending playback allows jaudiotagger renaming songs 
+  and thus prevents successful tagging. see unabletorename in autdio test files 
+- when app starts with paused song, playing some other songs starts from that 
+  point rather than the beginning 
+- some images with very long names 'can not be found' - it is probably windows 
+  thing as have experienced problems with long image names before when copying 
+  the files in windows  
+- variable bitrate oggs not playing 
+- dragOver event is called repeatedly, we cant use just any code in there 
+  (like Fut, which oddly gets computed immediately when created) 
+- Fut computed on creation? see above, investigate 
+- investigate how to properly remove image scaling artifacts                                        (minor)
+  Not an issue since we are using scale factor when loading images, but 
+  investigate. When displaying image very close to its loaded size (+-10%) 
+  aliasing appears 
+ 
+SOLVED (but the underlying cause still deserves attention) 
+- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment                           (medium)
+  nonempty. 
+  solution: custom comment reading method filters out CUSTOM fields                                 (great)
+- split container divider position not applied properly (vertical only).                            (medium)
+  note: how does orientation come into this: unknown 
+  solution: have each splitter wait 2 seconds and apply the position again 
+  problem: arbitrary waiting value might not work in all cases + puttin the 
+  divider near edge (1 or 0 value) by resizing the Pane will deform the value 
+  and it doesn retain correct position. Re-applying it doesnt work because of 
+  this bug. Platform.runLater is the only workaround and it can not be used here 
+  See the Splitter class for more information 
+- javafx.scene.text.Text doesnt have css style class and as such doesn allow 
+  default values and skinning 
+  solution: Text class extending javafx.scene.text.Text and adding custom  
+  styleclass. Use instead of the original if default behavior (skin) is expected 
+  Also got a nice additional method. 
+  note: there actually is a styleclass for the Text: .Text   
+  investigate, test, reimplement 
+- open PopOvers prevent app to close normally.                                                      (medium-major)
+  cause: javaFX bug 
+  solution: Manually close them all when main window closes (introduces some                        (good)
+  code pollution). Requires static list. 
+- fullscreen not initializing on window deserialization, update() method bug                        (minor)
+  cause: unknown                                                                                    (javafx bug?)
+  problem: fullscreen is set, resizability is set to false, the fs hint is shown 
+  but the window does not cover whole screen - maybe its too soon 
+  and the window is not really fully initialized 
+  solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
+- app not closing propery on ALT+F4                                                                 (medium-major)
+  cause: ALT+F4 and closing app from taskbar calling window.closeRequst 
+  closes focused window not application. It somehow closes windows 
+  without closing them (close() does not get invoked). Because of this closing 
+  main window this way doesnt execute the necessary actions. Also, with the 
+  hidden owner window app wont close as one window remains open 
+  solution: have onCloseRequest event execute close() 
+- some local shortucts (F3,F4,F5,...) not registering as app shortcuts                              (major)
+  cause: unknown, so far affects only some F keys (some F keys are fine) 
+  solution: delay registering in runLater()                                                         (great)
+  details: see Action.class register() 
+- when table selection changes from 2 selected items, the selectedItems()                           (medium, javaFX bug?)
+  list will contain null instead of the newly selected element (the one added,  
+  or the one remaining) 
+  cause: unknown 
+  solution: iterate over the list with stream().limit(3) 
+  affected: LibraryView filterList(), InfoTable 
+- Icon does not support disabled style (opacity 0.4). Thus it was added in css.                     (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
   style gets applied twice! javafx apparently applies the disabled state on the
   graphics of Labelled on its own!
   workaround: when intended to be used as graphics, call embedded() method
   on the icon. it will set different styleclass disabling the disable style
-
-
+- Thumbnail border has inconsistent border width and can be blurry, and image under it can stick    (medium)
+  out producing very ugly look.
+  Probably problem with drawing at non-integer coordinates. See:
+  http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
+  workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
+       isnt of the same width on all sizes and now it even sticks out of the image area. But at
+       least its not so hideous  
+ 
 -------------------------------------------------------------------------------- 
 ------------------------------------- NOTES ------------------------------------
 --------------------------------------------------------------------------------

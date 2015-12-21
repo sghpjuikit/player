@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
@@ -18,7 +17,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import AudioPlayer.Item;
@@ -48,7 +46,6 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
-import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -115,7 +112,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
-    private final ObservableList<File> images = observableArrayList();
+    private final List<File> images = new ArrayList<>();
     private final List<Thumbnail> thumbnails = new ArrayList<>();
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Metadata data = Metadata.EMPTY;
@@ -165,13 +162,9 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsConfig(name = "Displayed image", editable = false)
     private int active_image = -1;
 
-
-    /** {@inheritDoc} */
     @Override
     public void init() {
         inputs.getInput("Location of").bind(Player.playing.o);
-
-        loadSkin("skin.css",root);
 
         // main image
         mainImage.setBorderVisible(true);
@@ -187,7 +180,6 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
              nextP.prefWidthProperty().bind(root.widthProperty().divide(10));
              nextP.setMinWidth(20);
              nextP.visibleProperty().bind(nextP.opacityProperty().isNotEqualTo(0));
-             nextP.setBackground(bgr(Color.color(0,0,0, 0.2)));
         Icon prevB = new Icon(ARROW_LEFT, 18, "Previous image", this::prevImage);
              prevB.setMouseTransparent(true);
         Pane prevP = new StackPane(prevB);
@@ -196,7 +188,6 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
              prevP.prefWidthProperty().bind(root.widthProperty().divide(10));
              prevP.setMinWidth(20);
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
-             prevP.setBackground(bgr(Color.color(0,0,0, 0.2)));
         setAnchor(root, prevP, 0d,null,0d,0d);
         setAnchor(root, nextP, 0d,0d,0d,null);
 
@@ -290,14 +281,12 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         thumb_root.setOnScroll(Event::consume);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void onClose() {
         thumb_reader.stop();    // prevent continued thumbnail creation
         slideshow.stop();       // stop slideshow
     }
 
-    /** {@inheritDoc} */
     @Override
     public void refresh() {
         thumbSize.applyValue();
@@ -311,13 +300,11 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         readThumbnails();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return thumbnails.isEmpty();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void showImage(File img_file) {
         if(img_file!=null && img_file.getParentFile()!=null) {
@@ -331,7 +318,6 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void showImages(List<File> img_files) {
         if(img_files.isEmpty()) return;
@@ -511,6 +497,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     }
 
     private void applyTheaterMode(boolean v) {
+        root.pseudoClassStateChanged(getPseudoClass("theater"), v);
         if(v && itemPane==null) {
             itemPane = new ItemInfo(false);
             root.getChildren().add(itemPane);
@@ -518,7 +505,6 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
             itemPane.setValue("", data);
-            root.pseudoClassStateChanged(getPseudoClass("theater"), v);
 
             itemPane.setOnMouseClicked(ee -> {
                 if(ee.getButton()==SECONDARY) {

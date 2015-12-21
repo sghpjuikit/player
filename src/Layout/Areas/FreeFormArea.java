@@ -21,8 +21,8 @@ import Layout.container.Container;
 import Layout.container.freeformcontainer.FreeFormContainer;
 import Layout.widget.Widget;
 import gui.GUI;
-import gui.objects.Window.pane.PaneWindowControls;
 import gui.objects.Window.Resize;
+import gui.objects.Window.pane.PaneWindowControls;
 import gui.objects.icon.Icon;
 import util.collections.TupleM4;
 import util.graphics.drag.DragUtil;
@@ -30,7 +30,6 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
-import static gui.GUI.closeAndDo;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
@@ -155,8 +154,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             n = wa.root;
         } else {
             l = new Layouter(container, i);
-            l.cp.consumeCancelClick = true;
-            l.cp.onCancel = () -> closeAndDo(w.root, () -> container.removeChild(i));
+            l.onCpCancel = () -> container.removeChild(i);
             n = l.root;
         }
 
@@ -167,7 +165,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     public void closeWindow(int i) {
         PaneWindowControls w = windows.get(i);
-        if(w!=null) { // null can happen only in illegal call, but cant prevent that for now (layouter calls close 2 times)
+        if(w!=null) {
             w.close();
             windows.remove(i);
             container.properties.remove(i+"x");

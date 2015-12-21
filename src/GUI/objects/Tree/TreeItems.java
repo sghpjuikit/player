@@ -28,7 +28,6 @@ import AudioPlayer.services.Service;
 import Configuration.Configurable;
 import Layout.Component;
 import Layout.container.Container;
-import Layout.container.layout.LayoutManager;
 import Layout.widget.Widget;
 import Layout.widget.WidgetFactory;
 import Layout.widget.WidgetManager.WidgetSource;
@@ -64,7 +63,7 @@ public class TreeItems {
         if(o instanceof WidgetFactory)  return new TreeItem<>(o);
         if(o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
         if(o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
-        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.name())));
+        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
         if(o instanceof Container)      return new LayoutItem((Component)o);
         if(o instanceof File)           return new FileTreeItem((File)o);
         if(o instanceof Node)           return new NodeTreeItem((Node)o);
@@ -90,7 +89,7 @@ public class TreeItems {
     public static TreeItem<Object> treeApp() {
         TreeItem widgetT = tree("Widgets",
                      tree("Categories", (List)list(Widget.Group.values())),
-                     tree("Types", () -> APP.widgetManager.getFactories().sorted(by(f -> f.name()))),
+                     tree("Types", () -> APP.widgetManager.getFactories().sorted(by(f -> f.nameGui()))),
                      tree("Open", (List)list(ANY,LAYOUT,STANDALONE)),
                      tree("Features", () -> APP.widgetManager.getFeatures().sorted(by(f -> f.name())))
                    );
@@ -102,7 +101,7 @@ public class TreeItems {
                  tree("UI",
                    widgetT,
                    tree("Windows", () -> Window.WINDOWS.stream()),
-                   tree("Layouts", () -> LayoutManager.getLayouts().sorted(by(l -> l.getName())))
+                   tree("Layouts", () -> APP.widgetManager.getLayouts().sorted(by(l -> l.getName())))
                  ),
                  tree("Location", listFiles(APP.DIR_APP)),
                  tree("File system", map(File.listRoots(),FileTreeItem::new))
@@ -146,7 +145,7 @@ public class TreeItems {
                 if(!empty && o!=null) {
                     if(o instanceof Component)      setText(((Component)o).getName());
                     else if(o instanceof Service)   setText(((Service)o).getClass().getSimpleName());
-                    else if(o instanceof WidgetFactory)  setText(((WidgetFactory)o).getName());
+                    else if(o instanceof WidgetFactory)  setText(((WidgetFactory)o).nameGui());
                     else if(isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
                     else if(o instanceof File)      setText(FileUtil.getNameFull((File)o));
                     else if(o instanceof Node)      setText(toS((Node)o));

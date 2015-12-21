@@ -171,8 +171,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @Override
     public void init() {
 
-        loadSkin("skin.css",root);
-
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
         CoverV.onFileDropped = f -> f.use(this::addImg,FX);

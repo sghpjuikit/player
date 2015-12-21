@@ -18,7 +18,7 @@ public class WidgetPicker extends Picker<WidgetFactory<?>>{
     public WidgetPicker() {
         super();
         itemSupply = APP.widgetManager::getFactories;
-        textCoverter = WidgetFactory::name;
+        textCoverter = WidgetFactory::nameGui;
         cellFactory = cellFactory.andApply((w,cell) -> {
             Tooltip t = new Tooltip(w.toStr());
                     t.setMaxWidth(300);

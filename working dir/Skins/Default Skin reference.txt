@@ -61,7 +61,7 @@
     
     /*global variables*/
     -fx-def-font-color: rgb(190, 190, 195);
-    -fx-def-font-color-hover: rgb(200,220,210);
+    -fx-def-font-color-hover: rgb(235,235,230);
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgb(165, 165, 165);
     -fx-color-darker: rgba(0,0,0,0.2);
@@ -72,9 +72,10 @@
     /* when changing this value be aware that .header class emulates it manually
        be sure to change it there too*/
     -fx-pane-color: rgba(0,0,0,0.32);
-
+    /* Darker version of pane color. By default used for :dragged pseudoclass */
+    -fx-pane-color-dragged: rgba(0,0,0,0.5);
     /* Default bgr color for tooltips and popups. */
-    -fx-popup-def-bgr-color: rgba(28,42,45,0.70);
+    -fx-popup-def-bgr-color: rgba(28,42,45,0.8);
     
     /***************************************************************************
      *                                                                         *
@@ -352,7 +353,8 @@
 
     /* The colors to use in Pagination */
     -fx-page-bullet-border: #acacac;
-    -fx-page-indicator-hover-border: #accee5;
+    -fx-page-indicator-hover-border: #accee5;    
+    
 
     /***************************************************************************
      *                                                                         *
@@ -364,9 +366,9 @@
 }
 
 .popup {
-    // Make popups transparent
-    // do not change this. there are dependencies on this transparent value
-    // for example .popover depends on this. Changing it can break functionality
+    /* Make popups transparent
+    do not change this. there are dependencies on this transparent value
+    for example .popover depends on this. Changing it can break functionality */
     -fx-background-color: transparent;
 }
 
@@ -395,7 +397,7 @@
 .toggle-button,
 .radio-button > .radio,
 .check-box > .box,
-//.menu-button,  // enable this if you want menu button to look like normal button
+/*.menu-button,  // enable this if you want menu button to look like normal button*/
 .color-picker.split-button > .color-picker-label{
    /* -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -433,7 +435,7 @@
 .menu-button:hover,
 .split-menu-button > .label:hover,
 .split-menu-button > .arrow-button:hover,
-.slider .thumb:hover,
+/*.slider .thumb:hover,*/
 .color-picker.split-button > .arrow-button:hover,
 .color-picker.split-button > .color-picker-label:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
@@ -454,8 +456,8 @@
 .split-menu-button:armed > .label,
 .split-menu-button > .arrow-button:pressed,
 .split-menu-button:showing > .arrow-button,
-.slider .thumb:pressed,
-//.choice-box:showing,
+/*.slider .thumb:pressed,*/
+/*.choice-box:showing,*/
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -470,7 +472,7 @@
 .toggle-button:focused,
 .radio-button:focused > .radio,
 .menu-button:focused,
-//.choice-box:focused,
+/*.choice-box:focused,*/
 .color-picker.split-button:focused > .color-picker-label{
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -937,41 +939,40 @@
     -fx-background-insets: 1 0 -1 0, 0;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Slider                                                                      *
- *                                                                             *
- ******************************************************************************/
+/********************************** Slider *************************************
+ * 
+ * pseudoclasses: vertical
+ */
 
-.slider .thumb {
-    -fx-background-color: rgba(0, 0, 40, 0.5);
-    -fx-padding: 4;
-    -fx-background-radius:0;
+.slider {
+    -fx-skin: "gui.objects.ImprovedSliderSkin";
 }
-.slider .thumb:hover {
-    -fx-background-color: rgba(0, 0, 40, 0.6);
-    -fx-padding: 4;
-    -fx-background-radius:0;
+.slider .thumb {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
+}
+.slider .thumb:hover,
+.slider .thumb:pressed {
+    //-fx-background-color: white;
+    -fx-padding: 2;
+    //-fx-background-radius:0;
 }
 .slider:focused .thumb {
-    // lets stay rectangular
-    /*-fx-background-radius: 1.0em;  makes sure this remains circular*/ 
+    // i say lets stay rectangular
+    // -fx-background-radius: 1.0em;  // makes sure this remains circular
 }
 .slider .track {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5),
-        rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 -4 -1 -4, 0 -4 0 -4, 1.5 -2.5 1.5 -2.5;
-    -fx-background-radius: 0;
-    -fx-padding: 4 4 4 4;
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-background-insets: 0;
+    -fx-background-radius: 1;
+    -fx-padding: 1;     // basically track width
 }
 .slider:vertical .track {
 }
 .slider .axis {
     -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
-    -fx-tick-label-fill: white;
+    -fx-tick-label-fill: -fx-def-font-color;
     -fx-background-insets: -6,5,4,3;
     /*-fx-translate-y: -0; // THIS NEEDS TO BE SOLVED - it leaves space in the bottom so the control is not aligned properly*/
     -fx-opacity:0.9;
@@ -983,35 +984,42 @@
  *                                                                             *
  ******************************************************************************/
 
+.scroll-bar {
+    -fx-skin: "gui.objects.ImprovedScrollBarSkin";
+    -fx-background-color: null;
+    -fx-background-insets: 0, 1 0 1 0;
+}
 .scroll-bar:horizontal {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: 0, 1 0 1 0;
 }
 .scroll-bar:vertical {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: 0, 0 1 0 1;
 }
 .scroll-bar:focused {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: -0.2, 1, -1.4, 2.6;
 }
 .scroll-bar:vertical:focused {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
 }
 .scroll-bar > .thumb {
- -fx-background-color: rgb(211,211,211);
-    /*-fx-background-insets: 1, 2, 3;*/
-    -fx-background-insets: 2, 3, 4;
-    /*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//* 5, 4,3 */
+    // default
+    // -fx-background-color: rgb(211,211,211);
+    // -fx-background-insets: 2, 3, 4;
+    // -fx-background-radius: 3, 2, 1;
+    -fx-background-color: -fx-def-font-color;
+    -fx-background-insets: 6, 3, 4;
     -fx-background-radius: 3, 2, 1;
 }
 .scroll-bar:vertical > .thumb {
- -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button, 
 .scroll-bar > .decrement-button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;     
-    -fx-color: transparent;
+    -fx-background-color: null;     
+    -fx-color: -fx-def-font-color;
     -fx-padding: 0.25em; /* 3px */
 }
 .scroll-bar:horizontal > .increment-button,
@@ -1024,15 +1032,15 @@
 }
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button:hover > .increment-arrow,
 .scroll-bar > .decrement-button:hover > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar:horizontal > .decrement-button > .decrement-arrow {
     -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
@@ -1064,7 +1072,7 @@
  *                                                                             *
  ******************************************************************************/
 .scroll-pane > .viewport {
-    -fx-background-color: transparent;
+    -fx-background-color: null;
 }
 .scroll-pane > .scroll-bar:horizontal {
     -fx-background-insets: 0 1 1 1, 1;
@@ -1192,10 +1200,10 @@
 }
 .progress-indicator > .percentage {
     -fx-font-size: 0.916667em; /* 11pt - 1 less than the default font */
-    -fx-fill: -fx-text-background-color;
+    -fx-fill: -fx-def-font-color;
 }
 .progress-indicator:indeterminate .segment {
-    -fx-background-color: -fx-accent;
+    -fx-background-color: -fx-def-font-color;
 }
 .progress-indicator:indeterminate .segment0 {
     -fx-shape:"M41.98 14.74 a3.5,3.5 0 1,1 0,1 Z";
@@ -1236,7 +1244,7 @@
 
 /*******************************************************************************
  *                                                                             *
- * Text COMMON                                                                 *
+ * Text BOXES                                                                  *
  *                                                                             *
  ******************************************************************************/
 
@@ -1263,23 +1271,8 @@
     
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
-/*******************************************************************************
- *                                                                             *
- * Label                                                                       *
- *                                                                             *
- ******************************************************************************/
 
-.label {
-    -fx-text-fill: -fx-def-font-color;
-    // decreases performance for little gain
-    /*-fx-background-color: rgb(255,255,255);*/ // this would set rectangular text bgr
-    /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0, 0.0 , 0 , 1 );*/
-}
-/*******************************************************************************
- *                                                                             *
- * TextArea                                                                    *
- *                                                                             *
- ******************************************************************************/
+/********************************* TextArea ***********************************/
 
 .text-area {
 
@@ -1308,7 +1301,142 @@
 }
 
 
- // DO NOT OVERRIDE FOR NOW
+/********************************* ComboBox ***********************************/
+
+/* Customise the ListCell that appears in the ComboBox button itself */
+.combo-box > .list-cell {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill: -fx-text-base-color;
+    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+}
+.combo-box-base:editable > .arrow-button,
+.combo-box-base > .arrow-button {
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
+    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
+    -fx-background-color: null;
+}
+.combo-box-base,
+.combo-box-base:editable {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+    -fx-text-fill: -fx-def-font-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+}
+.menu-button > .label {
+    -fx-alignment: CENTER_LEFT;
+}
+.combo-box-base:hover,
+.combo-box-base:editable:hover{
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+}
+.combo-box-base:showing,
+.combo-box-base:editable:showing > .arrow-button {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+}
+.combo-box-base:focused {
+    -fx-background-color: rgba(235, 235, 235, 0.7),
+                          rgba(0, 0, 0, 0.6),
+                          rgba(255, 255, 255, 0.92);
+}
+
+/* editable combobox*/
+.combo-box-base:editable > .arrow-button,
+.combo-box-base:editable > .text-field,
+.combo-box-base:editable:contains-focus,
+.combo-box-base:editable:focused > .text-field,
+.combo-box-base:editable > .text-field:focused,
+.combo-box-base:editable:contains-focus > .arrow-button {}
+
+
+.date-picker > .arrow-button {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 1 1 1 0, 1, 2;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
+}
+.date-picker > .text-field {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 1 0 1 1;
+    -fx-background-radius: 2 0 0 2;
+}
+.date-picker:contains-focus {
+    -fx-background-color: -fx-focus-color;
+    -fx-background-insets: -0.2;
+    -fx-background-radius: 3;
+}
+.date-picker:focused > .text-field,
+.date-picker > .text-field:focused {
+    -fx-background-color: 
+        -fx-control-inner-background,
+        -fx-faint-focus-color,
+        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-insets: 1 0 1 1, 1 0 1 1, 3 2 3 3;
+    -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
+}
+.date-picker:contains-focus > .arrow-button {
+    -fx-background-color: -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
+    -fx-background-insets: 1, 2, 1, 2.6;
+    -fx-background-radius: 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
+}
+
+/********* PopupControl that is displayed when the button is pressed **********/
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-insets: 0, 1;
+    // -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 ); // gets in the way of transparent bgr
+    -fx-effect: null;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 1 0 1 5;
+    -fx-background-color: null;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background: null;
+    -fx-background-color: -fx-color-darker;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: derive(-fx-control-inner-background,-30%);
+}
+
+/*********************************** LABEL ************************************/
+
+.label {
+    -fx-text-fill: -fx-def-font-color;
+    //-fx-background-color: rgb(255,255,255); // this would set rectangular text bgr
+    //-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );    // decreases performance for little gain
+}
+
+
 /*******************************************************************************
  *                                                                             *
  * HTML Editor                                                                 *
@@ -1389,28 +1517,24 @@
 }
 
 
-/*******************************************************************************
- *                                                                             *
- * PopupMenu                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************* PopupMenu **********************************/
 
 .context-menu {
     -fx-background-insets: 0, 1;
-    -fx-padding: 0.25em 0.25em 0.25em 0.25em;  /* 3 3 3 3 */
-    -fx-background-color: rgba(20,20,30,0.7);
-    -fx-border-width: 2;
+    -fx-padding: 0.25em;  /* 3 3 3 3 */
+    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-border-width: 1;
     -fx-border-color: black;
     -fx-border-insets: 0;
 }
 .context-menu .separator:horizontal .line {
-    -fx-border-width: 2;
-    -fx-border-color: black transparent transparent transparent;
+    -fx-border-width: 1;
+    -fx-border-color: -fx-def-font-color transparent transparent transparent;
     -fx-border-insets: 1 0 0 0;
 }
 .context-menu > .scroll-arrow {
-    -fx-padding: 0.416667em 0.416667em 0.416667em 0.416667em; /* 5 */
-    -fx-background-color: transparent;
+    -fx-padding: 0.416667em; /* 5 */
+    -fx-background-color: null;
 }
 .context-menu > .scroll-arrow:hover {
     -fx-background: -fx-selection-bar;
@@ -1421,11 +1545,7 @@
     -fx-stroke: -fx-text-fill;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Menu                                                                        *
- *                                                                             *
- ******************************************************************************/
+/*********************************** Menu *************************************/
 
 .menu {
     -fx-background-color: transparent;
@@ -1456,7 +1576,6 @@
     -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
 }
 
-
 /*******************************************************************************
  *                                                                             *
  * MenuBar                                                                     *
@@ -1475,7 +1594,7 @@
 /* Show nothing for background of normal menu button in a menu bar */
 .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
-    -fx-background-color: transparent;
+    -fx-background-color: null;
     -fx-background-insets: 0;
 }
 /* Change padding of menu buttons when in menu bar */
@@ -1486,7 +1605,7 @@
 /* Hide the down arrow for a menu placed in a menubar */
 .menu-bar > .container > .menu-button > .arrow-button > .arrow {
     -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
-    -fx-background-color: transparent;
+    -fx-background-color: null;
     -fx-shape: null;
 }
 .menu-bar > .container > .menu > .arrow-button {
@@ -1497,7 +1616,7 @@
 .menu-bar > .container > .menu-button:showing {
    // -fx-background: -fx-selection-bar;      // < default value
    // -fx-background-color: -fx-background;   // < default value
-   -fx-background-color: -fx-color-lighter;
+   -fx-background-color: null;
 }
 .menu-bar > .container > .menu-button:hover > .label,
 .menu-bar > .container > .menu-button:focused > .label,
@@ -1515,9 +1634,7 @@
  ******************************************************************************/
 
 .menu-item {
-/*    -fx-background-color: transparent;
-    -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;   4 5 4 5 */
-    -fx-background-color: rgba(10,10,10,0.85);
+    -fx-background-color: null;
     -fx-background-radius: 2;
     -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;
     -fx-background-insets: 0.2em 0.2em 0.2em 0.2em;
@@ -1532,7 +1649,7 @@
     -fx-padding: 0em 0.5em 0em 0em;
 }
 .menu-item:focused {
-    -fx-background-color: rgba(20,20,30,0.85);
+    -fx-background-color: -fx-color-darker;
     -fx-background-insets: 0 0 0 0;
 }
 .menu-item:focused > .label {
@@ -1627,7 +1744,7 @@
     -fx-color: -fx-base;
 }
 .tab-pane > .tab-header-area > .tab-header-background {
-    -fx-background-color: null;
+    -fx-background-color: transparent;
 }
 .tab-pane:top > .tab-header-area > .tab-header-background {
     -fx-background-insets: 0, 0 0 1 0, 1;
@@ -1655,14 +1772,24 @@
     -fx-padding: 0.416667em 0.416667em 0.166667em 0.0em; /* 5 5 2 0 */
 }
 /* TODO: scaling the shape seems to make it way too large */
+/* TODO: scaling the shape seems to make it way too large */
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: grey;// -fx-mark-color; << this color (original Modena)
+                               // produces runtim parsing erors (string cant be parsed into color)
+                               // grey is good enough
     -fx-shape: "M 0,0 H1 L 4,3 7,0 H8 V1 L 5,4 8,7 V8 H7 L 4,5 1,8 H0 V7 L 3,4 0,1 Z";
     -fx-scale-shape: false;
-    -fx-effect: dropshadow(two-pass-box , rgba(255, 255, 255, 0.4), 1, 0.0 , 0, 1);
+    -fx-effect: dropshadow(two-pass-box , rgba(255, 255, 255, 0.4), 1, 0 , 0, 1);
+    -fx-opacity: 0.0;
+    -fx-padding: 0 2 0 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container:hover > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container:hover > .tab-close-button {
+    -fx-opacity: 1;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button:hover {
-    -fx-background-color: derive(-fx-mark-color, -30%);
+    -fx-background-color: derive(grey, -30%); // same story as above
 }
 /* CONTROL BUTTONS */
 .tab-pane > .tab-header-area > .control-buttons-tab > .container {
@@ -1691,151 +1818,7 @@
     -fx-padding: 2;
 }
 
-/*******************************************************************************
- *                                                                             *
- * ComboBox                                                                    *
- *                                                                             *
- ******************************************************************************/
-
-/* Customise the ListCell that appears in the ComboBox button itself */
-.combo-box > .list-cell {
-    -fx-background: transparent;
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-text-base-color;
-    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
-}
-.combo-box-base:editable > .arrow-button,
-.combo-box-base > .arrow-button {
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
-    -fx-background-color: transparent;
-}
-.combo-box-base,
-.combo-box-base:editable {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-    -fx-text-fill: -fx-def-font-color;
-    -fx-alignment: CENTER;
-    -fx-content-display: LEFT;
-}
-.menu-button > .label {
-    -fx-alignment: CENTER_LEFT;
-}
-.combo-box-base:hover,
-.combo-box-base:editable:hover{
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:showing,
-.combo-box-base:editable:showing > .arrow-button {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:focused {
-    -fx-background-color: rgba(235, 235, 235, 0.7),
-                          rgba(0, 0, 0, 0.6),
-                          rgba(255, 255, 255, 0.92);
-}
-
-/*******************************************************************************
- *                                                                             *
- * Editable ComboBox                                                           *
- *                                                                             *
- * The editable ComboBox TextBox inherits its properties from the TextBox      *
- * Control. Only the properties with values that are different from the        *
- * TextBox are specified here.                                                 *
- *                                                                             *
- ******************************************************************************/
-
-/*.combo-box-base:editable > .arrow-button,*/
-.date-picker > .arrow-button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
-    -fx-background-insets: 1 1 1 0, 1, 2;
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-}
-/*.combo-box-base:editable > .text-field,*/
-.date-picker > .text-field {
-    -fx-background-color: -fx-control-inner-background;
-    -fx-background-insets: 1 0 1 1;
-    -fx-background-radius: 2 0 0 2;
-}
-/*.combo-box-base:editable:contains-focus,*/
-.date-picker:contains-focus {
-    -fx-background-color: -fx-focus-color;
-    -fx-background-insets: -0.2;
-    -fx-background-radius: 3;
-}
-/*.combo-box-base:editable:focused > .text-field,
-.combo-box-base:editable > .text-field:focused,*/
-.date-picker:focused > .text-field,
-.date-picker > .text-field:focused {
-    -fx-background-color: 
-        -fx-control-inner-background,
-        -fx-faint-focus-color,
-        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
-    -fx-background-insets: 1 0 1 1, 1 0 1 1, 3 2 3 3;
-    -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
-}
-/*.combo-box-base:editable:contains-focus > .arrow-button,*/
-.date-picker:contains-focus > .arrow-button {
-    -fx-background-color: -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
-    -fx-background-insets: 1, 2, 1, 2.6;
-    -fx-background-radius: 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
-}
-
-/* -------------- STYLES FOR THE DEFAULT LISTVIEW-BASED COMBOBOX ------------- */
-
-.combo-box-popup > .list-view {
-    -fx-background-color:
-        linear-gradient(to bottom,
-            derive(-fx-color,-17%),
-            derive(-fx-color,-30%)
-        ),
-        -fx-control-inner-background;
-    -fx-background-insets: 0, 1;
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
-}
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    //-fx-padding: 4 0 4 5;
-    /* No alternate highlighting */
-    -fx-background: -fx-control-inner-background;
-}
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
-    -fx-background:  -fx-selection-bar-non-focused;
-    -fx-background-color:  -fx-background;
-}
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
-    -fx-background: -fx-accent;
-    -fx-background-color: -fx-selection-bar;
-}
-.combo-box-popup > .list-view > .placeholder > .label {
-    -fx-text-fill: derive(-fx-control-inner-background,-30%);
-}
-
-/*******************************************************************************
- *                                                                             *
- * TitledPane                                                                  *
- *                                                                             *
- ******************************************************************************/
+/********************************* TitledPane *********************************/
 
 .titled-pane {
     -fx-text-fill: -fx-def-font-color;
@@ -1852,12 +1835,7 @@
     -fx-background-color: -fx-faint-focus-color, -fx-focus-color, -fx-inner-border, -fx-body-color; 
     -fx-background-insets: 0, 0.7, 2, 3;    
 }*/
-/* focus purely on the arrow */
-.titled-pane:focused > .title > .arrow-button > .arrow {
-    -fx-background-color: -fx-focus-color, -fx-mark-color;
-    -fx-background-insets: -1, 0;
-    -fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
-}
+
 .titled-pane > .title > .arrow-button {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -1872,9 +1850,15 @@
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
-.titled-pane > .title:hover {
-    -fx-color: -fx-hover-base;
+/* focus purely on the arrow */
+.titled-pane:focused > .title > .arrow-button > .arrow {
+    //-fx-background-color: -fx-focus-color, -fx-mark-color;
+    //-fx-background-insets: -1, 0;
+    //-fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
 }
+
+.titled-pane > .title:hover {}
+
 /* alternative content using a border and a grad to transparent background - why should TitledPane content have a colour? */
 .titled-pane > *.content {
     -fx-background: transparent;
@@ -1882,16 +1866,10 @@
     -fx-padding: 0.167em;
 }
 
-
-
-/*******************************************************************************
- *                                                                             *
- * Accordion                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************* Accordion **********************************/
 
 .accordion > .titled-pane > .title {
-    -fx-background-color: rgba(255, 255, 255, 0.0);
+    -fx-background-color: null;
     -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
     -fx-background-radius: 0, 0, 0;
 }
@@ -1903,17 +1881,18 @@
 }
 .accordion .titled-pane:focused,
 .accordion .titled-pane:expanded {
-    -fx-text-fill: white;
+    -fx-text-fill: -fx-focus-color;
 }
 .accordion .titled-pane:focused > .title > .arrow-button .arrow,
-.accordion .titled-pane:expanded > .title > .arrow-button .arrow {
-    -fx-background-color: white;
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
 }
+
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
-    -fx-color: white;
-}
-.accordion .titled-pane:hover > .title {
-    -fx-color: -fx-hover-base;
+    -fx-text-color: -fx-focus-color;
 }
 
 /*******************************************************************************
@@ -1922,32 +1901,33 @@
 *                                                                              *
 *******************************************************************************/
 
+.split-pane {
+    -fx-skin: "gui.objects.ImprovedSplitPaneSkin";
+}
 .split-pane:horizontal > .split-pane-divider {
-   -fx-opacity: 0.0;
    -fx-border-color: transparent;
-   -fx-background-color: rgba(0, 0, 0, 2);
+   -fx-background-color: transparent;
    -fx-padding: 1;
 }
-.split-pane:vertical > .split-pane-divider{
-   -fx-opacity: 0.0;
+.split-pane:vertical > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: rgba(0, 0, 0, 1);
+   -fx-background-color: transparent;
    -fx-padding: 1;
 }
-/*.split-pane-divider:hover {
-   -fx-padding: 10   //interesting idea
-}*/
 .split-pane *.vertical-grabber {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    
 }
 .split-pane *.horizontal-grabber {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    
+}
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-background-color: -fx-pane-color;
+   -fx-padding: 6;
 }
 
 /*******************************************************************************
@@ -2274,6 +2254,13 @@
  *                                                                             *
  ******************************************************************************/
 
+.cell {
+    -fx-background-color: null;
+    -fx-border-color: null;
+    -fx-padding: 0 2 0 2;
+    -fx-text-fill: -fx-def-font-color;
+}
+
 /* remove double borders from scrollbars */
 .list-view > .virtual-flow > .scroll-bar:vertical,
 .tree-view > .virtual-flow > .scroll-bar:vertical,
@@ -2293,16 +2280,11 @@
 .tree-view > .virtual-flow > .corner,
 .table-view > .virtual-flow > .corner,
 .tree-table-view > .virtual-flow > .corner {
-    -fx-background-color: transparent;
+    -fx-background-color: null;
 }
 /* standard cell */
 .list-cell,
-.tree-cell {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-border-width: 0px;
-    -fx-padding: 0 1 0 1;
-}
+.tree-cell {}
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
@@ -2330,7 +2312,7 @@
 .tree-table-view:focused:row-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:focused,
 .table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:focused,
 .tree-table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:focused {
-    -fx-background-color:  transparent;
+    -fx-background-color: null;
     /*-fx-background-insets: 0, 1, 2;*/
 }
 
@@ -2340,9 +2322,7 @@
  *                                                                             *
  ******************************************************************************/
 
-.list-cell {
-    -fx-padding: 0.25em 0.583em 0.25em 0.583em;  //3 7 3 7 
-}
+.list-cell {}
 .list-cell:odd {
     -fx-background-color: null;
 }
@@ -2354,7 +2334,6 @@
  ******************************************************************************/
 
 .tree-cell {
-    -fx-padding: 0.25em; /* 3 */
     -fx-indent: 1em;
 }
 .tree-cell .label {
@@ -2363,12 +2342,11 @@
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
     -fx-padding: 4 6 4 8;
-    -fx-background-color: transparent;
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
 /*    -fx-background-color: -fx-text-background-color;*/
-    -fx-background-color: white;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
     -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
 }
@@ -2393,7 +2371,7 @@
 /* Each row in the table is a table-row-cell. Inside a table-row-cell is any
    number of table-cell.*/
 .table-row-cell {
-    -fx-background-color: null;
+    -fx-padding: 0;
 }
 .table-row-cell:odd {
     -fx-background-color: null;
@@ -2402,14 +2380,7 @@
     -fx-background-color: null;
 }
 /***** INDIVIDUAL CELLS ********************************************************/
-.table-cell {
-    -fx-background-color: null;
-    -fx-border-color: null;
-    /*-fx-cell-size: 2.0em;  24 */
-    -fx-text-fill: -fx-def-font-color;
-    -fx-border-width: 0;
-    -fx-padding: 0 2 0 2;
-}
+.table-cell {}
 .table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: -fx-table-cell-border-color, -fx-background;
@@ -2420,7 +2391,7 @@
    introducing horizontal scrollbars (see RT-14886). */
 .table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:last-visible,
 .tree-table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:last-visible {
-    -fx-border-color: transparent;
+    -fx-border-color: null;
 }
 /***** HEADER **********************************************************************/
 /* The column-resize-line is shown when the user is attempting to resize a column. */
@@ -2473,7 +2444,7 @@
 }
 .table-view .column-header .sort-order-dot,
 .tree-table-view .column-header .sort-order-dot {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.115em;
     -fx-background-radius: 0.115em;
 }
@@ -2509,7 +2480,7 @@
 /* Header Sort Arrows */
 .table-view /*> column-header-background > nested-column-header >*/ .arrow,
 .tree-table-view /*> column-header-background > nested-column-header >*/ .arrow {
-    -fx-background-color: white;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
@@ -2584,12 +2555,11 @@
 
 .tooltip {
     -fx-background-color: -fx-popup-def-bgr-color;
-    -fx-opacity: 0.85;
-    -fx-background-radius: 1;
-    -fx-border-width:2;
+    -fx-background-radius: 0;
+    -fx-border-width: 1;
     -fx-border-color: black;
     -fx-text-fill: -fx-def-font-color;
-    -fx-padding: 0.3em 0.7em 0.3em 0.7em;
+    -fx-padding: 0.5em 1em 0.5em 1em;
 }
 
 /*******************************************************************************
@@ -3204,12 +3174,76 @@
  *                                                                             *
  ******************************************************************************/
 
+
+//*********************************** ICONS **********************************//
+
+/** 
+ * Icon
+ * Text using glyph to make icon.
+ * inherits: nothing
+ * properties: -glyph-name - String of the glyph
+ *             -glyph-size - size
+ */
+.icon {
+    -fx-fill: -fx-def-font-color;
+    -glyph-name: "CLOSE";
+    -glyph-size: 12;
+}
+
+.icon:hover {
+    -fx-fill: -fx-def-font-color-hover;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+.icon:disabled {
+    // we want to support disabled state, this should be consistent with other
+    // components' disaled styles
+    -fx-opacity: 0.4;
+}
+
+/**
+ * Icon used as graphics in menu bars, context menus, etc
+ * inherits: .icon
+ */
+.embedded-icon {
+}
+.embedded-icon:disabled {
+   -fx-opacity: 1;  // this is a bugfix to apply disabled state properly
+}
+
+/** 
+ * Toggle icon - checkbox
+ * inherits: .icon
+ * pseudoclases: selected
+ */
+.check-icon {
+   -glyph-name: TOGGLE_OFF;
+}
+.check-icon:selected {
+   -glyph-name: TOGGLE_ON;
+}
+
+/** 
+ * Check icon used to negate filter predicates
+ * inherits: .check-icon
+ */
+.filter-negate-icon {
+   -glyph-name: CIRCLE;
+}
+.filter-negate-icon:selected {
+   -glyph-name: CIRCLE_ALT;
+}
+
+/***********************************************************************
+
 /* Default 'block'. Several elements subclass block but some can use it directly
    too. Use to set default properties for allblocks and block derived classes.
    One can for example make several GUI layout elements appear the same.
 
    Subclasses: window > .header, area, area-controls, layouter-element,
                .item-picker-element
+   Pseudocalsees: dragged (all subclasses inherit those)
    Dev note: assigning a subclass styleclass to a javaFX object does not automatically
             assign it area too. Must be done manually.
     */
@@ -3217,96 +3251,122 @@
     -fx-background-color: -fx-pane-color;
 }
 
+
+
 /* Default headers style. Unrelated headers might use this class. Each of them
   should also have its own class defined in addition to this one. */
 .header {
-    // BUG FIX
-    // cant use rgba() color (rgb with non 1 opacity) for header because it creates artefacts
-    // for window header when mouse hovers over content inside it - a bug?
-    // instead emulate the color by setting opacity manually
-    //-fx-background-color: -fx-pane-color;
-    -fx-background-color: black; // emulate -fx-pane-color
-    -fx-opacity: 0.32;           // emulate -fx-pane-color
+    // bug causing artefacts on bgr color of nodes in header may appear, in such
+    // case emulate rgba(x,x,x,a) color manualy using rgb(x,x,x) and opacity
 }
 
-.darker {
-    //-fx-background-color: -fx-color-darker;
-}
-.lighter {
-    -fx-background-color: -fx-color-lighter;
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.05) rgba(0, 0, 0, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-
-
-/************************************ WINDOW ***********************************/
-
-/* Window. More specifically its root pane. Element with this class will also have class
-   of root, but prefer this class and leave .root empty.
-   available pseudoclasses: focused, hover */
+/************************************ WINDOW ***********************************
+ * Window. More specifically its root pane. 
+ * inherits: .root
+ * pseudoclasses: focused, hover, resized, moved, fullscreen
+ */
 .window {
-    /* We can also use bgr image (see below classes), but always fill some basic 
-       color behind just in case.
-       If no image is set or is partially transparent this color is the basic bgr. */
-    -fx-background-color: black;
 }
 .window:hover {
 }
 .window:focused {
+}
+.window:resized {
+}
+.window:moved {
+    -fx-background-radius: 5;
+}
+.window:fullscreen {
 }
 
 // empty layer right above background for brg-image. It is possible to use more
 // complex backgrounds by specifying both .background and .bgr-image while using
 // sub 1 opacity
 // an example would be a slight image overlay over background
-.window > .brg-image {
+.window > .bgr-image {
     -fx-opacity:1;
     // do not provide any image by default
     //-fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
 }
 
-/* Header. Inherits .block & .header styleclass */
+// inherits: .header
 .window > .header {
 }
 .window:focused > .header {
-    // lets signal which window has focus by altering the header border
-    // improve this
-    -fx-border-color: 
-        transparent transparent derive(-fx-pane-color,50%) transparent,
-        derive(-fx-pane-color,80%) rgba(0, 0, 222, 0.3) rgba(0, 0, 0, 0.3) derive(-fx-pane-color,80%);
-    -fx-border-width: 2.5, 2.5;
-    -fx-border-insets: -2, -1;
 }
 
-/* left, right, bottom borders of the window. There is no top border as there is
-   a header instead. When header collapses it turns into top border
-   Therefore skinning both header and border to the same background is
-   recommended */
-.window > .w-border {
-    // lets leave borders transparent (note that window content is clipped) so
-    // we will simply see window bgr
-    
-    // good alternative below
-    //-fx-background-color: -fx-pane-color;
+// left, right, bottom borders of the window. There is no top border as there is
+// a header instead. When header collapses it turns into top border.
+// Skinning both header and border to the same background is recommended
+.w-border {
+    -fx-background-color: -fx-pane-color;
 }
 
 /****************************************************************************************/
 
-/* Widget area. Inherits .block styleclass */
-.area {
-    // default padding for all widgets
-    // note: widget devs should be aware of this padding and implement their own
-    // for the widget only if they want non-default behavior
-    -fx-padding: 5;
+/** 
+ * Pane border created with path.
+ * The path is build out of multiple path objects and does not necessarily create 
+ * a single visual shape
+ * extends .path, .shape
+ */
+.path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-def-font-color;
+    -fx-stroke-width: 2;
+    -fx-stroke-type: inside;
 }
 
-/* Widget area in layout mode. Inherits .block styleclas.
-   Does not inherit .area. So even the same attributes must be repeated.*/
-.area-control {
+/** 
+ * Area pane border.
+ * inherits: .path-border.
+ */
+.area-path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-pane-color;
+    -fx-stroke-width: 2;
+    -fx-stroke-type: inside ;
+    -fx-stroke-line-cap: butt;
+}
+
+/**
+ * Widget area
+ * pseudoclasses: dragged
+ */
+.area {
+    -fx-background-color: -fx-pane-color;
+    // default padding for all widgets
+    // note: widgets shouldnt have their own padding to remain consistent
+    -fx-padding: 4 ;
+    -fx-background-insets: 2;   // margin, by default set to area-path-border width
+}
+
+/**
+ * Widget area controls. Shown in layout mode. 
+ */
+.widget-control {
+    -fx-background-color: null;
+}
+/**
+ * Container area in layout mode. Inherits .block styleclas.
+ */
+.container-control {
+    -fx-background-color: -fx-pane-color;
+}
+
+.area:dragged,
+.widget-control:dragged,
+.container-control:dragged {
+    -fx-background-color: -fx-pane-color-dragged;
+}
+
+
+.freeflowcontainer-window {
+    
+}
+.freeflowcontainer-window >.content {
+    -fx-padding: 2.5;
 }
 
 /* Control for setting up layout. */
@@ -3316,54 +3376,10 @@
 .layouter-element {
 }
 
-.header-button {
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
-.header-button:focused {
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
-.header-button:hover {
-    -fx-background-color: rgba(250,250,250,0.25);
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
-.header-button:pressed {
-    -fx-background-color: rgba(250,250,250,0.4);
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
 
-// HBox containing buttons within a header
+/* HBox containing buttons within a header */
 .header-buttons {
 }
-
-.lighter-button {
-    -fx-background-color: rgba(180,200,255,0.1);
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-.lighter-button:hover {
-    /*-fx-background-color: rgba(0,0,0,0.2);*/
-    -fx-background-color: null;
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-
-
 
 
 /* Small button mostly within custom controls for opening dialogs. For example
@@ -3371,8 +3387,8 @@
 .dialog-button {
     // the below is the arrow css used for other components like combo-box
     -fx-background-color: -fx-def-font-color;
-    /* use thid to get nice not filled arrow */
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    // use thid to get nice not filled arrow
+    //-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
@@ -3385,41 +3401,29 @@
     -fx-stroke-color: black;
 }
 
-//****************************************************************************//
+/****** more row/cell pseudoclasses for ListView, TableView, TreeView, etc *****
+ *
+ * dev.note: note that applying pseudoclasses on rows will not affect the cells within them
+ * it depends on what attribute is being changed. Pseudoclasses must be
+ * set on both row-cell and children cells in the row cell factory.
+ *
+ * indexed-cell applies to both row-cell and cell, so be aware, that using effects
+ * (e.g. shadow) will apply it twice
+ */
 
-// additional row/cell pseudoclasses for ListView, TableView, TreeView, etc of
-// audio items
-// note that applying pseudoclasses on rows will not affect the cells within them
-// it depends on what attribute is being changed. As such some attributes must be
-// set an the row-cell and some for the cell respectively. The problem could probably
-// be avoided (for all of scenarios?) if the developer never used rowCellFactories
-// and instead set pseudoclasses from cellfactories as usually is the case.
-// But sometimes this is not desired therefore the pseudoclasses will be available for
-// both row-cell classes and cell classes
-// edit: it is possible that indexed-cell actally applies to both row-cell and cell
-// and could clean the duplicity of the css below, but this needs to be confirmed first
-// as for the code - the problem to pass the pseudoclass from row factory to the row's
-// cell children remains
-
-// played pseudoclass denotes a playing item. For example in the playlist to visually
-// separate the item from the others 
+// denotes a currently playd record in the playlist or other table
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
     -fx-underline: true
 }
 .table-row-cell:played,
-.table-row-cell:played:selected{
+.table-row-cell:played:selected {
     // setting text fill here wont work, because text is in cells not rows
     // in general set only non-content properties in row
 }
 
-// the intention behind corrupt pseudoclass varies depending on the context. from
-// context of the playlist any item that can not be played is corrupt. From context
-// of tagging any item that can not have its tag edited (for example item on the web)
-// should be considered corrupt.
-// Note that an Item class has an isCorrupt() method but as the above explains it is
-// not necessarily always the right choice
+// denotes broken or inconsistent record, e.g. unplayable item on playlist
 .indexed-cell:corrupt,
 .indexed-cell:corrupt:selected {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
@@ -3430,90 +3434,84 @@
     // in general set only non-content properties in row
 }
 
+// quick search which scrolls to the item in the table can also highlight any
+// while search is active all items have one of the following pseudoclasses
+// matched items
+.indexed-cell:searchmatch,
+.indexed-cell:searchmatch:selected {
+    // matched items are normal
+}
+// unmatched items
+.indexed-cell:searchmatchnot {
+    -fx-opacity: 0.4;
+}
+.table-row-cell:searchmatchnot {
+    -fx-opacity: 1;
+}
+
 //****************************** ITEM PICKER *********************************//
 
-/** Picker control that provides elements to choose from as a scrollable tile
-    grid.
-    This styleclass extends .block
-    This element is ScrollPane and has all its properties. */
+/** 
+ * Picker displays elements to choose from as a scrollable tile grid.
+ * inherits: ScrollPane, .block
+ * Used in layouts (should mirror the style of widget area), but also popups.
+ */
 .item-picker {
 }
 
 .item-picker-element {
-/*    -fx-background-color: -fx-pane-color;*/
     -fx-background-color: -fx-pane-color;
     -fx-background-radius: 0;
     -fx-pref-height: 2em;
-    /*-fx-text-fill: -fx-def-font-color;*/
-    //-fx-padding: 0.3em 0.7em 0.3em 0.7em;
 }
+
 .item-picker-element:hover {
-    -fx-background-color: rgba(25,25,35,0.80);
-    -fx-background-insets: -0.2em -0.2em -0.2em -0.2em;
+    -fx-background-color: -fx-pane-color;
+    -fx-background-insets: 3;
+    -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
 }
 
 //******************************** POPOVER ***********************************//
 
-// the popup window itself, not stylable 
-.popover {
-    // similar as content a rectangular area without the arrow
-    // by default set to transparent. Setting to null will cause the popup to pass 
-    // mouse events similar to when pickOnBounds is set to false - only the content 
-    // would receive the events which would break functionalities of the popup
-    -fx-background-color: transparent; // dont set to null
+// the popup window itself, not stylable
+// inherits: Control
+// pseudoclasses : detached - when detached from its location, no arrow
+//                 focused - focus follows focus of the parent window
+.popover {}
+
+// rectangular root - container for .bgr and .content, do not use
+// inherits: StackPane
+.popover-root {
+    // null: let mouse events pass through similar to when pickOnBounds
+    //       is set to false - only the content receives the events
+    // transparent: mouse events dont pass through == normal
+    -fx-background-color: transparent;
 }
 
-// .bgr is Path and Shape and has all its properties
-// available pseudoclasses : detached
-.popover > .bgr {
+// bgr - bgr in the shape of the popover
+// inherits: Path(Shape)
+// radius not stylable, fixed to programmatic value
+.popover-root > .bgr {
     // the shape representing the whole popup area including the arrow
     // use for basic appearance like border or bgr styling
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
-
-  /* alternative below */  
-/* 
-    -fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
-    -fx-stroke-width: 0.5;
-    -fx-fill: rgba(255.0,255.0,255.0, .95);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.2), 10.0, 0.5, 2.0, 2.0);*/
-}
-.popover > .bgr:detached {
-    // if you wnat to change basic appearance in detached mode
 }
 
-// content - ranctangular area for the actual content of the popup
-// including header and close button but excluding the arrow
-// .content is BorderPane and has all its properties
-// available pseudoclasses : detached
-.popover > .content {
-
-    // universal popover padding, creates nice natural border if content has its own
-    // background, for example now the border is semi-transparent as the popover bgr
-
-    // be aware that changing this has effect on positioning of the popup near screen
-    // borders. padding value should be canceled out with 'gap' value which is not yet
-    // supported in css - the current gap calue is 6 (but it doesnt scale lineary)
-    // the problem when not caneling the padding value exactly is that the popover's border
-    // supposed to touch the screen border will be outside the screen - whats touching the border:
-    // is popovers content
-
-    // note that padding creates area between the real border and the element, which means
-    // the style of the element will not apply on this gap - like bgr of the elements
-    // - children of this content
-    -fx-padding: 3;
-
-    // set the below to set bgr for the whole content including the padded area
-    //-fx-background-color: yellow;
+// content root - ranctangular area for the actual content of the popup, 
+// includes header, but not the arrow
+// inherits: BorderPane
+.popover-root > .content {
+    -fx-padding: 8;
 }
 
-// header of the popup - rectangular area at the top of the content
-.popover > .content > .popover-header {
+// popover header - rectangular area at the top of the content
+.popover-root > .content > .popover-header {
     -fx-padding: 3 8 0 8;
 }
 
-// title label
-.popover > .content > .popover-header > .title  {
+// popover header title
+.popover-root > .content > .popover-header > .title  {
     -fx-font-weight: bold;
     // give title some space, for small popups the control buttons on the right
     // easily become invasive when they come close to the title, looks ugly
@@ -3530,130 +3528,451 @@
     //-fx-padding: 0 0 0 5; 
 }
 
-/* Application notification poover. This styleclass styles the content while the
-   underlying popover is styled above.
-   Inherites .block & .anchor-pane */
+// pseudoclasses examples...
+.popover:detached > .popover-root > .bgr {
+
+}
+.popover:focused > .popover-root > .bgr,
+.popover:detached:focused > .popover-root > .bgr {
+    // -fx-stroke: grey; this would change border
+}
+
+/******************************* HELP POPOVER **********************************
+ * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
+ * Has purely informative use. Provides basically no interaction.
+ */
+.help-popover {}
+
+// Text of the help popover
+// inherits: .text
+.help-popover-text {
+    -fx-font-weight: bold;
+    -fx-text-alignment: justify;
+}
+
+/******************************* NOTIFICATION **********************************
+ * Application notification popover. Does not style notification content.
+ * inherits: .popover
+ * radius fixed to 0 programmatically
+ */
 .notification {
+    
+}
+
+.notification > .popover-root > .content > .popover-header {
+    
+}
+
+.notification > .popover-root > .content > .popover-header > .title  {
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
 }
 
 //****************************** THUMBNAIL ***********************************//
 
-// background for thumbnail
-.thumbnail-bgr {
-    -fx-background-color: rgba(0,0,0,0.2);
+// root - background for thumbnail
+.thumbnail {
+}
+// inherits: .imageview
+.thumbnail-image {
 }
 // border of thumbnail
 .thumbnail-border {
     -fx-border-color: black;
-    -fx-border-width: 2; // this should be set to 2 for now as it depends on java code
-    -fx-border-insets: 0;
+    -fx-border-width: 2;
+ }
+
+/********************************** SEEKER *************************************
+ * 
+ * inherits: .slider
+ */
+
+.seeker {
+    -fx-skin: "gui.objects.SeekerSkin";
 }
+.seeker .thumb {}
+.seeker .thumb:hover,
+.seeker .thumb:pressed {}
+.seeker .track {}
 
-//****************************** SEEKER ***********************************//
-
-// seeker actually wraps slider and as a result it has exactly the same classes
-// as slider
-
-// leaving out any skinning for seeker whatsoever will cause it to have the same
-// skin as ordinary slider
-.seeker .track {
-    -fx-background-color: rgba(255,255,255,0.3);
-    -fx-background-insets: -3; // this actually puts width back to original 100%
-    -fx-background-radius: 0;
-    -fx-padding: 3; // basically trck width (as usually the length is autosized)
-}
-
-// this is a custom element and doesnt belong under slider
-// styles markers on the seekbar. markers mark specific time point on the seeker
-// note: marker is a Rectangle which is a Shape
+// Chapter marker on the seeker. Marks specific time point.
+// inherits: Rectangle (Shape)
+// pseudoclasses: .newly-created - when user creates new chapter until he writes
+//                                 it to tag
 .seeker-marker {
-    -fx-background-color: rgb(0,0,0);
-    -fx-opacity: 0.4;
-    -fx-padding: 4 2 4 2; // height=4, width=2
+    -fx-background-color: -fx-def-font-color;
+    -fx-opacity: 0.5;
+    -fx-padding: 4 1 4 1;   // sets height=4, width=2
 }
+.seeker-marker:newly-created {
+    -fx-opacity: 1;
+}
+
+// Add chapter button
+// inherits: .icon
+.seeker-add-chapter-button,
+.seeker-add-chapter-button:hover {
+    //-fx-fill: blue;
+    -fx-effect: none;
+}
+
+/******************************* VOLUME SLIDER *******************************
+ *
+ * inherits .slider
+ */
+.volume {}
+.volume .thumb {}
+.volume .thumb:hover {}
+.volume .track {}
 
 //*********************************** TEXT ***********************************//
 
 // javafx.scene.text.Text doesnt actually have a style class so this is a custom
-// implementation of that
-// it does however have to be applied manually in the code upon Text object
-// creation. A sublass of Text could however be created that uses this style
-// class by default
+// implementation of that used by a sublass
 .text-shape {
     -fx-fill: -fx-def-font-color;
 }
 
+/********************************** CONFIG ************************************/
 
-// all icons created with AwesomeDude library
-// most of the buttons with an icon in the application
-.awesome {
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
-}
-.awesome:hover {
-    -fx-text-fill: -fx-def-font-color-hover;
+/** 
+ * Text box for configuring objects, e.g. in settings. * 
+ * inherits: .text-field
+ * pseudoclasses: edited (it is basically focused)
+ */
+.text-field-config:edited {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
 }
 
-// the following are all subtypes of .awesome
+.combobox-field-config:edited > .list-cell {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+}
+
+/** 
+ * Ok icon used in config fields to apply change.
+ * inherits: .icon
+ */
+.congfig-field-ok-button {
+    -glyph-name: CHECK;
+}
+
+.boolean-config-field {}
+
+.override-config-field {
+    -glyph-name: CHECKBOX_MULTIPLE_BLANK_OUTLINE;
+}
+.override-config-field:selected {
+    -glyph-name: CHECKBOX_MULTIPLE_BLANK;
+}
+
+.shortcut-global-config-field {
+    -glyph-name: CAST;
+}
+.shortcut-global-config-field:selected {
+    -glyph-name: CAST_CONNECTED;
+}
+
+/** 
+ * Warn icon used in config fields to signal erroneous input.
+ * inherits: .icon
+ */
+.congfig-field-warn-button {
+    -glyph-name: EXCLAMATION_TRIANGLE;
+    -fx-fill: -fx-focus-color;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+.congfig-field-warn-button:hover {
+    -fx-fill: -fx-focus-color;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
 
 .congfig-field-default-button {
     -fx-font-size: 0.9em;
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
-    //-icons-color: -fx-def-font-color;
-    //-fx-text-fill: -fx-def-font-color;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
+    -fx-text-fill: -fx-def-font-color;
+    -fx-padding: 2 0 0 0;       // fix vertical alignment
 }
- 
 .congfig-field-default-button:pressed:hover {
-    -icons-color: black;
-    -fx-text-fill: black;
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
- 
 .congfig-field-default-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
-.congfig-field-ok-button {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
-}
- 
-.congfig-field-ok-button:pressed:hover {
-    -icons-color: black;
-    -fx-text-fill: black;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
-}
- 
-.congfig-field-ok-button:hover {
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
+/* Effect type chooser button for effect config field. */
+.effect-config-field-type-button {
+    -glyph-name: AUTO_FIX;
+    -glyph-size: 11;
 }
 
-/***********************************************************************************/
-
-// special button with two graphics and fade transition on hover between them.
-// This way anything can be faded into anything. Simply define the two states
-.fade-button-normal {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
-}
-.fade-button-hover {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color-hover;
-    -fx-text-fill: -fx-def-font-color-hover;
-    -fx-effect: dropshadow( gaussian, -fx-def-font-color-hover, 5, 0.0 , 0 , 0 );
+/* Effect properties button for effect config field. */
+.effect-config-field-prop-button {
+    -glyph-name: GEAR;
+    -glyph-size: 11;
 }
 
-.particle {
-    -fx-fill: -fx-font-def-color;
+/******************************************************************************/
+
+
+
+/* Audio spectrum graph.
+   Extends and has all properties of: chart-bar */
+.audiospectrum {
+    // note: for now not working, use .chart-bar
+}
+
+//*********************************** RATING *********************************//
+
+// container for the control, use use for padding and such
+.rating > .container {
+    //-fx-padding: 0 4 0 4;
+}
+
+
+// .rating-button
+// the stars (although not necessarily stars (not settable in css))), all of the
+// icons are one object due to performance optimizations, so so separete effects
+// on individual icons are impossible
+// should inherit .glyph, but does not due to possible problems
+
+// the 'empty' rating button 
+.rating-button {
+    -fx-fill: -fx-def-font-color;
+    -fx-font-size: 10px;
+}
+// the 'full' rating button - 2nd group of icons with this pseudoclass hovers
+// clipped on top to produce partial rating effect
+.rating-button.strong {
+    -fx-font-size: 10px;
+}
+// rating is at min value
+.rating-button:min {
+    -fx-opacity: 0.3;
+}
+// rating is at max value
+.rating-button:max {
+    -fx-fill: derive(-fx-def-font-color,50%);;
+}
+
+/********************************** SPINNER ************************************
+ * Simple progress indicator control.
+ * inherits: .arc ().shape)
+ */
+
+.spinner {
+    -fx-fill: null;
+    -fx-stroke: -fx-def-font-color;
+    -fx-stroke-width: 2;
+    -fx-stroke-type: inside;
+}
+.spinner-progress {
+    -fx-fill: -fx-def-font-color;
+}
+
+/********************************** MENU ***************************************
+ * Menu item with a check icon
+ * inherits: .menu
+ * pseudoclasses: no support -> use .menu-nochildren styleclass instead
+ */
+.checkicon-menu-item {
+    
+}
+
+// inherits: check-icon
+.checkicon-menu-item-icon {
+    //-fx-padding: 0 5 1 0; // i think padding doesnt work here
+    -fx-translate-x: -2px;
+}
+.checkicon-menu-item-icon:selected {
+    // leave default
+}
+
+// inherits: checkicon-menu-item-icon
+.checkicon-menu-item-icon-single-selection {
+    visibility: hidden;
+    -glyph-name: "CHECK";
+}
+.checkicon-menu-item-icon-single-selection: selected {
+    visibility: visible;
+    -glyph-name: "CHECK";
+}
+
+// hide the arrow if no children
+.menu-nochildren > .right-container > .arrow,
+.menu-nochildren:focused > .right-container > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+
+/***************************** WIDGET INPUT OUTPUT *****************************
+ * Shown in layout mode, a graph displaying widget outputs and inputs as nodes
+ * and their bindings as edges.
+ */
+
+// input node icon, output node icon, input/output node icon
+// all three behave the same with same properties, etc.
+// inherits: .icon
+// pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+.inode,
+.onode,
+.ionode {
+    -glyph-name: TOGGLE_RIGHT;
+    -glyph-size: 10;
+}
+
+.inode:drag-over,
+.onode:drag-over,
+.ionode:drag-over {
+    -fx-fill: -fx-def-font-color-hover;
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
+}
+
+.inode:selected,
+.onode:selected,
+.ionode:selected {
+    -fx-fill: -fx-focus-color;
+    -glyph-size: 15;
+}
+
+
+// Output -> Input connection line.
+// inherits: .path
+.ioline {
+    -fx-opacity: 0.8;
+    -fx-stroke: -fx-def-font-color; 
+    -fx-stroke-width: 2;
+    -fx-fill: null; // bgr of the shape the path makes - we dont want any 
+}
+.ioline:hover {
+    -fx-opacity: 1;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 3;
+}
+.ioline:disabled { // .path doesnt seem to hav this defined
+    -fx-opacity: 0.4;
+}
+
+
+/***************************** OVERLAY PANE *****************************
+ * 
+ */
+
+// Pane laying 'above' window creating 'overlay' bgr above it. Displays
+// various content.
+// inherits: .stack-pane
+.overlay-pane {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+// Pane for content, doesnt cover all space, sort of inner box.
+// inherits: .stack-pane
+.overlay-pane-content {
+    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-background-radius: 15;
+    -fx-padding: 15;
+}
+
+// Action chooser, displays action icons (with description) to choose 
+// from and action input data information
+// inherits: .overlay-pane
+.action-pane {}
+// Icon for action in an action pane
+// inherits: .icon
+.action-pane-action-icon {
+    -glyph-size: 25;
+}
+
+// Overlay displaying shortcuts and their keys
+// inherits: .overlay-pane
+.shortcut-pane{
+    
+}
+// Group title label for shortcut group
+// inherits: .label
+.shortcut-pane-group-label {
+    -fx-font-weight: bold;
+}
+
+// Overlay displaying system properties
+// inherits: .overlay-pane
+.info-pane{
+    
+}
+// Group title label for shortcut group
+// inherits: .label
+.info-pane-group-label {
+    -fx-font-weight: bold;
+}
+    
+
+.node:configselected {
+    -fx-background-color: rgba(90,200,200,0.2); 
+}
+
+/******************** PLACEHOLDER PANE *********************
+ * Pane with a placeholder, mostly showed instead of content when there is none (e.g. click to 
+ * add items).
+ * Normally it highlights on hover/mouse over to signal possible interaction.
+ *
+ * inherits: .stack-pane
+ */
+.placeholder-pane {}
+.placeholder-pane:hover {
+    -fx-background-color: rgba(0,0,0,0.5); 
+}
+// Icon denoting an action that will take place after drag is dropped
+// inherits: .icon
+.placeholder-pane-icon {
+    -glyph-size: 25; 
+}
+
+/******************** DRAG PANE *********************
+ * Drag hihglighting pane, visible when drag enters node and hidden when it exists.
+ * Normally it is always highlighted, but only visible on drag over.
+ *
+ * inherits: .placeholder-pane
+ */
+.drag-pane {
+    -fx-background-color: rgba(0,0,0,0.5); 
+}
+// Icon denoting an action that will take place after drag is dropped
+// inherits: .placeholder-pane-icon
+.drag-pane-icon {}
+
+/***************************** GUIDE *****************************
+ * Guide
+ */
+
+// Standard text of the guide
+// inherits: .text
+.guide-text {
+    -fx-font-weight: bold;
+}
+
+
+
+.comet-bgr {
+/*    -fx-background-image: url("cometbgr.jpg");
+    -fx-background-size: stretch;*/
+}
+
+/***************************** GRID VIEW *****************************
+ * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView
+ */
+.grid-view {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+.grid-row {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+.grid-cell {
+    -fx-border-width: 0;
+    -fx-padding: 0;
 }

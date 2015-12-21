@@ -107,7 +107,7 @@ public final class UiContext {
               });
         // build popup
         PopOver p = new PopOver(w.load());
-                p.title.set(w.getInfo().name());
+                p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
                 p.show(Window.getActive().getStage(),getX(),getY());

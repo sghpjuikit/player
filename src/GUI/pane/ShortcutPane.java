@@ -17,7 +17,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
@@ -76,7 +75,7 @@ public class ShortcutPane extends OverlayPane {
                    sp.setHbarPolicy(ScrollBarPolicy.NEVER);
                    sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         VBox l = layHeaderTop(5, CENTER,
-            layStack(controls, CENTER_RIGHT),
+            layHorizontally(5,CENTER_RIGHT, hideI,helpI),
             layStack(sp, CENTER)
         );
         l.setMaxWidth(500);
@@ -144,6 +143,4 @@ public class ShortcutPane extends OverlayPane {
     private final Icon hideI = new CheckIcon(hideEmpty)
                                     .tooltip(HE_TITLE+"\n\n"+HE_INFO)
                                     .icons(CLOSE_CIRCLE_OUTLINE,CHECKBOX_BLANK_CIRCLE_OUTLINE);
-    private final HBox controls = layHorizontally(5,CENTER_RIGHT, hideI,helpI);
-
 }

@@ -11,19 +11,18 @@ import javafx.scene.layout.VBox;
 
 import Layout.Component;
 import Layout.container.layout.Layout;
-import Layout.container.layout.LayoutManager;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.Widget;
+import Layout.widget.Widget.Group;
 import Layout.widget.controller.ClassController;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.image.Thumbnail;
-import main.App;
 import util.File.Environment;
 import util.graphics.fxml.ConventionFxmlLoader;
 
-import static Layout.widget.Widget.Group.APP;
 import static java.util.stream.Collectors.toList;
+import static main.App.APP;
 import static util.functional.Util.toCSList;
 
 /**
@@ -39,7 +38,7 @@ import static util.functional.Util.toCSList;
     notes = "",
     version = "0.4",
     year = "2014",
-    group = APP
+    group = Group.APP
 )
 public final class Layouts extends ClassController {
 
@@ -89,8 +88,8 @@ public final class Layouts extends ClassController {
      * Completely refreshes layouts - rereads them from files, etc...
      */
     public void refresh() {
-        layoutsCB.getItems().setAll(LayoutManager.getAllLayoutsNames().collect(toList()));
-        layoutsCB.getSelectionModel().select(LayoutManager.getActive().getName());
+        layoutsCB.getItems().setAll(APP.widgetManager.getAllLayoutsNames().collect(toList()));
+        layoutsCB.getSelectionModel().select(APP.widgetManager.getActive().getName());
     }
 
     @FXML
@@ -111,7 +110,6 @@ public final class Layouts extends ClassController {
                l.locked.set(lockedChB.isSelected());
                if (!nameF.getText().isEmpty()) l.setName(nameF.getText());
                l.serialize();
-               l.makeSnapshot();
         refresh();
     }
 
@@ -128,7 +126,7 @@ public final class Layouts extends ClassController {
     }
     @FXML
     public void openLayoutDirectory() {
-        Environment.browse(App.LAYOUT_FOLDER().toURI());
+        Environment.browse(APP.DIR_LAYOUTS);
     }
 
     private boolean isSelected() {
@@ -139,7 +137,7 @@ public final class Layouts extends ClassController {
         // create 'empty' layout based on name
         String name = layoutsCB.getSelectionModel().getSelectedItem();
         // attempt to get layout from active layouts
-        Layout l = LayoutManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
+        Layout l = APP.widgetManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
         // attempt to deserialize the layout if not active
         if(l==null) {
             l = new Layout(name);
@@ -172,6 +170,6 @@ public final class Layouts extends ClassController {
         s += "\n";
         infoT.setText(s);
         // show thumbnail
-        thumb.loadImage(l.getThumbnail());
+//        thumb.loadImage(l.getThumbnail());
     }
 }

@@ -20,7 +20,6 @@ import Layout.*;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
-import Layout.widget.controller.Controller;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
@@ -30,6 +29,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.GUI.closeAndDo;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -130,9 +130,8 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
             // close on right click
-            if(!isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-//                closeAndDo(container.getRoot(), container::close); // causes serious prolems, why?
-                container.close();
+            if(isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
+                closeAndDo(root, container::close);
                 e.consume();
                 return;
             }
@@ -147,7 +146,6 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                 e.consume();
             }
         });
-
     }
 
     @Override

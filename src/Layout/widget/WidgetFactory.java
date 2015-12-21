@@ -11,6 +11,7 @@ import java.util.List;
 
 import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
+import util.ClassName;
 
 /**
  * Factory that creates widgets.
@@ -20,17 +21,17 @@ import Layout.widget.feature.Feature;
 @Widget.Info // empty widget info with default values
 public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
-    final String name;
-    final String gui_name;
-    final String description;
-    final String version;
-    final String author;
-    final String programmer;
-    final String contributor;
-    final String howto;
-    final String year;
-    final String notes;
-    final Widget.Group group;
+    private final String name;
+    private final String gui_name;
+    private final String description;
+    private final String version;
+    private final String author;
+    private final String programmer;
+    private final String contributor;
+    private final String howto;
+    private final String year;
+    private final String notes;
+    private final Widget.Group group;
 
     private final Class<C> controller_class;
     public final File location;
@@ -84,12 +85,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
     }
 
     public WidgetFactory(Class<C> type, File location) {
-        this(getNameFromAnnotation(type), type, location);
-    }
-
-    private static String getNameFromAnnotation(Class<?> c) {
-        Widget.Info i = c.getAnnotation(Widget.Info.class);
-        return i==null ? c.getSimpleName() : i.name();
+        this(ClassName.of(type), type, location);
     }
 
     /**
@@ -100,11 +96,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
         return new Widget<>(name,this);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    protected Class getControllerClass() {
+    protected Class<C> getControllerClass() {
         return controller_class;
     }
 
@@ -125,56 +117,46 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
         ignored = val;
     }
 
-    /** {@inheritDoc} */
     @Override
-    public String name() { return gui_name; }
+    public String name() { return name; }
 
-    /** {@inheritDoc} */
+    @Override
+    public String nameGui() { return gui_name; }
+
     @Override
     public String description() { return description; }
 
-    /** {@inheritDoc} */
     @Override
     public String version() { return version; }
 
-    /** {@inheritDoc} */
     @Override
     public String author() { return author; }
 
-    /** {@inheritDoc} */
     @Override
     public String programmer() { return programmer; }
 
-    /** {@inheritDoc} */
     @Override
     public String contributor() { return contributor; }
 
-    /** {@inheritDoc} */
     @Override
     public String year() { return year; }
 
-    /** {@inheritDoc} */
     @Override
     public String howto() { return howto; }
 
-    /** {@inheritDoc} */
     @Override
     public String notes() { return notes; }
 
-    /** {@inheritDoc} */
     @Override
     public Widget.Group group() { return group; }
 
-    @Override
     public Class type() { return controller_class; }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasFeature(Class feature) {
         return feature.isAssignableFrom(controller_class);
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<Feature> getFeatures() {
         List<Feature> out = new ArrayList<>();
@@ -183,6 +165,11 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
             if (f!=null) out.add(f);
         }
         return out;
+    }
+
+    @Override
+    public String toString() {
+        return "WidgetFactory " + name + " " + gui_name + " " + controller_class;
     }
 
 }

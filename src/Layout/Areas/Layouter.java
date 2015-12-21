@@ -1,8 +1,6 @@
 
 package Layout.Areas;
 
-import java.util.Objects;
-
 import javafx.animation.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
@@ -16,6 +14,7 @@ import gui.GUI;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
 import util.animation.interpolator.CircularInterpolator;
+import util.collections.Tuple2;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
@@ -28,53 +27,62 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.collections.Tuples.tuple;
+import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
- * @author uranium
+ * Graphics for when components of a {@link Container}} is null at certain index. It shows a
+ * component chooser for user to choose container or widget to put into parent container at the
+ * index - it allows creation of layouts.
+ * <p>
+ * Uses two nested {@link Picker} - 1 for components and 2 for widgets.
+ * The component picker is top level picker offering component type choices (all container
+ * implementations or widget). If user picks container it will be constructed. If user picks widget
+ * option, widget picker will be displayed, constructing widgets.
  *
- * @TODO make dynamic indexes work and this widget part of layout map. See
- * TO Do file API section
+ * @author uranium
  */
-@   Layout.widget.Widget.Info
 public final class Layouter implements ContainerNode {
 
-    private final Container container;
+    private final Container<?> container;
     private final int index;
 
-    public final Picker<String> cp = new Picker();
     public final AnchorPane root = new AnchorPane();
+    private final Picker<Tuple2<String,Runnable>> cp = new Picker<>();
+    private WidgetPicker wp = new WidgetPicker();
+    
+    /** Component picker on cancel action. */
+    public Runnable onCpCancel = null;
+    private boolean isCancelPlaying = false; // avoids calling onCancel twice
+    private boolean weakMode = true;
 
     private final FadeTransition a1;
     private final ScaleTransition a2;
     private final EventHandler<MouseEvent> clickShowHider;
     private final EventHandler<MouseEvent> exitHider;
 
-    public Layouter(Container con, int index) {
-        Objects.requireNonNull(con);
-
+    public Layouter(Container<?> c, int index) {
+        noØ(c);
         this.index = index;
-        this.container = con;
+        this.container = c;
 
-        cp.onSelect = layout -> {
-            switch(layout) {
-                case "Split Vertically" : closeAndDo(cp.root, this::showSplitV);
-                                        break;
-                case "Split Horizontally" : closeAndDo(cp.root, this::showSplitH);
-                                        break;
-                case "Widget" : closeAndDo(cp.root, this::showWidgetArea);
-                                break;
-                case "FreeForm" : closeAndDo(cp.root, this::showFreeform);
-                                  break;
-            }
+        cp.onSelect = layout_action -> closeAndDo(cp.root,layout_action._2);
+        cp.onCancel = () -> {
+            isCancelPlaying = true;
+            hide();
         };
-        cp.onCancel = this::hide;
-        cp.textCoverter = text -> text;
-        cp.itemSupply = () -> stream("Split Vertically", "Split Horizontally",
-                                        "Widget", "FreeForm"); // , "Tabs"
+        cp.consumeCancelClick = false; // we need right click to close container
+        cp.textCoverter = layout_action -> layout_action._1;
+        cp.itemSupply = () -> stream(
+            tuple("Split Vertically",this::showSplitV),
+            tuple("Split Horizontally", this::showSplitH),
+            tuple("Widget",this::showWidgetArea),
+            tuple("FreeForm",this::showFreeform)
+        );
         cp.buildContent();
         setAnchor(root, cp.root,0d);
 
@@ -105,21 +113,17 @@ public final class Layouter implements ContainerNode {
                 show();
                 e.consume();
             }
-
         };
 //        exitHider =  e -> cp.onCancel.run();
         exitHider = e -> {
-            if(cp.root.getScaleX()==1 && wp.root.getScaleX()==1) {
+            if(!isCancelPlaying) {
                 // rely on the public show() implementation, not internal one
                 cp.onCancel.run();
                 e.consume();
             }
         };
 
-        // setParentRec mode
         setWeakMode(true); // this needs to be called in constructor
-        // setParentRec show
-        setShow(GUI.isLayoutMode());
     }
 
 /****************************  functionality  *********************************/
@@ -133,7 +137,7 @@ public final class Layouter implements ContainerNode {
     @Override
     public void hide() {
         // prevent leaving layout mode when layout mode active
-        if(GUI.isLayoutMode())return;
+        if(GUI.isLayoutMode()) return;
         showControls(false);
 //        closeAndDo(cp.root, null);
     }
@@ -142,19 +146,23 @@ public final class Layouter implements ContainerNode {
         a1.stop();
         a2.stop();
         if (val) {
+            a1.setOnFinished(null);
             a1.setToValue(1);
             a2.setToX(1);
             a2.setToY(1);
         } else {
+            a1.setOnFinished(isCancelPlaying ? e -> {
+                isCancelPlaying = false;
+                if(onCpCancel!=null) onCpCancel.run();
+            } : e -> isCancelPlaying=false);
             a1.setToValue(0);
             a2.setToX(0);
             a2.setToY(0);
+            isCancelPlaying = true;
         }
         a1.play();
         a2.play();
     }
-
-    private boolean clickMode = true;
 
     /**
      * In normal mode the controls are displayed on mouse click
@@ -163,7 +171,7 @@ public final class Layouter implements ContainerNode {
      * @param val
      */
     public void setWeakMode(boolean val) {
-        clickMode = val;
+        weakMode = val;
 
         // always hide on mouse exit, setParentRec
         if (root.getOnMouseExited()==null)
@@ -179,14 +187,12 @@ public final class Layouter implements ContainerNode {
     }
 
     public void toggleWeakMode() {
-        clickMode = !clickMode;
+        weakMode = !weakMode;
     }
     public boolean isWeakMode() {
-        return clickMode;
+        return weakMode;
     }
 
-
-    WidgetPicker wp = new WidgetPicker();
     private void showWidgetArea() {
         wp = new WidgetPicker();
         wp.onSelect = factory -> {
@@ -203,7 +209,7 @@ public final class Layouter implements ContainerNode {
             root.getChildren().remove(wp.root);
             showControls(true);
         });
-        wp.consumeCancelClick = true;
+        wp.consumeCancelClick = true; // we need right click to not close container
         wp.buildContent();
         root.getChildren().add(wp.root);
         setAnchors(wp.root, 0d);

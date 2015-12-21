@@ -20,6 +20,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
 import org.atteo.classindex.ClassIndex;
@@ -164,13 +166,14 @@ public class App extends Application implements Configurable {
      */
     public static void main(String[] args) {
         launch(args);
+        // auncherImpl.launchApplication(App.class, preloaderclass, args); launch with prloader
     }
 
 
     /** Name of this application. */
     public final String name = "PlayerFX";
 
-    /** Jar file of the application. */
+    /** Jar file of the application*/
     public final File FILE_SRC_JAR = obtainAppSourceJar();
     /** Directory of the {@link #FILE_SRC_JAR}. */
     public final File DIR_APP_SRC = FILE_SRC_JAR.getParentFile();
@@ -190,6 +193,7 @@ public class App extends Application implements Configurable {
     public final File DIR_WIDGETS = new File("widgets").getAbsoluteFile();
     /** Directory containing skins. */
     public final File DIR_SKINS = new File("skins").getAbsoluteFile();
+    public final File DIR_LAYOUTS = new File("layouts").getAbsoluteFile();;
 
     /** Url for github website for project of this application. */
     public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
@@ -399,7 +403,7 @@ public class App extends Application implements Configurable {
                 + "component as if it were a standalone application.",
                 EXPORT, w -> {
                     DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(LAYOUT_FOLDER());
+                                     dc.setInitialDirectory(DIR_LAYOUTS);
                                      dc.setTitle("Export to...");
                     File dir = dc.showDialog(Window.getActive().getStage());
                     if(dir!=null) w.exportFxwl(dir);
@@ -446,7 +450,7 @@ public class App extends Application implements Configurable {
             fs -> fs.forEach(UiContext::launchComponent)
         );
         parameterProcessor.addStringProcessor(
-            s -> widgetManager.getFactories().anyMatch(f -> f.name().equals(s)),
+            s -> widgetManager.getFactories().anyMatch(f -> f.nameGui().equals(s) || f.name().equals(s)),
             ws -> ws.forEach(UiContext::launchComponent)
         );
     }
@@ -465,6 +469,9 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void start(Stage primaryStage) {
+                AppPreloader preloader = new AppPreloader();
+                     preloader.start();
+
         try {
             // forbid multiple application instances, instead
             // notify the 1st instance of 2nd (this) trying to run and exit
@@ -541,48 +548,10 @@ public class App extends Application implements Configurable {
             configuration.getFields(f -> f.getGroup().equals("GUI") && f.getGuiName().equals("Skin")).get(0).applyValue();
             WindowManager.deserialize(normalLoad);
 
-            DB.start();
 
-            // animations are nice, but during load the fx thread is completely exhausted
-            // i do not see easy wau out of this
-            // GUI.setLayoutMode(true);
-            // Transition t = par(
-            //     Window.windows.stream().map(w ->
-            //         seq(
-            //             new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(1-0.6*at))
-            //                     .dur(500).intpl(new CircularInterpolator()),
-            //             par(
-            //                 par(
-            //                     forEachIStream(w.left_icons.box.getChildren(),(i,icon)->
-            //                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-            //                 ),
-            //                 par(
-            //                     forEachIRStream(w.right_icons.box.getChildren(),(i,icon)->
-            //                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-            //                 ),
-            //                 par(
-            //                     w.getSwitchPane().getLayouts().values().stream()
-            //                      .flatMap(l -> l.getAllWidgets())
-            //                      .map(wi -> (Area)wi.load().getUserData())
-            //                      .map(a ->
-            //                         seq(
-            //                             new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
-            //                             new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
-            //                         )
-            //                      )
-            //                 )
-            //             ),
-            //             par(
-            //                 new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(0.4+0.7*at))
-            //                         .dur(500).intpl(new CircularInterpolator())
-            //             )
-            //         )
-            //     )
-            // );
-            // t.setOnFinished(e -> {
-            //     GUI.setLayoutMode(false);
-            // });
-            // t.play();
+//            preloader.stop();
+
+            DB.start();
 
             initialized = true;
 
@@ -714,12 +683,6 @@ public class App extends Application implements Configurable {
     public static String PLAYER_STATE_FILE() {
         return "PlayerState.cfg";
     }
-
-    /** @return absolute file of Location of layouts. */
-    public static File LAYOUT_FOLDER() {
-        return new File("Layouts").getAbsoluteFile();
-    }
-
     /** @return absolute file of Location of data. */
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
@@ -837,7 +800,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
     public static void openLayoutManager() {
-        APP.widgetManager.find(w -> w.name().equals("Layouts"), WidgetSource.NO_LAYOUT);
+        APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
     }
 
     @IsAction(name = "Open guide", desc = "Resume or start the guide.")
@@ -848,17 +811,18 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     public static void openActions() {
         APP.actionPane.show(Void.class, null,
-            new FastAction<Void>(
+            new FastAction<>(
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
                 + "Launcher file is a file that when opened by this application opens the widget. "
                 + "If application was not running before, it will not load normally, "
                 + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
                 + "Essentially, this exports the widgets as 'standalone' applications",
                 EXPORT,
                 ignored -> {
                     DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(App.LAYOUT_FOLDER());
+                                     dc.setInitialDirectory(APP.DIR_LAYOUTS);
                                      dc.setTitle("Export to...");
                     Window aw = Window.getActive();
                     File dir = dc.showDialog(aw.getStage());
@@ -867,12 +831,62 @@ public class App extends Application implements Configurable {
                     }
                 }
             ),
-            new FastAction<Void>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
-            new FastAction<Void>(INFORMATION_OUTLINE,Action.get("Show system info")),
-            new FastAction<Void>(GITHUB,Action.get("Open on github")),
-            new FastAction<Void>(CSS3,Action.get("Open css guide")),
-            new FastAction<Void>(IMAGE,Action.get("Open icon viewer")),
-            new FastAction<Void>(FOLDER,Action.get("Open app directory"))
+            new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+            new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
+            new FastAction<>(GITHUB,Action.get("Open on github")),
+            new FastAction<>(CSS3,Action.get("Open css guide")),
+            new FastAction<>(IMAGE,Action.get("Open icon viewer")),
+            new FastAction<>(FOLDER,Action.get("Open app directory"))
+        );
+    }
+
+    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL + O")
+    public static void openOpen() {
+        APP.actionPane.show(Void.class, null,
+            new FastAction<>(
+                "Open widget",
+                "Open file chooser to open an exported widget",
+                MaterialIcon.WIDGETS,
+                none -> {
+                    FileChooser fc = new FileChooser();
+                                fc.setInitialDirectory(APP.DIR_LAYOUTS);
+                                fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
+                                fc.setTitle("Open widget...");
+                    Window w = Window.getActive();
+                    File f = fc.showOpenDialog(w.getStage());
+                    if(f!=null) UiContext.launchComponent(f);
+                }
+            ),
+            new FastAction<>(
+                "Open skin",
+                "Open file chooser to find a skin",
+                MaterialIcon.BRUSH,
+                none -> {
+                    FileChooser fc = new FileChooser();
+                                fc.setInitialDirectory(APP.DIR_SKINS);
+                                fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
+                                fc.setTitle("Open skin...");
+                    Window w = Window.getActive();
+                    File f = fc.showOpenDialog(w.getStage());
+                    if(f!=null) GUI.setSkinExternal(f);
+                }
+            ),
+            new FastAction<>(
+                "Open audio files",
+                "Open file chooser to find a audio files",
+                MaterialDesignIcon.MUSIC_NOTE,
+                none -> {
+                    FileChooser fc = new FileChooser();
+                                fc.setInitialDirectory(APP.DIR_SKINS);
+                                fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
+                                fc.setTitle("Open audio...");
+                    Window w = Window.getActive();
+                    List<File> fs = fc.showOpenMultipleDialog(w.getStage());
+                    // Action pane may autoclose when this action finishes, so we make sure to call
+                    // show() after that happens using runLater
+                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
+                }
+            )
         );
     }
 

@@ -145,19 +145,27 @@ public class Thumbnail extends ImageNode {
             // lay out border
             if(borderToImage && imageView.getImage()!=null) {
                 if(ratioIMG.get()>ratioTHUMB.get()) {
-                    double borderH = imgW/ratioIMG.get();
+                    double borderW = imgW;
+                    double borderWgap = (W-borderW)/2;
+                    double borderH = imgH/ratioIMG.get();
                     double borderHgap = (H-borderH)/2;
-                    img_border.resizeRelocate(0,borderHgap,W,borderH);
+                    resizeRelocateBorder(borderWgap,borderHgap,borderW,borderH);
                 } else {
                     double borderW = imgH*ratioIMG.get();
                     double borderWgap = (W-borderW)/2;
-                    img_border.resizeRelocate(borderWgap,0,borderW,H);
+                    double borderH = imgH;
+                    double borderHgap = (H-borderH)/2;
+                    resizeRelocateBorder(borderWgap,borderHgap,borderW,borderH);
                 }
             } else {
-                img_border.resizeRelocate(0,0,W,H);
+                resizeRelocateBorder(0,0,W,H);
             }
         }
     };
+
+    private void resizeRelocateBorder(double x, double y, double w, double h) {
+        img_border.resizeRelocate(x-1,y-1,w+2,h+2);
+    }
 
     /**
      * Displayed image. Editable, but it is recommended to use one of the load
@@ -211,6 +219,9 @@ public class Thumbnail extends ImageNode {
         img_border.setMouseTransparent(true);
         img_border.setManaged(false);
 
+//        root.setSnapToPixel(false);
+//        img_border.setSnapToPixel(false);
+
         // update ratios
         ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));
         imageView.imageProperty().addListener((o,ov,nv) ->
@@ -239,11 +250,13 @@ public class Thumbnail extends ImageNode {
 
     @Override
     public void loadImage(Image img) {
+        imagefile=null;
         setImgA(img);
     }
-
+    private File imagefile = null;
     @Override
     public void loadImage(File img) {
+        imagefile = img;
         Point2D size = calculateImageLoadSize(root);
         Image c = getCached(img, size.getX(), size.getY());
         Image i = c!=null ? c : Util.loadImage(img, size.getX(), size.getY());
@@ -251,6 +264,7 @@ public class Thumbnail extends ImageNode {
     }
 
     public void loadImage(Cover img) {
+        imagefile = img==null ? null : img.getFile();
         if(img==null) {
             setImgA(null);
         } else {
@@ -343,9 +357,11 @@ public class Thumbnail extends ImageNode {
     /** File representing the displayed image or null if no image displayed or not a file. */
     @Override
     public File getFile() {
+        // Since we delay image loading or something, image.get() can be null, in that case we fall
+        // back to imagefile
         String url = image.get()==null ? null : image.get().impl_getUrl();
         try {
-            return url==null ? null : new File(URI.create(url));
+            return url==null ? imagefile : new File(URI.create(url));
         } catch(IllegalArgumentException e) {
             return null;
         }

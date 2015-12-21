@@ -53,7 +53,9 @@ abstract public class FXMLController implements Controller<Widget> {
         FXMLLoader loader = new FXMLLoader();
                    loader.setLocation(getResource(name + ".fxml").toURI().toURL());
                    loader.setController(this);
-        return loader.load();
+        Node root = loader.load();
+        if(root instanceof Pane) loadSkin("skin.css",(Pane)root);
+        return root;
     }
 
     @Override
@@ -68,8 +70,11 @@ abstract public class FXMLController implements Controller<Widget> {
     }
 
     public void loadSkin(String filename, Pane root) {
+
         try {
-            root.getStylesheets().add(getResource(filename).toURI().toURL().toExternalForm());
+            File skin = getResource(filename);
+            if(skin.exists())
+                root.getStylesheets().add(skin.toURI().toURL().toExternalForm());
         } catch (MalformedURLException ex) {}
     }
 

@@ -19,7 +19,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import Configuration.IsConfigurable;
@@ -66,6 +65,11 @@ public class InfoPane extends OverlayPane {
 
 
     private final GridPane g = new GridPane();
+    private final Icon helpI = createInfoIcon(
+          "System information viewer"
+        + "\n\n"
+        + "Displays available system properties. Click on the property to copy the value."
+    );
 
     public InfoPane() {
         getStyleClass().add(STYLECLASS);
@@ -78,7 +82,7 @@ public class InfoPane extends OverlayPane {
                    sp.setHbarPolicy(ScrollBarPolicy.NEVER);
                    sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         VBox l = layHeaderTop(5, CENTER,
-            layStack(controls, CENTER_RIGHT),
+            layHorizontally(5,CENTER_RIGHT, helpI),
             layStack(sp, CENTER)
         );
         l.setMaxWidth(800);
@@ -143,15 +147,5 @@ public class InfoPane extends OverlayPane {
                     }
             });
     }
-
-
-/************************************ HEADER ************************************/
-
-    private final Icon helpI = createInfoIcon(
-          "System information viewer"
-        + "\n\n"
-        + "Displays available system properties. Click on the property to copy the value."
-    );
-    private final HBox controls = layHorizontally(5,CENTER_RIGHT, helpI);
 
 }

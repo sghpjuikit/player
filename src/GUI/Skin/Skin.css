@@ -3573,6 +3573,9 @@
 // root - background for thumbnail
 .thumbnail {
 }
+// inherits: .imageview
+.thumbnail-image {
+}
 // border of thumbnail
 .thumbnail-border {
     -fx-border-color: black;

@@ -403,27 +403,31 @@ public class Library extends FXMLController implements SongReader {
                     DB.removeItems(m.getValue())
                 ),
                 new Menu("Show in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
-                            (String f) -> f,
-                            (String f) -> APP.widgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
+                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
+                        f -> f,
+                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue()))
+                    )
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
-                            (String f) -> f,
-                            (String f) -> APP.widgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
+                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.nameGui()),
+                        f -> f,
+                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
+                    )
                 ),
                 menuItem("Explore items's directory", e -> {
                     Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
                 }),
                 new Menu("Explore items's directory in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(FileExplorerFeature.class),f->f.name()),
-                            (String f) -> f,
-                            (String f) -> APP.widgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
+                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(FileExplorerFeature.class),f->f.nameGui()),
+                        f -> f,
+                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile()))
+                    )
                 ),
                 new Menu("Search album cover",null,
                     menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
-                            q -> "in " + Parser.toS(q),
-                            q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())))
+                        q -> "in " + Parser.toS(q),
+                        q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum()))
+                    )
                 )
                );
             return m;

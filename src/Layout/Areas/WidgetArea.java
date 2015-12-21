@@ -120,7 +120,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            controls.title.setText(widget.getInfo().name());
+            controls.title.setText(widget.getInfo().nameGui());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);
@@ -135,7 +135,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            controls.title.setText(widget.getInfo().name());
+            controls.title.setText(widget.getInfo().nameGui());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);

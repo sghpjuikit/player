@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,11 +33,12 @@ import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.controller.io.Output;
 
-import static Layout.widget.WidgetManager.WidgetSource.ANY;
+import static Layout.widget.WidgetManager.WidgetSource.OPEN;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static main.App.APP;
 import static util.File.FileUtil.writeFile;
+import static util.async.Async.runLater;
 import static util.functional.Util.*;
 
 /**
@@ -58,9 +58,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 
-    // Name of the widget. Permanent. same as factory input_name
-    // it needs to be declared to support deserialization
-    final String name;
+    // Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
+    // appropriate factory)
+    // TODO: put it insode propertymap
+    private final String name;
 
     /**
      * Factory that produced this widget.
@@ -170,7 +171,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
                     controller.init();
                     restoreConfigs();
                     controller.refresh();
-                    deserializeIO();
+
+                    updateIO();
                 } catch(Exception e) {
                     ex = e;
                 }
@@ -180,6 +182,9 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
                 }
             }
         }
+
+        updateIOLayout();
+
         return root;
     }
 
@@ -197,7 +202,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         // inject this widget into the controller
         // temporary 'dirty' solution
         try {
-            Field f = util.Util.getField(c.getClass(), "widget"); // we use this as a check
+            util.Util.getField(c.getClass(), "widget"); // we use this as a check, throws Exception on fail
             util.Util.setField(c, "widget", this); // executes only if the field exists
         } catch (NoSuchFieldException ex) {
 
@@ -257,6 +262,14 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
      */
     public C getController() {
         return controller;
+    }
+
+    public void close() {
+        if(controller!=null) {
+            IOLayer.all_inputs.removeAll(controller.getInputs().getInputs());
+            IOLayer.all_outputs.removeAll(controller.getOutputs().getOutputs());
+            controller.close();
+        }
     }
 
     /** @return whether this widget will be preferred over other widgets */
@@ -389,10 +402,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         super.readResolve();
 
         // try to assign factory
-        if (factory==null) util.Util.setField(this, "factory", APP.widgetManager.factories.get(name));
+        if(factory==null) util.Util.setField(this, "factory", APP.widgetManager.factories.get(name));
 
         // use empty widget when no factory available
-        if (factory==null) return Widget.EMPTY();
+        if(factory==null) return Widget.EMPTY();
 
         if(configs==null) configs = new HashMap<>();
 
@@ -435,7 +448,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     public static void deserializeWidgetIO() {
         Set<Input> is = new HashSet<>();
-        Map<Output.Id,Output> os = APP.widgetManager.findAll(ANY)
+        Map<Output.Id,Output> os = APP.widgetManager.findAll(OPEN)
                      .filter(w -> w.controller != null)
                      .peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
                      .flatMap(w -> w.controller.getOutputs().getOutputs().stream())
@@ -455,10 +468,23 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         IOLayer.all_outputs.addAll(os.values());
     }
 
-    private void deserializeIO() {
+    // called when widget is loaded/closed (or rather, when inputs or outputs are created/removed)
+    // we need to create i/o nodes and i/o connections
+    private void updateIO() {
+        // because widget inputs can be bound to other widget outputs, and because widgets can be
+        // loaded passively (then its i/o doesnt exists yet), we need to update all widget i/os
+        // because we dont know which bind to this widget
         IOLayer.all_inputs.addAll(controller.getInputs().getInputs());
         IOLayer.all_outputs.addAll(controller.getOutputs().getOutputs());
         deserializeWidgetIO();
+    }
+
+    // called when widget is added/removed/moved within the scenegraph - we need to redraw the
+    // i/o connections
+    private void updateIOLayout() {
+        // because we call this before the widget is part of scenegraph, we delay execution
+        // suffering from badly designed (recursive) widget loading again...
+        runLater(() -> IOLayer.relayout());
     }
 
 

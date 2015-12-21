@@ -330,12 +330,9 @@ public final class AreaControls {
                         setAnchors(l.root, 0d);
 //                        openAndDo(l.getRoot(), null);
                         l.show();
-                        l.cp.onCancel = () -> {
-                            closeAndDo(l.root, () -> {
-                                area.root.getChildren().remove(l.root);
-                                openAndDo(area.content_root,null);
-                            });
-
+                        l.onCpCancel = () -> {
+                            area.root.getChildren().remove(l.root);
+                            openAndDo(area.content_root,null);
                         };
                     });
                 };

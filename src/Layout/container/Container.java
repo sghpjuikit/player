@@ -1,34 +1,26 @@
 
 package Layout.container;
 
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import Configuration.IsConfig;
 import Layout.AltState;
 import Layout.Areas.ContainerNode;
 import Layout.Component;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
-import Layout.widget.Widget.LoadType;
-import Layout.widget.controller.Controller;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 
-import static Layout.widget.Widget.LoadType.AUTOMATIC;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -207,8 +199,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 //            ((Container)c).close();
         }
         else if(c instanceof Widget) {
-            Controller wc = ((Widget)c).getController();
-            if(wc!=null) wc.close();
+            ((Widget)c).close();
         }
     }
 
@@ -328,28 +319,15 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     public abstract Node load();
 
     /**
-     * Closes this container and its content. Can not be undone.
-     * <p>
- In practice, this removes this container from layout mapB (as a child from
- its parent container) and from scene graph (all its graphics will be
- removed).
- <p>
+     * Closes this container and its content. Can not be undone. Any direct or indirect children
+     * component will be closed.
      * This has an effect of closing the whole layout branch spanning from this
      * container.
      * <p>
-     * If the container is root (in case of {@link Layout} for example, this
-     * method preserves the container itself, but all its children will undergo
-     * the same procedure as they normally would - the container remains empty.
+     * If this container is root (in case of {@link Layout}, only its children will close.
      */
     public void close() {
-        // close children
-        //    we close all widgets to free their resources and then close
-        //    this container to cut off its branch from scene graph and
-        //    layout graph.
-        //    We want to avoid recursively closing every container by one
-        getAllWidgets().map(Widget::getController)
-                .filter(ISNTØ)  // there might not yet loaded widgets => contorller==null
-                .forEach(c->c.close());
+        getAllWidgets().forEach(w -> w.close());
 
         if (parent!=null) {
             // remove from layout graph
@@ -393,23 +371,6 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      */
     public AnchorPane getRoot() {
         return root;
-    }
-
-/******************************************************************************/
-
-    @Override
-    public boolean equals(Object o) {
-        return this==o;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 67 * hash + Objects.hashCode(this.properties);
-        hash = 67 * hash + Objects.hashCode(this.root);
-        hash = 67 * hash + Objects.hashCode(this.parent);
-        hash = 67 * hash + (this.b ? 1 : 0);
-        return hash;
     }
 
 /******************************************************************************/

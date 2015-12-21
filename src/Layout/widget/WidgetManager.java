@@ -3,27 +3,32 @@ package Layout.widget;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.MalformedURLException;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import javafx.scene.layout.Pane;
+
 import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import Layout.container.Container;
-import Layout.container.layout.LayoutManager;
+import Layout.container.layout.Layout;
 import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
 import gui.objects.Window.stage.UiContext;
+import gui.objects.Window.stage.Window;
 import util.File.FileMonitor;
 import util.File.FileUtil;
 import util.SwitchException;
@@ -38,6 +43,7 @@ import static main.App.APP;
 import static util.File.FileUtil.getName;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
+import static util.functional.Util.ISNTØ;
 
 /**
  * Handles operations with Widgets.
@@ -171,9 +177,21 @@ public final class WidgetManager {
             // monitor skin file & reload factory on change
             srcMonitor = FileMonitor.monitorFile(skinfile, type -> {
                 if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                    LOGGER.info("Widget {} SKIN file changed {}", widgetname,type);
+                    // reload skin on all open widgets
                     // run on fx thread
                     runFX(() ->
-                        {}
+                        findAll(OPEN).filter(w -> w.getName().equals(widgetname))
+                            .forEach(w -> {
+                                try {
+                                    if(w.root instanceof Pane) {
+                                        ((Pane)w.root).getStylesheets().remove(skinfile.toURI().toURL().toExternalForm());
+                                        ((Pane)w.root).getStylesheets().add(skinfile.toURI().toURL().toExternalForm());
+                                    }
+                                } catch (MalformedURLException ex) {
+                                    java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            })
                     );
                 }
             });
@@ -383,7 +401,7 @@ public final class WidgetManager {
     public Stream<Widget> findAll(WidgetSource source) {
         switch(source) {
             case LAYOUT:
-                return LayoutManager.getLayouts().flatMap(l->l.getAllWidgets());
+                return getLayouts().flatMap(l->l.getAllWidgets());
             case STANDALONE:
             case NO_LAYOUT:
                 return standaloneWidgets.stream();
@@ -394,6 +412,10 @@ public final class WidgetManager {
                 return Stream.concat(findAll(STANDALONE),findAll(LAYOUT));
             default: throw new SwitchException(source);
         }
+    }
+
+    public Optional<Widget> find(String name, WidgetSource source, boolean ignore) {
+        return find(w -> w.name().equals(name) || w.nameGui().equals(name), source, ignore);
     }
 
     /**
@@ -436,13 +458,13 @@ public final class WidgetManager {
                 .filter(filter::test)
                 .filter(w -> !w.isIgnored())
                 .filter(f -> f.isPreferred())
-                .findAny().map(f->f.name).orElse("");
+                .findAny().map(f->f.nameGui()).orElse("");
 
         // get viable widgets - widgets of the feature & of preferred type if any
         List<Widget> widgets = findAll(source)
                 .filter(w -> filter.test(w.getInfo()))
                 .filter(w -> !w.isIgnored())
-                .filter(preferred.isEmpty() ? w->true : w->w.getInfo().name().equals(preferred))
+                .filter(preferred.isEmpty() ? w->true : w->w.getInfo().nameGui().equals(preferred))
                 .collect(Collectors.toList());
 
         // get preferred widget or any if none preferred
@@ -460,7 +482,7 @@ public final class WidgetManager {
             WidgetFactory f = getFactories()
                    .filter(filter::test)
                    .filter(w -> !w.isIgnored())
-                   .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                   .filter(preferred.isEmpty() ? w->true : w->w.nameGui().equals(preferred))
                    .findAny().orElse(null);
 
             // open widget as standalone if found
@@ -483,11 +505,9 @@ public final class WidgetManager {
     public <F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
         return find(w -> w.hasFeature(feature), source, ignore).map(w->(F)w.getController());
     }
+
     public <F> Optional<F> find(Class<F> feature, WidgetSource source) {
         return find(w -> w.hasFeature(feature), source).map(w->(F)w.getController());
-    }
-    public <F> Optional<F> findExact(Class<? extends Controller> type, WidgetSource source) {
-        return find(w -> w.type()==type, source).map(w -> (F)w.getController());
     }
 
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
@@ -498,6 +518,13 @@ public final class WidgetManager {
     /** Equivalent to: {@code getWidget(cond, source).ifPresent(action)} */
     public void use(Predicate<WidgetInfo> cond, WidgetSource source, Consumer<Widget> action) {
         find(cond, source).ifPresent(action);
+    }
+
+    public void use(String name, WidgetSource source, Consumer<Widget> action) {
+        find(name, source, false).ifPresent(action);
+    }
+    public void use(String name, WidgetSource source, Consumer<Widget> action, boolean ignore) {
+        find(name, source, ignore).ifPresent(action);
     }
 
     /**
@@ -574,5 +601,65 @@ public final class WidgetManager {
         POPUP,
         WINDOW;
     }
+
+
+
+
+
+
+
+
+    private final List<String> layouts = new ArrayList();
+
+
+    public Layout getActive() {
+        // If no window is focused no layout
+        // should be active as application is either not focused or in an
+        // illegal state itself.
+        Window w = Window.getFocused();
+        // get active layout from focused window
+        return w==null ? null : w.getLayout();
+    }
+
+    /**
+     * @return all Layouts in the application.
+     */
+    public Stream<Layout> getLayouts() {
+        return Window.WINDOWS.stream().map(w->w.getLayout()).filter(ISNTØ);
+    }
+
+    /**
+     * Return all names of all layouts available to the application, including
+     * serialized layouts in files.
+     * @return
+     */
+    public Stream<String> getAllLayoutsNames() {
+        findLayouts();
+        // get all windows and fetch their layouts
+        return Stream.concat(getLayouts().map(Layout::getName), layouts.stream()).distinct();
+    }
+
+    /**
+     * Searches for .l files in layout folder and registers them as available
+     * layouts. Use on app start or to discover newly added layouts.
+     */
+    public void findLayouts() {
+        // get + verify path
+        File dir = APP.DIR_LAYOUTS;
+        if (!FileUtil.isValidatedDirectory(dir)) {
+            LOGGER.error("Layout directory not accessible: ", dir);
+            return;
+        }
+        // find layout files
+        File[] files;
+        files = dir.listFiles((File pathname) -> pathname.getName().endsWith(".l"));
+        // load layouts
+        layouts.clear();
+        if (files.length == 0) return;
+        for (File f : files) {
+            layouts.add(FileUtil.getName(f));
+        }
+    }
+
 
 }

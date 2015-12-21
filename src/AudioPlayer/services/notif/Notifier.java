@@ -97,7 +97,7 @@ public final class Notifier extends ServiceBase {
                 songNotifGui = ii;
                 ((Pane)songNotifGui).setPrefSize(-1,-1);
             } else {
-                Widget wf = APP.widgetManager.find(w->w.name().equals(v), NEW, true).get();
+                Widget wf = APP.widgetManager.find(v, NEW, true).get();
                 songNotifGui = wf.load();
                 songNotifInfo = (SongReader)wf.getController();
                 ((Pane)songNotifGui).setPrefSize(700, 300);
@@ -105,7 +105,7 @@ public final class Notifier extends ServiceBase {
         },() -> {
             List<String> l = APP.widgetManager.getFactories()
                         .filter(f->f.hasFeature(SongReader.class))
-                        .map(f->f.name()).collect(toList());
+                        .map(f->f.nameGui()).collect(toList());
             l.add("Normal");
             l.add("Normal - no cover");
             return l;

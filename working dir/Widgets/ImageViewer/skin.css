@@ -1,36 +1,37 @@
-
-.pane {
-    -fx-backgroud-color: white;
-}
-
-.nav-pane {}
-.nav-pane:hover {
-    -fx-backgroud-color: red; /*rgba(0,0,0,0.2);*/
-}
-
-.nav {
-    -fx-backgroud-color: white;
-}
+/* 
+    Document    : Skin for ImageViewer widget
+    Author      : Martin Polakovic
+    Year        : 2015
+*/
 
 /** 
  * Root of the widget.
  * pseudoclasses: theater
  */
-.img-viewer-root {}
+.imgviewer-root {
+    -fx-background-color: null;
+}
 
-.img-viewer-root:theater {
+.imgviewer-root:theater {
     -fx-background-color: black;
 }
 
-/**
- * Pane for thumbnails
- */
-.thumbnail-pane {
-    -fx-background-color: rgba(0,0,0,0.3);
+/** Next/Previous image bars. */
+.nav-pane {
+    -fx-background-color: rgba(0,0,0,0.6);
+}
+.nav-pane:hover {
+    -fx-background-color: rgba(0,0,0,0.7);
 }
 
-/**
- * Now playing song info panel in the corner in theater mode
+/** Pane for thumbnails. */
+.thumbnail-pane {
+    -fx-background-color: rgba(0,0,0,0.4);
+}
+
+/** 
+ * Alternative style activated by right click for
+ * Now playing song info pane in the corner in theater mode
  */
 .block-alternative {
     -fx-background-color: rgba(20,20,20,0.7);

@@ -12,8 +12,10 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -73,7 +75,6 @@ import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
 import static util.dev.Util.log;
 import static util.functional.Util.equalNull;
-import static util.functional.Util.isIn;
 import static util.functional.Util.list;
 import static util.functional.Util.split;
 import static util.functional.Util.stream;
@@ -1135,6 +1136,7 @@ public final class Metadata extends MetaItem<Metadata> {
      *
      */
     public static enum Field implements ObjectField<Metadata> {
+
         PATH(Metadata::getPath,"Song location"),
         FILENAME(Metadata::getFilename,"Song file name without suffix"),
         FORMAT(Metadata::getFormat,"Song file type "),
@@ -1180,6 +1182,16 @@ public final class Metadata extends MetaItem<Metadata> {
         LAST_PLAYED(Metadata::getTimePlayedLast,"Marks time the song was played the last time."),
         FIRST_PLAYED(Metadata::getTimePlayedFirst,"Marks time the song was played the first time."),
         ADDED_TO_LIBRARY(Metadata::getTimeLibraryAdded,"Marks time the song was added to the library.");
+
+        private static final Set<Field> STRING_REPRESENTIBLE = EnumSet.of(
+            TITLE,RATING_RAW,
+            COMMENT,LYRICS,COLOR,PLAYCOUNT,PATH,FILENAME,FILESIZE,ENCODING,
+            LENGTH,TRACK,TRACKS_TOTAL,TRACK_INFO,DISC,DISCS_TOTAL,DISCS_INFO,
+            COVER,COVER_INFO,RATING,CHAPTERS
+        );
+        private static final Set<Field> VISIBLE = EnumSet.of(
+            TITLE,ALBUM,ARTIST,LENGTH,TRACK_INFO,DISCS_INFO,RATING,PLAYCOUNT
+        );
 
         private final String desc;
         private final Ƒ1<Metadata,?> extr;
@@ -1238,10 +1250,7 @@ public final class Metadata extends MetaItem<Metadata> {
         public boolean isTypeNumberNonegative() { return true; }
 
         public boolean isAutoCompleteable() {
-            return isTypeStringRepresentable() && !isIn(this, TITLE,RATING_RAW,
-                COMMENT,LYRICS,COLOR,PLAYCOUNT,PATH,FILENAME,FILESIZE,ENCODING,
-                LENGTH,TRACK,TRACKS_TOTAL,TRACK_INFO,DISC,DISCS_TOTAL,DISCS_INFO,
-                COVER,COVER_INFO,RATING,CHAPTERS);
+            return isTypeStringRepresentable() && !STRING_REPRESENTIBLE.contains(this);
         }
 
         @Override
@@ -1259,15 +1268,12 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public boolean c_visible() {
-            return this==TITLE || this==ALBUM || this==ARTIST ||
-                   this==LENGTH || this==TRACK_INFO || this==DISCS_INFO;
+            return VISIBLE.contains(this);
         }
 
         @Override
         public double c_width() {
             return this==PATH || this==TITLE ? 150 : 50;
         }
-
     }
-
 }

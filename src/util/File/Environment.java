@@ -186,7 +186,7 @@ public class Environment {
         // open widget
         else if((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
             String n = FileUtil.getName(f);
-            APP.widgetManager.find(wi -> wi.name().equals(n), NO_LAYOUT);
+            APP.widgetManager.find(n, NO_LAYOUT, false);
         }
 
         // open audio file

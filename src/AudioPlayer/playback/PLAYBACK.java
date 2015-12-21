@@ -2,7 +2,9 @@
 package AudioPlayer.playback;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -445,7 +447,13 @@ public final class PLAYBACK implements Configurable {
 
 //******************************* SPECTRUM ************************************/
 
-    private static final List<AudioSpectrumListener> spectrumListeners = new ArrayList<>();
+    /**
+     * Playing item spectrum distributor.
+     * Register listeners by adding it into collection. Adding listener multiple times has no
+     * effect.
+     */
+    public static final Set<AudioSpectrumListener> spectrumListeners = new HashSet<>();
+    
     /**
      * Only one spectrum listener is allowed per player (MediaPlayer) object. Here
      * reregistering and ditributing of the event is handled.
@@ -456,21 +464,4 @@ public final class PLAYBACK implements Configurable {
         spectrumListeners.forEach(l -> l.spectrumDataUpdate(d, d1, floats, floats1));
     };
 
-    /**
-     * Set audio spectrum listener to listen to spectrum changes.
-     * Spectrum listener allows real-time observation of frequency bands of
-     * played item.
-     * @param l The listener.
-     */
-    public static void addAudioSpectrumListener(AudioSpectrumListener l) {
-        spectrumListeners.add(l);
-    }
-
-    /**
-     * Removes audio spectrum listener.
-     * @param l The listener.
-     */
-    public static void removeAudioSpectrumListener(AudioSpectrumListener l) {
-        spectrumListeners.remove(l);
-    }
 }

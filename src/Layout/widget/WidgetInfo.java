@@ -22,6 +22,8 @@ public interface WidgetInfo {
     /**
      * Name of the widget. "" by default.
      */
+    String nameGui();
+
     String name();
 
     /**
@@ -108,7 +110,7 @@ public interface WidgetInfo {
         String info = "";
         info += "\n\n"
              + "Widget\n\n"
-             + "Name:\n\t" + name() + "\n"
+             + "Name:\n\t" + nameGui() + "\n"
              + (description().isEmpty() ? "" : "Info:\n\t" + description() + "\n")
              + (notes().isEmpty() ? "" : notes() + "\n")
              + (howto().isEmpty() ? "" : howto()  + "\n")

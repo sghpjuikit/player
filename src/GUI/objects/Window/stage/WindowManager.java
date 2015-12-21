@@ -57,6 +57,8 @@ import static util.reactive.Util.maintain;
 @IsActionable
 public class WindowManager {
 
+    public static final File FILE_MINIWINDOW = new File(APP.DIR_LAYOUTS, "mini-window.w");
+
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
     public static boolean show_windows = true;
 
@@ -123,8 +125,7 @@ public class WindowManager {
             // avoid pointless operation
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
-            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            // miniWindow = Window.deserialize(f); // disabled for now (but works)
+            // miniWindow = Window.deserialize(FILE_MINIWINDOW); // disabled for now (but works)
             // if not available, make new one, set initial size
             if(miniWindow == null)  miniWindow = Window.create();
             Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
@@ -134,7 +135,7 @@ public class WindowManager {
 
             // create
                 // widget
-            Widget w = APP.widgetManager.factories.getOrOther("Playback Mini","Empty").create();
+            Widget w = APP.widgetManager.factories.getOrOther("PlayerControlsTiny","Empty").create();
             BorderPane content = new BorderPane();
             content.setCenter(w.load());
             miniWindow.setContent(content);
@@ -207,8 +208,7 @@ public class WindowManager {
             // do nothing if not in minimode (for example during initialization)
             if(miniWindow==null) return;
             // serialize mini
-            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow.serialize(f);
+            miniWindow.serialize(FILE_MINIWINDOW);
             miniWindow.close();
             miniWindow=null;
             t=null;
@@ -217,7 +217,7 @@ public class WindowManager {
 
     public static void serialize() {
         // make sure directory is accessible
-        File dir = new File(App.LAYOUT_FOLDER(),"Current");
+        File dir = new File(APP.DIR_LAYOUTS,"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
             log(WindowManager.class).error("Serialization of windows and layouts failed. " + dir.getPath() +
                     " could not be accessed.");
@@ -247,10 +247,8 @@ public class WindowManager {
         }
 
         // serialize mini too
-        if(miniWindow!=null) {
-            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow.serialize(f);
-        }
+        if(miniWindow!=null)
+            miniWindow.serialize(FILE_MINIWINDOW);
     }
 
     public static void deserialize(boolean load_normally) {
@@ -258,7 +256,7 @@ public class WindowManager {
         if(load_normally) {
 
             // make sure directory is accessible
-            File dir = new File(App.LAYOUT_FOLDER(),"Current");
+            File dir = new File(APP.DIR_LAYOUTS,"Current");
             if (!FileUtil.isValidatedDirectory(dir)) {
                 log(WindowManager.class).error("Deserialization of windows and layouts failed. " + dir.getPath() +
                         " could not be accessed.");

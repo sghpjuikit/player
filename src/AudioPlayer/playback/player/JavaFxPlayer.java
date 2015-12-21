@@ -87,15 +87,13 @@ public class JavaFxPlayer implements Play {
                 player.setAudioSpectrumInterval(0.01);
                 player.setAudioSpectrumNumBands(128);
                 // player.setAudioSpectrumThreshold(i) // ? what val is ok?
+                player.setAudioSpectrumListener(PLAYBACK.spectrumListenerDistributor);
 
                 // bind (not read only) values
                 d1 = maintain(state.volume,player.volumeProperty());
                 d2 = maintain(state.mute,player.muteProperty());
                 d3 = maintain(state.balance,player.balanceProperty());
                 d4 = maintain(state.rate,player.rateProperty());
-
-                // register listener/event distributors
-                player.setAudioSpectrumListener(PLAYBACK.spectrumListenerDistributor);
                 player.setOnEndOfMedia(PLAYBACK.playbackEndDistributor);
 
                 // handle binding of state to player
@@ -147,6 +145,8 @@ public class JavaFxPlayer implements Play {
         if(d5!=null) d5.unsubscribe();
         if(d6!=null) d6.unsubscribe();
         if(d7!=null) d7.unsubscribe();
+        player.setAudioSpectrumListener(null); // just in case
+        player.setOnEndOfMedia(null); // just in case
 
         // stop() not necessary, wouldnt even work since these calls are
         // asynchronous, calling dispose stops playback and frees resources

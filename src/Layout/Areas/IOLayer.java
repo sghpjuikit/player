@@ -5,7 +5,6 @@
  */
 package Layout.Areas;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +79,24 @@ public class IOLayer extends StackPane {
     static public final Map<Output,XNode> outputnodes = new HashMap<>();
     static public final Map<InOutput,InOutputNode> inoutputnodes = new HashMap<>();
 
+
+    public static void relayout() {
+        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+              .forEach(wio -> wio.requestLayout());
+    }
+
+    public static void addConnectionE(Input<?> i, Output<?> o) {
+        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+              .forEach(wio -> wio.addConnection(i,o));
+    }
+
+    public static void remConnectionE(Input<?> i, Output<?> o) {
+        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+              .forEach(wio -> wio.remConnection(i,o));
+    }
+
+
+
     public void addController(Controller c) {
         c.getInputs().getInputs().forEach(this::addInput);
         c.getOutputs().getOutputs().forEach(this::addOutput);
@@ -136,13 +153,6 @@ public class IOLayer extends StackPane {
         outputnodes.remove(io.o);
     }
 
-
-    public static void addConnectionE(Input<?> i, Output<?> o) {
-        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io).forEach(wio -> wio.addConnection(i,o));
-    }
-    public static void remConnectionE(Input<?> i, Output<?> o) {
-        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io).forEach(wio -> wio.remConnection(i,o));
-    }
     private void addConnection(Input<?> i, Output<?> o) {
         connections.computeIfAbsent(new Key(i,o), key -> new IOLine(i,o));
         drawGraph();

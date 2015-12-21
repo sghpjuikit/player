@@ -9,8 +9,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import javafx.scene.Node;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 
 import org.slf4j.Logger;
@@ -104,17 +102,9 @@ public final class Layout extends UniContainer {
     public void setNameAndSave(String new_name) {
         if(new_name == null || new_name.isEmpty())
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
-        // put name
-        String old = name;
         name = new_name;
         // save new
         serialize();
-        // delete old file
-        FileUtil.deleteFile(new File(App.LAYOUT_FOLDER(), old + ".l"));
-        // rename thumb
-        File thumb = new File(App.LAYOUT_FOLDER(), old + ".png");
-        if (thumb.exists())
-            thumb.renameTo(new File(App.LAYOUT_FOLDER(), name + ".png"));
     }
 
     /**
@@ -126,44 +116,6 @@ public final class Layout extends UniContainer {
     @Deprecated // remove this
     public boolean isMain() {
         return this == APP.window.getLayout();
-    }
-
-    /**
-     * Returns whether this layout is active. Layout is active if its root is not
-     * null and is attached to the scene graph - if the layout is loaded.
-     * @return true if and only if layout is active.
-     */
-    public boolean isActive() {
-        return LayoutManager.getLayouts().anyMatch(l->l.equals(this));
-    }
-
-    /**
-     * Get the thumbnail image. If not available it wil be attempted to create
-     * a new one. It is only possible to create new thumbnail if the layout is
-     * active;
-     * @return file of the image of the layout preview or null if layout is not
-     * active.
-     */
-    public File getThumbnail() {
-        // get thumbnail file
-        File file = new File(App.LAYOUT_FOLDER(), name + ".png");
-        // if thumbnail not available attempt to make it
-        if (!file.exists()) makeSnapshot();
-        return (file.exists()) ? file : null;
-    }
-
-    /**
-     * Takes preview/thumbnail/snapshot of the active layout and saves it as .png
-     * under same name.
-     * <p>
-     * If the root is null this method is a no-op.
-     */
-    public void makeSnapshot() {
-        if(root!=null) {
-            WritableImage i = root.snapshot(new SnapshotParameters(),null);
-            File out = new File(App.LAYOUT_FOLDER(),name + ".png");
-            FileUtil.writeImage(i, out);
-        }
     }
 
     /**
@@ -232,7 +184,7 @@ public final class Layout extends UniContainer {
      */
     @Deprecated
     public File getFile() {
-        return new File(App.LAYOUT_FOLDER(),name + ".l");
+        return new File(APP.DIR_LAYOUTS,name + ".l");
     }
 
     /**
@@ -241,7 +193,6 @@ public final class Layout extends UniContainer {
      */
     public void removeFile() {
        FileUtil.deleteFile(getFile());
-       FileUtil.deleteFile(getThumbnail());
     }
 
      /** @return true if and only if two layouts share the same name. */

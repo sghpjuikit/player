@@ -153,7 +153,7 @@ public class LibraryView extends FXMLController {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
-            Pos a = f.getType(mf).equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+            Pos a = f.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==AVG_RATING
                 ? (Callback) APP.ratingCell.getValue()
                 : f==W_RATING
@@ -169,7 +169,7 @@ public class LibraryView extends FXMLController {
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
                 // additional css styleclasses
-                .styleRuleAdd("played", mg -> equalNonNull(Player.playingtem.get().getField(fieldFilter.getValue()),mg.getValue()))
+                .styleRuleAdd("played", mg -> equalNonNull(fieldFilter.getValue().getOf(Player.playingtem.get()),mg.getValue()))
                 // add behavior
                 .onLeftDoubleClick((row,e) -> playSelected())
                 .onRightSingleClick((row,e) -> {

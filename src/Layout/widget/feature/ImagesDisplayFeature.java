@@ -6,7 +6,7 @@
 package Layout.widget.feature;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Displays images.
@@ -19,11 +19,11 @@ import java.util.List;
   type = ImagesDisplayFeature.class
 )
 public interface ImagesDisplayFeature {
-    
+
     /**
      * Displays the images.
-     * 
-     * @param img_files 
+     *
+     * @param img_files
      */
-    void showImages(List<File> img_files);
+    void showImages(Collection<File> img_files);
 }

@@ -596,7 +596,7 @@ public class Comet extends ClassController {
                 "- Bullets split into 2 bullets on hit",
                 "- Multiple target damage",
                 "Tip: Strategic weapon. The damage potential raises exponentially"
-              + " depending on the number of targets. Annihilate the most dense enemy area with easy. "
+              + " with the number of targets. Annihilate the most dense enemy area with ease. "
             ),
             () -> new RocketEnhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
                 "- Fires a bullet generating a black hole",
@@ -647,7 +647,7 @@ public class Comet extends ClassController {
             ),
             () -> new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(),r -> r.kinetic_shield.large.dec(),
                 "- Increases kinetic shield range by " + KINETIC_SHIELD_LARGE_RADIUS_INC + "px",
-                "- Increases maximum kinetic shield energy by" + (KINETIC_SHIELD_LARGE_E_MAX_INC*100)+"%",
+                "- Increases maximum kinetic shield energy by " + (KINETIC_SHIELD_LARGE_E_MAX_INC*100)+"%",
                 "- Increases kinetic shield energy accumulation " + (KINETIC_SHIELD_LARGE_E_RATE)+" times",
                 "Tip: You are not invincible, but anyone will think twice about colliding with you. Go on the offensive. Move."
             ),

@@ -13,32 +13,32 @@ import static util.Util.unPrimitivize;
  * @author Plutonium_
  */
 public interface TypedValue<C> {
-    
+
     /**
      * Returns class type of the value. Not class of this object.
-     * 
+     *
      * @return value type.
      */
     public Class<C> getType();
 
     /** @return whether type of the value is String */
     default boolean isTypeString() {
-        return String.class.equals(getType());
+        return String.class == getType();
     }
-    
+
     /**
      * Returns whether type is numeric.
      * <p>
      * For example gui text field for this value might want to allow only numeric
      * characters to be inputted.
-     * 
+     *
      * @return whether type of the value is any class exntemding {@link Number}
      * or any of the number type primitives
      */
     default boolean isTypeNumber() {
         return Number.class.isAssignableFrom(unPrimitivize(getType()));
     }
-    
+
     /**
      * Stricter version of {@link #isTypeNumber()}, limiting the types to those
      * that can contain floating point character '.'.
@@ -48,8 +48,8 @@ public interface TypedValue<C> {
      * <p>
      * Default implementation checks whether type is Float, float, Double, double
      * or and extending class of them.
-     * 
-     * @return 
+     *
+     * @return
      */
     default boolean isTypeFloatingNumber() {
         Class c = getType();
@@ -58,30 +58,13 @@ public interface TypedValue<C> {
                         Double.class.isAssignableFrom(c) ||
                             double.class.equals(c);
     }
-    
+
     /**
      * Default implementation returns false.
-     * 
-     * @return 
+     *
+     * @return
      */
     default boolean isTypeNumberNonegative() {
         return false;
-    }
-    
-    /**
-     * Returns whether this value has human readable string representation. This
-     * denotes, whether this type should be attempted to be displayed as text.
-     * For example when generating generic table columns.
-     * <p>
-     * For example an image might have representation "300x300, jpg", but also
-     * none when such information is not desired (inherently image is just array
-     * of bytes and therefore not string representable).
-     * <p>
-     * Default implementation returns true;
-     * 
-     * @return 
-     */
-    default boolean isTypeStringRepresentable() {
-        return true;
     }
 }

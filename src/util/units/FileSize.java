@@ -5,10 +5,12 @@
 package util.units;
 
 import java.io.File;
-import static java.lang.Integer.max;
+
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.dev.Dependency;
 import util.parsing.StringParseStrategy;
+
+import static java.lang.Integer.max;
 import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
@@ -16,17 +18,17 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * Simple class for file size handling, used primarily for its string representation.
  * <p>
  * Simple example of use: {@code new FileSize(bytes).toString() }.
- * 
+ *
  * @author uranium
  */
 @Immutable
 @StringParseStrategy(
-    from = CONSTRUCTOR_STR, 
+    from = CONSTRUCTOR_STR,
     to = TO_STRING_METHOD,
     ex = { NumberFormatException.class }
 )
 public final class FileSize implements Comparable<FileSize> {
-    
+
     /** 1024^1 */
     public static final long Ki = 1024;
     /** 1024^2 */
@@ -47,20 +49,20 @@ public final class FileSize implements Comparable<FileSize> {
     public static final long NA = -1;
     /** Not available string value. "Unknown"*/
     public static final String NAString = "Unknown";
-    
-    
+
+
     private final long v;
-    
+
     /**
      * Creates filesize set to size of the specified file. If the value can not
-     * be determined it will be set to -l. 
+     * be determined it will be set to -l.
      * @param f non null file to read filesize of
      * @throws NullPointerException if param null
      */
     public FileSize(File f) {
         this(inBytes(f));
     }
-    
+
     /**
      * Creates filesize set to specified value.
      * @param bytes amount of bytes as a size value or -l if unknown.
@@ -79,18 +81,18 @@ public final class FileSize implements Comparable<FileSize> {
     public FileSize(String bytes) {
         this(val(bytes));
     }
-    
-    /** 
-     * Returns filesize in bytes. Equivalent to {@code new Filesize(f).inBytes;}, 
+
+    /**
+     * Returns filesize in bytes. Equivalent to {@code new Filesize(f).inBytes;},
      * but does not create a Filesize object.
-     * 
+     *
      * @return filesize of the file in bytes
      */
     public static long inBytes(File f) {
         long l = f.length();
         return l==0 ? -1 : l;
     }
-    
+
     /** @return file size in bytes or -1 if unknown */
     public long inBytes() {
         return v;
@@ -119,7 +121,7 @@ public final class FileSize implements Comparable<FileSize> {
     public long inEBytes() {
         return v==-1 ? -1 : v/Ei;
     }
-    
+
     /**
      * Returns human readable file size text.
      * <p>
@@ -156,7 +158,7 @@ public final class FileSize implements Comparable<FileSize> {
     public int compareTo(FileSize o) {
         return Long.compare(v, o.v);
     }
-    
+
     /** @return true if the value is the same */
     @Override
     public boolean equals(Object o) {
@@ -168,12 +170,12 @@ public final class FileSize implements Comparable<FileSize> {
     public int hashCode() {
         return 13 * 3 + (int) (this.v ^ (this.v >>> 32));
     }
-    
-    
-    
+
+
+
     private static long val(String s) throws NumberFormatException {
         long unit = 1;
-        
+
         if(s.equals(NAString)) return NA;
         int b = max(s.indexOf("B"),s.indexOf("b"));
         if (b>0) {
@@ -205,7 +207,7 @@ public final class FileSize implements Comparable<FileSize> {
             }
             s = s.substring(0, b-skip).trim();
         }
-        
+
         double number = Double.parseDouble(s);
         return (long)(unit*number);
     }

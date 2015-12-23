@@ -59,6 +59,7 @@ import Layout.widget.WidgetManager;
 import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.feature.ConfiguringFeature;
 import Layout.widget.feature.ImageDisplayFeature;
+import Layout.widget.feature.ImagesDisplayFeature;
 import Layout.widget.feature.PlaylistFeature;
 import action.Action;
 import action.IsAction;
@@ -410,23 +411,40 @@ public class App extends Application implements Configurable {
             })
         );
         actionPane.register(Item.class,
-            new FastColAction<Item>("New playlist", "Add items to new playlist widget.",
+            new FastColAction<Item>("Add to new playlist",
+                "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
-                is -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(is)))
+                items -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(items))
+            ),
+            new FastColAction<Item>("Add to existing playlist",
+                "Add items to exsisting playlist widget if possible or to a new one if not.",
+                PLAYLIST_PLUS,
+                items -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addItems(items))
+            )
         );
         actionPane.register(File.class,
-            new FastAction<File>("New playlist", "Add items to new playlist widget.",
+            new FastColAction<File>("Add to new playlist",
+                "Add items to exsisting playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFile(f))),
+                f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))),
+            new FastColAction<File>("Add to existing playlist",
+                "Add items to new playlist widget.",
+                PLAYLIST_PLUS,
+                f -> AudioFileFormat.isSupported(f, Use.APP),
+                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))),
             new FastAction<File>("Apply skin", "Apply skin on the application.",
                 BRUSH,
                 FileUtil::isValidSkinFile,
-                f -> GUI.setSkin(FileUtil.getName(f))),
-            new FastAction<File>("View image", "Opens image in an image browser widget.",
+                skin_file -> GUI.setSkin(FileUtil.getName(skin_file))),
+            new FastAction<File>("View image", "Opens image in an image viewer widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
-                f -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImage(f))),
+                img_file -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w -> w.showImage(img_file))),
+            new FastColAction<File>("View image", "Opens image in an image browser widget.",
+                IMAGE,
+                ImageFileFormat::isSupported,
+                img_files -> widgetManager.use(ImagesDisplayFeature.class, NO_LAYOUT, w -> w.showImages(img_files))),
             new FastAction<File>("Open widget", "Opens exported widget.",
                 IMPORT,
                 f -> f.getPath().endsWith(".fxwl"),

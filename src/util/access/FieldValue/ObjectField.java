@@ -25,6 +25,25 @@ public interface ObjectField<V> extends TypedValue {
     public String name();
 
     /**
+     * Returns whether this value has human readable string representation. This
+     * denotes, whether this type should be attempted to be displayed as text (not if it is String),
+     * e.g., when generating generic table columns.
+     * <p>
+     * The type does not have to be String for this field to be string representable. Any type
+     * can be string representable as long as it provides a string converter producing human
+     * readable string (compact enough to be used in gui such as tables). Example of string field
+     * that is not string representable would be a fulltext field - field that is a concatenation
+     * of all string fields, used for fulltext search.
+     * <p>
+     * Default implementation returns true;
+     *
+     * @return whether the field can be displayed as a human readable text in a gui
+     */
+    default boolean isTypeStringRepresentable() {
+        return true;
+    }
+
+    /**
      * Used as string converter for fielded values. For example in tables.
      * When the object signifies empty value, empty string is returned.
      */
@@ -104,7 +123,6 @@ public interface ObjectField<V> extends TypedValue {
         public Class getType() {
             return Integer.class;
         }
-
     }
 
 }

@@ -33,12 +33,12 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable.PojoV;
 import util.access.FieldValue.FileField;
 import util.access.FieldValue.ObjectField;
 import util.access.V;
@@ -51,8 +51,8 @@ import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
-import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.objects.icon.Icon.createInfoIcon;
+import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static gui.pane.ActionPane.GroupApply.NONE;
@@ -284,11 +284,12 @@ public class ActionPane extends OverlayPane implements Configurable {
         dactions.addAll(iactions);
         dactions.addAll(actions.getElementsOfSuperV(dt));
         dactions.removeIf(a -> {
-            if(a.groupApply==FOR_ALL)
-                return false;
+            if(a.groupApply==FOR_ALL) {
+                return a.condition.test(collectionWrap(d));
+            }
             if(a.groupApply==FOR_EACH) {
                 List ds = list(d instanceof Collection ? (Collection)d : listRO(d));
-                return ds.stream().filter(a.condition).count()==0;
+                return ds.stream().noneMatch(a.condition);
             }
             if(a.groupApply==NONE) {
                 Object o = collectionUnwrap(d);
@@ -326,6 +327,13 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 
 
+    private static Collection collectionWrap(Object o) {
+        if(o instanceof Collection) {
+            return (Collection)o;
+        } else {
+            return listRO(o);
+        }
+    }
     private static Object collectionUnwrap(Object o) {
         if(o instanceof Collection) {
             Collection c = (Collection)o;
@@ -425,7 +433,11 @@ public class ActionPane extends OverlayPane implements Configurable {
     public static class FastColAction<T> extends FastAction<Collection<T>> {
 
         public FastColAction(String name, String description, GlyphIcons icon, Consumer<Collection<T>> act) {
-            super(name, description, icon, FOR_ALL, IS, act);
+            super(name, description, icon, FOR_ALL, ISNT, act);
+        }
+
+        public FastColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction,  Consumer<Collection<T>> act) {
+            super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), act);
         }
 
     }

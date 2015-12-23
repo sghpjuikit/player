@@ -56,7 +56,7 @@ public final class MetadataGroup {
     }
 
     public static Stream<MetadataGroup> groupsOf(Metadata.Field f, Collection<Metadata> ms) {
-        return groupBy(ms.stream(),f::getOf).entrySet().stream().map(e -> new MetadataGroup(f, false,e.getKey(),e.getValue()));
+        return groupBy(ms.stream(),f::getGroupedOf).entrySet().stream().map(e -> new MetadataGroup(f, false,e.getKey(),e.getValue()));
     }
 
     private MetadataGroup(Metadata.Field f, boolean isAll, Object value, Collection<Metadata> ms) {

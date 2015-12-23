@@ -147,7 +147,7 @@ public class Thumbnail extends ImageNode {
                 if(ratioIMG.get()>ratioTHUMB.get()) {
                     double borderW = imgW;
                     double borderWgap = (W-borderW)/2;
-                    double borderH = imgH/ratioIMG.get();
+                    double borderH = imgW/ratioIMG.get();
                     double borderHgap = (H-borderH)/2;
                     resizeRelocateBorder(borderWgap,borderHgap,borderW,borderH);
                 } else {
@@ -163,6 +163,13 @@ public class Thumbnail extends ImageNode {
         }
     };
 
+    // bugfix
+    // Inconsistent border width and can be blurry, and image under it can stick out (very ugly).
+    // Probably problem with drawing at non-integer coordinates. See:
+    // http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
+    // workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
+    //             isnt of the same width on all sizes and now it even sticks out of the image area.
+    //             But at least its not so hideous  
     private void resizeRelocateBorder(double x, double y, double w, double h) {
         img_border.resizeRelocate(x-1,y-1,w+2,h+2);
     }

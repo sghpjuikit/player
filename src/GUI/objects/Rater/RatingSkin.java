@@ -157,7 +157,7 @@ public class RatingSkin extends SkinBase<Rating> {
     // sets rating to thespecfied one and updates both skin & skinnable
     private void updateRating(double v) {
         // wont update sometimes without runlater
-        runLater(()->updateClip(v));
+        runLater(() -> updateClip(v));
         updateClip(v);
     }
 

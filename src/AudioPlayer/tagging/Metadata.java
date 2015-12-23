@@ -874,14 +874,15 @@ public final class Metadata extends MetaItem<Metadata> {
 
     /** @return the rating or -1 if empty. */
     public int getRating() {
-        return rating==-1 ? 0 : rating;
+        return rating;
     }
 
     /**
      * Recommended method to use to obtain rating.
-     * @return the rating in 0-1 percent range */
+     * @return the rating in 0-1 percent range
+     */
     public double getRatingPercent() {
-        return getRating()/(double)getRatingMax();
+        return rating==-1 ? 0 : rating/(double)getRatingMax();
     }
 
     /**
@@ -1055,13 +1056,11 @@ public final class Metadata extends MetaItem<Metadata> {
         return getChapters().stream().anyMatch(ch->ch.getTime().equals(at));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Metadata toMeta() {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public PlaylistItem toPlaylist() {
         return new PlaylistItem(getURI(), getArtist(), getTitle(), getLengthInMs());
@@ -1069,8 +1068,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
 /***************************** AS FIELDED TYPE ********************************/
 
-    /** {@inheritDoc} */
-    public Object getField(Field field) {
+    private Object getField(Field field) {
         return field.getOf(this);
     }
 
@@ -1084,7 +1082,6 @@ public final class Metadata extends MetaItem<Metadata> {
         return o==null ? no_val : f.toS(o,no_val);
     }
 
-    /** {@inheritDoc} */
     public Field getMainField() { return Field.TITLE; }
 
 /******************************* AS OBJECT ************************************/
@@ -1183,7 +1180,7 @@ public final class Metadata extends MetaItem<Metadata> {
         FIRST_PLAYED(Metadata::getTimePlayedFirst,"Marks time the song was played the first time."),
         ADDED_TO_LIBRARY(Metadata::getTimeLibraryAdded,"Marks time the song was added to the library.");
 
-        private static final Set<Field> STRING_REPRESENTIBLE = EnumSet.of(
+        private static final Set<Field> NOT_AUTO_COMPLETABLE = EnumSet.of(
             TITLE,RATING_RAW,
             COMMENT,LYRICS,COLOR,PLAYCOUNT,PATH,FILENAME,FILESIZE,ENCODING,
             LENGTH,TRACK,TRACKS_TOTAL,TRACK_INFO,DISC,DISCS_TOTAL,DISCS_INFO,
@@ -1192,6 +1189,33 @@ public final class Metadata extends MetaItem<Metadata> {
         private static final Set<Field> VISIBLE = EnumSet.of(
             TITLE,ALBUM,ARTIST,LENGTH,TRACK_INFO,DISCS_INFO,RATING,PLAYCOUNT
         );
+        private static final Set<Field> NOT_STRING_REPRESENTABLE = EnumSet.of(
+            COVER, // can not be ocnverted to string
+            COVER_INFO, // requires cover to load (would kill performance).
+            CHAPTERS, // raw string form unsuitable for viewing
+            FULLTEXT // purely for search purposes
+        );
+        private static FileSize[] GROUPS_FILESIZE = new FileSize[65];
+        private static Double[] GROUPS_RATING = new Double[21];
+        private static final Double RATINGP_EMPTY = -1d;
+        private static final Integer RATING_EMPTY = -1;
+
+        static {
+            // initialize filesize group cache
+            GROUPS_FILESIZE[64] = new FileSize(0);
+            GROUPS_FILESIZE[0] = new FileSize(1);
+            for(int i=1; i<63; i++)
+                GROUPS_FILESIZE[i] = new FileSize(GROUPS_FILESIZE[i-1].inBytes()*2);
+            // note that 2^63==Long.MAX_VALUE+1, meaning such value is impossibble to use, so we
+            // use max value instead. Note that this changes the 'unit' from 16EiB to 15.999... PiB
+            GROUPS_FILESIZE[63] = new FileSize(Long.MAX_VALUE);
+            // for(int i=0; i<=64; i++) // debug
+            //     System.out.println(i + " : " + FILESIZE_GROUPS[i]);
+
+            // initialize rating group cache
+            for(int i=0; i<=20; i++)
+                GROUPS_RATING[i] = i*5/100d;
+        }
 
         private final String desc;
         private final Ƒ1<Metadata,?> extr;
@@ -1207,12 +1231,9 @@ public final class Metadata extends MetaItem<Metadata> {
             return desc;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isTypeStringRepresentable() {
-            // We include COVER_INFO as well as it requires cover to load. It doesnt contain
-            // anything useful anyway (not so we would need to use this method for it).
-            return this != COVER && this != COVER_INFO && this != CHAPTERS;
+            return !NOT_STRING_REPRESENTABLE.contains(this);
         }
 
         @Override
@@ -1220,11 +1241,24 @@ public final class Metadata extends MetaItem<Metadata> {
             return extr.apply(m);
         }
 
+        public Object getGroupedOf(Metadata m) {
+            // Note that groups must include the 'empty' group for when the value is empty
+
+            if(this==FILESIZE) {
+                // filesize can not have empty value, every file has some size.
+                return GROUPS_FILESIZE[64 - Long.numberOfLeadingZeros(m.filesize - 1)];
+            }
+            if(this==RATING) {
+                if(m.rating==EMPTY.rating) return -1d; // empty group
+                return GROUPS_RATING[(int)(m.getRatingPercent()*100/5)];
+            }
+            return extr.apply(m);
+        }
+
         public boolean isFieldEmpty(Metadata m) {
             return equalNull(getOf(m), getOf(EMPTY));
         }
 
-        /** {@inheritDoc} */
         @Override
         public Class getType() {
             // Because empty fields may return null, we can not rely on Metadata.EMPTY, so we handle
@@ -1250,13 +1284,15 @@ public final class Metadata extends MetaItem<Metadata> {
         public boolean isTypeNumberNonegative() { return true; }
 
         public boolean isAutoCompleteable() {
-            return isTypeStringRepresentable() && !STRING_REPRESENTIBLE.contains(this);
+            return isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this);
         }
 
         @Override
         public String toS(Object o, String empty_val) {
             if(o==null || "".equals(o)) return empty_val;
             switch(this) {
+                case RATING_RAW : return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
+                case RATING : return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", o);
                 case DISC :
                 case DISCS_TOTAL :
                 case TRACK :

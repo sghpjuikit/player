@@ -2,6 +2,7 @@ package ImageViewer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,6 +56,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
+import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesImage;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
@@ -260,7 +262,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             e -> e.getGestureSource()==mainImage.getPane(),
             e -> {
                 if(e.getDragboard().hasFiles()) {
-                    dataChanged(e.getDragboard().getFiles().get(0));
+                    dataChanged(getCommonRoot(e.getDragboard().getFiles()));
                     return;
                 }
                 if(DragUtil.hasAudio(e)) {
@@ -319,10 +321,10 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     }
 
     @Override
-    public void showImages(List<File> img_files) {
+    public void showImages(Collection<File> img_files) {
         if(img_files.isEmpty()) return;
 
-        showImage(img_files.get(0));
+        showImage(img_files.stream().findFirst().get());
         active_image = 0;
         img_files.forEach(this::addThumbnail);
     }

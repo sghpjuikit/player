@@ -5,20 +5,17 @@
  */
 package gui.objects.TableCell;
 
+import javafx.geometry.Pos;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import gui.objects.Rater.Rating;
-
-import javafx.geometry.Pos;
-
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
-
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-
 import util.parsing.StringParseStrategy;
 
+import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import static main.App.APP;
 import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
@@ -49,8 +46,8 @@ public class RatingRatingCellFactory implements RatingCellFactory {
                 if(empty) {
                     setGraphic(null);
                 } else {
-                    if(getGraphic()==null) setGraphic(r);
                     r.rating.set(item);
+                    if(getGraphic()==null) setGraphic(r);
                 }
             }
         };

@@ -747,13 +747,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             boolean empty = f.isFieldEmpty(m);
             if (i==0 && !empty) {
                 histogramI = 1;
-                histogramS = String.valueOf(m.getField(f));
+                histogramS = String.valueOf(f.getOf(m));
             }
             if (histogramI == 0 && i != 0 && !empty) {
                 histogramI = 2;
-                histogramS = String.valueOf(m.getField(f));
+                histogramS = String.valueOf(f.getOf(m));
             }
-            if (histogramI == 1 && !String.valueOf(m.getField(f)).equals(histogramS)) {
+            if (histogramI == 1 && !String.valueOf(f.getOf(m)).equals(histogramS)) {
                 histogramI = 2;
             }
         }

@@ -8,7 +8,9 @@ package Layout.Areas;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import javafx.animation.PathTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
@@ -22,11 +24,11 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
-import AudioPlayer.services.ClickEffect;
 import Layout.container.switchcontainer.SwitchPane;
 import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.controller.Controller;
@@ -68,16 +70,17 @@ public class IOLayer extends StackPane {
     public static final String ONODE_STYLECLASS = "onode";
     public static final String IONODE_STYLECLASS = "ionode";
     public static final String IOLINE_STYLECLASS = "ioline";
+    public static final String IOLINE_RUNNER_STYLECLASS = "ioline-runner";
     public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
     public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
 
-    static public final ObservableSet<Input> all_inputs = FXCollections.observableSet();
-    static public final ObservableSet<Output> all_outputs = FXCollections.observableSet();
-    static public final ObservableSet<InOutput> all_inoutputs = InOutput.inoutputs;
-    static public final Map2D<Input,Output,IOLine> connections = new Map2D<>();
-    static public final Map<Input,XNode> inputnodes = new HashMap<>();
-    static public final Map<Output,XNode> outputnodes = new HashMap<>();
-    static public final Map<InOutput,InOutputNode> inoutputnodes = new HashMap<>();
+    static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
+    static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
+    static public final ObservableSet<InOutput<?>> all_inoutputs = FXCollections.observableSet();
+    static public final Map2D<Input<?>,Output<?>,IOLine> connections = new Map2D<>();
+    static public final Map<Input<?>,XNode> inputnodes = new HashMap<>();
+    static public final Map<Output<?>,XNode> outputnodes = new HashMap<>();
+    static public final Map<InOutput<?>,InOutputNode> inoutputnodes = new HashMap<>();
 
 
     public static void relayout() {
@@ -133,6 +136,7 @@ public class IOLayer extends StackPane {
     private void remOutput(Output<?> o) {
         all_outputs.remove(o);
         removeXNode(outputnodes.remove(o));
+        removeChildren(connections.removeIfKey2(o));
     }
     private void addInOutput(InOutput<?> io) {
         all_inoutputs.add(io);
@@ -149,6 +153,7 @@ public class IOLayer extends StackPane {
         all_inoutputs.remove(io);
         io.i.getSources().forEach(o -> removeChild(connections.remove2D(new Key<>(io.i,o))));
         removeXNode(inoutputnodes.remove(io));
+        removeChildren(connections.removeIfKey2(io.o));
         inputnodes.remove(io.i);
         outputnodes.remove(io.o);
     }
@@ -216,6 +221,9 @@ public class IOLayer extends StackPane {
     }
     private void removeXNode(XNode n) {
         if(n!=null) getChildren().remove(n.graphics);
+    }
+    private void removeChildren(Stream<? extends Node> ns) {
+        ns.forEach(this::removeChild);
     }
 
     XNode editFrom = null; // editFrom == edit.node, editFrom.output == edit.output
@@ -309,13 +317,13 @@ public class IOLayer extends StackPane {
                 double ohx = h/(os.size()+1);
 
                 forEachWithI(is, (i,o) -> {
-                    o.cx = scaleX(basex + padding);
-                    o.cy = scaleY(basey + ihx*(i+1));
+                    o.cx = calcScaleX(basex + padding);
+                    o.cy = calcScaleY(basey + ihx*(i+1));
                     o.graphics.relocate(o.cx - iconhalfsize,o.cy-o.graphics.getHeight()/2);
                 });
                 forEachWithI(os, (i,o) -> {
-                    o.cx = scaleX(basex + w - padding - 2*iconhalfsize); // not sure why iconhalfsize
-                    o.cy = scaleY(basey +  ohx*(i+1));
+                    o.cx = calcScaleX(basex + w - padding - 2*iconhalfsize); // not sure why iconhalfsize
+                    o.cy = calcScaleY(basey +  ohx*(i+1));
                     o.graphics.relocate(o.cx + iconhalfsize -o.graphics.getWidth(),o.cy-o.graphics.getHeight()/2);
                 });
             });
@@ -338,12 +346,11 @@ public class IOLayer extends StackPane {
         });
     }
 
-
-    private double scaleX(double x) {
+    private double calcScaleX(double x) {
         return x*scalex.doubleValue();
     }
 
-    private double scaleY(double y) {
+    private double calcScaleY(double y) {
         double middle = getHeight()/2;
         return middle + scaley.doubleValue()*(y-middle);
     }
@@ -380,6 +387,26 @@ public class IOLayer extends StackPane {
                 selectNode(this);
                 e.consume();
             });
+
+
+
+            if(output!=null) {
+
+                Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
+                i.setOnMouseEntered(e -> a.playOpen());
+                t.setOnMouseExited(e -> a.playClose());
+
+                output.monitor(v -> {
+                    inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input -> {
+                        connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send());
+                    });
+                });
+                output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
+    //            output.monitor(v -> APP.use(ClickEffect.class, c -> {
+    //                if(gui.GUI.isLayoutMode())
+    //                    c.run(getSceneXY());
+    //            }));
+            }
         }
 
         Point2D getSceneXY() {
@@ -443,22 +470,12 @@ public class IOLayer extends StackPane {
             graphics.setAlignment(Pos.CENTER_RIGHT);
             i.styleclass(ONODE_STYLECLASS);
 
-            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
-            i.setOnMouseEntered(e -> a.playOpen());
-            t.setOnMouseExited(e -> a.playClose());
-
             // drag&drop
             i.addEventFilter(DRAG_DETECTED,e -> {
                 if(selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
                 else editBegin(this);
                 e.consume();
             });
-
-            output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
-            output.monitor(v -> APP.use(ClickEffect.class, c -> {
-                if(gui.GUI.isLayoutMode())
-                    c.run(getSceneXY());
-            }));
         }
     }
     class InOutputNode<T> extends XNode<InOutput<T>,T,VBox> {
@@ -470,10 +487,6 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             i.styleclass(IONODE_STYLECLASS);
-
-            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
-            i.setOnMouseEntered(e -> a.playOpen());
-            t.setOnMouseExited(e -> a.playClose());
 
             // drag&drop
             installDrag(
@@ -494,21 +507,15 @@ public class IOLayer extends StackPane {
                 else editBegin(this);
                 e.consume();
             });
-
-            output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
-            output.monitor(v -> APP.use(ClickEffect.class, c -> {
-                if(gui.GUI.isLayoutMode())
-                    c.run(getSceneXY());
-            }));
         }
     }
     class IOLine<T> extends Path {
         static final double GAP = 20;
 
-        Output output;
-        Input input;
+        Output<T> output;
+        Input<T> input;
 
-        public IOLine(Input i, Output o) {
+        public IOLine(Input<T> i, Output<T> o) {
             input = i;
             output = o;
 
@@ -574,11 +581,24 @@ public class IOLayer extends StackPane {
                 layTo(x,y, tox, toy, h);
             }
         }
-    }
-    class EditIOLine extends IOLine {
-        final XNode node;
 
-        public EditIOLine(XNode n) {
+        public void send() {
+//            double length = sqrt(getWidth()*getWidth()+getHeight()*getHeight());
+            Circle n = new Circle(3);
+                   n.getStyleClass().add(IOLINE_RUNNER_STYLECLASS);
+            IOLayer.this.getChildren().add(n);
+            PathTransition a = new PathTransition(millis(2000), this, n);
+            a.setRate(-1);
+            a.setOnFinished(e -> {
+                IOLayer.this.getChildren().remove(n);
+            });
+            a.playFrom(a.getDuration());
+        }
+    }
+    class EditIOLine<T> extends IOLine<T> {
+        final XNode<?,T,?> node;
+
+        public EditIOLine(XNode<?,T,?> n) {
             super(n.input,n.output);
             node = n;
 

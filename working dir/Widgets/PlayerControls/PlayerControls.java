@@ -130,8 +130,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);
 
-        seeker.bindTime(ps.duration, ps.currentTime);
-        d(seeker::dispose);
+        d(seeker.bindTime(ps.duration, ps.currentTime));
         entireArea.getChildren().add(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);

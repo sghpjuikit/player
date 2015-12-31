@@ -94,20 +94,20 @@ public class RatingSkin extends SkinBase<Rating> {
 
         recreateButtons();
 
-        registerChangeListener(r.rating, e -> updateRating(getSkinnable().rating.get()));
+        registerChangeListener(r.rating, e -> updateRating(r.rating.get()));
         registerChangeListener(r.icons, e -> recreateButtons());
-        registerChangeListener(r.updateOnHover, e -> updateRating(getSkinnable().rating.get()));
-        registerChangeListener(r.partialRating, e -> updateRating(getSkinnable().rating.get()));
+        registerChangeListener(r.updateOnHover, e -> updateRating(r.rating.get()));
+        registerChangeListener(r.partialRating, e -> updateRating(r.rating.get()));
 
         // remember rating and return to old after mouse hover ends
-        getSkinnable().addEventHandler(MOUSE_ENTERED, e -> {
+        r.addEventHandler(MOUSE_ENTERED, e -> {
             e.consume();
-            if (getSkinnable().updateOnHover.get())
-                old_rating = getSkinnable().rating.get();
+            if (r.updateOnHover.get())
+                old_rating = r.rating.get();
         });
-        getSkinnable().addEventHandler(MOUSE_EXITED, e -> {
+        r.addEventHandler(MOUSE_EXITED, e -> {
             e.consume();
-            if (getSkinnable().updateOnHover.get())
+            if (r.updateOnHover.get())
                 updateRating(old_rating);
         });
     }
@@ -135,11 +135,11 @@ public class RatingSkin extends SkinBase<Rating> {
     // returns rating based on scene relative mouse position
     private double calculateRating(double sceneX, double sceneY) {
         // get 0-1 position value
-        final Rating control = getSkinnable();
+        final Rating r = getSkinnable();
         final Point2D b = backgroundContainer.sceneToLocal(sceneX,sceneY);
         double leftP = backgroundContainer.getPadding().getLeft();
         double rightP = backgroundContainer.getPadding().getRight();
-        double w = control.getWidth() - leftP - rightP;
+        double w = r.getWidth() - leftP - rightP;
         double x = b.getX()-leftP;
                x = clip(0, x, w);
         // make 2px space for min & max value
@@ -148,8 +148,8 @@ public class RatingSkin extends SkinBase<Rating> {
         // calculate the rating value
         double nv = clip(0,x/w,1);
         // ceil to int if needed
-        double icons = getSkinnable().icons.get();
-        if (!getSkinnable().partialRating.get()) nv = ceil(nv*icons)/icons;
+        double icons = r.icons.get();
+        if (!r.partialRating.get()) nv = ceil(nv*icons)/icons;
 
         return nv;
     }
@@ -163,13 +163,12 @@ public class RatingSkin extends SkinBase<Rating> {
 
     // updates the skin to the current values
     private void updateClip(double v) {
-        final Rating s =  getSkinnable();
-
-        double w = s.getWidth() - (snappedLeftInset() + snappedRightInset());
+        final Rating r =  getSkinnable();
+        double w = r.getWidth() - (snappedLeftInset() + snappedRightInset());
         double x = w*v;
 
         forgroundClipRect.setWidth(x);
-        forgroundClipRect.setHeight(s.getHeight());
+        forgroundClipRect.setHeight(r.getHeight());
 
         boolean is1 = v==1;
         foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,is1));

@@ -200,8 +200,9 @@ public class Library extends FXMLController implements SongReader {
             editOnAdd_menuItem
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove invalid items",this::removeInvalid),
-            menuItem("Remove all items",DB::removeAllItems)
+            menuItem("Remove selected from library", () -> DB.removeItems(table.getSelectedItems())),
+            menuItem("Remove all from library", () -> DB.removeItems(table.getItems())),
+            menuItem("Remove invalid items",this::removeInvalid)
         );
 
         // set up table columns

@@ -7,9 +7,14 @@ package util.collections.map;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import unused.TriConsumer;
 import util.collections.map.Map2D.Key;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * 2 dimensional map - map with key consisting of two keys. For key identity, see {@link Key}.
@@ -34,6 +39,24 @@ public class Map2D<K1,K2,E> extends HashMap<Key<K1,K2>,E> {
     /** Removes entry mapped to given key. */
     public E remove2D(Key<K1,K2> key) {
         return remove(key);
+    }
+
+    public Stream<E> removeIf(Predicate<Key<K1,K2>> condition) {
+        return keySet().stream().filter(condition)
+                .collect(toSet()).stream()
+                .map(this::remove2D);
+    }
+
+    public Stream<E> removeIfKey1(K1 key1) {
+        return removeIf(k -> k.key1().equals(key1));
+    }
+
+    public Stream<E> removeIfKey2(K2 key2) {
+        return removeIf(k -> k.key2().equals(key2));
+    }
+
+    public Optional<E> getOpt(Key<K1,K2> key) {
+        return Optional.ofNullable(get(key));
     }
 
     /**

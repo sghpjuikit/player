@@ -11,8 +11,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 
-import org.reactfx.EventStreams;
-
 import AudioPlayer.Player;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -49,6 +47,7 @@ import web.HttpSearchQueryBuilder;
 import static AudioPlayer.tagging.Metadata.Field.ALBUM;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
+import static AudioPlayer.tagging.MetadataGroup.degroup;
 import static Layout.widget.Widget.Group.LIBRARY;
 import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
@@ -66,6 +65,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static main.App.APP;
+import static org.reactfx.EventStreams.changesOf;
 import static util.Util.menuItem;
 import static util.Util.menuItems;
 import static util.async.Async.runLater;
@@ -169,7 +169,7 @@ public class LibraryView extends FXMLController {
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
                 // additional css styleclasses
-                .styleRuleAdd("played", mg -> equalNonNull(fieldFilter.getValue().getOf(Player.playingtem.get()),mg.getValue()))
+                .styleRuleAdd("played", MetadataGroup::isPlaying)
                 // add behavior
                 .onLeftDoubleClick((row,e) -> playSelected())
                 .onRightSingleClick((row,e) -> {
@@ -196,6 +196,12 @@ public class LibraryView extends FXMLController {
         );
         // refresh when menu opens
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
+        // add menu items
+        table.menuRemove.getItems().addAll(
+            menuItem("Remove selected groups from library", () -> DB.removeItems(degroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", () -> DB.removeItems(degroup(table.getItems().stream().filter(mg -> mg.isPlaying())))),
+            menuItem("Remove all groups from library", () -> DB.removeItems(degroup(table.getItems())))
+        );
 
         // key actions
         table.setOnKeyPressed(e -> {
@@ -233,14 +239,25 @@ public class LibraryView extends FXMLController {
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         // forward on selection
-        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b, ofMillis(60)).subscribe(c -> {
-            if(!sel_lock)
-                out_sel_met.setValue(filterList(in_items.getValue(),true,false));
-        });
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-            if(!sel_lock)
-                sel_last = nv==null ? "null" : VALUE.toS(nv,nv.getValue(), "");
-        });
+        d(changesOf(table.getSelectedItems())
+          .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
+
+                if(!sel_ignore) if(fieldFilter.get()==CATEGORY) {
+                    System.out.println("output set " + filterList(in_items.getValue(),true,false).size());
+                }
+                if(!sel_ignore)
+                    out_sel_met.setValue(filterList(in_items.getValue(),true,false));
+                if(sel_ignore_canturnback) {
+                    sel_ignore_canturnback = false;
+                    sel_ignore = false;
+                }
+        }));
+        d(changesOf(table.getSelectionModel().selectedItemProperty())
+          .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(s -> {
+                MetadataGroup nv = s.getNewValue();
+                if(!sel_ignore)
+                    sel_last = nv==null ? "null" : VALUE.toS(nv,nv.getValue(), "");
+        }));
 
         // prevent volume change
         table.setOnScroll(Event::consume);
@@ -287,7 +304,7 @@ public class LibraryView extends FXMLController {
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         if(list==null) return;
-
+         if(fieldFilter.get()==CATEGORY)System.out.println("input change");
         fut(fieldFilter.getValue())
             .use(f -> {
                 List<MetadataGroup> mgs = stream(
@@ -300,6 +317,7 @@ public class LibraryView extends FXMLController {
                         selectionStore();
                         table.setItemsRaw(mgs);
                         selectionReStore();
+                         if(fieldFilter.get()==CATEGORY)System.out.println("setting value " + fl.size());
                         out_sel_met.setValue(fl);
                     }
                 });
@@ -335,12 +353,17 @@ public class LibraryView extends FXMLController {
         play(filterList(in_items.getValue(),false,true));
     }
 
+    private List<Metadata> getSelected() {
+        return filterList(in_items.getValue(),false,true);
+    }
+
 /******************************* SELECTION RESTORE ****************************/
 
     // restoring selection if table items change, we want to preserve as many
     // selected items as possible - when selection changes, we select all items
     // (previously selected) that are still in the table
-    private boolean sel_lock = false;
+    private boolean sel_ignore = false;
+    private boolean sel_ignore_canturnback = true;
     private Set sel_old;
     // restoring selection from previous session, we serialize string
     // representation and try to restre when application runs again
@@ -352,7 +375,8 @@ public class LibraryView extends FXMLController {
     private void selectionStore() {
         // remember selected
         sel_old = table.getSelectedItems().stream().map(MetadataGroup::getValue).collect(toSet());
-        sel_lock = true;    // prevent forwarding items
+        sel_ignore = true;
+        sel_ignore_canturnback = false;
     }
 
     private void selectionReStore() {
@@ -380,7 +404,8 @@ public class LibraryView extends FXMLController {
         if(table.getSelectionModel().isEmpty())
             table.getSelectionModel().select(0);
 
-        sel_lock = false;   // enable forwarding items
+//        sel_ignore = false;
+        sel_ignore_canturnback = true;
     }
 
 /******************************** CONTEXT MENU ********************************/

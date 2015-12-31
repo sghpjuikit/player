@@ -7,8 +7,7 @@ package Layout.widget.controller.io;
 
 import java.util.UUID;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
+import Layout.Areas.IOLayer;
 
 /**
  *
@@ -22,8 +21,6 @@ public class InOutput<T> {
         o = new Output<>(id, name, c);
         i = new Input<>(name, c, o::setValue);
 
-        inoutputs.add(this);
+        IOLayer.all_inoutputs.add(this);
     }
-
-    public static ObservableSet<InOutput> inoutputs = FXCollections.observableSet();
 }

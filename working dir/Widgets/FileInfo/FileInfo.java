@@ -79,7 +79,7 @@ import static util.graphics.Util.setAnchor;
     description = "Displays song information. Supports rating change.",
     howto = ""
         + "    Displays metadata of a particular song. Song can be set manually, e.g., by drag & "
-         + "drop, or the widget can follow the playing or table selections (playlist, etc.).\n"
+        + "drop, or the widget can follow the playing or table selections (playlist, etc.).\n"
         + "\n"
         + "Available actions:\n"
         + "    Cover left click : Browse file system & set cover\n"
@@ -218,7 +218,7 @@ public class FileInfo extends FXMLController implements SongReader {
         rater.updateOnHover.bind(APP.hoverRating);
         rater.editable.bind(APP.allowRatingChange);
         // write metadata on rating change
-        rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
+        rater.setOnRatingChanged(r -> MetadataWriter.useToRate(data, r));
 
         // drag & drop
         DragUtil.installDrag(
@@ -292,9 +292,10 @@ public class FileInfo extends FXMLController implements SongReader {
         data_out.setValue(m);
 
         // gui (fill out data)
+        // note we disallow empty rating so rater remains editable
         fields.forEach(l -> l.setVal(m));
-        rater.rating.set(m==EMPTY ? 0d : m.getRatingPercent());
         setCover(cover_source.getValue());
+        rater.rating.set(m==EMPTY ? 0d : m.getRatingPercent());
 
         update();
     }

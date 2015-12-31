@@ -219,7 +219,7 @@ public class App extends Application implements Configurable {
 
     public Window window;
     public Window windowOwner;
-    public final TaskBar taskbarIcon= new TaskBar();
+    public final TaskBar taskbarIcon = new TaskBar();
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final InfoPane infoPane = new InfoPane();
@@ -266,7 +266,11 @@ public class App extends Application implements Configurable {
     public final V<Double> debug = new V<>(0d);
     @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value"
             + "to control some application value manually.")
-    public final V<Boolean> debug2 = new V<>(false,taskbarIcon::setVisible);
+    public final V<Boolean> debug2 = new V<>(false,()->{});
+
+    @IsConfig(name = "Enabled", group = "Taskbar", info = "Show taskbar icon. Disabling taskbar will"
+            + "also disable ALT+TAB functionality.")
+    public final V<Boolean> taskbarEnabled = new V<>(true,taskbarIcon::setVisible);
 
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public String TAG_NO_VALUE = "-- no assigned value --";

@@ -16,9 +16,11 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import util.async.executor.EventReducer;
 import util.collections.Tuple2;
+import util.dev.TODO;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -27,27 +29,37 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.collections.Tuples.tuple;
+import static util.dev.TODO.Purpose.DOCUMENTATION;
 import static util.dev.Util.log;
 
 /**
  *
  * @author Plutonium_
  */
+@TODO(purpose = DOCUMENTATION)
 public class FileMonitor {
+    /**
+      * Relatively simple to monitor a file? Think again.
+      * 1) Dir only!
+      *    WatchService allows us to only monitor a directory. We then must simply ignore other
+      *    events of files other than the one we monitor. This is really bad if we want to monitor
+      *    multiple files in a single directory (each on its own). We would have to use 1 thread
+      *    and 1 watch service per each file!
+      *    Solved using a predicate parameter to filter out unwanted events.
+      * 2) Modification events.
+      *    Not even going to try to understand - modifications events fire
+      *    multiple times! When editing java source file in Netbeans and saveing it throws 3 events
+      *    at about 8-13 ms time gap (tested on SSD)!
+      *    Solved using event reducer & checking modification times
+      * 3) Nested events
+      *    CREATE and DELETE events are fired for files and directories up to level 2 (children of
+      *    children of the monitored directory, e.g.,  mon_dir/lvl1/file.txt). MODIFIED events will
+      *    be thrown for any direct child or
+      */
 
-    // Relatively simple to monitor a file? Think again.
-    // 1) WatchService allows us to only monitor a directory. We then must simple ignore other
-    //    events of files other than the one we monitor. This is really bad if we want to monitor
-    //    multiple files in a single directory (each on its own). We would have to use 1 thread
-    //    and 1 watch service per each file!
-    // 2) Modification events. Not even goign to tryto understand - modifications events fire
-    //    multiple times! When I edit java source file in Netbeans and save I get 3 events at about
-    //    8-13 ms time gap (tested on SSD)!
-    //    We clearly have to use an event reducer here
-
-    private File monitoredFile;
     private File monitoredFileDir;
     private WatchService watchService;
+    private Predicate<File> filter;
     private BiConsumer<Kind<Path>,File> action;
     private boolean isFile;
     private String name; // purely for logging "Directory" or "File"
@@ -63,13 +75,40 @@ public class FileMonitor {
         runFX(() -> action.accept(type,file));
     }
 
-    public static FileMonitor monitorFile(File toMonitor, Consumer<Kind<Path>> handler) {
-//        if(!toMonitor.isFile()) throw new IllegalArgumentException("Can not monitor a directory.");
+    /**
+     * Creates and starts directory monitoring reporting events for single file contained within
+     * the directory.
+     * <p>
+     * Shorctcut for:
+     * <p>
+     * {@code
+     * monitorDirsFiles(monitoredFile.getParentFile(), file -> file.equals(monitoredFile), (type,file) -> handler.accept(type));
+     * }
+     * <p>
+     *
+     * @param monitoredFile
+     * @param handler handles the event taking the event type as parameter
+     * @return directory monitor
+     */
+    public static FileMonitor monitorFile(File monitoredFile, Consumer<Kind<Path>> handler) {
+        return monitorDirsFiles(monitoredFile.getParentFile(), file -> file.equals(monitoredFile), (type,file) -> handler.accept(type));
+    }
+
+    /**
+     * Creates and starts directory monitoring for specified directory reporting events for any 1st
+     * level child file which passes the predicate filter.
+     *
+     * @param monitoredDir directory to be monitored
+     * @param filter filter narrowing down events, for example any text file.
+     * @param handler handles the event containing type and modified file parameters
+     * @return directory monitor
+     */
+    public static FileMonitor monitorDirsFiles(File monitoredDir, Predicate<File> filter, BiConsumer<Kind<Path>,File> handler) {
 
         FileMonitor fm = new FileMonitor();
-        fm.monitoredFile = toMonitor;
-        fm.monitoredFileDir = fm.monitoredFile.getParentFile();
-        fm.action = (type,file) -> handler.accept(type);
+        fm.monitoredFileDir = monitoredDir;
+        fm.filter = filter;
+        fm.action = handler;
         fm.isFile = true;
         fm.name = fm.isFile ? "File" : "Directory";
 
@@ -78,6 +117,9 @@ public class FileMonitor {
             fm.watchService = FileSystems.getDefault().newWatchService();
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
+                // The check requires I/O so lets do that on bgr thread as well
+//                if(!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or doesnt exist.");
+
                 boolean valid;
                 WatchKey watchKey;
                 do {
@@ -100,7 +142,8 @@ public class FileMonitor {
                         String modifiedFileName = ev.context().toString();
                         File modifiedFile = new File(fm.monitoredFileDir, modifiedFileName);
 
-                        if(fm.monitoredFile.equals(modifiedFile)) {
+//                        if(modifiedFile.getParentFile().equals(fm.monitoredFileDir)) // to do
+                        if(fm.filter.test(modifiedFile)) {
                             if(type==ENTRY_MODIFY) {
                                 runFX(() ->
                                     fm.modificationReducer.push(tuple((Kind)type, modifiedFile))
@@ -115,17 +158,15 @@ public class FileMonitor {
                 } while (valid);
             });
         } catch (IOException e) {
-            log(FileMonitor.class).error("Error when starting file monitoring {}", fm.monitoredFile,e);
+            log(FileMonitor.class).error("Error when starting file monitoring {}", fm.monitoredFileDir,e);
         }
 
         return fm;
     }
 
+    @Deprecated
     public static FileMonitor monitorDirectory(File toMonitor, BiConsumer<Kind<Path>,File> handler) {
-//        if(!toMonitor.isDirectory()) throw new IllegalArgumentException("Can not monitor a file.");
-
         FileMonitor fm = new FileMonitor();
-        fm.monitoredFile = toMonitor;
         fm.monitoredFileDir = toMonitor;
         fm.action = handler;
         fm.isFile = false;
@@ -136,6 +177,9 @@ public class FileMonitor {
             fm.watchService = FileSystems.getDefault().newWatchService();
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
+                // The check requires I/O so lets do that on bgr thread as well
+//                if(!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or doesnt exist.");
+
                 boolean valid = true;
                 WatchKey watchKey;
                 do {
@@ -164,7 +208,7 @@ public class FileMonitor {
                 } while (valid);
             });
         } catch (IOException e) {
-            log(FileMonitor.class).error("Error when starting directory monitoring {}", fm.monitoredFile,e);
+            log(FileMonitor.class).error("Error when starting directory monitoring {}", fm.monitoredFileDir,e);
         }
 
         return fm;
@@ -174,7 +218,7 @@ public class FileMonitor {
         try {
             if(watchService!=null) watchService.close();
         } catch (IOException e) {
-            log(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFile, e);
+            log(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFileDir, e);
         }
     }
 }

@@ -28,7 +28,6 @@ import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import action.IsAction;
 import action.IsActionable;
-import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
@@ -37,6 +36,8 @@ import util.animation.Anim;
 import util.async.executor.FxTimer;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
@@ -65,20 +66,14 @@ public class WindowManager {
     @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
     public static boolean mini = false;
 
-    @IsConfig(name="Mini open on click", info="Open mini window on screen top edge click.")
-    public static boolean mini_show_onClick = true;
-
-    @IsConfig(name="Mini open on hover", info="Open mini window on screen top edge hover.")
-    public static boolean mini_show_onEnter = true;
-
-    @IsConfig(name="Mini open hover delay", info="Time to hover to open mini window.")
-    public static Duration mini_hover_delay = millis(500);
+    @IsConfig(name="Mini open hover delay", info="Time for mouse to hover to open mini window.")
+    public static Duration mini_hover_delay = millis(700);
 
     @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
     public static final V<Boolean> mini_hide_onInactive = new V<>(true);
 
     @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
-    public static Duration mini_inactive_delay = millis(500);
+    public static Duration mini_inactive_delay = millis(700);
 
     @AppliesConfig("mini")
     private static void applyMini() {
@@ -140,14 +135,12 @@ public class WindowManager {
             content.setCenter(w.load());
             miniWindow.setContent(content);
                 // menu
-            Icon autohideB = new CheckIcon(mini_hide_onInactive).size(13).icons(EYE,EYE_SLASH)
-                    .tooltip("Autohide dock when inactive");
             Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
 
-            HBox controls = new HBox(8,autohideB,mainB,miniB);
+            HBox controls = new HBox(8,mainB,miniB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
                  controls.setFillHeight(false);
                  controls.setPadding(new Insets(5,5,5,25));
@@ -170,7 +163,6 @@ public class WindowManager {
             FxTimer hider = new FxTimer(0, 1, () -> {
                 if(miniWindow==null) return;
                 if(miniWindow.getY()!=0) return;    // if not open
-                if(mw_root.isHover()) return;       // if mouse still in
                 Duration d = a.getCurrentTime();
                 if(d.equals(ZERO)) d = millis(300).subtract(d);
                 a.stop();
@@ -179,6 +171,7 @@ public class WindowManager {
             });
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
                 if(!mini_hide_onInactive.get()) return;   // if disabled
+                if(mw_root.isHover()) return;       // if mouse still in (we only want MOUSE_EXIT)
                 hider.start(mini_inactive_delay);
             });
             hider.runNow();
@@ -194,15 +187,18 @@ public class WindowManager {
                 a.playFrom(d);
             });
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
-                if(!mini_show_onEnter) return;      // if disabled
-                if(!miniWindow.isShowing()) return; // bugfix
-                shower.start(mini_hover_delay);   // open after delay
+                if(!miniWindow.isShowing()) return;     // bugfix
+                shower.start(mini_hover_delay);         // open after delay
             });
             mw_root.addEventFilter(MOUSE_CLICKED, e -> {
-                if(!mini_show_onClick) return;      // if disabled
-                if(miniWindow.getY()==0) return;    // if open
-                if(!miniWindow.isShowing()) return; // bugfix
-                shower.runNow();                    // open with delay
+                if(e.getButton()==PRIMARY) {
+                    if(!miniWindow.isShowing()) return; // bugfix
+                    shower.runNow();                    // open with delay
+                }
+                if(e.getButton()==SECONDARY) {
+                    if(!miniWindow.isShowing()) return; // bugfix
+                    hider.runNow();                     // open with delay
+                }
             });
         } else {
             // do nothing if not in minimode (for example during initialization)
@@ -233,16 +229,16 @@ public class WindowManager {
         listFiles(dir).forEach(File::delete);
 
         // serialize - for now each window to its own file with .ws extension
-        for(int ι=0; ι<src.size(); ι++) {
+        for(int i=0; i<src.size(); i++) {
             // ret resources
-            Window w = src.get(ι);
-            String name = "window" + ι;
+            Window w = src.get(i);
+            String name = "window" + i;
             File f = new File(dir, name + ".ws");
             // serialize window
             w.serialize(f);
             // serialize layout (associate the layout with the window by name)
             Layout l = w.getLayout();
-            l.setName("layout" + ι);
+            l.setName("layout" + i);
             l.serialize(new File(dir,l.getName()+".l"));
         }
 
@@ -303,5 +299,4 @@ public class WindowManager {
 
     @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
     public static boolean show_taskbar_icon = true;
-
 }

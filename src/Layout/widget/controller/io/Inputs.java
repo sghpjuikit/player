@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  * @author Plutonium_
  */
 public class Inputs {
-    private final Map<String,Input> m;
+    private final Map<String,Input<?>> m;
 
 
     public Inputs() {
@@ -50,7 +50,7 @@ public class Inputs {
 //        return m.containsKey(i.name); // doesnt guarantee correctness
     }
 
-    public Collection<Input> getInputs() {
+    public Collection<Input<?>> getInputs() {
         return m.values();
     }
 }

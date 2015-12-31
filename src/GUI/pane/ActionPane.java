@@ -149,7 +149,7 @@ public class ActionPane extends OverlayPane implements Configurable {
     );
     private final Icon hideI = new CheckIcon(closeOnDone)
                                     .tooltip(COD_TITLE+"\n\n"+COD_INFO)
-                                    .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE, CLOSE_CIRCLE_OUTLINE);
+                                    .icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE);
     private final ProgressIndicator dataObtainingProgress = new Spinner(1){{
         maintain(progressProperty(),p -> p.doubleValue()<1, visibleProperty());
     }};

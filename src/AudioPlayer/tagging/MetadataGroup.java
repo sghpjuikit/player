@@ -13,16 +13,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import AudioPlayer.Player;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.SwitchException;
 import util.access.FieldValue.ObjectField;
+import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.RangeYear;
 
+import static java.util.stream.Collectors.toSet;
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
+import static util.dev.TODO.Purpose.BUG;
+import static util.functional.Util.equalNonNull;
 import static util.functional.Util.groupBy;
 
 /**
@@ -57,6 +62,14 @@ public final class MetadataGroup {
 
     public static Stream<MetadataGroup> groupsOf(Metadata.Field f, Collection<Metadata> ms) {
         return groupBy(ms.stream(),f::getGroupedOf).entrySet().stream().map(e -> new MetadataGroup(f, false,e.getKey(),e.getValue()));
+    }
+
+    public static Set<Metadata> degroup(Collection<MetadataGroup> groups) {
+        return groups.stream().flatMap(group -> group.getGrouped().stream()).collect(toSet());
+    }
+
+    public static Set<Metadata> degroup(Stream<MetadataGroup> groups) {
+        return groups.flatMap(group -> group.getGrouped().stream()).collect(toSet());
     }
 
     private MetadataGroup(Metadata.Field f, boolean isAll, Object value, Collection<Metadata> ms) {
@@ -142,6 +155,12 @@ public final class MetadataGroup {
         return years;
     }
 
+    /**  Is playing if any of the songs belonging to this group is playing. */
+    @TODO(purpose = BUG, note = "We need to check the contained metadata instead of just comparing the group value")
+    public boolean isPlaying() {
+        return equalNonNull(field.getOf(Player.playingtem.get()),getValue());
+    }
+
     /** {@inheritDoc} */
     public Field getMainField() {
         return Field.VALUE;
@@ -207,7 +226,6 @@ public final class MetadataGroup {
             else return VALUE;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Class getType() {
             return type;
@@ -260,17 +278,4 @@ public final class MetadataGroup {
     private static Object getAllValue(Metadata.Field f) {
         return f.isTypeString() ? "" : null;
     }
-
-//     grouping buckets - requires standalone classes...
-//    private static final FileSize FILESIZE_UNKNOWN = new FileSize(-1);
-//    private static final FileSize FILESIZE_UNKNOWN = new FileSize(1024);
-//
-//    private static Object getGroupValue(Metadata.Field f, Metadata m) {
-//        if(f==FILESIZE) {
-//            FileSize s = (FileSize) FILESIZE.getOf(m);
-//            double b = s.inBytes();
-//            if(b==-1) return
-//        }
-//        return f.getOf(m);
-//    }
 }

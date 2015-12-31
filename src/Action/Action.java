@@ -626,6 +626,7 @@ public final class Action extends Config<Action> implements Runnable {
             else if(i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
             else if(i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
             else if(i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
+            else if(i==JIntellitype.APPCOMMAND_LAUNCH_MEDIA_SELECT) App.openOpen();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();

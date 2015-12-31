@@ -44,6 +44,7 @@ import static util.File.FileUtil.getName;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.functional.Util.ISNTØ;
+import static util.functional.Util.stream;
 
 /**
  * Handles operations with Widgets.
@@ -84,19 +85,17 @@ public final class WidgetManager {
                     .registerExternalFactory();
         }
 
-        FileMonitor.monitorDirectory(dir, (type,widget_dir) -> {
-            if(widget_dir.isDirectory()) {
-                String name = getName(widget_dir);
-                if(type==ENTRY_CREATE) {
-                    LOGGER.info("Discovered widget type: {}", name);
-                    monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
-                            .registerExternalFactory();
-                }
-                if(type==ENTRY_DELETE) {
-                    LOGGER.info("Disposing widget type: {}", name);
-                    WidgetDir wd = monitors.get(name);
-                    if(wd!=null) wd.dispose();
-                }
+        FileMonitor.monitorDirsFiles(dir, File::isDirectory, (type,widget_dir) -> {
+            String name = getName(widget_dir);
+            if(type==ENTRY_CREATE) {
+                LOGGER.info("Discovered widget type: {}", name);
+                monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
+                        .registerExternalFactory();
+            }
+            if(type==ENTRY_DELETE) {
+                LOGGER.info("Disposing widget type: {}", name);
+                WidgetDir wd = monitors.get(name);
+                if(wd!=null) wd.dispose();
             }
         });
         initialized = true;
@@ -157,14 +156,14 @@ public final class WidgetManager {
             if(monitorOn) return;
             monitorOn = true;
 
-            // monitor source file & recompile on change
-            classMonitor = FileMonitor.monitorFile(srcfile, type -> {
+            // monitor source files (any .java file) & recompile on change
+            classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> file.getPath().endsWith(".java"), (type,file) -> {
                 if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-                    LOGGER.info("Widget {} source file changed {}", widgetname,type);
-                    runNew(() -> compile(srcfile));
+                    LOGGER.info("Widget {} source file changed {}", file,type);
+                    runNew(() -> compile(getSrcFiles()));
                 }
             });
-            // monitor class file & recreate factory on change
+            // monitor class file (only the main class' one) & recreate factory on change
             srcMonitor = FileMonitor.monitorFile(classfile, type -> {
                 if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} class file changed {}", widgetname,type);
@@ -238,9 +237,9 @@ public final class WidgetManager {
                 // factories are ready (we finish compiling on bgr thread). Too much work for no real
                 // benefit - This is developer convenience feature anyway. We only need to compile
                 // once, then any subsequent app start will be compile-free.
-                if(initialized) runNew(() -> compile(srcfile));
+                if(initialized) runNew(() -> compile(getSrcFiles()));
                 else {
-                    compile(srcfile);
+                    compile(getSrcFiles());
                     // File monitoring is not and must not be running yet (as it creates factory
                     // asynchronously). We do it manually.
                     registerExternalFactory();
@@ -250,6 +249,9 @@ public final class WidgetManager {
             monitorStart();
         }
 
+        File[] getSrcFiles() {
+            return widgetdir.listFiles(f -> f.getPath().endsWith(".java"));
+        }
     }
 
     /**
@@ -258,10 +260,12 @@ public final class WidgetManager {
      *
      * @param srcfile .java file to compile
      */
-    private static void compile(File srcfile) {
-        LOGGER.info("Compiling {}", srcfile);
+    private static void compile(File... srcfiles) {
+        File[] files = srcfiles;
+        String[] paths = stream(files).map(File::getPath).toArray(i -> new String[i]);
+        LOGGER.info("Compiling " + paths);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        int success = compiler.run(null, null, null, srcfile.getPath());
+        int success = compiler.run(null, null, null, paths);
         if(success == 0){
             LOGGER.info("Compilation succeeded");
         } else{

@@ -26,8 +26,8 @@ import Configuration.IsConfigurable;
 import action.Action;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import util.access.V;
 import util.R;
+import util.access.V;
 
 import static action.Action.getActions;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
@@ -142,5 +142,5 @@ public class ShortcutPane extends OverlayPane {
     );
     private final Icon hideI = new CheckIcon(hideEmpty)
                                     .tooltip(HE_TITLE+"\n\n"+HE_INFO)
-                                    .icons(CLOSE_CIRCLE_OUTLINE,CHECKBOX_BLANK_CIRCLE_OUTLINE);
+                                    .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE,CLOSE_CIRCLE_OUTLINE);
 }

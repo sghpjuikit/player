@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
 - figure out image animation autoplay def behavior & indicative play/pause mechanism
 - widget compilation - report errors back to user through gui (popup? notfication? else?)

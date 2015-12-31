@@ -187,7 +187,7 @@ public class Player {
     private static final List<Consumer<MapSet<URI,Metadata>>> refreshHandlers = new ArrayList<>();
 
     // runs refresh on bgr thread, thread safe
-    private static void refreshItemsWithNow(List<Metadata> ms) {
+    private static void refreshItemsWithNow(List<Metadata> ms) {System.out.println("refreshing now " + ms.size());
         noØ(ms);
         if(ms.isEmpty()) return;
 

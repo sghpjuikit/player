@@ -20,7 +20,7 @@ import static util.reactive.Util.maintain;
  * @author Plutonium_
  */
 public class Outputs {
-    private final Map<String,Output> m;
+    private final Map<String,Output<?>> m;
 
 
     public Outputs() {
@@ -51,12 +51,12 @@ public class Outputs {
 //        return m.containsKey(i.id.name); // doesnt guarantee correctness
     }
 
-    public Collection<Output> getOutputs() {
+    public Collection<Output<?>> getOutputs() {
         return m.values();
     }
 
     public <T> Subscription monitor(String name, Consumer<T> action) {
-        Output<T> o = m.get(name);
+        Output<T> o = (Output<T>)m.get(name);
         if(o==null) return Subscription.EMPTY;
 
         return maintain(o.val, action);

@@ -66,14 +66,13 @@ import static util.reactive.Util.maintain;
 )
 public class PlayerControlsTiny extends FXMLController implements PlaybackFeature {
 
-    private static final double ICON_SIZE = 14;
-
     @FXML AnchorPane root;
     @FXML HBox layout, controlBox, volBox;
     @FXML Slider volume;
     @FXML Label currTime, titleL, artistL;
     private Seeker seeker = new Seeker();
     private Icon prevB, playB, stopB, nextB, loopB, volB;
+    private final double ICON_SIZE = 14;
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -103,8 +102,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         d(volume.valueProperty()::unbind);
 
         // make seeker
-        seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
-        d(seeker::dispose);
+        d(seeker.bindTime(ps.duration, ps.currentTime));
         d(maintain(GUI.snapDistance, d->d, seeker.chapSnapDist));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
@@ -126,6 +124,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         d(maintain(ps.currentTime,t -> currentTimeChanged()));
         d(maintain(ps.loopMode,this::loopModeChanged));
         d(Player.playingtem.onUpdate(this::playbackItemChanged));
+        playbackItemChanged(Player.playingtem.get());
 
         // drag & drop
         installDrag(

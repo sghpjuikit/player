@@ -28,7 +28,6 @@ import Layout.Areas.IOLayer;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.controller.Controller;
-import Layout.widget.controller.io.InOutput;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.controller.io.Output;
@@ -302,24 +301,28 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     }
 
     /**
-     * Sets any state of this widget to that of a target widget's.
-     * It is generally recommended to use this method before this widget is laoded.
+     * Sets state of this widget to that of a target widget's.
      * @param w widget to copy state from
      */
     public void setStateFrom(Widget<C> w) {
+        // if widget was loaded we store its latest state, otherwise it contains serialized pme
+        if(w.controller!=null)
+            w.storeConfigs();
+
         // this takes care of any custom state or controller persistence state or deserialized
         // configs/inputs/outputs
         properties.clear();
         properties.putAll(w.properties);
 
+        util.Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required
         preferred = w.preferred;
         forbid_use = w.forbid_use;
         loadType.set(w.loadType.get());
         locked.set(w.locked.get());
 
-        if(controller!=null && w.controller!=null) {
-            w.controller.getFields().forEach(f -> controller.setField(f.getName(),f.getValue()));
-        }
+        // if this widget is loaded we apply state, otherwise its done when it loads
+        if(controller!=null)
+            restoreConfigs();
     }
 
 /******************************************************************************/
@@ -353,7 +356,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     /** @return input_name of the widget */
     @Override
     public String toString() {
-        return name;
+        return getClass() + name;
     }
 
 
@@ -374,7 +377,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         // If widget is loaded, we serialize inputs & outputs
         if(isLoaded) {
             getController().getInputs().getInputs().forEach(i ->
-                properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
+                properties.put("io"+i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
             );
         // Otherwise we still have the deserialized inputs/outputs leave them as they are
         } else {}
@@ -382,9 +385,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         // Prepare configs
         // If widget is loaded, we serialize name:value pairs
         if(isLoaded) {
-            Map<String,String> serialized_configs = new HashMap<>();
-            getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
-            properties.put("configs", serialized_configs);
+            storeConfigs();
         // Otherwise we still have the deserialized name:value pairs and leave them as they are
         } else {}
 
@@ -418,11 +419,13 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         return this;
     }
 
-    /**
-     * Restores deserialized config values. Called when widget loads (not deserializes) as
-     * controller must be instantiated first.
-     */
-    protected void restoreConfigs() {
+    private void storeConfigs() {
+        if(controller==null) return;
+        Map<String,String> serialized_configs = new HashMap<>();
+        getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
+        properties.put("configs", serialized_configs);
+    }
+    private void restoreConfigs() {
         Map<String,String> deserialized_configs = (Map) properties.get("configs");
         if(deserialized_configs!=null) {
             deserialized_configs.forEach(this::setField);
@@ -447,13 +450,13 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     static final ArrayList<IO> ios = new ArrayList<>();
 
     public static void deserializeWidgetIO() {
-        Set<Input> is = new HashSet<>();
-        Map<Output.Id,Output> os = APP.widgetManager.findAll(OPEN)
+        Set<Input<?>> is = new HashSet<>();
+        Map<Output.Id,Output<?>> os = APP.widgetManager.findAll(OPEN)
                      .filter(w -> w.controller != null)
                      .peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
                      .flatMap(w -> w.controller.getOutputs().getOutputs().stream())
                      .collect(Collectors.toMap(i->i.id, i->i));
-        InOutput.inoutputs.forEach(io -> os.put(io.o.id, io.o));
+        IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
         ios.forEach(io -> {
             if(io.widget.controller==null) return;
@@ -462,8 +465,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
             io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
 
-        InOutput.inoutputs.forEach(io -> is.remove(io.i));
-        InOutput.inoutputs.forEach(io -> os.remove(io.o.id));
+        IOLayer.all_inoutputs.forEach(io -> is.remove(io.i));
+        IOLayer.all_inoutputs.forEach(io -> os.remove(io.o.id));
         IOLayer.all_inputs.addAll(is);
         IOLayer.all_outputs.addAll(os.values());
     }

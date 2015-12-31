@@ -49,9 +49,9 @@ public class CheckIcon extends Icon<CheckIcon> {
     private Subscription s = null;
 
     /** Sets normal and selected icons. Overrides css values. */
-    public CheckIcon icons(GlyphIcons normalIcon, GlyphIcons selectedIcon) {
+    public CheckIcon icons(GlyphIcons selectedIcon, GlyphIcons unselectedIcon) {
         if(s!=null) s.unsubscribe();
-        s = maintain(selected, v -> icon(v ? selectedIcon : normalIcon));
+        s = maintain(selected, v -> icon(v ? selectedIcon : unselectedIcon));
         return this;
     }
 }

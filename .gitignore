@@ -2,7 +2,7 @@
 ## Project Specific
 ##########################
 working dir/*.cfg
-working dir/*class
+working dir/**/*class
 working dir/Layouts/**
 src/TO DO_YossarianXXII
 *.odb
@@ -238,3 +238,4 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+working dir/log/log_old1.zip

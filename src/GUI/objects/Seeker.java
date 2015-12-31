@@ -20,6 +20,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
 import org.reactfx.EventSource;
+import org.reactfx.Subscription;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
@@ -341,23 +342,45 @@ public final class Seeker extends AnchorPane {
     private long polastUpdate = 0;
 
     /**
-     * Binds to total and current duration value.
+     * Binds to total and current duration value. This will cause seeker to update when the total
+     * or current time value changes and display time position. At the end, the binding must be
+     * disposed, which is done by running the returned object. It will remove the listeners and stop
+     * the updating.
+     * <p>
+     * It is recommended to create a duration property which always contains the total and current
+     * time of the playing song and then call this method only once and subsequently call dispose
+     * only once as well at the end of the entire playback.
      *
      * @param totalTime length of the song
      * @param currentTime time seeker within the playback of the song.
+     * @return the runnable which disposes of the binding
      */
-    public void bindTime(ObjectProperty<Duration> totalTime, ObjectProperty<Duration> currentTime) {
-        // atomical binding to avoid illegal seeker value
+    public Subscription bindTime(ObjectProperty<Duration> totalTime, ObjectProperty<Duration> currentTime) {
         if(timeTot!=null) timeTot.removeListener(timeUpdater);
         if(timeCur!=null) timeCur.removeListener(timeUpdater);
         widthProperty().removeListener(timeUpdater);
+
         timeTot = totalTime;
         timeCur = currentTime;
+
         timeTot.addListener(timeUpdater);
         timeCur.addListener(timeUpdater);
         widthProperty().addListener(timeUpdater);
+
         timeUpdater.changed(null,ZERO, ZERO);
         timeLoop.start();
+
+        return () -> {
+            ma.stop();
+            timeLoop.stop();
+            if(timeTot!=null) timeTot.unbind();
+            if(timeCur!=null) timeCur.unbind();
+            if(timeTot!=null) timeTot.removeListener(timeUpdater);
+            if(timeCur!=null) timeCur.removeListener(timeUpdater);
+            timeTot = new SimpleObjectProperty<>(Duration.ONE);
+            timeCur = new SimpleObjectProperty<>(Duration.ONE);
+            timeUpdater.changed(null,null,null);
+        };
     }
 
     private void timeUpdate() {
@@ -380,17 +403,6 @@ public final class Seeker extends AnchorPane {
             }
         }
         posLastFrame = frame;
-    }
-
-    /** Frees resources. */
-    public void dispose() {
-        timeTot.unbind();
-        timeCur.unbind();
-        timeTot.set(ZERO);
-        timeCur.set(ONE);
-        timeUpdater.changed(null,null,null);
-        ma.stop();
-        timeLoop.stop();
     }
 
 /**************************************************************************************************/

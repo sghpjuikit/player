@@ -35,7 +35,7 @@ import javax.sound.sampled.spi.FormatConversionProvider;
  * converted. The target format represents the format of the processed,
  * converted audio data. This is the format of the data that can be read from
  * the stream returned by one of the getAudioInputStream methods.
- * 
+ *
  * @author Marc Gimpel, Wimba S.A. (marc@wimba.com)
  * @author Florian Bomers
  * @version $Revision: 1.1 $
@@ -66,7 +66,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	/**
 	 * Obtains the set of source format encodings from which format conversion
 	 * services are provided by this provider.
-	 * 
+	 *
 	 * @return array of source format encodings. The array will always have a
 	 *         length of at least 1.
 	 */
@@ -87,7 +87,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	/**
 	 * Obtains the set of target format encodings to which format conversion
 	 * services are provided by this provider.
-	 * 
+	 *
 	 * @return array of target format encodings. The array will always have a
 	 *         length of at least 1.
 	 */
@@ -121,7 +121,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	 * Obtains the set of target format encodings supported by the format
 	 * converter given a particular source format. If no target format encodings
 	 * are supported for this source format, an array of length 0 is returned.
-	 * 
+	 *
 	 * @param sourceFormat format of the incoming data.
 	 * @return array of supported target format encodings.
 	 */
@@ -165,7 +165,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	 * Obtains the set of target formats with the encoding specified supported
 	 * by the format converter. If no target formats with the specified encoding
 	 * are supported for this source format, an array of length 0 is returned.
-	 * 
+	 *
 	 * @param targetEncoding desired encoding of the outgoing data.
 	 * @param sourceFormat format of the incoming data.
 	 * @return array of supported target formats.
@@ -179,7 +179,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	 * Like getTargetFormats(AudioFormat.Encoding, AudioFormat), but with
 	 * additional choice if AudioSystem.NOT_SPECIFIED is supported in
 	 * sourceFormat's bitSize or channels.
-	 * 
+	 *
 	 * @param notSpecifiedOK if true, bitSize and channels can have value
 	 *            AudioSystem.NOT_SPECIFIED
 	 * @return array of supported target formats.
@@ -199,9 +199,9 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 			if (DEBUG) {
 				System.out.println("FLAC converter: can encode: "+sourceFormat+" to "+targetEncoding);
 			}
-			AudioFormat[] formats = { // 
+			AudioFormat[] formats = { //
 				new AudioFormat(FlacEncoding.FLAC,
-						sourceFormat.getSampleRate(), // 
+						sourceFormat.getSampleRate(), //
 						-1, // sample size in bits
 						sourceFormat.getChannels(), //
 						-1, // frame size
@@ -218,10 +218,10 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 				System.out.println("FLAC converter: can decode: "+sourceFormat+" to "+targetEncoding);
 			}
 			AudioFormat[] formats = {
-				new AudioFormat(sourceFormat.getSampleRate(), // 
+				new AudioFormat(sourceFormat.getSampleRate(), //
 						sourceFormat.getSampleSizeInBits(), // sample size in
 						// bits
-						sourceFormat.getChannels(), // 
+						sourceFormat.getChannels(), //
 						true, // signed
 						false)
 			}; // little endian (for PCM wav)
@@ -238,7 +238,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	/**
 	 * Obtains an audio input stream with the specified encoding from the given
 	 * audio input stream.
-	 * 
+	 *
 	 * @param targetEncoding - desired encoding of the stream after processing.
 	 * @param sourceStream - stream from which data to be processed should be
 	 *            read.
@@ -259,7 +259,7 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 	/**
 	 * Obtains an audio input stream with the specified format from the given
 	 * audio input stream.
-	 * 
+	 *
 	 * @param targetFormat - desired data format of the stream after processing.
 	 * @param sourceStream - stream from which data to be processed should be
 	 *            read.
@@ -282,6 +282,9 @@ public class FlacFormatConversionProvider extends FormatConversionProvider {
 							AudioFormat.Encoding.PCM_SIGNED)) {
 				// decoder
 				return new Flac2PcmAudioInputStream(sourceStream, targetFormat);
+                                // This is JustFLAC implementation which was rewritten back to jFLAC one
+                                // in order to support seeking
+//				return new Flac2PcmAudioInputStream(sourceStream, targetFormat, -1);
 			} else if (sourceFormat.getChannels() == targetFormat.getChannels()
 					&& sourceFormat.getSampleSizeInBits() == targetFormat.getSampleSizeInBits()
 					&& sourceFormat.getEncoding().equals(

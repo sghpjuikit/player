@@ -43,7 +43,7 @@ public class Application extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public Application(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         is.readByteBlockAlignedNoCRC(id, APPLICATION_ID_LEN / 8);
         length -= APPLICATION_ID_LEN / 8;
 

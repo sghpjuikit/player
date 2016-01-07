@@ -27,4 +27,10 @@ public interface PCMProcessor {
      * @param pcm The decompressed PCM data
      */
     public void processPCM(ByteData pcm);
+    
+    /** returns true if process has to be canceled
+     * 
+     * @return
+     */
+   // public boolean isCanceled();
 }

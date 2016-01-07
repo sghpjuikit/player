@@ -17,6 +17,7 @@ import javafx.util.Callback;
 import util.collections.Tuple2;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ1E;
+import util.functional.Functors.Ƒ2;
 import util.functional.Functors.ƑEC;
 import util.functional.Functors.ƑP;
 
@@ -650,8 +651,24 @@ public class Util {
             action.accept(a.get(i), b.get(i));
     }
 
+    /** Loops over both arrays simultaneously. Must be of the same size. */
+    public static<A,B> void forEachBoth(A[] a, B[] b, BiConsumer<A,B> action) {
+        yes(a.length==b.length);
+        for(int i=0; i<a.length; i++)
+            action.accept(a[i], b[i]);
+    }
+
     /** Loops over list zipping index with each item. Index starts at 0. */
     public static<T> void forEachWithI(Collection<T> c, BiConsumer<Integer,T> action) {
+        int i=0;
+        for(T item : c) {
+            action.accept(i, item);
+            i++;
+        }
+    }
+
+    /** Loops over array zipping index with each item. Index starts at 0. */
+    public static<T> void forEachWithI(T[] c, BiConsumer<Integer,T> action) {
         int i=0;
         for(T item : c) {
             action.accept(i, item);
@@ -895,6 +912,14 @@ public class Util {
         Stream.Builder<Double> b = Stream.builder();
         for(double i=fromInclusive; i<=toInclusive; i++) b.accept(i);
         return b.build();
+    }
+
+    public static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
+        yes(a.length==b.length);
+        Stream.Builder<R> builder = Stream.builder();
+        for(int i=0; i<a.length; i++)
+            builder.accept(zipper.apply(a[i], b[i]));
+        return builder.build();
     }
 
 /************************* collection -> collection ***************************/

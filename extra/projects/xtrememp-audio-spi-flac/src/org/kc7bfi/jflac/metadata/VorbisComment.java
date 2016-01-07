@@ -44,7 +44,7 @@ public class VorbisComment extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public VorbisComment(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         
         // read vendor string
         int len = is.readRawIntLittleEndian();
@@ -63,7 +63,7 @@ public class VorbisComment extends Metadata {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-	StringBuffer sb = new StringBuffer("VendorString '" + vendorString + "'\n");
+	StringBuffer sb = new StringBuffer("VendorString '" + new String(vendorString) + "'\n");
 	sb.append("VorbisComment (count=" + numComments + ")");
 
         for (int i = 0; i < numComments; i++) {
@@ -75,7 +75,7 @@ public class VorbisComment extends Metadata {
     }
     
     public String [] getCommentByName( String key )  {
-        if (key == null ) return null;
+        if (numComments == 0 || key == null ) return null;
         java.util.Vector sbuff = new java.util.Vector();
         for( int i=0; i < comments.length; i++ )  {
             String comment = comments[i].toString();

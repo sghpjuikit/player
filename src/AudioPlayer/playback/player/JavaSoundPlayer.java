@@ -149,6 +149,7 @@ public class JavaSoundPlayer implements Play {
 
     @Override
     public void seek(Duration duration) {
+        if(duration==null) return;
         // this player's seeking requires us to know the new
         // starting position to calculate new current position (see the listener
         // in constructor)

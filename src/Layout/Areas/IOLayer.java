@@ -331,7 +331,7 @@ public class IOLayer extends StackPane {
         forEachWithI(inoutputnodes.values(), (i,o) -> {
             o.cx = (i+1)*200;
             o.cy = H-120;
-            o.graphics.relocate(o.cx-iconhalfsize,o.cy-iconhalfsize+24);
+            o.graphics.relocate(o.cx-iconhalfsize,o.cy-iconhalfsize+27);
         });
 
         drawGraph();

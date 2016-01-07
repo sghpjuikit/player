@@ -39,7 +39,7 @@ public class Unknown extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public Unknown(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         if (length > 0) {
             data = new byte[length];
             is.readByteBlockAlignedNoCRC(data, length);

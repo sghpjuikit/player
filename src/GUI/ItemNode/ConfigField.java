@@ -10,6 +10,7 @@ import javafx.animation.FadeTransition;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -51,7 +52,6 @@ import static java.util.stream.Collectors.toList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.*;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -608,15 +608,24 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         public KeyCodeField(Config<KeyCode> c) {
             super((Config)c);
-            n.addEventFilter(KeyEvent.ANY,e -> {
+
+            n.setOnKeyPressed(Event::consume);
+            n.setOnKeyReleased(Event::consume);
+            n.setOnKeyTyped(Event::consume);
+            n.addEventFilter(KeyEvent.ANY, e -> {
+                // Note that in case of UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any
+                // which cause selection change) the KEY_PRESSED event will not get fired!
+                //
+                // Hence we set the value in case of keyevent of any type. This causes the value to
+                // be set twice, but should be all right since the value is the same anyway.
+                n.setValue(e.getCode());
+
                 if(e.getEventType()==KEY_RELEASED) {
                     // conveniently traverse focus by simulating TAB behavior
                     // currently only hacks allow this
                     //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
                     n.impl_traverse(Direction.NEXT);
-                } else
-                if(e.getEventType()==KEY_PRESSED) {
-                    n.setValue(e.getCode());
+                    System.out.println("traversied");
                 }
                 e.consume();
             });

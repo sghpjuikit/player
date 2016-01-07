@@ -1,3 +1,5 @@
+package org.kc7bfi.jflac.sound.spi;
+
 /**
  * libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2001,2002,2003  Josh Coalson
@@ -17,7 +19,6 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
  */
-package org.kc7bfi.jflac.sound.spi;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,15 +29,13 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
-import org.tritonus.share.sampled.file.TAudioFileReader;
+import javax.sound.sampled.spi.AudioFileReader;
 
 import org.kc7bfi.jflac.Constants;
 import org.kc7bfi.jflac.FLACDecoder;
@@ -50,20 +49,14 @@ import org.kc7bfi.jflac.metadata.StreamInfo;
  * streams from files of this type.
  *
  * @author Marc Gimpel, Wimba S.A. (marc@wimba.com)
- * @author Besmir Beqiri
  * @version $Revision: 1.8 $
  */
-public class FlacAudioFileReader extends TAudioFileReader {
+public class FlacAudioFileReader extends AudioFileReader {
 
-    private static final boolean DEBUG = false;
+	private static final boolean DEBUG = false;
+
     private FLACDecoder decoder;
     private StreamInfo streamInfo;
-    private static final int INITAL_READ_LENGTH = 64000;
-    private static final int MARK_LIMIT = INITAL_READ_LENGTH + 1;
-
-    public FlacAudioFileReader() {
-        super(MARK_LIMIT, true);
-    }
 
     /**
      * Obtains the audio file format of the File provided. The File must point
@@ -79,7 +72,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioFileFormat getAudioFileFormat(File file) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = null;
         try {
@@ -104,7 +96,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioFileFormat getAudioFileFormat(URL url) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = url.openStream();
         try {
@@ -128,7 +119,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioFileFormat getAudioFileFormat(InputStream stream) throws UnsupportedAudioFileException, IOException {
         return getAudioFileFormat(stream, AudioSystem.NOT_SPECIFIED);
     }
@@ -148,116 +138,151 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
-    public AudioFileFormat getAudioFileFormat(InputStream stream, long lFileLengthInBytes) throws UnsupportedAudioFileException, IOException {
+
+    /**
+     * Return the AudioFileFormat from the given InputStream. Implementation.
+     *
+     * @param bitStream
+     * @param baos
+     * @param mediaLength
+     * @return an AudioInputStream object based on the audio file data contained
+     *         in the input stream.
+     * @exception UnsupportedAudioFileException
+     *                if the File does not point to a valid audio file data
+     *                recognized by the system.
+     * @exception IOException
+     *                if an I/O exception occurs.
+     */
+    protected AudioFileFormat getAudioFileFormat(InputStream bitStream, int mediaLength) throws UnsupportedAudioFileException, IOException {
+        AudioFormat format;
         //try {
-        // If we can't read the format of this stream, we must restore
-        // stream to
-        // beginning so other providers can attempt to read the stream.
-        //if (bitStream.markSupported()) {
-        // maximum number of bytes to determine the stream encoding:
-        // Size of 1st Ogg Packet (Flac header) = OGG_HEADERSIZE +
-        // FLAC_HEADERSIZE + 1
-        // Size of 2nd Ogg Packet (Comment) = OGG_HEADERSIZE +
-        // comment_size + 1
-        // Size of 3rd Ogg Header (First data) = OGG_HEADERSIZE +
-        // number_of_frames
-        // where number_of_frames < 256 and comment_size < 256 (if
-        // within 1 frame)
-        //    bitStream.mark(3 * OGG_HEADERSIZE + FLAC_HEADERSIZE + 256
-        //            + 256 + 2);
-        //}
+            // If we can't read the format of this stream, we must restore
+            // stream to
+            // beginning so other providers can attempt to read the stream.
+            //if (bitStream.markSupported()) {
+                // maximum number of bytes to determine the stream encoding:
+                // Size of 1st Ogg Packet (Flac header) = OGG_HEADERSIZE +
+                // FLAC_HEADERSIZE + 1
+                // Size of 2nd Ogg Packet (Comment) = OGG_HEADERSIZE +
+                // comment_size + 1
+                // Size of 3rd Ogg Header (First data) = OGG_HEADERSIZE +
+                // number_of_frames
+                // where number_of_frames < 256 and comment_size < 256 (if
+                // within 1 frame)
+            //    bitStream.mark(3 * OGG_HEADERSIZE + FLAC_HEADERSIZE + 256
+            //            + 256 + 2);
+            //}
 
-        //int mode = -1;
-        //int sampleRate = 0;
-        //int channels = 0;
-        //int frameSize = AudioSystem.NOT_SPECIFIED;
-        //float frameRate = AudioSystem.NOT_SPECIFIED;
-        //byte[] header = new byte[128];
-        //int segments = 0;
-        //int bodybytes = 0;
-        //DataInputStream dis = new DataInputStream(bitStream);
-        //if (baos == null) baos = new ByteArrayOutputStream(128);
-        //int origchksum;
-        //int chksum;
-        // read the OGG header
-        //dis.readFully(header, 0, OGG_HEADERSIZE);
-        //baos.write(header, 0, OGG_HEADERSIZE);
-        //origchksum = readInt(header, 22);
-        //header[22] = 0;
-        //header[23] = 0;
-        //header[24] = 0;
-        //header[25] = 0;
-        //chksum = OggCrc.checksum(0, header, 0, OGG_HEADERSIZE);
-        // make sure its a OGG header
+            //int mode = -1;
+            //int sampleRate = 0;
+            //int channels = 0;
+            //int frameSize = AudioSystem.NOT_SPECIFIED;
+            //float frameRate = AudioSystem.NOT_SPECIFIED;
+            //byte[] header = new byte[128];
+            //int segments = 0;
+            //int bodybytes = 0;
+            //DataInputStream dis = new DataInputStream(bitStream);
+            //if (baos == null) baos = new ByteArrayOutputStream(128);
+            //int origchksum;
+            //int chksum;
+            // read the OGG header
+            //dis.readFully(header, 0, OGG_HEADERSIZE);
+            //baos.write(header, 0, OGG_HEADERSIZE);
+            //origchksum = readInt(header, 22);
+            //header[22] = 0;
+            //header[23] = 0;
+            //header[24] = 0;
+            //header[25] = 0;
+            //chksum = OggCrc.checksum(0, header, 0, OGG_HEADERSIZE);
+            // make sure its a OGG header
             /*
-        if (!OGGID.equals(new String(header, 0, 4))) { throw new UnsupportedAudioFileException(
-        "missing ogg id!"); }
-        // how many segments are there?
-        segments = header[SEGOFFSET] & 0xFF;
-        if (segments > 1) { throw new UnsupportedAudioFileException(
-        "Corrupt Flac Header: more than 1 segments"); }
-        dis.readFully(header, OGG_HEADERSIZE, segments);
-        baos.write(header, OGG_HEADERSIZE, segments);
-        chksum = OggCrc.checksum(chksum, header, OGG_HEADERSIZE, segments);
-        // get the number of bytes in the segment
-        bodybytes = header[OGG_HEADERSIZE] & 0xFF;
-        if (bodybytes != FLAC_HEADERSIZE) { throw new UnsupportedAudioFileException(
-        "Corrupt Flac Header: size=" + bodybytes); }
-        // read the Flac header
-        dis.readFully(header, OGG_HEADERSIZE + 1, bodybytes);
-        baos.write(header, OGG_HEADERSIZE + 1, bodybytes);
-        chksum = OggCrc.checksum(chksum, header, OGG_HEADERSIZE + 1,
-        bodybytes);
-        // make sure its a Flac header
-        if (!FLACID.equals(new String(header, OGG_HEADERSIZE + 1, 8))) { throw new UnsupportedAudioFileException(
-        "Corrupt Flac Header: missing Flac ID"); }
-        mode = readInt(header, OGG_HEADERSIZE + 1 + 40);
-        sampleRate = readInt(header, OGG_HEADERSIZE + 1 + 36);
-        channels = readInt(header, OGG_HEADERSIZE + 1 + 48);
-        int nframes = readInt(header, OGG_HEADERSIZE + 1 + 64);
-        boolean vbr = readInt(header, OGG_HEADERSIZE + 1 + 60) == 1;
-        // Checksum
-        if (chksum != origchksum)
-        throw new IOException("Ogg CheckSums do not match");
-        // Calculate frameSize
-        if (!vbr) {
-        // Frames size is a constant so:
-        // Read Comment Packet the Ogg Header of 1st data packet;
-        // the array table_segment repeats the frame size over and over.
-        }
-        // Calculate frameRate
-        if (mode >= 0 && mode <= 2 && nframes > 0) {
-        frameRate = ((float) sampleRate)
-        / ((mode == 0 ? 160f : (mode == 1 ? 320f : 640f)) * ((float) nframes));
-        }
-         */
-        Map<String, Object> aff_properties = new HashMap<String, Object>();
-        Map<String, Object> af_properties = new HashMap<String, Object>();
-
-        int channels = AudioSystem.NOT_SPECIFIED;
-        int bitsPerSample = AudioSystem.NOT_SPECIFIED;
-        int sampleRate = AudioSystem.NOT_SPECIFIED;
-        long totalSamples = AudioSystem.NOT_SPECIFIED;
-        int duration = AudioSystem.NOT_SPECIFIED;
-        int frameSizeMin = AudioSystem.NOT_SPECIFIED;
-        int frameSizeMax = AudioSystem.NOT_SPECIFIED;
-        int blockSizeMin = AudioSystem.NOT_SPECIFIED;
-        int blockSizeMax = AudioSystem.NOT_SPECIFIED;
-
-        try {
-            decoder = new FLACDecoder(stream);
-            streamInfo = decoder.readStreamInfo();
-//            Metadata[] mdArray = decoder.readMetadata();
-//            for(Metadata m : mdArray){
-//                System.out.println(m);
-//            }
-            if (streamInfo == null) {
-                if (DEBUG) {
-                    System.out.println("FLAC file reader: no stream info found");
-                }
-                throw new UnsupportedAudioFileException("No StreamInfo found");
+            if (!OGGID.equals(new String(header, 0, 4))) { throw new UnsupportedAudioFileException(
+                    "missing ogg id!"); }
+            // how many segments are there?
+            segments = header[SEGOFFSET] & 0xFF;
+            if (segments > 1) { throw new UnsupportedAudioFileException(
+                    "Corrupt Flac Header: more than 1 segments"); }
+            dis.readFully(header, OGG_HEADERSIZE, segments);
+            baos.write(header, OGG_HEADERSIZE, segments);
+            chksum = OggCrc.checksum(chksum, header, OGG_HEADERSIZE, segments);
+            // get the number of bytes in the segment
+            bodybytes = header[OGG_HEADERSIZE] & 0xFF;
+            if (bodybytes != FLAC_HEADERSIZE) { throw new UnsupportedAudioFileException(
+                    "Corrupt Flac Header: size=" + bodybytes); }
+            // read the Flac header
+            dis.readFully(header, OGG_HEADERSIZE + 1, bodybytes);
+            baos.write(header, OGG_HEADERSIZE + 1, bodybytes);
+            chksum = OggCrc.checksum(chksum, header, OGG_HEADERSIZE + 1,
+                    bodybytes);
+            // make sure its a Flac header
+            if (!FLACID.equals(new String(header, OGG_HEADERSIZE + 1, 8))) { throw new UnsupportedAudioFileException(
+                    "Corrupt Flac Header: missing Flac ID"); }
+            mode = readInt(header, OGG_HEADERSIZE + 1 + 40);
+            sampleRate = readInt(header, OGG_HEADERSIZE + 1 + 36);
+            channels = readInt(header, OGG_HEADERSIZE + 1 + 48);
+            int nframes = readInt(header, OGG_HEADERSIZE + 1 + 64);
+            boolean vbr = readInt(header, OGG_HEADERSIZE + 1 + 60) == 1;
+            // Checksum
+            if (chksum != origchksum)
+                    throw new IOException("Ogg CheckSums do not match");
+            // Calculate frameSize
+            if (!vbr) {
+                // Frames size is a constant so:
+                // Read Comment Packet the Ogg Header of 1st data packet;
+                // the array table_segment repeats the frame size over and over.
             }
+            // Calculate frameRate
+            if (mode >= 0 && mode <= 2 && nframes > 0) {
+                frameRate = ((float) sampleRate)
+                        / ((mode == 0 ? 160f : (mode == 1 ? 320f : 640f)) * ((float) nframes));
+            }
+            */
+        try {
+            decoder = new FLACDecoder(bitStream);
+            streamInfo = decoder.readStreamInfo();
+            if (streamInfo == null) {
+            	if (DEBUG) {
+            		System.out.println("FLAC file reader: no stream info found");
+            	}
+            	throw new UnsupportedAudioFileException("No StreamInfo found");
+            }
+
+            format = new FlacAudioFormat(streamInfo);
+        //} catch (UnsupportedAudioFileException e) {
+            // reset the stream for other providers
+            //if (bitStream.markSupported()) {
+            //    bitStream.reset();
+            //}
+            // just rethrow this exception
+        //    throw e;
+        } catch (IOException ioe) {
+        	if (DEBUG) {
+        		System.out.println("FLAC file reader: not a FLAC stream");
+        	}
+            // reset the stream for other providers
+            //if (bitStream.markSupported()) {
+            //    bitStream.reset();
+            //}
+            throw new UnsupportedAudioFileException(ioe.getMessage());
+        }
+    	if (DEBUG) {
+    		System.out.println("FLAC file reader: got stream with format "+format);
+    	}
+
+
+        /*****************/
+        // This block is taken from ofocial implementation (not JustFLAC) in order to support
+        // seeking
+
+            int channels = AudioSystem.NOT_SPECIFIED;
+            int bitsPerSample = AudioSystem.NOT_SPECIFIED;
+            int sampleRate = AudioSystem.NOT_SPECIFIED;
+            long totalSamples = AudioSystem.NOT_SPECIFIED;
+            int duration = AudioSystem.NOT_SPECIFIED;
+            int frameSizeMin = AudioSystem.NOT_SPECIFIED;
+            int frameSizeMax = AudioSystem.NOT_SPECIFIED;
+            int blockSizeMin = AudioSystem.NOT_SPECIFIED;
+            int blockSizeMax = AudioSystem.NOT_SPECIFIED;
 
             bitsPerSample = streamInfo.getBitsPerSample();
             channels = streamInfo.getChannels();
@@ -269,50 +294,22 @@ public class FlacAudioFileReader extends TAudioFileReader {
             blockSizeMin = streamInfo.getMinBlockSize();
             blockSizeMax = streamInfo.getMaxBlockSize();
 
-            aff_properties.put("flac.bitpersample", new Integer(bitsPerSample));
-            aff_properties.put("flac.channels", new Integer(channels));
-            aff_properties.put("flac.sampleRate", new Integer(sampleRate));
-            aff_properties.put("flac.totalSamples", new Long(totalSamples));
-            aff_properties.put("duration", new Long(duration * 1000000L));
-            aff_properties.put("flac.framesize.min", new Integer(frameSizeMin));
-            aff_properties.put("flac.framesize.max", new Integer(frameSizeMax));
-            aff_properties.put("flac.blocksize.min", new Integer(blockSizeMin));
-            aff_properties.put("flac.blocksize.max", new Integer(blockSizeMax));
+            HashMap<String, Object> properties = new HashMap<>();
+            properties.put("flac.bitpersample", new Integer(bitsPerSample));
+            properties.put("flac.channels", new Integer(channels));
+            properties.put("flac.sampleRate", new Integer(sampleRate));
+            properties.put("flac.totalSamples", new Long(totalSamples));
+            properties.put("duration", new Long(duration * 1000000L));
+            properties.put("flac.framesize.min", new Integer(frameSizeMin));
+            properties.put("flac.framesize.max", new Integer(frameSizeMax));
+            properties.put("flac.blocksize.min", new Integer(blockSizeMin));
+            properties.put("flac.blocksize.max", new Integer(blockSizeMax));
 
-            af_properties.put("bitrate", new Integer(AudioSystem.NOT_SPECIFIED));
-            af_properties.put("vbr", Boolean.FALSE);
-            af_properties.put("quality", new Integer(100));
+        /*****************/
 
-            //} catch (UnsupportedAudioFileException e) {
-            // reset the stream for other providers
-            //if (bitStream.markSupported()) {
-            //    bitStream.reset();
-            //}
-            // just rethrow this exception
-            //    throw e;
-        } catch (IOException ioe) {
-            if (DEBUG) {
-                System.out.println("FLAC file reader: not a FLAC stream");
-            }
-            // reset the stream for other providers
-            //if (bitStream.markSupported()) {
-            //    bitStream.reset();
-            //}
-            throw new UnsupportedAudioFileException(ioe.getMessage());
-        }
 
-        AudioFormat format = new FlacAudioFormat(FlacEncoding.FLAC,
-                sampleRate,
-                bitsPerSample,
-                channels,
-                AudioSystem.NOT_SPECIFIED,
-                AudioSystem.NOT_SPECIFIED,
-                false,
-                af_properties);
-        if (DEBUG) {
-            System.out.println("FLAC file reader: got stream with format " + format);
-        }
-        return new FlacAudioFileFormat(FlacFileFormatType.FLAC, format, AudioSystem.NOT_SPECIFIED, (int) lFileLengthInBytes, aff_properties);
+        return new FlacAudioFileFormat(FlacFileFormatType.FLAC, format, AudioSystem.NOT_SPECIFIED, mediaLength, properties);
+//        return new AudioFileFormat(FlacFileFormatType.FLAC, format, AudioSystem.NOT_SPECIFIED);
     }
 
     /**
@@ -329,7 +326,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioInputStream getAudioInputStream(File file) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = new FileInputStream(file);
         try {
@@ -357,7 +353,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioInputStream getAudioInputStream(URL url) throws UnsupportedAudioFileException, IOException {
         InputStream inputStream = url.openStream();
         try {
@@ -365,9 +360,9 @@ public class FlacAudioFileReader extends TAudioFileReader {
         } catch (UnsupportedAudioFileException e) {
             inputStream.close();
             throw e;
-        } catch (IOException ex) {
+        } catch (IOException e) {
             inputStream.close();
-            throw ex;
+            throw e;
         }
     }
 
@@ -386,7 +381,6 @@ public class FlacAudioFileReader extends TAudioFileReader {
      * @exception IOException
      *                if an I/O exception occurs.
      */
-    @Override
     public AudioInputStream getAudioInputStream(InputStream stream) throws UnsupportedAudioFileException, IOException {
         return getAudioInputStream(stream, AudioSystem.NOT_SPECIFIED);
     }

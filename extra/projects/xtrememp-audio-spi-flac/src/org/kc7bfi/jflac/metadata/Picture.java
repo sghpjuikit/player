@@ -30,7 +30,34 @@ import org.kc7bfi.jflac.io.BitInputStream;
  * @author BMacNaughton
  */
 public class Picture extends Metadata {
-    private int pictureType;
+	public enum PictureType {
+		 Other(0),
+		 file_icon_32x32_PNG(1),
+		 Other_file_icon(2),
+		 Cover_front(3),
+		 Cover_back(4),
+		 Leaflet_page(5),
+		 Media_label(6),
+		 Lead_artist(7),
+		 Artist(8),
+		 Conductor(9),
+		 Band(10),
+		 Composer(11),
+		 Lyricist(12),
+		 Recording_Location(13),
+		 During_recording(14),
+		 During_performance(15),
+		 Movie_screen_capture(16),
+		 Bright_coloured_fish(17),
+		 Illustration(18),
+		 Band_logotype(19),
+		 Publisher_logotype(20);
+		 PictureType(int t) {
+			 picType = t;
+		 }
+		 final int picType;
+	};
+    private PictureType pictureType;
     private int mimeTypeByteCount;
     private String mimeString;      //ASCII 0x20 to 0x7e or --> (data is URL)
     private int descStringByteCount;
@@ -51,11 +78,13 @@ public class Picture extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public Picture(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         int usedBits = 0;
         byte[] data;
-        
-        pictureType = is.readRawUInt(32);
+        int t = is.readRawUInt(32);
+		for (PictureType pt : PictureType.values())
+			if (pt.picType == t)
+				pictureType = pt;
         usedBits += 32;
         
         mimeTypeByteCount = is.readRawUInt(32);
@@ -73,10 +102,11 @@ public class Picture extends Metadata {
         if (descStringByteCount != 0) {
             data = new byte[descStringByteCount];
             is.readByteBlockAlignedNoCRC(data, descStringByteCount);
+            usedBits += descStringByteCount*8;
             try {
                 descString = new String(data, "UTF-8");
             } catch (UnsupportedEncodingException e) {}
-            usedBits += 32;
+            
         } else {
             descString = new String("");
         }
@@ -101,12 +131,44 @@ public class Picture extends Metadata {
         is.readByteBlockAlignedNoCRC(image, picByteCount);
         usedBits += picByteCount*8;
         
-        // skip the rest of the block if any
+        // skip the rest of the block if any        
         length -= (usedBits / 8);
-        is.readByteBlockAlignedNoCRC(null, length);
-
+        if (length > 0)
+        	is.readByteBlockAlignedNoCRC(null, length);
     }
-    /**
+    
+    public PictureType getPictureType() {
+		return pictureType;
+	}
+
+
+	public String getMimeString() {
+		return mimeString;
+	}
+
+
+	public String getDescString() {
+		return descString;
+	}
+
+
+	public int getPicPixelWidth() {
+		return picPixelWidth;
+	}
+
+
+
+	public int getPicPixelHeight() {
+		return picPixelHeight;
+	}
+
+
+	public byte[] getImage() {
+		return image;
+	}
+
+
+	/**
      * Convert the class to a string representation.
      * @return  A string representation of the Picture metadata
      */
@@ -120,7 +182,8 @@ public class Picture extends Metadata {
             + " Pixels (WxH)=" + picPixelWidth + "x" + picPixelHeight
             + " Color Depth=" + picBitsPerPixel
             + " Color Count=" + picColorCount
-            + " Picture Size (bytes)=" + picByteCount;
+            + " Picture Size (bytes)=" + picByteCount
+            + " last ="+isLast;
     }
  
 }

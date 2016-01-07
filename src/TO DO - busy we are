@@ -7,12 +7,7 @@
 - figure out gui error reporting method
 - figure out image animation autoplay def behavior & indicative play/pause mechanism
 - widget compilation - report errors back to user through gui (popup? notfication? else?)
-- widget factory reconsturcting, make sure badly compiled class wont uselessly reload widgets
-  only to end up being unable to load them at all due to corrupted classes
-- widget manager monitor .fxml files too + reload widgets
-- comet lens disruptor - objects should flow around player
-- comet make rotateToForceOrigin()
-- comet BH-BH attraction, should cause BH-BH orbit using small dist repulsion
+- widget manager monitor .fxml files too
 - libraryview placeholder doesnt detect empty table correctly
 - Thumbnails should reload image when they are resized. Im not sure making this global
   behavior is a good idea, maybe it is. Hm. DirViewer suffers when user changes thumb size. This
@@ -75,6 +70,7 @@
   http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/net/MediaType.html
 - unify table column resizing, namely getMain column and autoresize with 
   main column taking all space, maybe signal locked columns with icon and add
+  https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off autoresize columns option
 - cleanups: ActionPane, GridView, Var, Ref, SingleRef
 

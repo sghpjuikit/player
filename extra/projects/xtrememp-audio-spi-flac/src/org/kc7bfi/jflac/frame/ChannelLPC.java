@@ -23,6 +23,7 @@ package org.kc7bfi.jflac.frame;
 import java.io.IOException;
 
 import org.kc7bfi.jflac.ChannelData;
+import org.kc7bfi.jflac.FrameDecodeException;
 import org.kc7bfi.jflac.LPCPredictor;
 import org.kc7bfi.jflac.io.BitInputStream;
 import org.kc7bfi.jflac.util.BitMath;
@@ -53,8 +54,9 @@ public class ChannelLPC extends Channel {
      * @param wastedBits    The bits waisted in the frame
      * @param order         The predicate order
      * @throws IOException  Thrown if error reading from the InputBitStream
+     * @throws FrameDecodeException 
      */
-    public ChannelLPC(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits, int order) throws IOException {
+    public ChannelLPC(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits, int order) throws IOException, FrameDecodeException {
         super(header, wastedBits);
 
         this.residual = channelData.getResidual();
@@ -70,7 +72,7 @@ public class ChannelLPC extends Channel {
         // read qlp coeff precision
         int u32 = is.readRawUInt(SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN);
         if (u32 == (1 << SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN) - 1) {
-            throw new IOException("STREAM_DECODER_ERROR_STATUS_LOST_SYNC");
+            throw new FrameDecodeException("STREAM_DECODER_ERROR_STATUS_LOST_SYNC");
         }
         qlpCoeffPrecision = u32 + 1;
         //System.out.println("qlpCoeffPrecision="+qlpCoeffPrecision);
@@ -89,22 +91,20 @@ public class ChannelLPC extends Channel {
         //System.out.println("codingType="+codingType);
         switch (codingType) {
             case ENTROPY_CODING_METHOD_PARTITIONED_RICE :
-                entropyCodingMethod = new EntropyPartitionedRice();
-                ((EntropyPartitionedRice) entropyCodingMethod).order = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN);
-                ((EntropyPartitionedRice) entropyCodingMethod).contents = channelData.getPartitionedRiceContents();
+            	 entropyCodingMethod = new EntropyPartitionedRice();
+                break;
+            case RESIDUAL_CODING_METHOD_PARTITIONED_RICE2 : 
+            	 entropyCodingMethod = new EntropyPartitionedRice2();
                 break;
             default :
-                throw new IOException("STREAM_DECODER_UNPARSEABLE_STREAM");
+               throw new FrameDecodeException("STREAM_DECODER_UNPARSEABLE_STREAM, "+codingType);
         }
- 
+        entropyCodingMethod.order = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN);
+   	    entropyCodingMethod.contents = channelData.getPartitionedRiceContents();
+
         // read residual
-        if (entropyCodingMethod instanceof EntropyPartitionedRice) {
-            ((EntropyPartitionedRice) entropyCodingMethod).readResidual(is, 
-                order,
-                ((EntropyPartitionedRice) entropyCodingMethod).order,
-                header,
-                channelData.getResidual());
-        }
+		entropyCodingMethod.readResidual(is, order, entropyCodingMethod.order, header,
+				channelData.getResidual());
         
         //System.out.println();
         //for (int i = 0; i < header.blockSize; i++) {System.out.print(channelData.residual[i]+" ");

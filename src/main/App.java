@@ -273,10 +273,10 @@ public class App extends Application implements Configurable {
     public final V<Boolean> taskbarEnabled = new V<>(true,taskbarIcon::setVisible);
 
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
-    public String TAG_NO_VALUE = "-- no assigned value --";
+    public String TAG_NO_VALUE = "<none>";
 
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
-    public String TAG_MULTIPLE_VALUE = "-- multiple values --";
+    public String TAG_MULTIPLE_VALUE = "<multi>";
 
 
     public App() {

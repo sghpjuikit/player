@@ -67,6 +67,7 @@ import static gui.objects.PopOver.PopOver.NodePos.DownCenter;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
@@ -162,11 +163,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     public final V<Pos> field_text_alignment = new V<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final V<NodePos> popupPos = new V<>(DownCenter, MoodF::setPos);
-    @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
-    public final V<Boolean> allow_playcount_change = new V<>(false, v -> {
-        if(!isEmpty()) PlaycountF.setDisable(!v);
-    });
-
 
     @Override
     public void init() {
@@ -321,7 +317,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     public void refresh() {
         field_text_alignment.applyValue();
         popupPos.applyValue();
-        allow_playcount_change.applyValue();
     }
 
     /**
@@ -551,7 +546,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                         else                CoverV.loadImage((Image)null);
 
                         // enable/disable fields
-                        if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
                         RatingF.setDisable(true);
                         Custom2F.setDisable(true);
                         Custom3F.setDisable(true);
@@ -646,8 +640,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             emptyContent();
 
             // show description
-            c.addEventFilter(MOUSE_ENTERED,e -> fieldDesc.setText(field.description()));
-            c.addEventFilter(MOUSE_EXITED,e -> fieldDesc.setText(""));
+            c.addEventFilter(MOUSE_ENTERED, e -> fieldDesc.setText(field.description()));
+            c.addEventFilter(MOUSE_EXITED, e -> fieldDesc.setText(""));
 
             // restrain input
             if(field.isTypeNumber())
@@ -660,15 +654,22 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             });
 
             // disable commitable if empty and backspace key pressed
-            c.setOnKeyPressed( e -> {
+            c.setOnKeyPressed(e -> {
                 if (isIn(e.getCode(),BACK_SPACE,ESCAPE))
                     OnBackspacePressed();
             });
 
             // autocompletion
             if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
-               String fn = f.name();
-               TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.string_pool.getStrings(fn),t -> t.startsWith(p.getUserText())));
+               String n = f.name();
+               Comparator<? super String> cmp = String::compareTo;
+               TextFields.bindAutoCompletion(
+                   (TextField)c,
+                   p -> DB.string_pool.getStrings(n).stream()
+                          .filter(a -> a.startsWith(p.getUserText()))
+                          .sorted(f!=YEAR ? cmp : cmp.reversed())
+                          .collect(toList())
+               );
             }
         }
         void setEditable(boolean v) {

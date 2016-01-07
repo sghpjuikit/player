@@ -33,9 +33,6 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
     private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN = 5; /* bits */
     private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER = 15;
 
-    protected int order; // The partition order, i.e. # of contexts = 2 ^ order.
-    protected EntropyPartitionedRiceContents contents; // The context's Rice parameters and/or raw bits.
-
     /**
      * Read compressed signal residual data.
      * 
@@ -51,8 +48,19 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
         int sample = 0;
         int partitions = 1 << partitionOrder;
         int partitionSamples = partitionOrder > 0 ? header.blockSize >> partitionOrder : header.blockSize - predictorOrder;
+        if (predictorOrder == 0) {
+        	if (header.blockSize < predictorOrder) {
+        		//System.err.printf("NEED RESYNC  %d - %d%n", header.blockSize, predictorOrder);
+        		return;
+        	}
+        } else {
+        	if (partitionSamples < predictorOrder) {
+        		//System.err.printf("NEED RESYNC2  %d - %d%n", partitionSamples , predictorOrder);
+        		return;
+        	}
+        }
         contents.ensureSize(Math.max(6, partitionOrder));
-        contents.parameters = new int[partitions];
+        //contents.parameters = new int[partitions];
 
         for (int partition = 0; partition < partitions; partition++) {
             int riceParameter = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);

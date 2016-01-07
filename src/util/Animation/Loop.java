@@ -5,11 +5,11 @@
  */
 package util.animation;
 
+import java.util.function.Consumer;
+
 import com.sun.javafx.tk.Toolkit;
 import com.sun.scenario.animation.AbstractMasterTimer;
 import com.sun.scenario.animation.shared.TimerReceiver;
-
-import java.util.function.Consumer;
 
 /**
  * Timer, that executes behavior in each frame while it is active.
@@ -23,16 +23,16 @@ public final class Loop {
     private boolean active;
 
     /**
-     * Creates a new loop. 
-     * 
-     * @param behavior behavior to execute. Takes 1 parameter - The timestamp of the current frame 
-     * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called 
+     * Creates a new loop.
+     *
+     * @param behavior behavior to execute. Takes 1 parameter - The timestamp of the current frame
+     * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called
      * during one frame.
      */
     public Loop(Consumer<Long> behavior) {
         this.timerReceiver = behavior::accept;
     }
-    
+
     /** Creates a new loop. */
     public Loop(Runnable behavior) {
         this.timerReceiver = now -> behavior.run();

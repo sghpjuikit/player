@@ -70,4 +70,8 @@ class PCMProcessors implements PCMProcessor {
         }
     }
 
+	public boolean isCanceled() {
+		return pcmProcessors.size() == 0;
+	}
+
 }

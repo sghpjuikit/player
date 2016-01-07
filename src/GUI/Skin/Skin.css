@@ -529,7 +529,7 @@
 /* ====   MNEMONIC THINGS   ================================================= */
 
 .mnemonic-underline {
-    //-fx-stroke: transparent;
+    /*-fx-stroke: transparent;*/
 }
 
 .titled-pane:show-mnemonics > .mnemonic-underline,
@@ -545,7 +545,7 @@
 .hyperlink:show-mnemonics > .mnemonic-underline,
 .split-menu-button:show-mnemonics > .mnemonic-underline,
 .menu-button:show-mnemonics > .mnemonic-underline {
-    //-fx-stroke: -fx-text-base-color;
+    /*-fx-stroke: -fx-text-base-color;*/
 } 
 
 /* ====   MARKS   =========================================================== */
@@ -587,19 +587,19 @@
     -fx-background-radius: 3, 2, 2;
     -fx-border: null;
     -fx-padding: 3 10 2 10;
-    // this creates inner shadow 'gradient effect' for menu item label text
-    //-fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+    /*this creates inner shadow 'gradient effect' for menu item label text*/
+    /*-fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );*/
 }
 
 .choice-box > .label,
 .menu-button > .label,
 .color-picker > .label {
-    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
     -fx-text-fill: -fx-def-font-color;
 }
 .choice-box > .open-button,
 .menu-button > .arrow-button {
-    //-fx-padding: 0.5em 0.667em 0.5em 0.0em; /* 6 8 6 0 */
+    /*-fx-padding: 0.5em 0.667em 0.5em 0.0em;  6 8 6 0 */
 }
 
 /* ====   BOX LIKE THINGS   ================================================= */
@@ -954,19 +954,18 @@
 }
 .slider .thumb:hover,
 .slider .thumb:pressed {
-    //-fx-background-color: white;
+    /*-fx-background-color: white;*/
     -fx-padding: 2;
-    //-fx-background-radius:0;
+    /*-fx-background-radius:0;*/
 }
 .slider:focused .thumb {
-    // i say lets stay rectangular
-    // -fx-background-radius: 1.0em;  // makes sure this remains circular
+     /*-fx-background-radius: 1.0em;  // makes sure this remains circular*/
 }
 .slider .track {
     -fx-background-color: rgba(255,255,255,0.3);
     -fx-background-insets: 0;
     -fx-background-radius: 1;
-    -fx-padding: 1;     // basically track width
+    -fx-padding: 1;      /*basically track width*/
 }
 .slider:vertical .track {
 }
@@ -1005,12 +1004,12 @@
     -fx-background-color: null;
 }
 .scroll-bar > .thumb {
-    // default
-    // -fx-background-color: rgb(211,211,211);
-    // -fx-background-insets: 2, 3, 4;
-    // -fx-background-radius: 3, 2, 1;
+/*    default
+    -fx-background-color: rgb(211,211,211);
+    -fx-background-insets: 2, 3, 4;
+    -fx-background-radius: 3, 2, 1;*/
     -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 6, 3, 4;
+    -fx-background-insets: 7, 3, 4;
     -fx-background-radius: 3, 2, 1;
 }
 .scroll-bar:vertical > .thumb {
@@ -1066,6 +1065,7 @@
     -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
     /*-fx-background-insets: 2 0 -2 0, 0;*/
 }
+
 /*******************************************************************************
  *                                                                             *
  * ScrollPane                                                                  *
@@ -1080,11 +1080,11 @@
 }
 .scroll-pane > .scroll-bar:horizontal > .increment-button,
 .scroll-pane > .scroll-bar:horizontal > .decrement-button {
-    -fx-padding: 0.166667em 0.25em 0.25em  0.25em; // 2 3 3 3 
+    -fx-padding: 0.166667em 0.25em 0.25em  0.25em; /*2 3 3 3*/ 
 }
 .scroll-pane > .scroll-bar:vertical > .increment-button,
 .scroll-pane > .scroll-bar:vertical > .decrement-button {
-    -fx-padding: 0.25em 0.25em 0.25em 0.166667em; // 3 3 3 2 
+    -fx-padding: 0.25em 0.25em 0.25em 0.166667em;  /*3 3 3 2*/ 
 }
 .scroll-pane > .scroll-bar:vertical {
     -fx-background-insets: 1 1 1 0, 1;
@@ -1114,7 +1114,7 @@
 .tab-pane > * > .scroll-pane > .scroll-bar > .decrement-button,
 .titled-pane > * > * > .scroll-pane > .scroll-bar > .increment-button,
 .titled-pane > * > * > .scroll-pane > .scroll-bar > .decrement-button {
-    -fx-padding: 0.25em; //3px 
+    -fx-padding: 0.25em; /*3px*/ 
 }
 
 /*******************************************************************************
@@ -1308,12 +1308,12 @@
     -fx-background: null;
     -fx-background-color: null;
     -fx-text-fill: -fx-text-base-color;
-    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
 }
 .combo-box-base:editable > .arrow-button,
 .combo-box-base > .arrow-button {
     -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
+    /*-fx-padding: 0.5em 0.667em 0.5em 0.833333em;*/ /* 6 8 6 10 */
     -fx-background-color: null;
 }
 .combo-box-base,
@@ -1405,8 +1405,9 @@
 .combo-box-popup > .list-view {
     -fx-background-color: -fx-popup-def-bgr-color;
     -fx-background-insets: 0, 1;
-    // -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 ); // gets in the way of transparent bgr
     -fx-effect: null;
+    /*gets in the way of transparent bgr*/
+    /*-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );*/
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-padding: 1 0 1 5;
@@ -1432,8 +1433,8 @@
 
 .label {
     -fx-text-fill: -fx-def-font-color;
-    //-fx-background-color: rgb(255,255,255); // this would set rectangular text bgr
-    //-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );    // decreases performance for little gain
+    /*decreases performance for little gain*/
+    /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );*/
 }
 
 
@@ -1465,7 +1466,7 @@
 }
 .html-editor .button ,
 .html-editor .toggle-button {
-    -fx-padding: 0.333333em 0.416667em 0.333333em 0.416667em; // 4 5 4 5 
+    -fx-padding: 0.333333em 0.416667em 0.333333em 0.416667em; /*4 5 4 5*/ 
 }
 .html-editor-cut {
     -fx-graphic: url("HTMLEditor-Cut.png");
@@ -1938,7 +1939,7 @@
 
 .color-picker > .arrow-button {
     -fx-background-color: null;
-   //-fx-padding: 0.5em 0.667em 0.5em 0; /*  6 8 6 0 */
+   //-fx-padding: 0.5em 0.667em 0.5em 0; /* 6 8 6 0 */
 }
 .color-picker.split-button > .arrow-button  {
     -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;

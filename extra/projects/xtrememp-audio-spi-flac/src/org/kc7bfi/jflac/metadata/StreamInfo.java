@@ -22,8 +22,6 @@ package org.kc7bfi.jflac.metadata;
 
 import java.io.IOException;
 
-import javax.sound.sampled.AudioFormat;
-
 import org.kc7bfi.jflac.io.BitInputStream;
 import org.kc7bfi.jflac.io.BitOutputStream;
 
@@ -62,7 +60,7 @@ public class StreamInfo extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public StreamInfo(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         int usedBits = 0;
 
         minBlockSize = is.readRawUInt(STREAMINFO_MIN_BLOCK_SIZE_LEN);
@@ -139,7 +137,7 @@ public class StreamInfo extends Metadata {
     }
     
     /**
-     * Check for compatiable StreamInfo.
+     * Check for compatible StreamInfo.
      * Checks if sampleRate, channels, and bitsPerSample are equal
      * @param info  The StreamInfo block to check
      * @return  True if this and info are compatable
@@ -221,12 +219,6 @@ public class StreamInfo extends Metadata {
         return sampleRate;
     }
     
-    /**
-     * @return the Java Sound AudioFormat for this stream info.
-     */
-    public AudioFormat getAudioFormat() {
-        return new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample <= 8) ? false : true, false);
-    }
     
     /**
      * @return Returns the bitsPerSample.

@@ -57,7 +57,7 @@ public class CueSheet extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public CueSheet(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         is.readByteBlockAlignedNoCRC(mediaCatalogNumber, CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8);
         leadIn = is.readRawULong(CUESHEET_LEAD_IN_LEN);
         isCD = (is.readRawUInt(CUESHEET_IS_CD_LEN) != 0);
@@ -73,7 +73,7 @@ public class CueSheet extends Metadata {
     }
 
     /**
-     * Verifys the Cue Sheet.
+     * Verifies the Cue Sheet.
      * @param checkCdDaSubset   True for check CD subset
      * @throws Violation        Thrown if invalid Cue Sheet
      */

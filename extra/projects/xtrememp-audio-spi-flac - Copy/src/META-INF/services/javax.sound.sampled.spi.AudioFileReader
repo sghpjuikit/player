@@ -1,0 +1,2 @@
+# Providers of Flac sound file-reading services
+org.kc7bfi.jflac.sound.spi.FlacAudioFileReader

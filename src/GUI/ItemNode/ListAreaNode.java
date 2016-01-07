@@ -11,11 +11,13 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 
 import gui.itemnode.ItemNode.ValueNode;
 import util.functional.Functors;
 
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.functional.Util.*;
 
@@ -56,7 +58,7 @@ import static util.functional.Util.*;
 public class ListAreaNode extends ValueNode<List<String>> {
 
     private final VBox root = new VBox();
-    private final TextArea area = new TextArea();
+    protected final TextArea textarea = new TextArea();
     public final FChainItemNode transforms = new FChainItemNode(Functors::getI);
     private List input;
     /**
@@ -77,12 +79,18 @@ public class ListAreaNode extends ValueNode<List<String>> {
         transforms.onItemChange = f -> {
             List l = map(input,f);
             output.setAll(l);
-            area.setText(toS(l,toString,"\n"));
+            textarea.setText(toS(l,toString,"\n"));
         };
-        area.textProperty().addListener((o,ov,nv) -> changeValue(split(nv,"\n",x->x)));
+        textarea.textProperty().addListener((o,ov,nv) -> changeValue(split(nv,"\n",x->x)));
         // layout
-        root.getChildren().addAll(area,transforms.getNode());
-        VBox.setVgrow(area, ALWAYS);
+        root.getChildren().addAll(textarea,transforms.getNode());
+        VBox.setVgrow(textarea, ALWAYS);
+
+        textarea.addEventHandler(KEY_PRESSED, e -> {
+            if(e.getCode()==KeyCode.V && e.isControlDown()) {
+                e.consume();
+            }
+        });
     }
 
     /**
@@ -118,7 +126,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * if any.
      */
     public String getValueAsS() {
-        return area.getText();
+        return textarea.getText();
     }
 
     /** {@inheritDoc} */

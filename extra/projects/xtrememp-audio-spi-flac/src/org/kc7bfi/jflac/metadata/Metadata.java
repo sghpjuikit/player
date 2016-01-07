@@ -59,12 +59,14 @@ public abstract class Metadata {
     
     protected boolean isLast;
     
+    protected int length;
     /**
-     * Constructir.
+     * Constructor.
      * @param isLast    True if last Metadata block
      */
-    public Metadata(boolean isLast) {
+    public Metadata(boolean isLast, int length) {
         this.isLast = isLast;
+        this.length = length;
     }
     
     /**
@@ -73,5 +75,13 @@ public abstract class Metadata {
      */
     public boolean isLast() {
         return isLast;
+    }
+    
+    /** returns length of metadata
+     * 
+     * @return length
+     */
+    public int getLength() {
+    	return length + (STREAM_METADATA_IS_LAST_LEN+STREAM_METADATA_TYPE_LEN+STREAM_METADATA_LENGTH_LEN+7)/8;
     }
 }

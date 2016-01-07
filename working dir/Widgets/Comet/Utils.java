@@ -15,16 +15,23 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 
+import javafx.event.Event;
+import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -32,11 +39,17 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
+import Comet.Comet.Game;
+import Comet.Comet.Game.Mission;
 import Comet.Comet.PO;
 import Comet.Comet.Player;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import gui.objects.Text;
 import gui.objects.icon.Icon;
+import gui.pane.OverlayPane;
+import util.R;
+import util.SwitchException;
 import util.animation.Anim;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ0;
@@ -44,24 +57,35 @@ import util.functional.Functors.Ƒ1;
 import util.reactive.RunnableSet;
 
 import static Comet.Comet.*;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.lang.Math.PI;
 import static java.lang.Math.acos;
 import static java.lang.Math.asin;
+import static java.lang.Math.ceil;
+import static java.lang.Math.cos;
 import static java.lang.Math.random;
+import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.EMPTY_SET;
+import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.scene.layout.Priority.NEVER;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.array;
+import static util.functional.Util.by;
 import static util.functional.Util.forEachCartesian;
 import static util.functional.Util.forEachCartesianHalfNoSelf;
 import static util.functional.Util.isInR;
 import static util.functional.Util.range;
 import static util.functional.Util.repeat;
 import static util.functional.Util.stream;
+import static util.graphics.Util.layHeaderTop;
 import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setScaleXY;
 import static util.reactive.Util.maintain;
@@ -70,10 +94,21 @@ import static util.reactive.Util.maintain;
  *
  * @author Plutonium_
  */
-public class Utils {
+ class Utils {
 
+    static final double D360 = 2*PI;
+    static final double D180 = PI;
+    static final double D90 = PI/2;
+    static final double D60 = PI/3;
+    static final double D45 = PI/4;
+    static final double D30 = PI/6;
+    static final double SIN45 = sin(PI/4);
 
+    private static final Random RAND = new Random();
     static Font UI_FONT;
+
+// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
+// subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
     static {
         // Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
@@ -83,11 +118,11 @@ public class Utils {
 
 
     /** Converts radians to degrees. */
-    public static double deg(double rad) {
+     static double deg(double rad) {
         return Math.toDegrees(rad); //360*rad/(2*PI);
     }
     /** Returns angle in rad for given sin and cos. */
-    public static double dirOf(double x, double y, double dist) {
+     static double dirOf(double x, double y, double dist) {
         double c = x/dist;
         double s = y/dist;
         double ac = acos(c);
@@ -96,11 +131,15 @@ public class Utils {
         return (s<0) ? acos(c) : acos(c)+PI/2;
     }
 
+    static double computeForceInversePotential(double distance, double maxdistance) {
+        return distance >= maxdistance ? 1 : distance/maxdistance;
+    }
+
     /**
      * Creates array of fire angles for specified number of turrets. Angles are a symmetrical
      * sequence with 0 in the middle and consistent angle gap in between each.
      */
-    public static final Double[] calculateGunTurretAngles(int i) {
+     static final Double[] calculateGunTurretAngles(int i) {
         if(i<=1) return array(0d);
         return ( i%2==1
             ? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
@@ -110,11 +149,11 @@ public class Utils {
     }
 
     /** Relocates node such the center of the node is at the coordinates. */
-    public static void relocateCenter(Node n, double x, double y) {
+     static void relocateCenter(Node n, double x, double y) {
         n.relocate(x-n.getLayoutBounds().getWidth()/2,y-n.getLayoutBounds().getHeight()/2);
     }
 
-    public static Node createPlayerStat(Player p) {
+     static Node createPlayerStat(Player p) {
         Label score = new Label();
         installFont(score, UI_FONT);
         p.score.maintain(s -> score.setText("Score: " + s));
@@ -152,22 +191,22 @@ public class Utils {
         return node;
     }
 
-    private static void installFont(Labeled l, Font f) {
+     static void installFont(Labeled l, Font f) {
         Font ft = f==null ? Font.getDefault() : f;
         l.setFont(ft);
         l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; }"); // bugfix, suddenly !work without this...
     }
 
-    public static Icon createPlayerLiveIcon() {
+     static Icon createPlayerLiveIcon() {
         return new Icon(MaterialDesignIcon.ROCKET,15);
     }
 
-    public static Anim createHyperSpaceAnim(Node n) {
+     static Anim createHyperSpaceAnim(Node n) {
         return new Anim(millis(200), x -> setScaleXY(n,1-x*x));
     }
 
     /** Snapshot an image out of a node, consider transparency. */
-    public static Image createImage(Node n) {
+     static Image createImage(Node n) {
         SnapshotParameters parameters = new SnapshotParameters();
         parameters.setFill(Color.TRANSPARENT);
 
@@ -180,7 +219,7 @@ public class Utils {
         return wi;
     }
     /** Creates image from icon. */
-    public static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
+     static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
         Icon i = new Icon(icon,radius);
         i.setFill(c);
         i.setEffect(effect);
@@ -194,7 +233,7 @@ public class Utils {
      * @param px the x pivot co-ordinate for the rotation (in canvas co-ordinates).
      * @param py the y pivot co-ordinate for the rotation (in canvas co-ordinates).
      */
-    public static void rotate(GraphicsContext gc, double angle, double px, double py) {
+     static void rotate(GraphicsContext gc, double angle, double px, double py) {
         Rotate r = new Rotate(angle, px, py);
         gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
     }
@@ -209,83 +248,247 @@ public class Utils {
      * @param tlpx the top left x co-ordinate where the image will be plotted (in canvas co-ordinates).
      * @param tlpy the top left y co-ordinate where the image will be plotted (in canvas co-ordinates).
      */
-    public static void drawRotatedImage(GraphicsContext gc, Image i, double angle, double tlpx, double tlpy) {
+     static void drawRotatedImage(GraphicsContext gc, Image i, double angle, double tlpx, double tlpy) {
         gc.save();
         rotate(gc, angle, tlpx + i.getWidth() / 2, tlpy + i.getHeight() / 2);
         gc.drawImage(i, tlpx, tlpy);
         gc.restore();
     }
-    public static void drawImage(GraphicsContext gc, Image i, double x, double y) {
+     static void drawImage(GraphicsContext gc, Image i, double x, double y) {
         gc.drawImage(i, x+i.getWidth()/2, y+i.getHeight()/2, i.getWidth(), i.getHeight());
     }
-    public static void drawScaledImage(GraphicsContext gc, Image i, double x, double y, double scale) {
+     static void drawScaledImage(GraphicsContext gc, Image i, double x, double y, double scale) {
         gc.drawImage(i, x-scale*(i.getWidth()/2), y-scale*(i.getHeight()/2), scale*i.getWidth(), scale*i.getHeight());
     }
-    public static void drawOval(GraphicsContext g, double x, double y, double r) {
+     static void drawOval(GraphicsContext g, double x, double y, double r) {
         double d = 2*r;
         g.fillOval(x-r,y-r,d,d);
     }
-    public static void drawRect(GraphicsContext g, double x, double y, double r) {
+     static void drawRect(GraphicsContext g, double x, double y, double r) {
         double d = 2*r;
-        g.fillOval(x-r,y-r,d,d);
+        g.fillRect(x-r,y-r,d,d);
     }
 
-    public static double durToTtl(Duration d) {
+     static double durToTtl(Duration d) {
         return d.toSeconds()*FPS;
     }
 
-    public static double randMN(double m, double n) {
+     static double randMN(double m, double n) {
         return m+random()*(n-m);
     }
-    public static double rand0N(double n) {
+     static double rand0N(double n) {
         return RAND.nextDouble()*n;
     }
-    public static int rand0or1() {
+     static int rand0or1() {
         return randBoolean() ? 0 : 1;
     }
-    public static int randInt(int n) {
+     static int randInt(int n) {
         return RAND.nextInt(n);
     }
-    public static boolean randBoolean() {
+     static boolean randBoolean() {
         return RAND.nextBoolean();
     }
-    public static <E extends Enum> E randEnum(Class<E> enumtype) {
+     static <E extends Enum> E randEnum(Class<E> enumtype) {
         return randOf(enumtype.getEnumConstants());
     }
-    public static <T> T randOf(T a, T b) {
+     static <T> T randOf(T a, T b) {
         return randBoolean() ? a : b;
     }
-    public static <T> T randOf(T... c) {
+     static <T> T randOf(T... c) {
         int l = c.length;
         return l==0 ? null : c[randInt(c.length)];
     }
-    public static <T> T randOf(Collection<T> c) {
-        int s = c.size();
-        return s==0 ? null : c.stream().skip((long)(random()*(max(0,s)))).findAny().orElse(null);
+     static <T> T randOf(Collection<T> c) {
+         if(c.isEmpty()) return null;
+        int size = c.size();
+        return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
     }
     /**
      * Returns random element from collection C except for those elements listen as exceptions.
      * Be sure not to cause infinite loop by excluding all elements.
      */
-    public static <T> T randomOfExcept(Collection<T> c, T... excluded) {
+     static <T> T randomOfExcept(Collection<T> c, T... excluded) {
         T t;
         do {
            t = randOf(c);
         } while(isInR(t,excluded));
         return t;
     }
-    public static Random RAND = new Random();
 
+    static enum Side {
+        LEFT,RIGHT;
+    }
+    static enum GunControl {
+        AUTO,MANUAL;
+    }
+    static enum AbilityState {
+        ACTIVATING, PASSSIVATING, NO_CHANGE;
+    }
+    static enum AbilityKind {
+        HYPERSPACE,DISRUPTOR,SHIELD;
+    }
+    static enum Relations {
+        ALLY, NEUTRAL, ENEMY;
+    }
+    static enum PlayerSpawners {
+        CIRCLE,
+        LINE,
+        RECTANGLE;
 
+        double computeStartingAngle(int ps, int p) {
+            switch(this) {
+                case CIRCLE : return ps==0 ? 0 : p*D360/ps;
+                case LINE :
+                case RECTANGLE : return -D90;
+            }
+            throw new SwitchException(this);
+        }
 
+        double computeStartingX(double w, double h, int ps, int p) {
+            switch(this) {
+                case CIRCLE : return w/2 + 50*cos(computeStartingAngle(ps, p));
+                case LINE : return w/(ps+1)*p;
+                case RECTANGLE : {
+                    int a = ((int)ceil(sqrt(ps)));
+                    return w/(a+1)*(1+(p-1)/a);
+                }
+            }
+            throw new SwitchException(this);
+        }
 
+        double computeStartingY(double w, double h, int ps, int p) {
+            switch(this) {
+                case CIRCLE : return h/2 + 50*sin(computeStartingAngle(ps, p));
+                case LINE : return h/2;
+                case RECTANGLE : {
+                    int a = ((int)ceil(sqrt(ps)));
+                    return h/(a+1)*(1+(p-1)%a);
+                }
+            }
+            throw new SwitchException(this);
+        }
+    }
+
+    /** How to play help pane. */
+    static class HowToPane extends OverlayPane {
+        private final GridPane g = new GridPane();
+        private final Icon helpI = createInfoIcon("How to play");
+
+        public HowToPane() {
+            ScrollPane sp = new ScrollPane();
+                       sp.setOnScroll(Event::consume);
+                       sp.setContent(layStack(g, CENTER));
+                       sp.setFitToWidth(true);
+                       sp.setFitToHeight(false);
+                       sp.setHbarPolicy(ScrollBarPolicy.NEVER);
+                       sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+            VBox l = layHeaderTop(5, CENTER,
+                layHorizontally(5,CENTER_RIGHT, helpI),
+                layStack(sp, CENTER)
+            );
+            l.setMaxWidth(800);
+            l.maxHeightProperty().bind(heightProperty().subtract(100));
+            setContent(l);
+        }
+
+        @Deprecated
+        @Override
+        public void show() {
+            super.show();
+        }
+
+        public void show(Game game) {
+            super.show();
+            build(game);
+        }
+
+        @Override
+        public void hide() {
+            super.hide();
+        }
+
+        private void build(Game game) {
+            // clear content
+            g.getChildren().clear();
+            g.getRowConstraints().clear();
+            g.getColumnConstraints().clear();
+
+            // build columns
+            g.getColumnConstraints().add(new ColumnConstraints(100,100,100, NEVER, HPos.RIGHT, false));
+            g.getColumnConstraints().add(new ColumnConstraints(20));
+            g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
+
+            // build rows
+            R<Integer> i = new R<>(-1); // row index
+            game.ROCKET_ENHANCERS.stream()
+                .map(Ƒ0::apply) // instantiate
+                .sorted(by(enhancer -> enhancer.name))
+                .forEach(enhancer -> {
+                    i.setOf(v -> v+1);
+
+                    Icon icon = new Icon(enhancer.icon, 20);
+                    Label nameL = new Label(enhancer.name);
+                    Text descL = new Text(enhancer.description);
+                         descL.setWrappingWidth(400);
+                    g.add(icon, 0,i.get());
+                    g.add(nameL, 2,i.get());
+                    i.setOf(v -> v+1);
+                    g.add(descL, 2,i.get());
+                    i.setOf(v -> v+1);
+                    g.add(new Label(), 2,i.get()); // empty row
+                });
+        }
+    }
+    /** Mission details help pane. */
+    static class MissionPane extends OverlayPane {
+        private final Text text = new Text();
+        private final Icon helpI = createInfoIcon("Mission details");
+
+        public MissionPane() {
+            ScrollPane sp = new ScrollPane();
+                       sp.setOnScroll(Event::consume);
+                       sp.setContent(layStack(text, CENTER));
+                       sp.setFitToWidth(true);
+                       sp.setFitToHeight(false);
+                       sp.setHbarPolicy(ScrollBarPolicy.NEVER);
+                       sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+            VBox l = layHeaderTop(5, CENTER,
+                layHorizontally(5,CENTER_RIGHT, helpI),
+                layStack(sp, CENTER)
+            );
+            l.setMaxWidth(800);
+            l.maxHeightProperty().bind(heightProperty().subtract(100));
+            setContent(l);
+        }
+
+        @Deprecated
+        @Override
+        public void show() {
+            super.show();
+        }
+
+        public void show(Mission mission) {
+            super.show();
+
+            text.setText(
+                "Name: " + mission.name + "\n" +
+                "Scale: " + mission.scale + "\n\n" +
+                mission.details
+            );
+        }
+
+        @Override
+        public void hide() {
+            super.hide();
+        }
+    }
 
     /** Weighted boolean - stores how many times it is. False if not once. True if at least once. */
     static class InEffect extends InEffectValue<Void> {
-        public InEffect() {
+         InEffect() {
             super(t -> null);
         }
-        public InEffect(Consumer<Integer> onChange) {
+         InEffect(Consumer<Integer> onChange) {
             super(0, t -> null, onChange);
         }
     }
@@ -295,16 +498,16 @@ public class Utils {
         private final Ƒ1<Integer,T> valueCalc;
         private final Consumer<Integer> changeApplier;
 
-        public InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
+         InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
             times = times_init;
             valueCalc = valueCalculator;
             changeApplier = onChange;
             value = valueCalc.apply(times);
         }
-        public InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator) {
+         InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator) {
             this(times_init, valueCalculator, null);
         }
-        public InEffectValue(Ƒ1<Integer,T> valueCalculator) {
+         InEffectValue(Ƒ1<Integer,T> valueCalculator) {
             this(0, valueCalculator);
         }
 
@@ -345,51 +548,51 @@ public class Utils {
         private final Map<Class,Set<O>> m = new HashMap<>();
         private final Ƒ1<O,Class> mapper;
 
-        public ObjectStore(Ƒ1<O,Class> classMapper) {
+         ObjectStore(Ƒ1<O,Class> classMapper) {
             mapper = classMapper;
         }
 
-        public void add(O o) {
+         void add(O o) {
             m.computeIfAbsent(mapper.apply(o), c -> new HashSet<>()).add(o);
         }
 
-        public void remove(O o) {
+         void remove(O o) {
             Set l = m.get(mapper.apply(o));
             if(l!=null) l.remove(o);
         }
 
-        public <T extends O> Set<T> get(Class<T> c) {
+         <T extends O> Set<T> get(Class<T> c) {
             return m.getOrDefault(c,EMPTY_SET);
         }
 
-        public void clear() {
+         void clear() {
             m.values().forEach(Set::clear); m.clear();
         }
 
-        public <T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
+         <T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
             Set<T> l = (Set) m.get(c);
             if(l!=null) l.forEach(action);
         }
 
-        public void forEach(Consumer<? super O> action) {
+         void forEach(Consumer<? super O> action) {
             m.forEach((k,set) -> set.forEach(action));
         }
 
-        public <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
+         <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
             if(t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
             else forEachCartesian(get(t),get(e), action);
         }
 
-        public void forEachSet(Consumer<? super Set<O>> action) {
+         void forEachSet(Consumer<? super Set<O>> action) {
             m.values().forEach(action);
         }
     }
     static class Pool<P> {
         private final List<P> pool;
-        public final int max;
+         final int max;
         private final Ƒ0<P> fac;
 
-        public Pool(int max_size, Ƒ0<P> factory) {
+         Pool(int max_size, Ƒ0<P> factory) {
             max = max_size;
             fac = factory;
             pool = new ArrayList<>(max_size);
@@ -412,7 +615,7 @@ public class Utils {
         private final ClassMap<Pool<P>> pools = new ClassMap<>();
         private final ClassMap<Ƒ1<Class,Pool<P>>> factories = new ClassMap<>();
 
-        public PoolMap() {
+         PoolMap() {
         }
 
         void registerPool(Class<?> type, Ƒ0<Pool<P>> poolFactory) {
@@ -434,7 +637,7 @@ public class Utils {
         private final int bucketspan;
         private final Set<PO>[][] a;
 
-        public SpatialHash(int sizex, int sizey, int bucket_SPAN) {
+         SpatialHash(int sizex, int sizey, int bucket_SPAN) {
             xmax = sizex;
             ymax = sizey;
             bucketspan = bucket_SPAN;
@@ -471,21 +674,49 @@ public class Utils {
                         action.accept(o,e);
         }
     }
+
     static class TTLList implements Runnable {
         final List<TTL> lt = new ArrayList<>();
+        final List<TTLC> ltc = new ArrayList<>();
         final List<PTTL> lpt = new ArrayList<>();
         final RunnableSet lr = new RunnableSet();
         final Set<Runnable> temp = new HashSet<>();
 
+        /** Adds runnable that will run next time this runs. */
         void add(Runnable r) {
             lr.add(r);
         }
-        void add(double ttl, Runnable r) {
-            lt.add(new TTL(ttl, r));
+
+        /** Adds runnable that will run after this runs specified number of times. */
+        void add(double times, Runnable r) {
+            lt.add(new TTL(times, r));
         }
+
+        /** Adds runnable that will run after specified time. */
         void add(Duration delay, Runnable r) {
             lt.add(new TTL(durToTtl(delay), r));
         }
+
+        /**
+         * Adds an animation.
+         * <p>
+         * Adds runnable that will consume double every time this runs during the specified time from now on.
+         * The double is interpolated from 0 to 1 by precalculated step from duration.
+         */
+        void addAnim01(Duration dur, DoubleConsumer r) {
+            ltc.add(new TTLC(0,1,1/durToTtl(dur), r));
+        }
+
+        /**
+         * Adds an animation.
+         * <p>
+         * Adds runnable that will consume double every time this runs during the specified time from now on.
+         * The double is interpolated between specified values by precalculated step from duration.
+         */
+        void addAnim(double from, double to, Duration dur, DoubleConsumer r) {
+            ltc.add(new TTLC(from,to,(to-from)/durToTtl(dur), r));
+        }
+
         void addPeriodic(Duration delay, Runnable r) {
             lpt.add(new PTTL(() -> durToTtl(delay), r));
         }
@@ -500,6 +731,9 @@ public class Utils {
         }
 
         public void run() {
+            ltc.forEach(Runnable::run);
+            ltc.removeIf(t -> t.isDone());
+
             for(int i=lt.size()-1; i>=0; i--) {
                 TTL t = lt.get(i);
                 if(t.ttl>1) t.ttl--;
@@ -521,7 +755,7 @@ public class Utils {
             lr.clear();
         }
 
-        public void clear() {
+         void clear() {
             lt.clear();
             lr.clear();
             lpt.clear();
@@ -531,25 +765,50 @@ public class Utils {
         double ttl;
         final Runnable r;
 
-        public TTL(double TTL, Runnable R) {
+         TTL(double TTL, Runnable R) {
             ttl = TTL;
             r = R;
         }
 
-        public void run() {
+         public void run() {
             r.run();
+        }
+    }
+    static class TTLC implements Runnable {
+        double ttl;
+        double ttlto;
+        double ttlby;
+        boolean isincr;
+        final DoubleConsumer r;
+
+         TTLC(double TTLfrom, double TTLto, double TTLby, DoubleConsumer R) {
+            ttl = TTLfrom;
+            ttlto = TTLto;
+            ttlby = TTLby;
+            isincr = ttlby>0;
+            if(ttlby==0) throw new IllegalArgumentException("Infinite runnable");
+            r = R;
+        }
+
+         public void run() {
+            ttl += ttlby;
+            r.accept(ttl);
+        }
+
+         boolean isDone() {
+            return (isincr && ttl>=ttlto) || (!isincr && ttl<=ttlto);
         }
     }
     static class PTTL extends TTL {
         final Ƒ0<Double> ttlperiod;
 
-        public PTTL(Ƒ0<Double> TTL, Runnable R) {
+         PTTL(Ƒ0<Double> TTL, Runnable R) {
             super(0, R);
             ttlperiod = TTL;
             ttl = TTL.get();
         }
 
-        public void run() {
+         public void run() {
             r.run();
             ttl = ttlperiod.get();
         }
@@ -558,24 +817,24 @@ public class Utils {
 
     /** 2d vector. Mutable. */
     static class Vec2 {
-        public double x;
-        public double y;
+         double x;
+         double y;
 
-        public Vec2(double x, double y) {
+         Vec2(double x, double y) {
             this.x = x;
             this.y = y;
         }
 
-        public Vec2(Vec2 v) {
+         Vec2(Vec2 v) {
             set(v);
         }
 
-        public void set(Vec2 v) {
+         void set(Vec2 v) {
             this.x = v.x;
             this.y = v.y;
         }
 
-        public void set(double x, double y, double z) {
+         void set(double x, double y, double z) {
             this.x = x;
             this.y = y;
         }
@@ -584,7 +843,7 @@ public class Utils {
          * Multiplies this vector by the specified scalar value.
          * @param scale the scalar value
          */
-        public void mul(double scale) {
+         void mul(double scale) {
             x *= scale;
             y *= scale;
         }
@@ -595,7 +854,7 @@ public class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-        public void setSub(Vec2 t1, Vec2 t2) {
+         void setSub(Vec2 t1, Vec2 t2) {
             this.x = t1.x - t2.x;
             this.y = t1.y - t2.y;
         }
@@ -605,7 +864,7 @@ public class Utils {
          * itself and vector t1 (this = this - t1) .
          * @param t1 the other vector
          */
-        public void sub(Vec2 t1) {
+         void sub(Vec2 t1) {
             this.x -= t1.x;
             this.y -= t1.y;
         }
@@ -616,12 +875,12 @@ public class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-        public void setAdd(Vec2 t1, Vec2 t2) {
+         void setAdd(Vec2 t1, Vec2 t2) {
             this.x = t1.x + t2.x;
             this.y = t1.y + t2.y;
         }
 
-        public void setResult(DoubleUnaryOperator f) {
+         void setResult(DoubleUnaryOperator f) {
             this.x = f.applyAsDouble(x);
             this.y = f.applyAsDouble(y);
         }
@@ -631,11 +890,11 @@ public class Utils {
          * itself and vector t1 (this = this + t1) .
          * @param t1 the other vector
          */
-        public void add(Vec2 t1) {
+         void add(Vec2 t1) {
             this.x += t1.x;
             this.y += t1.y;
         }
-        public void addMul(double s, Vec2 t1) {
+         void addMul(double s, Vec2 t1) {
             this.x += s*t1.x;
             this.y += s*t1.y;
         }
@@ -646,7 +905,7 @@ public class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-        public void setMul(Vec2 t1, Vec2 t2) {
+         void setMul(Vec2 t1, Vec2 t2) {
             this.x = t1.x * t2.x;
             this.y = t1.y * t2.y;
         }
@@ -657,7 +916,7 @@ public class Utils {
          * @param t1 the first vector
          * @param s scalar
          */
-        public void setMul(double s, Vec2 t2) {
+         void setMul(double s, Vec2 t2) {
             this.x = s * t2.x;
             this.y = s * t2.y;
         }
@@ -666,7 +925,7 @@ public class Utils {
          * Returns the length of this vector.
          * @return the length of this vector
          */
-        public double length() {
+         double length() {
             return Math.sqrt(x*x + y*y);
         }
 
@@ -674,29 +933,29 @@ public class Utils {
          * Returns the length of this vector squared.
          * @return the length of this vector squared
          */
-        public double lengthSqr() {
+         double lengthSqr() {
             return x*x + y*y;
         }
 
-        public double dist(Vec2 to) {
+         double dist(Vec2 to) {
             return sqrt((x-to.x)*(x-to.x) + (y-to.y)*(y-to.y));
         }
 
-        public double distSqr(Vec2 to) {
+         double distSqr(Vec2 to) {
             return (x-to.x)*(x-to.x) + (y-to.y)*(y-to.y);
         }
 
-        public Vec2 diff(Vec2 to) {
+         Vec2 diff(Vec2 to) {
             return new Vec2(x-to.x, y-to.y);
         }
 
-        public void normalize() {
+         void normalize() {
             double norm = 1.0 / length();
             this.x = x * norm;
             this.y = y * norm;
         }
 
-        public double dot(Vec2 v1) {
+         double dot(Vec2 v1) {
             return this.x * v1.x + this.y * v1.y;
         }
 
@@ -735,12 +994,12 @@ public class Utils {
         Spring[] springs;
         PointMass[][] points;
         GraphicsContext gc;
-        public Color color = Color.rgb(30, 30, 139, 0.85);
+         Color color = Color.rgb(30, 30, 139, 0.85);
         double WIDTH;
         double HEIGHT;
         int thick_frequency = 5;
 
-        public Grid(GraphicsContext gc, double width, double height, double gap) {
+         Grid(GraphicsContext gc, double width, double height, double gap) {
             this.gc = gc;
             this.WIDTH = width;
             this.HEIGHT = height;
@@ -794,7 +1053,7 @@ public class Utils {
                     p.update();
         }
 
-        public void applyDirectedForce(Vec2 force, Vec2 position, float radius) {
+         void applyDirectedForce(Vec2 force, Vec2 position, double radius) {
             for(PointMass[] ps : points)
                 for(PointMass p : ps) {
                     double distsqr = position.distSqr(p.position);
@@ -807,7 +1066,7 @@ public class Utils {
                 }
         }
 
-        public void applyImplosiveForce(float force, Vec2 position, float radius) {
+         void applyImplosiveForce(double force, Vec2 position, double radius) {
             for(PointMass[] ps : points)
                 for(PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
@@ -821,7 +1080,7 @@ public class Utils {
             }
         }
 
-        public void applyExplosiveForce(float force, Vec2 position, float radius) {
+         void applyExplosiveForce(double force, Vec2 position, double radius) {
             for(PointMass[] ps : points)
                 for(PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
@@ -835,7 +1094,7 @@ public class Utils {
             }
         }
 
-        public void draw() {
+         void draw() {
             int width = points.length;
             int height = points[0].length;
 
@@ -847,9 +1106,10 @@ public class Utils {
                     // Im not sure why, but the opacity is not distributed uniformly across direction
                     // multiples of 90deg (PI/2) have less opacity than in diagonal directions.
                     double warp_factor = points[x][y].positionInitial.distSqr(points[x][y].position);
-                           warp_factor = warp_factor/1000;
+                           warp_factor = warp_factor/1600;
                            warp_factor = min(warp_factor,1);
-                    double opacity = 0.02 + 0.6*warp_factor; // musst be 0-1, else Exception
+//                    double opacity = 0.02 + 0.6*warp_factor; // musst be 0-1, else Exception
+                    double opacity = 0.02 +warp_factor*warp_factor; // musst be 0-1, else Exception
                     gc.setGlobalAlpha(opacity);
 
                     if (x > 1) {
@@ -892,7 +1152,7 @@ public class Utils {
             Vec2 acceleration;
             double damping = DAMPING_INIT;
 
-            public PointMass(Vec2 position, double inverse_mass) {
+             PointMass(Vec2 position, double inverse_mass) {
                 this.position = position;
                 this.positionInitial = new Vec2(position);
                 this.massI = inverse_mass;
@@ -900,15 +1160,15 @@ public class Utils {
                 this.acceleration = new Vec2(0,0);
             }
 
-            public void applyForce(Vec2 force) {
+             void applyForce(Vec2 force) {
                acceleration.addMul(massI, force);
             }
 
-            public void incDamping(double factor) {
+             void incDamping(double factor) {
                damping *= factor;
             }
 
-            public void update() {
+             void update() {
                 velocity.add(acceleration);
                 position.add(velocity);
                 acceleration = new Vec2(0,0);
@@ -926,7 +1186,7 @@ public class Utils {
             double stiffness;
             double damping;
 
-            public Spring(PointMass end1, PointMass end2, double stiffness, double damping) {
+             Spring(PointMass end1, PointMass end2, double stiffness, double damping) {
                 this.end1 = end1;
                 this.end2 = end2;
                 this.length = end1.position.dist(end2.position)*0.95;

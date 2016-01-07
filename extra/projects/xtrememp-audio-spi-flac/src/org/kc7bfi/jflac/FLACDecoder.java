@@ -23,6 +23,7 @@ package org.kc7bfi.jflac;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.kc7bfi.jflac.frame.BadHeaderException;
@@ -57,10 +58,9 @@ public class FLACDecoder {
     
     private BitInputStream bitStream;
     private ChannelData[] channelData = new ChannelData[Constants.MAX_CHANNELS];
-    private int outputCapacity = 0;
-    private int outputChannels = 0;
-    private int lastFrameNumber;
-    private long samplesDecoded = 0;
+    private int outputCapacity;
+    private int outputChannels;
+    private long samplesDecoded;
     private StreamInfo streamInfo;
     private Frame frame = new Frame();
     private byte[] headerWarmup = new byte[2]; // contains the sync code and reserved bits
@@ -70,7 +70,8 @@ public class FLACDecoder {
     private int bitsPerSample;
     private int sampleRate; // in Hz
     private int blockSize; // in samples (per channel)
-    private InputStream inputStream = null;
+    private InputStream inputStream;
+    private int metadataLength;
     
     private int badFrames;
     private boolean eof = false;
@@ -99,7 +100,6 @@ public class FLACDecoder {
         this.inputStream = inputStream;
         this.bitStream = new BitInputStream(inputStream);
         //state = DECODER_SEARCH_FOR_METADATA;
-        lastFrameNumber = 0;
         samplesDecoded = 0;
         //state = DECODER_SEARCH_FOR_METADATA;
     }
@@ -121,11 +121,19 @@ public class FLACDecoder {
     }
     
     /**
-     * Return the input but stream.
+     * Return the input bit stream.
      * @return  The bit stream
      */
     public BitInputStream getBitInputStream() {
         return bitStream;
+    }
+    
+    /**
+     * Return the input stream.
+     * @return  The input stream
+     */
+    public InputStream getInputStream() {
+        return inputStream;
     }
     
     /**
@@ -160,9 +168,18 @@ public class FLACDecoder {
         pcmProcessors.removePCMProcessor(processor);
     }
     
-    private void callPCMProcessors(Frame frame) {
+    /**
+     * return length of metadata, so can be considered as first frame offset
+     * @return
+     */
+    public long getMetadataLength() {
+    	return metadataLength;
+    }
+    
+    private boolean callPCMProcessors(Frame frame) {
     	ByteData bd = decodeFrame(frame, null);
         pcmProcessors.processPCM(bd);
+        return pcmProcessors.isCanceled() == false;
     }
     
     /**
@@ -226,13 +243,15 @@ public class FLACDecoder {
      */
     public Metadata[] readMetadata() throws IOException {
         readStreamSync();
-        Vector metadataList = new Vector();
+        Vector<Metadata> metadataList = new Vector<Metadata>();
+        metadataLength = 0;
         Metadata metadata;
         do {
             metadata = readNextMetadata();
             metadataList.add(metadata);
+            metadataLength += metadata.getLength();
         } while (!metadata.isLast());
-        return (Metadata[])metadataList.toArray(new Metadata[0]);
+        return metadataList.toArray(new Metadata[metadataList.size()]);
     }
     
     /**
@@ -243,13 +262,14 @@ public class FLACDecoder {
      */
     public Metadata[] readMetadata(StreamInfo streamInfo) throws IOException {
         if (streamInfo.isLast()) return new Metadata[0];
-        Vector metadataList = new Vector();
+        Vector<Metadata> metadataList = new Vector<Metadata>();
+        metadataLength = 0;
         Metadata metadata;
         do {
             metadata = readNextMetadata();
             metadataList.add(metadata);
         } while (!metadata.isLast());
-        return (Metadata[])metadataList.toArray(new Metadata[0]);
+        return metadataList.toArray(new Metadata[metadataList.size()]);
     }
     
     /**
@@ -334,8 +354,11 @@ public class FLACDecoder {
                 try {
                     readFrame();
                     frameListeners.processFrame(frame);
-                    callPCMProcessors(frame);
+                    if (!callPCMProcessors(frame))
+                    	throw new EOFException();
                 } catch (FrameDecodeException e) {
+                	if (__DEBUG)
+                		e.printStackTrace();
                     badFrames++;
                 }
                 //    break;
@@ -389,6 +412,252 @@ public class FLACDecoder {
         } catch (EOFException e) {
             eof = true;
         }
+    }
+    
+    private final static boolean __SEEK_DEBUG = false;
+    /** Seeks for sample and provide seek data
+     * 
+     * @param sampleOffset
+     * @return SeekPoint of best match
+     * @throws IOException 
+     */
+	public SeekPoint seek(long target_sample) throws IOException {
+		// Check if it can found using seek table first
+		if (inputStream instanceof RandomFileInputStream == false)
+			return null;
+		RandomFileInputStream rf = (RandomFileInputStream) inputStream;
+		long stream_length = ((RandomFileInputStream) inputStream).getLength();
+		int first_frame_offset = metadataLength;
+		long total_samples = streamInfo.getTotalSamples();
+		int min_blocksize = streamInfo.getMinBlockSize();
+		int max_blocksize = streamInfo.getMaxBlockSize();
+		int min_framesize = streamInfo.getMinFrameSize();
+		int max_framesize = streamInfo.getMaxFrameSize();
+		int channels = streamInfo.getChannels();
+		int bps = streamInfo.getBitsPerSample();
+
+		int approx_bytes_per_frame = 0;
+		/* We are just guessing here, but we want to guess high, not low. */
+		if (max_framesize > 0)
+			approx_bytes_per_frame = max_framesize;
+		/* Check if it's a known fixed-blocksize stream. */
+		else if (min_blocksize == max_blocksize && min_blocksize > 0)
+			approx_bytes_per_frame = min_blocksize * channels * bps / 8 + 64;
+		else
+			approx_bytes_per_frame = 4608 * channels * bps / 8 + 64;
+		if (__SEEK_DEBUG)
+			System.err.printf("Seek in ts:%d, mib:%d, mab:%d, mif: %d, maf:%d bpf: %d%n", total_samples, min_blocksize,
+					max_blocksize, min_framesize, max_framesize, approx_bytes_per_frame);
+		if (min_blocksize == 0)
+			min_blocksize = max_blocksize / 2;
+		if (min_framesize == 0)
+			min_framesize = max_framesize / 2;
+		/* Set an upper and lower bound on where in the stream we will search. */
+		int lower_bound = first_frame_offset;
+
+		long upper_bound;
+		/* Calc the upper_bound, beyond which we never want to seek. */
+		if (max_framesize > 0)
+			/* 128 for a possible ID3V1 tag, 2 for indexing differences */
+			upper_bound = stream_length - (max_framesize + 128 + 2);
+		else
+			upper_bound = stream_length - ((channels * bps * Constants.MAX_BLOCK_SIZE) / 8 + 128 + 2);
+
+		long pos = -1;
+		/* If there's no seek table, we need to use the metadata (if we
+		 * have it) and the filelength to estimate the position of the
+		 * frame with the correct sample.
+		 */
+		if (total_samples > 0) {
+			/* For max accuracy we should be using
+			 * (stream_length-first_frame_offset-1) in the divisor, but the
+			 * difference is trivial and (stream_length-first_frame_offset)
+			 * has no chance of underflow.
+			 */
+			pos = first_frame_offset + ((target_sample * (stream_length - first_frame_offset)) / total_samples)
+					- approx_bytes_per_frame;
+		}
+		/* If there's no seek table and total_samples is unknown, we
+		 * don't even bother trying to figure out a target, we just use
+		 * our current position.
+		 */
+		int i = 0;
+		boolean needs_seek = pos >= 0;
+		long this_frame_sample = 0, last_frame_sample = 0;
+		int this_block_size = 0;
+		int this_jump = 0, last_jump = 0;
+		long last_pos = pos;
+		int sample_skip = 0;
+		/// save current file position
+		long savedPos = rf.getPosition();
+		BitInputStream savedState = bitStream;
+		bitStream = new BitInputStream(rf);
+		Frame savedFrame = frame;
+		frame = new Frame();
+
+		while (true) {
+			/* Clip the position to the bounds, lower bound takes precedence. */
+			if (pos >= upper_bound) {
+				pos = upper_bound - 1;
+				needs_seek = true;
+			}
+			if (pos < lower_bound) {
+				pos = lower_bound;
+				needs_seek = true;
+			}
+
+			if (needs_seek) {
+				bitStream.reset();
+				rf.seek(pos);
+				needs_seek = false;
+				i++;
+			}
+
+			/* Now we need to get a frame.  It is possible for our seek
+			 * to land in the middle of audio data that looks exactly like
+			 * a frame header from a future version of an encoder.  When
+			 * that happens, frame_sync() will return false.
+			 * But there is a remote possibility that it is properly
+			 * synced at such a "future-codec frame", so to make sure,
+			 * we wait to see several "unparseable" errors in a row before
+			 * bailing out.
+			 */
+			boolean got_a_frame = false;
+			for (int unparseable_count = 0; unparseable_count < 20; unparseable_count++) {
+				try {
+					findFrameSync();
+					readFrame();
+					got_a_frame = true;
+					break;
+				} catch (Exception e) {
+					if (__SEEK_DEBUG)
+						System.err.printf("iter %d (%s%n", unparseable_count, e);
+				}
+			}
+			if (!got_a_frame) {
+				restoreState(savedPos, savedState, savedFrame);
+				return null;
+			}
+
+			/* Break out if seeking somehow got caught in a loop. */
+			if (i >= 30) {
+				if (__SEEK_DEBUG)
+					System.err.printf("Nothing found after 30 iters ps %d%n", pos);
+				//restoreState(savedPos, savedState, savedFrame);
+				//return null;
+				break;
+			}
+			this_frame_sample = frame.header.sampleNumber;
+			this_block_size = frame.header.blockSize;
+
+			if (target_sample >= this_frame_sample && target_sample < this_frame_sample + this_block_size) {
+				/* Found the frame containing the target sample. */
+				sample_skip = (int) (target_sample - this_frame_sample);
+				break;
+			} else if (target_sample < this_frame_sample) {
+				if (this_frame_sample - target_sample <= this_block_size * 10) {
+					/* Target is no more than 10 frames back,
+					 * seek backwards a frame at a time.
+					 */
+					if (__SEEK_DEBUG)
+						System.err.printf("Look back few frames %d to %d%n", approx_bytes_per_frame, target_sample);
+					if (this_frame_sample == last_frame_sample && pos < last_pos) {
+						/* Our last move backwards wasn't big enough, double it. */
+						pos -= (last_pos - pos);
+					} else {
+						last_pos = pos;
+						pos -= approx_bytes_per_frame; // framesize
+					}
+				} else {
+					/* Target may be more than 10 frames back,
+					 * calculated new seek position.
+					 */
+					last_pos = pos;
+					long min_bytes_to_frame = ((this_frame_sample - target_sample + min_blocksize - 1) / min_blocksize)
+							* min_framesize;
+					long max_bytes_to_frame = ((this_frame_sample - target_sample + max_blocksize - 1) / max_blocksize)
+							* max_framesize;
+					long delta = this_frame_sample - last_frame_sample;
+					if (last_frame_sample > 0 && last_jump > 0 && delta != 0) {
+						this_jump = (int) (last_jump * (this_frame_sample - target_sample) / delta);
+						if (this_jump < 0)
+							this_jump = -this_jump;
+					} else if (delta == 0)
+						this_jump = last_jump + last_jump / 2;
+					else
+						this_jump = (int) ((min_bytes_to_frame + max_bytes_to_frame) / 2);
+
+					if (last_jump > 0 && this_jump >= last_jump)
+						this_jump = last_jump - approx_bytes_per_frame;
+					pos = rf.getPosition() - this_jump;
+					last_jump = this_jump;
+				}
+				if (__SEEK_DEBUG)
+					System.err.printf("Jump backward samples %d for %d to %d%n", this_frame_sample - target_sample,
+							this_jump, target_sample);
+				needs_seek = true;
+			} else if (target_sample > this_frame_sample) {
+				last_pos = pos;
+				if (target_sample - this_frame_sample <= min_blocksize * 10) {
+					if (__SEEK_DEBUG)
+						System.err.printf("Keep reading for %d%n", min_blocksize * 10);
+					/* Target is no more than 10 frames ahead,
+					 * seek forwards a frame at a time.
+					 */
+
+					pos = rf.getPosition();
+					//needs_seek = true;
+					// just keep reading
+					/* If we haven't hit the target frame yet and our position
+					 * hasn't changed, it means we're at the end of the stream
+					 * and the seek target does not exist.
+					 */
+				} else {
+					/* Target may be more than 10 frames ahead,
+					 * calculated new seek position.
+					 */
+
+					long min_bytes_to_frame = ((target_sample - this_frame_sample + max_blocksize - 1) / max_blocksize)
+							* min_framesize;
+					long max_bytes_to_frame = ((target_sample - this_frame_sample + min_blocksize - 1) / min_blocksize)
+							* max_framesize;
+					long delta = this_frame_sample - last_frame_sample;
+					//System.err.printf("del %d, thi %d, las %d lasj %d%n", delta, this_frame_sample,
+					//	last_frame_sample, last_jump);
+					if (last_frame_sample > 0 && last_jump > 0 && delta != 0) {
+						this_jump = (int) (last_jump * (this_frame_sample - target_sample) / delta);
+						if (this_jump < 0)
+							this_jump = -this_jump;
+					} else
+						this_jump = (int) ((min_bytes_to_frame + max_bytes_to_frame) / 2);
+
+					if (last_jump > 0 && this_jump >= last_jump)
+						this_jump = last_jump - approx_bytes_per_frame;
+					pos = rf.getPosition() + this_jump;
+					if (__SEEK_DEBUG)
+						System.err.printf("Need a jump forward samples  %d for %d to %d%n", target_sample
+							- this_frame_sample, this_jump, target_sample);
+					last_jump = this_jump;
+					needs_seek = true;
+				}
+			}
+			last_frame_sample = this_frame_sample;
+		}
+		if (__SEEK_DEBUG)
+			System.err.printf("Completed in %d%n", i);
+		return new SeekPoint(target_sample - sample_skip, last_pos, sample_skip);
+	}
+    
+    private void restoreState(long savedPos, BitInputStream savedState, Frame savedFrame) {
+    	if (inputStream instanceof RandomFileInputStream == false)
+			return;
+    	try {
+			((RandomFileInputStream)inputStream).seek(savedPos);
+			bitStream = savedState;
+	    	frame = savedFrame;
+		} catch (IOException e) {
+			//e.printStackTrace();
+		}
     }
     
     /**
@@ -498,6 +767,8 @@ public class FLACDecoder {
                     readFrame();
                     return frame;
                 } catch (FrameDecodeException e) {
+                	//e.printStackTrace();
+                	//System.err.print("Error "+e+" at sample "+samplesDecoded+" of "+streamInfo.getTotalSamples());
                     badFrames++;
                 }
                 //break;
@@ -539,9 +810,7 @@ public class FLACDecoder {
     private void allocateOutput(int size, int channels) {
         if (size <= outputCapacity && channels <= outputChannels) return;
         
-        for (int i = 0; i < Constants.MAX_CHANNELS; i++) {
-            channelData[i] = null;
-        }
+        Arrays.fill(channelData, null);
         
         for (int i = 0; i < channels; i++) {
             channelData[i] = new ChannelData(size);
@@ -590,9 +859,11 @@ public class FLACDecoder {
         int length = bitStream.readRawUInt(Metadata.STREAM_METADATA_LENGTH_LEN);
         
         if (type == Metadata.METADATA_TYPE_STREAMINFO) {
-            streamInfo = new StreamInfo(bitStream, length, isLast);
-            metadata = streamInfo;
-            pcmProcessors.processStreamInfo((StreamInfo)metadata);
+        	metadata = new StreamInfo(bitStream, length, isLast);
+        	if (((StreamInfo)metadata).getTotalSamples() > 0) {
+        		streamInfo = (StreamInfo)metadata;
+        		pcmProcessors.processStreamInfo(streamInfo);
+        	}
         } else if (type == Metadata.METADATA_TYPE_SEEKTABLE) {
             metadata = new SeekTable(bitStream, length, isLast);
         } else if (type == Metadata.METADATA_TYPE_APPLICATION) {
@@ -639,7 +910,7 @@ public class FLACDecoder {
         
         // If we know the total number of samples in the stream, stop if we've read that many.
         // This will stop us, for example, from wasting time trying to sync on an ID3V1 tag.
-        if (streamInfo != null && (streamInfo.getTotalSamples() != 0)) {
+        if (streamInfo != null && (streamInfo.getTotalSamples() > 0)) {
             if (samplesDecoded >= streamInfo.getTotalSamples()) {
                 //state = DECODER_END_OF_STREAM;
                 return;
@@ -684,7 +955,6 @@ public class FLACDecoder {
      * @throws FrameDecodeException On frame decoding error
      */
     public void readFrame() throws IOException, FrameDecodeException {
-        boolean gotAFrame = false;
         int channel;
         int i;
         int mid, side, left, right;
@@ -701,7 +971,7 @@ public class FLACDecoder {
             frame.header = new Header(bitStream, headerWarmup, streamInfo);
         } catch (BadHeaderException e) {
             frameListeners.processError("Found bad header: " + e);
-            throw new FrameDecodeException("Bad Frame Header: " + e);
+            throw new FrameDecodeException("Bad Frame Header: " + e, e);
         }
         //if (state == DECODER_SEARCH_FOR_FRAME_SYNC) return false;
         allocateOutput(frame.header.blockSize, frame.header.channels);
@@ -770,8 +1040,6 @@ public class FLACDecoder {
             default :
                 break;
             }
-            
-            gotAFrame = true;
         } else {
             // Bad frame, emit error and zero the output signal
             frameListeners.processError("CRC Error: " + Integer.toHexString((frameCRC & 0xffff)) + " vs " + Integer.toHexString((frame.getCRC() & 0xffff)));
@@ -858,6 +1126,11 @@ public class FLACDecoder {
     public long getSamplesDecoded() {
         return samplesDecoded;
     }
+    
+    public void setSamplesDecoded(long samples) {
+        samplesDecoded = samples;
+    }
+    
     /**
      * @return Returns the number of bad frames decoded.
      */
@@ -870,4 +1143,6 @@ public class FLACDecoder {
     public boolean isEOF() {
         return eof;
     }
+    
+    static final boolean __DEBUG = false;
 }

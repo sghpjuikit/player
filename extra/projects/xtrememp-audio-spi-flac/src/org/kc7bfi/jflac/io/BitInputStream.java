@@ -382,10 +382,10 @@ public class BitInputStream {
      * @throws IOException  Thrown if error reading input stream
      */
     public void readByteBlockAlignedNoCRC(byte[] val, int nvals) throws IOException {
-        int destlength = nvals;
+        int destlength = nvals;        
         while (nvals > 0) {
             int chunk = Math.min(nvals, putByte - getByte);
-            if (chunk == 0) {
+            if (chunk <= 0) {
                 readFromStream();
             } else {
                 if (val != null) System.arraycopy(buffer, getByte, val, destlength - nvals, chunk);
@@ -625,7 +625,7 @@ public class BitInputStream {
      * @throws IOException  Thrown if error reading input stream
      */
     public int readUTF8Int(ByteData raw) throws IOException {
-        int val;
+ 
         int v = 0;
         int x;
         int i;
@@ -650,14 +650,12 @@ public class BitInputStream {
             v = x & 0x01;
             i = 5;
         } else {
-            val = 0xffffffff;
-            return val;
+            return 0xffffffff;
         }
         for (; i > 0; i--) {
             x = peekRawUInt(8);
             if (((x & 0x80) == 0) || ((x & 0x40) != 0)) { // 10xxxxxx
-                val = 0xffffffff;
-                return val;
+                return 0xffffffff;
             }
             x = readRawUInt(8);
             if (raw != null)
@@ -665,8 +663,7 @@ public class BitInputStream {
             v <<= 6;
             v |= (x & 0x3F);
         }
-        val = v;
-        return val;
+        return v;
     }
     
     /**
@@ -681,7 +678,6 @@ public class BitInputStream {
         long v = 0;
         int x;
         int i;
-        long val;
         x = readRawUInt(8);
         if (raw != null)
             raw.append((byte) x);
@@ -707,14 +703,12 @@ public class BitInputStream {
             v = 0;
             i = 6;
         } else {
-            val = 0xffffffffffffffffL;
-            return val;
+            return 0xffffffffffffffffL;
         }
         for (; i > 0; i--) {
             x = peekRawUInt(8);
             if (((x & 0x80) == 0) || ((x & 0x40) != 0)) { // 10xxxxxx
-                val = 0xffffffffffffffffL;
-                return val;
+                return 0xffffffffffffffffL;
             }
             x = readRawUInt(8);
             if (raw != null)
@@ -722,8 +716,7 @@ public class BitInputStream {
             v <<= 6;
             v |= (x & 0x3F);
         }
-        val = v;
-        return val;
+        return v;
     }
     
     /**

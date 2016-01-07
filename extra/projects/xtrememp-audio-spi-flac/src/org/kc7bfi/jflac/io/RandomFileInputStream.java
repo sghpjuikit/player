@@ -63,8 +63,7 @@ public class RandomFileInputStream extends InputStream {
      * @see java.io.InputStream#reset()
      */
     public synchronized void reset() {
-        /** TODO */
-        System.out.println("RandomFileInputStream: reset");
+        throw new UnsupportedOperationException("reset");
     }
     
     /**
@@ -74,6 +73,15 @@ public class RandomFileInputStream extends InputStream {
      */
     public void close() throws IOException {
         randomFile.close();
+    }
+    
+    /** returns length of underline file
+     * 
+     * @return length of file
+     * @throws IOException
+     */
+    public long getLength() throws IOException {
+    	return randomFile.length();
     }
     
     /**
@@ -137,5 +145,14 @@ public class RandomFileInputStream extends InputStream {
      */
     public void seek(long pos) throws IOException {
         randomFile.seek(pos);
+    }
+    
+    /** returns current read position in file
+     * 
+     * @return
+     * @throws IOException
+     */
+    public long getPosition() throws IOException {
+    	return randomFile.getFilePointer();
     }
 }

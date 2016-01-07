@@ -83,7 +83,7 @@ public class Header {
         rawHeader.append(headerWarmup[1]);
         
         // check to make sure that the reserved bits are 0
-        if ((rawHeader.getData(1) & 0x03) != 0) { // MAGIC NUMBER
+        if ((rawHeader.getData(1) & 0x02) != 0) { // MAGIC NUMBER
             throw new BadHeaderException("Bad Magic Number: " + (rawHeader.getData(1) & 0xff));
         }
         
@@ -94,6 +94,7 @@ public class Header {
         // read in the raw header as bytes so we can CRC it, and parse it on the way
         for (int i = 0; i < 2; i++) {
             if (is.peekRawUInt(8) == 0xff) { // MAGIC NUMBER for the first 8 frame sync bits
+            	is.readRawUInt(8); // move ff
                 throw new BadHeaderException("Found sync byte");
             }
             rawHeader.append((byte) is.readRawUInt(8));
@@ -140,11 +141,16 @@ public class Header {
                 if (streamInfo == null)
                     throw new BadHeaderException("Bad Sample Rate (0)");
                 sampleRate = streamInfo.getSampleRate();
-                break;
+                break; // throw new BadHeaderException("Bad Sample Rate (" + srType + ")");
             case 1 :
+                sampleRate = 88200;
+                break;
             case 2 :
+                sampleRate = 176400;
+                break;
             case 3 :
-                throw new BadHeaderException("Bad Sample Rate (" + srType + ")");
+                sampleRate = 192000;
+                break;               
             case 4 :
                 sampleRate = 8000;
                 break;
@@ -241,11 +247,11 @@ public class Header {
                 throw new BadHeaderException("Bad Sample Number");
             }
         } else {
-            int lastFrameNumber = is.readUTF8Int(rawHeader);
-            if (lastFrameNumber == 0xffffffff) { // i.e. non-UTF8 code...
+        	frameNumber = is.readUTF8Int(rawHeader);
+            if (frameNumber == 0xffffffff) { // i.e. non-UTF8 code...
                 throw new BadHeaderException("Bad Last Frame");
             }
-            sampleNumber = (long) streamInfo.getMinBlockSize() * (long) lastFrameNumber;
+            sampleNumber = (long) streamInfo.getMinBlockSize() * (long) frameNumber;
         }
         
         if (blocksizeHint != 0) {

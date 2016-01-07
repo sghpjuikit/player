@@ -42,7 +42,7 @@ public class SeekTable extends Metadata {
      * @throws IOException      Thrown if error reading from InputBitStream
      */
     public SeekTable(BitInputStream is, int length, boolean isLast) throws IOException {
-        super(isLast);
+        super(isLast, length);
         int numPoints = length / SEEKPOINT_LENGTH_BYTES;
 
         points = new SeekPoint[numPoints];
@@ -61,7 +61,7 @@ public class SeekTable extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      */
     public SeekTable(SeekPoint[] points, boolean isLast) {
-        super(isLast);
+        super(isLast, -1);
         this.points = points;
     }
     
@@ -100,6 +100,17 @@ public class SeekTable extends Metadata {
     public SeekPoint getSeekPoint(int idx) {
         if (idx < 0 || idx >= points.length) return null;
         return points[idx];
+    }
+    
+    public SeekPoint seekSeekPoint(long sampleNumber) {
+    	for(int idx=0; idx<points.length; idx++) {
+    		if(points[idx].sampleNumber > sampleNumber) {
+    			if (idx > 0)
+    				return points[idx-1];
+    			return points[idx];
+    		}
+    	}
+    	return null;
     }
     
     /**

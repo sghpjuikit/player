@@ -28,12 +28,17 @@ public abstract class Channel {
 
     /** Partisioned Rice Encoding Method. */
     public static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0;
+
+    /** partitioned Rice coding with 5-bit Rice parameter */
+    public static final int RESIDUAL_CODING_METHOD_PARTITIONED_RICE2 = 1;
     
     /** The size of the encoding method field (in bits). */
     public static final int ENTROPY_CODING_METHOD_TYPE_LEN = 2;
     
     /** The size of the Rice Order field (in bits). */
     public static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN = 4;
+
+    public static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ORDER_LEN = 5;
 
     /** The FLAC Frame Header. */
     protected Header header;

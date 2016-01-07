@@ -21,6 +21,9 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 
 import AudioPlayer.Item;
@@ -55,10 +58,12 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
 import static util.File.FileUtil.writeFile;
@@ -284,6 +289,28 @@ public class Converter extends ClassController implements SongWriter {
                     e -> setData(unpackData(DragUtil.getAny(e)))
                 );
             }
+
+            TextArea area = util.Util.getFieldValue(this, TextArea.class, "area");
+            area.addEventHandler(KEY_PRESSED, e -> {
+            if(e.getCode()==KeyCode.V && e.isControlDown()) {
+                String pasted_text = Clipboard.getSystemClipboard().getString();
+                if(pasted_text!=null) {
+                    String[] arealines = area.getText().split("\\n");
+                    String[] pastedlines = pasted_text.split("\\n");
+                    String text;
+                    int min = min(arealines.length,pastedlines.length);
+                    int max = max(arealines.length,pastedlines.length);
+                    if(min==max) {
+                        text = streamBi(arealines,pastedlines, (a,p) -> a+p).collect(joining("\n"));
+                    } else {
+                        text = "";
+                    }
+                    area.setText(text);
+                }
+                e.consume();
+            }
+        });
+
 
             setData(name, EMPTY_LIST);
         }

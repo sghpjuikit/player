@@ -1,7 +1,7 @@
 /**
  * Xtreme Media Player a cross-platform media player.
  * Copyright (C) 2005-2011 Besmir Beqiri
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -55,6 +55,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import javafx.util.Duration;
 
+import org.kc7bfi.jflac.sound.spi.FlacAudioFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tritonus.share.sampled.TAudioFormat;
@@ -74,7 +75,7 @@ import static util.dev.TODO.Purpose.BUG;
 public class AudioPlayer implements Callable<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AudioPlayer.class);
-    
+
     protected final int READ_BUFFER_SIZE = 4 * 1024;
     protected final Lock lock = new ReentrantLock();
     protected final Condition pauseCondition = lock.newCondition();
@@ -138,7 +139,7 @@ public class AudioPlayer implements Callable<Void> {
 
     protected void notifyEvent(Playback state, Map properties) {
         for (PlaybackListener listener : listeners) {
-            PlaybackEventLauncher launcher = new PlaybackEventLauncher(this, 
+            PlaybackEventLauncher launcher = new PlaybackEventLauncher(this,
                     state, getPosition() - oldPosition, properties, listener);
             launcher.start();
         }
@@ -175,7 +176,7 @@ public class AudioPlayer implements Callable<Void> {
     /**
      * Open URL to play.
      * @param url
-     * @throws PlayerException 
+     * @throws PlayerException
      */
     public void open(URL url) throws PlayerException {
         if (url != null) {
@@ -248,6 +249,7 @@ public class AudioPlayer implements Callable<Void> {
                 } else {
                     properties = new HashMap<String, Object>();
                 }
+
                 // Add JavaSound properties.
                 if (audioFileFormat.getByteLength() > 0) {
                     properties.put("audio.length.bytes", new Integer(audioFileFormat.getByteLength()));
@@ -278,6 +280,10 @@ public class AudioPlayer implements Callable<Void> {
                 if (audioFormat instanceof TAudioFormat) {
                     // Tritonus SPI compliant audio format.
                     properties.putAll(((TAudioFormat) audioFormat).properties());
+                }
+                if (audioFormat instanceof FlacAudioFormat) {
+                    // Tritonus SPI compliant audio format.
+                    properties.putAll(((FlacAudioFormat) audioFormat).properties());
                 }
                 for (String key : properties.keySet()) {
                     LOGGER.info("Audio Format Properties: {} = {}", key, properties.get(key));
@@ -374,7 +380,7 @@ public class AudioPlayer implements Callable<Void> {
                 if (sourceDataLine.isControlSupported(FloatControl.Type.PAN)) {
                     panControl = (FloatControl) sourceDataLine.getControl(FloatControl.Type.PAN);
                 }
-                
+
                 sourceDataLine.start();
                 state = INIT;
                 future = execService.submit(this);
@@ -546,7 +552,7 @@ public class AudioPlayer implements Callable<Void> {
             gainControl.setValue(n);
         }
     }
-    
+
     /**
      * Sets Gain value.
      * @param gain a value bitween -1.0 and +1.0
@@ -564,7 +570,7 @@ public class AudioPlayer implements Callable<Void> {
 //            throw new PlayerException("Gain control not supported");
         }
     }
-    
+
     public void setBalance(double gain) {
         if (balanceControl != null) {
             balanceControl.setValue((float)gain);
@@ -572,7 +578,7 @@ public class AudioPlayer implements Callable<Void> {
 //            throw new PlayerException("Pan control not supported");
         }
     }
-    
+
     /**
      * Sets Pan value.
      * @param pan a value bitween -1.0 and +1.0
@@ -743,14 +749,13 @@ public class AudioPlayer implements Callable<Void> {
             notifyEvent(Playback.STOPPED);
         }
     }
-    
+
     public void seek(Duration d) {
         int bytelen = getByteLength();
         double total = getDuration();
         double tobe = d.toMillis()*1000/total;
         double is = (getPosition())/total;
                is = PLAYBACK.state.currentTime.get().toMillis()/PLAYBACK.state.duration.get().toMillis();
-                                                                            System.out.println(tobe + " " + is + " " + (tobe-is));
         try {
             seek((long)(tobe*bytelen),(long)((tobe-is)*bytelen));
         } catch (PlayerException ex) {
@@ -758,16 +763,19 @@ public class AudioPlayer implements Callable<Void> {
         }
     }
 
-    private long seek(long to, long by) throws PlayerException {long pos = getPosition();
+    private long seek(long to, long by) throws PlayerException {
+        long pos = getPosition();
         long skipped = 0;
         if (audioSource instanceof File) {
             int bytesLength = getByteLength();
-                                                                                    System.out.println(bytesLength + " " + to + " " + by);
+            LOGGER.info("Seeking attempt: to: {} by: {} total: {}", to,by,bytesLength);
+
             if ((bytesLength <= 0) || (to >= bytesLength)) {
                 notifyEvent(Playback.EOM);
+                LOGGER.info("Seeking - invalif seek position. Pos: {} total: {}", to,bytesLength);
                 return skipped;
             }
-            LOGGER.info("Bytes to skip: {}", to);
+
             oldPosition = getPosition();
             int oldState = state;
             if (state == PLAY) {
@@ -779,7 +787,7 @@ public class AudioPlayer implements Callable<Void> {
                 skipped = doSeek(to,by);
                 oldPosition = getPosition();
                 if (skipped == -1) throw new PlayerException("Seek not supported");
-                LOGGER.info("Skipped bytes: {}/{}", skipped, to);
+                LOGGER.info("Seeking: skipped bytes: {}/{}", skipped, to);
             } catch (IOException ex) {
                 throw new PlayerException(ex);
             } finally {
@@ -788,17 +796,25 @@ public class AudioPlayer implements Callable<Void> {
             if (oldState == PLAY) {
                 play();
             }
-        }System.out.println("POS CHANGED BY " + ((getPosition()-pos)/1000) + "ms");
+        }
+        System.out.println("POS CHANGED BY " + ((getPosition()-pos)/1000) + "ms");
         return skipped;
     }
-    
+
     private long doSeek(long to, long by) throws IOException, PlayerException {
         if(audioInputStream==null)
             return 0;
-        
-        if(by>0) {
-            return audioInputStream.skip(by);
-        } else {
+
+        // To explain, stream supports 'seeking' forward only, using skip().
+        // To seek backwards it needs to support marking, which allows reseting to 0
+        // and then skipping  to where we wanted
+        boolean isForward = by > 0;
+//        if(isForward) {
+//            // Unfortunately this is bugged - skips 0. Disabled for now.
+//            return audioInputStream.skip(by);
+//        } else {
+            // This impl. performs very badly even for single seek. Concecutive seeking is big fail.
+            System.out.println("seekin debug: is mark supported: " + audioInputStream.markSupported());
             if(audioInputStream.markSupported()) {
                 audioInputStream.reset();
                 return audioInputStream.skip(to);
@@ -808,7 +824,7 @@ public class AudioPlayer implements Callable<Void> {
                 initSourceDataLine();
                 return skipped;
             }
-        }
+//        }
     }
 
     @TODO(purpose = BUG)

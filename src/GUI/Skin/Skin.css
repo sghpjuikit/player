@@ -3176,7 +3176,7 @@
  ******************************************************************************/
 
 
-//*********************************** ICONS **********************************//
+/************************************ ICONS ***********************************/
 
 /** 
  * Icon
@@ -3198,8 +3198,8 @@
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .icon:disabled {
-    // we want to support disabled state, this should be consistent with other
-    // components' disaled styles
+    /* we want to support disabled state, this should be consistent with other
+       components' disaled styles */
     -fx-opacity: 0.4;
 }
 
@@ -3210,7 +3210,7 @@
 .embedded-icon {
 }
 .embedded-icon:disabled {
-   -fx-opacity: 1;  // this is a bugfix to apply disabled state properly
+   -fx-opacity: 1;  /* this is a bugfix to apply disabled state properly */
 }
 
 /** 
@@ -3257,8 +3257,8 @@
 /* Default headers style. Unrelated headers might use this class. Each of them
   should also have its own class defined in addition to this one. */
 .header {
-    // bug causing artefacts on bgr color of nodes in header may appear, in such
-    // case emulate rgba(x,x,x,a) color manualy using rgb(x,x,x) and opacity
+    /* bug causing artefacts on bgr color of nodes in header may appear, in such
+       case emulate rgba(x,x,x,a) color manualy using rgb(x,x,x) and opacity */
 }
 
 /************************************ WINDOW ***********************************
@@ -3280,10 +3280,12 @@
 .window:fullscreen {
 }
 
-// empty layer right above background for brg-image. It is possible to use more
-// complex backgrounds by specifying both .background and .bgr-image while using
-// sub 1 opacity
-// an example would be a slight image overlay over background
+/* 
+ * Empty layer right above background for brg-image. It is possible to use more
+ * complex backgrounds by specifying both .background and .bgr-image while using
+ * sub 1 opacity
+ * an example would be a slight image overlay over background
+ */
 .window > .bgr-image {
     -fx-opacity:1;
     // do not provide any image by default
@@ -3872,13 +3874,17 @@
 // various content.
 // inherits: .stack-pane
 .overlay-pane {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: rgba(0,0,0,0.3);
 }
 // Pane for content, doesnt cover all space, sort of inner box.
 // inherits: .stack-pane
 .overlay-pane-content {
-    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-background-color: rgba(0,20,30,0.1);
+    -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
     -fx-background-radius: 15;
+    -fx-border-color: -fx-def-font-color;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 15;
     -fx-padding: 15;
 }
 

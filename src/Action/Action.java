@@ -285,14 +285,14 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void registerInApp() {
-        if (!App.isInitialized()) return;
+        if (!APP.initialized) return;
 
         KeyCombination k = getKeysForLocalRegistering();
         // register for each window separately
         Window.WINDOWS.forEach(w -> w.getStage().getScene().getAccelerators().put(k,this));
     }
     private void unregisterInApp() {
-        if (!App.isInitialized()) return;
+        if (!APP.initialized) return;
 
         KeyCombination k = getKeysForLocalRegistering();
         // unregister for each window separately
@@ -304,7 +304,7 @@ public final class Action extends Config<Action> implements Runnable {
         s.getAccelerators().remove(getKeysForLocalRegistering());
     }
     public void registerInScene(Scene s) {
-        if (!App.isInitialized()) return;
+        if (!APP.initialized) return;
         s.getAccelerators().put(getKeysForLocalRegistering(),this);
     }
 

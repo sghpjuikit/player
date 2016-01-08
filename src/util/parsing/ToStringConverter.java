@@ -8,14 +8,15 @@ package util.parsing;
 
 /**
  * Object to String converter.
- * 
+ *
  * @author Plutonium_
  */
 @FunctionalInterface
 public interface ToStringConverter<T> {
-    
-    /** 
-     * Converts object into String.
+
+    /**
+     * Converts object into string.
+     *
      * @return String the object has been converted.
      */
     String toS(T object);

@@ -167,7 +167,7 @@ public interface Configurable<T> {
      * Safe set method.
      * Sets value of config with given name if it exists, parsing the text input.
      * <p>
-     * No exception equivalent to: return getField(name).setValueS(value);
+     * Exception-free equivalent to: return getField(name).setValueS(value);
      * Use when deserializing.
 
      * @param name unique name of the field
@@ -183,7 +183,7 @@ public interface Configurable<T> {
         return configsOf(o.getClass(), o, false, true);
     }
 
-    public static Configurable configsFromFxPropertiesOf(Object o) {
+    public static Configurable<?> configsFromFxPropertiesOf(Object o) {
         List<Config<?>> cs = new ArrayList<>();
         forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forPropertyOfType(type,name,p)));
         return new ListConfigurable(cs);

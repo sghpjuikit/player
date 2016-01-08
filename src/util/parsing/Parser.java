@@ -18,13 +18,16 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javafx.scene.effect.Effect;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
+import Configuration.Configurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
+import util.SwitchException;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
 import util.parsing.StringParseStrategy.From;
@@ -32,6 +35,7 @@ import util.parsing.StringParseStrategy.To;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.stream.Collectors.joining;
 import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
@@ -140,6 +144,49 @@ public class Parser {
         registerConverter(LocalDateTime.class,toString,noEx(LocalDateTime::parse, DateTimeException.class));
         registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
+        registerConverter(Effect.class,
+            effect -> toFxConfigurableString(effect),
+            text -> fromFxConfigurableString(Effect.class, text)
+        );
+    }
+
+    private static final String DELIMITER_CONFIG_VALUE = "-";
+    private static final String DELIMITER_CONFIG_NAME = ":";
+    private static final String CONSTANT_NULL = "<NULL>";
+
+    private static String toFxConfigurableString(Object o) {
+        // improve performance by not creating any Config, premature optimization
+        return o.getClass().getName() + DELIMITER_CONFIG_VALUE +
+               Configurable.configsFromFxPropertiesOf(o).getFields().stream().map(c -> c.getName() + DELIMITER_CONFIG_NAME +c.getValueS())
+                           .collect(joining(DELIMITER_CONFIG_VALUE));
+    }
+
+    private static <V> V fromFxConfigurableString(Class<V> type, String text) {
+        // improve performance by not creating any Config/Configurable, premature optimization
+        try {
+            String[] vals = text.split(DELIMITER_CONFIG_VALUE);
+            Class<?> objecttype = Class.forName(vals[0]);
+            if(type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
+            V v = (V) objecttype.newInstance();
+            Configurable c = Configurable.configsFromFxPropertiesOf(v);
+            stream(vals).skip(1)
+                        .forEach(str -> {
+                            try {
+                                String[] nameval = str.split(DELIMITER_CONFIG_NAME);
+                                if(nameval.length!=2) return; // ignore
+                                String name = nameval[0], val = nameval[1];
+                                c.setField(name, val);
+                            } catch(Exception e){
+                                // If for whatever reason setting value fails, we move onto another
+                                // instead crashing whole object parsing and returning null. If we
+                                // cant parse everything properly, at least we return some instance.
+                            }
+                        });
+            return v;
+        } catch(Exception e) {
+            // e.printStackTrace(); // debug, in production we ignore unparsable values
+            return null;
+        }
     }
 
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
@@ -198,7 +245,7 @@ public class Parser {
     public static <T> T fromS(Class<T> c, String s) {
         noØ(c,"Parsing type must be specified!");
         noØ(s,"Parsing null not allowed!");
-        if(s.equals("<NULL>")) return null;
+        if(CONSTANT_NULL.equals(s)) return null;
         return getParserFromS(c).apply(s);
     }
 
@@ -212,7 +259,7 @@ public class Parser {
      * @throws NullPointerException if parameter null
      */
     public static <T> String toS(T o) {
-        if(o==null) return "<NULL>";
+        if(o==null) return CONSTANT_NULL;
         return getParserToS((Class<T>)o.getClass()).apply(o);
     }
 
@@ -235,12 +282,12 @@ public class Parser {
 
     /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<T,String> getParserToS(Class<T> c) {
-        return parsersToS.computeIfAbsent(c, ƈ -> noNull(buildTosParser(ƈ), errToP));
+        return parsersToS.computeIfAbsent(c, Parser::findToSparser);
     }
 
     /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
-        return parsersFromS.computeIfAbsent(c, ƈ -> noNull(buildFromsParser(ƈ), errFromP));
+        return parsersFromS.computeIfAbsent(c, Parser::findFromSparser);
     }
 
     public static String getError() {
@@ -248,6 +295,23 @@ public class Parser {
     }
 
 /******************************************************************************/
+
+    private static <T> Function<String,? super T> findFromSparser(Class<T> c) {
+        return (Function) noNull(
+            () -> parsersFromS.getElementOfSuper(c),
+            () -> buildFromsParser(c),
+            () -> errFromP
+        );
+    }
+
+    private static <T> Function<? super T,String> findToSparser(Class<T> c) {
+        return (Function) noNull(
+            () -> parsersToS.getElementOfSuper(c),
+            () -> buildTosParser(c),
+            () -> errToP
+        );
+    }
+
 
     private static <T> Function<String,T> buildFromsParser(Class<T> c) {
         Function<String,?> fromS = null;
@@ -274,6 +338,10 @@ public class Parser {
                 fromS = parserOfC(a, c);
             } else if (strategy==CONSTRUCTOR_STR) {
                 fromS = parserOfC(a, c, String.class);
+            } else if (strategy==From.FX) {
+                fromS = text -> fromFxConfigurableString(c, text);
+            } else {
+                throw new SwitchException(strategy);
             }
         }
 
@@ -289,6 +357,7 @@ public class Parser {
 
         return (Function)fromS;
     }
+
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
         Function<?,String> toS = null;
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
@@ -312,9 +381,12 @@ public class Parser {
                     }
                 };
                 toS = noExWrap(m, a, f);
-
             } else if (strategy==To.TO_STRING_METHOD) {
                 toS = toString;
+            } else if (strategy==To.FX) {
+                toS = Parser::toFxConfigurableString;
+            } else {
+                throw new SwitchException(strategy);
             }
         }
 

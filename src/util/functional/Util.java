@@ -223,8 +223,63 @@ public class Util {
             return out==null ? or : out;
         };
     }
-    public static <I> I noNull(I o, I or) {
-        return o==null ? or : o;
+
+    /** Faster alternative to {@link #noNull(java.lang.Object...) }. */
+    public static <O> O noNull(O o1, O o2) {
+        return o1!=null ? o1 : o2;
+    }
+
+    /** Faster alternative to {@link #noNull(java.lang.Object...) }. */
+    public static <O> O noNull(O o1, O o2, O o3) {
+        return o1!=null ? o1 : o2!=null ? o2 : o3;
+    }
+
+    /** Faster alternative to {@link #noNull(java.lang.Object...) }. */
+    public static <O> O noNull(O o1, O o2, O o3, O o4) {
+        return o1!=null ? o1 : o2!=null ? o2 : o3!=null ? o3 : o4;
+    }
+
+    /** Returns the first non null object or null if all null. */
+    public static <O> O noNull(O... objects) {
+        for(O o : objects)
+            if(o!=null) return o;
+        return null;
+    }
+
+    /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
+    public static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2) {
+        I i = supplier1.get();
+        if(i!=null) return i;
+        return supplier2.get();
+    }
+
+    /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
+    public static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
+        I i = supplier1.get();
+        if(i!=null) return i;
+        i = supplier2.get();
+        if(i!=null) return i;
+        return supplier3.get();
+    }
+
+    /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
+    public static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
+        I i = supplier1.get();
+        if(i!=null) return i;
+        i = supplier2.get();
+        if(i!=null) return i;
+        i = supplier3.get();
+        if(i!=null) return i;
+        return supplier4.get();
+    }
+
+    /** Returns the first supplied non null value or null if all null by iterating the suppliers. */
+    public static <I> I noNull(Supplier<I>... suppliers) {
+        for(Supplier<I> s : suppliers) {
+            I i = s.get();
+            if(i!=null) return i;
+        }
+        return null;
     }
 
     /** Equivalent to {@code noEx(f, null, ecs); }*/

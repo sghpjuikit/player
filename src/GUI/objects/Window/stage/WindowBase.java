@@ -86,7 +86,7 @@ public class WindowBase {
      * Doesnt affect content of the window.
      */
     public void update() {
-        s.setOpacity(Window.windowOpacity.getValue());
+        s.setOpacity(WindowManager.windowOpacity.getValue());
 
         s.setWidth(WProp.get());
         s.setHeight(HProp.get());

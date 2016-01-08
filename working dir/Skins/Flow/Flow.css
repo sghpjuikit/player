@@ -232,3 +232,16 @@
 .comet-rocket {
     -fx-effect: none;
 }
+
+.overlay-pane {
+    -fx-background-color: rgba(0,0,0,0.3);
+}
+.overlay-pane-content {
+    -fx-background-color: rgba(0,20,30,0.1);
+    -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
+    -fx-background-radius: 15;
+    -fx-border-color: -fx-def-font-color;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 15;
+    -fx-padding: 15;
+}

@@ -2,8 +2,8 @@
 package util.parsing;
 
 /**
- * String to Object bi-directional converter.
- * 
+ * String to Object bidirectional converter.
+ *
  * @param <T> type of object
  * @author Plutonium_
  */

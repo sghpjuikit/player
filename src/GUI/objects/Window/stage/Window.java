@@ -47,7 +47,6 @@ import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import main.App;
-import util.access.V;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
@@ -126,7 +125,7 @@ public class Window extends WindowBase {
      @return focused window or null if none focused.
      */
     public static Window getFocused() {
-	return find(WINDOWS, w->w.focused.get()).orElse(null);
+	return find(WINDOWS, w -> w.focused.get()).orElse(null);
     }
 
     /**
@@ -143,7 +142,7 @@ public class Window extends WindowBase {
      @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-	return find(WINDOWS, w->w.focused.get()).orElse(APP.window);
+	return find(WINDOWS, w -> w.focused.get()).orElse(APP.window);
     }
 
     private static double mouse_speed = 0;
@@ -159,19 +158,9 @@ public class Window extends WindowBase {
         mouse_y = y;
     });
 
-    static { mouse_pulse.start();}
-
-/******************************** Configs *************************************/
-
-    @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final V<Double> windowOpacity = new V<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
-
-    @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final V<Boolean> window_borderless = new V<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
-
-    @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final V<Boolean> window_headerless = new V<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
-
+    static {
+        mouse_pulse.start();
+    }
 
     /**
      @return new window or null if error occurs during initialization.
@@ -194,6 +183,11 @@ public class Window extends WindowBase {
         if(APP.window==null) w.setAsMain();
         WINDOWS.add(w); // add to list of active windows
         w.initialize();
+
+        // apply properties
+        w.getStage().setOpacity(WindowManager.windowOpacity.getValue());
+        w.back.setEffect(WindowManager.window_bgr_effect.get());
+
         return w;
     }
 
@@ -238,7 +232,6 @@ public class Window extends WindowBase {
     private void initialize() {
 	getStage().setScene(new Scene(root));
 	getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
-	getStage().setOpacity(windowOpacity.getValue());
 
 	// clip the content to its bounds to prevent leaking out
 	Rectangle mask = new Rectangle(1, 1, BLACK);

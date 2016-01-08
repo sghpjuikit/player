@@ -235,7 +235,7 @@ public class App extends Application implements Configurable {
      */
     public final RunnableSet onStop = new RunnableSet();
     public boolean normalLoad = true;
-    private boolean initialized = false;
+    public boolean initialized = false;
     public final ServiceManager services = new ServiceManager();
     public final WidgetManager widgetManager = new WidgetManager();
     public final PluginMap plugins = new PluginMap();
@@ -598,10 +598,6 @@ public class App extends Application implements Configurable {
 
         // process app parameters passed when app started
         parameterProcessor.process(fetchParameters());
-    }
-
-    public static boolean isInitialized() {
-        return App.APP.initialized;
     }
 
     /**

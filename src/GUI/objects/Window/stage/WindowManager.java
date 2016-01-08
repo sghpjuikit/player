@@ -14,6 +14,8 @@ import javafx.animation.Animation;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -36,6 +38,7 @@ import util.animation.Anim;
 import util.async.executor.FxTimer;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.objects.Window.stage.Window.WINDOWS;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -57,6 +60,22 @@ import static util.reactive.Util.maintain;
 @IsConfigurable("Window")
 @IsActionable
 public class WindowManager {
+
+    /**************************************** WINDOW SETTINGS *************************************/
+
+    @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
+    public static final V<Double> windowOpacity = new V<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
+
+    @IsConfig(name = "Borderless", info = "Hides borders.")
+    public static final V<Boolean> window_borderless = new V<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
+
+    @IsConfig(name = "Headerless", info = "Hides header.")
+    public static final V<Boolean> window_headerless = new V<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
+
+    @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
+    public static final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4), v -> WINDOWS.forEach(w -> w.back.setEffect(v)));
+
+
 
     public static final File FILE_MINIWINDOW = new File(APP.DIR_LAYOUTS, "mini-window.w");
 

@@ -21,7 +21,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
@@ -290,26 +289,26 @@ public class Converter extends ClassController implements SongWriter {
                 );
             }
 
-            TextArea area = util.Util.getFieldValue(this, TextArea.class, "area");
-            area.addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode()==KeyCode.V && e.isControlDown()) {
-                String pasted_text = Clipboard.getSystemClipboard().getString();
-                if(pasted_text!=null) {
-                    String[] arealines = area.getText().split("\\n");
-                    String[] pastedlines = pasted_text.split("\\n");
-                    String text;
-                    int min = min(arealines.length,pastedlines.length);
-                    int max = max(arealines.length,pastedlines.length);
-                    if(min==max) {
-                        text = streamBi(arealines,pastedlines, (a,p) -> a+p).collect(joining("\n"));
-                    } else {
-                        text = "";
+            textarea.addEventHandler(KEY_PRESSED, e -> {
+                if(e.getCode()==KeyCode.V && e.isControlDown()) {
+                    String pasted_text = Clipboard.getSystemClipboard().getString();
+                    if(pasted_text!=null) {
+                        String[] arealines = textarea.getText().split("\\n");
+                        String[] pastedlines = pasted_text.split("\\n");
+                        String text;
+                        int min = min(arealines.length,pastedlines.length);
+                        int max = max(arealines.length,pastedlines.length);
+                        if(min==max) {
+                            text = streamBi(arealines,pastedlines, (a,p) -> a+p).collect(joining("\n"));
+                        } else {
+                            // not implemented
+                            text = "";
+                        }
+                        textarea.setText(text);
                     }
-                    area.setText(text);
+                    e.consume();
                 }
-                e.consume();
-            }
-        });
+            });
 
 
             setData(name, EMPTY_LIST);

@@ -6,14 +6,17 @@
 package util.parsing;
 
 import java.lang.annotation.Documented;
-import static java.lang.annotation.ElementType.METHOD;
 import java.lang.annotation.Retention;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Target;
 
-/** Makes the method responsible for the parsing to String strategy. 
-    <p>
-    The method must be non static and return String. */
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * Annotates the method responsible for the parsing to String strategy.
+ * <p>
+ * The method must be non static and return String.
+ */
 @Documented
 @Retention(RUNTIME)
 @Target(METHOD)

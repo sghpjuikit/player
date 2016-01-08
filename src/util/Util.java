@@ -12,6 +12,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -620,15 +621,25 @@ public class Util {
 
     /**
      * Execute action for each observable value representing a javafx property of an object o.
-     * Additional provided arguments are name of the property and its generic type.
+     * Additional provided arguments are name of the property and its non-erased generic type.
+     * Javafx properties are obtained from public propertynameProperty() methods using reflection.
      */
     public static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
         for (Method method : getAllMethods(o.getClass())) {
-            if (method.getName().endsWith("Property")) {
+            String methodname = method.getName();
+            // We are looking for javafx property bean methods
+            // We must filter out nonpublic and impl (can be public) ones. Why? Real life example:
+            // Serialization serializes all javafx property bean values of an graphical object -
+            // effect. Upon deserialization a 'private' flag indicating redrawing is restored
+            // which prevents the effect from updating values upon change. Such flags are usually
+            // the implNameProperty methods and can be public due to reasons...
+            //
+            // In other words anyting non-public is not safe.
+            if (methodname.endsWith("Property") && !methodname.startsWith("impl") && Modifier.isPublic(method.getModifiers())) {
                 try {
                     Class<?> returnType = method.getReturnType();
                     if (ObservableValue.class.isAssignableFrom(returnType)) {
-                        String propertyName = method.getName().substring(0, method.getName().lastIndexOf("Property"));
+                        String propertyName = methodname.substring(0, methodname.lastIndexOf("Property"));
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());

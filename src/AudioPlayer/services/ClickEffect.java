@@ -22,7 +22,6 @@ import AudioPlayer.services.Service.ServiceBase;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.objects.Window.stage.Window;
-import main.App;
 import util.access.V;
 
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -56,7 +55,7 @@ public class ClickEffect extends ServiceBase {
     }
 
     private void apply() {
-        if(App.isInitialized())
+        if(APP.initialized)
         pool.forEach(Effect::apply);
     }
 

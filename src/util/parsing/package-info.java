@@ -4,5 +4,5 @@
  * and open the template in the editor.
  */
 
-/** This package provides String-Object converting facilities. */
+/** This package provides bidirectional String-Object converting facilities. */
 package util.parsing;

@@ -34,7 +34,6 @@ import Layout.container.layout.Layout;
 import action.IsAction;
 import action.IsActionable;
 import gui.objects.Window.stage.Window;
-import main.App;
 import util.File.FileMonitor;
 import util.File.FileUtil;
 import util.access.V;
@@ -201,7 +200,7 @@ public class GUI {
     /** Loads/refreshes whole gui. */
     @IsAction(name = "Reload GUI.", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
     public static void refresh() {
-        if (App.isInitialized()) {
+        if (APP.initialized) {
             skin.applyValue();
             font.applyValue();
             loadLayout();
@@ -472,7 +471,7 @@ public class GUI {
 
     private static void applyFont(Font f) {
         // apply only if application initialized correctly
-        if (App.isInitialized()) {
+        if (APP.initialized) {
             // we need to apply to each window separately
             Window.WINDOWS.forEach(w ->{
                 String tmp = f.getStyle().toLowerCase();

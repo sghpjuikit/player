@@ -20,7 +20,7 @@ import util.parsing.Parser;
 public class FileItemNode extends TextFieldItemNode<File> {
 
     public FileItemNode() {
-        super(Parser.toConverter(File.class));
+        super(Parser.DEFAULT.toConverter(File.class));
     }
 
     @Override

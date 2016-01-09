@@ -215,7 +215,7 @@ public final class AreaControls {
 	BooleanProperty inside = new SimpleBooleanProperty(false);
 	// monitor mouse movement (as filter)
 	EventSource<MouseEvent> showS = new EventSource();
-        Pane p = area instanceof WidgetArea ? ((WidgetArea)area).content_padding : area.root;
+        Pane p = area.content_padding;
 	p.addEventFilter(MOUSE_MOVED, showS::push);
 	p.addEventFilter(MOUSE_ENTERED, showS::push);
 	p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));

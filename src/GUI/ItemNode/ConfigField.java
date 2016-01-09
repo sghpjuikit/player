@@ -466,7 +466,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private void showWarnButton(boolean val) {
             n.setRight(val ? warnB : null);
             warnB.setVisible(val);
-            if(val) warnTooltip.setText(Parser.getError());
+            if(val) warnTooltip.setText(Parser.DEFAULT.getError());
         }
 
     }

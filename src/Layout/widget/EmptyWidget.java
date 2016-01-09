@@ -57,7 +57,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
 
     /** This implementation is no-op */
     @Override
-    public void refresh() { }
+    public void refresh() {}
 
     @Override
     public EmptyWidget getWidget() {
@@ -83,6 +83,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
         return EMPTY_MAP;
     }
 
+    @Override
     protected Object readResolve() throws ObjectStreamException {
         root = new Region();
         controller = this;

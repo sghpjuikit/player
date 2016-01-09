@@ -17,12 +17,10 @@ import org.reactfx.Subscription;
 import org.slf4j.LoggerFactory;
 
 import AudioPlayer.Item;
-import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
-import static util.async.Async.runFX;
 import static util.reactive.Util.maintain;
 
 /**
@@ -71,7 +69,7 @@ public class JavaFxPlayer implements Play {
 
     @Override
     public void createPlayback(Item item, PlaybackState state, Runnable after) {
-        Player.IO_THREAD.execute(() -> {
+//        Player.IO_THREAD.execute(() -> {
             Media media;
             try {
                 media = new Media(item.getURI().toString());
@@ -82,7 +80,7 @@ public class JavaFxPlayer implements Play {
 
             player = new MediaPlayer(media);
 
-            runFX(() -> {
+//            runFX(() -> {
                 player.setStartTime(Duration.ZERO);
                 player.setAudioSpectrumInterval(0.01);
                 player.setAudioSpectrumNumBands(128);
@@ -129,8 +127,8 @@ public class JavaFxPlayer implements Play {
                 }
 
                 after.run();
-            });
-        });
+//            });
+//        });
     }
 
     @Override
@@ -148,8 +146,7 @@ public class JavaFxPlayer implements Play {
         player.setAudioSpectrumListener(null); // just in case
         player.setOnEndOfMedia(null); // just in case
 
-        // stop() not necessary, wouldnt even work since these calls are
-        // asynchronous, calling dispose stops playback and frees resources
+        // stop() not necessary, calling dispose stops playback and frees resources
         player.dispose();
         player = null;
     }

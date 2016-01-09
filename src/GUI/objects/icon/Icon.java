@@ -425,7 +425,7 @@ public class Icon<I extends Icon> extends Text {
 
 
     public Number convert(String sizeString) {
-        Double d = Parser.fromS(Double.class, sizeString);
+        Double d = Parser.DEFAULT.fromS(Double.class, sizeString);
         return d==null ? DEFAULT_ICON_SIZE : d;
     }
 

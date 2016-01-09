@@ -426,7 +426,7 @@ public class Library extends FXMLController implements SongReader {
                 ),
                 new Menu("Search album cover",null,
                     menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
-                        q -> "in " + Parser.toS(q),
+                        q -> "in " + Parser.DEFAULT.toS(q),
                         q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum()))
                     )
                 )

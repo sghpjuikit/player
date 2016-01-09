@@ -1615,14 +1615,17 @@
 .menu-bar > .container > .menu-button:hover,
 .menu-bar > .container > .menu-button:focused,
 .menu-bar > .container > .menu-button:showing {
-   // -fx-background: -fx-selection-bar;      // < default value
-   // -fx-background-color: -fx-background;   // < default value
+    /*    
+    default style:
+    -fx-background: -fx-selection-bar;
+    -fx-background-color: -fx-background;
+    */
    -fx-background-color: null;
 }
 .menu-bar > .container > .menu-button:hover > .label,
 .menu-bar > .container > .menu-button:focused > .label,
 .menu-bar > .container > .menu-button:showing  > .label {
-    //-fx-text-fill: -fx-text-background-color;
+    /*-fx-text-fill: -fx-text-background-color;*/
 }
 .menu-bar:show-mnemonics > .mnemonic-underline {
     -fx-stroke: -fx-text-fill;
@@ -1772,12 +1775,13 @@
 .tab-pane:right > .tab-header-area {
     -fx-padding: 0.416667em 0.416667em 0.166667em 0.0em; /* 5 5 2 0 */
 }
-/* TODO: scaling the shape seems to make it way too large */
-/* TODO: scaling the shape seems to make it way too large */
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
-    -fx-background-color: grey;// -fx-mark-color; << this color (original Modena)
-                               // produces runtim parsing erors (string cant be parsed into color)
-                               // grey is good enough
+    /*   
+    -fx-mark-color; << this color (original Modena)
+     produces runtime parsing erors (string cant be parsed into color)
+     grey is good enough
+    */
+    -fx-background-color: grey;
     -fx-shape: "M 0,0 H1 L 4,3 7,0 H8 V1 L 5,4 8,7 V8 H7 L 4,5 1,8 H0 V7 L 3,4 0,1 Z";
     -fx-scale-shape: false;
     -fx-effect: dropshadow(two-pass-box , rgba(255, 255, 255, 0.4), 1, 0 , 0, 1);
@@ -1790,7 +1794,7 @@
     -fx-opacity: 1;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button:hover {
-    -fx-background-color: derive(grey, -30%); // same story as above
+    -fx-background-color: derive(grey, -30%); /*same story as above*/
 }
 /* CONTROL BUTTONS */
 .tab-pane > .tab-header-area > .control-buttons-tab > .container {
@@ -1853,9 +1857,11 @@
 }
 /* focus purely on the arrow */
 .titled-pane:focused > .title > .arrow-button > .arrow {
-    //-fx-background-color: -fx-focus-color, -fx-mark-color;
-    //-fx-background-insets: -1, 0;
-    //-fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
+    /*   
+    -fx-background-color: -fx-focus-color, -fx-mark-color;
+    -fx-background-insets: -1, 0;
+    -fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
+    */
 }
 
 .titled-pane > .title:hover {}
@@ -1939,7 +1945,7 @@
 
 .color-picker > .arrow-button {
     -fx-background-color: null;
-   //-fx-padding: 0.5em 0.667em 0.5em 0; /* 6 8 6 0 */
+   /*-fx-padding: 0.5em 0.667em 0.5em 0;*/ /* 6 8 6 0 */
 }
 .color-picker.split-button > .arrow-button  {
     -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
@@ -1959,7 +1965,7 @@
 }
 .color-picker.split-button > .arrow-button {
     /*-fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color !important;*/
-    //-fx-padding: 0.5em 0.667em 0.5em 0.667em; /* 6 8 6 8 */
+    /*-fx-padding: 0.5em 0.667em 0.5em 0.667em;*/ /* 6 8 6 8 */
 }
 .color-picker > .color-picker-label > .picker-color > .picker-color-rect {
     -fx-stroke: -fx-box-border;
@@ -2235,12 +2241,12 @@
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    //-fx-padding: 0.0em 0.5em 0.0em 0.0em; /* 0 6 0 0 */
+    /*-fx-padding: 0.0em 0.5em 0.0em 0.0em;*/ /* 0 6 0 0 */
     -fx-alignment: CENTER_LEFT;
     -fx-content-display: LEFT;
 }
 .cell > .choice-box > .label {
-    //-fx-padding: 0em 0.333333em 0.0em 0.333333; /* 2 4 3 6 */
+    /*-fx-padding: 0em 0.333333em 0.0em 0.333333;*/ /* 2 4 3 6 */
 }
 .cell:focused:selected > .choice-box > .label {
     -fx-text-fill: white;
@@ -3286,22 +3292,26 @@
  * sub 1 opacity
  * an example would be a slight image overlay over background
  */
-.window > .bgr-image {
+.window > * > .bgr-image {
     -fx-opacity:1;
-    // do not provide any image by default
-    //-fx-background-image: url("bgr.jpg");
+    /*-fx-background-image: url("bgr.jpg");*/
     -fx-background-size: stretch;
 }
 
-// inherits: .header
+/*
+ * Window header
+ * inherits: .header
+ */
 .window > .header {
 }
 .window:focused > .header {
 }
 
-// left, right, bottom borders of the window. There is no top border as there is
-// a header instead. When header collapses it turns into top border.
-// Skinning both header and border to the same background is recommended
+/*
+ * Left, right, bottom borders of the window. There is no top border as there is
+ * a header instead. When header collapses it turns into top border.
+ * Thus, skinning both header and border similarly is recommended
+ */
 .w-border {
     -fx-background-color: -fx-pane-color;
 }
@@ -3339,10 +3349,12 @@
  */
 .area {
     -fx-background-color: -fx-pane-color;
-    // default padding for all widgets
-    // note: widgets shouldnt have their own padding to remain consistent
+    /*
+    default padding for all widgets
+    note: widgets shouldnt have their own padding to remain consistent
+    */
     -fx-padding: 4 ;
-    -fx-background-insets: 2;   // margin, by default set to area-path-border width
+    -fx-background-insets: 2; /* margin, by default set to area-path-border width */
 }
 
 /**
@@ -3388,10 +3400,10 @@
 /* Small button mostly within custom controls for opening dialogs. For example
    Font picker from within text area. */
 .dialog-button {
-    // the below is the arrow css used for other components like combo-box
+    /* arrow css used for other components like combo-box */
     -fx-background-color: -fx-def-font-color;
-    // use thid to get nice not filled arrow
-    //-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    /* use thid to get nice not filled arrow */
+    /* -fx-background-color: -fx-mark-highlight-color, -fx-mark-color; */
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
@@ -3404,9 +3416,9 @@
     -fx-stroke-color: black;
 }
 
-/****** more row/cell pseudoclasses for ListView, TableView, TreeView, etc *****
+/****** Additional row/cell pseudoclasses for ListView, TableView, TreeView, etc *****
  *
- * dev.note: note that applying pseudoclasses on rows will not affect the cells within them
+ * dev. note: note that applying pseudoclasses on rows will not affect the cells within them
  * it depends on what attribute is being changed. Pseudoclasses must be
  * set on both row-cell and children cells in the row cell factory.
  *
@@ -3414,7 +3426,7 @@
  * (e.g. shadow) will apply it twice
  */
 
-// denotes a currently playd record in the playlist or other table
+/* Denotes a currently playd record in the playlist or other table. */
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
@@ -3422,29 +3434,31 @@
 }
 .table-row-cell:played,
 .table-row-cell:played:selected {
-    // setting text fill here wont work, because text is in cells not rows
-    // in general set only non-content properties in row
+/*    setting text fill here wont work, because text is in cells not rows
+    in general set only non-content properties in row*/
 }
 
-// denotes broken or inconsistent record, e.g. unplayable item on playlist
+/* Denotes broken or inconsistent record, e.g. unplayable item on playlist. */
 .indexed-cell:corrupt,
 .indexed-cell:corrupt:selected {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
 }
 .table-row-cell:corrupt,
 .table-row-cell:corrupt:selected{
-    // setting text fill here wont work, because text is in cells not rows
-    // in general set only non-content properties in row
+/*    setting text fill here wont work, because text is in cells not rows
+    in general set only non-content properties in row*/
 }
 
-// quick search which scrolls to the item in the table can also highlight any
-// while search is active all items have one of the following pseudoclasses
-// matched items
+/*
+ * Quick search which scrolls to the item in the table can also highlight any
+ * while search is active all items have one of the following pseudoclasses
+ * matched items.
+ */
 .indexed-cell:searchmatch,
 .indexed-cell:searchmatch:selected {
-    // matched items are normal
+    /* We leave matched items are normal and instead use of unmatched items style. */
 }
-// unmatched items
+/* Unmatched items. */
 .indexed-cell:searchmatchnot {
     -fx-opacity: 0.4;
 }
@@ -3452,9 +3466,7 @@
     -fx-opacity: 1;
 }
 
-//****************************** ITEM PICKER *********************************//
-
-/** 
+/******************************** ITEM PICKER *********************************
  * Picker displays elements to choose from as a scrollable tile grid.
  * inherits: ScrollPane, .block
  * Used in layouts (should mirror the style of widget area), but also popups.
@@ -3474,50 +3486,63 @@
     -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
 }
 
-//******************************** POPOVER ***********************************//
-
-// the popup window itself, not stylable
-// inherits: Control
-// pseudoclasses : detached - when detached from its location, no arrow
-//                 focused - focus follows focus of the parent window
+/********************************* POPOVER ***********************************
+ * Custom popup window. Can display arrow pointing to some location and be 'detached'.
+ * inherits: Control
+ * pseudoclasses : detached - when detached from its location, no arrow
+ *                 focused - focus follows focus of the parent window
+ */
 .popover {}
 
-// rectangular root - container for .bgr and .content, do not use
-// inherits: StackPane
+/*
+ * Container for .bgr and .content
+ * Rectangular, not in the popover shape. D not use for bgr coloring
+ * inherits: StackPane 
+ */
 .popover-root {
-    // null: let mouse events pass through similar to when pickOnBounds
-    //       is set to false - only the content receives the events
-    // transparent: mouse events dont pass through == normal
+    /*
+    null: would let mouse events pass through the popover bgr, as if pickOnBounds
+          is set to false - only the content would receive the events
+    transparent: mouse events dont pass through == normal
+    */
     -fx-background-color: transparent;
 }
 
-// bgr - bgr in the shape of the popover
-// inherits: Path(Shape)
-// radius not stylable, fixed to programmatic value
+/*
+ * Bgr - bgr in the shape of the popover. The shape representing the whole popup area including 
+ * the arrow. use for basic appearance like border or bgr styling.
+ * inherits: Path (which is Shape)
+ */
 .popover-root > .bgr {
-    // the shape representing the whole popup area including the arrow
-    // use for basic appearance like border or bgr styling
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
+    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+                /* -fx-def-font-color; */
+    -fx-stroke-width: 1;
+    /* radius is not stylable for now and is fixed to programmatic value */
 }
 
-// content root - ranctangular area for the actual content of the popup, 
-// includes header, but not the arrow
-// inherits: BorderPane
+/*
+ * Content root - ranctangular area for the actual content of the popup.
+ * Includes header, but not the arrow.
+ * inherits: BorderPane
+ */
 .popover-root > .content {
     -fx-padding: 8;
 }
 
-// popover header - rectangular area at the top of the content
+/* Popover header - rectangular area at the top of the content. */
 .popover-root > .content > .popover-header {
     -fx-padding: 3 8 0 8;
 }
 
-// popover header title
+/* Popover header title. */
 .popover-root > .content > .popover-header > .title  {
     -fx-font-weight: bold;
-    // give title some space, for small popups the control buttons on the right
-    // easily become invasive when they come close to the title, looks ugly
+    /*  
+    give title some space, for small popups the control buttons on the right
+    easily become invasive when they come close to the title, looks ugly
+    */
     -fx-padding: 0 20 0 0;
 }
 
@@ -3525,20 +3550,16 @@
 // HBox containing buttons within a header
 //.header-buttons {}
 
-// close button in the header
+/* Close button in the header*/
 .popover-closebutton {
-    // separate the close button from the rest a bit visually
+    /* separate the close button from the rest a bit visually*/
     //-fx-padding: 0 0 0 5; 
 }
 
-// pseudoclasses examples...
-.popover:detached > .popover-root > .bgr {
-
-}
+/* Ssome usage examples... */
+.popover:detached > .popover-root > .bgr {}
 .popover:focused > .popover-root > .bgr,
-.popover:detached:focused > .popover-root > .bgr {
-    // -fx-stroke: grey; this would change border
-}
+.popover:detached:focused > .popover-root > .bgr {}
 
 /******************************* HELP POPOVER **********************************
  * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
@@ -3546,8 +3567,10 @@
  */
 .help-popover {}
 
-// Text of the help popover
-// inherits: .text
+/*
+ * Text of the help popover
+ * inherits: .text
+ */
 .help-popover-text {
     -fx-font-weight: bold;
     -fx-text-alignment: justify;
@@ -3558,13 +3581,9 @@
  * inherits: .popover
  * radius fixed to 0 programmatically
  */
-.notification {
-    
-}
+.notification {}
 
-.notification > .popover-root > .content > .popover-header {
-    
-}
+.notification > .popover-root > .content > .popover-header {}
 
 .notification > .popover-root > .content > .popover-header > .title  {
     -fx-font-size: 12;
@@ -3573,17 +3592,25 @@
 
 //****************************** THUMBNAIL ***********************************//
 
-// root - background for thumbnail
+/* Root - background for thumbnail. */
 .thumbnail {
 }
-// inherits: .imageview
+
+/* 
+ * The actual image.
+ * inherits: .imageview
+ */
 .thumbnail-image {
 }
-// border of thumbnail
+
+/*
+ * The border of thumbnail 
+ * inherits: .pane
+ */
 .thumbnail-border {
     -fx-border-color: black;
     -fx-border-width: 2;
- }
+}
 
 /********************************** SEEKER *************************************
  * 
@@ -3713,7 +3740,7 @@
 }
 
 /* Effect properties button for effect config field. */
-.effect-config-field-prop-button {
+.effect-config-field-conf-button {
     -glyph-name: GEAR;
     -glyph-size: 11;
 }
@@ -3728,9 +3755,11 @@
     // note: for now not working, use .chart-bar
 }
 
-//*********************************** RATING *********************************//
+/************************************ RATING **********************************
+ * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
+ */
 
-// container for the control, use use for padding and such
+/* Container for the control, use use for padding and such. */
 .rating > .container {
     //-fx-padding: 0 4 0 4;
 }
@@ -3882,10 +3911,13 @@
     -fx-background-color: rgba(0,20,30,0.1);
     -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
     -fx-background-radius: 15;
-    -fx-border-color: -fx-def-font-color;
-    -fx-border-width: 0.5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-border-width: 1;
+    /* alternative border style */
+    /*-fx-border-color: -fx-def-font-color;
+     -fx-border-width: 0.5; */
     -fx-border-radius: 15;
-    -fx-padding: 15;
+    -fx-padding: 20;
 }
 
 // Action chooser, displays action icons (with description) to choose 

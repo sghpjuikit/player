@@ -15,7 +15,7 @@
     -fx-prompt-font-color: rgb(165, 165, 165);
     
     -fx-pane-color: rgba(0,10,30,0.5);
-    -fx-popup-def-bgr-color: rgba(16,16,35,0.8);
+    -fx-popup-def-bgr-color: rgba(15,30,55,0.8);
 
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
@@ -27,7 +27,7 @@
 }
 
 
-.window > .bgr-image {
+.window > * > .bgr-image {
     -fx-opacity:1;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
@@ -224,24 +224,87 @@
     -fx-fill: -fx-focus-color;
 }
 
-.comet-bgr {
-    //-fx-background-image: url("cometbgr.jpg");
-    //-fx-background-size: stretch;
+
+
+
+
+
+
+
+
+/** 
+ * Pane border created with path.
+ * The path is build out of multiple path objects and does not necessarily create 
+ * a single visual shape
+ * extends .path, .shape
+ */
+.path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-def-font-color;
+    -fx-stroke-width: 0; /* originally 2 */
+    -fx-stroke-type: inside;
 }
 
-.comet-rocket {
-    -fx-effect: none;
+/** 
+ * Area pane border.
+ * inherits: .path-border.
+ */
+.area-path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-pane-color;
+    -fx-stroke-width: 0;  /* originally 2 */
+    -fx-stroke-type: inside ;
+    -fx-stroke-line-cap: butt;
 }
 
-.overlay-pane {
-    -fx-background-color: rgba(0,0,0,0.3);
-}
-.overlay-pane-content {
-    -fx-background-color: rgba(0,20,30,0.1);
-    -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
-    -fx-background-radius: 15;
-    -fx-border-color: -fx-def-font-color;
+/**
+ * Widget area
+ * pseudoclasses: dragged
+ */
+.area {
+    -fx-background-color: -fx-pane-color;
+    /*
+    default padding for all widgets
+    note: widgets shouldnt have their own padding to remain consistent
+    */
+    -fx-padding: 4 ;
+    -fx-background-insets: 0; /* margin, by default set to area-path-border width */
+
     -fx-border-width: 0.5;
-    -fx-border-radius: 15;
-    -fx-padding: 15;
+    -fx-border-radius: 5;
+    -fx-border-color:   linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)
+                        linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                        linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                        linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%);
+}
+
+
+
+
+
+
+.split-pane:horizontal > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: -fx-pane-color;
+   //-fx-padding: 0.0;
+}
+.split-pane:vertical > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: -fx-pane-color;
+   //-fx-padding: 1;
+}
+.split-pane *.vertical-grabber {
+    -fx-padding: 1 111 1 111;
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+.split-pane *.horizontal-grabber {
+    -fx-padding: 111 1 111 0.5;
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-background-color: -fx-pane-color;
+   -fx-padding: 6;
 }

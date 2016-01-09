@@ -46,191 +46,11 @@ import static util.functional.Util.*;
 import static util.parsing.StringParseStrategy.From.*;
 
 /**
- * Utility class - parser converting Objects to String and back. It stores
- * object parsers per class in a map.
- * <p>
- * Each parser must adhere to convention:
- * <ul>
- * <li> Parser must never assume anything about the input. To string parser can
- * receive an object of particular type in any state. From string parser can
- * receive any String as input.
- * <li> Parser does not have to handle null inpu. It will never receive it.
- * This is because the parsers are only used
- * indirectly using {@link #toS(java.lang.Object)} and {@link #fromS(java.lang.Class, java.lang.String)}.
- * <li> Parser must never throw an exception as a result of failed parsing,
- * instead return null. Null is not a valid parsing output value. It always
- * indicates error.
- * <li> Only one parser can be registered per single class.
- * </ul>
- * <p>
- * This class acts as a generic parser. It:
- * <ul>
- * <li> tries to build parser if no is available looking for {@link StringParseStrategy}
- * and valueOf(), fromString() methods.
- * <li> if no parser is avalable, toString() method is used for to string parsing
- * and an error parser always producing null for string to object parsing.
- * </ul>
- * <p>
- * For registering a parser, there are two options:
- * <ul>
- * <li> Use {@link StringParseStrategy} and let the parser be created and
- * registered automatically. This is done lazily (and only once so there is no
- * performance setback) and keeps the parsing code within the scope of the class
- * (code cohesion). If the method throws an exception, it is important to let
- * this know, either by using throws clause or define it in an annotation. Using
- * both is unnecessary, but recommended.
- * <p>
- * This allows only one implementation, tight to the class of an object.
- * <li> Create parser and register it manually {@link #registerConverter(java.lang.Class, util.parsing.StringConverter)}.
- * It is recommended to register both to string and
- * from string, although it is not necessary if not needed. The parser must
- * return null if any problem occurs. This can be done in two ways - return null
- * when the problem occurs (and in catch blocks, no exception must be thrown!)
- * or throw an exception and wrap the parser function into noException function
- * wrapper {@link util.functional.Util#noEx(java.util.function.Function, java.lang.Class...)}.
- * <p>
- * This allows arbitrary implementation.
- * </ul>
+ * Multi type bidirectional object-string converter.
  *
  * @author Plutonium_
  */
-public class Parser {
-
-    private static final ClassMap<Function<?,String>> parsersToS = new ClassMap<>();
-    private static final ClassMap<Function<String,?>> parsersFromS = new ClassMap<>();
-    private static final Function<String,Object> errFromP = o -> null;
-    private static final Function<Object,String> errToP = toString;
-    private static String error = "";
-
-    static {
-        Function<Object,String> sv = String::valueOf;
-        Class<? extends Throwable> nfe = NumberFormatException.class;
-        Class<? extends Throwable> iae = IllegalArgumentException.class;
-        Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
-
-        registerConverter(Boolean.class,toString,Boolean::valueOf);
-        registerConverter(boolean.class,sv,Boolean::valueOf);
-        registerConverter(Integer.class,toString,noEx(Integer::valueOf,nfe));
-        registerConverter(int.class,sv,noEx(Integer::valueOf,nfe));
-        registerConverter(Double.class,toString,noEx(Double::valueOf,nfe));
-        registerConverter(double.class,sv,noEx(Double::valueOf,nfe));
-        registerConverter(Short.class,toString,noEx(Short::valueOf,nfe));
-        registerConverter(short.class,sv,noEx(Short::valueOf,nfe));
-        registerConverter(Long.class,toString,noEx(Long::valueOf,nfe));
-        registerConverter(long.class,sv,noEx(Long::valueOf,nfe));
-        registerConverter(Float.class,toString,noEx(Float::valueOf,nfe));
-        registerConverter(float.class,sv,noEx(Float::valueOf,nfe));
-        registerConverter(Character.class,toString,noEx(s -> s.charAt(0),obe));
-        registerConverter(char.class,sv,noEx(s -> s.charAt(0),obe));
-        registerConverter(Byte.class,toString,noEx(Byte::valueOf,nfe));
-        registerConverter(byte.class,sv,noEx(Byte::valueOf,nfe));
-        registerConverter(String.class, s->s, s->s);
-        registerConverter(StringSplitParser.class,toString, noEx(StringSplitParser::new, iae));
-        registerConverter(Year.class,toString, noEx(Year::parse, DateTimeParseException.class));
-        registerConverter(File.class,toString,File::new);
-        registerConverter(URI.class,toString, noEx(URI::create, iae));
-        registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
-        registerConverter(Font.class,
-            f -> String.format("%s, %s", f.getName(),f.getSize()),
-            noEx(Font.getDefault(), s -> {
-                int i = s.indexOf(',');
-                String name = s.substring(0, i);
-                FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
-                FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
-                double size = parseDouble(s.substring(i+2));
-                return Font.font(name, weight, style, size);
-            }, nfe,obe)
-        );
-        registerConverter(LocalDateTime.class,toString,noEx(LocalDateTime::parse, DateTimeException.class));
-        registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
-        registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
-        registerConverter(Effect.class,
-            effect -> toFxConfigurableString(effect),
-            text -> fromFxConfigurableString(Effect.class, text)
-        );
-    }
-
-    private static final String DELIMITER_CONFIG_VALUE = "-";
-    private static final String DELIMITER_CONFIG_NAME = ":";
-    private static final String CONSTANT_NULL = "<NULL>";
-
-    private static String toFxConfigurableString(Object o) {
-        // improve performance by not creating any Config, premature optimization
-        return o.getClass().getName() + DELIMITER_CONFIG_VALUE +
-               Configurable.configsFromFxPropertiesOf(o).getFields().stream().map(c -> c.getName() + DELIMITER_CONFIG_NAME +c.getValueS())
-                           .collect(joining(DELIMITER_CONFIG_VALUE));
-    }
-
-    private static <V> V fromFxConfigurableString(Class<V> type, String text) {
-        // improve performance by not creating any Config/Configurable, premature optimization
-        try {
-            String[] vals = text.split(DELIMITER_CONFIG_VALUE);
-            Class<?> objecttype = Class.forName(vals[0]);
-            if(type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
-            V v = (V) objecttype.newInstance();
-            Configurable c = Configurable.configsFromFxPropertiesOf(v);
-            stream(vals).skip(1)
-                        .forEach(str -> {
-                            try {
-                                String[] nameval = str.split(DELIMITER_CONFIG_NAME);
-                                if(nameval.length!=2) return; // ignore
-                                String name = nameval[0], val = nameval[1];
-                                c.setField(name, val);
-                            } catch(Exception e){
-                                // If for whatever reason setting value fails, we move onto another
-                                // instead crashing whole object parsing and returning null. If we
-                                // cant parse everything properly, at least we return some instance.
-                            }
-                        });
-            return v;
-        } catch(Exception e) {
-            // e.printStackTrace(); // debug, in production we ignore unparsable values
-            return null;
-        }
-    }
-
-    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
-        return i -> {
-            try {
-                return f.apply(i);
-            } catch(Exception e) {
-                for(Class<?> ec : ecs)
-                    if(ec.isAssignableFrom(e.getClass())) {
-                        error = e.getMessage();
-                        return or;
-                    }
-                throw e;
-            }
-        };
-    }
-
-    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
-        return noEx(null, f, list(ecs));
-    }
-    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
-        return noEx(null, f, ecs);
-    }
-    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
-        return noEx(or, f, list(ecs));
-    }
-
-    public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {
-        registerConverter(c, parser::toS, parser::fromS);
-    }
-
-    public static<T> void registerConverter(Class<T> c, Function<? super T,String> to, Function<String,? super T> from) {
-        registerConverterToS(c, to);
-        registerConverterFromS(c, from);
-    }
-
-    public static<T> void registerConverterToS(Class<T> c, Function<? super T,String> parser) {
-        parsersToS.put(c, parser);
-    }
-
-    public static<T> void registerConverterFromS(Class<T> c, Function<String,? super T> parser) {
-        parsersFromS.put(c, parser);
-    }
-
+public abstract class Parser {
 
     /**
      * Converts string s to object o of type c.
@@ -242,12 +62,7 @@ public class Parser {
      * @return parsing result or null if not parsable
      * @throws NullPointerException if any parameter null
      */
-    public static <T> T fromS(Class<T> c, String s) {
-        noØ(c,"Parsing type must be specified!");
-        noØ(s,"Parsing null not allowed!");
-        if(CONSTANT_NULL.equals(s)) return null;
-        return getParserFromS(c).apply(s);
-    }
+    abstract public <T> T fromS(Class<T> c, String s);
 
     /**
      * Converts object to String.
@@ -258,60 +73,263 @@ public class Parser {
      * @return parsed string or null if not parsable
      * @throws NullPointerException if parameter null
      */
-    public static <T> String toS(T o) {
-        if(o==null) return CONSTANT_NULL;
-        return getParserToS((Class<T>)o.getClass()).apply(o);
-    }
+    abstract public <T> String toS(T o);
 
-    public static <T> Predicate<String> isParsable(Class<T> c) {
+    public <T> Predicate<String> isParsable(Class<T> c) {
         return s -> fromS(c, s)==null;
     }
 
-    public static <T> StringConverter<T> toConverter(Class<T> c) {
+    public <T> StringConverter<T> toConverter(Class<T> c) {
         return new StringConverter<T>() {
-            @Override public String toS(T object) {
-                return Parser.toS(object);
+            @Override
+            public String toS(T object) {
+                return Parser.this.toS(object);
             }
-            @Override public T fromS(String source) {
-                return Parser.fromS(c, source);
+
+            @Override
+            public T fromS(String source) {
+                return Parser.this.fromS(c, source);
             }
         };
     }
 
 /******************************************************************************/
 
-    /** @return parser, or error parser if no parser available, never null */
-    private static <T> Function<T,String> getParserToS(Class<T> c) {
-        return parsersToS.computeIfAbsent(c, Parser::findToSparser);
-    }
+    private static final String DELIMITER_CONFIG_VALUE = "-";
+    private static final String DELIMITER_CONFIG_NAME = ":";
+    private static final String CONSTANT_NULL = "<NULL>";
 
-    /** @return parser, or error parser if no parser available, never null */
-    private static <T> Function<String,T> getParserFromS(Class<T> c) {
-        return parsersFromS.computeIfAbsent(c, Parser::findFromSparser);
-    }
+    /** Default to string parser, which calls objects toString() or returns null constant. */
+    public static final Function<Object,String> DEFAULT_TOS = o -> o==null ? CONSTANT_NULL : o.toString();
+    /** Default from string parser. Always returns null. */
+    public static final Function<String,Object> DEFAULT_FROM = o -> null;
+    /**
+     * Fx parser.
+     * Used when {@link StringParseStrategy.To#FX} or {link StringParseStrategy.From#FX}.
+     * <p>
+     * The parser converts object to string that contains exact object class and name-value pairs
+     * of all its javafx property beans. The parser converts back to object by invoking the
+     * no argument constructor (which must be accessible) of the class found in the string and
+     * setting the bean values in the string to respective javafx beans of the object.
+     * <p>
+     * The exact string format is subject to change. Dont rely on it.
+     */
+    public static final Parser FX = new Parser() {
 
-    public static String getError() {
-        return error;
+        @Override
+        public <T> T fromS(Class<T> type, String text) {
+            // improve performance by not creating any Config/Configurable, premature optimization
+            try {
+                String[] vals = text.split(DELIMITER_CONFIG_VALUE);
+                Class<?> objecttype = Class.forName(vals[0]);
+                if(type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
+                T v = (T) objecttype.newInstance();
+                Configurable c = Configurable.configsFromFxPropertiesOf(v);
+                stream(vals).skip(1)
+                            .forEach(str -> {
+                                try {
+                                    String[] nameval = str.split(DELIMITER_CONFIG_NAME);
+                                    if(nameval.length!=2) return; // ignore
+                                    String name = nameval[0], val = nameval[1];
+                                    c.setField(name, val);
+                                } catch(Exception e){
+                                    // If for whatever reason setting value fails, we move onto another
+                                    // instead crashing whole object parsing and returning null. If we
+                                    // cant parse everything properly, at least we return some instance.
+                                }
+                            });
+                return v;
+            } catch(Exception e) {
+                // e.printStackTrace(); // debug, in production we ignore unparsable values
+                return null;
+            }
+        }
+
+        @Override
+        public <T> String toS(T o) {
+            // improve performance by not creating any Config, premature optimization
+            return o.getClass().getName() + DELIMITER_CONFIG_VALUE +
+                   Configurable.configsFromFxPropertiesOf(o).getFields().stream()
+                               .map(c -> c.getName() + DELIMITER_CONFIG_NAME + c.getValueS())
+                               .collect(joining(DELIMITER_CONFIG_VALUE));
+        }
+
+    };
+    /** Default to/from string parser with get-go support for several classes. */
+    public static final DefaultParser DEFAULT = new DefaultParser();
+
+    static {
+        Class<? extends Throwable> nfe = NumberFormatException.class;
+        Class<? extends Throwable> iae = IllegalArgumentException.class;
+        Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
+
+        DEFAULT.addParser(Boolean.class,DEFAULT_TOS,Boolean::valueOf);
+        DEFAULT.addParser(boolean.class,String::valueOf,Boolean::valueOf);
+        DEFAULT.addParser(Integer.class,DEFAULT_TOS,noEx(Integer::valueOf,nfe));
+        DEFAULT.addParser(int.class,String::valueOf,noEx(Integer::valueOf,nfe));
+        DEFAULT.addParser(Double.class,DEFAULT_TOS,noEx(Double::valueOf,nfe));
+        DEFAULT.addParser(double.class,String::valueOf,noEx(Double::valueOf,nfe));
+        DEFAULT.addParser(Short.class,DEFAULT_TOS,noEx(Short::valueOf,nfe));
+        DEFAULT.addParser(short.class,String::valueOf,noEx(Short::valueOf,nfe));
+        DEFAULT.addParser(Long.class,DEFAULT_TOS,noEx(Long::valueOf,nfe));
+        DEFAULT.addParser(long.class,String::valueOf,noEx(Long::valueOf,nfe));
+        DEFAULT.addParser(Float.class,DEFAULT_TOS,noEx(Float::valueOf,nfe));
+        DEFAULT.addParser(float.class,String::valueOf,noEx(Float::valueOf,nfe));
+        DEFAULT.addParser(Character.class,DEFAULT_TOS,noEx(s -> s.charAt(0),obe));
+        DEFAULT.addParser(char.class,String::valueOf,noEx(s -> s.charAt(0),obe));
+        DEFAULT.addParser(Byte.class,DEFAULT_TOS,noEx(Byte::valueOf,nfe));
+        DEFAULT.addParser(byte.class,String::valueOf,noEx(Byte::valueOf,nfe));
+        DEFAULT.addParser(String.class, s -> s, s -> s);
+        DEFAULT.addParser(StringSplitParser.class,DEFAULT_TOS, noEx(StringSplitParser::new, iae));
+        DEFAULT.addParser(Year.class,DEFAULT_TOS, noEx(Year::parse, DateTimeParseException.class));
+        DEFAULT.addParser(File.class,DEFAULT_TOS,File::new);
+        DEFAULT.addParser(URI.class,DEFAULT_TOS, noEx(URI::create, iae));
+        DEFAULT.addParser(Pattern.class,DEFAULT_TOS, noEx(Pattern::compile, PatternSyntaxException.class));
+        DEFAULT.addParser(Font.class,
+            f -> String.format("%s, %s", f.getName(),f.getSize()),
+            noEx(Font.getDefault(), s -> {
+                int i = s.indexOf(',');
+                String name = s.substring(0, i);
+                FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
+                FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
+                double size = parseDouble(s.substring(i+2));
+                return Font.font(name, weight, style, size);
+            }, nfe,obe)
+        );
+        DEFAULT.addParser(LocalDateTime.class,DEFAULT_TOS,noEx(LocalDateTime::parse, DateTimeException.class));
+        DEFAULT.addParserFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
+        DEFAULT.addParserToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
+        DEFAULT.addParser(Effect.class, FX::toS, text -> FX.fromS(Effect.class, text));
     }
 
 /******************************************************************************/
 
-    private static <T> Function<String,? super T> findFromSparser(Class<T> c) {
-        return (Function) noNull(
-            () -> parsersFromS.getElementOfSuper(c),
-            () -> buildFromsParser(c),
-            () -> errFromP
-        );
+
+    /**
+     * Default parser implementation storing individual type parsers in a map. This means:
+     * <ul>
+     * <li> O{1) parser lookup.
+     * <li> Single initialization. No parser is ever initialized more than once.
+     * <li> Lazy initialization. Individual parsers are initialized only on parsing request. Until
+     * then no instance is created.
+     * </ul>
+     * <p>
+     * Only one parser can be registered per single class. But the same parser instance can be
+     * reused across subclasses.
+     * <p>
+     * Parser lookup is polymorphic. This means that if there is no parser for given type, parser
+     * for any supertype or interface that type extends will be looked up as well. Hence adding
+     * parser for given type adds it for the entire subclass hierarchy.
+     * <p>
+     * Each parser must adhere to convention:
+     * <ul>
+     * <li> Parser must never assume anything about the input. To string parser can
+     * receive an object of particular type in any state and any subtype. From string parser can
+     * receive any String as input.
+     * <li> Parser never receives null input. Null is handled by this parser itself, thus
+     * consistently across all parsers - always.
+     * Parsing object from null string throws exception, because even null must be represented by
+     * string.
+     * Parsing null object to string produces null string constant (which will be parsed into null
+     * in opposite direction)
+     * <li> Parser must never throw an exception as a result of failed parsing, instead returns null.
+     * From string parser returning null always indicates error. To string parser returning null
+     * will produce null string constant.
+     * </ul>
+     * <p>
+     * This class acts as a generic parser. It:
+     * <ul>
+     * <li> tries to build parser if none is available looking for {@link StringParseStrategy}
+     * and valueOf(), fromString() methods.
+     * <li> if no parser is available, toString() method is used for to string parsing
+     * and an error parser always producing null for string to object parsing.
+     * </ul>
+     * <p>
+     * For registering a parser, there are two options:
+     * <ul>
+     * <li> Use {@link StringParseStrategy} and let the parser be created and
+     * registered automatically (lazily and only once) and keeps the parsing code within the scope
+     * of the parsed class. If the method throws an exception, it is important to let
+     * this know, either by using throws clause or define it in an annotation. Using
+     * both is unnecessary, but recommended.
+     * <p>
+     * This allows only one implementation, tightly coupled to the parsed object's class.
+     * <li> Create parser and register it manually {@link #addParser(java.lang.Class, util.parsing.StringConverter)}.
+     * It is recommended (although not necessary) to register both to string and from string.
+     * The parser must return null if any problem occurs. This can be done in two ways - return null
+     * when the problem occurs (and in catch blocks, no exception must be thrown!)
+     * or throw an exception and wrap the parser function into noException function
+     * wrapper {@link util.functional.Util#noEx(java.util.function.Function, java.lang.Class...)}.
+     * </ul>
+     */
+    public static class DefaultParser extends Parser {
+
+        private final ClassMap<Function<?,String>> parsersToS = new ClassMap<>();
+        private final ClassMap<Function<String,?>> parsersFromS = new ClassMap<>();
+        private String error = "";
+
+        public <T> void addParser(Class<T> c, StringConverter<T> parser) {
+            addParser(c, parser::toS, parser::fromS);
+        }
+
+        public <T> void addParser(Class<T> c, Function<? super T,String> to, Function<String,? super T> from) {
+            addParserToS(c, to);
+            addParserFromS(c, from);
+        }
+
+        public <T> void addParserToS(Class<T> c, Function<? super T,String> parser) {
+            parsersToS.put(c, parser);
+        }
+
+        public <T> void addParserFromS(Class<T> c, Function<String,? super T> parser) {
+            parsersFromS.put(c, parser);
+        }
+
+        @Override
+        public <T> T fromS(Class<T> c, String s) {
+            noØ(c,"Parsing type must be specified!");
+            noØ(s,"Parsing null not allowed!");
+            if(CONSTANT_NULL.equals(s)) return null;
+            return getParserFromS(c).apply(s);
+        }
+
+        @Override
+        public <T> String toS(T o) {
+            if(o==null) return CONSTANT_NULL;
+            String s = getParserToS((Class<T>)o.getClass()).apply(o);
+            return noNull(s,CONSTANT_NULL);
+        }
+
+        public String getError() {
+            return noNull(error,"");
+        }
+
+        private <T> Function<String,T> getParserFromS(Class<T> c) {
+            return parsersFromS.computeIfAbsent(c, this::findFromSparser);
+        }
+
+        private <T> Function<T,String> getParserToS(Class<T> c) {
+            return parsersToS.computeIfAbsent(c, this::findToSparser);
+        }
+
+        private <T> Function<String,? super T> findFromSparser(Class<T> c) {
+            return (Function) noNull(
+                () -> parsersFromS.getElementOfSuper(c),
+                () -> buildFromsParser(c),
+                () -> DEFAULT_FROM
+            );
+        }
+
+        private <T> Function<? super T,String> findToSparser(Class<T> c) {
+            return (Function) noNull(
+                () -> parsersToS.getElementOfSuper(c),
+                () -> buildTosParser(c),
+                () -> DEFAULT_TOS
+            );
+        }
     }
 
-    private static <T> Function<? super T,String> findToSparser(Class<T> c) {
-        return (Function) noNull(
-            () -> parsersToS.getElementOfSuper(c),
-            () -> buildTosParser(c),
-            () -> errToP
-        );
-    }
-
+/******************************************************************************/
 
     private static <T> Function<String,T> buildFromsParser(Class<T> c) {
         Function<String,?> fromS = null;
@@ -339,7 +357,7 @@ public class Parser {
             } else if (strategy==CONSTRUCTOR_STR) {
                 fromS = parserOfC(a, c, String.class);
             } else if (strategy==From.FX) {
-                fromS = text -> fromFxConfigurableString(c, text);
+                fromS = text -> FX.fromS(c, text);
             } else {
                 throw new SwitchException(strategy);
             }
@@ -359,7 +377,7 @@ public class Parser {
     }
 
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
-        Function<?,String> toS = null;
+        Function<T,String> toS = null;
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
 
         if(toS==null && a!=null) {
@@ -373,7 +391,7 @@ public class Parser {
                 Method m = getMethodAnnotated(c,ParsesToString.class);
                 if(m==null || m.getParameterCount()!=0 || !m.getReturnType().equals(String.class))
                     throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because responsible method was not found: " + m);
-                Function<?,String> f = in -> {
+                Function<T,String> f = in -> {
                     try {
                         return (String) m.invoke(in);
                     } catch( IllegalAccessException | InvocationTargetException e ) {
@@ -382,20 +400,16 @@ public class Parser {
                 };
                 toS = noExWrap(m, a, f);
             } else if (strategy==To.TO_STRING_METHOD) {
-                toS = toString;
+                toS = (Function)DEFAULT_TOS;
             } else if (strategy==To.FX) {
-                toS = Parser::toFxConfigurableString;
+                toS = FX::toS;
             } else {
                 throw new SwitchException(strategy);
             }
         }
 
-        // always fall back to toString()
-        if(toS==null) toS = toString;
-
         return (Function)toS;
     }
-
 
     private static Method getValueOfStatic(Class type) {
         // hadle enum with class bodies that dont identify as enums
@@ -412,7 +426,7 @@ public class Parser {
         }
     }
 
-    private static Method getMethodStatic(String name, Class type) {
+    private static Method getMethodStatic(String name, Class<?> type) {
         try {
             Method m = type.getDeclaredMethod(name, String.class);
             if (!m.getReturnType().equals(type)) throw new NoSuchMethodException();
@@ -423,7 +437,7 @@ public class Parser {
     }
 
     private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a) {
-        Set<Class<?>> ecs = new HashSet();
+        Set<Class<?>> ecs = new HashSet<>();
         if(a!=null) ecs.addAll(list(a.ex())); else ecs.add(Exception.class);
         if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
         Function<I,O> f = in -> {
@@ -472,5 +486,35 @@ public class Parser {
         if(a!=null) ecs.addAll(list(a.ex()));
         if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
         return noEx(f, ecs);
+    }
+
+    // these noEx methods must absolutely remain private, since it uses DEFAULT parser instance
+    // this isnt quite well figured out with the error...
+
+    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch(Exception e) {
+                for(Class<?> ec : ecs)
+                    if(ec.isAssignableFrom(e.getClass())) {
+                        DEFAULT.error = e.getMessage();
+                        return or;
+                    }
+                throw e;
+            }
+        };
+    }
+
+    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
+        return noEx(null, f, list(ecs));
+    }
+
+    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
+        return noEx(null, f, ecs);
+    }
+
+    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+        return noEx(or, f, list(ecs));
     }
 }

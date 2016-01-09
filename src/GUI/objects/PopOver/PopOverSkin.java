@@ -77,7 +77,7 @@ public class PopOverSkin implements Skin<PopOver> {
     private boolean tornOff;
 
     final StackPane root;
-    private Path path;
+    private final Path path;
     private BorderPane content;
 
     private final Label title;

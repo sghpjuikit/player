@@ -20,6 +20,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,9 +185,11 @@ public class Window extends WindowBase {
         WINDOWS.add(w); // add to list of active windows
         w.initialize();
 
-        // apply properties
-        w.getStage().setOpacity(WindowManager.windowOpacity.getValue());
-        w.back.setEffect(WindowManager.window_bgr_effect.get());
+        // bind properties
+        w.disposables.add(maintain(WindowManager.windowOpacity, w.getStage().opacityProperty()));
+        w.disposables.add(maintain(WindowManager.window_bgr_effect, w.backimage.effectProperty()));
+        w.disposables.add(maintain(WindowManager.window_borderless, w::setBorderless));
+        w.disposables.add(maintain(WindowManager.window_headerless, v -> !v, w::setHeaderVisible));
 
         return w;
     }
@@ -212,10 +215,12 @@ public class Window extends WindowBase {
 
     // root is assigned '.window' styleclass
     @FXML public AnchorPane root = new AnchorPane();
-    @FXML public AnchorPane back, front;
+    @FXML public StackPane back, backimage;
     @FXML public AnchorPane bordersVisual;
-    @FXML public AnchorPane content;
+    @FXML public AnchorPane front, content;
     @FXML private HBox rightHeaderBox;
+
+    private final List<Subscription> disposables = new ArrayList<>();
 
     private Window() {
         this(null,UNDECORATED);
@@ -472,25 +477,25 @@ public class Window extends WindowBase {
 //        switchPane = new SwitchPane();
 
         double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
-        back.translateXProperty().unbind();
-        back.setTranslateX(0);
-        back.setScaleX(scaleFactor);
-        back.setScaleY(scaleFactor);
+        backimage.translateXProperty().unbind();
+        backimage.setTranslateX(0);
+        backimage.setScaleX(scaleFactor);
+        backimage.setScaleY(scaleFactor);
         // scroll bgr along with the tabs
         // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
         // try at: http://www.mathe-fa.de
         topContainer.ui.translateProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
-            double space = back.getWidth() * ((scaleFactor - 1) / 2d);
+            double space = backimage.getWidth() * ((scaleFactor - 1) / 2d);
             double dir = signum(x);
             x = abs(x);
-            back.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
+            backimage.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
         });
         topContainer.ui.zoomProperty().addListener((o, oldx, newV) -> {
             double x = newV.doubleValue();
             x = 1 - (1 - x) / 5;
-            back.setScaleX(scaleFactor * pow(x, 0.25));
-            back.setScaleY(scaleFactor * pow(x, 0.25));
+            backimage.setScaleX(scaleFactor * pow(x, 0.25));
+            backimage.setScaleY(scaleFactor * pow(x, 0.25));
         });
     }
 
@@ -664,6 +669,7 @@ public class Window extends WindowBase {
             APP.close();
 	} else {
             if(layout!=null) layout.close(); // close layout to release resources
+            disposables.forEach(Subscription::unsubscribe);
             WINDOWS.remove(this);   // remove from window list
             super.close();  // in the end close itself
         }

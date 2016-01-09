@@ -171,7 +171,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public String toS(T v) {
-        return Parser.toS(v);
+        return Parser.DEFAULT.toS(v);
     }
 
     /**
@@ -198,12 +198,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             //   by having OverridableConfig provide its own implementation, but I dont want to
             //   spread problematic code such as this around. Not till 1 gets fixed up.
             for(T v : enumerateValues())
-                if(Parser.toS(v).equalsIgnoreCase(str)) return v;
+                if(Parser.DEFAULT.toS(v).equalsIgnoreCase(str)) return v;
 
             log(this).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
             return getDefaultValue();
         } else {
-            return Parser.fromS(getType(), str);
+            return Parser.DEFAULT.fromS(getType(), str);
         }
     }
 

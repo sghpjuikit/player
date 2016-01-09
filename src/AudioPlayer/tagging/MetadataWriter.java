@@ -510,7 +510,7 @@ public class MetadataWriter extends MetaItem {
 
     /** @param c the color to set */
     public void setColor(Color c) {
-        setCustomField(TAGID_COLOR,Parser.toS(c));
+        setCustomField(TAGID_COLOR,Parser.DEFAULT.toS(c));
     }
 
     /** @param tags tags to set */

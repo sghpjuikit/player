@@ -403,7 +403,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 }),
                 new Menu("Search album cover",null,
                     menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
-                            q -> "in " + Parser.toS(q),
+                            q -> "in " + Parser.DEFAULT.toS(q),
                             q -> App.itemToMeta(m.getValue().get(0), i -> Environment.browse(q.apply(i.getAlbum()))))
                 )
             );

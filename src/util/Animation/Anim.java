@@ -25,9 +25,9 @@ import util.functional.Functors.Ƒ2;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
-import static java.util.Objects.requireNonNull;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static util.dev.Util.noØ;
 import static util.functional.Util.forEachIStream;
 
 /**
@@ -74,8 +74,7 @@ public class Anim extends Transition {
 
 
     public Anim(Consumer<Double> affector) {
-        super();
-        requireNonNull(affector);
+        noØ(affector);
         this.affector = affector;
     }
     public Anim(Duration length, Consumer<Double> affector) {

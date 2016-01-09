@@ -36,6 +36,7 @@ public class PlaceholderPane extends StackPane {
     public final Icon icon = new Icon().styleclass(STYLECLASS_ICON);
     public final Label desc = new Label();
     private Subscription s;
+//    private Pane parent;
 
     public PlaceholderPane(GlyphIcons icoN, String text, Runnable onClick) {
         icon.icon(icoN);
@@ -51,6 +52,8 @@ public class PlaceholderPane extends StackPane {
     public void showFor(Node n) {
         Pane p = n instanceof Pane ? (Pane)n : n.getParent()==null ? null : (Pane)n.getParent();
         if(p!=null && !p.getChildren().contains(this)) {
+//            parent = p;
+//            parent.getChildren().forEach(c -> c.setOpacity(0.2));
             p.getChildren().add(this);
             s = maintain(n.layoutBoundsProperty(),b -> {
                 double w = b.getWidth();
@@ -65,6 +68,7 @@ public class PlaceholderPane extends StackPane {
     }
 
     public void hide() {
+//        if(parent!=null) parent.getChildren().forEach(c -> c.setOpacity(1));
         if(s!=null) s.unsubscribe();
         removeFromParent(this);
     }

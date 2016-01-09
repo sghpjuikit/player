@@ -40,13 +40,12 @@ public class Util {
         return valuesOf(o).map(m).subscribe(w::setValue);
     }
 
-    public static<O> Subscription maintain(ObservableValue<O> o, WritableValue<O> w) {
+    public static<O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {
         w.setValue(o.getValue());
         ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);
         o.addListener(l);
         return () -> o.removeListener(l);
     }
-
 
     public static<T> Subscription sizeOf(ObservableList<T> list, Consumer<? super Integer> action) {
         ListChangeListener<T> l = change -> action.accept(list.size());

@@ -447,7 +447,8 @@ public class DirViewer extends ClassController {
     public static enum CellSize {
         SMALL(80,100+CELL_TEXT_HEIGHT),
         NORMAL(160,200+CELL_TEXT_HEIGHT),
-        LARGE(240,300+CELL_TEXT_HEIGHT);
+        LARGE(240,300+CELL_TEXT_HEIGHT),
+        GIANT(400,500+CELL_TEXT_HEIGHT);
 
         final double width;
         final double height;

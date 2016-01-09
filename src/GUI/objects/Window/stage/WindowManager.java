@@ -38,7 +38,6 @@ import util.animation.Anim;
 import util.async.executor.FxTimer;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static gui.objects.Window.stage.Window.WINDOWS;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -64,16 +63,16 @@ public class WindowManager {
     /**************************************** WINDOW SETTINGS *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final V<Double> windowOpacity = new V<>(1d, v -> WINDOWS.forEach(w -> w.getStage().setOpacity(v)));
+    public static final V<Double> windowOpacity = new V<>(1d);
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final V<Boolean> window_borderless = new V<>(true, v -> WINDOWS.forEach(w -> w.setBorderless(v)));
+    public static final V<Boolean> window_borderless = new V<>(true);
 
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final V<Boolean> window_headerless = new V<>(false, v -> WINDOWS.forEach(w -> w.setHeaderVisible(!v)));
+    public static final V<Boolean> window_headerless = new V<>(false);
 
     @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
-    public static final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4), v -> WINDOWS.forEach(w -> w.back.setEffect(v)));
+    public static final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
 
 

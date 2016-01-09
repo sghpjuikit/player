@@ -218,7 +218,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         fields.add(new TagField(PlaycountF,PLAYCOUNT));
         fields.add(new TagField(CommentF,Metadata.Field.COMMENT));
         fields.add(new TagField(MoodF,MOOD));
-        fields.add(new TagField(ColorF,CUSTOM1,Parser.isParsable(Color.class)));
+        fields.add(new TagField(ColorF,CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
         fields.add(new TagField(Custom1F,CUSTOM1));
         fields.add(new TagField(Custom2F,CUSTOM2));
         fields.add(new TagField(Custom3F,CUSTOM3));
@@ -232,7 +232,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         // associate color picker with custom1 field
         ColorFPicker.disableProperty().bind(ColorF.disabledProperty());
         ColorFPicker.valueProperty().addListener((o,ov,nv) ->
-            ColorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.toS(nv))
+            ColorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.DEFAULT.toS(nv))
         );
 
 
@@ -760,7 +760,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if(f==CUSTOM1) {
-                Color c = Parser.fromS(Color.class,histogramS);
+                Color c = Parser.DEFAULT.fromS(Color.class,histogramS);
                 ColorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 ColorF.setText("");
             }

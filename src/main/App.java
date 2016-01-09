@@ -91,6 +91,7 @@ import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
+import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.InstanceInfo;
@@ -427,6 +428,15 @@ public class App extends Application implements Configurable {
             )
         );
         actionPane.register(File.class,
+            new FastAction<File>("Open (OS)", "Opens file in a native program associated with this file type.",
+                MaterialIcon.OPEN_IN_NEW,
+                Environment::open),
+            new FastAction<File>("Edit (OS)", "Edit file in a native editor program associated with this file type.",
+                FontAwesomeIcon.EDIT,
+                Environment::edit),
+            new FastAction<File>("Browse (OS)", "Browse file in a native file system browser.",
+                FontAwesomeIcon.FOLDER_ALTPEN_ALT,
+                Environment::browse),
             new FastColAction<File>("Add to new playlist",
                 "Add items to exsisting playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
@@ -915,6 +925,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Show system info", desc = "Display system information.")
     public static void showSysInfo() {
+        APP.actionPane.hide();
         APP.infoPane.show();
     }
 

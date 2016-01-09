@@ -265,9 +265,18 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     public void close() {
         if(controller!=null) {
-            IOLayer.all_inputs.removeAll(controller.getInputs().getInputs());
-            IOLayer.all_outputs.removeAll(controller.getOutputs().getOutputs());
-            controller.close();
+            // We set controlelr null (before closing it). Makes sure that:
+            // 1) widget is unusable
+            // 2) calling this method again is no-op
+            // Avoids:
+            // 1) stackoverflow if controller.close() calls widget.close() for some reason
+            // 2) stackoverflow when widget==controller, so close() would execute recursively
+            Controller<?> c = controller;
+            controller = null;
+
+            IOLayer.all_inputs.removeAll(c.getInputs().getInputs());
+            IOLayer.all_outputs.removeAll(c.getOutputs().getOutputs());
+            c.close();
         }
     }
 

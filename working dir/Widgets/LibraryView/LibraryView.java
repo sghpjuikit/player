@@ -415,7 +415,7 @@ public class LibraryView extends FXMLController {
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             MenuItem[] is = menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
-                                      q -> "in " + Parser.toS(q),
+                                      q -> "in " + Parser.DEFAULT.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);
             m.getItems().addAll(menuItem("Play items", e -> play(m.getValue())),

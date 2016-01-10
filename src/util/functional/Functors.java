@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import javafx.util.Callback;
 
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
@@ -682,6 +683,8 @@ public class Functors {
         add("After",   LocalDateTime.class,Boolean.class, (x,y) -> x.isAfter(y), LocalDateTime.class,LocalDateTime.now());
         add("Before",  LocalDateTime.class,Boolean.class, (x,y) -> x.isBefore(y), LocalDateTime.class,LocalDateTime.now());
         add("Is",      LocalDateTime.class,Boolean.class, (x,y) -> x.isEqual(y), LocalDateTime.class,LocalDateTime.now());
+
+        add("File",    Item.class,File.class, Item::getFile);
 
         add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
         add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));

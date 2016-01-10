@@ -278,6 +278,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
             IOLayer.all_outputs.removeAll(c.getOutputs().getOutputs());
             c.close();
         }
+        
+        // Not the best handling, but at least dev doesnt have to do this manually and concern
+        // himself
+        APP.widgetManager.standaloneWidgets.remove(this);
     }
 
     /** @return whether this widget will be preferred over other widgets */

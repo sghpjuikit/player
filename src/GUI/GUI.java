@@ -119,17 +119,16 @@ public class GUI {
     public static final ObjectProperty<NodeOrientation> table_orient = new SimpleObjectProperty<>(NodeOrientation.INHERIT);
     @IsConfig(name = "Zeropad numbers", group = "Table",
             info = "Adds 0s for number length consistency.")
-    public static final BooleanProperty table_zeropad = new SimpleBooleanProperty(false);
+    public static final V<Boolean> table_zeropad = new V<>(false);
     @IsConfig(name = "Search show original index", group = "Table",
             info = "Show unfiltered table item index when filter applied.")
-    public static final BooleanProperty table_orig_index = new SimpleBooleanProperty(false);
+    public static final  V<Boolean> table_orig_index = new V<>(false);
     @IsConfig(name = "Show table header", group = "Table",
             info = "Show table header with columns.")
-    public static final BooleanProperty table_show_header = new SimpleBooleanProperty(true);
+    public static final  V<Boolean> table_show_header = new V<>(true);
     @IsConfig(name = "Show table controls", group = "Table",
             info = "Show table controls at the bottom of the table. Displays menubar and table items information")
-    public static final BooleanProperty table_show_footer = new SimpleBooleanProperty(true);
-/******************************************************************************/
+    public static final  V<Boolean> table_show_footer = new V<>(true);
 
 
     static {

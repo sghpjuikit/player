@@ -10,7 +10,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.animation.Animation;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -20,24 +19,26 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
-import Configuration.AppliesConfig;
+import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
+import Layout.widget.feature.HorizontalDock;
 import action.IsAction;
 import action.IsActionable;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
 import util.access.V;
+import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -53,87 +54,88 @@ import static util.graphics.Util.add1timeEventHandler;
 import static util.reactive.Util.maintain;
 
 /**
+ * Manages windows.
  *
  * @author Plutonium_
  */
 @IsConfigurable("Window")
 @IsActionable
-public class WindowManager {
+public class WindowManager implements Configurable<Object> {
+
+    // todo: remove & auto-crate from config annotation
+    @IsAction(name = "Mini mode", global = true, keys = "F9",
+              desc = "Dock auxiliary window with playback control to the screen edge")
+    private static void implToggleMini() {
+        APP.windowManager.toggleMini();
+    }
+
+
+
+    public Window miniWindow;
 
     /**************************************** WINDOW SETTINGS *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final V<Double> windowOpacity = new V<>(1d);
+    public final V<Double> windowOpacity = new V<>(1d);
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final V<Boolean> window_borderless = new V<>(true);
+    public final V<Boolean> window_borderless = new V<>(true);
 
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final V<Boolean> window_headerless = new V<>(false);
+    public final V<Boolean> window_headerless = new V<>(false);
 
     @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
-    public static final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
+    public final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
-
-
-    public static final File FILE_MINIWINDOW = new File(APP.DIR_LAYOUTS, "mini-window.w");
+    @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
+    public final V<Boolean> show_taskbar_icon = new V<>(true);
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
-    public static boolean show_windows = true;
-
-    @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
-    public static boolean mini = false;
-
-    @IsConfig(name="Mini open hover delay", info="Time for mouse to hover to open mini window.")
-    public static Duration mini_hover_delay = millis(700);
-
-    @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
-    public static final V<Boolean> mini_hide_onInactive = new V<>(true);
-
-    @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
-    public static Duration mini_inactive_delay = millis(700);
-
-    @AppliesConfig("mini")
-    private static void applyMini() {
-        setMini(mini);
-    }
-    @AppliesConfig("show_windows")
-    private static void applyShowWindows() {
+    public final V<Boolean> show_windows =  new V<>(true, v -> {
         if(!App.APP.normalLoad) return;
-
-        if(show_windows)
+        if(v)
             Window.WINDOWS.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else
             Window.WINDOWS.stream().filter(w->w!=miniWindow).forEach(Window::hide);
+    });
+
+    @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
+    public final V<Boolean> mini = new V<>(false, this::setMini);
+
+    @IsConfig(name="Mini open hover delay", info="Time for mouse to hover to open mini window.")
+    public Duration mini_hover_delay = millis(700);
+
+    @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
+    public final V<Boolean> mini_hide_onInactive = new V<>(true);
+
+    @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
+    public Duration mini_inactive_delay = millis(700);
+
+    @IsConfig(name="Mini widget", info="Widget to use in mini window.")
+    public final VarEnum<String> mini_widget = new VarEnum<String>("PlayerControlsTiny",
+        () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(wf -> wf.name()).collect(toList())
+    );
+
+    private void toggleMini() {
+        setMini(!mini.get());
     }
 
-
-    @IsAction(name = "Mini mode", global = true, keys = "F9",
-              desc = "Dock auxiliary window with playback control to the screen edge")
-    public static void toggleMini() {
-        setMini(!mini);
-    }
-    public static void toggleMiniFull() {
+    private void toggleMiniFull() {
         if(!App.APP.normalLoad) return;
-
-        if(mini) APP.window.show();
+        if(mini.get()) APP.window.show();
         else APP.window.hide();
-        setMini(!mini);
-    }
-    public static void toggleShowWindows() {
-        if(!App.APP.normalLoad) return;
-
-        show_windows = !show_windows;
-        applyShowWindows();
+        setMini(!mini.get());
     }
 
-    public static Window miniWindow;
-    private static Animation t;
+    private void toggleShowWindows() {
+        if(!App.APP.normalLoad) return;
+        show_windows.set(!show_windows.get());
+    }
 
-    public static void setMini(boolean val) {
+    private void setMini(boolean val) {
         if(!App.APP.normalLoad) return;
 
-        mini = val;
+        mini.set(val);
         if(val) {
             // avoid pointless operation
             if(miniWindow!=null && miniWindow.isShowing()) return;
@@ -146,23 +148,35 @@ public class WindowManager {
             miniWindow.resizable.set(false);
             miniWindow.setAlwaysOnTop(true);
 
-            // create
-                // widget
-            Widget w = APP.widgetManager.factories.getOrOther("PlayerControlsTiny","Empty").create();
-            BorderPane content = new BorderPane();
-            content.setCenter(w.load());
-            miniWindow.setContent(content);
-                // menu
-            Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
+            // content controls
+            Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
-            Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
+            Icon mainB = new Icon(null, 13, "Show main window", this::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
-
             HBox controls = new HBox(8,mainB,miniB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
                  controls.setFillHeight(false);
                  controls.setPadding(new Insets(5,5,5,25));
+
+            // content
+            BorderPane content = new BorderPane();
+            miniWindow.setContent(content);
             content.setRight(controls);
+
+            // maintain propert widget content until window closes
+            miniWindow.disposables.add(maintain(
+                mini_widget,
+                name -> {
+                    // Create widget or supply empty if not available
+                    Widget<?> newW = APP.widgetManager.factories.getOrOther(name,"Empty").create();
+                    // Close old widget if any to free resources
+                    Widget<?> oldW = (Widget) content.getProperties().get("widget");
+                    if(oldW!=null) oldW.close();
+                    // set new widget
+                    content.getProperties().put("widget",newW);
+                    content.setCenter(newW.load());
+                }
+            ));
 
             // show and apply state
             miniWindow.show();
@@ -171,7 +185,8 @@ public class WindowManager {
             miniWindow.update();
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
-            miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> APP.widgetManager.standaloneWidgets.remove(w));
+            // todo - rather allow widgetarea have no controls and use Window.setContent(Component)
+            //        for simplicity and consistency
 
             // autohiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible
@@ -208,7 +223,7 @@ public class WindowManager {
                 if(!miniWindow.isShowing()) return;     // bugfix
                 shower.start(mini_hover_delay);         // open after delay
             });
-            mw_root.addEventFilter(MOUSE_CLICKED, e -> {
+            mw_root.addEventHandler(MOUSE_CLICKED, e -> {
                 if(e.getButton()==PRIMARY) {
                     if(!miniWindow.isShowing()) return; // bugfix
                     shower.runNow();                    // open with delay
@@ -222,14 +237,13 @@ public class WindowManager {
             // do nothing if not in minimode (for example during initialization)
             if(miniWindow==null) return;
             // serialize mini
-            miniWindow.serialize(FILE_MINIWINDOW);
+            miniWindow.serialize(new File(APP.DIR_LAYOUTS, "mini-window.w"));
             miniWindow.close();
             miniWindow=null;
-            t=null;
         }
     }
 
-    public static void serialize() {
+    public void serialize() {
         // make sure directory is accessible
         File dir = new File(APP.DIR_LAYOUTS,"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
@@ -262,11 +276,11 @@ public class WindowManager {
 
         // serialize mini too
         if(miniWindow!=null)
-            miniWindow.serialize(FILE_MINIWINDOW);
+            miniWindow.serialize(new File(APP.DIR_LAYOUTS, "mini-window.w"));
     }
 
-    public static void deserialize(boolean load_normally) {
-        List<Window> ws = new ArrayList();
+    public void deserialize(boolean load_normally) {
+        List<Window> ws = new ArrayList<>();
         if(load_normally) {
 
             // make sure directory is accessible
@@ -313,8 +327,4 @@ public class WindowManager {
         }
     }
 
-/******************************** NO TASKBAR MODE *****************************/
-
-    @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
-    public static boolean show_taskbar_icon = true;
 }

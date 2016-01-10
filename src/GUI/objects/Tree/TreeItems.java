@@ -35,7 +35,6 @@ import Layout.widget.feature.ConfiguringFeature;
 import Layout.widget.feature.Feature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
-import gui.objects.Window.stage.WindowManager;
 import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
@@ -367,7 +366,7 @@ public class TreeItems {
     private static String windowToName(Window w) {
         String n = "window " + list(Window.WINDOWS).indexOf(w);
         if(w==APP.window) n += " (main)";
-        if(w==WindowManager.miniWindow) n += " (mini-docked)";
+        if(w==APP.windowManager.miniWindow) n += " (mini-docked)";
         return n;
     }
 }

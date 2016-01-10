@@ -1,5 +1,5 @@
 
-package gui.objects;
+package gui.objects.seeker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -28,6 +29,7 @@ import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import gui.objects.PopOver.PopOver;
+import gui.objects.Text;
 import gui.objects.icon.Icon;
 import util.access.V;
 import util.animation.Anim;
@@ -124,6 +126,9 @@ public final class Seeker extends AnchorPane {
                 }
             }
         });
+        // We simulate mouse click with mouse released events) and should therefore consume it
+        // so if any parent node waits for it, it wont cause double behavior
+        seeker.addEventHandler(MouseEvent.MOUSE_CLICKED,Event::consume);
 
         // new chapter button
         addB.root.toFront();

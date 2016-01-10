@@ -3,7 +3,6 @@ package Image;
 import java.io.File;
 
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.layout.AnchorPane;
 
 import Configuration.IsConfig;
@@ -12,13 +11,11 @@ import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
-import util.access.V;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
 import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
-import static javafx.geometry.Pos.CENTER;
 import static util.async.Async.FX;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;

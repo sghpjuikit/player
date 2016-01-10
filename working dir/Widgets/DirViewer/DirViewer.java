@@ -109,8 +109,6 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, f -> resort());
 
-    private static final double CELL_TEXT_HEIGHT = 20;
-
     public DirViewer() {
         files.onListInvalid(list -> visitDir(new TopItem()));
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
@@ -444,6 +442,8 @@ public class DirViewer extends ClassController {
             filter = f;
         }
     }
+
+    private static final double CELL_TEXT_HEIGHT = 20;
     public static enum CellSize {
         SMALL(80,100+CELL_TEXT_HEIGHT),
         NORMAL(160,200+CELL_TEXT_HEIGHT),
@@ -458,7 +458,7 @@ public class DirViewer extends ClassController {
             this.height = height;
         }
 
-        void apply(ImprovedGridView grid) {
+        void apply(ImprovedGridView<?> grid) {
             grid.setCellWidth(width);
             grid.setCellHeight(height);
         }

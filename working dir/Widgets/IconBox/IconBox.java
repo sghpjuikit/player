@@ -14,6 +14,7 @@ import Configuration.ListConfigurable;
 import Layout.widget.Widget;
 import Layout.widget.Widget.Info;
 import Layout.widget.controller.FXMLController;
+import Layout.widget.feature.HorizontalDock;
 import gui.objects.icon.Icon;
 import util.access.FunctAccessor;
 import util.access.VarAction;
@@ -33,7 +34,7 @@ import static util.reactive.Util.maintain;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class IconBox extends FXMLController {
+public class IconBox extends FXMLController implements HorizontalDock {
 
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);

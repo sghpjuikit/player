@@ -186,10 +186,10 @@ public class Window extends WindowBase {
         w.initialize();
 
         // bind properties
-        w.disposables.add(maintain(WindowManager.windowOpacity, w.getStage().opacityProperty()));
-        w.disposables.add(maintain(WindowManager.window_bgr_effect, w.backimage.effectProperty()));
-        w.disposables.add(maintain(WindowManager.window_borderless, w::setBorderless));
-        w.disposables.add(maintain(WindowManager.window_headerless, v -> !v, w::setHeaderVisible));
+        w.disposables.add(maintain(APP.windowManager.windowOpacity, w.getStage().opacityProperty()));
+        w.disposables.add(maintain(APP.windowManager.window_bgr_effect, w.backimage.effectProperty()));
+        w.disposables.add(maintain(APP.windowManager.window_borderless, w::setBorderless));
+        w.disposables.add(maintain(APP.windowManager.window_headerless, v -> !v, w::setHeaderVisible));
 
         return w;
     }
@@ -220,7 +220,8 @@ public class Window extends WindowBase {
     @FXML public AnchorPane front, content;
     @FXML private HBox rightHeaderBox;
 
-    private final List<Subscription> disposables = new ArrayList<>();
+    /** Disposables ran when window closes. For example you may put here listeners. */
+    public final List<Subscription> disposables = new ArrayList<>();
 
     private Window() {
         this(null,UNDECORATED);
@@ -452,6 +453,10 @@ public class Window extends WindowBase {
 	content.getChildren().add(n);
 	setAnchors(n, 0d);
     }
+
+//    public Node getContent() {
+//        return content.getChildren().isEmpty() ? null : content.getChildren().get(0);
+//    }
 
     public void setContent(Component c) {
         if(c!=null)

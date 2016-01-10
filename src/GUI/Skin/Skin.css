@@ -365,13 +365,6 @@
     -fx-background-color: -fx-background;
 }
 
-.popup {
-    /* Make popups transparent
-    do not change this. there are dependencies on this transparent value
-    for example .popover depends on this. Changing it can break functionality */
-    -fx-background-color: transparent;
-}
-
 /*******************************************************************************
  *                                                                             *
  * Common Styles                                                               *
@@ -1518,8 +1511,9 @@
 }
 
 
-/********************************* PopupMenu **********************************/
-
+/******************************************************************************** 
+ * PopupMenu
+ */
 .context-menu {
     -fx-background-insets: 0, 1;
     -fx-padding: 0.25em;  /* 3 3 3 3 */
@@ -1546,8 +1540,9 @@
     -fx-stroke: -fx-text-fill;
 }
 
-/*********************************** Menu *************************************/
-
+/******************************************************************************** 
+ * Menu
+ */
 .menu {
     -fx-background-color: transparent;
     -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
@@ -1578,11 +1573,8 @@
 }
 
 /*******************************************************************************
- *                                                                             *
- * MenuBar                                                                     *
- *                                                                             *
- ******************************************************************************/
-
+ * MenuBar
+ */
 .menu-bar {
     -fx-padding: 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
     -fx-spacing: 0.166667em; /* 2 */
@@ -1632,11 +1624,8 @@
 }
 
 /*******************************************************************************
- *                                                                             *
- * MenuItem                                                                    *
- *                                                                             *
- ******************************************************************************/
-
+ * MenuItem
+ */
 .menu-item {
     -fx-background-color: null;
     -fx-background-radius: 2;
@@ -1681,11 +1670,10 @@
 .check-menu-item:focused:checked > .left-container > .check {
     -fx-background-color: white;
 }
+
 /*******************************************************************************
- *                                                                             *
- * ChoiceBox                                                                   *
- *                                                                             *
- ******************************************************************************/
+ * ChoiceBox
+ */
 
 /*.choice-box > .open-button > .arrow {
     -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
@@ -2556,21 +2544,6 @@
 
 /*******************************************************************************
  *                                                                             *
- * Tooltip                                                                     *
- *                                                                             *
- ******************************************************************************/
-
-.tooltip {
-    -fx-background-color: -fx-popup-def-bgr-color;
-    -fx-background-radius: 0;
-    -fx-border-width: 1;
-    -fx-border-color: black;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-padding: 0.5em 1em 0.5em 1em;
-}
-
-/*******************************************************************************
- *                                                                             *
  * Charts                                                                      *
  *                                                                             *
  ******************************************************************************/
@@ -3163,9 +3136,25 @@
 }
 
 
+/******************************************************************************
+ * Popup.
+ */
+.popup {
+    -fx-background-color: transparent;
+}
 
-
-
+/******************************************************************************
+ * Tooltip.
+ */
+.tooltip {    
+    -fx-text-fill: -fx-def-font-color;
+    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-radius: 5;
+    -fx-border-width: 1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-border-radius: 5;
+    -fx-padding: 0.5em 1em 0.5em 1em;
+}
 
 
 
@@ -3546,14 +3535,14 @@
     -fx-padding: 0 20 0 0;
 }
 
-// note: more general tha popup - already defined above
-// HBox containing buttons within a header
-//.header-buttons {}
+/* note: more general tha popup - already defined above
+ HBox containing buttons within a header
+.header-buttons {}*/
 
 /* Close button in the header*/
 .popover-closebutton {
     /* separate the close button from the rest a bit visually*/
-    //-fx-padding: 0 0 0 5; 
+    /*-fx-padding: 0 0 0 5;*/ 
 }
 
 /* Ssome usage examples... */
@@ -3590,9 +3579,14 @@
     -fx-font-weight: bold;
 }
 
-//****************************** THUMBNAIL ***********************************//
+/************************************************************
+ * Thumbnail.
+ */
 
-/* Root - background for thumbnail. */
+/* 
+ * Root - background for thumbnail. 
+ * inherits: .pane
+ */
 .thumbnail {
 }
 
@@ -3618,31 +3612,35 @@
  */
 
 .seeker {
-    -fx-skin: "gui.objects.SeekerSkin";
+    -fx-skin: "gui.objects.seeker.SeekerSkin";
 }
 .seeker .thumb {}
 .seeker .thumb:hover,
 .seeker .thumb:pressed {}
 .seeker .track {}
 
-// Chapter marker on the seeker. Marks specific time point.
-// inherits: Rectangle (Shape)
-// pseudoclasses: .newly-created - when user creates new chapter until he writes
-//                                 it to tag
+/*
+ * Chapter marker on the seeker. Marks specific time point.
+ * inherits: Rectangle (Shape)
+ * pseudoclasses: .newly-created - when user creates new chapter until he writes
+ *                                 it to tag
+ */
 .seeker-marker {
     -fx-background-color: -fx-def-font-color;
     -fx-opacity: 0.5;
-    -fx-padding: 4 1 4 1;   // sets height=4, width=2
+    -fx-padding: 4 1 4 1; /* sets height=4, width=2 */
 }
 .seeker-marker:newly-created {
     -fx-opacity: 1;
 }
 
-// Add chapter button
-// inherits: .icon
+/* 
+ * Add chapter button
+ * inherits: .icon
+ */
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {
-    //-fx-fill: blue;
+    /*-fx-fill: blue;*/
     -fx-effect: none;
 }
 
@@ -3655,10 +3653,10 @@
 .volume .thumb:hover {}
 .volume .track {}
 
-//*********************************** TEXT ***********************************//
-
-// javafx.scene.text.Text doesnt actually have a style class so this is a custom
-// implementation of that used by a sublass
+/*********************************** TEXT *********************************
+ * javafx.scene.text.Text doesnt actually have a style class so this is a custom
+ * implementation of that used by a sublass
+ */
 .text-shape {
     -fx-fill: -fx-def-font-color;
 }
@@ -3724,7 +3722,7 @@
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
     -fx-text-fill: -fx-def-font-color;
-    -fx-padding: 2 0 0 0;       // fix vertical alignment
+    -fx-padding: 2 0 0 0; /* fix vertical alignment*/
 }
 .congfig-field-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
@@ -3745,50 +3743,47 @@
     -glyph-size: 11;
 }
 
-/******************************************************************************/
-
-
-
-/* Audio spectrum graph.
-   Extends and has all properties of: chart-bar */
-.audiospectrum {
-    // note: for now not working, use .chart-bar
-}
-
 /************************************ RATING **********************************
  * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
  */
 
 /* Container for the control, use use for padding and such. */
 .rating > .container {
-    //-fx-padding: 0 4 0 4;
+    /* -fx-padding: 0 4 0 4;*/
 }
 
-
-// .rating-button
-// the stars (although not necessarily stars (not settable in css))), all of the
-// icons are one object due to performance optimizations, so so separete effects
-// on individual icons are impossible
-// should inherit .glyph, but does not due to possible problems
-
-// the 'empty' rating button 
+/*
+ * .rating-button
+ * the stars (although not necessarily stars (not settable in css))), all of the
+ * icons are one object due to performance optimizations, so so separete effects
+ * on individual icons are impossible
+ * should inherit .glyph, but does not due to possible problems
+ * 
+ * pseudoclasses: min - rating is at min value
+ *                max - rating is at max value
+ * the 'empty' rating button
+ */
 .rating-button {
     -fx-fill: -fx-def-font-color;
     -fx-font-size: 10px;
 }
-// the 'full' rating button - 2nd group of icons with this pseudoclass hovers
-// clipped on top to produce partial rating effect
-.rating-button.strong {
-    -fx-font-size: 10px;
-}
-// rating is at min value
+
 .rating-button:min {
     -fx-opacity: 0.3;
 }
-// rating is at max value
+
 .rating-button:max {
     -fx-fill: derive(-fx-def-font-color,50%);;
 }
+
+/*
+ * the 'full' rating button - 2nd group of icons with this pseudoclass hovers
+ * clipped on top to produce partial rating effect
+ */
+.rating-button.strong {
+    -fx-font-size: 10px;
+}
+
 
 /********************************** SPINNER ************************************
  * Simple progress indicator control.
@@ -3814,26 +3809,29 @@
     
 }
 
-// inherits: check-icon
+/*
+ * The icon of checkicon
+ * inherits: check-icon
+ */
 .checkicon-menu-item-icon {
-    //-fx-padding: 0 5 1 0; // i think padding doesnt work here
-    -fx-translate-x: -2px;
+    /* -fx-padding: 0 5 1 0;*/ /* i think padding doesnt work here*/
+    -fx-translate-x: -2;
 }
 .checkicon-menu-item-icon:selected {
-    // leave default
+    /* leave default*/
 }
 
-// inherits: checkicon-menu-item-icon
+/* inherits: checkicon-menu-item-icon */
 .checkicon-menu-item-icon-single-selection {
     visibility: hidden;
     -glyph-name: "CHECK";
 }
-.checkicon-menu-item-icon-single-selection: selected {
+.checkicon-menu-item-icon-single-selection:selected {
     visibility: visible;
     -glyph-name: "CHECK";
 }
 
-// hide the arrow if no children
+/* hide the arrow if no children */
 .menu-nochildren > .right-container > .arrow,
 .menu-nochildren:focused > .right-container > .arrow {
     -fx-padding: 0;
@@ -3846,10 +3844,12 @@
  * and their bindings as edges.
  */
 
-// input node icon, output node icon, input/output node icon
-// all three behave the same with same properties, etc.
-// inherits: .icon
-// pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+/*
+ * input node icon, output node icon, input/output node icon
+ * all three behave the same with same properties, etc.
+ * inherits: .icon
+ * pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+ */
 .inode,
 .onode,
 .ionode {
@@ -3873,20 +3873,23 @@
 }
 
 
-// Output -> Input connection line.
-// inherits: .path
+/* 
+ * Output -> Input connection line.
+ * inherits: .path
+ */
 .ioline {
     -fx-opacity: 0.8;
     -fx-stroke: -fx-def-font-color;
     -fx-stroke-width: 2;
-    -fx-fill: null; // bgr of the shape the path makes - we dont want any 
+    -fx-fill: null; /* bgr of the shape the path makes - we dont want any*/ 
 }
 .ioline:hover {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
 }
-.ioline:disabled { // .path doesnt seem to hav this defined
+/* .path doesnt seem to have disabled pseudoclass defined so we do it here */
+.ioline:disabled {
     -fx-opacity: 0.4;
 }
 
@@ -3896,17 +3899,17 @@
 
 
 /***************************** OVERLAY PANE *****************************
- * 
+ * Pane laying 'above' window creating 'overlay' bgr above it. Displays various content.
+ * inherits: .stack-pane
  */
-
-// Pane laying 'above' window creating 'overlay' bgr above it. Displays
-// various content.
-// inherits: .stack-pane
 .overlay-pane {
     -fx-background-color: rgba(0,0,0,0.3);
 }
-// Pane for content, doesnt cover all space, sort of inner box.
-// inherits: .stack-pane
+
+/* 
+ * Pane for content, doesnt cover all space, sort of inner box.
+ * inherits: .stack-pane
+ */
 .overlay-pane-content {
     -fx-background-color: rgba(0,20,30,0.1);
     -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
@@ -3920,39 +3923,53 @@
     -fx-padding: 20;
 }
 
-// Action chooser, displays action icons (with description) to choose 
-// from and action input data information
-// inherits: .overlay-pane
+/*************************** ACTION PANE *******************************
+ * Action chooser, displays action icons (with description) to choose 
+ * from and action input data information
+ * inherits: .overlay-pane
+ */
 .action-pane {}
-// Icon for action in an action pane
-// inherits: .icon
+
+/*
+ * Icon for action in an action pane
+ * inherits: .icon
+ */
 .action-pane-action-icon {
     -glyph-size: 25;
 }
 
-// Overlay displaying shortcuts and their keys
-// inherits: .overlay-pane
-.shortcut-pane{
-    
-}
-// Group title label for shortcut group
-// inherits: .label
+/*************************** SHORTCUT PANE *******************************
+ * Overlay panedisplaying shortcuts and their keys
+ * inherits: .overlay-pane
+ */
+.shortcut-pane{}
+
+/*
+ * Group title label for shortcut group
+ * inherits: .label
+ */
 .shortcut-pane-group-label {
     -fx-font-weight: bold;
 }
 
-// Overlay displaying system properties
-// inherits: .overlay-pane
-.info-pane{
-    
-}
-// Group title label for shortcut group
-// inherits: .label
+/*************************** SHORTCUT PANE *******************************
+ * Overlay displaying system properties
+ * inherits: .overlay-pane
+ */
+.info-pane{}
+
+/*
+ * Group title label for shortcut group
+ * inherits: .label
+ */
 .info-pane-group-label {
     -fx-font-weight: bold;
 }
     
 
+
+/********************************************************
+ */
 .node:configselected {
     -fx-background-color: rgba(90,200,200,0.2); 
 }
@@ -3968,8 +3985,11 @@
 .placeholder-pane:hover {
     -fx-background-color: rgba(0,0,0,0.5); 
 }
-// Icon denoting an action that will take place after drag is dropped
-// inherits: .icon
+
+/*
+ * Icon denoting an action that will take place after drag is dropped
+ * inherits: .icon
+ */
 .placeholder-pane-icon {
     -glyph-size: 25; 
 }
@@ -3983,25 +4003,23 @@
 .drag-pane {
     -fx-background-color: rgba(0,0,0,0.5); 
 }
-// Icon denoting an action that will take place after drag is dropped
-// inherits: .placeholder-pane-icon
+
+/*
+ * Icon denoting an action that will take place after drag is dropped
+ * inherits: .placeholder-pane-icon
+ */
 .drag-pane-icon {}
 
 /***************************** GUIDE *****************************
  * Guide
  */
 
-// Standard text of the guide
-// inherits: .text
+/*
+ * Standard text of the guide
+ * inherits: .text
+ */
 .guide-text {
     -fx-font-weight: bold;
-}
-
-
-
-.comet-bgr {
-/*    -fx-background-image: url("cometbgr.jpg");
-    -fx-background-size: stretch;*/
 }
 
 /***************************** GRID VIEW *****************************

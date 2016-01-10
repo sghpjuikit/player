@@ -174,6 +174,8 @@ public class App extends Application implements Configurable {
 
     /** Name of this application. */
     public final String name = "PlayerFX";
+    /** Url for github website for project of this application. */
+    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /** Jar file of the application*/
     public final File FILE_SRC_JAR = obtainAppSourceJar();
@@ -196,9 +198,6 @@ public class App extends Application implements Configurable {
     /** Directory containing skins. */
     public final File DIR_SKINS = new File("skins").getAbsoluteFile();
     public final File DIR_LAYOUTS = new File("layouts").getAbsoluteFile();;
-
-    /** Url for github website for project of this application. */
-    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -237,8 +236,9 @@ public class App extends Application implements Configurable {
     public final RunnableSet onStop = new RunnableSet();
     public boolean normalLoad = true;
     public boolean initialized = false;
-    public final ServiceManager services = new ServiceManager();
+    public final WindowManager windowManager = new WindowManager();
     public final WidgetManager widgetManager = new WidgetManager();
+    public final ServiceManager services = new ServiceManager();
     public final PluginMap plugins = new PluginMap();
 
     public final ClassName className = new ClassName();
@@ -556,7 +556,7 @@ public class App extends Application implements Configurable {
             // gather configs
             configuration.collectStatic();
             services.forEach(configuration::collect);
-            configuration.collect(this, guide, actionPane);
+            configuration.collect(this, windowManager, guide, actionPane);
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.load(FILE_SETTINGS);
@@ -578,7 +578,7 @@ public class App extends Application implements Configurable {
             // Control Skins, it will only have effect when set before control is created
             // and yes, this means reapplying diferent skin will have no effect in this regard...
             configuration.getFields(f -> f.getGroup().equals("GUI") && f.getGuiName().equals("Skin")).get(0).applyValue();
-            WindowManager.deserialize(normalLoad);
+            windowManager.deserialize(normalLoad);
 
 
 //            preloader.stop();
@@ -620,7 +620,7 @@ public class App extends Application implements Configurable {
         if(initialized) {
             onStop.run();
             if(normalLoad) Player.state.serialize();
-            if(normalLoad) WindowManager.serialize();
+            if(normalLoad) windowManager.serialize();
             configuration.save(name,FILE_SETTINGS);
             services.getAllServices()
                     .filter(Service::isRunning)

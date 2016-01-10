@@ -23,7 +23,7 @@
  *
  */
 
-package gui.objects;
+package gui.objects.seeker;
 
 import javafx.animation.Transition;
 import javafx.geometry.Orientation;

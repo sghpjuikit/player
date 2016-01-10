@@ -224,12 +224,14 @@
     -fx-fill: -fx-focus-color;
 }
 
-
-
-
-
-
-
+/*
+ * The icon of checkicon
+ * inherits: check-icon
+ */
+.checkicon-menu-item-icon {
+    -fx-padding: 0; /* i think padding doesnt work here*/
+    -fx-translate-x: -2;
+}
 
 
 /** 

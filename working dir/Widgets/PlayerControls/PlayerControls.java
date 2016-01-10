@@ -30,7 +30,7 @@ import Layout.widget.feature.PlaybackFeature;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.GUI;
 import gui.objects.Balancer.Balancer;
-import gui.objects.Seeker;
+import gui.objects.seeker.Seeker;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
 import util.Util;

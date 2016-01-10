@@ -21,10 +21,11 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
+import Layout.widget.feature.HorizontalDock;
 import Layout.widget.feature.PlaybackFeature;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.GUI;
-import gui.objects.Seeker;
+import gui.objects.seeker.Seeker;
 import gui.objects.icon.Icon;
 import util.Util;
 import util.access.V;
@@ -64,7 +65,7 @@ import static util.reactive.Util.maintain;
     year = "2015",
     group = Widget.Group.PLAYBACK
 )
-public class PlayerControlsTiny extends FXMLController implements PlaybackFeature {
+public class PlayerControlsTiny extends FXMLController implements PlaybackFeature, HorizontalDock {
 
     @FXML AnchorPane root;
     @FXML HBox layout, controlBox, volBox;

@@ -442,7 +442,7 @@ public class App extends Application implements Configurable {
                 f -> f.use(items -> {
                     Player.refreshItems(items);
                 })
-            ),
+            )
         );
         actionPane.register(File.class,
             new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",

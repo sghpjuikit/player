@@ -124,9 +124,9 @@ public interface Configurable<T> {
      */
     default public Config<T> getFieldOrThrow(String name) {
         try {
-            Class c = this.getClass();
+            Class<?> c = this.getClass();
             Field f = Util.getField(c,name);
-            return Configuration.createConfig(c, f, this, false, true);
+            return (Config<T>) Configuration.createConfig(c, f, this, false, true);
         } catch (NoSuchFieldException | SecurityException e) {
             throw new IllegalArgumentException("Config field '" + name + "' not found.");
         }

@@ -224,15 +224,6 @@
     -fx-fill: -fx-focus-color;
 }
 
-/*
- * The icon of checkicon
- * inherits: check-icon
- */
-.checkicon-menu-item-icon {
-    -fx-padding: 0; /* i think padding doesnt work here*/
-    -fx-translate-x: -2;
-}
-
 
 /** 
  * Pane border created with path.
@@ -309,4 +300,22 @@
 .split-pane:collapsed > .split-pane-divider {
    -fx-background-color: -fx-pane-color;
    -fx-padding: 6;
+}
+
+
+
+.grid-cell {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+.grid-cell:selected {
+    -fx-background-insets: -8 -8 12 -8;
+    -fx-background-color: black;
+    -fx-padding: -4;
+}
+
+
+.javafx.scene.text {
+    -fx-fill: blue;
 }

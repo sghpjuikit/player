@@ -1,6 +1,7 @@
 
 package AudioPlayer.tagging;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +18,7 @@ import javafx.scene.media.Media;
 import org.jaudiotagger.audio.AudioFile;
 
 import AudioPlayer.Item;
+import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
 import util.File.AudioFileFormat.Use;
@@ -304,6 +306,31 @@ public class MetadataReader{
         // run immediately and return task
         runNew(task);
         return task;
+    }
+
+    public static void readAndAdd(Collection<File> items) {
+        EntityManager em = DB.em;
+                      em.getTransaction().begin();
+        try {
+            for (File i : items){
+                Item it = new SimpleItem(i);
+                Metadata l = em.find(Metadata.class, Metadata.metadataID(it.getURI()));
+                if(l == null) {
+                    MetadataWriter.useNoRefresh(it, w->w.setLibraryAddedNowIfEmpty());
+                    Metadata m = create(it);
+
+                    if (m.isEmpty());
+                    else {
+                        em.persist(m);
+                    }
+                } else {}
+            }
+            em.getTransaction().commit();
+            // update library model
+            runFX(DB::updateInMemoryDBfromPersisted);
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
     }
 
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){

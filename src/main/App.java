@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,6 +86,7 @@ import gui.objects.icon.IconInfo;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
+import gui.pane.ActionPane.SlowColAction;
 import gui.pane.CellPane;
 import gui.pane.InfoPane;
 import gui.pane.ShortcutPane;
@@ -168,19 +170,15 @@ public class App extends Application implements Configurable {
      */
     public static void main(String[] args) {
         launch(args);
-        // auncherImpl.launchApplication(App.class, preloaderclass, args); launch with prloader
+        // auncherImpl.launchApplication(App.class, preloaderclass, args); launch with preloader
     }
 
 
-    /** Name of this application. */
+    /** Name of this application. Works only in dev mode.*/
     public final String name = "PlayerFX";
     /** Url for github website for project of this application. */
     public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
-    /** Jar file of the application*/
-    public final File FILE_SRC_JAR = obtainAppSourceJar();
-    /** Directory of the {@link #FILE_SRC_JAR}. */
-    public final File DIR_APP_SRC = FILE_SRC_JAR.getParentFile();
     /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
     public final File DIR_APP = new File("").getAbsoluteFile();
     /** Temporary directory of the os. */
@@ -264,10 +262,11 @@ public class App extends Application implements Configurable {
 
     @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value"
             + "to control some application value manually.")
-    public final V<Double> debug = new V<>(0d);
+    public final V<Double> debug = new V<>(0d, () -> {});
+
     @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value"
             + "to control some application value manually.")
-    public final V<Boolean> debug2 = new V<>(false,()->{});
+    public final V<Boolean> debug2 = new V<>(false,() -> {});
 
     @IsConfig(name = "Enabled", group = "Taskbar", info = "Show taskbar icon. Disabling taskbar will"
             + "also disable ALT+TAB functionality.")
@@ -279,6 +278,8 @@ public class App extends Application implements Configurable {
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
     public String TAG_MULTIPLE_VALUE = "<multi>";
 
+
+    private boolean close_prematurely = false;
 
     public App() {
         if(APP==null) APP = this;
@@ -390,7 +391,7 @@ public class App extends Application implements Configurable {
 
         // register actions
         actionPane.register(Widget.class,
-            new FastAction<Widget>("Create launcher (def)","Creates a launcher "
+            new FastAction<>("Create launcher (def)","Creates a launcher "
                 + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "widget as if it were a standalone application.",
@@ -403,7 +404,7 @@ public class App extends Application implements Configurable {
             })
         );
         actionPane.register(Component.class,
-            new FastAction<Component>("Export","Creates a launcher "
+            new FastAction<>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "component as if it were a standalone application.",
@@ -416,53 +417,80 @@ public class App extends Application implements Configurable {
             })
         );
         actionPane.register(Item.class,
-            new FastColAction<Item>("Add to new playlist",
+            new FastColAction<>("Add to new playlist",
                 "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 items -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(items))
             ),
-            new FastColAction<Item>("Add to existing playlist",
+            new FastColAction<>("Add to existing playlist",
                 "Add items to exsisting playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 items -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addItems(items))
-            )
+            ),
+            new SlowColAction<>("Update from file",
+                "Updates library metadata of the specified items from their files. The difference betwee"
+                + "database and real metadata information is a result of a bug or file edited externally. "
+                + "After this library will contain uptodate metadata for specified items.",
+                FontAwesomeIcon.REFRESH,
+                f -> f.use(items -> {
+                    DB.removeItems(items);
+                })
+            ),
+            new SlowColAction<>("Remove from library",
+                "Removes all specified items from library. After this library will contain none of these items.",
+                FontAwesomeIcon.REMOVE,
+                f -> f.use(items -> {
+                    Player.refreshItems(items);
+                })
+            ),
         );
         actionPane.register(File.class,
-            new FastAction<File>("Open (OS)", "Opens file in a native program associated with this file type.",
+            new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
                 MaterialIcon.OPEN_IN_NEW,
                 Environment::open),
-            new FastAction<File>("Edit (OS)", "Edit file in a native editor program associated with this file type.",
+            new FastAction<>("Edit (OS)", "Edit file in a native editor program associated with this file type.",
                 FontAwesomeIcon.EDIT,
                 Environment::edit),
-            new FastAction<File>("Browse (OS)", "Browse file in a native file system browser.",
-                FontAwesomeIcon.FOLDER_ALTPEN_ALT,
+            new FastAction<>("Browse (OS)", "Browse file in a native file system browser.",
+                FontAwesomeIcon.FOLDER_OPEN_ALT,
                 Environment::browse),
-            new FastColAction<File>("Add to new playlist",
+            new FastColAction<>("Add to new playlist",
                 "Add items to exsisting playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))),
-            new FastColAction<File>("Add to existing playlist",
+                f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))
+            ),
+            new SlowColAction<>("Add to library",
+                "Add items to library if not yet contained.",
+                PLAYLIST_PLUS,
+                f -> AudioFileFormat.isSupported(f, Use.APP),
+                future -> future.use(MetadataReader::readAndAdd)
+            ),
+            new FastColAction<>("Add to existing playlist",
                 "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))),
-            new FastAction<File>("Apply skin", "Apply skin on the application.",
+                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))
+            ),
+            new FastAction<>("Apply skin", "Apply skin on the application.",
                 BRUSH,
                 FileUtil::isValidSkinFile,
                 skin_file -> GUI.setSkin(FileUtil.getName(skin_file))),
-            new FastAction<File>("View image", "Opens image in an image viewer widget.",
+            new FastAction<>("View image", "Opens image in an image viewer widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
-                img_file -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w -> w.showImage(img_file))),
-            new FastColAction<File>("View image", "Opens image in an image browser widget.",
+                img_file -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w -> w.showImage(img_file))
+            ),
+            new FastColAction<>("View image", "Opens image in an image browser widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
-                img_files -> widgetManager.use(ImagesDisplayFeature.class, NO_LAYOUT, w -> w.showImages(img_files))),
-            new FastAction<File>("Open widget", "Opens exported widget.",
+                img_files -> widgetManager.use(ImagesDisplayFeature.class, NO_LAYOUT, w -> w.showImages(img_files))
+            ),
+            new FastAction<>("Open widget", "Opens exported widget.",
                 IMPORT,
                 f -> f.getPath().endsWith(".fxwl"),
-                UiContext::launchComponent)
+                UiContext::launchComponent
+            )
         );
 
         // add app parameter handlers
@@ -485,6 +513,30 @@ public class App extends Application implements Configurable {
             s -> widgetManager.getFactories().anyMatch(f -> f.nameGui().equals(s) || f.name().equals(s)),
             ws -> ws.forEach(UiContext::launchComponent)
         );
+
+
+        // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
+        // trying to run and this instance's run parameters and close prematurely
+        if(getInstances()>1) {
+            appCommunicator.fireNewInstanceEvent(fetchParameters());
+            close_prematurely = true;
+            LOGGER.info("Multiple app instances detected. App wil close prematurely.");
+        }
+
+        try {
+            // listen to other application instance launches
+            // process app parameters of newly started instance
+            appCommunicator.start();
+            appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
+        } catch (RemoteException e) {
+            LOGGER.warn("App instance communicator failed to start.", e);
+        }
+
+        // start global shortcuts
+        Action.startGlobalListening();
+
+        // custom tooltip behavior
+        setupCustomTooltipBehavior(1000, 10000, 200);
     }
 
     /**
@@ -501,28 +553,13 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void start(Stage primaryStage) {
-                AppPreloader preloader = new AppPreloader();
-                     preloader.start();
+        if(close_prematurely) {
+            LOGGER.info("Application closing prematurely.");
+            close();
+            return;
+        }
 
         try {
-            // forbid multiple application instances, instead
-            // notify the 1st instance of 2nd (this) trying to run and exit
-            if(getInstances()>1) {
-                appCommunicator.fireNewInstanceEvent(fetchParameters());
-                close();
-                return;
-            }
-
-            // listen to other application instance launches
-            // process app parameters of newly started instance
-            appCommunicator.start();
-            appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
-
-            Action.startGlobalListening();
-
-            // custom tooltip behavior
-            setupCustomTooltipBehavior(1000, 10000, 200);
-
             taskbarIcon.setTitle(name);
             taskbarIcon.setIcon(getIcon());
             taskbarIcon.setOnClose(this::close);
@@ -545,6 +582,7 @@ public class App extends Application implements Configurable {
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
+
             widgetManager.initialize();
 
             // services must be created before Configuration
@@ -560,7 +598,6 @@ public class App extends Application implements Configurable {
             configuration.collectComplete();
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.load(FILE_SETTINGS);
-
 
             // initializing, the order is important
             Player.initialize();
@@ -579,9 +616,6 @@ public class App extends Application implements Configurable {
             // and yes, this means reapplying diferent skin will have no effect in this regard...
             configuration.getFields(f -> f.getGroup().equals("GUI") && f.getGuiName().equals("Skin")).get(0).applyValue();
             windowManager.deserialize(normalLoad);
-
-
-//            preloader.stop();
 
             DB.start();
 
@@ -602,7 +636,7 @@ public class App extends Application implements Configurable {
         if(guide.first_time) run(3000, guide::start);
 
         // get rid of this, load from skins
-        Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
+        Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  // pass in the image path
         ImageCursor c = new ImageCursor(image,3,3);
         window.getStage().getScene().setCursor(c);
 
@@ -646,8 +680,8 @@ public class App extends Application implements Configurable {
     public List<String> fetchParameters() {
         List<String> params = new ArrayList<>();
         getParameters().getRaw().forEach(params::add);
-         getParameters().getUnnamed().forEach(params::add);
-         getParameters().getNamed().forEach( (t,value) -> params.add(value) );
+        getParameters().getUnnamed().forEach(params::add);
+        getParameters().getNamed().forEach((t,value) -> params.add(value) );
         return params;
     }
 
@@ -691,6 +725,7 @@ public class App extends Application implements Configurable {
         return i;
     }
 
+    @Deprecated
     @TODO(purpose = FUNCTIONALITY, note="broken, might work only in dev mode & break if path has spaces")
     private static File obtainAppSourceJar() {
         // see: http://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
@@ -838,7 +873,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     public static void openActions() {
-        APP.actionPane.show(Void.class, null,
+        APP.actionPane.show(Void.class, null, false,
             new FastAction<>(
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
@@ -870,7 +905,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL + O")
     public static void openOpen() {
-        APP.actionPane.show(Void.class, null,
+        APP.actionPane.show(Void.class, null, false,
             new FastAction<>(
                 "Open widget",
                 "Open file chooser to open an exported widget",

@@ -9,10 +9,11 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
-import javafx.scene.control.Skin;
 
 
 class ImprovedGridRow<T> extends IndexedCell<T>{
+
+    private final SimpleObjectProperty<ImprovedGridView<T>> gridView = new SimpleObjectProperty<>(this, "gridView");
 
     public ImprovedGridRow() {
         super();
@@ -28,26 +29,24 @@ class ImprovedGridRow<T> extends IndexedCell<T>{
         });
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override protected Skin<?> createDefaultSkin() {
+    @Override
+    protected ImprovedGridRowSkin<T> createDefaultSkin() {
         return new ImprovedGridRowSkin<>(this);
     }
 
-    /**
-     * The {@link GridView} that this GridRow exists within.
-     */
+    public ImprovedGridRowSkin<T> getSkinn() {
+        return (ImprovedGridRowSkin<T>)getSkin();
+    }
+
+    /** The {@link GridView} that this GridRow exists within. */
     public SimpleObjectProperty<ImprovedGridView<T>> gridViewProperty() {
         return gridView;
     }
-    private final SimpleObjectProperty<ImprovedGridView<T>> gridView =
-            new SimpleObjectProperty<>(this, "gridView"); //$NON-NLS-1$
 
     /**
      * Sets the {@link GridView} that this GridRow exists within.
      */
-    public final void updateGridView(ImprovedGridView<T> gridView) {
+    public final void setGridView(ImprovedGridView<T> gridView) {
         this.gridView.set(gridView);
     }
 

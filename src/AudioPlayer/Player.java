@@ -137,7 +137,7 @@ public class Player {
         if(is.isEmpty()) return;
 
         MetadataReader.readMetadata(is, (ok,m) -> {
-            if (ok) refreshItemsWith(m);
+            if(ok) refreshItemsWith(m);
         });
     }
 

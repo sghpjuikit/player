@@ -2,6 +2,7 @@
 package Layout.Areas;
 
 import javafx.animation.*;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -14,7 +15,7 @@ import gui.GUI;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
 import util.animation.interpolator.CircularInterpolator;
-import util.collections.Tuple2;
+import util.collections.Tuple3;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
@@ -52,9 +53,9 @@ public final class Layouter implements ContainerNode {
     private final int index;
 
     public final AnchorPane root = new AnchorPane();
-    private final Picker<Tuple2<String,Runnable>> cp = new Picker<>();
+    private final Picker<Tuple3<String,Runnable,String>> cp = new Picker<>();
     private WidgetPicker wp = new WidgetPicker();
-    
+
     /** Component picker on cancel action. */
     public Runnable onCpCancel = null;
     private boolean isCancelPlaying = false; // avoids calling onCancel twice
@@ -70,27 +71,28 @@ public final class Layouter implements ContainerNode {
         this.index = index;
         this.container = c;
 
+        cp.itemSupply = () -> stream(
+            tuple("Split Vertically", this::showSplitV, "Container for 2 components. Splits space vertically to top and bottom."),
+            tuple("Split Horizontally", this::showSplitH, "Container for 2 widgets. Splits space horizontally to left and right."),
+            tuple("Widget", this::showWidgetArea, "Choose a widget using a widget chooser."),
+            tuple("FreeForm", this::showFreeform, "Container for unlimited number of widgets. Widgets become 'window-like' - allow "
+                    + "manual resizing and reposition. Widgets may overlap. You can make use of autolayout mechanism.")
+        );
+        cp.textCoverter = layout_action -> layout_action._1;
+        cp.infoCoverter = layout_action -> layout_action._3;
         cp.onSelect = layout_action -> closeAndDo(cp.root,layout_action._2);
         cp.onCancel = () -> {
             isCancelPlaying = true;
             hide();
         };
         cp.consumeCancelClick = false; // we need right click to close container
-        cp.textCoverter = layout_action -> layout_action._1;
-        cp.itemSupply = () -> stream(
-            tuple("Split Vertically",this::showSplitV),
-            tuple("Split Horizontally", this::showSplitH),
-            tuple("Widget",this::showWidgetArea),
-            tuple("FreeForm",this::showFreeform)
-        );
         cp.buildContent();
         setAnchor(root, cp.root,0d);
 
-        Interpolator i = new CircularInterpolator(EASE_OUT);
         a1 = new FadeTransition(ANIM_DUR, cp.root);
         a1.setInterpolator(LINEAR);
         a2 = new ScaleTransition(ANIM_DUR, cp.root);
-        a2.setInterpolator(i);
+        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
 
         cp.root.setOpacity(0);
         cp.root.setScaleX(0);
@@ -210,6 +212,7 @@ public final class Layouter implements ContainerNode {
             showControls(true);
         });
         wp.consumeCancelClick = true; // we need right click to not close container
+        wp.root.addEventHandler(MOUSE_CLICKED, Event::consume); // also left click to not open continer chooser
         wp.buildContent();
         root.getChildren().add(wp.root);
         setAnchors(wp.root, 0d);

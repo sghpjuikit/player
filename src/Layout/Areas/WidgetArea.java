@@ -15,6 +15,7 @@ import Layout.container.Container;
 import Layout.widget.Widget;
 import gui.GUI;
 import util.SingleR;
+import util.SwitchException;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.PlaceholderPane;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -111,7 +112,11 @@ public final class WidgetArea extends Area<Container> {
     private void loadWidget() {
         noØ(widget);
 
-        if(widget.loadType.get()==AUTOMATIC) {
+        // We load the widget, but uphold loading type settings. Only user can load widget manually.
+        // If the widget is loaded already, we are safe. This is important since widget switching
+        // wouldnt load already loaded widget (if set to manual), but when it is loaded already
+        // it makes no sense for the widget to not stay loaded.
+        if(widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
             // load widget
             Node wNode = widget.load();
             content.getChildren().clear();
@@ -129,8 +134,8 @@ public final class WidgetArea extends Area<Container> {
             widget.lockedUnder.initLocked(container);
             if(s!=null) s.unsubscribe();
             s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
-        }
-        if(widget.loadType.get()==MANUAL) {
+        } else
+        if (widget.loadType.get()==MANUAL) {
             content.getChildren().clear();
             openAndDo(content_root, null);
 
@@ -146,6 +151,8 @@ public final class WidgetArea extends Area<Container> {
             s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
 
             passiveLoadPane.getM(widget).showFor(content);
+        } else {
+            throw new SwitchException(widget.loadType.get());
         }
     }
 

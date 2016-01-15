@@ -2,16 +2,18 @@
 package gui.objects.Pickers;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javafx.event.Event;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
+import gui.objects.Text;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.parsing.ToStringConverter;
@@ -21,10 +23,13 @@ import static java.util.Arrays.asList;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.scene.text.TextAlignment.JUSTIFY;
+import static javafx.util.Duration.millis;
 import static util.animation.Anim.seq;
 import static util.functional.Util.*;
+import static util.graphics.Util.layScrollVText;
+import static util.graphics.Util.setScaleXY;
 
 /**
  * Generic item picker.
@@ -48,8 +53,10 @@ public class Picker<E> {
     public static final Consumer DEF_onSelect = item -> {};
     /** Default on cancel action. Does nothing. */
     public static final Runnable DEF_onCancel = () -> {};
-    /** Default Text factory. Uses item's toString() method. */
-    public static final ToStringConverter DEF_textCoverter = Object::toString;
+    /** Default text factory. Uses null safe version of object's toString() method. */
+    public static final ToStringConverter DEF_textCoverter = Objects::toString;
+    /** Default text factory. Returns empty string. */
+    public static final ToStringConverter DEF_infoCoverter = item -> "";
     /** Default Item supplier. Returns empty stream. */
     public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
 
@@ -74,10 +81,17 @@ public class Picker<E> {
     /**
      * Text factory.
      * Creates string representation of the item.
-     * Default implementation uses item's toString() method.
+     * Default implementation is {@link Picker#DEF_textCoverter}
      * Must not be null.
      */
     public ToStringConverter<E> textCoverter = DEF_textCoverter;
+    /**
+     * Info text factory.
+     * Creates string representation of the item.
+     * Default implementation is {@link Picker#DEF_infoCoverter}
+     * Must not be null.
+     */
+    public ToStringConverter<E> infoCoverter = DEF_infoCoverter;
     /**
      * Item supplier. Fetches the items as a stream.
      * Default implementation returns empty stream. Must not be null;
@@ -89,26 +103,48 @@ public class Picker<E> {
      * Also might define minimum and maximum item size.
      * Must not be null;
      */
-    public Ƒ1<E,Region> cellFactory = item -> {
+    public Ƒ1<E,Pane> cellFactory = item -> {
         String text = textCoverter.toS(item);
         Label l = new Label(text);
-        StackPane b = new StackPane(l);
-        b.getStyleClass().setAll(CELL_STYLE_CLASS);
-        StackPane a = new StackPane(b);
-        a.setMinSize(90, 30);
-        return a;
+        StackPane cell = new StackPane(l);
+        cell.setMinSize(90, 30);
+        cell.getStyleClass().setAll(CELL_STYLE_CLASS);
+
+        // set up info pane
+        String info = infoCoverter.toS(item);
+        if(!info.isEmpty()) {
+            // info content
+            Node content = cell.getChildren().get(0);
+            Text ta = new Text(info);
+                 ta.setMouseTransparent(true);
+                 ta.setTextAlignment(JUSTIFY);
+            ScrollPane sp = layScrollVText(ta);
+            cell.getChildren().add(sp);
+            cell.setPadding(new Insets(20));
+            // animation
+            Anim anim = new Anim(millis(300), x -> {
+                sp.setOpacity(x);
+                content.setOpacity(1-x);
+                setScaleXY(sp, 0.5 + 0.5*x);
+            });
+            anim.affector.accept(0d);
+            cell.hoverProperty().addListener((o,ov,nv) -> anim.playFromDir(nv));
+        }
+
+        return cell;
     };
 
     public Picker() {
-        root.setPannable(false);  // forbid mouse panning
-        root.setHbarPolicy(NEVER);
-        root.setPrefSize(-1,-1);  // leave resizable
-        root.setFitToWidth(true); // make content resize with scroll pane
-        // consume problematic events and prevent from propagating
-        // disables unwanted behavior of the popup
-        root.addEventFilter(MOUSE_PRESSED, Event::consume);
-        root.addEventFilter(MOUSE_DRAGGED, Event::consume);
-        root.setOnMouseClicked(e->{
+        root.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+        root.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);  // leave resizable
+        root.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+        root.setPannable(false);  // forbid mouse panning (can cause unwanted horizontal scrolling)
+        root.setFitToWidth(true); // make content horizontally resize with scroll pane
+        root.setHbarPolicy(NEVER);  // thus no need for horizontal scrollbar
+        root.setOnMouseClicked(e -> {
+            // right click runs cancel, sometimes its important to consume the event, sometimes
+            // it is important for it to pass through. so I left it configurable until I find a
+            // better way
             if(e.getButton()==SECONDARY) {
                 onCancel.run();
                 if(consumeCancelClick) e.consume();
@@ -152,16 +188,15 @@ public class Picker<E> {
         return (List) list(tiles.getChildren());
     }
 
-    private class CellPane extends Pane {
+    private class CellPane extends TilePane {
 
         @Override
         protected void layoutChildren() {
             double width = root.getWidth();
             double height = root.getHeight();
 
-
             int gap = 5;
-            int elements = tiles.getChildren().size();
+            int elements = getChildren().size();
             double min_cell_w = max(1,getCells().get(0).getMinWidth());
             double min_cell_h = max(1,getCells().get(0).getMinHeight());
             // if(elements==0) return;

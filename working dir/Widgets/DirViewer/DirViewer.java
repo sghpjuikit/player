@@ -21,6 +21,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
@@ -50,8 +51,8 @@ import util.graphics.drag.PlaceholderPane;
 
 import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
+import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
@@ -103,14 +104,14 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visitDir(new TopItem()));
+    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visit(new TopItem()));
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(Sort.ASCENDING, s -> resort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, f -> resort());
 
     public DirViewer() {
-        files.onListInvalid(list -> visitDir(new TopItem()));
+        files.onListInvalid(list -> visit(new TopItem()));
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.setCellWidth(CellSize.NORMAL.width);
         grid.setCellHeight(CellSize.NORMAL.height);
@@ -148,13 +149,16 @@ public class DirViewer extends ClassController {
                 });
             }
         });
-
-        grid.setOnMouseClicked(e -> {
-            if(e.getButton()==SECONDARY)
+        grid.setOnKeyPressed(e -> {
+            if(e.getCode()==ENTER) {
+                Item si = grid.selectedItem.get();
+                if(si!=null) si.open();
+            }
+            if(e.getCode()==BACK_SPACE)
                 visitUp();
         });
-        setOnKeyPressed(e -> {
-            if(e.getCode()==BACK_SPACE)
+        grid.setOnMouseClicked(e -> {
+            if(e.getButton()==SECONDARY)
                 visitUp();
         });
         setOnScroll(Event::consume);
@@ -164,11 +168,11 @@ public class DirViewer extends ClassController {
     public void refresh() {
         initialized = true;
         cellSize.applyValue();
-        // temporary bugfix, dont mind (we use progress indicator of the window this widget is loaded
+        // temporary bugfix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay
         runLater(() -> {
-            visitDir(new TopItem());
+            visit(new TopItem());
         });
     }
 
@@ -180,14 +184,14 @@ public class DirViewer extends ClassController {
 //            else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
 //        }
         if(item!=null && item.parent!=null)
-            visitDir(item.parent);
+            visit(item.parent);
     }
 
-    public void visitDir(Item dir) {
-        visitDir(dir, null);
+    public void visit(Item dir) {
+        visit(dir, null);
     }
 
-    public void visitDir(Item dir, Item scrollTo) {
+    public void visit(Item dir, Item scrollTo) {
         if(!initialized) return;
         // remember last item position
         if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
@@ -202,6 +206,7 @@ public class DirViewer extends ClassController {
                    grid.getItems().setAll(newcells);
                    if(item.last_gridposition>=0)
                        grid.getSkinn().getFlow().setPosition(item.last_gridposition);
+                   grid.requestFocus();
                },FX)
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
@@ -287,11 +292,11 @@ public class DirViewer extends ClassController {
             thumb = new Thumbnail();
             thumb.getPane().setOnMouseClicked(e -> {
                 if(e.getButton()==PRIMARY && e.getClickCount()==2) {
-                    if(getItem().val.isDirectory()) visitDir(getItem());
-                    else Environment.open(getItem().val);
+                    getItem().open();
                     e.consume();
                 }
             });
+            thumb.getView().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.4,0) : null));
             root = new Pane(thumb.getPane(),name) {
                 // Cell layouting should be fast - gets called multiple times when grid resizes.
                 // Why not use custom pane for more speed if we can.
@@ -310,12 +315,26 @@ public class DirViewer extends ClassController {
         }
 
         private void setCover(Item item) {
-            item.loadCover((was_loaded,img) -> {
-                thumb.loadImage(img);
-                if(!was_loaded && img!=null) {
-                    new Anim(thumb.getView()::setOpacity).dur(500).intpl(x -> sqrt(x)).play();
-                }
+            // not sure how to handle this asynchronously, needs some work, particularly if we want
+            // to bind this to some progress indicator
+            // the below seems to already help, but not entirely? hm. investigate
+            executor.execute(() -> {
+                item.loadCover((was_loaded,img) -> {
+                    runFX(() -> {
+                        thumb.loadImage(img);
+                        if(!was_loaded && img!=null) {
+                            new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+                        }
+                    });
+                });
             });
+
+//            item.loadCover((was_loaded,img) -> {
+//                thumb.loadImage(img);
+//                if(!was_loaded && img!=null) {
+//                    new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+//                }
+//            });
         }
     }
     // File wrapper, content of Cell.
@@ -323,6 +342,7 @@ public class DirViewer extends ClassController {
     private class Item {
 
         final File val;
+        final FileType valtype;
         final Item parent;
         Set<Item> children = null;      // filtered files
         Set<String> all_children = null; // all files, cache, use instead File.exists to reduce I/O
@@ -331,8 +351,9 @@ public class DirViewer extends ClassController {
         boolean cover_loaded = false;
         double last_gridposition = -1;
 
-        public Item(Item parent, File value) {
+        public Item(Item parent, File value, FileType valtype) {
             this.val = value;
+            this.valtype = valtype;
             this.parent = parent;
         }
 
@@ -354,8 +375,8 @@ public class DirViewer extends ClassController {
             children_files().forEach(f -> {
                 all_children.add(f.getPath().toLowerCase());
                 if(DirViewer.this.filter(f)) {
-                    if(!f.isDirectory()) children.add(new Item(this,f));
-                    else                 fils.add(new Item(this,f));
+                    if(!f.isDirectory()) children.add(new Item(this,f,FileType.FILE));
+                    else                 fils.add(new Item(this,f,FileType.DIRECTORY));
                 }
             });
             children.addAll(fils);
@@ -398,7 +419,7 @@ public class DirViewer extends ClassController {
 
         protected File getCoverFile() {
             if(all_children==null) buildChildren();
-            if(val.isDirectory())
+            if(valtype==FileType.DIRECTORY)
                 return getImageT(val,"cover");
             else {
                 // image files are their own thumbnail
@@ -412,11 +433,16 @@ public class DirViewer extends ClassController {
             }
         }
 
+        public void open() {
+            if(valtype==FileType.DIRECTORY) visit(this);
+            else Environment.open(val);
+        }
+
     }
     private class TopItem extends Item {
 
         public TopItem() {
-            super(null,null);
+            super(null,null,null);
         }
 
         @Override
@@ -463,5 +489,6 @@ public class DirViewer extends ClassController {
             grid.setCellHeight(height);
         }
     }
+    public static enum FileType { FILE,DIRECTORY; }
 
 }

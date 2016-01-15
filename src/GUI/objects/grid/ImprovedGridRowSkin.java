@@ -30,6 +30,8 @@ package gui.objects.grid;
 import javafx.scene.Node;
 import javafx.scene.control.skin.CellSkinBase;
 
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+
 public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
 
     public ImprovedGridRowSkin(ImprovedGridRow<T> control) {
@@ -101,18 +103,16 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
             cell = createDefaultCellImpl();
         }
         cell.updateGridView(gridView);
+        cell.addEventHandler(MOUSE_CLICKED, e -> getSkinnable().getGridView().getSkinn().select(cell));
         return cell;
     }
 
     private ImprovedGridCell<T> createDefaultCellImpl() {
         return new ImprovedGridCell<T>() {
-            @Override protected void updateItem(T item, boolean empty) {
+            @Override
+            protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                if(empty) {
-                    setText(""); //$NON-NLS-1$
-                } else {
-                    setText(item.toString());
-                }
+                setText(empty ? "" : item.toString());
             }
         };
     }

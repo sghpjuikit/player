@@ -5,6 +5,7 @@
  */
 package main;
 
+import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -25,19 +26,19 @@ import util.async.Async;
  * Application instance communicator.
  * Facilitates communication between different instances of this application by
  * firing and receiving events.
- * 
+ *
  * @author Plutonium_
  */
 public class AppInstanceComm {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AppInstanceComm.class);
     private static final int PORT = 1099;
     private static final String REGISTRY_NAME = "PlayerFxCommunicatorServer";
-    
+
     private AppMediator appCommunicator;
     private Registry rmiRegistry;
     public ArrayList<Consumer<List<String>>> onNewInstanceHandlers = new ArrayList<>();
-    
+
     /**
      * Opens communication channel with other instances of this application.
      * Starts a non daemon thread, which has to
@@ -48,7 +49,7 @@ public class AppInstanceComm {
         rmiRegistry = LocateRegistry.createRegistry(PORT);
         rmiRegistry.rebind("PlayerFxCommunicatorServer", appCommunicator);
     }
-    
+
     /**
      * Disposes the channel. Not calling this method will prevent the application
      * from closing properly.
@@ -63,7 +64,7 @@ public class AppInstanceComm {
             LOGGER.error("Unable to stop app instance communication.", e);
         }
     }
-    
+
     /**
      * Fires new app instance event. Any instance of this application listening
      * will receive it. Run when application starts.
@@ -80,14 +81,14 @@ public class AppInstanceComm {
 
            Mediator comm = (Mediator) LocateRegistry.getRegistry(PORT).lookup(REGISTRY_NAME);
            comm.newInstanceLaunched(params);
-        } catch(NotBoundException e) {
+        } catch(NotBoundException | ConnectException e) {
             // no instance is listening -> ignore
         } catch (RemoteException e) {
             LOGGER.error("Unable to fire new app instance event.", e);
         }
     }
-    
-    
+
+
     interface Mediator extends Remote {
         public void newInstanceLaunched(List<String> params) throws RemoteException;
     }

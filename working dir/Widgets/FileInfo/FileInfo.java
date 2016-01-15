@@ -164,7 +164,7 @@ public class FileInfo extends FXMLController implements SongReader {
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = fut_file ->
-            APP.actionPane.show(File.class, fut_file,
+            APP.actionPane.show(File.class, fut_file, true,
                 new SlowAction<>("Copy and set as album cover",
                         "Sets image as cover. Copies file to destination and renames it "
                       + "to 'cover' so it is recognized as album cover. Any previous cover file "

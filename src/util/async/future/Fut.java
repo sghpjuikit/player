@@ -26,9 +26,9 @@ import static util.async.Async.eFX;
  */
 public class Fut<T> implements Runnable{
 
-    private CompletableFuture<T> f;
+    public CompletableFuture<T> f;
 
-    private Fut(CompletableFuture<T> future) {
+    public Fut(CompletableFuture<T> future) {
         f = future;
     }
 
@@ -125,7 +125,9 @@ public class Fut<T> implements Runnable{
     }
 
     public final Fut<T> use(Consumer<T> action) {
-        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
+        f = f.thenApplyAsync(r -> {action.accept(r); return r; });
+        return this;
+//        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
     }
     public final Fut<T> use(Consumer<T> action, Executor executor) {
         return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
@@ -135,7 +137,10 @@ public class Fut<T> implements Runnable{
     }
 
     public final Fut<T> then(Runnable action) {
-        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
+        return use(r -> action.run());
+//        f = f.thenApply(r -> { action.run(); return r; });
+//        return this;
+//        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
     }
     public final Fut<T> then(Runnable action, Executor executor) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));
@@ -180,7 +185,7 @@ public class Fut<T> implements Runnable{
             return this;
     }
 
-    public <R> Fut<R> then(Ƒ1<Fut<T>,Fut<R>> then) {
+    public <R> Fut<R> thenChain(Ƒ1<Fut<T>,Fut<R>> then) {
         return then.apply(this);
     }
 

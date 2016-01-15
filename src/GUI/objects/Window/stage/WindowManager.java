@@ -87,9 +87,6 @@ public class WindowManager implements Configurable<Object> {
     @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
     public final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
-    @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
-    public final V<Boolean> show_taskbar_icon = new V<>(true);
-
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
     public final V<Boolean> show_windows =  new V<>(true, v -> {
         if(!App.APP.normalLoad) return;

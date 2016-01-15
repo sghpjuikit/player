@@ -4023,17 +4023,36 @@
 }
 
 /***************************** GRID VIEW *****************************
- * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView
+ * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView.
+ * Contains rows and each rows individual cells.
  */
 .grid-view {
     -fx-border-width: 0;
     -fx-padding: 0;
 }
+
+/**
+ * Cell in a grid view.
+ * inherits: .indexed-cell
+ * pseudoclasses: selected - when any cell in the row is selected
+ */
 .grid-row {
     -fx-border-width: 0;
     -fx-padding: 0;
 }
+
+/**
+ * Cell in a grid view row.
+ * inherits: .indexed-cell
+ * pseudoclasses: selected
+ */
 .grid-cell {
     -fx-border-width: 0;
     -fx-padding: 0;
+}
+
+.grid-cell:selected {
+    -fx-background-insets: -8 -8 12 -8;
+    -fx-background-color: black;
+    -fx-padding: -4;
 }

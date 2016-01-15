@@ -45,15 +45,15 @@ public class Configuration {
     private static Lookup methodLookup = MethodHandles.lookup();
     private final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup() + "." + c.getName());
 
-    public void collect(Configurable c) {
+    public void collect(Configurable<?> c) {
         configs.addAll(c.getFields());
     }
 
-    public void collect(Configurable... cs) {
-        for(Configurable c : cs) collect(c);
+    public void collect(Configurable<?>... cs) {
+        for(Configurable<?> c : cs) collect(c);
     }
 
-    public void collect(Collection<Config> c) {
+    public void collect(Collection<Config<?>> c) {
         configs.addAll(c);
     }
 
@@ -82,11 +82,11 @@ public class Configuration {
     }
 
     public List<Config> getFields() {
-        return new ArrayList(configs);
+        return new ArrayList<>(configs);
     }
 
     public List<Config> getFields(Predicate<Config> condition) {
-        List<Config> cs = new ArrayList(getFields());
+        List<Config> cs = new ArrayList<>(getFields());
                      cs.removeIf(condition.negate());
         return cs;
     }
@@ -127,7 +127,7 @@ public class Configuration {
      */
     public void load(File file) {
         FileUtil.readFileKeyValues(file).forEach((id,value) -> {
-            Config c = configs.get(id);
+            Config<?> c = configs.get(id);
             if (c!=null) c.setValueS(value);
         });
     }
@@ -141,11 +141,11 @@ public class Configuration {
     }
 
 
-    private void discoverConfigFieldsOf(Class c) {
+    private void discoverConfigFieldsOf(Class<?> c) {
         configs.addAll(configsOf(c, null, true, false));
     }
 
-    private void discoverMethodsOf(Class c) {
+    private void discoverMethodsOf(Class<?> c) {
         for (Method m : c.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
                 for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
@@ -171,23 +171,23 @@ public class Configuration {
         }
     }
 
-    static List<Config<?>> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
+    static List<Config<?>> configsOf(Class<?> clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments
         if(include_instance && instnc==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
-        List<Config<?>> out = new ArrayList();
+        List<Config<?>> out = new ArrayList<>();
 
-        for (Field f : getAllFields(clazz)) {
-            Config c = createConfig(clazz, f, instnc, include_static, include_instance);
+        for(Field f : getAllFields(clazz)) {
+            Config<?> c = createConfig(clazz, f, instnc, include_static, include_instance);
             if(c!=null) out.add(c);
         }
         return out;
     }
 
-    static Config createConfig(Class cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
+    static Config<?> createConfig(Class<?> cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
         // that are annotated
-        Config c = null;
+        Config<?> c = null;
         IsConfig a = f.getAnnotation(IsConfig.class);
         if (a != null) {
             String group = a.group().isEmpty() ? getGroup(cl) : a.group();
@@ -203,8 +203,8 @@ public class Configuration {
         return c;
     }
 
-    private static Config createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
-        Class c = f.getType();
+    private static Config<?> createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
+        Class<?> c = f.getType();
         if(Config.class.isAssignableFrom(c)) {
             return newFromConfig(f, instance);
         } else
@@ -216,32 +216,32 @@ public class Configuration {
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
-                return new FieldConfig(name, anotation, instance, group, getter, setter);
+                return new FieldConfig<>(name, anotation, instance, group, getter, setter);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Unreflecting field " + f.getName() + " failed. " + e.getMessage());
             }
         }
     }
 
-    private static Config newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
+    private static Config<?> newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
         try {
             yesFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
             if(VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig(name, anotation, (VarList)f.get(instance), group);
             if(Vo.class.isAssignableFrom(f.getType())) {
-                Vo property = (Vo)f.get(instance);
-                Class property_type = getGenericPropertyType(f.getGenericType());
+                Vo<?> property = (Vo)f.get(instance);
+                Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new OverridablePropertyConfig(property_type, name, anotation, property, group);
             }
             if(WritableValue.class.isAssignableFrom(f.getType())) {
-                WritableValue property = (WritableValue)f.get(instance);
-                Class property_type = getGenericPropertyType(f.getGenericType());
+                WritableValue<?> property = (WritableValue)f.get(instance);
+                Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new PropertyConfig(property_type, name, anotation, property, group);
             }
             if(ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
-                ReadOnlyProperty property = (ReadOnlyProperty)f.get(instance);
-                Class property_type = getGenericPropertyType(f.getGenericType());
+                ReadOnlyProperty<?> property = (ReadOnlyProperty)f.get(instance);
+                Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new ReadOnlyPropertyConfig(property_type, name, anotation, property, group);
             }
             throw new IllegalArgumentException("Wrong class");
@@ -250,7 +250,7 @@ public class Configuration {
         }
     }
 
-    private static Config newFromConfig(Field f, Object instance) {
+    private static Config<?> newFromConfig(Field f, Object instance) {
         try {
             yesFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible

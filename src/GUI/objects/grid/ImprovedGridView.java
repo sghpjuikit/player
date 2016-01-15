@@ -142,16 +142,13 @@ public class ImprovedGridView<T> extends Control {
         return (ImprovedGridViewSkin)getSkin();
     }
 
-//    /** {@inheritDoc} */
-//    @Override public String getUserAgentStylesheet() {
-//        return getUserAgentStylesheet(ImprovedGridView.class, "gridview.css");
-//    }
-
     /**************************************************************************
      *
      * Properties
      *
      **************************************************************************/
+
+    public final ObjectProperty<T> selectedItem = new SimpleObjectProperty<>();
 
     // --- horizontal cell spacing
     /**

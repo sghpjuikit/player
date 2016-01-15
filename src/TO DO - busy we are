@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- javafx player MediaException: system cant find media file  when weird character
+  in the filename e.g. : 1-21 Fungagaŕ
 - toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscribtions
   instead. This marvellously increases structural code cohesion.

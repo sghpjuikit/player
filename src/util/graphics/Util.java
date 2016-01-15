@@ -14,6 +14,8 @@ import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -23,9 +25,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import util.dev.TODO;
+
 import static javafx.scene.layout.Priority.ALWAYS;
+import static util.dev.TODO.Purpose.BUG;
 
 /**
  * Graphic utility methods.
@@ -226,6 +232,37 @@ public class Util {
         setAnchor(pane, n1, top1, right1, bottom1, left1);
         setAnchor(pane, n2, top2, right2, bottom2, left2);
         setAnchor(pane, n3, top3, right3, bottom3, left3);
+    }
+
+    /** Gives the text shape wrapping to its width and scrollable functionalities. */
+    @Deprecated
+    @TODO(purpose = BUG)
+    public static ScrollPane layScrollVText(Text t) {
+        // This is how it should be done, but there is a bug.
+        // Unfortunately the pane resizes with the text so we cant bind
+        // t.wrappingWidthProperty().bind(sa.widthProperty());
+        // The only (to me) known solution is to make the text t not manageable, but that
+        // causes the height caculation of the pane sa fail and consequently breaks the
+        // scrolling behavior
+        // I dont know what to do anymore, believe me I have tried...
+//        Pane sa = new StackPane(t);
+//        ScrollPane s = new ScrollPane(sa);
+//                   s.setPannable(false);
+//                   s.setFitToWidth(true);
+//                   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+//                   s.setHbarPolicy(ScrollBarPolicy.NEVER);
+//        t.wrappingWidthProperty().bind(sa.widthProperty());
+
+        // Scrollbar width hardcoded!
+        double reserve = 5;
+        ScrollPane s = new ScrollPane(t);
+                   s.setOnScroll(Event::consume);
+                   s.setPannable(false);
+                   s.setFitToWidth(false);
+                   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+                   s.setHbarPolicy(ScrollBarPolicy.NEVER);
+        t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
+        return s;
     }
 
     /** Creates most simple background with solid bgr color fill and no radius or insets.*/

@@ -69,6 +69,7 @@ import static util.Util.getEnumConstants;
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
+import static util.dev.Util.no;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
@@ -84,7 +85,7 @@ import static util.reactive.Util.maintain;
 @IsConfigurable("Action Chooser")
 public class ActionPane extends OverlayPane implements Configurable {
 
-    static ClassMap<Class> fieldmap = new ClassMap<>();
+    static final ClassMap<Class<?>> fieldmap = new ClassMap<>();
     static {
         fieldmap.put(PlaylistItem.class, PlaylistItem.Field.class);
         fieldmap.put(Metadata.class, Metadata.Field.class);
@@ -129,13 +130,14 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 /***************************** PRECONFIGURED ACTIONS ******************************/
 
-    public final ClassListMap<FastAction> actions = new ClassListMap<>(null);
+    public final ClassListMap<ActionData<?,?,?>> actions = new ClassListMap<>(null);
 
-    public void register(Class c, FastAction action) {
+    public final <T> void register(Class<T> c, ActionData<T,?,?> action) {
         actions.accumulate(c, action);
     }
 
-    public void register(Class c, FastAction... action) {
+    @SafeVarargs
+    public final <T> void register(Class<T> c, ActionData<T,?,?>... action) {
         actions.accumulate(c, listRO(action));
     }
 
@@ -160,6 +162,7 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 /************************************ DATA ************************************/
 
+    private boolean use_registered_actions = true;
     private Object data;
     private List<ActionData> iactions;
     private final List<ActionData> dactions = new ArrayList<>();
@@ -170,21 +173,29 @@ public class ActionPane extends OverlayPane implements Configurable {
         super.show();
     }
 
-    public void show(Object value) {
+    public final void show(Object value) {
         value = collectionUnwrap(value);
         Class c = value==null ? Void.class : value.getClass();
         show(c, value);
     }
 
-    public <T> void show(Class<T> type, T value, ActionData<?,?>... actions) {
+    public final <T> void show(Class<T> type, T value) {
+        no(value==null && (type!=Void.class || type!=void.class));
+        show(type, value, false);
+    }
+
+    public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?,?>... actions) {
         data = value;
         iactions = list(actions);
+        use_registered_actions = !exclusive;
         show();
     }
 
-    public <T> void show(Class<T> type, Fut<T> value, SlowAction<T,?>... actions) {
+    @SafeVarargs
+    public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T,?>... actions) {
         data = value;
         iactions = list(actions);
+        use_registered_actions = !exclusive;
         show();
     }
 
@@ -200,7 +211,7 @@ public class ActionPane extends OverlayPane implements Configurable {
     private final VBox desc = layVertically(8, BOTTOM_CENTER, desctitl,descfull);
     private final ObservableList<Node> icons;
     private StackPane tablePane = new StackPane();
-    private FilteredTable table;
+    private FilteredTable<?,?> table;
 
 /*********************************** HELPER ***********************************/
 
@@ -233,7 +244,7 @@ public class ActionPane extends OverlayPane implements Configurable {
         }
     }
 
-    private void setActionInfo(ActionData a) {
+    private void setActionInfo(ActionData<?,?,?> a) {
         desctitl.setText(a==null ? "" : a.name);
         descfull.setText(a==null ? "" : a.description);
     }
@@ -264,7 +275,7 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
 
     private String getDataInfo(Object data, boolean computed) {
-        Class type = data==null ? Void.class : data.getClass();
+        Class<?> type = data==null ? Void.class : data.getClass();
         if(Void.class.equals(type)) return "";
 
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
@@ -278,11 +289,11 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
 
     private void showIcons(Object d) {
-        Class dt = d==null ? Void.class : d instanceof Collection ? ((Collection)d).stream().findFirst().orElse(null).getClass() : d.getClass();
+        Class<?> dt = d==null ? Void.class : d instanceof Collection ? ((Collection)d).stream().findFirst().orElse(null).getClass() : d.getClass();
         // get suitable actions
         dactions.clear();
         dactions.addAll(iactions);
-        dactions.addAll(actions.getElementsOfSuperV(dt));
+        if(use_registered_actions) dactions.addAll(actions.getElementsOfSuperV(dt));
         dactions.removeIf(a -> {
             if(a.groupApply==FOR_ALL) {
                 return a.condition.test(collectionWrap(d));
@@ -303,16 +314,20 @@ public class ActionPane extends OverlayPane implements Configurable {
                   .icon(a.icon)
                   .styleclass(ICON_STYLECLASS)
                   .onClick(() -> {
-                      if (a instanceof FastAction) {
-                          ((FastAction)a).run(d,d instanceof Collection);
+                      if (a instanceof FastActionBase) {
+                          ((FastActionBase)a).run(d,d instanceof Collection);
                           doneHide();
                       }
-                      if (a instanceof SlowAction) {
+                      if (a instanceof SlowActionBase) {
                           Fut<?> datafut = fut(d);
                           futAfter(datafut)
+                                .then(() -> System.out.println("fut begin"))
                                 .then(() -> actionProgress.setProgress(-1),FX)
-                                .then((Ƒ1)a.action)
+                                .then(() -> System.out.println("fut begin progress done"))
+                                .thenChain((Ƒ1)a.action)
+                                .then(() -> System.out.println("fut begin action done"))
                                 .then(() -> actionProgress.setProgress(1),FX)
+                                .then(() -> System.out.println("fut begin p done"))
                                 .then(this::doneHide,FX);
                       }
                    });
@@ -327,7 +342,7 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 
 
-    private static Collection collectionWrap(Object o) {
+    private static Collection<?> collectionWrap(Object o) {
         if(o instanceof Collection) {
             return (Collection)o;
         } else {
@@ -348,9 +363,8 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
 
 
-
-
-    public static abstract class ActionData<T,F> {
+    /** Action. */
+    public static abstract class ActionData<C,T,F> {
         public final String name;
         public final String description;
         public final GlyphIcons icon;
@@ -398,24 +412,12 @@ public class ActionPane extends OverlayPane implements Configurable {
             throw new RuntimeException("Illegal switch case");
         }
     }
-    public static class FastAction<T> extends ActionData<T,Consumer<T>> {
 
-        public FastAction(String name, String description, GlyphIcons icon, Consumer<T> act) {
-            super(name, description, icon, NONE, IS, act);
-        }
+    /** Action that executes synchronously - simply consumes the input. */
+    private static class FastActionBase<C,T> extends ActionData<C,T,Consumer<T>> {
 
-        public FastAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<T> act) {
-            super(name, description, icon, NONE, constriction, act);
-        }
-
-        private FastAction(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<T> act) {
+        private FastActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<T> act) {
             super(name, description, icon, groupApply, constriction, act);
-        }
-
-        public FastAction(GlyphIcons icon, Action action) {
-            super(action.getName(),
-                  action.getInfo() + (action.hasKeysAssigned() ? "\n\nShortcut keys: " + action.getKeys() : ""),
-                  icon, NONE, IS, ignored -> action.run());
         }
 
         @Override
@@ -430,7 +432,30 @@ public class ActionPane extends OverlayPane implements Configurable {
         }
 
     }
-    public static class FastColAction<T> extends FastAction<Collection<T>> {
+    /** FastAction that consumes simple input - its type is the same as type of the action. */
+    public static class FastAction<T> extends FastActionBase<T,T> {
+
+        private FastAction(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<T> act) {
+            super(name, description, icon, groupApply, constriction, act);
+        }
+
+        public FastAction(String name, String description, GlyphIcons icon, Consumer<T> act) {
+            this(name, description, icon, NONE, IS, act);
+        }
+
+        public FastAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<T> act) {
+            this(name, description, icon, NONE, constriction, act);
+        }
+
+        public FastAction(GlyphIcons icon, Action action) {
+            this(action.getName(),
+                  action.getInfo() + (action.hasKeysAssigned() ? "\n\nShortcut keys: " + action.getKeys() : ""),
+                  icon, NONE, IS, ignored -> action.run());
+        }
+
+    }
+    /** FastAction that consumes collection input - its input type is collection of its type. */
+    public static class FastColAction<T> extends FastActionBase<T,Collection<T>> {
 
         public FastColAction(String name, String description, GlyphIcons icon, Consumer<Collection<T>> act) {
             super(name, description, icon, FOR_ALL, ISNT, act);
@@ -441,7 +466,17 @@ public class ActionPane extends OverlayPane implements Configurable {
         }
 
     }
-    public static class SlowAction<T,R> extends ActionData<T,Ƒ1<Fut<T>,Fut<R>>> {
+
+    /** Action that executes asynchronously - receives a future, processes the data and returns it. */
+    private static class SlowActionBase<C,T,R> extends ActionData<C,T,Ƒ1<Fut<T>,Fut<R>>> {
+
+        public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupally, Predicate<? super T> constriction, Ƒ1<Fut<T>,Fut<R>> act) {
+            super(name, description, icon, groupally, constriction, act);
+        }
+
+    }
+    /** SlowAction that processes simple input - its type is the same as type of the action. */
+    public static class SlowAction<T,R> extends SlowActionBase<T,T,R> {
 
         public SlowAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<T>,Fut<R>> act) {
             super(name, description, icon, NONE, IS, act);
@@ -452,10 +487,15 @@ public class ActionPane extends OverlayPane implements Configurable {
         }
 
     }
-    public static class SlowColAction<T,R> extends SlowAction<Collection<T>,R> {
+    /** SlowAction that processes collection input - its input type is collection of its type. */
+    public static class SlowColAction<T,R> extends SlowActionBase<T,Collection<T>,R> {
 
         public SlowColAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<Collection<T>>, Fut<R>> act) {
-            super(name, description, icon, FOR_ALL, act);
+            super(name, description, icon, FOR_ALL, ISNT, act);
+        }
+
+        public SlowColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Ƒ1<Fut<Collection<T>>,Fut<R>> act) {
+            super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), act);
         }
 
     }

@@ -56,9 +56,11 @@ import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static main.App.APP;
 import static util.functional.Util.mapB;
+import static util.graphics.Util.layScrollVText;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -361,18 +363,21 @@ public final class AreaControls {
             closeAndDo(area.content_root, ()->{
                 Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
-                ScrollPane s = new ScrollPane(t);
-                s.setPadding(new Insets(15));
-                s.getStyleClass().addAll(Area.bgr_STYLECLASS);
-                s.addEventFilter(MOUSE_PRESSED, Event::consume);
-                s.addEventFilter(MOUSE_RELEASED, Event::consume);
-                s.addEventFilter(MOUSE_CLICKED, e -> {
+                ScrollPane s = layScrollVText(t);
+                           s .addEventFilter(SCROLL, Event::consume);
+                           s.setMaxWidth(500);
+                StackPane sa = new StackPane(s);
+                sa.setPadding(new Insets(20));
+                sa.getStyleClass().addAll(Area.bgr_STYLECLASS);
+                sa.addEventFilter(MOUSE_PRESSED, Event::consume);
+                sa.addEventFilter(MOUSE_RELEASED, Event::consume);
+                sa.addEventFilter(MOUSE_CLICKED, e -> {
                     if(e.getButton()==SECONDARY)
-                        closeAndDo(s, () -> openAndDo(area.content_root, null));
+                        closeAndDo(sa, () -> openAndDo(area.content_root, null));
                 });
-                area.root.getChildren().add(s);
-                setAnchors(s, 0d);
-                openAndDo(s, null);
+                area.root.getChildren().add(sa);
+                setAnchors(sa, 0d);
+                openAndDo(sa, null);
             });
         }
     }
@@ -495,7 +500,7 @@ public final class AreaControls {
             + "    Lock : Forbids entering layout mode on mouse hover\n"
             + "    Press ALT : Toggles layout mode\n"
             + "    Drag & Drop header : Drags widget to other area\n"
-            + (w==null ? "" : w.getInfo().toStr());
+            + (w==null ? "" : "\n\n" + w.getInfo().toStr());
     }
 
 }

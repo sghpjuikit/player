@@ -30,10 +30,15 @@ package gui.objects.grid;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
+import javafx.css.PseudoClass;
 import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.input.KeyCode;
 
 import com.sun.javafx.scene.control.VirtualScrollBar;
 
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static util.Util.clip;
 import static util.Util.getFieldValue;
 import static util.Util.invokeMethodP0;
 
@@ -89,6 +94,22 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         registerChangeListener(control.verticalCellSpacingProperty(), e -> flowRecreateCells());
         registerChangeListener(control.widthProperty(), e -> updateRowCount());
         registerChangeListener(control.heightProperty(), e -> updateRowCount());
+
+        // selection
+        f.addEventHandler(KEY_PRESSED, e -> {
+            KeyCode c = e.getCode();
+            if(c.isNavigationKey()) {
+                if(c==KeyCode.UP || c==KeyCode.KP_UP) selectUp();
+                if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectDown();
+                if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectLeft();
+                if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectRight();
+                if(c==KeyCode.PAGE_DOWN) selectDown();
+                if(c==KeyCode.PAGE_UP) selectUp();
+                if(c==KeyCode.HOME) selectFirst();
+                if(c==KeyCode.END) selectLast();
+                e.consume();
+            }
+        });
     }
 
     public VirtualFlow<ImprovedGridRow<T>> getFlow() {
@@ -137,7 +158,7 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
 
     public ImprovedGridRow<T> createCell() {
         ImprovedGridRow<T> row = new ImprovedGridRow<>();
-        row.updateGridView(getSkinnable());
+        row.setGridView(getSkinnable());
         return row;
     }
 
@@ -197,20 +218,86 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
     }
 
     protected boolean areRowsVisible() {
-        if (f == null)
-            return false;
-
-        if (f.getFirstVisibleCell() == null)
-            return false;
-
-        if (f.getLastVisibleCell() == null)
-            return false;
-
-        return true;
+        return f!=null && f.getFirstVisibleCell()!=null && f.getLastVisibleCell()!=null;
     }
 
-    @Override protected double computeMinHeight(double height, double topInset, double rightInset, double bottomInset,
-            double leftInset) {
+    @Override protected double computeMinHeight(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
         return 0;
+    }
+
+/******************************************** SELECTION *******************************************/
+
+    private static final PseudoClass SELECTED_PC = getPseudoClass("selected");
+    private int selectedI = -1;
+    private ImprovedGridRow<T> selectedR = null;
+    private ImprovedGridCell<T> selectedC = null;
+
+    void selectRight() {
+        select(selectedI+1);
+    }
+
+    void selectLeft() {
+        select(selectedI-1);
+    }
+
+    void selectUp() {
+        select(selectedI-computeMaxCellsInRow());
+    }
+
+    void selectDown() {
+        select(selectedI+computeMaxCellsInRow());
+    }
+
+    void selectFirst() {
+        select(0);
+    }
+
+    void selectLast() {
+        select(getSkinnable().getItems().size()-1);
+    }
+
+    void select(ImprovedGridCell<T> c) {
+        if(c==null || c.getItem()==null) return;
+        select(getSkinnable().getItems().indexOf(c.getItem()));
+    }
+
+    void select(int i) {
+        if(f==null) return;
+
+        int imin = 0;
+        int imax = getSkinnable().getItems().size()-1;
+        i = clip(imin,i,imax);
+        if(i==selectedI) return;
+
+        // unselect
+        if(selectedC!=null) selectedC.pseudoClassStateChanged(SELECTED_PC, false);
+        if(selectedR!=null) selectedR.pseudoClassStateChanged(SELECTED_PC, false);
+
+        // find index
+        int rows = getItemCount();
+        int cols = computeMaxCellsInRow();
+        int row = i/cols;
+        int col = i%cols;
+
+        if(row<0 || row>rows) return;
+
+        // show row & cell to select
+        ImprovedGridRow<T> fsc = f.getFirstVisibleCell();
+        ImprovedGridRow<T> lsc = f.getLastVisibleCell();
+        if(fsc.getIndex() > row || row > lsc.getIndex())
+        f.scrollTo(row);
+
+        // find row & cell to select
+        ImprovedGridRow<T> r = f.getCell(row);
+        ImprovedGridCell<T> c = r.getSkinn().getCellAtIndex(col);
+        if(r==null || c==null) return;
+
+        selectedI = i;
+        if(c!=null) c.pseudoClassStateChanged(SELECTED_PC, true);
+        if(r!=null) r.pseudoClassStateChanged(SELECTED_PC, true);
+        selectedR = r;
+        selectedC = c;
+        selectedC.requestFocus();
+        getSkinnable().selectedItem.set(c.getItem());
     }
 }

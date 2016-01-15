@@ -98,6 +98,4 @@ public class Text extends javafx.scene.text.Text {
         wrappingWithNatural.setValue(val);
     }
 
-
-
 }

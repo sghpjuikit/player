@@ -155,13 +155,13 @@ public class DB {
         updateInMemoryDBfromPersisted();
     }
 
-    public static void removeItems(Collection<? extends Metadata> items) {
+    public static void removeItems(Collection<? extends Item> items) {
         if(em==null) return;
 
         // remove in db
         em.getTransaction().begin();
-        items.forEach( m -> {
-            Metadata in_db = em.find(Metadata.class, m.getId());
+        items.forEach(item -> {
+            Metadata in_db = em.find(Metadata.class, item.getId());
             if(in_db != null) em.remove(in_db);
         });
         em.getTransaction().commit();

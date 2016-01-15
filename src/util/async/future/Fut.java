@@ -92,13 +92,13 @@ public class Fut<T> implements Runnable{
         f.cancel(mayInterruptIfRunning);
     }
 
-    public final <R> Fut<R> map(Function<T,R> action) {
+    public final <R> Fut<R> map(Function<? super T,R> action) {
         return new Fut<>(f.thenApplyAsync(action));
     }
-    public final <R> Fut<R> map(Function<T,R> action, Executor executor) {
+    public final <R> Fut<R> map(Function<? super T,R> action, Executor executor) {
         return new Fut<>(f.thenApplyAsync(action, executor));
     }
-    public final <R> Fut<R> map(Function<T,R> action, Consumer<Runnable> executor) {
+    public final <R> Fut<R> map(Function<? super T,R> action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenApplyAsync(action, executor::accept));
     }
 
@@ -125,9 +125,9 @@ public class Fut<T> implements Runnable{
     }
 
     public final Fut<T> use(Consumer<T> action) {
-        f = f.thenApplyAsync(r -> {action.accept(r); return r; });
-        return this;
-//        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
+//        f = f.thenApplyAsync(r -> {action.accept(r); return r; });
+//        return this;
+        return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
     }
     public final Fut<T> use(Consumer<T> action, Executor executor) {
         return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
@@ -137,10 +137,7 @@ public class Fut<T> implements Runnable{
     }
 
     public final Fut<T> then(Runnable action) {
-        return use(r -> action.run());
-//        f = f.thenApply(r -> { action.run(); return r; });
-//        return this;
-//        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
+        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
     }
     public final Fut<T> then(Runnable action, Executor executor) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));

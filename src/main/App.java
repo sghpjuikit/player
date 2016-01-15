@@ -39,6 +39,7 @@ import com.thoughtworks.xstream.mapper.Mapper;
 
 import AudioPlayer.Item;
 import AudioPlayer.Player;
+import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
@@ -62,6 +63,7 @@ import Layout.widget.feature.ConfiguringFeature;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import Layout.widget.feature.PlaylistFeature;
+import Layout.widget.feature.SongWriter;
 import action.Action;
 import action.IsAction;
 import action.IsActionable;
@@ -427,21 +429,17 @@ public class App extends Application implements Configurable {
                 PLAYLIST_PLUS,
                 items -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addItems(items))
             ),
-            new SlowColAction<>("Update from file",
+            new FastColAction<>("Update from file",
                 "Updates library metadata of the specified items from their files. The difference betwee"
                 + "database and real metadata information is a result of a bug or file edited externally. "
                 + "After this library will contain uptodate metadata for specified items.",
                 FontAwesomeIcon.REFRESH,
-                f -> f.use(items -> {
-                    DB.removeItems(items);
-                })
+                Player::refreshItems // this needs to be asynchronous
             ),
-            new SlowColAction<>("Remove from library",
+            new FastColAction<>("Remove from library",
                 "Removes all specified items from library. After this library will contain none of these items.",
-                FontAwesomeIcon.REMOVE,
-                f -> f.use(items -> {
-                    Player.refreshItems(items);
-                })
+                MaterialDesignIcon.DATABASE_MINUS,
+                DB::removeItems // id like this to be async. too
             )
         );
         actionPane.register(File.class,
@@ -462,9 +460,19 @@ public class App extends Application implements Configurable {
             ),
             new SlowColAction<>("Add to library",
                 "Add items to library if not yet contained.",
-                PLAYLIST_PLUS,
+                MaterialDesignIcon.DATABASE_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                future -> future.use(MetadataReader::readAndAdd)
+                items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {}, false)
+                                       .run()
+            ),
+            new SlowColAction<>("Edit & Add to library",
+                "Add items to library if not yet contained and edit in tag editor.",
+                MaterialDesignIcon.DATABASE_PLUS,
+                f -> AudioFileFormat.isSupported(f, Use.APP),
+                items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {
+                            if(ok && !added.isEmpty())
+                                 APP.widgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
+                        }, false).run()
             ),
             new FastColAction<>("Add to existing playlist",
                 "Add items to new playlist widget.",

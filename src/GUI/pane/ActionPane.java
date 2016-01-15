@@ -130,14 +130,14 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 /***************************** PRECONFIGURED ACTIONS ******************************/
 
-    public final ClassListMap<ActionData<?,?,?>> actions = new ClassListMap<>(null);
+    public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
 
-    public final <T> void register(Class<T> c, ActionData<T,?,?> action) {
+    public final <T> void register(Class<T> c, ActionData<T,?> action) {
         actions.accumulate(c, action);
     }
 
     @SafeVarargs
-    public final <T> void register(Class<T> c, ActionData<T,?,?>... action) {
+    public final <T> void register(Class<T> c, ActionData<T,?>... action) {
         actions.accumulate(c, listRO(action));
     }
 
@@ -184,7 +184,7 @@ public class ActionPane extends OverlayPane implements Configurable {
         show(type, value, false);
     }
 
-    public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?,?>... actions) {
+    public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?>... actions) {
         data = value;
         iactions = list(actions);
         use_registered_actions = !exclusive;
@@ -244,7 +244,7 @@ public class ActionPane extends OverlayPane implements Configurable {
         }
     }
 
-    private void setActionInfo(ActionData<?,?,?> a) {
+    private void setActionInfo(ActionData<?,?> a) {
         desctitl.setText(a==null ? "" : a.name);
         descfull.setText(a==null ? "" : a.description);
     }
@@ -314,21 +314,15 @@ public class ActionPane extends OverlayPane implements Configurable {
                   .icon(a.icon)
                   .styleclass(ICON_STYLECLASS)
                   .onClick(() -> {
-                      if (a instanceof FastActionBase) {
-                          ((FastActionBase)a).run(d,d instanceof Collection);
+                      if (!a.isLong) {
+                          a.run(d);
                           doneHide();
-                      }
-                      if (a instanceof SlowActionBase) {
-                          Fut<?> datafut = fut(d);
-                          futAfter(datafut)
-                                .then(() -> System.out.println("fut begin"))
-                                .then(() -> actionProgress.setProgress(-1),FX)
-                                .then(() -> System.out.println("fut begin progress done"))
-                                .thenChain((Ƒ1)a.action)
-                                .then(() -> System.out.println("fut begin action done"))
-                                .then(() -> actionProgress.setProgress(1),FX)
-                                .then(() -> System.out.println("fut begin p done"))
-                                .then(this::doneHide,FX);
+                      } else {
+                          futAfter(fut(d))
+                            .then(() -> actionProgress.setProgress(-1),FX)
+                            .use(a::run)
+                            .then(() -> actionProgress.setProgress(1),FX)
+                            .then(this::doneHide,FX);
                       }
                    });
                  i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(a));
@@ -351,7 +345,7 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
     private static Object collectionUnwrap(Object o) {
         if(o instanceof Collection) {
-            Collection c = (Collection)o;
+            Collection<?> c = (Collection)o;
             if(c.isEmpty()) return null;
             if(c.size()==1) return c.stream().findAny().get();
         }
@@ -364,71 +358,53 @@ public class ActionPane extends OverlayPane implements Configurable {
 
 
     /** Action. */
-    public static abstract class ActionData<C,T,F> {
+    public static abstract class ActionData<C,T> {
         public final String name;
         public final String description;
         public final GlyphIcons icon;
         public final Predicate<? super T> condition;
         public final GroupApply groupApply;
-        public final F action;
+        private final Ƒ1<T,?> action;
+        public final boolean isLong;
 
-        private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, F action) {
+        private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean ISLONG, Ƒ1<T,?> action) {
             this.name = name;
             this.description = description;
             this.icon = icon;
             this.condition = constriction;
             this.groupApply = group;
+            this.isLong = ISLONG;
             this.action = action;
         }
 
-        Object run(Object data, boolean isCollection){
-            return data; // do nothing
-        };
-
-        Object run(Object data){
-            if(groupApply!=NONE && !(data instanceof Collection)) data=listRO(data); // wrap into collection
-            return run(data, data instanceof Collection);
-        };
-
-        public boolean isColl() {
-            return groupApply==FOR_ALL;
-        }
-
-        public boolean canUse(Object o) {
-            return o instanceof Collection ? groupApply!=NONE : groupApply!=FOR_ALL;
-        }
-
-        public Object maptToUsable(Object o) {
+        public Object run(Object data) {
+            boolean isCollection = data instanceof Collection;
             if(groupApply==FOR_ALL) {
-                return o instanceof Collection ? o : listRO(o);
-            }
+                return action.apply(isCollection ? (T) data : (T) collectionWrap(data));
+            } else
             if(groupApply==FOR_EACH) {
-                return o;
-            }
+                if(isCollection) {
+                    for(T t : (Collection<T>)data)
+                        action.apply(t);
+                    return null;
+                } else {
+                    return action.apply((T)data);
+                }
+            } else
             if(groupApply==NONE) {
-                if(o instanceof Collection) throw new RuntimeException("Action can not use collection");
-                else return o;
+                if(isCollection) throw new RuntimeException("Action can not use collection");
+                return action.apply((T)data);
+            } else {
+                throw new util.SwitchException(groupApply);
             }
-            throw new RuntimeException("Illegal switch case");
         }
     }
 
     /** Action that executes synchronously - simply consumes the input. */
-    private static class FastActionBase<C,T> extends ActionData<C,T,Consumer<T>> {
+    private static class FastActionBase<C,T> extends ActionData<C,T> {
 
         private FastActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<T> act) {
-            super(name, description, icon, groupApply, constriction, act);
-        }
-
-        @Override
-        public Object run(Object data, boolean isCollection) {
-            if(isCollection && groupApply==FOR_EACH) {
-                for(T t : (Collection<T>)data)
-                    action.accept(t);
-            } else {
-                action.accept((T) (groupApply==NONE ? collectionUnwrap(data) : data));
-            }
-            return data;
+            super(name, description, icon, groupApply, constriction, false, in -> { act.accept(in); return in; });
         }
 
     }
@@ -468,34 +444,34 @@ public class ActionPane extends OverlayPane implements Configurable {
     }
 
     /** Action that executes asynchronously - receives a future, processes the data and returns it. */
-    private static class SlowActionBase<C,T,R> extends ActionData<C,T,Ƒ1<Fut<T>,Fut<R>>> {
+    private static class SlowActionBase<C,T,R> extends ActionData<C,T> {
 
-        public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupally, Predicate<? super T> constriction, Ƒ1<Fut<T>,Fut<R>> act) {
-            super(name, description, icon, groupally, constriction, act);
+        public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupally, Predicate<? super T> constriction, Ƒ1<T,R> act) {
+            super(name, description, icon, groupally, constriction, true, in -> { act.accept(in); return in; });
         }
 
     }
     /** SlowAction that processes simple input - its type is the same as type of the action. */
     public static class SlowAction<T,R> extends SlowActionBase<T,T,R> {
 
-        public SlowAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<T>,Fut<R>> act) {
-            super(name, description, icon, NONE, IS, act);
+        public SlowAction(String name, String description, GlyphIcons icon, Consumer<T> act) {
+            super(name, description, icon, NONE, IS, in -> { act.accept(in); return null; });
         }
 
-        public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupally, Ƒ1<Fut<T>,Fut<R>> act) {
-            super(name, description, icon, groupally, IS, act);
+        public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupally, Consumer<T> act) {
+            super(name, description, icon, groupally, IS, in -> { act.accept(in); return null; });
         }
 
     }
     /** SlowAction that processes collection input - its input type is collection of its type. */
-    public static class SlowColAction<T,R> extends SlowActionBase<T,Collection<T>,R> {
+    public static class SlowColAction<T> extends SlowActionBase<T,Collection<T>,Void> {
 
-        public SlowColAction(String name, String description, GlyphIcons icon, Ƒ1<Fut<Collection<T>>, Fut<R>> act) {
-            super(name, description, icon, FOR_ALL, ISNT, act);
+        public SlowColAction(String name, String description, GlyphIcons icon, Consumer<Collection<T>> act) {
+            super(name, description, icon, FOR_ALL, ISNT, in -> { act.accept(in); return null; });
         }
 
-        public SlowColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Ƒ1<Fut<Collection<T>>,Fut<R>> act) {
-            super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), act);
+        public SlowColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<Collection<T>> act) {
+            super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), in -> { act.accept(in); return null; });
         }
 
     }

@@ -83,6 +83,7 @@ import static util.Util.menuItem;
 import static util.Util.menuItems;
 import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
+import static util.async.Async.runNew;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
@@ -297,7 +298,7 @@ public class Library extends FXMLController implements SongReader {
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
 
-        getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
+        getFields().stream().filter(c -> !c.getName().equals("Library level") && !c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
     }
 
@@ -352,6 +353,7 @@ public class Library extends FXMLController implements SongReader {
                          APP.widgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
                      hideInfo.start();
                  },false);
+                 runNew(t);
                  taskInfo.bind(t);
              },FX)
              .showProgress(getWidget().getWindow().taskAdd())

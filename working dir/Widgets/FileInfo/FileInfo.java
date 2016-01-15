@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -39,7 +38,6 @@ import gui.pane.ImageFlowPane;
 import main.App;
 import util.access.V;
 import util.async.executor.EventReducer;
-import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
@@ -61,8 +59,8 @@ import static main.App.APP;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import static util.async.Async.FX;
+import static util.async.Async.runFX;
 import static util.async.executor.EventReducer.toLast;
-import static util.functional.Functors.Ƒ1.f1;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchor;
@@ -182,15 +180,6 @@ public class FileInfo extends FXMLController implements SongReader {
                       + "untouched.",
                         FontAwesomeIcon.TAG,
                         f -> tagAsCover(f,false)),
-//                // for debugging purposes to simulate long running actions
-//                new SlowAction<>("Long running action test", "", FontAwesomeIcon.ANGELLIST,
-//                        f -> f.then(() -> {
-//                            try {
-//                                Thread.sleep(500);
-//                            } catch (InterruptedException ex) {
-//                                Logger.getLogger(FileInfo.class.getName()).log(Level.SEVERE, null, ex);
-//                            }
-//                        })),
                 new SlowAction<>("Write to tag (album)",
                         "Writes image as cover to all songs in this song's album. Only songs in the "
                       + "library are considered. Songs with no album are ignored. At minimum the "
@@ -259,14 +248,12 @@ public class FileInfo extends FXMLController implements SongReader {
 
 /********************************** FEATURES **********************************/
 
-    /** {@inheritDoc} */
     @Override
     @IsInput("To display")
     public void read(Item item) {
         reading.push(item);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void read(List<? extends Item> items) {
         read(items.isEmpty() ? null : items.get(0));
@@ -329,36 +316,40 @@ public class FileInfo extends FXMLController implements SongReader {
         cover.loadImage(isEmpty() ? null : data.getCover(source));
     }
 
-    private Fut setAsCover(Fut<File> ff, boolean setAsCover) {
-        Consumer<File> a = setAsCover
-            ? file -> copyFileSafe(file, data.getLocation(), "cover")
-            : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
-        return ff.use(f1(a).passNull())
-                 .then(cover_source::applyValue,FX)         // refresh cover
-                 .showProgress(getWidget().getWindow().taskAdd());
-    }
-
-    private Fut tagAsCover(Fut<File> ff, boolean includeAlbum) {
-        Consumer<File> a = f -> {
-            Collection<Metadata> items = includeAlbum
-                // get all known songs from album
-                ? DB.items.o.getValue().stream()
-                    // we must not write when album is empty! that could have disastrous consequences!
-                    .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
-                    .collect(toSet())
-                : new HashSet<>();
-            items.add(data); // make sure the original is included (Set avoids duplicates)
-
-            MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
-            Player.refreshItems(items);
-        };
-        return ff.use(f1(a).passNull())
-                 .showProgress(getWidget().getWindow().taskAdd());
-    }
-
     private void setOverrun(OverrunStyle os) {
         fields.forEach(l -> l.setTextOverrun(os));
     }
+
+/**************************************************************************************************/
+
+    private void setAsCover(File file, boolean setAsCover) {
+        if(file==null) return;
+
+        if(setAsCover)
+            copyFileSafe(file, data.getLocation(), "cover");
+        else
+            copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
+
+        runFX(cover_source::applyValue);
+    }
+
+    private void tagAsCover(File file, boolean includeAlbum) {
+        if(file==null) return;
+
+        Collection<Metadata> items = includeAlbum
+            // get all known songs from album
+            ? DB.items.o.getValue().stream()
+                // we must not write when album is empty! that could have disastrous consequences!
+                .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
+                .collect(toSet())
+            : new HashSet<>();
+        items.add(data); // make sure the original is included (Set avoids duplicates)
+
+        MetadataWriter.useNoRefresh(items, w -> w.setCover(file));
+        Player.refreshItems(items);
+    }
+
+/**************************************************************************************************/
 
     private static enum Sort {
         SEMANTIC,

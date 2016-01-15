@@ -1,7 +1,6 @@
 
 package AudioPlayer.tagging;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +17,6 @@ import javafx.scene.media.Media;
 import org.jaudiotagger.audio.AudioFile;
 
 import AudioPlayer.Item;
-import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
 import util.File.AudioFileFormat.Use;
@@ -234,19 +232,21 @@ public class MetadataReader{
 
 
     /**
-     * Reads metadata from files of the items and adds items to library. If item
+     * Creates a task (must be ran manually) that:
+     * <ul>
+     * <li>reads metadata from files of the items and adds items to library. If item
      * already exists, it will not be overwritten or changed.
-     * <p>
-     * The task returns list of all provided items that are in the database after
+     * <li> The task returns list of all provided items that are in the database after
      * the task succeeds.
+     * </ul>
      *
      * @param items
      * @param onEnd
      * @param all true to return all discovered files, false to return only those that
      * were added to library as a result of this task - ignore existing files
-     * @return
+     * @return task
      */
-    public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
+    public static Task<List<Metadata>> readAaddMetadata(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
         noØ(items);
         final Task<List<Metadata>> task = new SuccessTask("Adding items to library", onEnd){
             private final int all = items.size();
@@ -303,34 +303,7 @@ public class MetadataReader{
             }
         };
 
-        // run immediately and return task
-        runNew(task);
         return task;
-    }
-
-    public static void readAndAdd(Collection<File> items) {
-        EntityManager em = DB.em;
-                      em.getTransaction().begin();
-        try {
-            for (File i : items){
-                Item it = new SimpleItem(i);
-                Metadata l = em.find(Metadata.class, Metadata.metadataID(it.getURI()));
-                if(l == null) {
-                    MetadataWriter.useNoRefresh(it, w->w.setLibraryAddedNowIfEmpty());
-                    Metadata m = create(it);
-
-                    if (m.isEmpty());
-                    else {
-                        em.persist(m);
-                    }
-                } else {}
-            }
-            em.getTransaction().commit();
-            // update library model
-            runFX(DB::updateInMemoryDBfromPersisted);
-        } catch (Exception e ) {
-            e.printStackTrace();
-        }
     }
 
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){

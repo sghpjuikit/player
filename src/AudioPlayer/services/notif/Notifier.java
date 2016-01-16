@@ -97,7 +97,7 @@ public final class Notifier extends ServiceBase {
                 songNotifGui = ii;
                 ((Pane)songNotifGui).setPrefSize(-1,-1);
             } else {
-                Widget wf = APP.widgetManager.find(v, NEW, true).get();
+                Widget<?> wf = APP.widgetManager.find(v, NEW, true).get();
                 songNotifGui = wf.load();
                 songNotifInfo = (SongReader)wf.getController();
                 ((Pane)songNotifGui).setPrefSize(700, 300);

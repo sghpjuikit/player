@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- saving multiple playlists is bugged
 - javafx player MediaException: system cant find media file  when weird character
   in the filename e.g. : 1-21 Fungagaŕ
 - toggle action annotation

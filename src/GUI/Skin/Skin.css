@@ -3281,9 +3281,14 @@
  * sub 1 opacity
  * an example would be a slight image overlay over background
  */
-.window > * > .bgr-image {
+/*.window > * > .bgr-image {*/  /* this works too, but makes reuse mpossible */
+.bgr-image {
     -fx-opacity:1;
     /*-fx-background-image: url("bgr.jpg");*/
+    /* This causes unexpected bug, the image isnt resized properly.
+     * Solution: simply define the image in the skin, just like here. I dont know why
+     * inheriting this causes resize bugs...
+     */
     -fx-background-size: stretch;
 }
 

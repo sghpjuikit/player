@@ -5,17 +5,25 @@
  */
 package util.graphics;
 
+import java.awt.EventQueue;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -26,11 +34,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import util.dev.TODO;
 
 import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.stage.Modality.APPLICATION_MODAL;
+import static javafx.stage.StageStyle.UNDECORATED;
+import static javafx.stage.StageStyle.UTILITY;
+import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.BUG;
 
 /**
@@ -290,6 +303,25 @@ public class Util {
         });
     }
 
+
+/**************************************************************************************************/
+
+    public static void setMinPrefMaxSize(Node n, double widthheight) {
+        if(n instanceof Pane) {
+            ((Pane)n).setMinSize(widthheight,widthheight);
+            ((Pane)n).setPrefSize(widthheight,widthheight);
+            ((Pane)n).setMaxSize(widthheight,widthheight);
+        }
+    }
+
+    public static void setMinPrefMaxSize(Node n, double width, double height) {
+        if(n instanceof Pane) {
+            ((Pane)n).setMinSize(width,height);
+            ((Pane)n).setPrefSize(width,height);
+            ((Pane)n).setMaxSize(width,height);
+        }
+    }
+
     public static void removeFromParent(Node parent, Node child) {
         if(parent==null || child==null) return;
         if(parent instanceof Pane) {
@@ -300,5 +332,109 @@ public class Util {
     public static void removeFromParent(Node child) {
         if(child==null) return;
         removeFromParent(child.getParent(),child);
+    }
+
+/**************************************************************************************************/
+
+    /**
+     * Create fullscreen modal no taskbar stage on given screen. The stage will have its owner,
+     * style and modality initialized and be prepared to be shown.
+     * <p>
+     * Use: just set your scene on it and call show().
+     * <p>
+     * Easy way to get popup like behavior that:
+     * <ul>
+     * <li> is always fullscreen
+     * <li> is modal - doesnt lose focus and is always on top of other application windows
+     * <li> has no taskbar icon (for your information, javafx normally disallows this, but it is
+     * doable using owner stage with UTILITY style).
+     * </ul>
+     */
+    public static Stage createFMNTStage(Screen screen) {
+        // Using owner stage of UTILITY style is the only way to get a 'top level'
+        // window with no taskbar.
+        Stage owner = new Stage(UTILITY);
+              owner.setOpacity(0); // make sure it will never be visible
+              owner.setWidth(5); // stay small to leave small footprint, just in case
+              owner.setHeight(5);
+              owner.show(); // must be 'visible' for the hack to work
+
+        Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
+        s.initOwner(owner);
+        s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
+        s.setX(screen.getVisualBounds().getMinX()); // screen doesnt necessarily start at [0,0] !!
+        s.setY(screen.getVisualBounds().getMinY());
+        s.setWidth(screen.getVisualBounds().getWidth()); // fullscreen...
+        s.setHeight(screen.getVisualBounds().getHeight());
+        s.setAlwaysOnTop(true); // maybe not needed, but just in case
+        // Going fullscreen actually breaks things.
+        // We dont need fullscreen, we use UNECORATED stage of maximum size. Fullscreen
+        // was supposed to be more of a final nail to prevent possible focus stealing.
+        //
+        // In reality, using fullscreen actually causes this issue! - focus stealing
+        // and the consequent disappearance of the window (nearly impossible to bring it
+        // back). This is even when using modality on the window or even its owneer stage.
+        //
+        // Fortunately things work as they should using things like we do. Pray the moment
+        // they dont wont occur though.
+        //
+        // s.setFullScreen(true); // just in case
+        // s.setFullScreenExitHint(""); // completely annoying, remove
+        // // not always desired! and if we dont use fullscreen it wont work or we could just
+        // // introduce nconsistent behavior. Let the dev implement his own hide if he needs.
+        // s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+
+        // The owner must not escape garbage collection or remain visible forever
+//        s.addEventFilter(WindowEvent.WINDOW_HIDDEN, e -> owner.hide());
+
+        return s;
+    }
+
+/**************************************************************************************************/
+
+    /** Captures screenshot of the entire screen and runs custom action on fx thread. */
+    public static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
+        Rectangle2D r = screen.getBounds();
+        screenCaptureAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
+    }
+
+    /**
+     * Captures screenshot of the screen of given size and position and runs custom
+     * action on fx thread.
+     */
+    public static void screenCaptureAndDo(int x, int y, int w, int h, Consumer<Image> action) {
+        screenCaptureRawAndDo(
+            x, y, w, h,
+            img -> {
+                Image i = img==null ? null : SwingFXUtils.toFXImage(img, new WritableImage(img.getWidth(), img.getHeight()));
+                runFX(() -> action.accept(i));
+            }
+        );
+    }
+
+    /** Captures screenshot of the entire screen and runs custom action on non fx thread. */
+    public static void screenCaptureRawAndDo(Screen screen, Consumer<BufferedImage> action) {
+        Rectangle2D r = screen.getBounds();
+        screenCaptureRawAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
+    }
+
+    /**
+     * Captures screenshot of the screen of given size and position and runs custom
+     * action on non fx thread.
+     * <p>
+     * Based on:
+     * <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafxdev-screen-capture-tool</a>
+     */
+    public static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
+        EventQueue.invokeLater(() -> {
+            try {
+                Robot robot = new Robot();
+                BufferedImage img = robot.createScreenCapture(new Rectangle(x,y,w,h));
+                action.accept(img);
+            } catch (Exception ex) {
+                util.dev.Util.log(Util.class).error("Failed to screenshot the screen {}");
+                action.accept(null);
+            }
+        });
     }
 }

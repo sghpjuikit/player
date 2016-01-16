@@ -119,6 +119,7 @@ public final class UiContext {
     public static void showSettings(Configurable c, MouseEvent e) {
         showSettings(c, (Node) e.getSource());
     }
+    
     public static void showSettings(Configurable c, Node n) {
         String name = c instanceof Widget ? ((Widget)c).getName() : "";
         Configurator sc = new Configurator(true);

@@ -27,7 +27,7 @@
 }
 
 
-.window > * > .bgr-image {
+.bgr-image {
     -fx-opacity:1;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;

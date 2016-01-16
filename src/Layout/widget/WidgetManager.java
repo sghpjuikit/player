@@ -492,8 +492,8 @@ public final class WidgetManager {
             // open widget as standalone if found
             if (f!=null) {
                 out = f.create();
+                standaloneWidgets.add(out);
                 if(!ignore) {
-                    standaloneWidgets.add(out);
                     UiContext.showFloating(out);
                 }
             }

@@ -401,7 +401,7 @@ public class App extends Application implements Configurable {
                     DirectoryChooser dc = new DirectoryChooser();
                                      dc.setInitialDirectory(DIR_APP);
                                      dc.setTitle("Export to...");
-                    File dir = dc.showDialog(Window.getActive().getStage());
+                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
                     if(dir!=null) w.exportFxwlDefault(dir);
             })
         );
@@ -414,7 +414,7 @@ public class App extends Application implements Configurable {
                     DirectoryChooser dc = new DirectoryChooser();
                                      dc.setInitialDirectory(DIR_LAYOUTS);
                                      dc.setTitle("Export to...");
-                    File dir = dc.showDialog(Window.getActive().getStage());
+                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
                     if(dir!=null) w.exportFxwl(dir);
             })
         );
@@ -466,7 +466,8 @@ public class App extends Application implements Configurable {
                                        .run()
             ),
             new SlowColAction<>("Edit & Add to library",
-                "Add items to library if not yet contained and edit in tag editor.",
+                "Add items to library if not yet contained and edit added items in tag editor. If "
+                + "item already was in the database it will not be added or edited.",
                 MaterialDesignIcon.DATABASE_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
                 items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {
@@ -895,8 +896,7 @@ public class App extends Application implements Configurable {
                     DirectoryChooser dc = new DirectoryChooser();
                                      dc.setInitialDirectory(APP.DIR_LAYOUTS);
                                      dc.setTitle("Export to...");
-                    Window aw = Window.getActive();
-                    File dir = dc.showDialog(aw.getStage());
+                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
                     if(dir!=null) {
                         APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
                     }
@@ -923,8 +923,7 @@ public class App extends Application implements Configurable {
                                 fc.setInitialDirectory(APP.DIR_LAYOUTS);
                                 fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
                                 fc.setTitle("Open widget...");
-                    Window w = Window.getActive();
-                    File f = fc.showOpenDialog(w.getStage());
+                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
                     if(f!=null) UiContext.launchComponent(f);
                 }
             ),
@@ -937,8 +936,7 @@ public class App extends Application implements Configurable {
                                 fc.setInitialDirectory(APP.DIR_SKINS);
                                 fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
                                 fc.setTitle("Open skin...");
-                    Window w = Window.getActive();
-                    File f = fc.showOpenDialog(w.getStage());
+                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
                     if(f!=null) GUI.setSkinExternal(f);
                 }
             ),
@@ -951,10 +949,9 @@ public class App extends Application implements Configurable {
                                 fc.setInitialDirectory(APP.DIR_SKINS);
                                 fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
                                 fc.setTitle("Open audio...");
-                    Window w = Window.getActive();
-                    List<File> fs = fc.showOpenMultipleDialog(w.getStage());
+                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
                     // Action pane may autoclose when this action finishes, so we make sure to call
-                    // show() after that happens using runLater
+                    // show() after that happens by delaying using runLater
                     if(fs!=null) runLater(() -> APP.actionPane.show(fs));
                 }
             )

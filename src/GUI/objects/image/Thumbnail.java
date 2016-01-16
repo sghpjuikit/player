@@ -15,9 +15,9 @@ import javafx.animation.Timeline;
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -44,9 +44,12 @@ import util.animation.Anim;
 import util.dev.Dependency;
 import util.dev.TODO;
 
+import static Layout.widget.WidgetManager.WidgetSource.NEW;
 import static java.lang.Double.min;
 import static java.util.Collections.singletonList;
 import static javafx.scene.input.DataFormat.FILES;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
@@ -58,7 +61,9 @@ import static util.File.Environment.copyToSysClipboard;
 import static util.Util.getFieldValue;
 import static util.Util.menuItem;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.createFMNTStage;
+import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
  * Thumbnail.
@@ -169,7 +174,7 @@ public class Thumbnail extends ImageNode {
     // http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
     // workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
     //             isnt of the same width on all sizes and now it even sticks out of the image area.
-    //             But at least its not so hideous  
+    //             But at least its not so hideous
     private void resizeRelocateBorder(double x, double y, double w, double h) {
         img_border.resizeRelocate(x-1,y-1,w+2,h+2);
     }
@@ -605,22 +610,27 @@ public class Thumbnail extends ImageNode {
                     Environment.edit(m.getValue().getFile())
                 ),
                 menuItem("Fulscreen", e -> {
-                    Screen s = WindowBase.getScreen(m.getX(),m.getY());
-
-                    Widget c = APP.widgetManager.factories.get("Image").create();
-                    Popup p = new Popup();
-                    AnchorPane n = new AnchorPane();
-                    n.setBackground(new Background(new BackgroundFill(BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
-                    n.setPrefSize(s.getBounds().getWidth(),s.getBounds().getHeight());
-                    p.setHideOnEscape(true);
-                    p.setConsumeAutoHidingEvents(true);
+                    // find appropriate widget
+                    Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
+                    if(c==null) return; // one can never know
                     Node cn = c.load();
-                    n.getChildren().add(cn);
-                    setAnchors(cn, 0d);
-                    p.getContent().setAll(n);
-                    p.show(m.getValue().getPane().getScene().getWindow(), s.getBounds().getMinX(), s.getBounds().getMinY());
-                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
+                    setMinPrefMaxSize(cn,USE_COMPUTED_SIZE); // make sure no settings prevents full size
+                    StackPane root = new StackPane(cn);
+                              root.setBackground(bgr(BLACK));
+                    Screen screen = WindowBase.getScreen(m.getX(),m.getY());
+                    Stage s = createFMNTStage(screen);
+                    s.setScene(new Scene(root));
+                    s.show();
 
+                    cn.requestFocus(); // for key events to work - just focus some root child
+                    root.addEventFilter(KEY_PRESSED, ke -> {
+                        if(ke.getCode()==ESCAPE)
+                            s.hide();
+                    });
+
+                    // use widget for image viewing
+                    // execute after its shown so final layout is available to widget from the start
+                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
                 }),
                 menuItem("Open image", e ->
                     Environment.open(m.getValue().getFile())

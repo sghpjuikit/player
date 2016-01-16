@@ -83,7 +83,7 @@ import static util.reactive.Util.maintain;
  * @author Plutonium_
  */
 @IsConfigurable("Action Chooser")
-public class ActionPane extends OverlayPane implements Configurable {
+public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     static final ClassMap<Class<?>> fieldmap = new ClassMap<>();
     static {
@@ -97,6 +97,8 @@ public class ActionPane extends OverlayPane implements Configurable {
     private static final String ICON_STYLECLASS = "action-pane-action-icon";
     private static final String COD_TITLE = "Close when action ends";
     private static final String COD_INFO = "Closes the chooser when action finishes running.";
+
+/**************************************************************************************************/
 
     @IsConfig(name = COD_TITLE, info = COD_INFO)
     public final V<Boolean> closeOnDone = new V<>(false);

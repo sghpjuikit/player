@@ -213,8 +213,10 @@ public class Window extends WindowBase {
 
     boolean main = false;
 
-    // root is assigned '.window' styleclass
+    /** Scene root. Assigned '.window' styleclass. */
     @FXML public AnchorPane root = new AnchorPane();
+    /** Single child of the root. */
+    @FXML public StackPane subroot;
     @FXML public StackPane back, backimage;
     @FXML public AnchorPane bordersVisual;
     @FXML public AnchorPane front, content;

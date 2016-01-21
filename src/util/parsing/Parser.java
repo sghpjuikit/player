@@ -455,14 +455,14 @@ public abstract class Parser {
         return noExWrap(m, a, f);
     }
 
-    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class... params) {
+    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class<?>... params) {
         try {
             Constructor<O> cn = type.getConstructor(params);
             boolean passinput = params.length==1;
-            Set<Class<?>> ecs = new HashSet();
+            Set<Class<?>> ecs = new HashSet<>();
             if(a!=null) ecs.addAll(list(a.ex()));
             if(cn!=null) ecs.addAll(list(cn.getExceptionTypes()));
-              Function<String,O> f = in -> {
+                Function<String,O> f = in -> {
                     try {
                         Object[] p = passinput ? new Object[]{in} : new Object[]{};
                         return cn.newInstance(p);
@@ -482,7 +482,7 @@ public abstract class Parser {
     }
 
     private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, Function<I,O> f) {
-        Set<Class<?>> ecs = new HashSet();
+        Set<Class<?>> ecs = new HashSet<>();
         if(a!=null) ecs.addAll(list(a.ex()));
         if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
         return noEx(f, ecs);

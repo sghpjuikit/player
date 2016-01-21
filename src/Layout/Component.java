@@ -1,9 +1,7 @@
 
 package Layout;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.UUID;
@@ -155,7 +153,7 @@ public abstract class Component {
     public void exportFxwl(File dir) {
         File f = new File(dir,getName() + ".fxwl");
         try {
-            App.APP.serializators.x.toXML(this, new BufferedWriter(new FileWriter(f)));
+            App.APP.serializators.toXML(this, f);
         } catch (IOException ex) {
             log(Component.class).error("Failed to export component {} to {}", getName(),f);
         }

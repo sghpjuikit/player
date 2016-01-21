@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,6 +142,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.Environment.browse;
 import static util.Util.getEnumConstants;
+import static util.Util.getGenericPropertyType;
 import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
@@ -181,6 +184,8 @@ public class App extends Application implements Configurable {
     /** Url for github website for project of this application. */
     public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
+    public final Charset encoding = StandardCharsets.UTF_8;
+
     /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
     public final File DIR_APP = new File("").getAbsoluteFile();
     /** Temporary directory of the os. */
@@ -190,14 +195,14 @@ public class App extends Application implements Configurable {
     /** File for application configuration. */
     public final File FILE_SETTINGS = new File(DIR_APP,"settings.cfg");
     /** Directory for application logging. */
-    public final File DIR_LOG = new File("log").getAbsoluteFile();
+    public final File DIR_LOG = new File(DIR_APP,"log");
     /** File for application logging configuration. */
     public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
     /** Directory containing widgets - source files, class files and widget's resources. */
-    public final File DIR_WIDGETS = new File("widgets").getAbsoluteFile();
+    public final File DIR_WIDGETS = new File(DIR_APP,"widgets");
     /** Directory containing skins. */
-    public final File DIR_SKINS = new File("skins").getAbsoluteFile();
-    public final File DIR_LAYOUTS = new File("layouts").getAbsoluteFile();;
+    public final File DIR_SKINS = new File(DIR_APP,"skins");
+    public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");;
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -214,7 +219,7 @@ public class App extends Application implements Configurable {
     public final EventSource<String> actionStream = new EventSource<>();
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-    public final AppSerializator serializators = new AppSerializator();
+    public final AppSerializator serializators = new AppSerializator(encoding);
     public final Configuration configuration = new Configuration();
 
     public Window window;
@@ -317,6 +322,27 @@ public class App extends Application implements Configurable {
         // log uncaught thread termination exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error(thread.getName(), ex));
 
+        // mark app instance so other instances can recognize it. !work so far
+//        try {
+//            String id = String.valueOf(ProcessHandle.current().getPid());
+//            VirtualMachine vm = VirtualMachine.attach(id);
+//            vm.getAgentProperties().put("apptype", "somevalue");
+//            vm.getAgentProperties().forEach((key,val) -> System.out.println(" vm key: " + key + ": " + val));
+//            System.out.println("isntnull " + vm.getAgentProperties().get("apptype"));
+//            vm.detach();
+//        } catch (AttachNotSupportedException|IOException ex) {
+//            LOGGER.error("Failed to mark application instance");
+//        }
+
+        // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
+        // trying to run and this instance's run parameters and close prematurely
+        if(getInstances()>1) {
+            appCommunicator.fireNewInstanceEvent(fetchParameters());
+            close_prematurely = true;
+            LOGGER.info("Multiple app instances detected. App wil close prematurely.");
+        }
+        if(close_prematurely) return;
+
         // configure serialization
         XStream x = serializators.x;
         Mapper xm = x.getMapper();
@@ -356,7 +382,11 @@ public class App extends Application implements Configurable {
         instanceName.add(Metadata.class,Metadata::getTitle);
         instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
         instanceName.add(Component.class, o -> o.getName());
-        instanceName.add(List.class, o -> o.size() + " " + plural("item",o.size()));
+//        instanceName.add(List.class, o -> o.size() + " " + plural("item",o.size()));
+        instanceName.add(List.class, o -> {
+            Class<?> ec = getGenericPropertyType(o.getClass());
+            return o.size() + " " + plural(className.get(ec == null ? Object.class : ec),o.size());
+                });
         instanceName.add(File.class, File::getPath);
 
         // add optional object instance -> info string converters
@@ -523,19 +553,10 @@ public class App extends Application implements Configurable {
             ws -> ws.forEach(UiContext::launchComponent)
         );
 
-
-        // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
-        // trying to run and this instance's run parameters and close prematurely
-        if(getInstances()>1) {
-            appCommunicator.fireNewInstanceEvent(fetchParameters());
-            close_prematurely = true;
-            LOGGER.info("Multiple app instances detected. App wil close prematurely.");
-        }
-
+        // listen to other application instance launches
         try {
-            // listen to other application instance launches
-            // process app parameters of newly started instance
             appCommunicator.start();
+            // process app parameters of newly started instance
             appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
         } catch (RemoteException e) {
             LOGGER.warn("App instance communicator failed to start.", e);
@@ -703,6 +724,7 @@ public class App extends Application implements Configurable {
      * @return number of running instances
      */
     public static int getInstances() {
+        // Old impl. Obviously not working as it is. Left here for documentation sake as a resource.
         // try {
         //     MonitoredHost mh = MonitoredHost.getMonitoredHost("//localhost" );
         //     for (int id : mh.activeVms() ) {
@@ -718,20 +740,41 @@ public class App extends Application implements Configurable {
         // }
         // two occurrences of the result of MonitoredVmUtil.mainClass(), the program is started twice
 
-        int i=0;
-        String ud = System.getProperty("user.dir");
-
+        // We list all virtual machines (including this one) (each java app runs in its own vm) and
+        // check some property to determine what kind of app this is to count instances of this app.
+        //
+        // Note: I tried to inject some custom property into vm using
+        // vm.getAgentProeprties().setProperty(...)  but it appears to be read only. So we handle
+        // the recognition differently.
+        int instances = 0;
+//        String ud = System.getProperty("user.dir");
         for(VirtualMachineDescriptor vmd : VirtualMachine.list()) {
             try {
                 VirtualMachine vm = VirtualMachine.attach(vmd);
-                String udi = vm.getSystemProperties().getProperty("user.dir");
-                if(ud.equals(udi)) i++;
+
+                // attempt 1:
+                // User directory. Unfortunately nothing forbids user (or more likely
+                // developer) to copypaste the app and run it from elsewhere). We want to
+                // defend against this as well.
+                // String udir = vm.getSystemProperties().getProperty("user.dir");
+                //if(udir!=null && ud.equals(udir)) i++;
+
+                // attempt 2:
+                // Injected custom property, !work. Read-only? Id like this to work though.
+                // if(vm.getAgentProperties().getProperty("apptype")!=null) i++;
+
+                // attempt3:
+                // We use command parameter which ends with the name of the executed jar. So far
+                // this works. Its far from perfect, since user/dev could rename the jar.
+                String command = vm.getAgentProperties().getProperty("sun.java.command");
+                if(command!=null && command.endsWith("Player.jar")) instances++;
+
                 vm.detach();
             } catch (AttachNotSupportedException | IOException ex) {
                 LOGGER.warn("Unable to inspect virtual machine {}", vmd);
             }
         }
-        return i;
+        return instances;
     }
 
     @Deprecated
@@ -751,10 +794,6 @@ public class App extends Application implements Configurable {
         return new Image(new File("icon512.png").toURI().toString());
     }
 
-    /** @return Player state file. */
-    public static String PLAYER_STATE_FILE() {
-        return "PlayerState.cfg";
-    }
     /** @return absolute file of Location of data. */
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
@@ -833,7 +872,7 @@ public class App extends Application implements Configurable {
                   root.setPrefSize(600, 720);
         List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
                                       MaterialDesignIcon.class,MaterialIcon.class)
-                .map((Class c) -> {
+                .map((Class<?> c) -> {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {
@@ -911,7 +950,7 @@ public class App extends Application implements Configurable {
         );
     }
 
-    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL + O")
+    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL + SHIFT + O", global = true)
     public static void openOpen() {
         APP.actionPane.show(Void.class, null, false,
             new FastAction<>(

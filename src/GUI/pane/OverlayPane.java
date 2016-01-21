@@ -107,6 +107,10 @@ public class OverlayPane extends StackPane {
         contentRoot.getStyleClass().add(CONTENT_STYLECLASS);
     }
 
+    public Pane getContent() {
+        return getChildren().isEmpty() ? null : (Pane)getChildren().get(0);
+    }
+
 /****************************************** ANIMATION *********************************************/
 
     // depth of field transition

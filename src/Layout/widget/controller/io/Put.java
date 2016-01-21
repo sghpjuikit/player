@@ -15,16 +15,19 @@ import javafx.beans.value.WritableValue;
 
 import org.reactfx.Subscription;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  *
  * @author Plutonium_
  */
 public class Put<T> implements WritableValue<T> {
-    
+
+    public TypeToken<? super T> typet;
     final Class<? super T> type;
-    final ObjectProperty<T> val = new SimpleObjectProperty();
-    protected Set<Consumer<? super T>> monitors = new HashSet<>();
-    
+    final ObjectProperty<T> val = new SimpleObjectProperty<>();
+    protected final Set<Consumer<? super T>> monitors = new HashSet<>();
+
     public Put(Class<? super T> type, T init_val) {
         this.type = type;
         this.val.setValue(init_val);
@@ -38,17 +41,17 @@ public class Put<T> implements WritableValue<T> {
     public T getValue() {
         return val.get();
     }
-    
+
     @Override
     public void setValue(T v) {
         val.setValue(v);
         monitors.forEach(m -> m.accept(v));
     }
-    
+
     public Subscription monitor(Consumer<? super T> action) {
         monitors.add(action);
         action.accept(getValue());
         return () -> monitors.remove(action);
     }
-    
+
 }

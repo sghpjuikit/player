@@ -262,10 +262,15 @@ public final class WidgetManager {
      */
     private static void compile(File... srcfiles) {
         File[] files = srcfiles;
-        String[] paths = stream(files).map(File::getPath).toArray(i -> new String[i]);
-        LOGGER.info("Compiling " + paths);
+        // Compiler defaults to system encoding, we:
+        // - consistent encoding that doesnt depend on system
+        // - need UTF-8
+        Stream<String> options = stream("-encoding",APP.encoding.name());
+        Stream<String> paths = stream(files).map(File::getPath);
+        String[] arguments = stream(options,paths).toArray(i -> new String[i]);
+        LOGGER.info("Compiling with command: {} ", (Object[])arguments);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        int success = compiler.run(null, null, null, paths);
+        int success = compiler.run(null, null, null, arguments);
         if(success == 0){
             LOGGER.info("Compilation succeeded");
         } else{

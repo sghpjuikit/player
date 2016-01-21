@@ -701,7 +701,7 @@ public class Util {
 
 /***************************** REFLECTION - ANNOTATION *************************************/
 
-    public static <A extends Annotation> Method getMethodAnnotated(Class c, Class<A> ca) {
+    public static <A extends Annotation> Method getMethodAnnotated(Class<?> c, Class<A> ca) {
         for(Method m: c.getDeclaredMethods()) {
             A a = m.getAnnotation(ca);
             if(a!=null) return m;
@@ -716,8 +716,8 @@ public class Util {
      * @return list containing all superclasses
      * @see #getSuperClassesInc(java.lang.Class)
      */
-    public static List<Class> getSuperClasses(Class c) {
-        return getSuperClasses(c, new ArrayList());
+    public static List<Class> getSuperClasses(Class<?> c) {
+        return getSuperClasses(c, list());
     }
 
     /**
@@ -725,18 +725,18 @@ public class Util {
      * @return list containing the class and all its superclasses
      * @see #getSuperClasses(java.lang.Class)
      */
-    public static List<Class> getSuperClassesInc(Class c) {
+    public static List<Class> getSuperClassesInc(Class<?> c) {
         return getSuperClasses(c, list(c));
     }
 
-    private static List<Class> getSuperClasses(Class c, List<Class> cs) {
-        Class sc = c.getSuperclass();
+    private static List<Class> getSuperClasses(Class<?> c, List<Class> cs) {
+        Class<?> sc = c.getSuperclass();
         if(sc!=null) {
             cs.add(sc);
             getSuperClasses(sc, cs);
         }
-        Class[] is = c.getInterfaces();
-        for(Class i : is) {
+        Class<?>[] is = c.getInterfaces();
+        for(Class<?> i : is) {
             cs.add(i);
             getSuperClasses(i, cs);
         }
@@ -748,7 +748,7 @@ public class Util {
      * @param c
      * @return Object class of given class or class itself if not primitive.
      */
-    public static Class unPrimitivize(Class c) {
+    public static Class unPrimitivize(Class<?> c) {
         if(c.isPrimitive()) {
             if(c.equals(boolean.class)) return Boolean.class;
             if(c.equals(int.class)) return Integer.class;

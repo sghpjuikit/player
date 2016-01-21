@@ -169,7 +169,7 @@ public class Library extends FXMLController implements SongReader {
 
     @Override
     public void init() {
-        out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
+        out_sel = outputs.create(widget.id, "Selected", Metadata.class, null);
         d(Player.librarySelected.i.bind(out_sel));
 
         // add table to scene graph

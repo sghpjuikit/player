@@ -8,12 +8,18 @@ package Layout.widget.controller.io;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  *
  * @author Plutonium_
  */
 public class Output<T> extends Put<T> {
     public final Id id;
+
+    public Output(UUID id, String name, TypeToken<? super T> c) {
+        this(id, name, c.getRawType());
+    }
 
     public Output(UUID id, String name, Class<? super T> c) {
         super(c, null);

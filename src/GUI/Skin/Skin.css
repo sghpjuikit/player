@@ -3281,7 +3281,6 @@
  * sub 1 opacity
  * an example would be a slight image overlay over background
  */
-/*.window > * > .bgr-image {*/  /* this works too, but makes reuse mpossible */
 .bgr-image {
     -fx-opacity:1;
     /*-fx-background-image: url("bgr.jpg");*/
@@ -3297,8 +3296,6 @@
  * inherits: .header
  */
 .window > .header {
-}
-.window:focused > .header {
 }
 
 /*
@@ -3904,7 +3901,8 @@
 
 
 /***************************** OVERLAY PANE *****************************
- * Pane laying 'above' window creating 'overlay' bgr above it. Displays various content.
+ * Pane laying 'above' some content creating 'overlay' bgr above it. Used for vaiour things, mostly
+ * by sublassing.
  * inherits: .stack-pane
  */
 .overlay-pane {

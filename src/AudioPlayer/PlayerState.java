@@ -4,9 +4,7 @@
  */
 package AudioPlayer;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
@@ -16,7 +14,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 
@@ -25,6 +22,7 @@ import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import main.App;
+import main.AppSerializator;
 
 import static util.functional.Util.find;
 
@@ -37,7 +35,7 @@ import static util.functional.Util.find;
  */
 public final class PlayerState {
 
-    private static final XStream X = App.APP.serializators.x;
+    private static final AppSerializator X = App.APP.serializators;
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerState.class);
 
     @XStreamOmitField
@@ -52,20 +50,22 @@ public final class PlayerState {
     }
 
     public static PlayerState deserialize() {
+        File FILE = new File("PlayerState.cfg");
         try {
-            return (PlayerState) X.fromXML(new File(App.PLAYER_STATE_FILE()));
-        } catch (ClassCastException | StreamException ex) {
+            return X.fromXML(PlayerState.class, FILE);
+        } catch (StreamException ex) {
             LOGGER.error("Unable to load player state from the file {}. "
-                    + "Loading default state.", App.PLAYER_STATE_FILE());
+                    + "Loading default state.", FILE);
             return new PlayerState();
         }
     }
 
     public void serialize() {
+        File FILE = new File("PlayerState.cfg");
         try {
-            X.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
+            X.toXML(this, FILE);
         } catch (IOException ex) {
-            LOGGER.error("Unable to save player state into the file {}",App.PLAYER_STATE_FILE());
+            LOGGER.error("Unable to save player state into the file {}", FILE);
         }
     }
 

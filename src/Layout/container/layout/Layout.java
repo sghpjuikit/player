@@ -1,9 +1,7 @@
 
 package Layout.container.layout;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
@@ -14,12 +12,12 @@ import javafx.scene.layout.AnchorPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 
 import Layout.container.uncontainer.UniContainer;
 import main.App;
+import main.AppSerializator;
 import util.File.FileUtil;
 
 import static main.App.APP;
@@ -29,7 +27,7 @@ import static main.App.APP;
  */
 public final class Layout extends UniContainer {
 
-    private static final XStream X = App.APP.serializators.x;
+    private static final AppSerializator X = App.APP.serializators;
     private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
 
     @XStreamOmitField
@@ -147,7 +145,7 @@ public final class Layout extends UniContainer {
 
         try {
 
-            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+            X.toXML(this,f);
         } catch (IOException e) {
             LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
         }
@@ -161,11 +159,12 @@ public final class Layout extends UniContainer {
     }
 
     public Layout deserialize(File f) {
-        Layout l = null;
+        Layout l;
+        
         try {
-            l = (Layout) X.fromXML(f);
+            l = X.fromXML(Layout.class,f);
             l.setName(FileUtil.getName(f)); // hmm
-        } catch (ClassCastException | StreamException e) {
+        } catch (StreamException e) {
             LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
             l = new Layout(FileUtil.getName(f));
         }

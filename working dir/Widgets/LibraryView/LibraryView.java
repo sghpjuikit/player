@@ -11,6 +11,8 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 
+import com.google.common.reflect.TypeToken;
+
 import AudioPlayer.Player;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -129,8 +131,8 @@ public class LibraryView extends FXMLController {
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
-        out_sel_met = outputs.create(widget.id,"Selected", List.class, EMPTY_LIST);
-        in_items = inputs.create("To display", List.class, EMPTY_LIST, this::setItems);
+        out_sel_met = outputs.create(widget.id,"Selected Songs", new TypeToken<List<Metadata>>(){}, listRO());
+        in_items = inputs.create("To display", new TypeToken<List<Metadata>>(){}.getRawType(), listRO(), this::setItems);
 
         // add table to scene graph
         root.getChildren().add(table.getRoot());

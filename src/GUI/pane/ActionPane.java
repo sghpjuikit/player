@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -64,13 +67,13 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
-import static util.Util.GR;
 import static util.Util.getEnumConstants;
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.no;
 import static util.functional.Util.*;
+import static util.graphics.Util.layHeaderTopBottom;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
@@ -106,28 +109,56 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     public ActionPane() {
         getStyleClass().add(ROOT_STYLECLASS);
 
+        // icons and descriptions
+        StackPane infoPane = layStack(dataInfo,TOP_LEFT);
+        VBox descPane = layVertically(8, BOTTOM_CENTER, desctitl,descfull);
         HBox iconBox = layHorizontally(15,CENTER);
         icons = iconBox.getChildren();
 
-        // layout
-        StackPane layout = layStack(
-            tablePane,CENTER_LEFT,
-            desc, BOTTOM_CENTER,
-            layVertically(10, TOP_CENTER, controls,dataInfo), TOP_CENTER,
-            iconBox, CENTER
-        );
-        layout.setMaxSize(GR*450,450);
-        tablePane.setMaxSize(300,450);
-        setContent(layHorizontally(10, CENTER, tablePane,layout));
-        HBox.setHgrow(layout, javafx.scene.layout.Priority.ALWAYS);
-        ((Pane)layout.getParent()).setMaxSize(900,450);
+        // content for icons and desciptions
+        StackPane icontent = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
+        // Minimal and maximal height of the 3 layout components. The heights should add
+        // up to full length (including the spacing of course). Sounds familiar? No, couldnt use
+        // VBox or stackpane as we need the icons to be always in the center.
+        // Basically we want the individual components to resize individually, but still respect
+        // each other's presence (so to not cover each other).
+        // We dont want any component to disappear (hence the min height) but the text shouldnt
+        // be too big - the icons are important - hence the max size. The icon's max size is simply
+        // totalHeight - height_of_others - 2*spacing.
+        infoPane.setMinHeight(100);
+        infoPane.maxHeightProperty().bind(Bindings.min(icontent.heightProperty().multiply(0.3), 400));
+        descPane.setMinHeight(100);
+        descPane.maxHeightProperty().bind(Bindings.min(icontent.heightProperty().multiply(0.3), 400));
+        iconBox.maxHeightProperty().bind(icontent.heightProperty().multiply(0.4).subtract(2*25));
 
-        iconBox.setMaxHeight(layout.getMaxHeight()-2*30); // top/bottom padding for clickable controls
-        desc.setMouseTransparent(true); // just in case, if it is under icons all's well
-        dataInfo.setMouseTransparent(true); // same here
+        // content
+        HBox content = layHorizontally(0, CENTER, tablePane,icontent); // table is an optional left complement to icontent
+             content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
+        tableContentGap = content.spacingProperty();
+        // icontent and table complement each other horizontally, though icontent is more
+        // important and should be wider & closer to center
+        icontent.minWidthProperty().bind(((Pane)icontent.getParent()).widthProperty().multiply(0.6));
+
+        Pane controlsMirror = new Pane();
+             controlsMirror.prefHeightProperty().bind(controls.heightProperty()); // see below
+        setContent(
+            layHeaderTopBottom(20, CENTER_RIGHT,
+                controls, // tiny header
+                content, // the above and below also serve as top/bottom padding
+                controlsMirror // fills bottom so the content resizes vertically to center
+            )
+        );
+        getContent().setMinSize(300,200);
+        // guarantee some padding of the content from edge
+        getContent().maxWidthProperty().bind(widthProperty().multiply(0.65));
+        getContent().maxHeightProperty().bind(heightProperty().multiply(0.65));
+
+
+        descPane.setMouseTransparent(true); // just in case
+        infoPane.setMouseTransparent(true); // same here
         desctitl.setTextAlignment(TextAlignment.CENTER);
         descfull.setTextAlignment(TextAlignment.JUSTIFY);
-        descfull.wrappingWidthProperty().bind(min(350, layout.widthProperty()));
+        descfull.wrappingWidthProperty().bind(min(400, icontent.widthProperty()));
     }
 
 /***************************** PRECONFIGURED ACTIONS ******************************/
@@ -210,8 +241,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     private final Label dataInfo = new Label();
     private final Label desctitl = new Label();
     private final Text descfull = new Text();
-    private final VBox desc = layVertically(8, BOTTOM_CENTER, desctitl,descfull);
     private final ObservableList<Node> icons;
+    private final DoubleProperty tableContentGap;
     private StackPane tablePane = new StackPane();
     private FilteredTable<?,?> table;
 
@@ -254,14 +285,16 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     private void setDataInfo(Object data, boolean computed) {
         dataInfo.setText(getDataInfo(data, computed));
         tablePane.getChildren().clear();
+        double gap = 0;
         if(data instanceof Collection && !((Collection)data).isEmpty()) {
-            Class coltype = ((Collection<?>)data).stream().findFirst().map(Object::getClass).orElse(Void.class);
+            Collection<?> collection = (Collection) data;
+            Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
             if(fieldmap.containsKey(coltype)) {
                 FilteredTable<Object,?> t = new gui.objects.table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
                 t.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {
-                    TableColumn<?,?> c = new TableColumn(f.toString());
+                    TableColumn<?,?> c = new TableColumn<>(f.toString());
                     c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
                     c.setCellFactory(col -> (TableCell)defaultCell(f));
                     c.setResizable(true);
@@ -269,11 +302,13 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                 });
                 t.setColumnState(t.getDefaultColumnInfo());
                 tablePane.getChildren().setAll(t.getRoot());
+                gap = 70;
                 table = t;
-                t.setItemsRaw((Collection)data);
+                t.setItemsRaw(collection);
                 t.getSelectedItems().addListener((Change<?> c) -> showIcons(t.getSelectedOrAllItemsCopy()));
             }
         }
+        tableContentGap.set(gap);
     }
 
     private String getDataInfo(Object data, boolean computed) {
@@ -339,12 +374,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
 
     private static Collection<?> collectionWrap(Object o) {
-        if(o instanceof Collection) {
-            return (Collection)o;
-        } else {
-            return listRO(o);
-        }
+        return o instanceof Collection ? (Collection)o : listRO(o);
     }
+
     private static Object collectionUnwrap(Object o) {
         if(o instanceof Collection) {
             Collection<?> c = (Collection)o;

@@ -622,8 +622,13 @@ public class IOLayer extends StackPane {
     }
 
     public static String oToStr(Output<?> o) {
-        return APP.className.get(o.getType()) + " : " + o.getName() +
-               "\n" + APP.instanceName.get(o.getValue());
+        if(o.typet==null) {
+            return APP.className.get(o.getType()) + " : " + o.getName() +
+                   "\n" + APP.instanceName.get(o.getValue());
+        } else {
+            return APP.className.get(o.typet.getRawType()) + " : " + o.getName() +
+                   "\n" + APP.instanceName.get(o.getValue());
+        }
     }
     public static String iToStr(Input<?> i) {
         return APP.className.get(i.getType()) + " : " + i.getName() + "\n";

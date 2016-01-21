@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 
 import org.reactfx.Subscription;
 
+import com.google.common.reflect.TypeToken;
+
 import Layout.Areas.IOLayer;
 
 /**
@@ -26,10 +28,22 @@ public class Input<T> extends Put<T>{
         this(name, c, null, action);
     }
 
+    public Input(String name, TypeToken<? super T> c, T init_val, Consumer<? super T> action) {
+        this(name, c.getRawType(), init_val, action);
+    }
+
     public Input(String name, Class<? super T> c, T init_val, Consumer<? super T> action) {
         super(c, init_val);
         this.name = name;
         monitor(action);
+
+//        System.out.println("");
+//        System.out.println("class: " + new TypeToken<List<Integer>>(){}.getClass());
+//        System.out.println("type: " + new TypeToken<List<Integer>>(){}.getType());
+//        System.out.println("rtype: " + new TypeToken<List<Integer>>(){}.getRawType());System.out.println("");
+//        System.out.println("rtype: " + TypeToken.of(type));System.out.println("");
+//        System.out.println("1stgt: " + getGenericPropertyType(new TypeToken<List<Integer>>(){}.getType()));
+
     }
 
 

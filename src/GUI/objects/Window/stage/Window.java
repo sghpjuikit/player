@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.glass.ui.Robot;
-import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -850,11 +849,9 @@ public class Window extends WindowBase {
 
 /**************************** SERIALIZATION ***********************************/
 
-    private static final XStream X = App.APP.serializators.x;
-
     public void serialize(File f) {
         try {
-            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+            App.APP.serializators.toXML(this, f);
         } catch (IOException e) {
             LOGGER.error("Window serialization failed into file {}", f,e);
         }
@@ -862,8 +859,8 @@ public class Window extends WindowBase {
 
     public static Window deserialize(File f) {
 	try {
-	    return (Window) X.fromXML(f);
-	} catch (ClassCastException | StreamException e) {
+	    return App.APP.serializators.fromXML(Window.class, f);
+	} catch (StreamException e) {
             LOGGER.error("Unable to load window from the file {}",e);
 	    return null;
 	}

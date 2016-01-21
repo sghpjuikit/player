@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 
 import org.reactfx.Subscription;
 
+import com.google.common.reflect.TypeToken;
+
 import static util.reactive.Util.maintain;
 
 /**
@@ -25,6 +27,12 @@ public class Outputs {
 
     public Outputs() {
         m = new HashMap<>();
+    }
+
+    public <T> Output<T> create(UUID id, String name, TypeToken<? super T> type, T val) {
+        Output<T> o = create(id, name, type.getRawType(), val);
+        o.typet = type;
+        return o;
     }
 
     public <T> Output<T> create(UUID id, String name, Class<? super T> type, T val) {

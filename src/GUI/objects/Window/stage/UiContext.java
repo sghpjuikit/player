@@ -119,7 +119,7 @@ public final class UiContext {
     public static void showSettings(Configurable c, MouseEvent e) {
         showSettings(c, (Node) e.getSource());
     }
-    
+
     public static void showSettings(Configurable c, Node n) {
         String name = c instanceof Widget ? ((Widget)c).getName() : "";
         Configurator sc = new Configurator(true);
@@ -145,7 +145,7 @@ public final class UiContext {
 
     public static void launchComponent(File launcher) {
         try {
-            WidgetFactory wf = null;
+            WidgetFactory wf;
             Component w = null;
 
             // simple launcher version, contains widget name on 1st line
@@ -156,8 +156,8 @@ public final class UiContext {
             // try to deserialize normally
             if(w==null) {
                 try {
-                    w = (Component) App.APP.serializators.x.fromXML(launcher);
-                } catch (ClassCastException | StreamException ignored) {
+                    w = App.APP.serializators.fromXML(Component.class,launcher);
+                } catch (StreamException ignored) {
                     LOGGER.error("Could not load .fxwl {}", launcher);
                 }
             }

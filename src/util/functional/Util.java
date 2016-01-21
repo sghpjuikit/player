@@ -937,9 +937,13 @@ public class Util {
         return Stream.of(t);
     }
 
-    public static <T,A extends T,B extends T> Stream<T> stream(Stream<A> s1, Stream<B> s2) {
+    public static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
         return Stream.concat(s1,s2);
     }
+
+//    public static <T,A extends T,B extends T> Stream<T> stream(Stream<A> s1, Stream<B> s2) {
+//        return Stream.concat(s1,s2);
+//    }
 
     public static <T> Stream<T> stream(T o, Stream<T> t) {
         return Stream.concat(Stream.of(o), t);

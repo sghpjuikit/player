@@ -51,35 +51,14 @@ public @interface StringParseStrategy {
      * <p>
      * Default value is empty array.
      */
-    Class<? extends Exception>[] ex() default {};
+    Class<? extends Exception>[] exTo() default {};
+    /** Same as {@link #exTo() } but for parsing from string instead.*/
+    Class<? extends Exception>[] exFrom() default {};
 
     /** Defines strategy for parsing object from String. */
     public static enum From {
-        /** Static fromString(String text) method is responsible. */
-        FROM_STRING_METHOD,
-        /** Static valueOf(String text) method is responsible. */
-        VALUE_OF_METHOD,
         /** {@link ParsesFromString} annotation decides responsible method. */
         ANNOTATED_METHOD,
-        /**
-         * Constructor with exactly one String parameter (and no others)
-         * is responsible. Advised when state of the instance can be derived
-         * from the string.
-         * <p>
-         * In this case the constructor basically fills the role of a static
-         * factory method, like valueOf(String text).
-         */
-        CONSTRUCTOR_STR,
-        /**
-         * No argument constructor is responsible. This should only be advised
-         * for stateless classes, which have 'equal' reusable instances or
-         * always the same state.
-         * <p>
-         * In case the state of the instance does not need to be recreated from
-         * String and default state is enough, this strategy is valid as well.
-         * For example a class might wish to return default, empty or nullary
-         */
-        CONSTRUCTOR,
         /**
          * Will use fx parser. The string format of the fx parser is subject to change and should
          * not be relied on and will not be disclosed here.

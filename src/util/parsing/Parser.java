@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -24,6 +25,10 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
+import com.google.common.reflect.Invokable;
+import com.google.common.reflect.Parameter;
+import com.google.common.reflect.TypeToken;
+
 import Configuration.Configurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
@@ -34,16 +39,15 @@ import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
 
 import static java.lang.Double.parseDouble;
-import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.joining;
 import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
+import static util.Util.getConstructorAnnotated;
 import static util.Util.getMethodAnnotated;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
-import static util.parsing.StringParseStrategy.From.*;
 
 /**
  * Multi type bidirectional object-string converter.
@@ -331,33 +335,37 @@ public abstract class Parser {
 
 /******************************************************************************/
 
-    private static <T> Function<String,T> buildFromsParser(Class<T> c) {
-        Function<String,?> fromS = null;
-        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
+    private static <T> Function<String,T> buildFromsParser(Class<T> t) {
+        Function<String,T> fromS = null;
+        StringParseStrategy a = t.getAnnotation(StringParseStrategy.class);
 
         if(fromS==null && a!=null) {
             From strategy = a.from();
-            if(strategy==VALUE_OF_METHOD) {
-                Method m = getValueOfStatic(c);
-                if(m==null) throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".valueOf(String s)");
-                fromS = parserOfM(m, String.class, c, a);
-            } else if (strategy==FROM_STRING_METHOD) {
-                Method m = getMethodStatic("fromString", c);
-                if(m==null) throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".fromString(String s)");
-                fromS = parserOfM(m, String.class, c, a);
-            } else if (strategy==From.NONE) {
-                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ c +"'s parsing strategy forbids parsing from string.");
+            if (strategy==From.NONE) {
+                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ t +"'s parsing strategy forbids parsing from string.");
             } else if (strategy==From.ANNOTATED_METHOD) {
-                Method m = getMethodAnnotated(c,ParsesFromString.class);
-                if(m==null || !isStatic(m.getModifiers()) || m.getParameterCount()!=1 || m.getParameters()[0].getType().equals(String.class))
-                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: " + m);
-                fromS = parserOfM(m, String.class, c, a);
-            } else if (strategy==CONSTRUCTOR) {
-                fromS = parserOfC(a, c);
-            } else if (strategy==CONSTRUCTOR_STR) {
-                fromS = parserOfC(a, c, String.class);
+                Invokable<T,Object> invokableAny = null;  // in class T returns ?
+
+                if(invokableAny==null) {
+                    Constructor<T> c = getConstructorAnnotated(t, ParsesFromString.class);
+                    if(c!=null) invokableAny = (Invokable) TypeToken.of(t).constructor(c);
+                }
+
+                if(invokableAny==null) {
+                    Method m = getMethodAnnotated(t, ParsesFromString.class);
+                    if(m!=null) invokableAny = TypeToken.of(t).method(m);
+                    if(!invokableAny.isStatic()) invokableAny = null;
+                }
+
+                if(invokableAny==null)
+                    throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
+                if(!invokableAny.getReturnType().isSubtypeOf(t))
+                    throw new IllegalArgumentException("Failed to create from string converter. Responsible method returns bad type");
+
+                Invokable<T,T> invokable = invokableAny.returning(t); // in class T returns T
+                fromS = parserOfI(invokable, String.class, t, a, ParseDir.FROMS);
             } else if (strategy==From.FX) {
-                fromS = text -> FX.fromS(c, text);
+                fromS = text -> FX.fromS(t, text);
             } else {
                 throw new SwitchException(strategy);
             }
@@ -365,15 +373,15 @@ public abstract class Parser {
 
         // try to fall back to valueOf or fromString parsers
         if(fromS==null) {
-            Method m = getValueOfStatic(c);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, c, null), Exception.class);
+            Method m = getValueOfStatic(t);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, t, null, null), Exception.class);
         }
         if(fromS==null) {
-            Method m = getMethodStatic("fromString",c);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, c, null), Exception.class);
+            Method m = getMethodStatic("fromString",t);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, t, null, null), Exception.class);
         }
 
-        return (Function)fromS;
+        return fromS;
     }
 
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
@@ -389,16 +397,25 @@ public abstract class Parser {
                 throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"'s parsing strategy forbids parsing to string.");
             } else if (strategy==To.ANNOTATED_METHOD) {
                 Method m = getMethodAnnotated(c,ParsesToString.class);
-                if(m==null || m.getParameterCount()!=0 || !m.getReturnType().equals(String.class))
-                    throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because responsible method was not found: " + m);
-                Function<T,String> f = in -> {
-                    try {
-                        return (String) m.invoke(in);
-                    } catch( IllegalAccessException | InvocationTargetException e ) {
-                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                if(m==null || m.getReturnType()!=String.class || m.getParameterCount()>1 || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
+                    throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because suitable method was not found: " + m);
+                boolean pass_params = m.getParameterCount()==1;
+                Function<T,String> f = pass_params
+                    ? in -> {
+                        try {
+                            return (String) m.invoke(in,in);
+                        } catch( IllegalAccessException | InvocationTargetException e ) {
+                            throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                        }
                     }
-                };
-                toS = noExWrap(m, a, f);
+                    : in -> {
+                        try {
+                            return (String) m.invoke(in);
+                        } catch( IllegalAccessException | InvocationTargetException e ) {
+                            throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                        }
+                    };
+                toS = noExWrap(m, a, ParseDir.TOS, f);
             } else if (strategy==To.TO_STRING_METHOD) {
                 toS = (Function)DEFAULT_TOS;
             } else if (strategy==To.FX) {
@@ -408,10 +425,13 @@ public abstract class Parser {
             }
         }
 
-        return (Function)toS;
+        return toS;
     }
 
     private static Method getValueOfStatic(Class type) {
+
+        // DAMN, is this really needed? If no - discard. If it is, make sure its handled in other
+        // methods as well...
         // hadle enum with class bodies that dont identify as enums
         // simply fool the parser by changing the class to the enum
         // note: getDeclaringClass() does not seem to work here though
@@ -431,36 +451,91 @@ public abstract class Parser {
             Method m = type.getDeclaredMethod(name, String.class);
             if (!m.getReturnType().equals(type)) throw new NoSuchMethodException();
             return m;
-        } catch ( NoSuchMethodException ex) {
+        } catch (NoSuchMethodException ex) {
             return null;
         }
     }
 
-    private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a) {
+    private static <I,O> Function<I,O> parserOfI(Invokable<?,O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
+        Collection<Parameter> params = m.getParameters();
+        if(params.size()>1)
+            throw new IllegalArgumentException("Parser method/constructor must take 0 or 1 parameter");
+
+        // exceptions (we will make union of those annotated and those known to be thrown
         Set<Class<?>> ecs = new HashSet<>();
-        if(a!=null) ecs.addAll(list(a.ex())); else ecs.add(Exception.class);
-        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
-        Function<I,O> f = in -> {
-            try {
-                return (O) m.invoke(null, in);
-            } catch(IllegalAccessException | InvocationTargetException e ) {
-                for(Class<?> ec : ecs) {
-                    if(ec.isInstance(e.getCause().getCause())) return null;
-                    if(ec.isInstance(e.getCause())) return null;
-                    if(ec.isInstance(e)) return null;
+        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+        if(m!=null) ecs.addAll(map(m.getExceptionTypes(),tt -> tt.getRawType()));
+
+        boolean no_input = params.isEmpty();
+        Function<I,O> f = no_input
+            ?   in -> {
+                    try {
+                        return m.invoke(null);
+                    } catch(IllegalAccessException | InvocationTargetException e ) {
+                        for(Class<?> ec : ecs) {
+                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if(ec.isInstance(e.getCause())) return null;
+                            if(ec.isInstance(e)) return null;
+                        }
+                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                    }
                 }
-                throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
-            }
-        };
-        return noExWrap(m, a, f);
+            :   in -> {
+                    try {
+                        return m.invoke(null, in);
+                    } catch(IllegalAccessException | InvocationTargetException e ) {
+                        for(Class<?> ec : ecs) {
+                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if(ec.isInstance(e.getCause())) return null;
+                            if(ec.isInstance(e)) return null;
+                        }
+                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                    }
+                };
+
+        return noEx(f, ecs);
     }
 
-    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class<?>... params) {
+    private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
+        Set<Class<?>> ecs = new HashSet<>();
+        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
+        boolean isSupplier = i==Void.class || i==void.class || i==null;
+        boolean isStatic = Modifier.isStatic(m.getModifiers());
+        Function<I,O> f = isSupplier
+            ?   in -> {
+                    try {
+                        return (O) m.invoke(null);
+                    } catch(IllegalAccessException | InvocationTargetException e ) {
+                        for(Class<?> ec : ecs) {
+                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if(ec.isInstance(e.getCause())) return null;
+                            if(ec.isInstance(e)) return null;
+                        }
+                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                    }
+                }
+            :   in -> {
+                    try {
+                        return (O) m.invoke(null, in);
+                    } catch(IllegalAccessException | InvocationTargetException e ) {
+                        for(Class<?> ec : ecs) {
+                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if(ec.isInstance(e.getCause())) return null;
+                            if(ec.isInstance(e)) return null;
+                        }
+                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                    }
+                };
+        return noExWrap(m, a, dir, f);
+    }
+
+    private static <O> Function<String,O> parserOfC(StringParseStrategy a, ParseDir dir, Class<O> type, Class<?>... params) {
         try {
             Constructor<O> cn = type.getConstructor(params);
             boolean passinput = params.length==1;
             Set<Class<?>> ecs = new HashSet<>();
-            if(a!=null) ecs.addAll(list(a.ex()));
+            if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
             if(cn!=null) ecs.addAll(list(cn.getExceptionTypes()));
                 Function<String,O> f = in -> {
                     try {
@@ -468,22 +543,22 @@ public abstract class Parser {
                         return cn.newInstance(p);
                     } catch (ExceptionInInitializerError | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         for(Class<?> ec : ecs) {
-                            if(ec.isInstance(e.getCause().getCause())) return null;
+                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
                             if(ec.isInstance(e.getCause())) return null;
                             if(ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("String '"+in+"' parsing failed to invoke constructor in class " + cn.getDeclaringClass(), e);
                     }
                 };
-              return noExWrap(cn, a, f);
+              return noExWrap(cn, a, dir, f);
           } catch (NoSuchMethodException | SecurityException e) {
-              throw new RuntimeException("Parser cant find no param constructor in " + type, e);
+              throw new RuntimeException("Parser cant find constructor suitable for parsing " + type, e);
           }
     }
 
-    private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, Function<I,O> f) {
+    private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
         Set<Class<?>> ecs = new HashSet<>();
-        if(a!=null) ecs.addAll(list(a.ex()));
+        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
         return noEx(f, ecs);
     }
@@ -516,5 +591,9 @@ public abstract class Parser {
 
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
         return noEx(or, f, list(ecs));
+    }
+
+    private static enum ParseDir {
+        TOS, FROMS
     }
 }

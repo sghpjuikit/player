@@ -11,15 +11,19 @@ import javafx.scene.control.TableColumn;
 
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
+import util.parsing.StringParseStrategy.From;
 
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as number. */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Number" )
+@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Number" )
 public class NumberRatingCellFactory implements RatingCellFactory {
+
+    @ParsesFromString
+    public NumberRatingCellFactory() {}
 
     @Override
     public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> param) {

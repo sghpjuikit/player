@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -701,10 +702,20 @@ public class Util {
 
 /***************************** REFLECTION - ANNOTATION *************************************/
 
-    public static <A extends Annotation> Method getMethodAnnotated(Class<?> c, Class<A> ca) {
-        for(Method m: c.getDeclaredMethods()) {
+    /** Finds all declared methods in the class that are annotated by annotation of specified type. */
+    public static <A extends Annotation> Method getMethodAnnotated(Class<?> type, Class<A> ca) {
+        for(Method m: type.getDeclaredMethods()) {
             A a = m.getAnnotation(ca);
             if(a!=null) return m;
+        }
+        return null;
+    }
+
+    /** Finds all declared constructors in the class that are annotated by annotation of specified type. */
+    public static <A extends Annotation, T> Constructor<T> getConstructorAnnotated(Class<T> type, Class<A> ca) {
+        for(Constructor<?> m: type.getDeclaredConstructors()) {
+            A a = m.getAnnotation(ca);
+            if(a!=null) return (Constructor) m; // safe right? what else can the constructor return than T ?
         }
         return null;
     }

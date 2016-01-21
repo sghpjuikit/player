@@ -5,10 +5,13 @@
  */
 package web;
 
-import AudioPlayer.plugin.IsPlugin;
 import java.net.URI;
+
+import AudioPlayer.plugin.IsPlugin;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
+import util.parsing.StringParseStrategy.From;
+
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
@@ -16,13 +19,16 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
  @author Plutonium_
  */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Bing" )
+@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Bing" )
 public class BingImageSearchQBuilder implements HttpSearchQueryBuilder {
+
+    @ParsesFromString
+    public BingImageSearchQBuilder() {}
 
     @Override
     public URI apply(String term) {
         String s = "http://www.bing.com/images/search?q=" + term.replace(" ", "%20") + "&qs=n&form=QBIR&pq=ggg&sc=8-3&sp=-1";
         return URI.create(s);
     }
-    
-}           
+
+}

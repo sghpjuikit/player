@@ -10,10 +10,8 @@ import java.net.URI;
 import AudioPlayer.plugin.IsPluginType;
 import util.functional.Functors.Ƒ1;
 
-/** 
- * Transforms text into a search query. 
+/**
+ * Transforms text into a search query.
  */
 @IsPluginType
-public interface HttpSearchQueryBuilder extends Ƒ1<String,URI> {
-    
-}
+public interface HttpSearchQueryBuilder extends Ƒ1<String,URI> {}

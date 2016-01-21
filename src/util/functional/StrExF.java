@@ -8,25 +8,27 @@ package util.functional;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import util.functional.Functors.Ƒ1;
+import util.parsing.ParsesFromString;
+import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
-
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
-import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
+import util.parsing.StringParseStrategy.From;
+import util.parsing.StringParseStrategy.To;
 
 /**
  * String expression function
- * 
+ *
  * @author Plutonium_
  */
 @StringParseStrategy(
-    from = CONSTRUCTOR_STR, to = TO_STRING_METHOD, 
-    ex = {IllegalStateException.class,IllegalArgumentException.class}
+    from = From.ANNOTATED_METHOD, to = To.TO_STRING_METHOD,
+    exFrom = {IllegalStateException.class,IllegalArgumentException.class}
 )
 public class StrExF implements Ƒ1<Double,Double> {
-    
+
     private final String ex;
     private final Expression e;
-    
+
+    @ParsesFromString
     public StrExF(String s) {
         try {
             ex = s;
@@ -42,9 +44,10 @@ public class StrExF implements Ƒ1<Double,Double> {
         return e.setVariable("x", i).evaluate();
     }
 
+    @ParsesToString
     @Override
     public String toString() {
         return ex;
     }
-    
+
 }

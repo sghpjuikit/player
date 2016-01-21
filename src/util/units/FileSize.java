@@ -8,10 +8,11 @@ import java.io.File;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.dev.Dependency;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
+import util.parsing.StringParseStrategy.From;
 
 import static java.lang.Integer.max;
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
@@ -23,9 +24,9 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  */
 @Immutable
 @StringParseStrategy(
-    from = CONSTRUCTOR_STR,
+    from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,
-    ex = { NumberFormatException.class }
+    exFrom = NumberFormatException.class
 )
 public final class FileSize implements Comparable<FileSize> {
 
@@ -77,7 +78,7 @@ public final class FileSize implements Comparable<FileSize> {
      * @param number of bytes as String, optionally with unit appended. Consistent
      * with toStrong().
      */
-    @Dependency("Used for parsing.")
+    @ParsesFromString
     public FileSize(String bytes) {
         this(val(bytes));
     }
@@ -134,7 +135,6 @@ public final class FileSize implements Comparable<FileSize> {
      */
     @Override
     @Dependency("Designed to be used in tables, filters and gui.")
-    @Dependency("Used for parsing.")
     @Dependency("Supports different units. B - EB")
     public String toString() {
         if(v == -1) return NAString;
@@ -170,7 +170,6 @@ public final class FileSize implements Comparable<FileSize> {
     public int hashCode() {
         return 13 * 3 + (int) (this.v ^ (this.v >>> 32));
     }
-
 
 
     private static long val(String s) throws NumberFormatException {

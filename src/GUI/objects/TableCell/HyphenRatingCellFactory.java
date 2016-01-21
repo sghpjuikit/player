@@ -5,19 +5,22 @@
  */
 package gui.objects.TableCell;
 
-import AudioPlayer.plugin.IsPlugin;
-import AudioPlayer.tagging.Metadata;
-import static java.lang.Math.round;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+
+import AudioPlayer.plugin.IsPlugin;
+import AudioPlayer.tagging.Metadata;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
+import util.parsing.StringParseStrategy.From;
+
+import static java.lang.Math.round;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as text from '' to '*****'. */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Hyphen" )
+@StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Hyphen" )
 public class HyphenRatingCellFactory implements RatingCellFactory {
     private static final String s0 = "";
     private static final String s1 = "-";
@@ -25,6 +28,9 @@ public class HyphenRatingCellFactory implements RatingCellFactory {
     private static final String s3 = "---";
     private static final String s4 = "----";
     private static final String s5 = "-----";
+
+    @ParsesFromString
+    public HyphenRatingCellFactory() {}
 
     @Override
     public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> param) {

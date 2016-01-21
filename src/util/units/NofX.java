@@ -8,18 +8,20 @@ package util.units;
 import java.util.regex.PatternSyntaxException;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import util.parsing.ParsesFromString;
+import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
+import util.parsing.StringParseStrategy.From;
 
 import static java.util.Objects.hash;
-import static util.parsing.StringParseStrategy.From.FROM_STRING_METHOD;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /** Defines number within an amount. For example 15/20. */
 @Immutable
 @StringParseStrategy(
-    from = FROM_STRING_METHOD,
+    from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,
-    ex = { PatternSyntaxException.class, NumberFormatException.class, ArrayIndexOutOfBoundsException.class}
+    exFrom = { PatternSyntaxException.class, NumberFormatException.class, ArrayIndexOutOfBoundsException.class}
 )
 public class NofX implements Comparable<NofX> {
     public final int n;
@@ -35,12 +37,13 @@ public class NofX implements Comparable<NofX> {
         int i = Integer.compare(of, o.of);
         return i!=0 ? i : Integer.compare(n, o.n);
     }
-    
+
+    @ParsesToString
     @Override
     public String toString() {
         return toString("/");
     }
-    
+
     public String toString(String separator) {
         return (n==-1 ? "?" : n) + separator + (of==-1 ? "?" : of);
     }
@@ -59,10 +62,11 @@ public class NofX implements Comparable<NofX> {
     public int hashCode() {
         return hash(n,of);
     }
-     
+
+    @ParsesFromString
     public static NofX fromString(String s) throws PatternSyntaxException, NumberFormatException, ArrayIndexOutOfBoundsException {
         String[] a = s.split("/", 0);
         if(a.length!=2) throw new ArrayIndexOutOfBoundsException("Not in an 'X/Y' format");
         return new NofX(Integer.parseInt(a[0]), Integer.parseInt(a[1]));
-    } 
+    }
 }

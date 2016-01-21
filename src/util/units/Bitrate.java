@@ -4,29 +4,31 @@
  */
 package util.units;
 
-import static java.lang.Integer.parseInt;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import util.dev.Dependency;
+import util.parsing.ParsesFromString;
+import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
+import util.parsing.StringParseStrategy.From;
+
+import static java.lang.Integer.parseInt;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
  * Simple class for media bit rate. Internally represents the value as int.
  * Unit is kbps.
- * 
+ *
  * @author uranium
  */
 @Immutable
 @StringParseStrategy(
-    from = CONSTRUCTOR_STR,
+    from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,
-    ex = { IndexOutOfBoundsException.class, NumberFormatException.class, IllegalArgumentException.class }
+    exFrom = { IndexOutOfBoundsException.class, NumberFormatException.class, IllegalArgumentException.class }
 )
 public class Bitrate implements Comparable<Bitrate> {
     private static final String UNIT = "kbps";
     private final int bitrate;
-    
+
     /**
      * @param value bit rate value in kb per second. Use -1 if not available.
      */
@@ -34,32 +36,33 @@ public class Bitrate implements Comparable<Bitrate> {
         if(value<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
         bitrate = value;
     }
-    
+
     /***
      * @param s number as string with optional unit 'kbps' appended. White spaces
      * are removed.
      */
+    @ParsesFromString
     public Bitrate(String s){
         this(val(s));
     }
-    
+
     /** @return bit rate value in kb per second. */
     public int getValue() {
         return bitrate;
     }
-    
+
     @Override
     public int compareTo(Bitrate o) {
         return Integer.compare(bitrate, o.bitrate);
     }
-    
+
     /**
      * Appends ' kbps' string after value. If no value available it returns "".
      * For example: "320 kbps" or "N/A"
      * @return string representation of the object
      */
     @Override
-    @Dependency("Designed to be used in tables, filters and gui.")
+    @ParsesToString
     public String toString() {
         return bitrate == -1 ? "" : bitrate + " " + UNIT;
     }
@@ -75,10 +78,10 @@ public class Bitrate implements Comparable<Bitrate> {
     public int hashCode() {
         return 97 * 7 + this.bitrate;
     }
-    
-    
-    
-    
+
+
+
+
     private static int val(String s) throws IndexOutOfBoundsException, NumberFormatException {
         if(s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
         s = s.trim();

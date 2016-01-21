@@ -6,16 +6,23 @@
 package util.parsing;
 
 import java.lang.annotation.Documented;
-import static java.lang.annotation.ElementType.METHOD;
 import java.lang.annotation.Retention;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Target;
 
-/** Makes the method responsible for the parsing from String strategy. 
-    <p>
-    The method must be static, return correct object type and take String as a 
-    parameter.*/
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * Makes the method or constructor responsible for the parsing from String.
+ * <p>
+ * The annotated element must be:
+ * <ul>
+ * <li> constructor or static method
+ * <li> return type same or subtype of class it was defined in - basically a factory method/consturctor.
+ * <ul> take either no parameter or single string parameter
+ */
 @Documented
 @Retention(RUNTIME)
-@Target(METHOD)
+@Target( {METHOD,CONSTRUCTOR} )
 public @interface ParsesFromString {}

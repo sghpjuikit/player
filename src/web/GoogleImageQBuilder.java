@@ -5,10 +5,13 @@
  */
 package web;
 
-import AudioPlayer.plugin.IsPlugin;
 import java.net.URI;
+
+import AudioPlayer.plugin.IsPlugin;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
+import util.parsing.StringParseStrategy.From;
+
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
@@ -16,13 +19,16 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
  @author Plutonium_
  */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Google" )
+@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Google" )
 public class GoogleImageQBuilder implements HttpSearchQueryBuilder {
+
+    @ParsesFromString
+    public GoogleImageQBuilder() {}
 
     @Override
     public URI apply(String term) {
-        String s =  "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + term.replace(" ", "%20");
+        String s = "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + term.replace(" ", "%20");
         return URI.create(s);
     }
-    
+
 }

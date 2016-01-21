@@ -10,10 +10,12 @@ import javafx.util.Duration;
 
 import util.Util;
 import util.dev.Dependency;
+import util.parsing.ParsesFromString;
+import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
+import util.parsing.StringParseStrategy.From;
 
 import static util.functional.Util.split;
-import static util.parsing.StringParseStrategy.From.VALUE_OF_METHOD;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
@@ -21,34 +23,34 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * minutes:seconds format.* Example: 00:00.
  */
 @StringParseStrategy(
-    from = VALUE_OF_METHOD,
+    from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,
-    ex = { IllegalArgumentException.class, NumberFormatException.class }
+    exFrom = { IllegalArgumentException.class, NumberFormatException.class }
 )
 public class FormattedDuration extends Duration {
     private static final long serialVersionUID = 11L;
-    
+
     /** Constructor. Initializes to 0. */
     public FormattedDuration() {
         super(0);
     }
-    
+
     /** Constructor. Initializes to specified value in milliseconds. */
     public FormattedDuration(double value) {
         super(value);
     }
-    
+
     /** @return formatted string representation of the duration */
     @Dependency("Designed to be used in tables and gui. Should be in xx:xx format")
+    @ParsesToString
     @Override
     public String toString() {
         return Util.formatDuration(this);
     }
-    
-    @Dependency("Name. Used by String Parser by reflection discovered by method name.")
-    @Dependency("Consistent with toString().")
+
+    @ParsesFromString
     public static FormattedDuration valueOf(String s) throws NumberFormatException, IllegalArgumentException {
-        
+
         // try parsing in hh:mm:ss format
         if(s.contains(":")) {
             List<String> ls = split(s,":");
@@ -64,9 +66,9 @@ public class FormattedDuration extends Duration {
             }
             return new FormattedDuration(Σt);
         }
-        
+
         // parse normally
-        
+
         int index = -1;
         for (int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
@@ -75,10 +77,10 @@ public class FormattedDuration extends Duration {
                 break;
             }
         }
-        
+
         double value = Double.parseDouble(index==-1 ? s : s.substring(0, index));
-        
-        if (index == -1) 
+
+        if (index == -1)
             return new FormattedDuration(value);
         else {
             String suffix = s.substring(index);
@@ -95,5 +97,5 @@ public class FormattedDuration extends Duration {
             }
         }
     }
-    
+
 }

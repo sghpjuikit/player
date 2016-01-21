@@ -747,17 +747,18 @@ public class App extends Application implements Configurable {
         // vm.getAgentProeprties().setProperty(...)  but it appears to be read only. So we handle
         // the recognition differently.
         int instances = 0;
-//        String ud = System.getProperty("user.dir");
+        String ud = System.getProperty("user.dir");
         for(VirtualMachineDescriptor vmd : VirtualMachine.list()) {
             try {
+                int i = 0;
                 VirtualMachine vm = VirtualMachine.attach(vmd);
 
                 // attempt 1:
                 // User directory. Unfortunately nothing forbids user (or more likely
                 // developer) to copypaste the app and run it from elsewhere). We want to
                 // defend against this as well.
-                // String udir = vm.getSystemProperties().getProperty("user.dir");
-                //if(udir!=null && ud.equals(udir)) i++;
+                 String udir = vm.getSystemProperties().getProperty("user.dir");
+                if(udir!=null && ud.equals(udir)) i=1;
 
                 // attempt 2:
                 // Injected custom property, !work. Read-only? Id like this to work though.
@@ -767,8 +768,9 @@ public class App extends Application implements Configurable {
                 // We use command parameter which ends with the name of the executed jar. So far
                 // this works. Its far from perfect, since user/dev could rename the jar.
                 String command = vm.getAgentProperties().getProperty("sun.java.command");
-                if(command!=null && command.endsWith("Player.jar")) instances++;
+                if(command!=null && command.endsWith("Player.jar")) i=1;
 
+                instances += i;
                 vm.detach();
             } catch (AttachNotSupportedException | IOException ex) {
                 LOGGER.warn("Unable to inspect virtual machine {}", vmd);

@@ -8,9 +8,10 @@ package web;
 import java.net.URI;
 
 import AudioPlayer.plugin.IsPlugin;
+import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
+import util.parsing.StringParseStrategy.From;
 
-import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
@@ -18,8 +19,11 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
  * @author Plutonium_
  */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Wikipedia" )
+@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Wikipedia" )
 public class WikipediaQBuilder implements HttpSearchQueryBuilder {
+
+    @ParsesFromString
+    public WikipediaQBuilder() {}
 
     @Override
     public URI apply(String q) {

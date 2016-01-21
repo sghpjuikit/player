@@ -58,11 +58,11 @@ public class ShortcutPane extends OverlayPane {
     private static final String STYLECLASS_GROUP = "shortcut-pane-group-label";
 
     @IsConfig(name = HE_TITLE, info = HE_INFO)
-    public static final V<Boolean> hideEmpty = new V(true);
+    public static final V<Boolean> HIDE_EMPTY_SHORTCUTS = new V<>(true);
 
 
     private final GridPane g = new GridPane();
-    Subscription rebuilding = maintain(hideEmpty,v -> build());
+    Subscription rebuilding = maintain(HIDE_EMPTY_SHORTCUTS,v -> build());
 
     public ShortcutPane() {
         getStyleClass().add(STYLECLASS);
@@ -85,7 +85,7 @@ public class ShortcutPane extends OverlayPane {
 
     @Override
     public void show() {
-        rebuilding = maintain(hideEmpty,v -> build());
+        rebuilding = maintain(HIDE_EMPTY_SHORTCUTS, v -> build());
         super.show();
     }
 
@@ -109,7 +109,7 @@ public class ShortcutPane extends OverlayPane {
         // build rows
         R<Integer> i = new R<>(-1);
         getActions().stream()
-                    .filter(a -> !hideEmpty.getValue() || a.hasKeysAssigned())
+                    .filter(a -> !HIDE_EMPTY_SHORTCUTS.getValue() || a.hasKeysAssigned())
                     .collect(groupingBy(Action::getGroup))
                     .entrySet().stream()
                     .sorted(by(Entry::getKey))
@@ -140,7 +140,7 @@ public class ShortcutPane extends OverlayPane {
         + "\n\n"
         + "Displays available shortcuts. Optionally also those that have not been assigned yet."
     );
-    private final Icon hideI = new CheckIcon(hideEmpty)
+    private final Icon hideI = new CheckIcon(HIDE_EMPTY_SHORTCUTS)
                                     .tooltip(HE_TITLE+"\n\n"+HE_INFO)
                                     .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE,CLOSE_CIRCLE_OUTLINE);
 }

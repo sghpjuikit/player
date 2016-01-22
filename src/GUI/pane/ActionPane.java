@@ -137,7 +137,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         tableContentGap = content.spacingProperty();
         // icontent and table complement each other horizontally, though icontent is more
         // important and should be wider & closer to center
-        icontent.minWidthProperty().bind(((Pane)icontent.getParent()).widthProperty().multiply(0.6));
+        icontent.minWidthProperty().bind(content.widthProperty().multiply(0.6));
 
         Pane controlsMirror = new Pane();
              controlsMirror.prefHeightProperty().bind(controls.heightProperty()); // see below

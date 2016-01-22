@@ -70,7 +70,7 @@
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off autoresize columns option
-- cleanups: Parser, Var, Ref, SingleRef
+- cleanups: Parser, Var, Ref, SingleRef, ActionPane.ActionData
 
 -------------------------------------------------------------------------------- 
 --------------------------------- TESTING  -------------------------------------

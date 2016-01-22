@@ -22,8 +22,8 @@ There are two reasons to be interested in this project:
 - <b>Fancy features</b> like: rating in tag, time comments, good image support, advanced & intuitive library management, etc.
 - <b>Library independence</b> - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
 - <b>Usability</b> - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
-- <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours.
-- <b>Sexy</b> - Your way of sexy if you know tiny bit about css.
+- <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
+- <b>Sexy<b/> - Your way of sexy if you know tiny bit about css.
 
   Okey, okey so now, what can this application actually do?
 Glad you asked.
@@ -45,7 +45,8 @@ Song database:
 - no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application (or as a result of a bug)
 - no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a persistable cache, not as data storage.
 
-  Management system is only as good as its user interface. There are powerful tables that try to be as flexible as possible. Some of the capabilities that <b>every</b> table boasts:
+Management system is only as good as its user interface. There are powerful tables that try to be as flexible as possible.
+Tables:
 - big: 30000 songs in playlist no problem (although good luck loading it at the app start...)
 - smart columns: set visibility, width, sorting (multiple column), order of any column for any song attribute
 - visual searching: by any (textual) attribute (artist, composer, title, etc) simply by writing. Scrolls 1st match (to center) and highlights matches - so they 'pop' visually - shich doesnt strain your eyes that much. Its fast (no CTRL+F, just type...) and convenient.

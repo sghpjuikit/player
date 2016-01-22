@@ -120,7 +120,7 @@ Comprehensive widget list:
   - file renaming
   - tagging
 This makes it possible to import song titles from copypasted tracklist found on web by 'cleaning' it up with text line transformations (remove x characters from start, etc.) rather than manually. Changing extension or names of bunch of files is peace of cake.
-- <b>Library</b> + <b>LibraryView</b> - song tables. User can link them up so they display increasingly filtered/sepecialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. And so on until for example Nth and Mth table display the songs. There are a lot of possible library 'views' onecancome up with. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktps). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it ispossible to create a multiple views with lots of tables with practically no performance impact at all (by using only views only when needed and have them sleep but be prepared and configured all the time).
+- <b>Library</b> + <b>LibraryView</b> - song tables. User can link them up so they display increasingly filtered/sepecialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. So on until Nth table displays the songs. Combinations are endless. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktops). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it is possible to create a multiple views with lots of tables with practically no performance impact at all (by using views only when needed and have them 'sleep', but be prepared and configured all the time).
 - <b>Image</b>
   - Image viewr - displays an image.
 - <b>ImageViewer</b>
@@ -157,7 +157,7 @@ This makes it possible to import song titles from copypasted tracklist found on 
 
 ### Portability
 
-  The application in its self-contained form:
+The application in its self-contained form:
 - has executable .exe
 - requires no installation
 - requires no software (e.g. java) preinstalled
@@ -179,9 +179,11 @@ Widgets:
 - inputs and outputs can be bound - when output value changes, it is passed into the listening input of other widget
 - inputs can be set to custom values
 - the whole system is displayed visually as editable graph
+- can load lazily - be passive until user explicitly requests loading with mouse click.
 
 Layouts:
-- widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations
+- widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations.
+- Individual containers form nested hierarchy that can be configured at any level easily through user interface, navigating with left (down) + right (up) mouse click in layout mode. 
 - multiple layout support/virtual layout space. Switching layouts by dragging them horizontally (left,right) opens new space for more layouts. This provides virtually infinitely large and conveniently navigable working space.
 
 Windows:

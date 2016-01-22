@@ -23,7 +23,7 @@ There are two reasons to be interested in this project:
 - <b>Library independence</b> - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
 - <b>Usability</b> - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
 - <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
-- <b>Sexy<b/> - Your way of sexy if you know tiny bit about css.
+- <b>Sexy</b> - Your way of sexy if you know tiny bit about css.
 
   Okey, okey so now, what can this application actually do?
 Glad you asked.

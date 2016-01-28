@@ -7,8 +7,11 @@
 package gui.objects.Window.stage;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -55,6 +58,7 @@ import util.dev.TODO.Purpose;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static java.io.File.separator;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -176,15 +180,15 @@ public class WindowManager implements Configurable<Object> {
 
     public Window create(Stage owner, StageStyle style) {
         Window w = new Window(owner,style);
+        try {
+            w.root.getStylesheets().add( new File(APP.DIR_SKINS.getPath(), gui.GUI.skin.getValue() + separator + gui.GUI.skin.getValue() + ".css").toURI().toURL().toExternalForm());
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(WindowManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
         if(APP.window==null) setAsMain(w);
         windows.add(w); // add to list of active windows
         w.initialize();
-
-//
-//	// set local shortcuts
-//        Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
-//              .forEach(a -> a.registerInScene(w.s.getScene()));
 
         // bind properties
         w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));

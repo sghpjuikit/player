@@ -6,61 +6,57 @@
 
 package Logger;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.util.function.IntConsumer;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 
+import Configuration.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 
-import static util.async.Async.runFX;
+import static main.App.APP;
 import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
- *
+ * Logger widget conroller.
  * @author Plutonium_
  */
 @Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Logger",
-    description = "Displays console output by redirecting System.out, which includes all of the "
+    description = "Displays console output by listening to System.out, which contains all of the "
             + "application logging.",
     howto = "",
     notes = "",
-    version = "0.8",
+    version = "1",
     year = "2015",
     group = Widget.Group.DEVELOPMENT
 )
 public class Logger extends ClassController {
 
     private final TextArea area = new TextArea();
-    private final PrintStream stream;
+    private final IntConsumer writer = b -> area.appendText(String.valueOf((char) b));
+
+    @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
+    public final BooleanProperty wrap_text = area.wrapTextProperty(); // default == false
 
     public Logger() {
-        // gui
         area.setEditable(false);
-        area.appendText("# This is redirected System.out stream of this application.");
+        setMinPrefMaxSize(area, USE_COMPUTED_SIZE);
+        setMinPrefMaxSize(this, USE_COMPUTED_SIZE);
+        area.appendText("# This is redirected System.out stream of this application.\n");
         getChildren().add(area);
         setAnchors(area, 0d);
 
-        // catch output stream
-        stream = new java.io.PrintStream(new OutputStream() {
-            @Override
-            public void write(int b) throws IOException {
-                runFX(() -> {
-                    area.appendText(String.valueOf((char) b));
-                });
-            }
-        }, true);
-        System.setOut(stream);
+        APP.systemout.addListener(writer);
     }
 
     @Override
     public void onClose() {
-        stream.close();
+        APP.systemout.removeListener(writer);
     }
 
 }

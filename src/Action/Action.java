@@ -39,7 +39,6 @@ import util.dev.Dependency;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
-import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
 import static util.reactive.Util.executeWhenNonNull;
@@ -235,33 +234,35 @@ public final class Action extends Config<Action> implements Runnable {
     public void register() {
         if(!hasKeysAssigned()) return;
 
-        // notice the else and how even global shortcuts can register locally
-        // this is so if global registration is not possible, we fall back to
-        // local, not leaving user confused about why the shortcut doesnt work
-        if (global && global_shortcuts.getValue() && isGlobalShortcutsSupported())
-            registerGlobal();
-        else
-            // runlater is bugfix, we delay local shortcut registering
-            // probably a javafx bug, as this was not always a problem
-            //
-            // for some unknown reason some shortcuts (F3,F4,
-            // F5,F6,F8,F12 confirmed) not getting registered when app starts, but
-            // other shortcuts register fine, even F9, F10 or F11...
-            //
-            // (1) The order in which shortcuts register doesnt seem to play a
-            // role. (2) The problem is certainly not shortcuts being consumed
-            // by gui. (3) This method always executes on fx thread, threading
-            // is not the problem, you can make sure by uncommenting:
-            // System.out.println("Registering shortcut: " + keys.getDisplayText() + ", is FX thread: " + Platform.isFxApplicationThread());
-            runLater(this::registerInApp);
+        boolean can_be_global = global && global_shortcuts.getValue() && isGlobalShortcutsSupported();
+        if (can_be_global) registerGlobal();
+        else registerLocal();
+
+        // In the past, there was a bug, I'm leaving this here in case of regression:
+        //
+        // runlater is bugfix, we delay local shortcut registering
+        // probably a javafx bug, as this was not always a problem
+        //
+        // for some unknown reason some shortcuts (F3,F4,
+        // F5,F6,F8,F12 confirmed) not getting registered when app starts, but
+        // other shortcuts register fine, even F9, F10 or F11...
+        //
+        // (1) The order in which shortcuts register doesnt seem to play a role.
+        // (2) The problem is certainly not shortcuts being consumed by gui.
+        // (3) This method always executes on fx thread, threading
+        // is not the problem, you can make sure by uncommenting:
+        // System.out.println("Registering shortcut: " + keys.getDisplayText() + ", is FX thread: " + Platform.isFxApplicationThread());
+        //
+        //    runLater(this::registerLocal);
     }
+
     public void unregister() {
         // unregister both local and global to prevent illegal states
         if (isGlobalShortcutsSupported()) unregisterGlobal();
-        unregisterInApp();
+        unregisterLocal();
     }
 
-/*********************** registering helper methods ***************************/
+/*********************** helper methods ***************************/
 
     private void changeKeys(String keys) {
         if(keys.isEmpty()) {
@@ -276,8 +277,8 @@ public final class Action extends Config<Action> implements Runnable {
         }
     }
 
-    private void registerInApp() {
-        if (!APP.initialized) return;
+    private void registerLocal() {
+        if(!isActionListening()) return; // make sure there is no illegal state
 
         KeyCombination k = getKeysForLocalRegistering();
 //        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
@@ -287,9 +288,7 @@ public final class Action extends Config<Action> implements Runnable {
                 w.getScene().getAccelerators().put(k,this);
     }
 
-    private void unregisterInApp() {
-        if (!APP.initialized) return;
-
+    private void unregisterLocal() {
         KeyCombination k = getKeysForLocalRegistering();
         // unregister for each app window separately
 //        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
@@ -298,19 +297,18 @@ public final class Action extends Config<Action> implements Runnable {
                 w.getScene().getAccelerators().remove(k);
     }
 
+    private void registerInScene(Scene s) {
+        if(!isActionListening()) return; // make sure there is no illegal state
+        s.getAccelerators().put(getKeysForLocalRegistering(),this);
+    }
 
-    public void unregisterInScene(Scene s) {
+    private void unregisterInScene(Scene s) {
         if (s==null) return;
         s.getAccelerators().remove(getKeysForLocalRegistering());
     }
 
-    public void registerInScene(Scene s) {
-        if (!APP.initialized || s==null) return;
-        s.getAccelerators().put(getKeysForLocalRegistering(),this);
-    }
-
-
     private void registerGlobal() {
+        if(!isActionListening()) return; // make sure there is no illegal state
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
     }
 
@@ -337,79 +335,66 @@ public final class Action extends Config<Action> implements Runnable {
 
 /********************************** AS CONFIG *********************************/
 
-    /** {@inheritDoc} */
     @Override
     public Action getValue() {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setValue(Action val) {
         set(val.isGlobal(), val.getKeys());
     }
 
-    /** {@inheritDoc} */
     @Override
     public void applyValue(Action val) {
         register();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Class<Action> getType() {
         return Action.class;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Action getDefaultValue() {
         return new Action(name,action,info,group,defaultKeys,defaultGlobal,continuous);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getName() {
         return name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getGuiName() {
         return name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getInfo() {
         return info;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getGroup() {
         return group;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isEditable() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isMinMax() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public double getMin() {
         return Double.NaN;
     }
 
-    /** {@inheritDoc} */
     @Override
     public double getMax() {
         return Double.NaN;
@@ -441,8 +426,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 
 
-
-
+    @Deprecated // internal use only
     private Action(boolean isGlobal, KeyCombination keys) {
         this.name = null;
         this.action = null;
@@ -454,6 +438,8 @@ public final class Action extends Config<Action> implements Runnable {
         this.defaultGlobal = isGlobal;
         this.defaultKeys = getKeys();
     }
+
+    @Deprecated // internal use only
     public static Action fromString(String str) {
         int i = str.lastIndexOf(",");
         if(i==-1)return null;
@@ -463,6 +449,8 @@ public final class Action extends Config<Action> implements Runnable {
         KeyCombination k = s2.isEmpty() ? KeyCombination.NO_MATCH : KeyCodeCombination.valueOf(s2);
         return new Action(g, k);
     }
+
+    @Deprecated // internal use only
     public static Action from(Action a, String str) {
         Action tmp = fromString(str);
         if(tmp!=null) {
@@ -471,6 +459,7 @@ public final class Action extends Config<Action> implements Runnable {
         }
         return a;
     }
+
     @Override
     public String toString() {
         return global + "," + getKeys();
@@ -481,6 +470,43 @@ public final class Action extends Config<Action> implements Runnable {
 
 /*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
 
+    private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
+    private static boolean isRunning = false;
+
+    /**
+     * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
+     * get invoked.
+     * Must not be ran more than once.
+     * Does nothing if not supported.
+     *
+     * @throws IllegalStateException if ran more than once without calling {@link #stopActionListening()}
+     */
+    public static void startActionListening() {
+        if(isRunning) throw new IllegalStateException("Action listening already running");
+        startLocalListening();
+        startGlobalListening();
+        isRunning = true;
+    }
+
+    /**
+     * Deactivates listening process for hotkeys (global and local), causing them to stop working.
+     * Frees resources. This method should should always be ran when {@link #startActionListening()}
+     * was invoked. Not doing so may prevent the application from closing successfully, due to non
+     * daemon thread involved here.
+     */
+    public static void stopActionListening() {
+        stopLocalListening();
+        stopGlobalListening();
+        isRunning = false;
+    }
+
+    /** @return whether the action listenig is running */
+    public static boolean isActionListening() {
+        return isRunning;
+    }
+
+    //***************************** helper methods ******************************//
+
     private static final ListChangeListener<Window> local_listener_registrator = listChangeHandler(
         window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
         window -> {
@@ -490,36 +516,30 @@ public final class Action extends Config<Action> implements Runnable {
         }
     );
 
-    /**
-     * Activates listening process for local hotkeys.
-     */
-    public static void startLocalListening() {
-        if(!isLocalShortcutsSupported()) return;
+    /** Activates listening process for local hotkeys. */
+    private static void startLocalListening() {
+        // Normally we first register for all visible windows.
+        // But its handled when applying the action as a Config.
+        // Stage.getWindows().forEach(window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))));
 
-        // register for visible windows
-        Stage.getWindows().forEach(window ->
-            executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene)))
-        );
         // keep registering when new windows are showed
         Stage.getWindows().addListener(local_listener_registrator);
 
         // Normally, we should also observe Actions and register/unregister on add/remove or we effectively
-        // support only precreated actions. But its handled when applying the action as a Config.
+        // support only precreated actions.
+        // But its handled when applying the action as a Config.
     }
 
     /**
      * Deactivates listening process for local hotkeys.
      */
-    public static void stopLocalListening() {
-        if(!isLocalShortcutsSupported()) return;
-        JIntellitype.getInstance().cleanUp();
-    }
-
-    /**
-     * Returns true iff local shortcuts are supported at running platform.
-     */
-    public static boolean isLocalShortcutsSupported() {
-        return true;
+    private static void stopLocalListening() {
+        Stage.getWindows().removeListener(local_listener_registrator);
+        Stage.getWindows().forEach(window -> {
+            Scene scene = window.getScene();
+            if(scene!=null)
+                Action.getActions().forEach(a -> a.unregisterInScene(scene));
+        });
     }
 
     /**
@@ -528,8 +548,8 @@ public final class Action extends Config<Action> implements Runnable {
      * application initializes.
      * Does nothing if not supported.
      */
-    public static void startGlobalListening() {
-        if(isGlobalShortcutsSupported()) {
+    private static void startGlobalListening() {
+        if(isGlobalShortcutsSupported) {
             JIntellitype.getInstance().addHotKeyListener(global_listener);
             JIntellitype.getInstance().addIntellitypeListener(media_listener);
         }
@@ -542,8 +562,8 @@ public final class Action extends Config<Action> implements Runnable {
      * Not doing so might prevent from the application to close successfully,
      * because bgr listening thread will not close.
      */
-    public static void stopGlobalListening() {
-        if(isGlobalShortcutsSupported()) {
+    private static void stopGlobalListening() {
+        if(isGlobalShortcutsSupported) {
             JIntellitype.getInstance().cleanUp();
         }
     }
@@ -557,6 +577,8 @@ public final class Action extends Config<Action> implements Runnable {
     public static boolean isGlobalShortcutsSupported() {
         return isGlobalShortcutsSupported;
     }
+
+/**************************************************************************************************/
 
     /**
      * Returns modifiable collection of all actions mapped by their name. Actions
@@ -587,9 +609,8 @@ public final class Action extends Config<Action> implements Runnable {
         return actions.get(name.hashCode());
     }
 
-/************************ action helper methods *******************************/
+/************************ helper methods *******************************/
 
-    private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
     private static final MapSet<Integer,Action> actions = gatherActions();
 
     /** @return all actions of this application */
@@ -647,6 +668,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 /************************ shortcut helper methods *****************************/
 
+    // locking helps run continuously executed shortcuts vs. on-press shortcuts
     private static int lock = -1;
     private static final FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
 

@@ -51,8 +51,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.lang.Math.signum;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
@@ -62,7 +60,7 @@ import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.setScaleXY;
 
-public class Icon<I extends Icon> extends Text {
+public class Icon<I extends Icon<?>> extends Text {
 
     // animation builder, & reusable supplier
     private static final Ƒ1<Icon,Anim> A = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
@@ -139,8 +137,12 @@ public class Icon<I extends Icon> extends Text {
 
         // install click animation
         R<Anim> ra = new R<>(); // lazy singleton
-        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
-        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
+//        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
+//        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
+        hoverProperty().addListener((o,ov,nv) -> {
+            if(nv) ra.get(this,A).playOpen();
+            else ra.get(this,A).playClose();
+        });
     }
 
     public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -251,9 +253,18 @@ public class Icon<I extends Icon> extends Text {
         return styleclass("embedded-icon");
     }
 
-    /** Equivalent to {@code setOnMouseClicked(action);}. Returns this icon (fluent API). */
+    /**
+     * Installs on left mouse click behavior that consumes mouse event, using
+     * {@code setOnMouseClicked(action);}.
+     *
+     * @return this icon (fluent API). */
     public final I onClick(EventHandler<MouseEvent> action) {
-        setOnMouseClicked(action);
+        setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY){
+                action.handle(e);
+                e.consume();
+            }
+        });
 
         if(action==null) removeEventHandler(Event.ANY, CONSUMER);
         else addEventHandler(Event.ANY, CONSUMER);

@@ -154,7 +154,7 @@ public final class AreaControls {
 	// build header buttons
 	Icon closeB = new Icon(TIMES, 12, closebTEXT, this::close);
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
-	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
+	Icon detachB = new Icon(CLONE, 12, detachbTEXT, area::detach);
 	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
             APP.actionPane.show(Widget.class, area.getWidget())
         );
@@ -380,10 +380,6 @@ public final class AreaControls {
                 openAndDo(sa, null);
             });
         }
-    }
-
-    void detach() {
-	area.detach();
     }
 
     void close() {

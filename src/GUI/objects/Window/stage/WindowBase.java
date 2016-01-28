@@ -101,6 +101,7 @@ public class WindowBase {
         if(XProp.get()>sxmax) XProp.setValue(sxmax);
         s.setX(XProp.get());
         s.setY(YProp.get());
+        screen = getScreen(getCenterXY()); // update screen
 
         // we need to refresh maximized value so set it to NONE and back
         Maximized m = MaxProp.get();

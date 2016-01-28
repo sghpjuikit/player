@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -20,13 +19,16 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
@@ -66,15 +68,19 @@ import static javafx.geometry.Pos.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.util.Duration.millis;
+import static javafx.util.Duration.seconds;
 import static main.App.APP;
 import static util.Util.getEnumConstants;
 import static util.async.Async.FX;
+import static util.async.Async.sleeping;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.no;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHeaderTopBottom;
 import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layScrollVTextCenter;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setScaleXY;
@@ -110,8 +116,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         getStyleClass().add(ROOT_STYLECLASS);
 
         // icons and descriptions
+        ScrollPane descfullScroll = layScrollVTextCenter(descfull);
         StackPane infoPane = layStack(dataInfo,TOP_LEFT);
-        VBox descPane = layVertically(8, BOTTOM_CENTER, desctitl,descfull);
+        VBox descPane = layVertically(8, BOTTOM_CENTER, desctitl,descfullScroll);
         HBox iconBox = layHorizontally(15,CENTER);
         icons = iconBox.getChildren();
 
@@ -126,9 +133,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         // be too spacy - the icons are important - hence the max size. The icon's max size is simply
         // totalHeight - height_of_others - 2*spacing.
         infoPane.setMinHeight(100);
-        infoPane.maxHeightProperty().bind(Bindings.min(icontent.heightProperty().multiply(0.3), 400));
+        infoPane.maxHeightProperty().bind(min(icontent.heightProperty().multiply(0.3), 400));
         descPane.setMinHeight(100);
-        descPane.maxHeightProperty().bind(Bindings.min(icontent.heightProperty().multiply(0.3), 400));
+        descPane.maxHeightProperty().bind(min(icontent.heightProperty().multiply(0.3), 400));
         iconBox.maxHeightProperty().bind(icontent.heightProperty().multiply(0.4).subtract(2*25));
 
         // content
@@ -153,12 +160,11 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         getContent().maxWidthProperty().bind(widthProperty().multiply(0.65));
         getContent().maxHeightProperty().bind(heightProperty().multiply(0.65));
 
-
         descPane.setMouseTransparent(true); // just in case
         infoPane.setMouseTransparent(true); // same here
         desctitl.setTextAlignment(TextAlignment.CENTER);
         descfull.setTextAlignment(TextAlignment.JUSTIFY);
-        descfull.wrappingWidthProperty().bind(min(400, icontent.widthProperty()));
+        descfullScroll.maxWidthProperty().bind(min(400, icontent.widthProperty()));
     }
 
 /***************************** PRECONFIGURED ACTIONS ******************************/
@@ -203,6 +209,14 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     @Override
     public void show() {
         setData(data);
+
+        // Bugfix. We need to initialize the layout before it is visible or it may visually
+        // jump around as it does on its own.
+        // Cause: unknown, probably the many bindings we use...
+        getContent().layout();
+        getContent().requestLayout();
+        getContent().autosize();
+
         super.show();
     }
 
@@ -346,28 +360,48 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             throw new RuntimeException("Illegal switch case");
         });
 
-        icons.setAll(dactions.stream().sorted(by(a -> a.name)).map(a -> {
-            Icon i = new Icon()
-                  .icon(a.icon)
+        icons.setAll(dactions.stream().sorted(by(a -> a.name)).map(action -> {
+            Icon i = new Icon<Icon<?>>()
+                  .icon(action.icon)
                   .styleclass(ICON_STYLECLASS)
-                  .onClick(() -> {
-                      if (!a.isLong) {
-                          a.run(d);
+                  .onClick(e -> {
+                      if (!action.isLong) {
+                          action.apply(d);
                           doneHide();
                       } else {
                           futAfter(fut(d))
                             .then(() -> actionProgress.setProgress(-1),FX)
-                            .use(a::run)
+                            .use(action) // run action and obtain output
+                            // 1) the actions may invoke some action on FX thread, so we give it some
+                            // by waiting a bit
+                            // 2) very short actions 'pretend' to run for a while
+                            .then(sleeping(millis(100)))
                             .then(() -> actionProgress.setProgress(1),FX)
                             .then(this::doneHide,FX);
                       }
                    });
-                 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(a));
+                 // Description is shown when mouse hovers
+                 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
                  i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
-            return i.withText(a.name);
+                 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
+                 // is not possible. Hence we detect scrolling above mouse and pass it to the
+                 // scrollbar. A bit unintuitive, but works like a charm and description remains
+                 // fully readable.
+                 i.addEventHandler(ScrollEvent.ANY, e -> {
+                     descfull.getParent().getParent().fireEvent(e);
+                     e.consume();
+                 });
+            return i.withText(action.name);
         }).collect(toList()));
-        // animate
-        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*200))
+
+        // Animate - pop icons in parallel, but with increasing delay
+        // We dont want the total animation length be dependent on number of icons (by using
+        // absolute icon delay), rather we calculate the delay so total length remains the same.
+        Duration total = seconds(1);
+        double idelay_abs = total.divide(icons.size()).toMillis(); // use for consistent total length
+        double idelay_rel = 200; // use for consistent frequency
+        double idelay = idelay_abs;
+        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*idelay))
             .play();
     }
 
@@ -392,7 +426,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
 
     /** Action. */
-    public static abstract class ActionData<C,T> {
+    public static abstract class ActionData<C,T> implements Ƒ1<Object,Object>{
         public final String name;
         public final String description;
         public final GlyphIcons icon;
@@ -411,7 +445,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             this.action = action;
         }
 
-        public Object run(Object data) {
+        @Override
+        public Object apply(Object data) {
             boolean isCollection = data instanceof Collection;
             if(groupApply==FOR_ALL) {
                 return action.apply(isCollection ? (T) data : (T) collectionWrap(data));

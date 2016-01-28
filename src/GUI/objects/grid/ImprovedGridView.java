@@ -129,7 +129,7 @@ public class ImprovedGridView<T> extends Control {
         // The default scrolling speed is simply too much. On my system its more than a full
         // vertical 'view' which is very confusing as user loses any indication of scrolling amount.
         // impl: consume scroll events and refire with smaller vertical values
-        double factor = 1d/3d;
+        double factor = 1/3d;
         addEventFilter(ScrollEvent.ANY, e -> {
             if(scrollflag) {
                 Event ne = new ScrollEvent(

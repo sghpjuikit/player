@@ -278,6 +278,20 @@ public class Util {
         return s;
     }
 
+    @Deprecated // the behavior may be unpredictable/change in the future
+    @TODO(purpose = BUG)
+    public static ScrollPane layScrollVTextCenter(Text t) {
+        double reserve = 5;
+        ScrollPane s = new ScrollPane(new StackPane(t));
+                   s.setOnScroll(Event::consume);
+                   s.setPannable(false);
+                   s.setFitToWidth(false);
+                   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+                   s.setHbarPolicy(ScrollBarPolicy.NEVER);
+        t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
+        return s;
+    }
+
     /** Creates most simple background with solid bgr color fill and no radius or insets.*/
     public static Background bgr(Color c) {
         return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
@@ -306,11 +320,7 @@ public class Util {
 /**************************************************************************************************/
 
     public static void setMinPrefMaxSize(Node n, double widthheight) {
-        if(n instanceof Pane) {
-            ((Pane)n).setMinSize(widthheight,widthheight);
-            ((Pane)n).setPrefSize(widthheight,widthheight);
-            ((Pane)n).setMaxSize(widthheight,widthheight);
-        }
+        setMinPrefMaxSize(n, widthheight,widthheight);
     }
 
     public static void setMinPrefMaxSize(Node n, double width, double height) {

@@ -44,6 +44,22 @@ public final class Async {
     public static Executor eBGR = Async.NEW::accept;
     public static Executor eCURR = Async.CURR::accept;
 
+/****************************************** RUNNABLE **********************************************/
+
+    /** Sleeps currently executing thread for specified duration. When interrupted, returns. */
+    public static void sleep(Duration d) {
+        try {
+            Thread.sleep((long)d.toMillis());
+        } catch (InterruptedException ex) {}
+    }
+
+    /** Runnable that invokes {@link #sleep(javafx.util.Duration)}. */
+    public static Runnable sleeping(Duration d) {
+        return () -> sleep(d);
+    }
+
+/****************************************** EXECUTORS *********************************************/
+
     /**
      * Executes the runnable immediately on current thread.
      * Equivalent to
@@ -147,6 +163,11 @@ public final class Async {
     public static void runFX(Runnable r) {
         if(Platform.isFxApplicationThread()) r.run();
         else Platform.runLater(r);
+    }
+
+    public static void runNotFX(Runnable r) {
+        if(Platform.isFxApplicationThread()) runNew(r);
+        else r.run();
     }
 
     /**

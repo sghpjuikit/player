@@ -4,6 +4,8 @@ package main;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -28,6 +31,7 @@ import javafx.stage.Stage;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,6 +221,8 @@ public class App extends Application implements Configurable {
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     public final AppSerializator serializators = new AppSerializator(encoding);
     public final Configuration configuration = new Configuration();
+    /** {@link System#out} provider. Allows multiple parties to listen to it and stop anytime. */
+    public final SystemOutListener systemout = new SystemOutListener();
 
     public Window window;
     public Window windowOwner;
@@ -559,7 +565,7 @@ public class App extends Application implements Configurable {
         }
 
         // start global shortcuts
-        Action.startGlobalListening();
+        Action.startActionListening();
 
         // custom tooltip behavior
         setupCustomTooltipBehavior(1000, 10000, 200);
@@ -687,7 +693,7 @@ public class App extends Application implements Configurable {
                     .forEach(Service::stop);
         }
         DB.stop();
-        Action.stopGlobalListening();
+        Action.stopActionListening();
         appCommunicator.stop();
     }
 
@@ -929,7 +935,34 @@ public class App extends Application implements Configurable {
                 + "If application was not running before, it will not load normally, "
                 + "but will only open the widget.\n"
                 + "but will only open the widget.\n"
-                + "Essentially, this exports the widgets as 'standalone' applications",
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "but will only open the widget.\n"
+                + "Essentially, this exports the widgets as 'standalone' applications.",
                 EXPORT,
                 ignored -> {
                     DirectoryChooser dc = new DirectoryChooser();
@@ -1006,6 +1039,55 @@ public class App extends Application implements Configurable {
     public static void showSysInfo() {
         APP.actionPane.hide();
         APP.infoPane.show();
+    }
+
+
+    /**
+     * Stream that self-inserts as {@link System#out}, but instead of redirecting it, it continues
+     * to provide to it, functioning effectively as a listener. Designed as a distributor to
+     * end-listeners that actually process the data. These can be added or removed anytime and in
+     * any count easily and without interfering with each other or the original stream. In addition,
+     * execute on fx thread.
+     */
+    public class SystemOutListener extends PrintStream {
+        private final SystemOutDuplicateOutputStream clonedstream;
+
+        public SystemOutListener() {
+            this(new SystemOutDuplicateOutputStream());
+            System.setOut(this);
+        }
+
+        private SystemOutListener(SystemOutDuplicateOutputStream cloned) {
+            super(cloned);
+            this.clonedstream = cloned;
+        }
+
+        /**
+         * Add listener that will receive the stream data (always on fx thread).
+         * @return action that removes the listener
+         */
+        public Subscription addListener(IntConsumer listener) {
+            clonedstream.listeners.add(listener);
+            return () -> clonedstream.listeners.remove(listener);
+        }
+
+        public void removeListener(IntConsumer listener) {
+            clonedstream.listeners.remove(listener);
+        }
+
+    }
+
+    /** *  Helper class for {@link SystemOutListener}. */
+    private class SystemOutDuplicateOutputStream extends OutputStream {
+        private final PrintStream sout = System.out;
+        private final List<IntConsumer> listeners = new ArrayList<>();
+
+        @Override
+        public void write(int b) throws IOException {
+            sout.write(b);
+            if(!listeners.isEmpty())
+                runFX(() -> listeners.forEach(l -> l.accept(b)));
+        }
     }
 
 }

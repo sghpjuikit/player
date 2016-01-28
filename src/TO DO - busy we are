@@ -3,6 +3,10 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- wrap Icon in Stackpane to fix:
+   - icon layout (not always in center)
+   - icon effect (shadows) getting in the way of proepr layout
+   - scale down on hover 
 - move COnfiguration & Action to util package
 - widget compilation failure causes recompilation ad infinitum
 - saving multiple playlists is bugged
@@ -71,7 +75,7 @@
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off autoresize columns option
-- cleanups: Parser, Var, Ref, SingleRef, ActionPane.ActionData, SwitchPane ocnfigs, Action local registration
+- cleanups: Parser, Var, Ref, ActionPane.ActionData, SwitchPane ocnfigs, Action
 
 -------------------------------------------------------------------------------- 
 --------------------------------- TESTING  -------------------------------------

@@ -19,11 +19,9 @@ import java.util.stream.Stream;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 
 import Configuration.Config;
@@ -99,7 +97,6 @@ public class DirViewer extends ClassController {
     ExecutorService executor = newSingleDaemonThreadExecutor();
     boolean initialized = false;
     private volatile boolean isResizing = false;
-    private boolean scrollflag = true;
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
@@ -125,24 +122,6 @@ public class DirViewer extends ClassController {
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
 
-        // decrease scrolling speed (consume scroll events and refire with smaller vertical values)
-        grid.addEventFilter(ScrollEvent.ANY, e -> {
-            if(scrollflag) {
-                Event ne = new ScrollEvent(e.getEventType(),e.getX(),e.getY(),e.getScreenX(),e.getScreenY(),e.isShiftDown(),
-                        e.isControlDown(),e.isAltDown(),e.isMetaDown(),e.isDirect(),
-                        e.isInertia(),e.getDeltaX(),e.getDeltaY()/3,e.getTextDeltaX(),e.getTextDeltaY()/3,
-                        e.getTextDeltaXUnits(),e.getTextDeltaX(),e.getTextDeltaYUnits(),e.getTextDeltaY()/3,
-                        e.getTouchCount(),e.getPickResult());
-                e.consume();
-                scrollflag = false;
-                runLater(() -> {
-                    if (e.getTarget() instanceof Node) {
-                        ((Node) e.getTarget()).fireEvent(ne);
-                    }
-                    scrollflag = true;
-                });
-            }
-        });
         grid.setOnKeyPressed(e -> {
             if(e.getCode()==ENTER) {
                 Item si = grid.selectedItem.get();

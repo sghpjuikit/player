@@ -202,10 +202,26 @@ public class Functors {
             return (I t) -> after.apply(apply(t));
         }
 
+        //* Purely to avoid ambiguity of method overloading. Same as andThen(Function). */
         default <V> Ƒ1<I, V> andThen(Ƒ1<? super O, ? extends V> after) {
             noØ(after);
             return (I t) -> after.apply(apply(t));
         }
+
+        /**
+         * Creates function which runs the action aftewards
+         * @returns function identical to this one, but one which runs the runnable after it computes
+         * @param after action that executes right after computation is done and before returning the output
+         */
+        default Ƒ1<I,O> andThen(Runnable after) {
+            noØ(after);
+            return i -> {
+                O o = apply(i);
+                after.run();
+                return o;
+            };
+        }
+
 
         // this change return type from Consumer to Function in a typesafe way!!
         @Override

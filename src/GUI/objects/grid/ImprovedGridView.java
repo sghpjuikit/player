@@ -34,19 +34,23 @@ import java.util.List;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
 import javafx.css.StyleConverter;
 import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
 import javafx.css.StyleableProperty;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Cell;
 import javafx.scene.control.Control;
 import javafx.scene.control.ListCell;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
+
+import static javafx.collections.FXCollections.observableArrayList;
+import static util.async.Async.runLater;
 
 /**
  * A GridView is a virtualised control for displaying {@link #getItems()} in a
@@ -100,46 +104,60 @@ import javafx.util.Callback;
  */
 public class ImprovedGridView<T> extends Control {
 
-    /**************************************************************************
-     *
-     * Constructors
-     *
-     **************************************************************************/
+    private boolean scrollflag = true;
 
-    /**
-     * Creates a default, empty GridView control.
-     */
+    /** Creates a default, empty GridView control. */
     public ImprovedGridView() {
-        this(FXCollections.<T> observableArrayList());
+        this(observableArrayList());
     }
 
-    /**
-     * Creates a default GridView control with the provided items prepopulated.
-     *
-     * @param items The items to display inside the GridView.
-     */
+    /** Convenience consturctor. Creates an empty GridView with specified sizes. */
+    public ImprovedGridView(double cellWidth, double cellHeight, double vgap, double hgap) {
+        this(observableArrayList());
+        setCellWidth(cellWidth);
+        setCellHeight(cellHeight);
+        setHorizontalCellSpacing(hgap);
+        setVerticalCellSpacing(vgap);
+    }
+
+    /** Convenience consturctor. Creates a default GridView with the provided items prepopulated. */
     public ImprovedGridView(ObservableList<T> items) {
         getStyleClass().add(DEFAULT_STYLE_CLASS);
         setItems(items);
+
+        // Decrease scrolling speed
+        // The default scrolling speed is simply too much. On my system its more than a full
+        // vertical 'view' which is very confusing as user loses any indication of scrolling amount.
+        // impl: consume scroll events and refire with smaller vertical values
+        double factor = 1d/3d;
+        addEventFilter(ScrollEvent.ANY, e -> {
+            if(scrollflag) {
+                Event ne = new ScrollEvent(
+                    e.getEventType(),e.getX(),e.getY(),e.getScreenX(),e.getScreenY(),
+                    e.isShiftDown(),e.isControlDown(),e.isAltDown(),e.isMetaDown(),e.isDirect(),
+                    e.isInertia(),e.getDeltaX(),e.getDeltaY()*factor,e.getTextDeltaX(),e.getTextDeltaY()*factor,
+                    e.getTextDeltaXUnits(),e.getTextDeltaX(),e.getTextDeltaYUnits(),e.getTextDeltaY()*factor,
+                    e.getTouchCount(),e.getPickResult()
+                );
+                e.consume();
+                scrollflag = false;
+                runLater(() -> {
+                    if (e.getTarget() instanceof Node) {
+                        ((Node) e.getTarget()).fireEvent(ne);
+                    }
+                    scrollflag = true;
+                });
+            }
+        });
     }
 
-
-
-    /**************************************************************************
-     *
-     * Public API
-     *
-     **************************************************************************/
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override protected ImprovedGridViewSkin<T> createDefaultSkin() {
+    @Override
+    protected ImprovedGridViewSkin<T> createDefaultSkin() {
         return new ImprovedGridViewSkin<>(this);
     }
 
     public ImprovedGridViewSkin<T> getSkinn() {
-        return (ImprovedGridViewSkin)getSkin();
+        return (ImprovedGridViewSkin) getSkin();
     }
 
     /**************************************************************************

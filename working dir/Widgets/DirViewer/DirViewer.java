@@ -95,7 +95,7 @@ public class DirViewer extends ClassController {
         if(dir!=null) files.list.setAll(dir);
     });
     Item item = null;   // item, children of which are displayed
-    ImprovedGridView<Item> grid = new ImprovedGridView<>();
+    ImprovedGridView<Item> grid = new ImprovedGridView<>(CellSize.NORMAL.width,CellSize.NORMAL.height,5,5);
     ExecutorService executor = newSingleDaemonThreadExecutor();
     boolean initialized = false;
     private volatile boolean isResizing = false;
@@ -113,24 +113,18 @@ public class DirViewer extends ClassController {
     public DirViewer() {
         files.onListInvalid(list -> visit(new TopItem()));
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
-        grid.setCellWidth(CellSize.NORMAL.width);
-        grid.setCellHeight(CellSize.NORMAL.height);
-        grid.setVerticalCellSpacing(5);
-        grid.setHorizontalCellSpacing(5);
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
 
         // delay cell loading when content is being resized (increases resize performance)
-        FxTimer resizeTimer = new FxTimer(200, 1, () -> {
-            isResizing = false;
-//            grid.setManaged(true);
-        });
+        double delay = 200; // ms
+        FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
         grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-//        grid.widthProperty().addListener((o,ov,nv) -> grid.setManaged(false));
+
         // decrease scrolling speed (consume scroll events and refire with smaller vertical values)
         grid.addEventFilter(ScrollEvent.ANY, e -> {
             if(scrollflag) {
@@ -217,6 +211,7 @@ public class DirViewer extends ClassController {
     private void resort() {
         grid.getItems().sort(buildSortComparator());
     }
+
     private Comparator<? super Item> buildSortComparator() {
         Sort s = sort.get();
         FileField by = sortBy.get();

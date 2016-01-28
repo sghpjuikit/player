@@ -24,7 +24,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import main.App;
 import main.AppSerializator;
 
-import static util.functional.Util.find;
+import static util.functional.Util.stream;
 
 /**
  * @author uranium
@@ -90,14 +90,14 @@ public final class PlayerState {
      * alternative instance (e.g. to adhere to singleton pattern).
      */
     protected Object readResolve() throws ObjectStreamException {
-        playback = find(playbacks, pb -> pb.getId().equals(playback_id)).orElseGet(PlaybackState::getDefault);
+        playback = stream(playbacks).findAny(pb -> pb.getId().equals(playback_id)).orElseGet(PlaybackState::getDefault);
         PlaylistManager.playlists.addAll(playlists);
         PlaylistManager.active = playlist_id;
         return this;
     }
 
     private void suspendPlayback() {
-        PlaybackState p = find(playbacks, pb -> pb.getId().equals(playback_id)).orElse(null);
+        PlaybackState p = stream(playbacks).findAny(pb -> pb.getId().equals(playback_id)).orElse(null);
         if (p != null)
             p.change(playback);
         else {

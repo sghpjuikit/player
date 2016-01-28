@@ -33,7 +33,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
-import static util.functional.Util.findFirst;
+import static util.functional.Util.findFirstEmptyKey;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -314,7 +314,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     private int addEmptyWindowAt(double x, double y) {
         // get index
-        int i = findFirst(container.getChildren(), 1);
+        int i = findFirstEmptyKey(container.getChildren(), 1);
         // preset viable area
         storeBestRec(i, x,y, null);
         // add empty window at index (into viable area)

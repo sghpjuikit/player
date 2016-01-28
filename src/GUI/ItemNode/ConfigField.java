@@ -2,6 +2,7 @@
 package gui.itemnode;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +49,12 @@ import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_16;
+import static java.nio.charset.StandardCharsets.UTF_16BE;
+import static java.nio.charset.StandardCharsets.UTF_16LE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -247,7 +254,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 /******************************************************************************/
 
-    private static Map<Class,Ƒ1<Config,ConfigField>> m = new HashMap<>();
+    private static Map<Class<?>,Ƒ1<Config,ConfigField>> m = new HashMap<>();
 
     static {
         m.put(boolean.class, BooleanField::new);
@@ -259,6 +266,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         m.put(Font.class, FontField::new);
         m.put(Effect.class, config -> new EffectField(config,Effect.class));
         m.put(Password.class, PasswordField::new);
+        m.put(Charset.class, charset -> new EnumerableField(charset,list(ISO_8859_1,US_ASCII,UTF_8,UTF_16,UTF_16BE,UTF_16LE)));
         m.put(String.class, StringField::new);
         m.put(KeyCode.class, KeyCodeField::new);
         m.put(ObservableList.class, ListField::new);
@@ -578,11 +586,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         ComboBox<Object> n;
 
         private EnumerableField(Config<Object> c) {
+            this(c, c.enumerateValues());
+        }
+
+        private EnumerableField(Config<Object> c, Collection<Object> enumeration) {
             super(c);
-            Collection e = c.enumerateValues();
-            n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));
-            if(e instanceof ObservableList) n.setItems((ObservableList)e);
-            else n.getItems().setAll(e);
+            n = new ImprovedComboBox<>(item -> enumToHuman(c.toS(item)));
+            if(enumeration instanceof ObservableList) n.setItems((ObservableList<Object>)enumeration);
+            else n.getItems().setAll(enumeration);
             n.getItems().sort(by(v->c.toS(v)));
             n.setValue(c.getValue());
             n.valueProperty().addListener((o,ov,nv) -> apply(false));

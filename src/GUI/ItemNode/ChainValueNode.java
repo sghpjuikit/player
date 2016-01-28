@@ -298,7 +298,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     }
     public static class ConfigPane<T> implements ConfiguringFeature{
         private final FlowPane root = new FlowPane(5,5);
-        private final List<ConfigField<T>> configs = new ArrayList();
+        private final List<ConfigField<T>> configs = new ArrayList<>();
         Runnable onChange;
 
         public ConfigPane() {}

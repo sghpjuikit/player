@@ -29,6 +29,7 @@ import Layout.widget.controller.Controller;
 import Layout.widget.feature.Feature;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
+import gui.objects.Window.stage.WindowManager;
 import util.File.FileMonitor;
 import util.File.FileUtil;
 import util.SwitchException;
@@ -62,6 +63,11 @@ public final class WidgetManager {
     public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(factory -> factory.name());
     private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetname);
     private boolean initialized = false;
+    private final WindowManager windowManager; // use App instead, but that requires different App initialization
+
+    public WidgetManager(WindowManager windowManager) {
+        this.windowManager = windowManager;
+    }
 
     public void initialize() {
         if(initialized) throw new IllegalStateException("Already initialized");
@@ -101,7 +107,7 @@ public final class WidgetManager {
         initialized = true;
     }
 
-    private void constructFactory(Class controller_class, File dir) {
+    private void constructFactory(Class<?> controller_class, File dir) {
         if(controller_class==null) {
             LOGGER.warn("Widget class {} is null",controller_class);
             return;
@@ -625,7 +631,7 @@ public final class WidgetManager {
         // If no window is focused no layout
         // should be active as application is either not focused or in an
         // illegal state itself.
-        Window w = Window.getFocused();
+        Window w = windowManager.getFocused();
         // get active layout from focused window
         return w==null ? null : w.getLayout();
     }
@@ -634,7 +640,7 @@ public final class WidgetManager {
      * @return all Layouts in the application.
      */
     public Stream<Layout> getLayouts() {
-        return Window.WINDOWS.stream().map(w->w.getLayout()).filter(ISNTØ);
+        return windowManager.windows.stream().map(w->w.getLayout()).filter(ISNTØ);
     }
 
     /**

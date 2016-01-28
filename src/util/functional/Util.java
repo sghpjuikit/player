@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 
 import javafx.util.Callback;
 
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.StreamEx;
 import util.collections.Tuple2;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ1E;
@@ -141,18 +143,42 @@ public class Util {
      */
     public static final Function<Object,String> toString = Objects::toString;
 
+/******************************************** COLLECTORS ******************************************/
+
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      *  by delimiter ", ". */
     public static final Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
 
+    /** Collector returning the minimum element. */
+    public static <V,C extends Comparable<? super C>> Collector<V, ?, Optional<V>> minBy(Ƒ1<? super V,C> by) {
+        return Collectors.reducing(BinaryOperator.minBy(by(by)));
+    }
+
+    /** Collector returning the maximum element. */
+    public static <V,C extends Comparable<? super C>> Collector<V, ?, Optional<V>> maxBy(Ƒ1<? super V,C> by) {
+        return Collectors.reducing(BinaryOperator.maxBy(by(by)));
+    }
+
+    /** Collector returning the minimum element. */
+    public static <V,C extends Comparable<? super C>> Collector<V, ?, V> minBy(V identity, Ƒ1<? super V,C> by) {
+        return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
+    }
+
+    /** Collector returning the maximum element. */
+    public static <V,C extends Comparable<? super C>> Collector<V, ?, V> maxBy(V identity, Ƒ1<? super V,C> by) {
+        return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
+    }
+
+/******************************************** COMPARATORS *****************************************/
+
     /** Comparator utilizing Comparable.compareTo() of the Comparables. */
-    public static final Comparator<Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
+    public static final Comparator<? super Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
 
     /** String comparator utilizing String.compareTo() of the Strings */
-    public static final Comparator<String> COMPARATOR_STR = (a,b) -> a.compareTo(b);
+    public static final Comparator<? super String> COMPARATOR_STR = COMPARATOR_DEF;
 
     /** String comparator utilizing String.compareToIgnoreCase(). */
-    public static final Comparator<String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
+    public static final Comparator<? super String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
 
     /**
      * Creates comparator comparing E elements by derived {@link Comparable}, for
@@ -454,45 +480,14 @@ public class Util {
         return c.stream().map(toString).collect(toCSList);
     }
 
-    public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
-        for(E i : c) if(filter.test(i)) return i;
-        throw new RuntimeException("Collection does not have the element.");
-    }
-    public static<E> Optional<E> find(Collection<E> c, Predicate<E> filter) {
-        for(E i : c) if(filter.test(i)) return Optional.of(i);
-        return Optional.empty();
-    }
 
-
-
-    public static <C extends Comparable> C min(C a, C b) {
+    public static <C extends Comparable<? super C>> C min(C a, C b) {
         return a.compareTo(b)<0 ? a : b;
     }
 
-    public static <C extends Comparable> C max(C a, C b) {
+    public static <C extends Comparable<? super C>> C max(C a, C b) {
         return a.compareTo(b)>0 ? a : b;
     }
-
-    /** Collector returning the minimum element. */
-    public static <V,C extends Comparable<C>> Collector<V, ?, Optional<V>> minBy(Ƒ1<? super V,C> by) {
-        return Collectors.reducing(BinaryOperator.minBy(by(by)));
-    }
-
-    /** Collector returning the maximum element. */
-    public static <V,C extends Comparable<C>> Collector<V, ?, Optional<V>> maxBy(Ƒ1<? super V,C> by) {
-        return Collectors.reducing(BinaryOperator.maxBy(by(by)));
-    }
-
-    /** Collector returning the minimum element. */
-    public static <V,C extends Comparable<C>> Collector<V, ?, V> minBy(V identity, Ƒ1<? super V,C> by) {
-        return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
-    }
-
-    /** Collector returning the maximum element. */
-    public static <V,C extends Comparable<C>> Collector<V, ?, V> maxBy(V identity, Ƒ1<? super V,C> by) {
-        return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
-    }
-
 
     /**
      * Specialization of {@link #minBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
@@ -501,7 +496,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, Ƒ1<? super V,C> by) {
+    public static <V,C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, Ƒ1<? super V,C> by) {
         return minBy(c, null, by);
     }
 
@@ -515,7 +510,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
+    public static <V,C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
         V minv = null;
         C minc = atMost;
         for(V v : c) {
@@ -527,6 +522,7 @@ public class Util {
         }
         return Optional.ofNullable(minv);
     }
+
     /**
      * Specialization of {@link #maxBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
      * with atLeast parameter null - maximum value.
@@ -534,7 +530,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, Ƒ1<? super V,C> by) {
+    public static <V,C extends Comparable<? super C>> Optional<V> maxBy(Collection<V> c, Ƒ1<? super V,C> by) {
         return maxBy(c, null, by);
     }
 
@@ -548,7 +544,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<? super V,C> by) {
+    public static <V,C extends Comparable<? super C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<? super V,C> by) {
         V maxv = null;
         C maxc = atleast;
         for(V v : c) {
@@ -565,6 +561,7 @@ public class Util {
      * Returns minimal element from the array using given comparator.
      * Returns supplied value if it is the smallest, or array is empty.
      */
+    @SafeVarargs
     public static <V> V min(V min, Comparator<V> cmp, V... c) {
         return min(Stream.of(c), min, cmp);
     }
@@ -581,8 +578,8 @@ public class Util {
      * Returns minimal element from the stream using {@link Comparable#compareTo(java.lang.Object)}.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
-    public static <V extends Comparable<V>> V min(Stream<V> c, V min) {
-        return max(c, min, Comparable::compareTo);
+    public static <V extends Comparable<? super V>> V min(Stream<V> c, V min) {
+        return min(c, min, Comparable::compareTo);
     }
 
     /**
@@ -613,7 +610,7 @@ public class Util {
      * Returns maximal element from the stream using given comparator.
      * Returns supplied value if it is the smallest, or stream is empty.
      */
-    public static <V extends Comparable<V>> V max(Stream<V> c, V max) {
+    public static <V extends Comparable<? super V>> V max(Stream<V> c, V max) {
         return max(c, max, Comparable::compareTo);
     }
 
@@ -623,10 +620,6 @@ public class Util {
      */
     public static <V> V max(Stream<V> c, V max, Comparator<V> cmp) {
         return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
-    }
-
-    public static <V> V get(Collection<V> c, Predicate<V> p) {
-        return c.stream().filter(p).findFirst().get();
     }
 
     /**
@@ -671,7 +664,7 @@ public class Util {
 /************************************ for *************************************/
 
     /** Functional equivalent of a for loop. */
-    public static<I> void forEach(List<I> items, Consumer<I> action) {
+    public static <I> void forEach(Iterable<I> items, Consumer<? super I> action) {
         for(I item : items)
             action.accept(item);
     }
@@ -933,24 +926,40 @@ public class Util {
         return l;
     }
 
-    public static <T> Stream<T> stream(T... t) {
-        return Stream.of(t);
+    public static <T> StreamEx<T> stream(T t) {
+        return StreamEx.of(t);
+    }
+
+    @SafeVarargs
+    public static <T> StreamEx<T> stream(T... t) {
+        return StreamEx.of(t);
     }
 
     public static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
         return Stream.concat(s1,s2);
     }
 
-//    public static <T,A extends T,B extends T> Stream<T> stream(Stream<A> s1, Stream<B> s2) {
-//        return Stream.concat(s1,s2);
-//    }
-
-    public static <T> Stream<T> stream(T o, Stream<T> t) {
-        return Stream.concat(Stream.of(o), t);
+    public static <T> StreamEx<T> stream(T o, Stream<T> t) {
+//        return Stream.concat(Stream.of(o), t);
+        return StreamEx.of(o).append(t);
     }
 
-    public static <T> Stream<T> stream(Collection<T> t) {
-        return t.stream();
+    public static <T> StreamEx<T> stream(T o, Collection<T> t) {
+//        return Stream.concat(Stream.of(o), t);
+        return StreamEx.of(o).append(t);
+    }
+
+    public static <T> StreamEx<T> stream(Collection<T> t) {
+        return StreamEx.of(t);
+//        return t.stream();
+    }
+
+    public static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
+        yes(a.length==b.length);
+        Stream.Builder<R> builder = Stream.builder();
+        for(int i=0; i<a.length; i++)
+            builder.accept(zipper.apply(a[i], b[i]));
+        return builder.build();
     }
 
     /** @return stream equivalent to a for loop */
@@ -973,13 +982,6 @@ public class Util {
         return b.build();
     }
 
-    public static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
-        yes(a.length==b.length);
-        Stream.Builder<R> builder = Stream.builder();
-        for(int i=0; i<a.length; i++)
-            builder.accept(zipper.apply(a[i], b[i]));
-        return builder.build();
-    }
 
 /************************* collection -> collection ***************************/
 
@@ -1061,12 +1063,20 @@ public class Util {
     }
 
 
-
-    public static int findFirst(Map<Integer, ?> m, int from) {
-        return IntStream.iterate(from, i -> i+1).filter(i->m.get(i)==null).findFirst().getAsInt();
+    /**
+     * Finds the smallest integer key greater than or equal to specified value, that the map
+     * doesn't contain mapping for.
+     *
+     * @param map map to search keys in
+     * @param from the first and smallest key to check
+     * @return the smallest nonexistent integer key key
+     */
+    public static int findFirstEmptyKey(Map<Integer, ?> map, int from) {
+        return IntStreamEx.iterate(from, i -> i+1).findFirst(i -> !map.containsKey(i)).getAsInt();
     }
 
-    public static int findFirst(IntPredicate condition, int from) {
+    public static int findFirstInt(int from, IntPredicate condition) {
         return IntStream.iterate(from, i -> i+1).filter(condition).findFirst().getAsInt();
     }
+
 }

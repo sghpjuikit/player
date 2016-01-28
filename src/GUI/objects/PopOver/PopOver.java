@@ -469,7 +469,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
-        showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : APP.windowOwner.getStage());
+        showThis(null, pos.isAppCentric() ? APP.windowManager.getActive().getStage() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
 
         if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center
@@ -937,25 +937,26 @@ public class PopOver<N extends Node> extends PopupControl {
         /** Returns rectangular screen area */
         public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
+            Rectangle2D psb = ps.getBounds();
             if(this==MAIN) return ps.getBounds();
             if(this==APP_WINDOW)
                 // rely on official util (someone hid it..., good work genius)
                 return getScreenForPoint(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
             else {
                 List<Screen> ss = Screen.getScreens();
-                Screen l = min(ss,ps,by(a->a.getBounds().getMinX()));
-                Screen r = max(ss,ps,by(a->a.getBounds().getMaxX()));
+                Rectangle2D left = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinX()).orElse(psb);
+                Rectangle2D right = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxX()).orElse(psb);
                 switch(pos) {
                     case Screen_Bottom_Left:
-                    case Screen_Top_Left: return l.getBounds();
+                    case Screen_Top_Left: return left;
                     case Screen_Bottom_Right:
-                    case Screen_Top_Right: return r.getBounds();
+                    case Screen_Top_Right: return right;
                     case Screen_Center: {
-                        Screen t = min(ss,ps,by(a->a.getBounds().getMinY()));
-                        Screen b = max(ss,ps,by(a->a.getBounds().getMaxY()));
-                        return new Rectangle2D(l.getBounds().getMinX(),t.getBounds().getMinY(),
-                                               r.getBounds().getMaxX()-l.getBounds().getMinX(),
-                                               b.getBounds().getMaxY()-t.getBounds().getMinY());
+                        Rectangle2D top = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinY()).orElse(psb);
+                        Rectangle2D bottom = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxY()).orElse(psb);
+                        return new Rectangle2D(left.getMinX(),top.getMinY(),
+                                               right.getMaxX()-left.getMinX(),
+                                               bottom.getMaxY()-top.getMinY());
                     }
                     default: return null;
                 }

@@ -1,6 +1,7 @@
 package util.functional;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
@@ -41,6 +42,7 @@ import util.units.RangeYear;
 
 import static java.lang.Integer.min;
 import static java.lang.Math.max;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toCollection;
@@ -563,17 +565,18 @@ public class Functors {
         add("To upper case",        String.class,String.class, String::toUpperCase);
         add("To lower case",        String.class,String.class, String::toLowerCase);
         add("Plural",               String.class,String.class, English::plural);
-        add("Replace 1st (regex)",  String.class,String.class, (t,r,n) -> r.matcher(t).replaceFirst(n), Pattern.class,String.class ,Pattern.compile(""),"");
-        add("Remove first (regex)", String.class,String.class, (t,r) -> r.matcher(t).replaceFirst(""), Pattern.class, Pattern.compile(""));
-        add("Replace all",          String.class,String.class, (t,o,n) -> t.replace(o,n), String.class,String.class, "","");
-        add("Replace all (regex)",  String.class,String.class, (t,r,n) -> r.matcher(t).replaceAll(n), Pattern.class,String.class, Pattern.compile(""),"");
-        add("Remove all",           String.class,String.class, (t,r) -> t.replace(r,""), String.class, "");
-        add("Remove all (regex)",   String.class,String.class, (t,r) -> r.matcher(t).replaceAll(""), Pattern.class, Pattern.compile(""));
-        add("Text",         String.class,String.class, (t,r) -> r, String.class,"");
-        add("Add text",     String.class,String.class, (t,a,d) -> d==FROM_START ? a+t : t+a, String.class, StringDirection.class,"",FROM_START);
-        add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(clip(0,i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
-        add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(clip(0,t.length()-i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
-        add("Trim",         String.class,String.class, (t) -> t.trim());
+        add("Replace 1st (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceFirst(n), Pattern.class,String.class ,Pattern.compile(""),"");
+        add("Remove first (regex)", String.class,String.class, (s,r) -> r.matcher(s).replaceFirst(""), Pattern.class, Pattern.compile(""));
+        add("Replace all",          String.class,String.class, (s,o,n) -> s.replace(o,n), String.class,String.class, "","");
+        add("Replace all (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceAll(n), Pattern.class,String.class, Pattern.compile(""),"");
+        add("Remove all",           String.class,String.class, (s,r) -> s.replace(r,""), String.class, "");
+        add("Remove all (regex)",   String.class,String.class, (s,r) -> r.matcher(s).replaceAll(""), Pattern.class, Pattern.compile(""));
+        add("Text",         String.class,String.class, (s,r) -> r, String.class,"");
+        add("Text",         String.class,String.class, (s,c1,c2) -> new String(s.getBytes(c1),c2), Charset.class,Charset.class,UTF_8,UTF_8);
+        add("Add text",     String.class,String.class, (s,a,d) -> d==FROM_START ? a+s : s+a, String.class, StringDirection.class,"",FROM_START);
+        add("Remove chars", String.class,String.class, (s,i,d) -> d==FROM_START ? s.substring(clip(0,i,s.length()-1)) : s.substring(0, max(s.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
+        add("Retain chars", String.class,String.class, (s,i,d) -> d==FROM_START ? s.substring(0,min(i,s.length()-1)) : s.substring(clip(0,s.length()-i,s.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
+        add("Trim",         String.class,String.class, String::trim);
         add("Split",        String.class,SplitData.class, (t,splitter) ->
                 splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(toCollection(SplitData::new))
             , StringSplitParser.class,new StringSplitParser("%all%"));

@@ -111,7 +111,8 @@ public final class TableColumnInfo {
             this.visible = visible;
             this.width = width;
         }
-        public ColumnInfo(int position, TableColumn c) {
+
+        public ColumnInfo(int position, TableColumn<?,?> c) {
              this(c.getText(), position, c.isVisible(), c.getWidth());
         }
 
@@ -132,7 +133,7 @@ public final class TableColumnInfo {
     }
 
     public static final class ColumnSortInfo {
-        public final List<Tuple2<String,SortType>> sorts = new ArrayList();
+        public final List<Tuple2<String,SortType>> sorts = new ArrayList<>();
 
         public ColumnSortInfo() {}
 
@@ -146,20 +147,20 @@ public final class TableColumnInfo {
         }
 
         public void toTable(TableView<?> table) {
-            List<TableColumn> so = new ArrayList();
+            List<TableColumn<?,?>> so = new ArrayList<>();
             table.getSortOrder().clear();
-            sorts.forEach(t -> {
-                find(table.getColumns(), c -> t._1.equals(c.getText())).ifPresent(c->{
+            sorts.forEach(t ->
+                stream(table.getColumns()).findAny(c -> t._1.equals(c.getText())).ifPresent(c -> {
                     c.setSortType(t._2);
                     so.add(c);
-                });
-            });
+                })
+           );
             table.getSortOrder().setAll((List)so);
         }
 
         @Override
         public String toString() {
-            return toS(sorts, t->t._1 + S3 + t._2, S2);
+            return toS(sorts, t -> t._1 + S3 + t._2, S2);
         }
 
         public static ColumnSortInfo fromString(String s) {

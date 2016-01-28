@@ -373,24 +373,17 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         return root;
     }
 
-/******************************************************************************/
-
     @Override
     public void show() {
         if(ui!=null) ui.show();
-        getChildren().values().stream()
-                     .filter(AltState.class::isInstance)
-                     .map(AltState.class::cast)
-                     .forEach(AltState::show);
+        stream(getChildren().values()).select(AltState.class).forEach(AltState::show);
 
     }
+
     @Override
     public void hide() {
         if(ui!=null) ui.hide();
-        getChildren().values().stream()
-                     .filter(AltState.class::isInstance)
-                     .map(AltState.class::cast)
-                     .forEach(AltState::hide);
+        stream(getChildren().values()).select(AltState.class).forEach(AltState::hide);
     }
 
 }

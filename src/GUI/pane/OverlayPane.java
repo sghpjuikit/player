@@ -17,7 +17,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import Configuration.IsConfig;
-import gui.objects.Window.stage.Window;
 import util.access.V;
 import util.animation.Anim;
 import util.reactive.RunnableSet;
@@ -25,6 +24,7 @@ import util.reactive.RunnableSet;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
+import static main.App.APP;
 import static util.graphics.Util.createFMNTStage;
 import static util.graphics.Util.screenCaptureAndDo;
 import static util.graphics.Util.setAnchors;
@@ -144,7 +144,7 @@ public class OverlayPane extends StackPane {
         private void animStart(OverlayPane op) {
             if(this==WINDOW) {
                 // display overlay pane
-                AnchorPane root = Window.getActive().root;
+                AnchorPane root = APP.windowManager.getActive().root;
                 if(!root.getChildren().contains(op)) {
                     root.getChildren().add(op);
                     setAnchors(op,0d);
@@ -166,8 +166,8 @@ public class OverlayPane extends StackPane {
                 // - decrease blur iteration count (we dont need super blur quality here)
                 // - decrease blur amount
                 //
-                op.opacityNode = Window.getActive().content;
-                op.blurbackNode = Window.getActive().subroot;
+                op.opacityNode = APP.windowManager.getActive().content;
+                op.blurbackNode = APP.windowManager.getActive().subroot;
                 if(!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
                 op.blurbackNode.setEffect(op.blurback);
                 op.blurfrontNode.setEffect(op.blurfront);
@@ -176,7 +176,7 @@ public class OverlayPane extends StackPane {
                 op.animation.playOpenDo(null);
                 op.onShown.run();
             } else {
-                Screen screen = Window.getActive().getScreen();
+                Screen screen = APP.windowManager.getActive().getScreen();
                 screenCaptureAndDo(screen, image -> {
                     Pane bgr = new Pane();
                          bgr.getStyleClass().add("bgr-image");   // replicate app window bgr for style & consistency

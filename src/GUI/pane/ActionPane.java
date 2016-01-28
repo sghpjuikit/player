@@ -122,8 +122,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         // VBox or stackpane as we need the icons to be always in the center.
         // Basically we want the individual components to resize individually, but still respect
         // each other's presence (so to not cover each other).
-        // We dont want any component to disappear (hence the min height) but the text shouldnt
-        // be too big - the icons are important - hence the max size. The icon's max size is simply
+        // We dont want any component to be very small (hence the min height) but the text shouldnt
+        // be too spacy - the icons are important - hence the max size. The icon's max size is simply
         // totalHeight - height_of_others - 2*spacing.
         infoPane.setMinHeight(100);
         infoPane.maxHeightProperty().bind(Bindings.min(icontent.heightProperty().multiply(0.3), 400));

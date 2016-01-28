@@ -15,9 +15,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-import Configuration.AppliesConfig;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
 import Layout.AltState;
 import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
@@ -28,7 +25,7 @@ import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
 import gui.GUI;
-import gui.objects.Window.stage.Window;
+import util.access.V;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -43,7 +40,6 @@ import static main.App.APP;
 import static util.Util.clip;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.functional.Util.ISNTØ;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -59,56 +55,7 @@ import static util.reactive.Util.maintain;
  *
  * @author plutonium_
  */
-@IsConfigurable("Tabs")
 public class SwitchPane implements ContainerNode {
-
-    @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
-            + " Tabs are always aligned. Seamless mode alows any tab position.")
-    public static boolean align_tabs = false;
-    @IsConfig(name = "Switch drag distance (D)", info = "Required length of drag at"
-            + " which tab switch animation gets activated. Tab switch activates if"
-            + " at least one condition is fulfilled min distance or min fraction.")
-    private static double min_tab_switch_dist = 150;
-    @IsConfig(name = "Switch drag distance coeficient (D)", info = "Defines distance from edge in "
-            + "percent of tab's width in which the tab switches.", min = 0, max = 1)
-    private static double min_tab_switch_coeficient = 0.15;
-    @IsConfig(name = "Drag inertia (S)", info = "Inertia of the tab switch animation. "
-            + "Defines distance the dragging will travel after input has been stopped. Only when ", min = 0, max = 10)
-    private static double DRAG_INERTIA = 1.5;
-    @IsConfig(name = "Snap tabs (S)", info = "Align tabs when close to edge.")
-    public static boolean snap_tabs = true;
-    @IsConfig(name = "Snap distance coeficient (S)", info = "Defines distance from edge in "
-            + "percent of tab's width in which the tab autoalignes. Setting to maximum "
-            + "(0.5) has effect of always snapping the tabs, while setting to minimum"
-            + " (0) has effect of disabling tab snapping.", min = 0, max = 0.5)
-    private static double SNAP_TRESHOLD_COEFICIENT = 0.05;
-    @IsConfig(name = "Snap distance (S)", info = "Required distance from edge at"
-            + " which tabs align. Tab snap activates if"
-            + " at least one condition is fulfilled min distance or min fraction.")
-    public static double SNAP_TRESHOLD_DIST = 25;
-    @IsConfig(editable = false, min=0.2, max=1)
-    private static double zoomScaleFactor = 0.7;
-
-    @AppliesConfig( "align_tabs")
-    private static void applyAlignTabs() {
-        Window.WINDOWS.stream()
-              .map(Window::getSwitchPane).filter(ISNTØ)
-              .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
-    }
-
-    @AppliesConfig( "snap_tabs")
-    private static void applySnapTabs() {
-        Window.WINDOWS.stream()
-              .map(Window::getSwitchPane).filter(ISNTØ)
-              .forEach(sp -> sp.snapTabs());
-    }
-
-    public static void applyGlobalSettings(SwitchPane p) {
-        p.setAlwaysAlignTabs(align_tabs);
-        p.snapTabs();
-    }
-
-/******************************************************************************/
 
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
@@ -123,10 +70,14 @@ public class SwitchPane implements ContainerNode {
     };
     public final IOLayer widget_io = new IOLayer(this);
 
-    // use when outside of container
-    public SwitchPane() {
-        this(null);
-    }
+    public final V<Boolean> align = new V<>(true, v -> { if(v) alignTabs(); });
+    public final V<Boolean> snap = new V<>(true, v -> { if(v) snapTabs(); });
+    public final V<Double> switch_dist_abs = new V<>(150.0);
+    public final V<Double> switch_dist_rel = new V<>(0.15); // 0 - 1
+    public final V<Double> drag_inertia = new V<>(1.5);
+    public final V<Double> snap_treshold_rel = new V<>(0.05); // 0 - 0.5
+    public final V<Double> snap_treshold_abs = new V<>(25.0);
+    public final V<Double> zoomScaleFactor = new V<>(0.7); // 0.2 - 1
 
     public SwitchPane(SwitchContainer container) {
         this.container = container;
@@ -312,7 +263,7 @@ public class SwitchPane implements ContainerNode {
         Async.run(100, () -> uiDragActive=false);
         measurePulser.stop();
         // handle drag end
-        if(always_align) {
+        if(align.get()) {
             uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
                 @Override protected double baseCurve(double x) {
                     return Math.pow(2-2/(x+1), 0.4);
@@ -324,7 +275,7 @@ public class SwitchPane implements ContainerNode {
             double x = ui.getTranslateX();
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
-            uiDrag.setToX(x + traveled * DRAG_INERTIA);
+            uiDrag.setToX(x + traveled * drag_inertia.get());
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
             // snap at the end of animation
             uiDrag.setOnFinished( a -> {
@@ -436,17 +387,15 @@ public class SwitchPane implements ContainerNode {
      */
     public int snapTabs() {
         int i = currTab();
-        if(!snap_tabs) return i;
+        if(!snap.get()) return i;
 
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
         double dist = Math.abs(is-should_be);
-        double treshold1 = ui.getWidth()*SNAP_TRESHOLD_COEFICIENT;
-        double treshold2 = SNAP_TRESHOLD_DIST;
-        if(dist < Math.max(treshold1, treshold2))
-            return alignTabs();
-        else
-            return i;
+        double treshold1 = ui.getWidth()*snap_treshold_rel.get();
+        double treshold2 = snap_treshold_abs.get();
+
+        return dist < Math.max(treshold1, treshold2) ? alignTabs() : i;
     }
 
     /**
@@ -481,8 +430,8 @@ public class SwitchPane implements ContainerNode {
         double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
         double dAbs = Math.abs(dist);
-        double treshold1 = ui.getWidth()*min_tab_switch_coeficient;
-        double treshold2 = min_tab_switch_dist;
+        double treshold1 = ui.getWidth()*switch_dist_rel.get();
+        double treshold2 = switch_dist_abs.get();
         if (dAbs > Math.min(treshold1, treshold2))
             byT = (int) -Math.signum(dist);
 
@@ -498,16 +447,6 @@ public class SwitchPane implements ContainerNode {
         return ui.translateXProperty();
     }
 
-
-/********************************** ALIGNING **********************************/
-
-    private boolean always_align = true;
-
-    public void setAlwaysAlignTabs(boolean val) {
-        always_align = val;
-        if(val) alignTabs();
-    }
-
 /*********************************** ZOOMING **********************************/
 
     private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
@@ -517,7 +456,7 @@ public class SwitchPane implements ContainerNode {
     public void zoom(boolean v) {
         z.setInterpolator(new CircularInterpolator(EASE_OUT));
         zt.setInterpolator(new CircularInterpolator(EASE_OUT));
-        zoomNoAcc(v ? zoomScaleFactor : 1);
+        zoomNoAcc(v ? zoomScaleFactor.get() : 1);
     }
 
     /** @return true if zoomed to value <0,1), false when zoomed to 1*/
@@ -536,10 +475,13 @@ public class SwitchPane implements ContainerNode {
         return zoom.scaleXProperty();
     }
 
+    // this is called in animation with 0-1 as parameter
     private void zoom(double d) {
         if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // remember amount
-        if (d!=1) zoomScaleFactor = d;
+        // Design flaw. If we want to remember the value, use another property. This overwrites
+        // the 'proper' value by setting zoom to 1 - effectively disallowing zooming more than once
+        // if (d!=1) zoomScaleFactor.set(d);
         // play
         z.stop();
         z.setDuration(gui.GUI.duration_LM);

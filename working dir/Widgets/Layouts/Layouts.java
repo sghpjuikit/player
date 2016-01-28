@@ -16,7 +16,6 @@ import Layout.widget.Widget;
 import Layout.widget.Widget.Group;
 import Layout.widget.controller.ClassController;
 import gui.objects.Text;
-import gui.objects.Window.stage.Window;
 import gui.objects.image.Thumbnail;
 import util.File.Environment;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -96,7 +95,7 @@ public final class Layouts extends ClassController {
     public void loadSelectedLayout() {
         if (!isSelected()) return;
 
-        SwitchContainer c = Window.getActive().getTopContainer();
+        SwitchContainer c = APP.windowManager.getActive().getTopContainer();
         Component toLoad = getSelectedLayout().getChild();
         int i = c.getEmptySpot(); // this can normally return null, but not SwitchContainer
         c.addChild(i, toLoad);

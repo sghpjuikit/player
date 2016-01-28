@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -25,11 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.glass.ui.Robot;
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 
 import AudioPlayer.playback.PLAYBACK;
@@ -40,7 +36,6 @@ import Layout.container.layout.Layout;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.container.switchcontainer.SwitchPane;
 import action.Action;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
@@ -50,9 +45,7 @@ import main.App;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
-import util.dev.TODO;
 import util.graphics.drag.DragUtil;
-import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
@@ -62,6 +55,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static gui.objects.Window.Resize.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Math.*;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -69,15 +63,10 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
-import static javafx.stage.StageStyle.UTILITY;
-import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static main.App.APP;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
-import static util.dev.TODO.Purpose.BUG;
-import static util.dev.Util.no;
 import static util.dev.Util.yes;
-import static util.functional.Util.find;
 import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
 import static util.functional.Util.list;
@@ -107,7 +96,8 @@ import static util.reactive.Util.maintain;
 public class Window extends WindowBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
-    public static final List<Window> WINDOWS = new ArrayList<>();
+    static final ObservableList<Window> WINDOWS = observableArrayList(); // accessed from WindowManager.class
+
     /** Psududoclass active when this window is focused. Applied on root as '.window'. */
     public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
     /** Psududoclass active when this window is resized. Applied on root as '.window'. */
@@ -116,34 +106,6 @@ public class Window extends WindowBase {
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
-
-    /**
-     Get focused window. There is zero or one focused window in the application
-     at any given time.
-     <p>
-     @see #getActive()
-     @return focused window or null if none focused.
-     */
-    public static Window getFocused() {
-	return find(WINDOWS, w -> w.focused.get()).orElse(null);
-    }
-
-    /**
-     Same as {@link #getFocused()} but when none focused returns main window
-     instead of null.
-     <p>
-     Both methods are equivalent except for when the application itself has no
-     focus - which is when no window has focus.
-     <p>
-     Use when null must absolutely be avoided and the main window substitute
-     for focused window will not break expected behavior and when this method
-     can get called when app has no focus (such as through global shortcut).
-     <p>
-     @return focused window or main window if none. Never null.
-     */
-    public static Window getActive() {
-	return find(WINDOWS, w -> w.focused.get()).orElse(APP.window);
-    }
 
     private static double mouse_speed = 0;
     public static double mouse_x = 0;
@@ -162,53 +124,7 @@ public class Window extends WindowBase {
         mouse_pulse.start();
     }
 
-    /**
-     @return new window or null if error occurs during initialization.
-     */
-    public static Window create() {
-        Stage owner = new Stage(UTILITY); // utility means no taskbar
-              owner.setWidth(0);
-              owner.setHeight(0);
-              owner.setX(0);
-              owner.setY(0);
-              owner.setOpacity(0);
-              owner.show();
-        return create(owner,UNDECORATED);
-    }
-
-    public static Window create(Stage owner, StageStyle style) {
-        Window w = new Window(owner,style);
-        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
-//        if(WINDOWS.isEmpty()) w.setAsMain();
-        if(APP.window==null) w.setAsMain();
-        WINDOWS.add(w); // add to list of active windows
-        w.initialize();
-
-        // bind properties
-        w.disposables.add(maintain(APP.windowManager.windowOpacity, w.getStage().opacityProperty()));
-        w.disposables.add(maintain(APP.windowManager.window_bgr_effect, w.backimage.effectProperty()));
-        w.disposables.add(maintain(APP.windowManager.window_borderless, w::setBorderless));
-        w.disposables.add(maintain(APP.windowManager.window_headerless, v -> !v, w::setHeaderVisible));
-
-        return w;
-    }
-
-    public static Window createWindowOwner() {
-	Window w = new Window();
-               w.getStage().initStyle(UTILITY);
-               w.s.setOpacity(0);
-               w.s.setScene(new Scene(new Region()));
-               ((Region)w.s.getScene().getRoot()).setBackground(null);
-               w.s.getScene().setFill(null);
-               w.s.setTitle(APP.name);
-               w.s.getIcons().add(APP.getIcon());
-               w.setSize(20, 20);
-	return w;
-    }
-
-    /**
-     ***************************************************************************
-     */
+/**************************************************************************************************/
 
     boolean main = false;
 
@@ -219,16 +135,16 @@ public class Window extends WindowBase {
     @FXML public StackPane back, backimage;
     @FXML public AnchorPane bordersVisual;
     @FXML public AnchorPane front, content;
-    @FXML private HBox rightHeaderBox;
+    @FXML HBox rightHeaderBox;
 
     /** Disposables ran when window closes. For example you may put here listeners. */
     public final List<Subscription> disposables = new ArrayList<>();
 
-    private Window() {
+    Window() {
         this(null,UNDECORATED);
     }
 
-    private Window(Stage owner, StageStyle style) {
+    Window(Stage owner, StageStyle style) {
 	super(owner,style);
         s.getProperties().put("window", this);
     }
@@ -236,7 +152,7 @@ public class Window extends WindowBase {
     /**
      * Initializes the controller class.
      */
-    private void initialize() {
+    void initialize() {
 	getStage().setScene(new Scene(root));
 	getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
 
@@ -283,10 +199,6 @@ public class Window extends WindowBase {
         //
         // note the poor impl. only borders must be Regions!
         maintain(resizable, v->!v, v -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(v)));
-
-	// set local shortcuts
-        Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
-              .forEach(a -> a.registerInScene(s.getScene()));
 
 	// update context manager
 	root.addEventFilter(MOUSE_PRESSED, e -> UiContext.setPressedXY(e.getSceneX(),e.getSceneY()));
@@ -411,32 +323,7 @@ public class Window extends WindowBase {
 	rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);
     }
 
-    private void setAsMain() {
-        no(APP.window!=null, "Only one window can be main");
 
-	APP.window = this;
-	main = true;
-
-        setIcon(null);
-        setTitle(null);
-
-        // move the window owner to screen of this window, which
-        // moves taskbar icon to respective screen's taskbar
-        moving.addListener((o,ov,nv) -> {
-            if(ov && !nv)
-                APP.taskbarIcon.setScreen(getScreen(getCenterXY()));
-        });
-        add1timeEventHandler(s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(getScreen(getCenterXY())));
-//        s.iconifiedProperty().addListener((o,ov,nv) -> {
-//            if(nv) APP.taskbarIcon.iconify(nv);
-//        });
-
-        Icon mainw_i = new Icon(FontAwesomeIcon.CIRCLE,5)
-                .tooltip("Main window\n\nThis window is main app window\nClosing it will "
-                       + "close application.");
-        rightHeaderBox.getChildren().add(0, new Label(""));
-        rightHeaderBox.getChildren().add(0,mainw_i);
-    }
 
 /******************************* CONTENT **************************************/
 
@@ -863,83 +750,6 @@ public class Window extends WindowBase {
 	} catch (StreamException e) {
             LOGGER.error("Unable to load window from the file {}",e);
 	    return null;
-	}
-    }
-
-    public static final class WindowConverter implements Converter {
-
-	@Override
-	public boolean canConvert(Class type) {
-	    return Window.class.equals(type);
-	}
-
-        @TODO(purpose = BUG, note = "fullscreen deserialization bug in WindowBase")
-	@Override
-	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
-	    Window w = (Window) value;
-	    writer.startNode("W");
-	    writer.setValue(w.WProp.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("H");
-	    writer.setValue(w.HProp.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("X");
-	    writer.setValue(w.XProp.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("Y");
-	    writer.setValue(w.YProp.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("minimized");
-	    writer.setValue(w.s.iconifiedProperty().getValue().toString());
-	    writer.endNode();
-	    writer.startNode("maximized");
-	    writer.setValue(w.MaxProp.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("fullscreen");
-//	    writer.setValue(w.FullProp.getValue().toString());
-	    writer.setValue(Boolean.FALSE.toString());
-	    writer.endNode();
-	    writer.startNode("resizable");
-	    writer.setValue(w.resizable.getValue().toString());
-	    writer.endNode();
-	    writer.startNode("alwaysOnTop");
-	    writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
-	    writer.endNode();
-	}
-
-	@Override
-	public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-	    Window w = Window.create();
-	    if (w == null) return null;
-
-	    reader.moveDown();
-	    w.WProp.set(Double.parseDouble(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.HProp.set(Double.parseDouble(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.XProp.set(Double.parseDouble(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.YProp.set(Double.parseDouble(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.s.setIconified(Boolean.parseBoolean(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.MaxProp.set(Maximized.valueOf(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.FullProp.set(Boolean.parseBoolean(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.resizable.set(Boolean.parseBoolean(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));
-	    reader.moveUp();
-	    return w;
 	}
     }
 

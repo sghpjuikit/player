@@ -26,6 +26,7 @@ import main.App;
 import util.collections.map.PropertyMap;
 
 import static Layout.widget.Widget.LoadType.AUTOMATIC;
+import static main.App.APP;
 import static util.dev.Util.log;
 
 /**
@@ -126,7 +127,7 @@ public abstract class Component {
             javafx.stage.Window stage = scene==null ? null : scene.getWindow();
             w = stage==null ? null : (Window)stage.getProperties().get("window");
         }
-        return w==null ? Window.getActive() : w;
+        return w==null ? APP.windowManager.getActive() : w;
     }
 
 //    /** @return whether this component is currently open*/

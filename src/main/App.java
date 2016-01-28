@@ -19,7 +19,6 @@ import javafx.application.Platform;
 import javafx.collections.ObservableListBase;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
@@ -86,12 +85,13 @@ import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
+import gui.objects.grid.ImprovedGridCell;
+import gui.objects.grid.ImprovedGridView;
 import gui.objects.icon.IconInfo;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
-import gui.pane.CellPane;
 import gui.pane.InfoPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
@@ -133,9 +133,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMAT
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
-import static gui.objects.Window.stage.Window.WINDOWS;
-import static java.lang.Math.sqrt;
-import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -147,7 +144,6 @@ import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.functional.Util.forEachAfter;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
@@ -242,7 +238,7 @@ public class App extends Application implements Configurable {
     public boolean normalLoad = true;
     public boolean initialized = false;
     public final WindowManager windowManager = new WindowManager();
-    public final WidgetManager widgetManager = new WidgetManager();
+    public final WidgetManager widgetManager = new WidgetManager(windowManager);
     public final ServiceManager services = new ServiceManager();
     public final PluginMap plugins = new PluginMap();
 
@@ -353,7 +349,7 @@ public class App extends Application implements Configurable {
         x.registerConverter(new DoublePropertyConverter(xm));
         x.registerConverter(new LongPropertyConverter(xm));
         x.registerConverter(new IntegerPropertyConverter(xm));
-        x.registerConverter(new Window.WindowConverter());
+        x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
         // x.registerConverter(new ObservableListConverter(xm)); // interferes with Playlist.class
@@ -593,20 +589,20 @@ public class App extends Application implements Configurable {
             taskbarIcon.setTitle(name);
             taskbarIcon.setIcon(getIcon());
             taskbarIcon.setOnClose(this::close);
-            taskbarIcon.setOnMinimize(v -> WINDOWS.forEach(w -> w.setMinimized(v)));
+            taskbarIcon.setOnMinimize(v -> windowManager.windows.forEach(w -> w.setMinimized(v)));
             taskbarIcon.setOnAltTab(() -> {
-                boolean apphasfocus = Window.getFocused()!=null;
+                boolean apphasfocus = windowManager.getFocused()!=null;
                 if(!apphasfocus) {
-                    boolean allminimized = WINDOWS.stream().allMatch(Window::isMinimized);
+                    boolean allminimized = windowManager.windows.stream().allMatch(Window::isMinimized);
                     if(allminimized)
-                        WINDOWS.stream().forEach(w -> w.setMinimized(false));
+                        windowManager.windows.stream().forEach(w -> w.setMinimized(false));
                     else
-                        WINDOWS.stream().filter(w -> w.isShowing()).forEach(Window::focus);
+                        windowManager.windows.stream().filter(w -> w.isShowing()).forEach(Window::focus);
                 }
             });
 
             // create window owner - all 'top' windows are owned by it
-            windowOwner = Window.createWindowOwner();
+            windowOwner = windowManager.createWindowOwner();
             windowOwner.show();
 
             // discover plugins
@@ -757,7 +753,7 @@ public class App extends Application implements Configurable {
                 // User directory. Unfortunately nothing forbids user (or more likely
                 // developer) to copypaste the app and run it from elsewhere). We want to
                 // defend against this as well.
-                 String udir = vm.getSystemProperties().getProperty("user.dir");
+                String udir = vm.getSystemProperties().getProperty("user.dir");
                 if(udir!=null && ud.equals(udir)) i=1;
 
                 // attempt 2:
@@ -870,39 +866,41 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-        StackPane root = new StackPane();
-                  root.setPrefSize(600, 720);
-        List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
+        ImprovedGridView<GlyphIcons> grid = new ImprovedGridView<>(70,80,5,5);
+                 grid.setCellFactory(view -> new ImprovedGridCell<GlyphIcons>() {
+                     Anim a;
+                     @Override
+                     protected void updateItem(GlyphIcons icon, boolean empty) {
+                         super.updateItem(icon, empty);
+                         IconInfo graphics;
+                         if(getGraphic() instanceof IconInfo) graphics = (IconInfo) getGraphic();
+                         else {
+                             graphics = new IconInfo(null,55);
+                             setGraphic(graphics);
+                             a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
+                         }
+                         graphics.setGlyph(empty ? null : icon);
+
+                         // really cool when scrolling with scrollbar
+                         // but when using mouse wheel it is very ugyly & distracting
+                         // a.play();
+                     }
+                 });
+        StackPane root = new StackPane(grid);
+                  root.setPrefSize(600, 720); // determines popup size
+        List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
                                       MaterialDesignIcon.class,MaterialIcon.class)
                 .map((Class<?> c) -> {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {
-                            if(b.getUserData()!=null) {
-                                root.getChildren().setAll((ScrollPane)b.getUserData());
-                            } else {
-                                CellPane cp = new CellPane(70,80,5);
-                                ScrollPane sp = cp.scrollable();
-                                b.setUserData(sp);
-                                runFX(() -> root.getChildren().setAll(sp));
-                                Fut.fut()
-                                   .then(() ->
-                                       forEachAfter(2, map(getEnumConstants(c),i -> new IconInfo((GlyphIcons)i,55)), i -> {
-                                           runFX(() -> {
-                                               cp.getChildren().add(i);
-                                               new Anim(i::setOpacity).dur(500).intpl(x -> sqrt(x)).play(); // animate
-                                           });
-                                       })
-                                   )
-                                   .showProgress(Window.getActive().taskAdd())
-                                   .run();
-                            }
+                            grid.getItems().setAll(getEnumConstants(c));
                             e.consume();
                         }
                     });
                     return b;
-                }).collect(toList());
-        PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,typeicons), root));
+                }).toList();
+        PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
                 o.show(App_Center);
     }
 

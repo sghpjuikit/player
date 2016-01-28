@@ -181,25 +181,43 @@ public class Icon<I extends Icon> extends Text {
     }
 
     public final I tooltip(String text) {
-        if(text!=null && !text.isEmpty()) return tooltip(new Tooltip(text));
+        boolean willBeEmpty = text==null || text.isEmpty();
+        Tooltip old = getTooltip();
+        if(!willBeEmpty) {
+            if(old==null) tooltip(new Tooltip(text));
+            else {
+                tooltip(old);
+                old.setText(text);
+            }
+        }
         return (I)this;
     }
 
+    /**
+     * JavaFX API deficiency fix.
+     * @return installed tooltip or null.
+     */
+    public Tooltip getTooltip() {
+        return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
+    }
+
     public final I tooltip(Tooltip t) {
-        if(t!=null) {
+        Tooltip old = getTooltip();
+        if(t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
             t.setWrapText(true);
             t.setMaxWidth(330);
             t.setTextAlignment(JUSTIFY);
+            // Can not set graphics normally, because:
+            // 1) icon may be null at this point
+            // 2) the icon could change / tooltip grahics would have to be maintained (just NO)
+            // we create it when shown
+            // This also avoids creating useless objects
             t.setOnShowing(e -> {
-                // we can not set graphics normally, because some icons may not have the glyph ready
-                // at this point, we do that when tooltip is being called on, this also avoids creating
-                // useless objects
                 GlyphIcons g = getGlyph();
                 if(g!=null) {
                     t.setGraphic(Icons.createIcon(g, 30));
                     t.setGraphicTextGap(15);
                 }
-
             });
             t.setOnShown(e -> {
                 // animate
@@ -214,6 +232,7 @@ public class Icon<I extends Icon> extends Text {
                     }).play();
                 }
             });
+            t.getProperties().put("was_setup", true);
             Tooltip.install(this, t);
         }
         return (I)this;
@@ -343,7 +362,7 @@ public class Icon<I extends Icon> extends Text {
 
     public final void setIcon(GlyphIcons i) {
         glyph = i;
-        setGlyphName(i.name());
+        setGlyphName(i==null ? "null" : i.name());
     }
 
     public FontAwesomeIcon getDefaultGlyph(){ return ADJUST; };

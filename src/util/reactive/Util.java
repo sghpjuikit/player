@@ -17,6 +17,7 @@ import javafx.collections.ObservableList;
 import org.reactfx.Subscription;
 
 import static org.reactfx.EventStreams.valuesOf;
+import static util.dev.Util.noØ;
 
 /***/
 public class Util {
@@ -59,8 +60,75 @@ public class Util {
         u.accept(o.getValue());
         return o.subscribe(u);
     }
+
     public static<O> Subscription maintain(ValueStream<O> o, O initial, Consumer<? super O> u) {
         u.accept(initial);
         return o.subscribe(u);
+    }
+
+    /**
+     * Runs action immediately consuming the property's value if non null or sets a
+     * listener which will run the action when the value changed to non null and remove itself.
+     * <p>
+     * Used to execute some kind of initialization routine, which requires nonnull value (which is
+     * not guaranteed to be the case).
+     */
+    public static <T> void executeWhenNonNull(ObservableValue<T> property, Consumer<T> action) {
+        if(property.getValue()!=null)
+            action.accept(property.getValue());
+        else {
+            property.addListener(new ChangeListener<T>() {
+                @Override
+                public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
+                    if(nv!=null) {
+                        action.accept(nv);
+                        property.removeListener(this);
+                    }
+                }
+            });
+        }
+    }
+
+    /** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */
+    public static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onAdded, ListChangeListener<T> onRemoved) {
+        noØ(onAdded);
+        noØ(onRemoved);
+        return change -> {
+            while(change.next()) {
+                if (change.wasPermutated()) {
+                    for (int i = change.getFrom(); i < change.getTo(); ++i) {
+                        //permutate
+                    }
+                } else if (change.wasUpdated()) {
+                    //update item
+                } else {
+                    if(change.wasAdded()) onAdded.onChanged(change);
+                    if(change.wasAdded()) onRemoved.onChanged(change);
+                }
+            }
+        };
+    }
+
+    /** Creates list change listener which calls an action for every added or removed item. */
+    public static <T> ListChangeListener<T> listChangeHandler(Consumer<T> addedHandler, Consumer<T> removedHandler) {
+        noØ(addedHandler);
+        noØ(removedHandler);
+        return change -> {
+            while(change.next()) {
+                if (change.wasPermutated()) {
+                    for (int i = change.getFrom(); i < change.getTo(); ++i) {
+                        //permutate
+                    }
+                } else if (change.wasUpdated()) {
+                    //update item
+                } else {
+                    for (T o : change.getRemoved())
+                        removedHandler.accept(o);
+
+                    for (T o : change.getAddedSubList())
+                        addedHandler.accept(o);
+                }
+            }
+        };
     }
 }

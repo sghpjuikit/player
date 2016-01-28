@@ -48,6 +48,7 @@ public final class UiContext {
     private static double x;
     private static double y;
     private static final Set<ClickHandler> onClicks = new HashSet<>();
+    private static final WindowManager windowManager = APP.windowManager;
 
     /**
      * Handles mouse click anywhere in the application. Receives event source window
@@ -76,23 +77,23 @@ public final class UiContext {
 
     /** Get last mouse press screen x coordinate. */
     public static double getX() {
-        return Window.getActive().getX()+x;
+        return windowManager.getActive().getX()+x;
     }
 
     /** Get last mouse press screen y coordinate. */
     public static double getY() {
-        return Window.getActive().getY()+y;
+        return windowManager.getActive().getY()+y;
     }
 
     /**
      * @param widget widget to open, does nothing when null.
      */
     public static Window showWindow(Component widget) {
-        Window w = Window.create();
+        Window w = windowManager.create();
                w.initLayout();
                w.setContent(widget);
                w.show();
-               w.setScreen(Window.getActive().getScreen());
+               w.setScreen(windowManager.getActive().getScreen());
                w.centerOnScreen();
         return w;
     }
@@ -110,7 +111,7 @@ public final class UiContext {
                 p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
-                p.show(Window.getActive().getStage(),getX(),getY());
+                p.show(windowManager.getActive().getStage(),getX(),getY());
                 // unregister the widget from active eidgets manually
                 p.addEventFilter(WINDOW_HIDING, we -> APP.widgetManager.standaloneWidgets.remove(w));
         return p;
@@ -139,13 +140,13 @@ public final class UiContext {
         PopOver p = new PopOver(content);
                 p.title.set(title);
                 p.setAutoFix(false);
-                p.show(Window.getActive().getStage(),getX(),getY());
+                p.show(windowManager.getActive().getStage(),getX(),getY());
         return p;
     }
 
     public static void launchComponent(File launcher) {
         try {
-            WidgetFactory wf;
+            WidgetFactory<?> wf;
             Component w = null;
 
             // simple launcher version, contains widget name on 1st line
@@ -175,7 +176,7 @@ public final class UiContext {
     }
 
     public static void launchComponent(String componentName) {
-        WidgetFactory wf = APP.widgetManager.factories.get(componentName);
+        WidgetFactory<?> wf = APP.widgetManager.factories.get(componentName);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }

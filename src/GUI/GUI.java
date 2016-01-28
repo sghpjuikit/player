@@ -243,7 +243,7 @@ public class GUI {
     }
 
     public static void setZoomMode(boolean val) {
-        Window w = Window.getFocused();
+        Window w = APP.windowManager.getFocused();
         if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().zoom(val);
     }
 
@@ -256,7 +256,7 @@ public class GUI {
     /** Toggles zoom mode. */
     @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
-        Window w = Window.getFocused();
+        Window w = APP.windowManager.getFocused();
         if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().toggleZoom();
     }
 
@@ -277,9 +277,9 @@ public class GUI {
         // After this operation, all windows are either minimized or not, but vefore it, the state
         // may vary. Thus we need to decide whether we minimize all windows or the opposite.
         // if any window is not minimized, app
-        boolean m = Window.WINDOWS.stream().map(w -> w.isMinimized()).reduce(false, Boolean::logicalOr);
-        boolean f = Window.WINDOWS.stream().map(w -> w.focused.get()).reduce(false, Boolean::logicalOr);
-        Window.WINDOWS.forEach(w -> {
+        boolean m = APP.windowManager.windows.stream().map(w -> w.isMinimized()).reduce(false, Boolean::logicalOr);
+        boolean f = APP.windowManager.windows.stream().map(w -> w.focused.get()).reduce(false, Boolean::logicalOr);
+        APP.windowManager.windows.forEach(w -> {
             if(!m && !f)
                 w.focus();
             else
@@ -289,48 +289,48 @@ public class GUI {
 
     @IsAction(name = "Show application", desc = "Shows application.", global = true)
     public static void showApp() {
-        Window.WINDOWS.forEach(w -> w.setMinimized(false));
+        APP.windowManager.windows.forEach(w -> w.setMinimized(false));
     }
 
     @IsAction(name = "Hide application", desc = "Hides application.", global = true)
     public static void hideApp() {
-        Window.WINDOWS.forEach(w -> w.setMinimized(true));
+        APP.windowManager.windows.forEach(w -> w.setMinimized(true));
     }
 
     public static void toggleMinimize() {
-        boolean m = Window.WINDOWS.stream().map(Window::isMinimized).reduce(false, Boolean::logicalOr);
-        Window.WINDOWS.forEach(w -> w.setMinimized(!m));
+        boolean m = APP.windowManager.windows.stream().map(Window::isMinimized).reduce(false, Boolean::logicalOr);
+        APP.windowManager.windows.forEach(w -> w.setMinimized(!m));
     }
 
     @IsAction(name = "Maximize", desc = "Switch maximized mode.", keys = "F11")
     public static void toggleMaximize() {
-        Window.getActive().toggleMaximize();
+        APP.windowManager.getActive().toggleMaximize();
     }
 
     @IsAction(name = "Loop maximized state", desc = "Switch to different maximized window states.", keys = "F3")
     public static void toggleMaximizedState() {
-        Window w = Window.getActive();
+        Window w = APP.windowManager.getActive();
         w.setMaximized(w.isMaximized().next());
     }
 
     @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     public static void toggleFullscreen() {
-        Window.getActive().toggleFullscreen();
+        APP.windowManager.getActive().toggleFullscreen();
     }
 
     @IsAction(name = "Align tabs", desc = "Aligns tabs to the window", keys = "SHIFT+UP")
     public static void tabAlign() {
-        Window.getActive().getSwitchPane().alignTabs();
+        APP.windowManager.getActive().getSwitchPane().alignTabs();
     }
 
     @IsAction(name = "Align to next tab", desc = "Goes to next tab and aligns tabs to the window", keys = "SHIFT+RIGHT")
     public static void tabNext() {
-        Window.getActive().getSwitchPane().alignRightTab();
+        APP.windowManager.getActive().getSwitchPane().alignRightTab();
     }
 
     @IsAction(name = "Align to previous tab", desc = "Goes to previous tab and aligns tabs to the window", keys = "SHIFT+LEFT")
     public static void tabPrevious() {
-        Window.getActive().getSwitchPane().alignLeftTab();
+        APP.windowManager.getActive().getSwitchPane().alignLeftTab();
     }
 
 
@@ -472,7 +472,7 @@ public class GUI {
         // apply only if application initialized correctly
         if (APP.initialized) {
             // we need to apply to each window separately
-            Window.WINDOWS.forEach(w ->{
+            APP.windowManager.windows.forEach(w ->{
                 String tmp = f.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;

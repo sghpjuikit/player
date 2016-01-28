@@ -18,6 +18,7 @@ import gui.objects.Window.stage.Window;
 import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static javafx.stage.StageStyle.DECORATED;
 import static javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST;
+import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.list;
@@ -184,7 +185,7 @@ public class TaskBar {
 
             // we need to return focus, stolen by this stage on show
             inconsistent = true;
-            Window w = Window.getFocused();
+            Window w = APP.windowManager.getFocused();
             s.show();
             if(w!=null) w.focus();
             runLater(() -> inconsistent = false);

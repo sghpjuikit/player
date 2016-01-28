@@ -120,7 +120,7 @@ public final class Guide implements Configurable {
              "\n\nBut first some music, right?",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
-                SwitchContainer la = Window.getFocused().getSwitchPane().container;
+                SwitchContainer la = APP.windowManager.getFocused().getSwitchPane().container;
                 // prepare container
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);

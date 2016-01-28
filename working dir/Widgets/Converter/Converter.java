@@ -497,7 +497,7 @@ public class Converter extends ClassController implements SongWriter {
         String name;
         Ta ta;
 
-        public In(String name, Ta ta) {
+        In(String name, Ta ta) {
             this.name = name;
             this.ta = ta;
         }
@@ -509,9 +509,9 @@ public class Converter extends ClassController implements SongWriter {
         ConfigField<Ta> configfieldB;
         HBox root;
 
-        public InPane(Supplier<Collection<String>> actions) {
+        InPane(Supplier<Collection<String>> actions) {
             name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
-            input = new VarEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+            input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
             configfieldA = ConfigField.create(Config.forProperty(String.class, "", name));
             configfieldB = ConfigField.create(Config.forProperty(Ta.class, "", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
@@ -533,9 +533,9 @@ public class Converter extends ClassController implements SongWriter {
     }
     class InsSimple implements Ins {
         ConfigPane<Ta> ins;
-        public InsSimple(Act<?> a) {
+        InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                V<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                V<Ta> input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
                 return Config.forProperty(String.class, name, input);
             }));
         }
@@ -552,7 +552,7 @@ public class Converter extends ClassController implements SongWriter {
     class InsComplex implements Ins {
         ListConfigField<In, InPane> ins;
 
-        public InsComplex(Act a) {
+        InsComplex(Act a) {
             ins = new ListConfigField<>(() -> new InPane(a.names));
             ins.maxChainLength.set(a.max);
         }

@@ -10,10 +10,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import org.atteo.classindex.ClassIndex;
 
@@ -26,7 +29,6 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import gui.objects.Window.stage.Window;
 import main.App;
 import util.access.V;
 import util.async.Async;
@@ -40,6 +42,8 @@ import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
+import static util.reactive.Util.executeWhenNonNull;
+import static util.reactive.Util.listChangeHandler;
 
 /**
  * Encapsulates application behavior.
@@ -199,7 +203,6 @@ public final class Action extends Config<Action> implements Runnable {
 
         if(!continuous) {
             lock = id;
-//            System.out.println(System.currentTimeMillis());System.out.println("locking");
             locker.start();
         }
 
@@ -210,19 +213,8 @@ public final class Action extends Config<Action> implements Runnable {
     private void runUnsafe() {
         log(this).info("Shortcut {} execuing, global: {}.", name,global);
 
-//        int id = getID();
-//        boolean canRun = id!=lock;
-//
-//        if(!continuous) {
-//            lock = id;System.out.println(System.currentTimeMillis());
-//            locker.restart();
-////            unlocker.push(null);
-//        }
-//
-//        if(canRun) {
-            action.run();
-            APP.actionStream.push(name);
-//        }
+        action.run();
+        APP.actionStream.push(name);
     }
 
     /**
@@ -288,23 +280,32 @@ public final class Action extends Config<Action> implements Runnable {
         if (!APP.initialized) return;
 
         KeyCombination k = getKeysForLocalRegistering();
-        // register for each window separately
-        Window.WINDOWS.forEach(w -> w.getStage().getScene().getAccelerators().put(k,this));
+//        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
+        // register for each app window separately
+        for(Window w: Stage.getWindows())
+            if(w.getScene()!=null)
+                w.getScene().getAccelerators().put(k,this);
     }
+
     private void unregisterInApp() {
         if (!APP.initialized) return;
 
         KeyCombination k = getKeysForLocalRegistering();
-        // unregister for each window separately
-        Window.WINDOWS.forEach(w -> w.getStage().getScene().getAccelerators().remove(k));
+        // unregister for each app window separately
+//        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
+        for(Window w: Stage.getWindows())
+            if(w.getScene()!=null)
+                w.getScene().getAccelerators().remove(k);
     }
 
 
     public void unregisterInScene(Scene s) {
+        if (s==null) return;
         s.getAccelerators().remove(getKeysForLocalRegistering());
     }
+
     public void registerInScene(Scene s) {
-        if (!APP.initialized) return;
+        if (!APP.initialized || s==null) return;
         s.getAccelerators().put(getKeysForLocalRegistering(),this);
     }
 
@@ -312,6 +313,7 @@ public final class Action extends Config<Action> implements Runnable {
     private void registerGlobal() {
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
     }
+
     private void unregisterGlobal() {
         JIntellitype.getInstance().unregisterHotKey(getID());
     }
@@ -479,6 +481,47 @@ public final class Action extends Config<Action> implements Runnable {
 
 /*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
 
+    private static final ListChangeListener<Window> local_listener_registrator = listChangeHandler(
+        window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
+        window -> {
+            Scene scene = window.getScene();
+            if(scene!=null)
+                Action.getActions().forEach(a -> a.unregisterInScene(scene));
+        }
+    );
+
+    /**
+     * Activates listening process for local hotkeys.
+     */
+    public static void startLocalListening() {
+        if(!isLocalShortcutsSupported()) return;
+
+        // register for visible windows
+        Stage.getWindows().forEach(window ->
+            executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene)))
+        );
+        // keep registering when new windows are showed
+        Stage.getWindows().addListener(local_listener_registrator);
+
+        // Normally, we should also observe Actions and register/unregister on add/remove or we effectively
+        // support only precreated actions. But its handled when applying the action as a Config.
+    }
+
+    /**
+     * Deactivates listening process for local hotkeys.
+     */
+    public static void stopLocalListening() {
+        if(!isLocalShortcutsSupported()) return;
+        JIntellitype.getInstance().cleanUp();
+    }
+
+    /**
+     * Returns true iff local shortcuts are supported at running platform.
+     */
+    public static boolean isLocalShortcutsSupported() {
+        return true;
+    }
+
     /**
      * Activates listening process for global hotkeys. Not running this method
      * will cause registered global hotkeys to not get invoked. Use once when
@@ -506,7 +549,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     /**
-     * Returns true if global shortcuts are supported at running platform.
+     * Returns true iff global shortcuts are supported at running platform.
      * Otherwise false. In such case, global shortcuts will run as local and
      * {@link #startGlobalListening()} and {@link #stopGlobalListening()} will
      * have no effect.
@@ -604,16 +647,11 @@ public final class Action extends Config<Action> implements Runnable {
 
 /************************ shortcut helper methods *****************************/
 
-    // lock
-     private static final FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
-//    private static final FxTimer locker = FxTimer.create(Duration.millis(500), Action::unlock);
     private static int lock = -1;
-//    private static void unlock() {System.out.println(System.currentTimeMillis() +" unlocking");
-//        lock = -1;
-//    }
+    private static final FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
 
     //shortcut running
-    // this listener is running ever 33ms when any registered shortcut is pressed
+    // this listener is running every 33ms when any registered shortcut is pressed
     private static final HotkeyListener global_listener = id -> {
         log(Action.class).debug("Global shortcut {} captured.", actions.get(id).getName());
         actions.get(id).run();
@@ -660,6 +698,7 @@ public final class Action extends Config<Action> implements Runnable {
         }
     });
 
+
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
     public static final V<Boolean> global_media_shortcuts = new V<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
@@ -672,6 +711,16 @@ public final class Action extends Config<Action> implements Runnable {
             }
         }
     });
+
+//    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
+//    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
+//        if(isLocalShortcutsSupported()) {
+//            if(v){
+//            } else {
+//
+//            }
+//        }
+//    });
 
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
     public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;

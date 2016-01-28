@@ -128,13 +128,12 @@ import static javafx.util.Duration.seconds;
 import static util.Util.clip;
 import static util.async.Async.run;
 import static util.functional.Util.filter;
-import static util.functional.Util.findFirst;
+import static util.functional.Util.findFirstInt;
 import static util.functional.Util.forEachCartesian;
 import static util.functional.Util.list;
 import static util.functional.Util.listF;
 import static util.functional.Util.listRO;
 import static util.functional.Util.mapB;
-import static util.functional.Util.minBy;
 import static util.functional.Util.repeat;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -834,8 +833,8 @@ public class Comet extends ClassController {
 
             // noninteracting stuff last
             oss.get(Particle.class).forEach(Particle::doLoop);
-            oss.get(Particle.class).stream().filter(Draw2.class::isInstance).map(Draw2.class::cast).forEach(Draw2::drawBack);
-            oss.get(Particle.class).stream().filter(Draw2.class::isInstance).map(Draw2.class::cast).forEach(Draw2::drawFront);
+            stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawBack);
+            stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
         }
 
         void stop() {
@@ -3702,7 +3701,7 @@ public class Comet extends ClassController {
         public REIndicator(PO OWNER, RocketEnhancer enhancer) {
             owner = OWNER;
             ttl = durToTtl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
-            index = findFirst(i -> owner.children.stream().filter(REIndicator.class::isInstance).noneMatch(o -> ((REIndicator)o).index==i),0);
+            index = findFirstInt(0, i -> stream(owner.children).select(REIndicator.class).noneMatch(o -> o.index==i));
             owner.children.add(this);
             graphics = new Icon(enhancer.icon,15);
             playfield.getChildren().add(graphics);
@@ -3805,8 +3804,8 @@ public class Comet extends ClassController {
 
     /** Finds closest non-hyperspacing rocket to the obejct. */
     Rocket findClosestRocketTo(SO to) {
-        return game.oss.get(Rocket.class).stream().filter(r -> !r.isin_hyperspace)
-            .collect(minBy(to::distance)).orElse(null);
+        return stream(game.oss.get(Rocket.class)).filter(r -> !r.isin_hyperspace)
+            .minBy(to::distance).orElse(null);
     }
 
     /** Applies repulsive force from every player. */

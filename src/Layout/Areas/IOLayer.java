@@ -84,17 +84,17 @@ public class IOLayer extends StackPane {
 
 
     public static void relayout() {
-        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
               .forEach(wio -> wio.requestLayout());
     }
 
     public static void addConnectionE(Input<?> i, Output<?> o) {
-        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
               .forEach(wio -> wio.addConnection(i,o));
     }
 
     public static void remConnectionE(Input<?> i, Output<?> o) {
-        Window.WINDOWS.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
+        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
               .forEach(wio -> wio.remConnection(i,o));
     }
 

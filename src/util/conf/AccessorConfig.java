@@ -4,12 +4,12 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package util.conf;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import Configuration.Config.ConfigBase;
+import util.conf.Config.ConfigBase;
 import util.access.FunctAccessibleValue;
 import util.access.FunctAccessor;
 

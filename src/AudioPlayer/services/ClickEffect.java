@@ -19,8 +19,8 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import AudioPlayer.services.Service.ServiceBase;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import gui.objects.Window.stage.Window;
 import util.access.V;
 

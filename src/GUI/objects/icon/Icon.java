@@ -28,7 +28,6 @@ import javafx.scene.text.Text;
 
 import org.slf4j.LoggerFactory;
 
-import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
@@ -42,6 +41,7 @@ import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.PopOver.PopOver;
 import util.R;
+import util.action.Action;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
@@ -259,7 +259,7 @@ public class Icon<I extends Icon<?>> extends Text {
      *
      * @return this icon (fluent API). */
     public final I onClick(EventHandler<MouseEvent> action) {
-        setOnMouseClicked(e -> {
+        setOnMouseClicked(action==null ? null : e -> {
             if(e.getButton()==PRIMARY){
                 action.handle(e);
                 e.consume();

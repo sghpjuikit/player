@@ -21,15 +21,15 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import action.Action;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.action.Action;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import util.R;
 import util.access.V;
 
-import static action.Action.getActions;
+import static util.action.Action.getActions;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static gui.objects.icon.Icon.createInfoIcon;

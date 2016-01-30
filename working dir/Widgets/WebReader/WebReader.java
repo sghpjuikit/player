@@ -6,7 +6,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 

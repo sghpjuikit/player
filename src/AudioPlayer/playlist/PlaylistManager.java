@@ -7,11 +7,11 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import AudioPlayer.playlist.sequence.PlayingSequence;
-import Configuration.Configurable;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import action.IsAction;
-import action.IsActionable;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.action.IsAction;
+import util.action.IsActionable;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;

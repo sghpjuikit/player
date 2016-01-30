@@ -10,7 +10,7 @@ import java.util.Map;
 
 import javafx.scene.layout.AnchorPane;
 
-import Configuration.Config;
+import util.conf.Config;
 import Layout.widget.Widget;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Inputs;

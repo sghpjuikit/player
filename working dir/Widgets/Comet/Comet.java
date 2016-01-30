@@ -63,7 +63,7 @@ import Comet.Utils.PlayerSpawners;
 import Comet.Utils.Side;
 import Comet.Utils.TTLList;
 import Comet.Utils.Vec2;
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import de.jensd.fx.glyphs.GlyphIcons;

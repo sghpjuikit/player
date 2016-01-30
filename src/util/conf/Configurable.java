@@ -1,5 +1,5 @@
 
-package Configuration;
+package util.conf;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import javafx.beans.value.WritableValue;
 
 import util.Util;
 
-import static Configuration.Configuration.configsOf;
+import static util.conf.Configuration.configsOf;
 import static util.Util.forEachJavaFXProperty;
 
 /**

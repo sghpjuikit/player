@@ -1,5 +1,5 @@
 
-package action;
+package util.action;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -26,9 +26,9 @@ import com.melloware.jintellitype.JIntellitype;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;
-import Configuration.Config;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.Config;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import main.App;
 import util.access.V;
 import util.async.Async;

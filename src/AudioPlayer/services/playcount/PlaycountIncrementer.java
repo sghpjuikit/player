@@ -17,8 +17,8 @@ import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.access.V;
 
 import static AudioPlayer.services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;

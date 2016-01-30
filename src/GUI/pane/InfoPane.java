@@ -21,7 +21,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-import Configuration.IsConfigurable;
+import util.conf.IsConfigurable;
 import gui.objects.icon.Icon;
 import util.R;
 

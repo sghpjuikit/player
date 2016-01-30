@@ -22,13 +22,13 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
-import Configuration.Configurable;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.Widget;
-import action.Action;
+import util.action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;

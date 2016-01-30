@@ -7,10 +7,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import Configuration.Config;
-import Configuration.Config.VarList;
-import Configuration.IsConfig;
-import Configuration.ListConfigurable;
+import util.conf.Config;
+import util.conf.Config.VarList;
+import util.conf.IsConfig;
+import util.conf.ListConfigurable;
 import Layout.widget.Widget;
 import Layout.widget.Widget.Info;
 import Layout.widget.controller.FXMLController;

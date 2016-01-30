@@ -16,7 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import util.access.V;
 import util.animation.Anim;
 import util.reactive.RunnableSet;

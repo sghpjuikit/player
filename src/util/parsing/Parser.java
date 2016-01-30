@@ -13,6 +13,7 @@ import java.time.Year;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,12 +30,14 @@ import com.google.common.reflect.Invokable;
 import com.google.common.reflect.Parameter;
 import com.google.common.reflect.TypeToken;
 
-import Configuration.Configurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
 import util.SwitchException;
 import util.collections.map.ClassMap;
+import util.conf.Configurable;
+import util.functional.Functors;
 import util.functional.Functors.Ƒ1;
+import util.functional.Functors.Ƒ1E;
 import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
 
@@ -204,6 +207,23 @@ public abstract class Parser {
         DEFAULT.addParserFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         DEFAULT.addParserToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
         DEFAULT.addParser(Effect.class, FX::toS, text -> FX.fromS(Effect.class, text));
+//        DEFAULT.addParser(Class.class, c -> c.getName(), noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler doesnt like this!?
+        DEFAULT.addParser(Class.class, c -> c.getName(), noEx(text -> {
+            try {
+                return Class.forName(text);
+            } catch (ClassNotFoundException | LinkageError ex) {
+                return null;
+            }
+        }, Exception.class));
+        DEFAULT.addParser(Functors.PƑ.class, f -> f.name + "," + f.in + "," + f.out, text -> {
+            List<String> data = split(text,",");
+            if(data.size()!=3) return null;
+            String name = data.get(0);
+            Class<?> in = DEFAULT.fromS(Class.class, data.get(1));
+            Class<?> out = DEFAULT.fromS(Class.class, data.get(2));
+            if(name==null || in==null || out==null) return null;
+            return Functors.getPF(name,in,out);
+        });
     }
 
 /******************************************************************************/
@@ -576,7 +596,8 @@ public abstract class Parser {
                         DEFAULT.error = e.getMessage();
                         return or;
                     }
-                throw e;
+//                throw e;
+                throw new RuntimeException("Parsing error", e);
             }
         };
     }
@@ -591,6 +612,33 @@ public abstract class Parser {
 
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
         return noEx(or, f, list(ecs));
+    }
+
+    private static <I,O,E extends Exception> Ƒ1<I,O> noCEx(O or, Ƒ1E<I,O,E> f, Collection<Class<?>> ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch(Exception e) {
+                for(Class<?> ec : ecs)
+                    if(ec.isAssignableFrom(e.getClass())) {
+                    }
+//                if (e instanceof RuntimeException) throw (RuntimeException)e;
+//                else throw new RuntimeException("Parsing error", e);
+                throw new RuntimeException("Parsing error", e);
+            }
+        };
+    }
+
+    private static <I,O,E extends Exception> Ƒ1<I,O> noCEx(Ƒ1E<I,O,E> f, Class<?>... ecs) {
+        return noCEx(null, f, list(ecs));
+    }
+
+    private static <I,O,E extends Exception> Ƒ1<I,O> noCEx(Ƒ1E<I,O,E> f, Collection<Class<?>> ecs) {
+        return noCEx(null, f, ecs);
+    }
+
+    private static <I,O,E extends Exception> Ƒ1<I,O> noCEx(O or, Ƒ1E<I,O,E> f, Class<?>... ecs) {
+        return noCEx(or, f, list(ecs));
     }
 
     private static enum ParseDir {

@@ -16,7 +16,11 @@ import javafx.stage.FileChooser;
 
 import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
+import one.util.streamex.StreamEx;
 import util.SwitchException;
+
+import static util.functional.Util.stream;
+
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -98,6 +102,10 @@ public enum AudioFileFormat {
             case UNKNOWN : return false;
             default: throw new SwitchException(this);
         }
+    }
+
+    public static StreamEx<AudioFileFormat> formats() {
+        return stream(values()).without(UNKNOWN);
     }
 
     /**

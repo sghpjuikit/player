@@ -33,7 +33,7 @@ import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;

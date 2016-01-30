@@ -1,6 +1,12 @@
 
 package main;
 
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.conf.Configuration;
+
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +65,6 @@ import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
-import Configuration.*;
 import Layout.Component;
 import Layout.widget.Widget;
 import Layout.widget.WidgetManager;
@@ -69,9 +74,9 @@ import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import Layout.widget.feature.PlaylistFeature;
 import Layout.widget.feature.SongWriter;
-import action.Action;
-import action.IsAction;
-import action.IsActionable;
+import util.action.Action;
+import util.action.IsAction;
+import util.action.IsActionable;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -932,36 +937,8 @@ public class App extends Application implements Configurable {
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
                 + "Launcher file is a file that when opened by this application opens the widget. "
-                + "If application was not running before, it will not load normally, "
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
-                + "but will only open the widget.\n"
+                + "If application was not running before, it will not load normally, but will only "
+                + "open the widget.\n"
                 + "Essentially, this exports the widgets as 'standalone' applications.",
                 EXPORT,
                 ignored -> {

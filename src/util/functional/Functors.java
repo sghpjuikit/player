@@ -21,9 +21,6 @@ import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
-import Configuration.AccessorConfig;
-import Configuration.Config;
-import Configuration.Configurable;
 import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;
@@ -34,6 +31,9 @@ import util.Util;
 import util.access.V;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
+import util.conf.AccessorConfig;
+import util.conf.Config;
+import util.conf.Configurable;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -59,6 +59,7 @@ import static util.functional.Util.ISØ;
 import static util.functional.Util.isInR;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
+import static util.functional.Util.stream;
 
 public class Functors {
 
@@ -637,6 +638,9 @@ public class Functors {
         add("Path",       File.class,String.class, File::getAbsolutePath);
         add("Size",       File.class,FileSize.class, FileSize::new);
 
+        AudioFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f));
+        ImageFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f));
+
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
         add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
@@ -815,6 +819,12 @@ public class Functors {
     /** Returns all functions taking input IO and producing output IO. */
     public static <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
         return getIO(io, io);
+    }
+
+    public static <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
+        @SuppressWarnings("unchecked")
+        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
+        return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
     }
 
     public static <I> PƑ<I,?> getPrefI(Class<I> i) {

@@ -28,8 +28,8 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import Layout.widget.Widget;
 import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;

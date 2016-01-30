@@ -12,7 +12,7 @@ import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
-import Configuration.Config;
+import util.conf.Config;
 import Layout.widget.controller.Controller;
 import Layout.widget.controller.io.Inputs;
 import Layout.widget.controller.io.Outputs;

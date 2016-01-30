@@ -4,25 +4,27 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package util.action;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.atteo.classindex.IndexAnnotated;
+
 /**
- * Container annotation for {@link Repeatable} {@link AppliesConfig}.
+ * Marks class containing {@link IsAction} annotated method. If such class is not
+ * annotated by this annotation, the action will not be discovered.
  * <p>
- * Used solely by compiler and has no practical use for developer.
- * 
+ * For that purpose, this annotation itself is annotated by {@link IndexAnnotated}.
  * @author Plutonium_
  */
 @Documented
+@IndexAnnotated
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface AppliesConfigs {
-    AppliesConfig[] value();
+@Target(ElementType.TYPE)
+public @interface IsActionable {
+    String value() default "";
 }

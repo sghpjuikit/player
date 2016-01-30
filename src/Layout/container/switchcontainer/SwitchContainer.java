@@ -10,8 +10,8 @@ import java.util.Map;
 
 import javafx.scene.Node;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import Layout.Component;
 import Layout.container.Container;
 import util.access.V;

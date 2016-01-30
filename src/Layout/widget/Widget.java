@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import Configuration.CachedCompositeConfigurable;
-import Configuration.Config;
-import Configuration.Configurable;
-import Configuration.IsConfig;
+import util.conf.CachedCompositeConfigurable;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.IsConfig;
 import Layout.Areas.Area;
 import Layout.Areas.IOLayer;
 import Layout.Component;

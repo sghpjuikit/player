@@ -27,8 +27,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
-import Configuration.Config;
-import Configuration.Configurable;
+import util.conf.Config;
+import util.conf.Configurable;
 import Layout.widget.feature.ConfiguringFeature;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;

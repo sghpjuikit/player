@@ -3,11 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- I think spectrum suffers from logarithmic band intensity distribution
+- custom control skins not working for new windows
+- display window snap preview & snap only on mouse release
 - wrap Icon in Stackpane to fix:
    - icon layout (not always in center)
    - icon effect (shadows) getting in the way of proepr layout
    - scale down on hover 
-- move COnfiguration & Action to util package
 - widget compilation failure causes recompilation ad infinitum
 - saving multiple playlists is bugged
 - toggle action annotation

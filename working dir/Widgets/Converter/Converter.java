@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -30,11 +29,11 @@ import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
-import Configuration.Config;
 import Layout.widget.Widget;
 import Layout.widget.Widget.Group;
 import Layout.widget.controller.ClassController;
 import Layout.widget.feature.SongWriter;
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import gui.itemnode.*;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
@@ -43,11 +42,11 @@ import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import util.File.FileUtil;
-import util.R;
 import util.access.V;
 import util.access.VarEnum;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
+import util.conf.Config;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
@@ -60,6 +59,7 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -118,9 +118,9 @@ import static util.graphics.drag.DragUtil.installDrag;
 )
 public class Converter extends ClassController implements SongWriter {
 
-    private final ObservableList source = FXCollections.observableArrayList();
-    private final Ta ta_in = new Ta("In");
-    private final ObservableList<Ta> tas = FXCollections.observableArrayList(ta_in);
+    private final ObservableList<Object> source = observableArrayList();
+    private final Ta ta_in = new Ta("In",true);
+    private final ObservableList<Ta> tas = observableArrayList(ta_in);
     private final ClassListMap<Act> acts = new ClassListMap<>(act -> act.type);
     private final HBox outTFBox = new HBox(5);
     private final Applier applier = new Applier();
@@ -128,7 +128,7 @@ public class Converter extends ClassController implements SongWriter {
 
 
     public Converter() {
-        inputs.create("To convert", Object.class, this::setData);
+        inputs.create("Input", Object.class, this::setData);
 
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
@@ -148,11 +148,7 @@ public class Converter extends ClassController implements SongWriter {
         );
 
         // on source change run transformation
-        source.addListener((Change change) -> {
-            ta_in.setData(source);
-            Class c = ta_in.transforms.getTypeIn();
-            applier.fillActs(c);
-        });
+        source.addListener((Change<? extends Object> change) -> ta_in.setData(source));
 
         ta_in.onItemChange = lines -> {
             List<Ta> l = null;
@@ -192,7 +188,7 @@ public class Converter extends ClassController implements SongWriter {
             FileUtil.renameFile(file, name);
         }));
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
-            List<Item> songs = list(source);
+            List<Item> songs = (List)list(source);
             if(songs.isEmpty()) return;
             Fut.fut()
                .then(() -> {
@@ -226,34 +222,40 @@ public class Converter extends ClassController implements SongWriter {
 
 /******************************** features ************************************/
 
-    /** {@inheritDoc} */
     @Override
     public void read(List<? extends Item> items) {
-        source.setAll(map(items,Item::toMeta));
+        setData(map(items,Item::toMeta));
     }
 
 /******************************* helper classes *******************************/
 
     /* Generates unique name in format 'CustomN', where N is integer. */
     String taname() {
-        R<Integer> i = new R<>(0);
-        do {
-            i.setOf(x -> x+1);
-        }while(tas.stream().map(t->t.name.get()).anyMatch(n -> n.equals("Custom"+i.get())));
-        return "Custom"+i.get();
+        return "Custom" + findFirstInt(1, i -> tas.stream().noneMatch(ta -> ta.name.get().equals("Custom"+i)));
     }
 
     class Ta extends ListAreaNode {
         public final StringProperty name;
+        public final boolean isMain;
 
-        public Ta() {
+        Ta() {
             this(taname());
         }
 
-        public Ta(String name) {
-            super();
+        Ta(String name) {
+            this(name, false);
+        }
 
+        Ta(String name, boolean isMain) {
+            super();
+            this.isMain = isMain;
+
+            // graphics
             Label nameL = new Label("");
+            Icon applyI = new Icon(OctIcon.DATABASE)
+                    .tooltip("Transform\n\nSet transformed (visible) data as input. The original data will be lost."
+                            + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : ""))
+                    .onClick(() -> setData(output)); // this will update applier if it is main
             Icon remI = new Icon(MINUS)
                     .tooltip("Remove\n\nRemove this edit area.")
                     .onClick(() -> tas.remove(this));
@@ -261,29 +263,31 @@ public class Converter extends ClassController implements SongWriter {
                     .tooltip("Add\n\nCreate new edit area with no data.")
                     .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
             Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
-                    .tooltip("Copy\n\nCopy data of edit area into new one. Data will retain its transformations.")
+                    .tooltip("Copy data\n\nCopy data of edit area into new one. Data will retain its transformations."
+                            + "\n\nManual text changes will be ignored unless the type of transformation output is "
+                            + "text. Use a transformation to text to achieve that."
+                            + "")
                     .onClick(() -> {
                         Ta t = new Ta();
                         t.setData(output);
-                        tas.add(t);
+                        tas.add(tas.indexOf(this)+1,t);
                      });
+
+            // layout
             getNode().getChildren().add(0,
                 layStack(
                     nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, remI,addI,copyI),Pos.CENTER_RIGHT
+                    layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI,copyI),Pos.CENTER_RIGHT
                 )
             );
 
             this.name = nameL.textProperty();
-            boolean is1st = tas==null;
+            remI.setDisable(isMain);   // disallow removing main edit area
 
-            // disallow removing 1st edit area
-            remI.setDisable(is1st);
-
-            // drag & drop (1st area is handled globally)
-            if(!is1st) {
+            // drag & drop (main area is handled globally)
+            if(!isMain) {
                 installDrag(
-                    getNode(), LIST_ALT, () -> "Set data to " + this.name.get() + " edit area",
+                    getNode(), OctIcon.DATABASE, () -> "Set data to " + this.name.get() + " edit area",
                     e -> true,
                     e -> setData(unpackData(DragUtil.getAny(e)))
                 );
@@ -310,19 +314,34 @@ public class Converter extends ClassController implements SongWriter {
                 }
             });
 
-
             setData(name, EMPTY_LIST);
         }
 
-        public void setData(String name, List<? extends Object> input) {
+        // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.
+        public void setData(String name, List<?> input) {
             this.name.set(capitalizeStrong(name));
+            setData(input);
+        }
+
+        @Override
+        public void setData(List<?> input) {System.out.println("setting data");
             super.setData(input);
+            fillActionData();
+        }
+
+        public void fillActionData(){
+            System.out.println("filling");
+            if(isMain && applier!=null) {
+            System.out.println("filling really");
+                applier.fillActs(transforms.getTypeIn());
+            }
         }
 
         @Override
         public String toString() {
             return name.get();
         }
+
     }
     class Applier {
         private final ImprovedComboBox<Act> actCB = new ImprovedComboBox<>(act -> act.name, "<none>");
@@ -334,7 +353,7 @@ public class Converter extends ClassController implements SongWriter {
             String ext = p.substring(dot,p.length());
             f.renameTo(new File(rf, filenamizeString(s)+ext));
         };
-        private final Icon okB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
+        private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
             Act action = actCB.getValue();
             if(action==null) return;
 
@@ -354,7 +373,11 @@ public class Converter extends ClassController implements SongWriter {
                 action.actionImpartial.accept(m);
             }
         });
-        VBox root = new VBox(5, new StackPane(new Label("Action")),actCB, new StackPane(new Label("Apply", okB)));
+        VBox root = new VBox(5,
+            new StackPane(new Label("Action")),         // title
+            actCB,                                      // action chooser
+            new StackPane(new Label("Apply", runB))     // action run button
+        );
 
         public Applier() {
             actCB.valueProperty().addListener((o,ov,nv) -> {
@@ -368,7 +391,7 @@ public class Converter extends ClassController implements SongWriter {
             });
         }
 
-        public void fillActs(Class c) {
+        public void fillActs(Class<?> c) {
             List<Act> l = acts.getElementsOfSuperV(c);
             actCB.getItems().setAll(l);
             if(!l.isEmpty()) actCB.setValue(l.get(0));

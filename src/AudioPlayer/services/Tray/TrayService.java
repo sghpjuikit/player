@@ -26,8 +26,8 @@ import org.reactfx.Subscription;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import gui.GUI;
 import util.access.V;
 

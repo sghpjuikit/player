@@ -19,9 +19,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-import Configuration.Config;
-import Configuration.Config.VarList;
-import Configuration.IsConfig;
+import util.conf.Config;
+import util.conf.Config.VarList;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import gui.GUI;

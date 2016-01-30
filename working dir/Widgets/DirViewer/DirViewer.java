@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
@@ -24,9 +23,6 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 
-import Configuration.Config;
-import Configuration.Config.VarList;
-import Configuration.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import gui.objects.grid.ImprovedGridCell;
@@ -41,10 +37,15 @@ import util.Sort;
 import util.Util;
 import util.access.FieldValue.FileField;
 import util.access.V;
+import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
+import util.conf.Config;
+import util.conf.Config.VarList;
+import util.conf.IsConfig;
+import util.functional.Functors.PƑ0;
 import util.graphics.drag.PlaceholderPane;
 
 import static Layout.widget.Widget.Group.OTHER;
@@ -101,7 +102,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final V<FFilter> filter = new V<>(FFilter.ALL, f -> visit(new TopItem()));
+    final VarEnum<String> filter = new VarEnum<>("All", f -> visit(new TopItem()), () -> map(filters,f->f.name));
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(Sort.ASCENDING, s -> resort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
@@ -198,7 +199,7 @@ public class DirViewer extends ClassController {
     }
 
     private boolean filter(File f) {
-        return !f.isHidden() && f.canRead() && filter.getValue().filter.test(f);
+        return !f.isHidden() && f.canRead() && getFilter().apply(f);
     }
     private static boolean file_exists(Item c, File f) {
         return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
@@ -430,17 +431,30 @@ public class DirViewer extends ClassController {
         }
 
     }
-    public static enum FFilter {
-        ALL(IS),
-        AUDIO(f -> AudioFileFormat.isSupported(f, Use.APP)),
-        IMAGE(ImageFileFormat::isSupported),
-        NO_IMAGE(f -> !ImageFileFormat.isSupported(f));
 
-        public final Predicate<? super File> filter;
-
-        FFilter(Predicate<? super File> f) {
-            filter = f;
-        }
+    // Filter summary:
+    // because we can not yet serialize functions (see Functors class and Parser) in  a way that
+    // stores state such as negation or function chaining, I dont use predicates from Functors'
+    // function pool, but 'hardcoded' the filters instead.
+    // We use String config to save which one we use.
+    private static final List<PƑ0<File,Boolean>> filters = stream(
+        new PƑ0<>("All",        File.class,Boolean.class, file -> true),
+        new PƑ0<>("None",       File.class,Boolean.class, file -> false),
+        new PƑ0<>("Audio",      File.class,Boolean.class, file -> AudioFileFormat.isSupported(file, Use.APP)),
+        new PƑ0<>("No Audio",   File.class,Boolean.class, file -> !AudioFileFormat.isSupported(file, Use.APP)),
+        new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
+        new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
+    ).toList();
+    static {
+        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
+        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No" + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
+        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
+        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No" + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
+    }
+    PƑ0<File,Boolean> getFilter() {
+        return stream(filters)
+                .findAny(f -> filter.getValue().equals(f.name))
+                .orElseGet(() -> new PƑ0<>("All",File.class,Boolean.class, file -> true));
     }
 
     private static final double CELL_TEXT_HEIGHT = 20;

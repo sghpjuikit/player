@@ -17,10 +17,10 @@ import org.reactfx.Subscription;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import Configuration.MapConfigurable;
-import Configuration.ValueConfig;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.conf.MapConfigurable;
+import util.conf.ValueConfig;
 import de.umass.lastfm.*;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import unused.SimpleConfigurator;

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package action;
+package util.conf;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Container annotation for {@link Repeatable} {@link IsAction}.
+ * Container annotation for {@link Repeatable} {@link AppliesConfig}.
  * <p>
  * Used solely by compiler and has no practical use for developer.
  * 
@@ -23,6 +23,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface IsActions {
-    IsAction[] value();
+public @interface AppliesConfigs {
+    AppliesConfig[] value();
 }

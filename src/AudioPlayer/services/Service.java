@@ -8,10 +8,10 @@ package AudioPlayer.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import Configuration.CachedConfigurable;
-import Configuration.Config;
-import Configuration.Configurable;
-import Configuration.IsConfig;
+import util.conf.CachedConfigurable;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.IsConfig;
 import util.access.V;
 
 /**

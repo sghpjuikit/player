@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package util.conf;
 
 import java.util.ArrayList;
 import java.util.Collection;

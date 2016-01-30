@@ -12,8 +12,8 @@ import java.util.function.Supplier;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 
-import Configuration.AccessorConfig;
-import Configuration.Config;
+import util.conf.AccessorConfig;
+import util.conf.Config;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import util.access.V;

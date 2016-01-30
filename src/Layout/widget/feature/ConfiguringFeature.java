@@ -8,8 +8,8 @@ package Layout.widget.feature;
 
 import java.util.Collection;
 
-import Configuration.Config;
-import Configuration.Configurable;
+import util.conf.Config;
+import util.conf.Configurable;
 
 /**
  * Editor for {@link Configurable}.

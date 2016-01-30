@@ -1,5 +1,5 @@
 
-package Configuration;
+package util.conf;
 
 import java.io.File;
 import java.lang.invoke.MethodHandle;
@@ -19,13 +19,13 @@ import javafx.beans.value.WritableValue;
 
 import org.atteo.classindex.ClassIndex;
 
-import Configuration.Config.FieldConfig;
-import Configuration.Config.ListConfig;
-import Configuration.Config.OverridablePropertyConfig;
-import Configuration.Config.PropertyConfig;
-import Configuration.Config.ReadOnlyPropertyConfig;
-import Configuration.Config.VarList;
-import action.Action;
+import util.conf.Config.FieldConfig;
+import util.conf.Config.ListConfig;
+import util.conf.Config.OverridablePropertyConfig;
+import util.conf.Config.PropertyConfig;
+import util.conf.Config.ReadOnlyPropertyConfig;
+import util.conf.Config.VarList;
+import util.action.Action;
 import util.File.FileUtil;
 import util.access.Vo;
 import util.collections.mapset.MapSet;

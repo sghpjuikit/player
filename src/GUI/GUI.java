@@ -31,11 +31,11 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.css.StyleManager;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import Layout.container.layout.Layout;
-import action.IsAction;
-import action.IsActionable;
+import util.action.IsAction;
+import util.action.IsActionable;
 import gui.objects.Window.stage.Window;
 import util.File.FileMonitor;
 import util.File.FileUtil;

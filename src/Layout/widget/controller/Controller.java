@@ -5,7 +5,7 @@ import java.util.List;
 
 import javafx.scene.Node;
 
-import Configuration.CachedConfigurable;
+import util.conf.CachedConfigurable;
 import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import Layout.widget.controller.io.Inputs;
@@ -28,7 +28,7 @@ import Layout.widget.feature.Feature;
  * and fields public only when trying to export state or functionality when using
  * the controller when knowing its full class
  * <p>
- * Implements {@link Configuration.Configurable} interface which is useful for
+ * Implements {@link util.conf.Configurable} interface which is useful for
  * user customization of internal properties.
  * <p>
  * It is intended for controller to implement {@link Layout.Widgets.Features.Feature}
@@ -65,7 +65,7 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
     /**
      * Initializes the controller. Use as a constructor.
      * <p>
-     * If the contorller makes use of the {@link Configuration.IsConfig} anotated properties,
+     * If the contorller makes use of the {@link util.conf.IsConfig} anotated properties,
      * they will not be initialized and their values shouldnt be used in this
      * method.
      * <p>
@@ -83,7 +83,7 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
      * <p>
      * Is invoked on user request (to bring the widget state up to date) or when
      * widget is loaded 1st time.
-     * At this point all {@link Configuration.IsConfig configs}
+     * At this point all {@link util.conf.IsConfig configs}
      * are available and have their values set, but not applied - that should be
      * executed in this method.
      * <p>

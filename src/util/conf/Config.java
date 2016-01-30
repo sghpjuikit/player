@@ -1,5 +1,5 @@
 
-package Configuration;
+package util.conf;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collection;
@@ -29,7 +29,7 @@ import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 
-import static Configuration.Configuration.configsOf;
+import static util.conf.Configuration.configsOf;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.Util.getValueFromFieldMethodHandle;

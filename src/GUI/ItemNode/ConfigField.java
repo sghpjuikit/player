@@ -27,12 +27,12 @@ import javafx.util.Duration;
 
 import com.sun.javafx.scene.traversal.Direction;
 
-import Configuration.Config;
-import Configuration.Config.ListConfig;
-import Configuration.Config.OverridablePropertyConfig;
-import Configuration.Config.PropertyConfig;
-import Configuration.Config.ReadOnlyPropertyConfig;
-import action.Action;
+import util.conf.Config;
+import util.conf.Config.ListConfig;
+import util.conf.Config.OverridablePropertyConfig;
+import util.conf.Config.PropertyConfig;
+import util.conf.Config.ReadOnlyPropertyConfig;
+import util.action.Action;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;

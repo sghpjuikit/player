@@ -35,8 +35,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.InfoNode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;

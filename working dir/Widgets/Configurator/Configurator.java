@@ -12,13 +12,13 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
 
-import Configuration.Config;
-import Configuration.Configurable;
-import Configuration.IsConfig;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import Layout.widget.feature.ConfiguringFeature;
-import action.Action;
+import util.action.Action;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
 import util.access.V;

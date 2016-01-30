@@ -1,21 +1,26 @@
 
 package unused;
 
-import Configuration.Config;
-import Configuration.Configurable;
+import util.conf.Config;
+import util.conf.Configurable;
 import gui.itemnode.ConfigField;
+
 import com.sun.glass.ui.Screen;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+
 import static util.functional.Util.byNC;
+
 import util.graphics.fxml.ConventionFxmlLoader;
 
 /**

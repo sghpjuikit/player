@@ -25,7 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 import AudioPlayer.services.Service;
-import Configuration.Configurable;
+import util.conf.Configurable;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
@@ -39,7 +39,7 @@ import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
 
-import static Configuration.Configurable.configsFromFxPropertiesOf;
+import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static Layout.widget.WidgetManager.WidgetSource.*;
 import static gui.objects.tree.FileTree.createTreeItem;
 import static java.util.stream.Collectors.toList;

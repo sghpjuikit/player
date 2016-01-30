@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.io.StreamException;
 
-import Configuration.Configurable;
-import Configuration.IsConfigurable;
+import util.conf.Configurable;
+import util.conf.IsConfigurable;
 import Configurator.Configurator;
 import Layout.Component;
 import Layout.widget.Widget;

@@ -23,7 +23,7 @@ import javafx.util.Duration;
 import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;

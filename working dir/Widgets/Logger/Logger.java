@@ -11,7 +11,7 @@ import java.util.function.IntConsumer;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 

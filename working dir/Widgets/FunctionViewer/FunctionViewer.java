@@ -17,7 +17,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
-import Configuration.Config;
+import util.conf.Config;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
 import gui.itemnode.ConfigField;

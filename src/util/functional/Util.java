@@ -892,7 +892,7 @@ public class Util {
         else return Arrays.asList(ts);
     }
     /** Returns modifiable list containing elements in the specified collection. */
-    public static<T> List<T> list(Collection<T> a) {
+    public static<T> List<T> list(Collection<? extends T> a) {
         return new ArrayList<>(a);
     }
     /** Returns modifiable list containing elements in both specified collection and array. */
@@ -1001,7 +1001,7 @@ public class Util {
     }
 
     /** Maps collection. Returns list. Source remains unchanged. */
-    public static<T,R> List<R> map(Collection<T> c, Function<T,R> m) {
+    public static<T,R> List<R> map(Collection<? extends T> c, Function<? super T,? extends R> m) {
         return c.stream().map(m).collect(toList());
     }
 

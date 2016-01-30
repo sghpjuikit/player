@@ -27,7 +27,6 @@ import javafx.scene.layout.*;
 import org.reactfx.EventSource;
 
 import Configurator.Configurator;
-import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
 import gui.GUI;
@@ -392,17 +391,15 @@ public final class AreaControls {
     }
 
     private void toggleAbsSize() {
-	Container c = area.container;
-	if (c instanceof BiContainer) {
-	    Splitter s = BiContainer.class.cast(c).ui;
+	if (area.container instanceof BiContainer) {
+	    Splitter s = BiContainer.class.cast(area.container).ui;
 	    s.toggleAbsoluteSizeFor(area.index);
 	}
     }
 
     void updateAbsB() {
-	Container c = area.container;
-	if (c instanceof BiContainer) {
-	    boolean l = c.properties.getI("abs_size") == area.index;
+	if (area.container instanceof BiContainer) {
+	    boolean l = area.container.properties.getI("abs_size") == area.index;
             absB.icon(l ? UNLINK : LINK);
 	    if (!header_buttons.getChildren().contains(absB))
 		header_buttons.getChildren().add(6, absB);

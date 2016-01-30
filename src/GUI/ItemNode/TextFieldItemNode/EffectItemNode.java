@@ -34,7 +34,7 @@ import gui.objects.Window.stage.UiContext;
 import gui.objects.icon.Icon;
 import util.ClassName;
 
-import static Configuration.Configurable.configsFromFxPropertiesOf;
+import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static javafx.geometry.Pos.CENTER;
 import static util.dev.Util.log;
 import static util.functional.Util.list;

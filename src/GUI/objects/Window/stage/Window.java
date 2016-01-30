@@ -1,5 +1,7 @@
 package gui.objects.Window.stage;
 
+import util.conf.IsConfigurable;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +32,11 @@ import com.thoughtworks.xstream.io.StreamException;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.lasfm.LastFM;
-import Configuration.*;
 import Layout.Component;
 import Layout.container.layout.Layout;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.container.switchcontainer.SwitchPane;
-import action.Action;
+import util.action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;

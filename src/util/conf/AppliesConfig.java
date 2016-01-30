@@ -1,5 +1,5 @@
 
-package Configuration;
+package util.conf;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

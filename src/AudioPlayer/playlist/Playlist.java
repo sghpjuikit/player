@@ -44,7 +44,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import Configuration.ValueConfig;
+import util.conf.ValueConfig;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import unused.SimpleConfigurator;

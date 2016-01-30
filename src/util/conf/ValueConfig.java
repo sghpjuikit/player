@@ -4,12 +4,12 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package util.conf;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import Configuration.Config.ConfigBase;
+import util.conf.Config.ConfigBase;
 
 /**
  * {@link Config} wrapper for a standalone object. This is the only implementation

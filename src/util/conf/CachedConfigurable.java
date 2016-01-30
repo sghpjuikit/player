@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Configuration;
+package util.conf;
 
 import java.util.Collection;
 import java.util.Map;
@@ -12,19 +12,19 @@ import java.util.Map;
  *
  * @author Plutonium_
  */
-public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T> {
-
+public interface CachedConfigurable<T> extends Configurable<T> {
+    
     Map<String,Config<T>> getFieldsMap();
 
     @Override
     public default Config<T> getField(String n) {
-        return getFieldsMap().computeIfAbsent(n, CompositeConfigurable.super::getField);
+        return getFieldsMap().computeIfAbsent(n, Configurable.super::getField);
     }
 
     @Override
     public default Collection<Config<T>> getFields() {
-        CompositeConfigurable.super.getFields().forEach(c -> getFieldsMap().putIfAbsent(c.getName(), c));
+        Configurable.super.getFields().forEach(c -> getFieldsMap().putIfAbsent(c.getName(), c));
         return getFieldsMap().values();
     }
-
+    
 }

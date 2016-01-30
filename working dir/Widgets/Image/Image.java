@@ -5,7 +5,7 @@ import java.io.File;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 
-import Configuration.IsConfig;
+import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;

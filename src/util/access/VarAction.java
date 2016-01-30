@@ -7,7 +7,7 @@ package util.access;
 
 import java.util.function.Consumer;
 
-import action.Action;
+import util.action.Action;
 import util.dev.TODO;
 
 import static util.functional.Util.map;

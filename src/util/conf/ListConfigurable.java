@@ -1,5 +1,5 @@
 
-package Configuration;
+package util.conf;
 
 import java.util.ArrayList;
 import java.util.Collection;

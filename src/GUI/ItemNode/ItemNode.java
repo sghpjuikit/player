@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 import javafx.scene.Node;
 
-import Configuration.Config;
+import util.conf.Config;
 
 /**
  * Graphics with a value. Mostly an ui editor that allows user to customize the

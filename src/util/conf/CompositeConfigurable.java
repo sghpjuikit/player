@@ -24,7 +24,7 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
     /** {@inheritDoc} */
     @Override
     public default Collection<Config<T>> getFields() {
-        Collection<Config<T>> l = new ArrayList(Configurable.super.getFields());
+        Collection<Config<T>> l = new ArrayList<>(Configurable.super.getFields());
         getSubConfigurable().forEach(c->c.getFields().forEach(l::add));
         return l;
     }

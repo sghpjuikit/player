@@ -130,7 +130,7 @@ public final class WidgetManager {
             .collect(toList()) // guarantees no concurrency problems due to forEach side effects
             .forEach(w -> {
                 Widget<?> nw = wf.create();
-                nw.setStateFrom(w);
+                nw.setStateFrom((Widget)w);
                 int i = w.indexInParent();
                 Container c = w.getParent();
                 c.removeChild(i);
@@ -411,12 +411,12 @@ public final class WidgetManager {
      * as for normal widgets - they can be obtained from layouts
      * Do not use.
      */
-    public final List<Widget> standaloneWidgets = new ArrayList();
+    public final List<Widget<?>> standaloneWidgets = new ArrayList<>();
 
-    public Stream<Widget> findAll(WidgetSource source) {
+    public Stream<Widget<?>> findAll(WidgetSource source) {
         switch(source) {
             case LAYOUT:
-                return getLayouts().flatMap(l->l.getAllWidgets());
+                return getLayouts().flatMap(l -> l.getAllWidgets());
             case STANDALONE:
             case NO_LAYOUT:
                 return standaloneWidgets.stream();
@@ -429,7 +429,7 @@ public final class WidgetManager {
         }
     }
 
-    public Optional<Widget> find(String name, WidgetSource source, boolean ignore) {
+    public Optional<Widget<?>> find(String name, WidgetSource source, boolean ignore) {
         return find(w -> w.name().equals(name) || w.nameGui().equals(name), source, ignore);
     }
 
@@ -437,7 +437,7 @@ public final class WidgetManager {
      * Equivalent to {@code find(filter, source, false);}
      * @see #find(java.util.function.Predicate, Layout.Widgets.WidgetManager.WidgetSource, boolean)
      */
-    public Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source) {
+    public Optional<Widget<?>> find(Predicate<WidgetInfo> filter, WidgetSource source) {
         return find(filter, source, false);
     }
 
@@ -465,8 +465,8 @@ public final class WidgetManager {
      * not desired, use false.
      * @return optional of widget fulfilling condition or empty if not available
      */
-    public Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source, boolean ignore) {
-        Widget out = null;
+    public Optional<Widget<?>> find(Predicate<WidgetInfo> filter, WidgetSource source, boolean ignore) {
+        Widget<?> out = null;
 
         // get preferred type
         String preferred = getFactories()
@@ -476,16 +476,16 @@ public final class WidgetManager {
                 .findAny().map(f->f.nameGui()).orElse("");
 
         // get viable widgets - widgets of the feature & of preferred type if any
-        List<Widget> widgets = findAll(source)
+        List<Widget<?>> widgets = findAll(source)
                 .filter(w -> filter.test(w.getInfo()))
-                .filter(w -> !w.isIgnored())
+                .filter(w -> !w.forbid_use.getValue())
                 .filter(preferred.isEmpty() ? w->true : w->w.getInfo().nameGui().equals(preferred))
                 .collect(Collectors.toList());
 
         // get preferred widget or any if none preferred
-        for(Widget w : widgets) {
+        for(Widget<?> w : widgets) {
             if(out==null) out = w;
-            if (w.isPreffered()) {
+            if (w.preferred.getValue()) {
                 out = w;
                 break;
             }
@@ -494,7 +494,7 @@ public final class WidgetManager {
         // if no active or layout widget available & new widgets allowed
         if (out == null && source.newWidgetsAllowed()) {
             // get factory
-            WidgetFactory f = getFactories()
+            WidgetFactory<?> f = getFactories()
                    .filter(filter::test)
                    .filter(w -> !w.isIgnored())
                    .filter(preferred.isEmpty() ? w->true : w->w.nameGui().equals(preferred))

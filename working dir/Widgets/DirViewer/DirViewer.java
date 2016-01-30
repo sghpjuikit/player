@@ -89,15 +89,15 @@ public class DirViewer extends ClassController {
             + "visit parent of this directory.")
     final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 
-    final PlaceholderPane placeholder = new PlaceholderPane(FOLDER_PLUS,"Click to view directory", () -> {
-        File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
-        if(dir!=null) files.list.setAll(dir);
-    });
     Item item = null;   // item, children of which are displayed
     ImprovedGridView<Item> grid = new ImprovedGridView<>(CellSize.NORMAL.width,CellSize.NORMAL.height,5,5);
     ExecutorService executor = newSingleDaemonThreadExecutor();
     boolean initialized = false;
     private volatile boolean isResizing = false;
+    final PlaceholderPane placeholder = new PlaceholderPane(FOLDER_PLUS,"Click to view directory", () -> {
+        File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
+        if(dir!=null) files.list.setAll(dir);
+    });
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));

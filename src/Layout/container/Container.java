@@ -125,13 +125,11 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     @XStreamOmitField public G ui;
 
 
-    /** {@inheritDoc} */
     @Override
     public String getName() {
         return this.getClass().getName();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Container getParent() {
         return parent;
@@ -265,13 +263,14 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         }
         return out.stream();
     }
+
     /**
      * Returns all widgets in layout mapB of which this is the root. In other words
      * all widget children recursively.
      * @return
      */
-    public Stream<Widget> getAllWidgets() {
-        List<Widget> out = new ArrayList<>();
+    public Stream<Widget<?>> getAllWidgets() {
+        List<Widget<?>> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
                 out.addAll(((Container<?>)w).getAllWidgets().collect(toList()));
@@ -281,6 +280,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         }
         return out.stream();
     }
+    
     /**
      * Returns all containers in layout mapB of which this is the root. In other words
      * all container children recursively. The root (this) is included in the list.

@@ -7,9 +7,7 @@ import java.io.ObjectStreamException;
 import java.util.UUID;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 
@@ -23,7 +21,9 @@ import Layout.widget.Widget.LoadType;
 import gui.GUI;
 import gui.objects.Window.stage.Window;
 import main.App;
+import util.access.V;
 import util.collections.map.PropertyMap;
+import util.conf.IsConfig;
 
 import static Layout.widget.Widget.LoadType.AUTOMATIC;
 import static main.App.APP;
@@ -46,7 +46,9 @@ public abstract class Component {
      */
     public final PropertyMap<String> properties = new PropertyMap<>();
     /** Denotes weather component loading is delayed until user manually requests it.  */
-    public final ObjectProperty<LoadType> loadType = new SimpleObjectProperty<>(AUTOMATIC);
+    @IsConfig(name = "Load type", info = "Manual type delays component loading until user manually requests it")
+    public final V<LoadType> loadType = new V<>(AUTOMATIC);
+
 
     /** @return name */
     abstract public String getName();
@@ -169,10 +171,7 @@ public abstract class Component {
 //*************************************** SERIALIZATION *******************************************/
 
     protected Object readResolve() throws ObjectStreamException {
-        if(lockedUnder == null)
-            util.Util.setField(this, "lockedUnder", new LockedProperty());
-        if(loadType == null)
-            util.Util.setField(this, "loadType", new SimpleObjectProperty<Widget.LoadType>(AUTOMATIC));
+        if(lockedUnder == null) util.Util.setField(this, "lockedUnder", new LockedProperty());
         return this;
     }
 
@@ -209,6 +208,5 @@ public abstract class Component {
             unbind();
         }
     }
-
 
 }

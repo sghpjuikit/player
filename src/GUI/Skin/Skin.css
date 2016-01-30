@@ -3193,17 +3193,14 @@
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .icon:disabled {
-    /* we want to support disabled state, this should be consistent with other
-       components' disaled styles */
-    -fx-opacity: 0.4;
+    -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
 }
 
 /**
  * Icon used as graphics in menu bars, context menus, etc
  * inherits: .icon
  */
-.embedded-icon {
-}
+.embedded-icon {}
 .embedded-icon:disabled {
    -fx-opacity: 1;  /* this is a bugfix to apply disabled state properly */
 }
@@ -3218,6 +3215,18 @@
 }
 .check-icon:selected {
    -glyph-name: TOGGLE_ON;
+}
+
+/** 
+ * Used for check icons that use single icon for selected/unselected and signal this state
+ * by style instead.
+ * inherits: .check-icon
+ */
+check-icon-disabling {
+    opacity: 1;
+}
+check-icon-disabling:selected {
+    opacity: 0.4; /* imitate disabled style, should be consistent with it */
 }
 
 /** 

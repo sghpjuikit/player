@@ -23,6 +23,7 @@ import util.functional.Functors;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.dev.TODO.Severity.SEVERE;
 import static util.functional.Util.*;
 
 /**
@@ -68,10 +69,10 @@ import static util.functional.Util.*;
         + "  in previous transformations, thats the cost of using it. User's fault.")
 public class ListAreaNode extends ValueNode<List<String>> {
 
-    private final VBox root = new VBox();
     protected final TextArea textarea = new TextArea();
-    public final FChainItemNode transforms = new FChainItemNode(Functors::getI);
+    private final VBox root = new VBox();
     private final List<Object> input = new ArrayList<>();
+    public final FChainItemNode transforms = new FChainItemNode(Functors::getI);
     /**
      * Output list, i.e., input list after transformation of each element.
      * The text of this area shows string representation of this list.
@@ -103,6 +104,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * and may not reflect it exactly when edited.
      */
     public final StringProperty output_string = textarea.textProperty();
+
 
     public ListAreaNode() {
         transforms.onItemChange = f -> {
@@ -188,12 +190,13 @@ public class ListAreaNode extends ValueNode<List<String>> {
         return textarea.getText();
     }
 
-    /** {@inheritDoc} */
     @Override
     public VBox getNode() {
         return root;
     }
 
+    // very naive, this is just bad...
+    @TODO(purpose = FUNCTIONALITY, severity = SEVERE)
     private static <E> Class<?> getElementClass(Collection<E> c) {
         for(E e : c) if(e!=null) return e.getClass();
         return Void.class;

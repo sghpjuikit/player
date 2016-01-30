@@ -63,7 +63,8 @@ import static util.graphics.Util.setScaleXY;
 public class Icon<I extends Icon<?>> extends Text {
 
     // animation builder, & reusable supplier
-    private static final Ƒ1<Icon,Anim> A = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
+    private static final Ƒ1<Icon,Anim> Apress = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
+    private static final Ƒ1<Icon,Anim> Ahover = i -> { double s = signum(i.getScaleX()); return new Anim(millis(200), p -> setScaleXY(i,s*(1+0.1*p*p*p),1+0.1*p*p*p)); };
     private static final Double DEFAULT_ICON_SIZE = 12.0;
     private static final String DEFAULT_FONT_SIZE = "1em";
     private static final EventHandler<Event> CONSUMER = Event::consume;
@@ -137,11 +138,11 @@ public class Icon<I extends Icon<?>> extends Text {
 
         // install click animation
         R<Anim> ra = new R<>(); // lazy singleton
-//        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
-//        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
+//        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,Apress).playOpenDo(null));
+//        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,Apress).playOpenDoClose(null));
         hoverProperty().addListener((o,ov,nv) -> {
-            if(nv) ra.get(this,A).playOpen();
-            else ra.get(this,A).playClose();
+            if(nv) ra.get(this,Ahover).playOpen();
+            else ra.get(this,Ahover).playClose();
         });
     }
 

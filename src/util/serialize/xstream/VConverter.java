@@ -1,7 +1,10 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package util.serialize.xstream;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.WritableValue;
 
 import com.thoughtworks.xstream.converters.Converter;
@@ -10,20 +13,21 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
 
-/**
- * Created at 17/09/11 11:10.<br>
- *
- * @author Antoine Mischler <antoine@dooapp.com>
- */
-public class ObjectPropertyConverter extends AbstractPropertyConverter<Object> implements Converter {
+import util.access.V;
 
-    public ObjectPropertyConverter(Mapper mapper) {
-        super(ObjectProperty.class, mapper);
+/**
+ *
+ * @author Plutonium_
+ */
+public class VConverter extends AbstractPropertyConverter<Object> implements Converter {
+
+    public VConverter(Mapper mapper) {
+        super(V.class, mapper);
     }
 
     @Override
     protected WritableValue<Object> createProperty() {
-        return new SimpleObjectProperty<>();
+        return new V<>(null);
     }
 
     @Override

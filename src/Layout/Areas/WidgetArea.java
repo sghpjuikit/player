@@ -46,8 +46,8 @@ public final class WidgetArea extends Area<Container> {
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;
     private Subscription s;
-    private Widget widget;
-    private final SingleR<PlaceholderPane,Widget> passiveLoadPane = new SingleR<>(() -> {
+    private Widget<?> widget;
+    private final SingleR<PlaceholderPane,Widget<?>> passiveLoadPane = new SingleR<>(() -> {
             return new PlaceholderPane(UNFOLD, "", () -> {
                 widget.loadType.set(AUTOMATIC);
                 loadWidget();
@@ -55,7 +55,7 @@ public final class WidgetArea extends Area<Container> {
             });
         },
         (placeholder,w) -> {
-            placeholder.desc.setText("Unfold " + w.getName() + " (Left Click)");
+            placeholder.desc.setText("Unfold " + w.custom_name.getValue() + " (Left Click)");
         }
     );
 
@@ -125,7 +125,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            controls.title.setText(widget.getInfo().nameGui());
+            maintain(widget.custom_name, controls.title.textProperty());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);
@@ -140,7 +140,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            controls.title.setText(widget.getInfo().nameGui());
+            maintain(widget.custom_name, controls.title.textProperty());
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);

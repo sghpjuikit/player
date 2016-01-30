@@ -253,7 +253,7 @@ public class Converter extends ClassController implements SongWriter {
             // graphics
             Label nameL = new Label("");
             Icon applyI = new Icon(OctIcon.DATABASE)
-                    .tooltip("Transform\n\nSet transformed (visible) data as input. The original data will be lost."
+                    .tooltip("Set as input\n\nSet transformed (visible) data as input. The original data will be lost."
                             + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : ""))
                     .onClick(() -> setData(output)); // this will update applier if it is main
             Icon remI = new Icon(MINUS)
@@ -263,7 +263,7 @@ public class Converter extends ClassController implements SongWriter {
                     .tooltip("Add\n\nCreate new edit area with no data.")
                     .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
             Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
-                    .tooltip("Copy data\n\nCopy data of edit area into new one. Data will retain its transformations."
+                    .tooltip("Copy data\n\nCopy transformed (visible) data into new edit area."
                             + "\n\nManual text changes will be ignored unless the type of transformation output is "
                             + "text. Use a transformation to text to achieve that."
                             + "")

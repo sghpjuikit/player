@@ -22,20 +22,21 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
-import util.conf.Configurable;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.Widget;
-import util.action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import main.Guide.Hint;
+import util.access.V;
+import util.action.Action;
 import util.animation.Anim;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
 import static Layout.container.Container.testControlContainer;
@@ -73,11 +74,11 @@ public final class Guide implements Configurable {
     @IsConfig(name = "Show guide on app start", info = "Show guide when application "
             + "starts. Default true, but when guide is shown, it is set to false "
             + "so the guide will never appear again on its own.")
-    public boolean first_time = true;
+    public final V<Boolean> first_time = new V<>(true,v -> System.out.println(v));
     private final double ICON_SIZE = 40; // use css style instead
     private final String STYLECLASS_TEXT = "guide-text";
 
-    private final List<Hint> hints = new ArrayList();
+    private final List<Hint> hints = new ArrayList<>();
     private int prev_at = -1;
     @IsConfig(name = "Position")
     private int at = -1;
@@ -87,7 +88,6 @@ public final class Guide implements Configurable {
     final Label infoL = new Label();
 
     public Guide() {
-
         text.setWrappingWidth(350);
         text.prefWidth(350);
         text.getStyleClass().add(STYLECLASS_TEXT);
@@ -101,15 +101,15 @@ public final class Guide implements Configurable {
         p.detached.set(true);
         p.setOnHiding(e -> run(20,() -> APP.actionStream.push("Guide closing")));
         p.getHeaderIcons().addAll(
-            // new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious),
             createInfoIcon(
                  "Guide info popup."
                + "\n\nThere are many others. If you see one for the first time, check it out."
                + "\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
             ),
+            // new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious), // unnecessary, uses left+right mouse button navigation
             infoL,
+            // new Icon(ARROW_RIGHT,11,"Next",this::goToNext) // unnecessary, uses left+right mouse button navigation
             new Label()
-            // new Icon(ARROW_RIGHT,11,"Next",this::goToNext)
         );
         p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
             if(e.getButton()==PRIMARY) goToNext();
@@ -407,7 +407,9 @@ public final class Guide implements Configurable {
         if(hints.isEmpty()) return;
         if (at<0 || at>=hints.size()) at=0;
         proceed_anim.playOpenDoClose(this::proceedDo);
+        first_time.set(false);
     }
+
     private void proceedDo() {
         // exit old hint
         if(prev_at>=0 && prev_at<hints.size()) {
@@ -478,12 +480,12 @@ public final class Guide implements Configurable {
 
     public void goToStart() {
         if(hints.isEmpty()) return;
-        first_time = false;
         prev_at = -1;
         at = 0;
         proceed();
     }
     public void goToPrevious() {
+        if(at==0) return;
         prev_at = at;
         at--;
         proceed();

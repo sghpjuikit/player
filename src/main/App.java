@@ -1,12 +1,6 @@
 
 package main;
 
-import util.conf.Config;
-import util.conf.Configurable;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
-import util.conf.Configuration;
-
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -74,9 +68,6 @@ import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import Layout.widget.feature.PlaylistFeature;
 import Layout.widget.feature.SongWriter;
-import util.action.Action;
-import util.action.IsAction;
-import util.action.IsActionable;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -113,8 +104,16 @@ import util.InstanceInfo;
 import util.InstanceName;
 import util.access.V;
 import util.access.VarEnum;
+import util.action.Action;
+import util.action.IsAction;
+import util.action.IsActionable;
 import util.animation.Anim;
 import util.async.future.Fut;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.Configuration;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.dev.TODO;
 import util.plugin.PluginMap;
 import util.reactive.RunnableSet;
@@ -126,6 +125,7 @@ import util.serialize.xstream.ObjectPropertyConverter;
 import util.serialize.xstream.PlaybackStateConverter;
 import util.serialize.xstream.PlaylistItemConverter;
 import util.serialize.xstream.StringPropertyConverter;
+import util.serialize.xstream.VConverter;
 import util.units.FileSize;
 
 import static Layout.widget.WidgetManager.WidgetSource.ANY;
@@ -354,19 +354,24 @@ public class App extends Application implements Configurable {
         XStream x = serializators.x;
         Mapper xm = x.getMapper();
         x.autodetectAnnotations(true);
+            // javafx properties
         x.registerConverter(new StringPropertyConverter(xm));
         x.registerConverter(new BooleanPropertyConverter(xm));
-        x.registerConverter(new ObjectPropertyConverter(xm));
         x.registerConverter(new DoublePropertyConverter(xm));
         x.registerConverter(new LongPropertyConverter(xm));
         x.registerConverter(new IntegerPropertyConverter(xm));
+        x.registerConverter(new ObjectPropertyConverter(xm));
+            // javafx collections
+        // x.registerConverter(new ObservableListConverter(xm)); // interferes with Playlist.class
+            // custom properties
+        x.registerConverter(new VConverter(xm));
+            // custom objects
         x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
-        // x.registerConverter(new ObservableListConverter(xm)); // interferes with Playlist.class
-        x.omitField(ObservableListBase.class, "listenerHelper");
-        x.omitField(ObservableListBase.class, "changeBuilder");
-        x.omitField(ObservableListWrapper.class, "elementObserver");
+        x.omitField(ObservableListBase.class, "listenerHelper"); // bloat
+        x.omitField(ObservableListBase.class, "changeBuilder"); // bloat
+        x.omitField(ObservableListWrapper.class, "elementObserver"); // bloat
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
         x.alias("item", PlaylistItem.class);
@@ -670,7 +675,7 @@ public class App extends Application implements Configurable {
         if(normalLoad) Player.loadLast();
 
         // show guide
-        if(guide.first_time) run(3000, guide::start);
+        if(guide.first_time.get()) run(3000, guide::start);
 
         // get rid of this, load from skins
         Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  // pass in the image path

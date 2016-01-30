@@ -23,6 +23,7 @@ import static util.reactive.Util.maintain;
 public class CheckIcon extends Icon<CheckIcon> {
     private static final PseudoClass selectedPC = getPseudoClass("selected");
     private static final String STYLECLASS = "check-icon";
+    private static final String STYLECLASS_DISABLING = "check-icon-disabling";
 
     /** Selection state.*/
     public final Property<Boolean> selected;
@@ -48,10 +49,23 @@ public class CheckIcon extends Icon<CheckIcon> {
 
     private Subscription s = null;
 
-    /** Sets normal and selected icons. Overrides css values. */
+    /** Sets normal and selected icons. Overrides icon css values. */
     public CheckIcon icons(GlyphIcons selectedIcon, GlyphIcons unselectedIcon) {
+        getStyleClass().remove(STYLECLASS_DISABLING);
         if(s!=null) s.unsubscribe();
         s = maintain(selected, v -> icon(v ? selectedIcon : unselectedIcon));
+        return this;
+    }
+
+    /**
+     * Sets normal and selected icons to the same icon. Overrides icon css values. Installs styleclass
+     * that imitates 'disabled' pseudoclass when not selected. This is used as a state indicator
+     * instead of different icon.
+     */
+    public CheckIcon icons(GlyphIcons icon) {
+        if(!getStyleClass().contains(STYLECLASS_DISABLING)) getStyleClass().add(STYLECLASS_DISABLING);
+        if(s!=null) s.unsubscribe();
+        icon(icon);
         return this;
     }
 }

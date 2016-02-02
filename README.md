@@ -1,73 +1,98 @@
-# Player
+#Intro
 
-JavaFX based audio player application.
-Aims:
-- customizability - allow user use the application how he wants, lots of settings, skins, etc.
-- modular user interface - ability to 'make your own gui'
-- support fancy features like: rating in tag, time comments, big images, advanced & intuitive library management
-- no library dependence(moving & renaming files will not result in loss of any information)
-- usability - efficient gui & workflow
-- responsive - fast and responsive gui, no modal dialogs, etc.
-- sexy
+## What is this?
+
+  The <b>Player</b> or <b>PlayerFX</b> is a desktop audio player and audio management application, which also turned into sort of dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
+
+I did not scare you away with that, did I?
+
+## Am I the target group?
+
+There are two reasons to be interested in this project:
+- as an <b>audio management system</b>. You may ask, why another audio player? Because there is significant lack of such application for a power user. It's not just about hitting a play button. Ever wanted to use timed comment? Ever lost your entire library song ratings due to corrupted database file? Ever needed multiple playlists or display/manipulate your songs in a way that just wasnt possible for some reason? This audioplayer addresses a lot of such issues.
+
+- as a <b>multiapplication</b> - collection of unrelated miniapplications. Image browser, movie explorer, file renamer and more. And if you know java, you can make your own app with simple text editor and literaly dozen lines of code - without java, without IDE and without hassles of creating and deploying your application - just write your code, hit save and watch as it autocompiles and runs as widget, which you can run as a standalone application! All that with included support for configurations, skins and everything else.
+
+## Motto
+
+- <b>Customizability</b> - User uses the application how he wants, not how it was designed to be used. Therefore emphasis on customization, skins, settings, etc.
+- <b>Portability</b> - No installation (or need for java or other programs), run from anywhere, little/no trace, everything is packaged along (no hunting your library database file in hidden Windows directories... 
+- <b>Modular functionality</b> - User can launch or use only selected components he is interested in and ignore everything else as if it was never there.
+- <b>Modular user interface</b> - User has the ability to 'make his own gui'. Completely custom component layout. He can create all-in-one GUI or use separate windows or - anything really.
+- <b>Fancy features</b> like: rating in tag, time comments, good image support, advanced & intuitive library management, etc.
+- <b>Library independence</b> - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
+- <b>Usability</b> - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
+- <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
+- <b>Sexy</b> - Your way of sexy if you know tiny bit about css.
+
+  Okey, okey so now, what can this application actually do?
+Glad you asked.
 
 ## Features
 
-###Playback 
+### Play audio 
 
-Filetypes:
-- mp3, mp4, m4a, wav, ogg, flac
-- possibly more to come
+- mp3, mp4, m4a, wav, ogg, flac, possibly more to come
+- file, http (over internet, support is limited to what javaFX can currently do - no flac & ogg).
 
-Protocols:
-- file
-- http: playback over internet (no flac & ogg)
+###Manage audio files
 
-###Media library 
-  
 Song database:
-- small footprint: roughly about 10MB for 20000 files
+- small footprint: in 10s of MBs for 10000s audio files
 - big: 40000 files no problem
-- fast: library is loaded into main memory.
-- no dependency: song files always store all data in their tag, moving or renaming files poses no problem
-- no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application
-- no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a cache, rather than storage.
+- fast: library is loaded into main memory (RAM).
+- no dependency: song files always store all data in their tag, moving or renaming files poses no problem.
+- no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application (or as a result of a bug)
+- no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a persistable cache, not as data storage.
 
-Song tables:
-- big: 30000 songs in playlist no problem
-- smart columns: set visibility, width, sorting, order of any column for any song attribute
-- visual searching: by any (textual) attribute (artist, composer, title, etc). Scrolls 1st match (to center) and highlights matches - so they 'pop' visually - the result is very convenient search, particularly on presorted tables.
-- powerful filtering - by any attribute, infinitely chainable, custom queries, negation, etc 
-- group by - e.g. table of songs per year, artist, etc. Searching, filtering and sorting fully supported.
+Management system is only as good as its user interface. There are powerful tables that try to be as flexible as possible.
+Tables:
+- big: 30000 songs in playlist no problem (although good luck loading it at the app start...)
+- smart columns: set visibility, width, sorting (multiple column), order of any column for any song attribute
+- visual searching: by any (textual) attribute (artist, composer, title, etc) simply by writing. Scrolls 1st match (to center) and highlights matches - so they 'pop' visually - shich doesnt strain your eyes that much. Its fast (no CTRL+F, just type...) and convenient.
+- powerful filtering - CTRL+F. Shows only matches. Filtering here is basically constructing logical predicates (e.g.: 'year' 'less than' '2004') and it is possible to use <b>any</b> combination of attributes (columns), 'comparators' and permissible values. Filters can be inverted (negation) or chained (conjunction).
+- group by - e.g. table of groups of songs per attribute (e.g. year or artist) Searching, filtering and sorting fully supported of course.
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
-- cascading - link tables to other tables as filters and display only selected items (e.g. show songs by authors selected in linked table)
+- cascading - link tables to other tables as filters and display only selected items (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
 
-###Tag editing
+###Audio tag editing
 
-  Application supports reading and writing song tag information, individually or for number of songs at once. The supported are all standard fields (e.g. artist or title), but also rating, playcount, color or timed comments. The aim is to be interoperable with other players. Noteworthy or nonstandard supported tags include:
+Application supports 
+- <b>reading</b>
+- <b>writing</b>
 
-  **Rating** 
-- values are in percent values forget implementation detail (mp3 max=255, flac/ogg max=100)
-- seamless values. Forget limiting scales like 1-5. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and decide your own visual representation (progress bar or any number of "stars" you want)
-- interoperable with other players (POPM frame), but most of them will only recognize the value as 3/5 or so.
-  
-  **Playcount**
-- number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power).
-- the data are written in custom tag (in mp3, writen duplicitly in POPM frame counter)
-  
-  **Chapters**
-- comments associated with specific time/part of the song. They can be added during playback on the seeker and browsed as popup menus. The length of the comment should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
-- The gui makes it really easy to add or edit these and takes no space, since it is using seeker bar and popup windows.
-- the data are written in custom tag
-- 
-  **Chapters**
-- just in case you associate some songs with a color...
+of song tags
 
-  **Cover**
-- image in tag can be imported/exported
-- cover read from file location is supported too, looking for image files named:
-  - song title
-  - song album
-  - "cover" or "folder"
+- individually
+- by group
+  - using Tagger to write the same data to multiple tags (songs may share an artist)
+  - using Converter to write multiple data to multiple tags (e.g. using titles from a tracklist)
+
+The supported are:
+- all file types (see at the top), including wma and mp4 (which normally can not have a tag)
+- all fields (comprehensive list later), including rating, playcount, color, timed comments.
+
+The aim is to be interoperable with other players, where possible. Noteworthy or nonstandard supported tags include:
+- <b>Rating</b>
+  - values are in percent values independent of implementation (mp3=0-255, flac/ogg=0-100)
+  - floating values (0-1). Values like {1,2,3,4,5} are obsolete, illogical and nobody agrees on what they mean. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and pick graphical representation (progress bar or any number of "stars" you want). Basically rate 1) how you want 2) all audio types the same 3) be happy the value is in the tag 4) visualie the rating value as you want - be it 3 stars or 10 or a progress bar.
+  - interoperable with other players (POPM frame), but most of them will only recognize the value in their own way
+- <b>Playcount</b>
+  - number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power!).
+  - the data are written in custom tag (in mp3, writen duplicitly in POPM frame counter)
+- <b>Time comments/chapters</b>
+  - comments associated with specific time/part of the song. They can be added during playback on the seeker and viewed in popup menus. The length of the comment should be a non-issue (the upper value is unknown, but should be enough).
+  - The gui makes it really easy to add or edit these and takes no space, since it is using seeker bar and popup windows.
+  - the data are written in custom tag
+- <b>Color</b>
+  - just in case you want to associate songs with a colors, you can.
+  - using custom tag
+- <b>Cover</b>
+  - image in tag can be imported/exported (but I advise against placing images in audio tags, it is impractical (large space requirements - it adds up..) and semantically incorrect (cover is album metadata, not song metadata)).
+  - cover read from file location is supported too, looking for image files named:
+    - song title.filetype
+    - song album.filetype
+    - cover.filetype or folder.filetype
   
 ### Configurability
 
@@ -75,22 +100,64 @@ Song tables:
 
 ### Modularity
 
-  Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added as plugins.
-  Some of the existing widgets are:
-- Playback & Mini - controls for playback, like seeking. Supports chapters.
-- FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
-- Tagger - for tagging
-- Library & LibraryView - song tables
-- ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
-- Settings - application settings, but it is also a generic configurator for any object exposing its Configurable API (like widgets or even GUI itself)
-- Converter - object -> object converting. Displays objects as text while allowing user to apply functions transformations. Handy file renamer and per-song tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
-- Explorer - simple file system browser. Nothing bigCurrently slow for big folders.
-- Inspector - displays hierarchies, like file system or gui scene graph. 
-- Icon - fully configurable icon bar. Icons can execute any (supported) application action.
+  Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. Widgets' source files can be created and edited in runtime and any changes will be immediatelly reflected in the application. This means that if you are a developer you just edit code of the .java file, hit save and watch as the widgets are (recompiled and then) reloaded with previous state and configuration. 
+  
+Comprehensive widget list:
+- <b>Playback</b>
+  - controls for playback, like seeking. Supports chapters.
+- <b>Playback Mini</b>
+  - Minimalistic dock version of Playback widget.
+- <b>Playlist</b>
+  - Table or playing songs. Of course it is possible to use more of themat once. Very handy to have a side-playlist sometimes.
+- <b>FileInfo</b>
+  - Shows cover and song metadata. Supports cover download (url drag & drop) and rating.
+- <b>Tagger</b>
+  - Tag editor
+- <b>Converter</b>
+  - Object-object converting facility.
+  - Displays objects as text while allowing user to apply function transformations. Handy file renamer and per-song group tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
+  - Provides set of functions that transform java objects (such as String or File). User can then set some kind of input (formally List<INPUT>) and apply and chain these transformation functions (on every element of the list) to get some result (List<OUTPUT>. It may sound confusing at first, but its a intuitive and very powerful thing, particularly when combined with the ability to see the transformation output as a text at every step and the ability to manually edit this text and reuse it as an input for further transformation. The final output can be used as text or for an action, such as
+  - file renaming
+  - tagging
+This makes it possible to import song titles from copypasted tracklist found on web by 'cleaning' it up with text line transformations (remove x characters from start, etc.) rather than manually. Changing extension or names of bunch of files is peace of cake.
+- <b>Library</b> + <b>LibraryView</b> - song tables. User can link them up so they display increasingly filtered/sepecialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. So on until Nth table displays the songs. Combinations are endless. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktops). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it is possible to create a multiple views with lots of tables with practically no performance impact at all (by using views only when needed and have them 'sleep', but be prepared and configured all the time).
+- <b>Image</b>
+  - Image viewr - displays an image.
+- <b>ImageViewer</b>
+  - Image browser displays animage and thumbnails for images in a directory. It can also be set up to display directory of the currently playing song (or any song for that matter). useful to show more than a song cover, if you have more alum images.
+  - has slideshow
+  - has 'theater' mode intended to use as fullscreen album cover slideshow with a 'now playing' info overlay
+- <b>Settings</b>
+  - configuring facility displaying settings for either:
+    - application
+    - widget
+    - javaFX scenegraph
+    - other java object implementing Configurable. There are methods to turnplain java objects into Configurable. For example using annotations on fields or using javaFX proeprties.
+- <b>Explorer</b>
+  - simple file system browser. Nothing big. Currently slow for big folders (1000+ of files).
+- <b>Inspector</b>
+  - displays hierarchies:
+    - application modules
+    - file system
+    - scene graph (this is taking the idea from the ScenicView app and works basically the same). When used with the combination of Settings widget its a great way to debug the application scenegraph (yeah from within the application)
+- <b>Logger</b>
+  - displays System.out in a TextArea. For developers
+- <b>IconBox</b>
+  - configurable icon bar/dock. User can add/remove custom icons executing some predefined.
+- <b>FunctionViewer</b>
+  - plots custom mathematical function in a graph
+- <b>Spectrum</b>
+  - Displays the audio spectrum of the playing song (doesnt work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines!! Not really useful aside being a fancy visualisation though.
+- <b>WebReader</b>
+  - In-app web browser. Experimental &not very useful. Image drag & drop has terrible performance for some reason.
+- <b>Layouts</b>
+  - Layout manager. Saved layout browser. Currently outdated and argely useless. Planned for complete rewrite.
+- <b>Comet</b>
+  - Loose java port of the (popular?) game Comet from 90s. Something between Crimsonland and Geometry Wars. Basically you fly a rocket and shoot UFOs and asteroids to clear missions with increasing difficulty. For up to 8 players (no internet support, so prepare lots of keyboards and a living room). Pretty advanced effects though, including Black holes, force fields and wapring frid (inspired by Grid Wars/Geometry Wars). Anyone running this app better try the game out. Line count sits at about 5000). There was no particular reason to do this other than bring my childhood back and master javaFX Canvas.
 
 ### Portability
 
-  The application in its self-contained form:
+The application in its self-contained form:
 - has executable .exe
 - requires no installation
 - requires no software (e.g. java) preinstalled
@@ -104,7 +171,7 @@ Song tables:
 
 - minimalistic - shows only whats important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
 - powerful - infinite virtual space, horizontally scrollable, zoomable
-- layout mode - powerful mode displaying 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
+- layout mode - temporary 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
 - completely skinnable (css)(skin discovery + change + refresh does not require application restart)
 
 Widgets:
@@ -112,9 +179,11 @@ Widgets:
 - inputs and outputs can be bound - when output value changes, it is passed into the listening input of other widget
 - inputs can be set to custom values
 - the whole system is displayed visually as editable graph
+- can load lazily - be passive until user explicitly requests loading with mouse click.
 
 Layouts:
-- widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations
+- widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations.
+- Individual containers form nested hierarchy that can be configured at any level easily through user interface, navigating with left (down) + right (up) mouse click in layout mode. 
 - multiple layout support/virtual layout space. Switching layouts by dragging them horizontally (left,right) opens new space for more layouts. This provides virtually infinitely large and conveniently navigable working space.
 
 Windows:
@@ -145,21 +214,70 @@ Windows:
 
 ### More
 
-- configurable playcount incrementing strategy: at specified minimal time or percent of song playback
-- cover downloading on drag&drop
-- animations & effects
+- Configurable playcount incrementing strategy: at specified minimal time or percent of song playback.
+- Web search with a query, e.g., search album on Google (opens default browser).
+- Cover downloading on drag&drop.
+- Cool animations & effects.
+- Smart drag&drop system (born from neessity). Drag&drop has never been more easy to use.
+  - area that is would accept drag&drop (if mouse button were to be released) is visually highlighted anddisplays icon and description of the action that is would execute
+  - individual components supporting drag&drop can cover each other
 - crisp images in any size, be it 100x100px thumbnail or mammoth image displayed on your new big display. Images load quickly and dont cause any lag (not even the big ones), images around 5000px are handled just fine (just dont look at memory).
 
 Platforms:
 - Windows
-- Linux (not thoroughly tested, no support for global shortcuts)
+- Linux (untested, no support for global shortcuts)
 - Mac (untested)
 
 ## Screenshots
 
-![ScreenShot](/extra/screenshot1.png)
 
-![ScreenShot](/extra/screenshot3.png)
+
+![ScreenShot](/extra/screenshot_playlists.jpg)
+Depicts:
+- multiple playlists
+- drag&drop on 2nd playlist
+- time comment displayed in the popup
+
+
+![ScreenShot](/extra/screenshot_actions.jpg)
+
+Depicts:
+- application support action menu
+- 'glass' effect
+
+
+![ScreenShot](/extra/screenshot_layoutmode.jpg)
+
+Depicts:
+- layout mode
+- widget input-output links
+
+
+![ScreenShot](/extra/screenshot_widgets.jpg)
+
+Depicts:
+- function plotting, audio spectrum, logger widgets
+- interactive guide
+- custom skin
+
+
+![ScreenShot](/extra/screenshot_comet1.jpg)
+
+![ScreenShot](/extra/screenshot_comet2.jpg)
+
+Depicts:
+- Comet game widget
+
+
+![ScreenShot](/extra/screenshot_old1.png)
+
+Depicts an old build of the application with an old skin.
+
+
+![ScreenShot](/extra/screenshot_old2.png)
+
+Depicts an old build of the application with an old skin.
+
 
 ## The Catch XXII
 

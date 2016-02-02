@@ -94,7 +94,7 @@ public final class UiContext {
                w.setContent(widget);
                w.show();
                w.setScreen(windowManager.getActive().getScreen());
-               w.centerOnScreen();
+               w.setXYScreenCenter();
         return w;
     }
 

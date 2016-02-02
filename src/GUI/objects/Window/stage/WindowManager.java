@@ -439,7 +439,7 @@ public class WindowManager implements Configurable<Object> {
         // show windows
         if(ws.isEmpty()) {
             Window w = create();
-                   w.setXyNsizeToInitial();
+                   w.setXYSizeInitial();
                    w.initLayout();
                    w.update();
                    w.show();
@@ -463,16 +463,16 @@ public class WindowManager implements Configurable<Object> {
 	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
 	    Window w = (Window) value;
 	    writer.startNode("W");
-	    writer.setValue(w.WProp.getValue().toString());
+	    writer.setValue(w.W.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("H");
-	    writer.setValue(w.HProp.getValue().toString());
+	    writer.setValue(w.H.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("X");
-	    writer.setValue(w.XProp.getValue().toString());
+	    writer.setValue(w.X.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("Y");
-	    writer.setValue(w.YProp.getValue().toString());
+	    writer.setValue(w.Y.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("minimized");
 	    writer.setValue(w.s.iconifiedProperty().getValue().toString());
@@ -498,16 +498,16 @@ public class WindowManager implements Configurable<Object> {
 	    if (w == null) return null;
 
 	    reader.moveDown();
-	    w.WProp.set(Double.parseDouble(reader.getValue()));
+	    w.W.set(Double.parseDouble(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
-	    w.HProp.set(Double.parseDouble(reader.getValue()));
+	    w.H.set(Double.parseDouble(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
-	    w.XProp.set(Double.parseDouble(reader.getValue()));
+	    w.X.set(Double.parseDouble(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
-	    w.YProp.set(Double.parseDouble(reader.getValue()));
+	    w.Y.set(Double.parseDouble(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
 	    w.s.setIconified(Boolean.parseBoolean(reader.getValue()));

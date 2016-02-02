@@ -1,7 +1,5 @@
 package gui.objects.Window.stage;
 
-import util.conf.IsConfigurable;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +34,17 @@ import Layout.Component;
 import Layout.container.layout.Layout;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.container.switchcontainer.SwitchPane;
-import util.action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import main.App;
+import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
+import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -58,6 +57,7 @@ import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Math.*;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCombination.keyCombination;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -65,6 +65,8 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static main.App.APP;
+import static util.access.SequentialValue.next;
+import static util.access.SequentialValue.previous;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
 import static util.dev.Util.yes;
@@ -241,17 +243,42 @@ public class Window extends WindowBase {
 	    else if (e.getDeltaY() < 0) PLAYBACK.volumeDec();
 	});
 
+        List<Maximized> maximizeds = list(Maximized.LEFT,Maximized.NONE,Maximized.RIGHT);
+        List<Screen> screens = Screen.getScreens();
+        KeyCombination cycleSMLeft = keyCombination("Alt+Left");
+        KeyCombination cycleSMRight = keyCombination("Alt+Right");
+        KeyCombination maximize = keyCombination("Alt+Up");
+        KeyCombination minimize = keyCombination("Alt+Down");
+
         // layout mode on key press/release
 	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
                 if(e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
                     runLater(() ->{
-                                    getSwitchPane().widget_io.layout();
-                                    getSwitchPane().widget_io.drawGraph();
+                        getSwitchPane().widget_io.layout();
+                        getSwitchPane().widget_io.drawGraph();
                     });
 	    }
+            if(e.getEventType().equals(KEY_PRESSED)) {
+                if(cycleSMLeft.match(e)) {
+                    if(maximized.get()==Maximized.LEFT) screen = previous(screens,screen);
+                    setMaximized(previous(maximizeds,maximized.get()));
+                }
+                if(cycleSMRight.match(e)) {
+                    if(maximized.get()==Maximized.RIGHT) screen = next(screens,screen);
+                    setMaximized(next(maximizeds,maximized.get()));
+                }
+                if(maximize.match(e)) {
+                    setMaximized(Maximized.ALL);
+                }
+                if(minimize.match(e)) {
+                    if(maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
+                    else minimize();
+                }
+            }
 	});
+
 
 	Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 	Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
@@ -678,14 +705,14 @@ public class Window extends WindowBase {
             double L = 18; // corner treshold
 
             Resize r = NONE;
-            if ((X > WW - L) && (Y > WH - L))   r = SE;
-            else if ((X < L) && (Y > WH - L))   r = SW;
-            else if ((X < L) && (Y < L))        r = NW;
-            else if ((X > WW - L) && (Y < L))   r = NE;
+            if ((X > WW - L) && (Y > WH - L))   r = Resize.SE;
+            else if ((X < L) && (Y > WH - L))   r = Resize.SW;
+            else if ((X < L) && (Y < L))        r = Resize.NW;
+            else if ((X > WW - L) && (Y < L))   r = Resize.NE;
             else if ((X > WW - L))              r = Resize.E;
-            else if ((Y > WH - L))              r = S;
-            else if ((X < L))                   r = W;
-            else if ((Y < L))                   r = N;
+            else if ((Y > WH - L))              r = Resize.S;
+            else if ((X < L))                   r = Resize.W;
+            else if ((Y < L))                   r = Resize.N;
             isResizing.set(r);
         }
 	e.consume();
@@ -702,25 +729,25 @@ public class Window extends WindowBase {
     private void border_onDragged(MouseEvent e) {
         if(resizable.get()) {
             Resize r = isResizing.get();
-            if (r == SE)
+            if (r == Resize.SE)
                 setSize(e.getScreenX() - getX(), e.getScreenY() - getY());
-            else if (r == S)
+            else if (r == Resize.S)
                 setSize(getWidth(), e.getScreenY() - getY());
             else if (r == Resize.E)
                 setSize(e.getScreenX() - getX(), getHeight());
-            else if (r == SW) {
+            else if (r == Resize.SW) {
                 setSize(getX() + getWidth() - e.getScreenX(), e.getScreenY() - getY());
                 setXY(e.getScreenX(), getY());
-            } else if (r == W) {
+            } else if (r == Resize.W) {
                 setSize(getX() + getWidth() - e.getScreenX(), getHeight());
                 setXY(e.getScreenX(), getY());
-            } else if (r == NW) {
+            } else if (r == Resize.NW) {
                 setSize(getX() + getWidth() - e.getScreenX(), getY() + getHeight() - e.getScreenY());
                 setXY(e.getScreenX(), e.getScreenY());
-            } else if (r == N) {
+            } else if (r == Resize.N) {
                 setSize(getWidth(), getY() + getHeight() - e.getScreenY());
                 setXY(getX(), e.getScreenY());
-            } else if (r == NE) {
+            } else if (r == Resize.NE) {
                 setSize(e.getScreenX() - getX(), getY() + getHeight() - e.getScreenY());
                 setXY(getX(), e.getScreenY());
             }

@@ -79,7 +79,7 @@ public class JavaSoundPlayer implements Play {
     }
 
     @Override
-    public void createPlayback(Item item, PlaybackState state, Runnable after){
+    public void createPlayback(Item item, PlaybackState state, Runnable onOk, Runnable onFail) {
         Player.IO_THREAD.execute( () -> {
             try {
                 p.open(item.getFile());
@@ -99,13 +99,14 @@ public class JavaSoundPlayer implements Play {
                             else if (s == PAUSED) p.pause();
                         }
 
-                        after.run();
+                        onOk.run();
                     } catch (PlayerException ex) {
                         Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 });
             } catch (PlayerException ex) {
                 Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
+                onFail.run();
             }
         });
     }

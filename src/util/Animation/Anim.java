@@ -72,17 +72,34 @@ public class Anim extends Transition {
     public final Consumer<Double> affector;
     public final DoubleProperty position = new SimpleDoubleProperty(0);
 
-
-    public Anim(Consumer<Double> affector) {
-        noØ(affector);
-        this.affector = affector;
+    /** Creates animation with specified frame rate and sideffect called at every frame. */
+    public Anim(double targetFPS, Consumer<Double> sideffect) {
+        super(targetFPS);
+        noØ(sideffect);
+        this.affector = sideffect;
     }
-    public Anim(Duration length, Consumer<Double> affector) {
-        this(affector);
+
+    /** Creates animation with default framerate and specified sideffect called at every frame. */
+    public Anim(Consumer<Double> sideffect) {
+        noØ(sideffect);
+        this.affector = sideffect;
+    }
+
+    /**
+     * Convenience constructor.
+     * Creates animation with default framerate and specified duration and sideffect called at every frame.
+     */
+    public Anim(Duration length, Consumer<Double> sideffect) {
+        this(sideffect);
         setCycleDuration(length);
     }
-    public Anim(Duration length, Interpolator i, Consumer<Double> affector) {
-        this(length,affector);
+
+    /**
+     * Convenience constructor.
+     * Creates animation with default framerate and specified duration, interpolator and sideffect called at every frame.
+     */
+    public Anim(Duration length, Interpolator i, Consumer<Double> sideffect) {
+        this(length,sideffect);
         setInterpolator(i);
     }
 

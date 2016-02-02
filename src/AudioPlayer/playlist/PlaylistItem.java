@@ -78,6 +78,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     private String title;
     private boolean updated;
     boolean corrupted = false;
+    @Deprecated public volatile boolean playbackerror = false;
 
     /**
      * URI Constructor.
@@ -273,8 +274,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     @Override
     public boolean isCorrupt(AudioFileFormat.Use use) {
         AudioFileFormat f = getFormat();
-        boolean c = isCorruptWeak();
-        corrupted = !f.isSupported(Use.PLAYBACK) || c;
+        corrupted = playbackerror || !f.isSupported(Use.PLAYBACK) || isCorruptWeak();
         return corrupted;
     }
 

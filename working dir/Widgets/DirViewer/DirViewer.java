@@ -447,9 +447,9 @@ public class DirViewer extends ClassController {
     ).toList();
     static {
         AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
-        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No" + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
+        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
         ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
-        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No" + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
+        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
     }
     PƑ0<File,Boolean> getFilter() {
         return stream(filters)

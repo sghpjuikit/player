@@ -7,12 +7,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import AudioPlayer.playlist.sequence.PlayingSequence;
-import util.conf.Configurable;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.collections.mapset.MapSet;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;
 
@@ -31,9 +31,9 @@ public class PlaylistManager implements Configurable {
     public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
     /** Last selected item on playlist or null if none. */
-    public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource(null);
+    public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
     /** Selected items on playlist or empty list if none. */
-    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource(EMPTY_LIST);
+    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(EMPTY_LIST);
 
     public static void use(Consumer<Playlist> action) {
         Playlist p = null;

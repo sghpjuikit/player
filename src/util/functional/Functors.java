@@ -638,8 +638,10 @@ public class Functors {
         add("Path",       File.class,String.class, File::getAbsolutePath);
         add("Size",       File.class,FileSize.class, FileSize::new);
 
-        AudioFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f));
-        ImageFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f));
+        // I Dont consider this a good idea. FileFormat predicates shouldnt go to File.
+        // Left here for reference.
+        // AudioFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f));
+        // ImageFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f));
 
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));

@@ -154,7 +154,8 @@ public abstract class Component {
      * current settings.
      */
     public void exportFxwl(File dir) {
-        File f = new File(dir,getName() + ".fxwl");
+        String name = this instanceof Widget ? ((Widget<?>)this).custom_name.getValue() : getName();
+        File f = new File(dir,name + ".fxwl");
         try {
             App.APP.serializators.toXML(this, f);
         } catch (IOException ex) {
@@ -171,6 +172,12 @@ public abstract class Component {
 //*************************************** SERIALIZATION *******************************************/
 
     protected Object readResolve() throws ObjectStreamException {
+        // Special case. The class at hand (LockedProperty) is inner class (due to unavoidable
+        // dependency on this one) and can not be deserialized since we can not create an
+        // xstream converter for it.
+        //
+        // We must always initialize it manually (we use @XStreamOmit for that) and because
+        // it really should be final, but the initialization is here, we use reflection
         if(lockedUnder == null) util.Util.setField(this, "lockedUnder", new LockedProperty());
         return this;
     }
@@ -186,7 +193,7 @@ public abstract class Component {
      */
     public final BooleanProperty locked = new SimpleBooleanProperty(false);
     /** True if this container is locked or any parent is locked or entire ui is locked. */
-    @XStreamOmitField
+    @XStreamOmitField // see readResolve() method
     public final LockedProperty lockedUnder = new LockedProperty();
 
     public class LockedProperty extends SimpleBooleanProperty {

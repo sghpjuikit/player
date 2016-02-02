@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -1048,12 +1047,12 @@ public class App extends Application implements Configurable {
          * Add listener that will receive the stream data (always on fx thread).
          * @return action that removes the listener
          */
-        public Subscription addListener(IntConsumer listener) {
+        public Subscription addListener(Consumer<String> listener) {
             clonedstream.listeners.add(listener);
             return () -> clonedstream.listeners.remove(listener);
         }
 
-        public void removeListener(IntConsumer listener) {
+        public void removeListener(Consumer<String> listener) {
             clonedstream.listeners.remove(listener);
         }
 
@@ -1062,14 +1061,34 @@ public class App extends Application implements Configurable {
     /** *  Helper class for {@link SystemOutListener}. */
     private class SystemOutDuplicateOutputStream extends OutputStream {
         private final PrintStream sout = System.out;
-        private final List<IntConsumer> listeners = new ArrayList<>();
+        private final List<Consumer<String>> listeners = new ArrayList<>();
 
         @Override
         public void write(int b) throws IOException {
-            sout.write(b);
-            if(!listeners.isEmpty())
-                runFX(() -> listeners.forEach(l -> l.accept(b)));
+            // Less efficient, we wont use it.
+            // sout.write(b);
+            // if(!listeners.isEmpty())
+            //     runFX(() -> listeners.forEach(l -> l.accept(b)));
+            throw new AssertionError();
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            // copied from super.write(...) implementation
+            if (b == null) {
+                throw new NullPointerException();
+            } else if ((off<0) || (off>b.length) || (len<0) || (off+len >b.length) || (off+len <0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return;
+            }
+
+            // for (int i=0 ; i<len ; i++) write(b[off + i]);
+            sout.write(b, off, len);
+            if(!listeners.isEmpty()) {
+                String s = new String(b); // encoding!?
+                runFX(() -> listeners.forEach(l -> l.accept(s)));
+            }
         }
     }
-
 }

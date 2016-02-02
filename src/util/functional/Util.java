@@ -74,7 +74,7 @@ public class Util {
         return a == b || (a!=null && a.equals(b));
     }
 
-    /**  */
+    @SafeVarargs
     public static <E> boolean isIn(E o, E... es) {
         for(E e : es)
             if(o.equals(e))
@@ -89,6 +89,7 @@ public class Util {
         return false;
     }
 
+    @SafeVarargs
     public static <E> boolean isInR(E o, E... es) {
         for(E e : es)
             if(o == e)
@@ -103,22 +104,28 @@ public class Util {
         return false;
     }
 
+    @SafeVarargs
     public static <E> boolean isInR(E o, Collection<E> es, E... ess) {
         return isInR(o, es) || isInR(o, ess);
     }
 
+    @SafeVarargs
     public static <E> boolean isAll(E o, Predicate<E>... ps) {
         boolean b = true;
         for(Predicate<E> p : ps)
             b &= p.test(o);
         return b;
     }
+
+    @SafeVarargs
     public static <E> boolean isAny(E o, Predicate<E>... ps) {
         boolean b = false;
         for(Predicate<E> p : ps)
             b |= p.test(o);
         return b;
     }
+
+    @SafeVarargs
     public static <E> boolean isNone(E o, Predicate<E>... ps) {
         return !isAll(o, ps);
     }
@@ -300,6 +307,7 @@ public class Util {
     }
 
     /** Returns the first supplied non null value or null if all null by iterating the suppliers. */
+    @SafeVarargs
     public static <I> I noNull(Supplier<I>... suppliers) {
         for(Supplier<I> s : suppliers) {
             I i = s.get();
@@ -349,6 +357,7 @@ public class Util {
     public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
     }
+
     /** Equivalent to {@code noExE(f, null, ecs); }*/
     public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
@@ -860,6 +869,7 @@ public class Util {
         return b.build();
     }
 
+    @SafeVarargs
     public static<T> Set<T> set(T... ts) {
         Set<T> l = new HashSet<>(ts.length);
         for(T t : ts) l.add(t);
@@ -867,16 +877,19 @@ public class Util {
     }
 
     /** Creates an array filled with provided elements. The array's length will equal element count. */
+    @SafeVarargs
     public static <T> T[] array(T... elements) {
         return elements;
     }
 
     /** Returns modifiable list containing specified elements. */
+    @SafeVarargs
     public static<T> List<T> list(T... ts) {
         List<T> l = new ArrayList<>(ts.length);
         for(T t : ts) l.add(t);
         return l;
     }
+
     /**
      * Returns unmodifiable list containing specified elements. Optimized:
      * <ul>
@@ -891,11 +904,14 @@ public class Util {
         if(l==1) return singletonList(ts[0]);
         else return Arrays.asList(ts);
     }
+
     /** Returns modifiable list containing elements in the specified collection. */
     public static<T> List<T> list(Collection<? extends T> a) {
         return new ArrayList<>(a);
     }
+
     /** Returns modifiable list containing elements in both specified collection and array. */
+    @SafeVarargs
     public static<T> List<T> list(Collection<T> a, T... ts) {
         List<T> out = new ArrayList<>(a);
         for(int i=0; i<ts.length; i++) out.add(ts[i]);
@@ -1006,6 +1022,7 @@ public class Util {
     }
 
     /** Filters and then maps array. Returns list. Source remains unchanged. */
+    @SafeVarargs
     public static<T,R> List<R> filterMap(Predicate<T> f, Function<T,R> m, T... a ) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }

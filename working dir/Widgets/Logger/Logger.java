@@ -6,14 +6,14 @@
 
 package Logger;
 
-import java.util.function.IntConsumer;
+import java.util.function.Consumer;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 
-import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
+import util.conf.IsConfig;
 
 import static main.App.APP;
 import static util.graphics.Util.setAnchors;
@@ -38,7 +38,7 @@ import static util.graphics.Util.setMinPrefMaxSize;
 public class Logger extends ClassController {
 
     private final TextArea area = new TextArea();
-    private final IntConsumer writer = b -> area.appendText(String.valueOf((char) b));
+    private final Consumer<String> writer = area::appendText;
 
     @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
     public final BooleanProperty wrap_text = area.wrapTextProperty(); // default == false

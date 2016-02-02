@@ -24,8 +24,12 @@ import static AudioPlayer.playback.PLAYBACK.*;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static util.File.AudioFileFormat.*;
+import static util.async.Async.runFX;
+import static util.dev.Util.log;
 
 /**
+ * Audio player which abstracts away from the implementation. It 'uses' actual players and provides
+ * some of the higher level features they may lack.
  *
  * @author yoss
  */
@@ -46,8 +50,11 @@ public class GeneralPlayer {
     public final RealTimeProperty realTime = new RealTimeProperty(state.duration, state.currentTime);
 
 
-    public void play(PlaylistItem item) {
-        // prevent recreating the whole thing if same song plays again
+    @SuppressWarnings("deprecation")
+    synchronized public void play(PlaylistItem item) {
+        // Dont recreate player if same song plays again
+        // 1) improves performance
+        // 2) avoids firing some playback events
         if(p!=null && item.same(i)) {
             seek(Duration.ZERO);
             return;
@@ -57,31 +64,42 @@ public class GeneralPlayer {
         if(p!=null) p.dispose();
         p = getPlayer(item);
 
-        // handle unsupported
-        if (p==null) {
-            PlaylistManager.use(p -> p.playItem(item)); // handle within playlist
-            return;
-        }
-
         // play
-        p.createPlayback(item, state, () -> {
-            realTime.real_seek = state.realTime.get();
-            realTime.curr_sek = Duration.ZERO;
-            p.play();
+        try {
 
-            realTime.synchroRealTime_onPlayed();
-            // throw item change event
-            Player.playingtem.itemChanged(item);
-            suspension_flag = false;
-            // fire other events (may rely on the above)
-            PLAYBACK.playbackStartDistributor.run();
-            if(post_activating_1st || !post_activating)
-                // bugfix, unupdated playlist items can get here, but shouldnt!
-                if(item.getTimeMs()>0)
-                    PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
-            post_activating = false;
-            post_activating_1st = false;
-        });
+            if(p==null) throw new NoPlayerException();
+            p.createPlayback(item, state,
+                () -> {
+                    realTime.real_seek = state.realTime.get();
+                    realTime.curr_sek = Duration.ZERO;
+                    p.play();
+
+                    realTime.synchroRealTime_onPlayed();
+                    // throw item change event
+                    Player.playingtem.itemChanged(item);
+                    suspension_flag = false;
+                    // fire other events (may rely on the above)
+                    PLAYBACK.playbackStartDistributor.run();
+                    if(post_activating_1st || !post_activating)
+                        // bugfix, unupdated playlist items can get here, but shouldnt!
+                        if(item.getTimeMs()>0)
+                            PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
+                    post_activating = false;
+                    post_activating_1st = false;
+                },
+                () -> {
+                    runFX(() -> {
+                        log(GeneralPlayer.class).info("Player {} can not play item {}", p,item);
+                        item.playbackerror = true;
+                        PlaylistManager.use(p -> p.playNextItem()); // handle within playlist
+                    });
+                }
+            );
+        } catch(NoPlayerException e) {
+            log(GeneralPlayer.class).info("Player {} can not play item {}", p,item);
+            item.playbackerror = true;
+            PlaylistManager.use(p -> p.playNextItem()); // handle within playlist
+        }
     }
 
     public void resume() {
@@ -138,4 +156,6 @@ public class GeneralPlayer {
         p.dispose();
         p=null;
     }
+
+    private static class NoPlayerException extends Exception {}
 }

@@ -35,33 +35,30 @@ import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
- * Graphical wrapper for {@link Widget}. Any widget is always contained in this area. It manages
+ * Graphical wrapper for {@link Widget}. Every widget is always contained in this area. It manages
  * widget's lifecycle, provides user interface for interacting (configuration, etc.) with the
  * widget and is a sole entry point for widget loading.
  * <p>
- * Maintains 1:1 relationship with the widget.
+ * Maintains final 1:1 relationship with the widget. Widget area can contain only 1 widget provided
+ * at the creation and it can not be changed (although the parent container can create another one).
  */
 public final class WidgetArea extends Area<Container> {
 
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;
-    private Subscription s;
-    private Widget<?> widget;
-    private final SingleR<PlaceholderPane,Widget<?>> passiveLoadPane = new SingleR<>(() -> {
-            return new PlaceholderPane(UNFOLD, "", () -> {
-                widget.loadType.set(AUTOMATIC);
-                loadWidget();
-                widget.loadType.set(MANUAL);
-            });
-        },
-        (placeholder,w) -> {
-            placeholder.desc.setText("Unfold " + w.custom_name.getValue() + " (Left Click)");
-        }
+    private Subscription s,s2;
+    private final Widget<?> widget;
+    private final SingleR<PlaceholderPane,Widget<?>> passiveLoadPane = new SingleR<>(
+        () -> new PlaceholderPane(UNFOLD, "", () -> loadWidget(true)),
+        (ph,w) -> ph.desc.setText("Unfold " + w.custom_name.getValue() + " (Left Click)")
     );
 
     /**
-     @param c container to make contract with
-     @param i index of the child within the container
+     * Creates area for the container and its child widget at specified child position.
+     *
+     * @param c parent container of the widget
+     * @param i index of the widget within the container
+     * @param widget widget to be loaded
      */
     public WidgetArea(Container c,  int i, Widget widget) {
         super(c,i);
@@ -69,10 +66,8 @@ public final class WidgetArea extends Area<Container> {
         this.widget.parentTemp = container;
         this.widget.areaTemp = this;
 
-        // fxml
+        // gui
         new ConventionFxmlLoader(WidgetArea.class, content_root, this).loadNoEx();
-
-        // load controls
         controls = new AreaControls(this);
         content_padding.getChildren().addAll(controls.root);
 
@@ -88,21 +83,20 @@ public final class WidgetArea extends Area<Container> {
         );
 
         loadWidget();
-
         if(GUI.isLayoutMode()) show(); else hide();
     }
 
 
-    /** @return widget of this area */
+    /** @return widget in this area */
     @Override
-    public Widget getWidget() {
+    public Widget<?> getWidget() {
         return widget;
     }
 
     /**
      * This implementation returns widget of this area.
-     * @return singleton list of this area's only widget. Never null. Never
- containsKey null.
+     *
+     * @return singleton list of this area's only widget. Never null. Never containsKey null.
      */
     @Override
     public List<Widget> getActiveWidgets() {
@@ -110,13 +104,18 @@ public final class WidgetArea extends Area<Container> {
     }
 
     private void loadWidget() {
+        loadWidget(false);
+    }
+    
+    private void loadWidget(boolean forceloading) {
         noØ(widget);
+        if(s2!=null) s2.unsubscribe();
 
         // We load the widget, but uphold loading type settings. Only user can load widget manually.
         // If the widget is loaded already, we are safe. This is important since widget switching
         // wouldnt load already loaded widget (if set to manual), but when it is loaded already
         // it makes no sense for the widget to not stay loaded.
-        if(widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
+        if(forceloading || widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
             // load widget
             Node wNode = widget.load();
             content.getChildren().clear();
@@ -125,7 +124,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            maintain(widget.custom_name, controls.title.textProperty());
+            s2 = maintain(widget.custom_name, controls.title.textProperty()); // widget - area.controls must be final 1:1 relationship
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);
@@ -140,7 +139,7 @@ public final class WidgetArea extends Area<Container> {
             openAndDo(content_root, null);
 
             // put controls to new widget
-            maintain(widget.custom_name, controls.title.textProperty());
+            s2 = maintain(widget.custom_name, controls.title.textProperty()); // widget - area.controls must be final 1:1 relationship
             controls.propB.setDisable(widget.getFields().isEmpty());
 
             setActivityVisible(false);

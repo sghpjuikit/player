@@ -21,8 +21,7 @@ public interface Play {
     void resume();
     void seek(Duration duration);
     void stop();
-
-    void createPlayback(Item item, PlaybackState state, Runnable after);
+    void createPlayback(Item item, PlaybackState state, Runnable onOK, Runnable onFail);
     /**
      * Stops playback if any and disposes of the player resources.
      */

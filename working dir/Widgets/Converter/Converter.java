@@ -80,10 +80,10 @@ import static util.graphics.drag.DragUtil.installDrag;
     programmer = "Martin Polakovic",
     name = "Converter",
     description = "Transformation utility. Capable of transforming objects "
-        + "and chaining the transforming functions. Capable of file renaming and "
-        + "tagging.",
+        + "and chaining the transforming functions. Capable of text manipulation, file renaming and "
+        + "audio tagging.",
     howto = ""
-        + "\tUser can put text in a text area and stack transformations on it "
+        + "\tUser can put text in an edit area and apply transformations on it "
         + "using available functions. The transformations are applied on each "
         + "line separately. It is possible to manually edit the text to finetune "
         + "the result.\n"
@@ -119,8 +119,8 @@ import static util.graphics.drag.DragUtil.installDrag;
 public class Converter extends ClassController implements SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
-    private final Ta ta_in = new Ta("In",true);
-    private final ObservableList<Ta> tas = observableArrayList(ta_in);
+    private final EditArea ta_in = new EditArea("In",true);
+    private final ObservableList<EditArea> tas = observableArrayList(ta_in);
     private final ClassListMap<Act> acts = new ClassListMap<>(act -> act.type);
     private final HBox outTFBox = new HBox(5);
     private final Applier applier = new Applier();
@@ -143,16 +143,16 @@ public class Converter extends ClassController implements SongWriter {
             e -> ta_in.getNode().getLayoutBounds()
         );
 
-        tas.addListener((Change<? extends Ta> change) ->
-            outTFBox.getChildren().setAll(map(tas,Ta::getNode))
+        tas.addListener((Change<? extends EditArea> change) ->
+            outTFBox.getChildren().setAll(map(tas,EditArea::getNode))
         );
 
         // on source change run transformation
         source.addListener((Change<? extends Object> change) -> ta_in.setData(source));
 
         ta_in.onItemChange = lines -> {
-            List<Ta> l = null;
-            List<Ta> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
+            List<EditArea> l = null;
+            List<EditArea> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
             if(!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
                 List<SplitData> s = (List) ta_in.output;
                 List<String> names = s.get(0).stream().map(split -> split.parse_key).collect(toList());
@@ -160,7 +160,7 @@ public class Converter extends ClassController implements SongWriter {
                 List<List<String>> outs = list(names.size(), ArrayList::new);
                 s.forEach(splitdata -> forEachWithI(map(splitdata,split -> split.split), (i,line)->outs.get(i).add(line)));
 
-                List<Ta> li = list(outs.size(), () -> new Ta(""));
+                List<EditArea> li = list(outs.size(), () -> new EditArea(""));
                 forEachWithI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
 
                 l = li;
@@ -234,19 +234,19 @@ public class Converter extends ClassController implements SongWriter {
         return "Custom" + findFirstInt(1, i -> tas.stream().noneMatch(ta -> ta.name.get().equals("Custom"+i)));
     }
 
-    class Ta extends ListAreaNode {
+    private class EditArea extends ListAreaNode {
         public final StringProperty name;
         public final boolean isMain;
 
-        Ta() {
+        EditArea() {
             this(taname());
         }
 
-        Ta(String name) {
+        EditArea(String name) {
             this(name, false);
         }
 
-        Ta(String name, boolean isMain) {
+        EditArea(String name, boolean isMain) {
             super();
             this.isMain = isMain;
 
@@ -261,14 +261,14 @@ public class Converter extends ClassController implements SongWriter {
                     .onClick(() -> tas.remove(this));
             Icon addI = new Icon(PLUS)
                     .tooltip("Add\n\nCreate new edit area with no data.")
-                    .onClick(() -> tas.add(tas.indexOf(this)+1, new Ta()));
+                    .onClick(() -> tas.add(tas.indexOf(this)+1, new EditArea()));
             Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
                     .tooltip("Copy data\n\nCopy transformed (visible) data into new edit area."
                             + "\n\nManual text changes will be ignored unless the type of transformation output is "
                             + "text. Use a transformation to text to achieve that."
                             + "")
                     .onClick(() -> {
-                        Ta t = new Ta();
+                        EditArea t = new EditArea();
                         t.setData(output);
                         tas.add(tas.indexOf(this)+1,t);
                      });
@@ -343,7 +343,7 @@ public class Converter extends ClassController implements SongWriter {
         }
 
     }
-    class Applier {
+    private class Applier {
         private final ImprovedComboBox<Act> actCB = new ImprovedComboBox<>(act -> act.name, "<none>");
         Ins ins;
         BiConsumer<File,String> applier = (f,s) -> {
@@ -397,7 +397,7 @@ public class Converter extends ClassController implements SongWriter {
             if(!l.isEmpty()) actCB.setValue(l.get(0));
         }
     }
-    class Act<V> {
+    private class Act<V> {
         String name;
         int max = MAX_VALUE;
         Supplier<List<String>> names;
@@ -447,7 +447,7 @@ public class Converter extends ClassController implements SongWriter {
             return actionPartial!=null;
         }
     }
-    class WriteFileAct extends Act<Void> {
+    private class WriteFileAct extends Act<Void> {
         V<String> nam = new V<>("new_file");
         V<String> ext = new V<>("txt");
         V<File> loc = new V<>(APP.DIR_APP);
@@ -473,7 +473,7 @@ public class Converter extends ClassController implements SongWriter {
             );
         }
     }
-    class ActCreateDirs extends Act<Void> {
+    private class ActCreateDirs extends Act<Void> {
         V<Boolean> use_loc = new V<>(false);
         V<File> loc = new V<>(APP.DIR_HOME);
 
@@ -516,27 +516,27 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
 
-    class In {
+    private class In {
         String name;
-        Ta ta;
+        EditArea ta;
 
-        In(String name, Ta ta) {
+        In(String name, EditArea ta) {
             this.name = name;
             this.ta = ta;
         }
     }
-    class InPane extends ValueNode<In> {
+    private class InPane extends ValueNode<In> {
         V<String> name;
-        V<Ta> input;
+        V<EditArea> input;
         ConfigField<String> configfieldA;
-        ConfigField<Ta> configfieldB;
+        ConfigField<EditArea> configfieldB;
         HBox root;
 
         InPane(Supplier<Collection<String>> actions) {
             name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
             input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
             configfieldA = ConfigField.create(Config.forProperty(String.class, "", name));
-            configfieldB = ConfigField.create(Config.forProperty(Ta.class, "", input));
+            configfieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
         }
 
@@ -550,15 +550,15 @@ public class Converter extends ClassController implements SongWriter {
             return root;
         }
     }
-    interface Ins {
+    private interface Ins {
         Node node();
         Stream<In> vals();
     }
-    class InsSimple implements Ins {
-        ConfigPane<Ta> ins;
+    private class InsSimple implements Ins {
+        ConfigPane<EditArea> ins;
         InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                V<Ta> input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                V<EditArea> input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
                 return Config.forProperty(String.class, name, input);
             }));
         }
@@ -572,7 +572,7 @@ public class Converter extends ClassController implements SongWriter {
         }
 
     }
-    class InsComplex implements Ins {
+    private class InsComplex implements Ins {
         ListConfigField<In, InPane> ins;
 
         InsComplex(Act a) {

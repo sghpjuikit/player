@@ -44,7 +44,6 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import util.conf.ValueConfig;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import unused.SimpleConfigurator;
@@ -52,6 +51,7 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
 import util.collections.mapset.MapSet;
+import util.conf.ValueConfig;
 import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -59,6 +59,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.File.FileUtil.getFilesAudio;
+import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
@@ -391,9 +392,12 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     }
 
     @XStreamOmitField
-    private PlaylistItem unplayable1st = null;
+    volatile private PlaylistItem unplayable1st = null;
 
     /***
+     * Plays specified item or if not possible, uses the specified function to calculate the next item to play.
+     * <p>
+     * This method is asynchronous.
      *
      * @param item item to play
      * @param alt_supplier supplier of next item to play if the item can not be
@@ -404,33 +408,48 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> alt_supplier) {
         if (item != null && transform().contains(item)) {
-            // we cant play item, we try to play next one and eventually get
-            // here again, we must defend against situation where no item
-            // is playable - we remember 1st unplayable and keep checking
-            // until we check it again (thus checking all items)
-            if (item.isNotPlayable()) {
-                if (unplayable1st==item) {
-                    PLAYBACK.stop();        // stop playback
-                    unplayable1st = null;   // reset the loop
+            Player.IO_THREAD.execute(() -> {
+                boolean unplayable = item.isNotPlayable(); // potentially blocking
+                // we cant play item, we try to play next one and eventually get
+                // here again, we must defend against situation where no item
+                // is playable - we remember 1st unplayable and keep checking
+                // until we check it again (thus checking all items)
+                if (unplayable) {
+                    if (unplayable1st==item) {
+                        // unplayable1st isnt reliable indicator (since items can
+                        // be selected randomly), so if we check same item twice
+                        // check whole playlist
+                        boolean noneplayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
+                        if(noneplayable) return;    // stop the loop
 
-                    // unplayable1st isnt reliable indicator (since items can
-                    // be selected randomly), so if we check same item twice
-                    // check whole playlist
-                    if(stream().allMatch(PlaylistItem::isNotPlayable))
-                        return;             // stop the loop
+                        runFX(() -> {
+                            PLAYBACK.stop();            // stop playback
+                            unplayable1st = null;       // reset the loop
+                        });
+                    }
+
+                    runFX(() -> {
+                        // remember 1st unplayable
+                        if(unplayable1st==null) unplayable1st = item;
+                        // try to play next item, note we dont use the supplier as a fallback 2nd time
+                        // we use linear 'next time' supplier instead, to make sure we check every
+                        // item on a completely unplayable playlist and exactly once. Say provided
+                        // one selects random item - we could get into potentially infinite loop or
+                        // check items multiple times or even skip playable items to check completely!
+                        // playItem(alt_supplier.apply(item),alt_supplier);
+                        playItem(alt_supplier.apply(item));
+                    });
+                } else {
+                    runFX(() -> {
+                        unplayable1st = null;
+                        PlaylistManager.active = this.id;
+                        PlaylistManager.playlists.forEach(p -> p.playing = p==this ? item : null);
+                        // each playlist fires 1 event and after all data is ready
+                        PlaylistManager.playlists.forEach(p -> p.playingI.set(p==this ? indexOf(item) : -1));
+                        PLAYBACK.play(item);
+                    });
                 }
-                // remember 1st unplayable
-                if(unplayable1st==null) unplayable1st = item;
-                // try to play next item
-                playItem(alt_supplier.apply(item));
-            } else {
-                unplayable1st = null;
-                PlaylistManager.active = this.id;
-                PlaylistManager.playlists.forEach(p -> p.playing = p==this ? item : null);
-                // each playlist fires 1 event and after all data is ready
-                PlaylistManager.playlists.forEach(p -> p.playingI.set(p==this ? indexOf(item) : -1));
-                PLAYBACK.play(item);
-            }
+            });
         }
     }
 

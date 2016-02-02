@@ -16,9 +16,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import util.conf.IsConfig;
 import util.access.V;
 import util.animation.Anim;
+import util.conf.IsConfig;
 import util.reactive.RunnableSet;
 
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -43,6 +43,7 @@ public class OverlayPane extends StackPane {
     private static final String IS_SHOWN = "visible";
     private static final String ROOT_STYLECLASS = "overlay-pane";
     static final String CONTENT_STYLECLASS = "overlay-pane-content";
+
 
     /** Display method. */
     @IsConfig(
@@ -115,7 +116,7 @@ public class OverlayPane extends StackPane {
 
     // depth of field transition
     private Display displayForHide; // prevents inconsistency, see use
-    private Anim animation = new Anim(millis(350),this::animDo).intpl(x->x*x);
+    private Anim animation = new Anim(30, this::animDo).dur(millis(350)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
     private Stage stg = null;
     private BoxBlur blurback = new BoxBlur(0,0,3);  // we need best possible quality
     private BoxBlur blurfront = new BoxBlur(0,0,1); // we dont need quality, hence iterations==1
@@ -222,8 +223,8 @@ public class OverlayPane extends StackPane {
             op.opacityNode.setScaleX(1-0.02*x);
             op.opacityNode.setScaleY(1-0.02*x);
             // focus this
-            op.blurfront.setHeight(28*(1-x*x));
-            op.blurfront.setWidth(28*(1-x*x));
+            op.blurfront.setHeight(20*(1-x*x));
+            op.blurfront.setWidth(20*(1-x*x));
             // zoom in effect - make it appear this pane comes from the front
             op.setScaleX(1+2*(1-x));
             op.setScaleY(1+2*(1-x));

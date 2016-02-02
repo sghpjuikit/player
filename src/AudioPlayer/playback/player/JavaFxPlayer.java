@@ -14,13 +14,16 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
 import org.reactfx.Subscription;
-import org.slf4j.LoggerFactory;
 
 import AudioPlayer.Item;
+import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
+import util.dev.TODO;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
+import static util.async.Async.runFX;
+import static util.dev.TODO.Purpose.BUG;
 import static util.reactive.Util.maintain;
 
 /**
@@ -29,58 +32,53 @@ import static util.reactive.Util.maintain;
  */
 public class JavaFxPlayer implements Play {
 
-    public MediaPlayer player;
-    Subscription d1,d2,d3,d4,d5,d6,d7;
+    private MediaPlayer player;
+    private Subscription d1,d2,d3,d4,d5,d6,d7;
 
     @Override
     public void play() {
-//        Player.IO_THREAD.execute(() -> {
-            if(player!=null) player.play();
-//        });
+        if(player!=null) player.play();
     }
 
     @Override
     public void pause() {
-//        Player.IO_THREAD.execute(() -> {
-            if(player!=null) player.pause();
-//        });
+        if(player!=null) player.pause();
     }
 
     @Override
     public void resume() {
-//        Player.IO_THREAD.execute(() -> {
-            if(player!=null) player.play();
-//        });
+        if(player!=null) player.play();
     }
 
     @Override
     public void seek(Duration duration) {
-//        Player.IO_THREAD.execute(() -> {
-            if(player!=null) player.seek(duration);
-//        });
+        if(player!=null) player.seek(duration);
     }
 
     @Override
     public void stop() {
-//        Player.IO_THREAD.execute(() -> {
-            if(player!=null) player.stop();
-//        });
+        if(player!=null) player.stop();
     }
 
     @Override
-    public void createPlayback(Item item, PlaybackState state, Runnable after) {
-//        Player.IO_THREAD.execute(() -> {
+    @TODO(purpose = BUG, note = "Media creation throws MediaException (FileNotFoundException) for "
+            + "valid files containing some special characters, like á (copypasting in Netbeans "
+            + "produces: 'á' (probably Unicode))")
+    public void createPlayback(Item item, PlaybackState state, Runnable onOk, Runnable onFail) {
+
+        Player.IO_THREAD.execute(() -> {
             Media media;
-            try {
+            try{
+                // bug here, which also
+                // blocks thread for like half second!, so i execute this not on fx
                 media = new Media(item.getURI().toString());
-            } catch (MediaException e) {
-                LoggerFactory.getLogger(JavaFxPlayer.class).error("Media creation failed",e);
+            }catch(MediaException e) {
+                onFail.run();
                 return;
             }
+            runFX(() -> {
+                player = new MediaPlayer(media);
 
-            player = new MediaPlayer(media);
-
-//            runFX(() -> {
                 player.setStartTime(Duration.ZERO);
                 player.setAudioSpectrumInterval(0.01);
                 player.setAudioSpectrumNumBands(128);
@@ -126,9 +124,9 @@ public class JavaFxPlayer implements Play {
                     else if (s == PAUSED) pause();
                 }
 
-                after.run();
-//            });
-//        });
+                onOk.run();
+            });
+        });
     }
 
     @Override

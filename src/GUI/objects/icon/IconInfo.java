@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import de.jensd.fx.glyphs.GlyphIcons;
 
 import static javafx.geometry.Pos.CENTER;
-import static util.File.Environment.copyToSysClipboard;
+import static util.file.Environment.copyToSysClipboard;
 import static util.Util.capitalizeStrong;
 
 /**

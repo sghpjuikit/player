@@ -7,11 +7,11 @@ import java.util.Comparator;
 
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
-import util.File.AudioFileFormat;
-import util.File.AudioFileFormat.Use;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
 import util.units.FileSize;
 
-import static util.File.AudioFileFormat.Use.PLAYBACK;
+import static util.file.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Representation of audio resource referenced by {@link URI}.

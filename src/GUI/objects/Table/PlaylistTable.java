@@ -33,7 +33,7 @@ import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuR;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
-import util.File.Environment;
+import util.file.Environment;
 import util.Util;
 import util.access.V;
 import util.dev.TODO;

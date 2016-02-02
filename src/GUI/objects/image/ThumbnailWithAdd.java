@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.function.Consumer;
 
 import de.jensd.fx.glyphs.GlyphIcons;
-import util.File.Environment;
+import util.file.Environment;
 import util.async.future.Fut;
 import util.graphics.drag.DragPane;
 import util.graphics.drag.DragUtil;

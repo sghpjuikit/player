@@ -31,7 +31,7 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
-import static util.File.Environment.copyToSysClipboard;
+import static util.file.Environment.copyToSysClipboard;
 import static util.functional.Util.by;
 import static util.graphics.Util.layHeaderTop;
 import static util.graphics.Util.layHorizontally;

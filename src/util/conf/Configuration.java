@@ -26,7 +26,7 @@ import util.conf.Config.PropertyConfig;
 import util.conf.Config.ReadOnlyPropertyConfig;
 import util.conf.Config.VarList;
 import util.action.Action;
-import util.File.FileUtil;
+import util.file.FileUtil;
 import util.access.Vo;
 import util.collections.mapset.MapSet;
 

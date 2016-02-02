@@ -19,7 +19,7 @@ import org.jaudiotagger.audio.AudioFile;
 import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
-import util.File.AudioFileFormat.Use;
+import util.file.AudioFileFormat.Use;
 
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;

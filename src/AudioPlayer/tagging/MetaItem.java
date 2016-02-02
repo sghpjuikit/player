@@ -19,7 +19,7 @@ import org.jaudiotagger.tag.TagException;
 import AudioPlayer.Item;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static util.File.AudioFileFormat.mp3;
+import static util.file.AudioFileFormat.mp3;
 import static util.Util.clip;
 
 /**

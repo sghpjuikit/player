@@ -7,7 +7,7 @@ package Layout.widget.feature;
 
 import java.io.File;
 import java.util.Collection;
-import static util.File.FileUtil.getCommonRoot;
+import static util.file.FileUtil.getCommonRoot;
 
 /**
  * File system viewer.

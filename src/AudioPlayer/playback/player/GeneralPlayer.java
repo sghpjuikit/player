@@ -16,14 +16,14 @@ import AudioPlayer.playback.RealTimeProperty;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
-import util.File.AudioFileFormat;
-import util.File.AudioFileFormat.Use;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
 import util.async.Async;
 
 import static AudioPlayer.playback.PLAYBACK.*;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
-import static util.File.AudioFileFormat.*;
+import static util.file.AudioFileFormat.*;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
 

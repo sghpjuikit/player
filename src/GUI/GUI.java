@@ -31,17 +31,17 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.css.StyleManager;
 
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import Layout.container.layout.Layout;
-import util.action.IsAction;
-import util.action.IsActionable;
 import gui.objects.Window.stage.Window;
-import util.File.FileMonitor;
-import util.File.FileUtil;
 import util.access.V;
 import util.access.VarEnum;
+import util.action.IsAction;
+import util.action.IsActionable;
 import util.animation.interpolator.CircularInterpolator;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.file.FileMonitor;
+import util.file.FileUtil;
 
 import static gui.GUI.OpenStrategy.INSIDE;
 import static java.io.File.separator;
@@ -58,10 +58,10 @@ import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.File.FileMonitor.monitorDirectory;
-import static util.File.FileMonitor.monitorFile;
 import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.file.FileMonitor.monitorDirectory;
+import static util.file.FileMonitor.monitorFile;
 
 /**
  *
@@ -72,7 +72,7 @@ import static util.animation.interpolator.EasingMode.EASE_OUT;
 public class GUI {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GUI.class);
-    private static final String DEF_SKIN = GUI.class.getResource("Skin/Skin.css").toExternalForm();
+    private static final String DEF_SKIN = GUI.class.getResource("skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
     public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 

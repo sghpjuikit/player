@@ -45,7 +45,7 @@ import javafx.util.Duration;
 import org.jaudiotagger.tag.images.Artwork;
 
 import unused.TriConsumer;
-import util.File.FileUtil;
+import util.file.FileUtil;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 

@@ -26,7 +26,7 @@ import AudioPlayer.playlist.sequence.PlayingSequence;
 import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
 import AudioPlayer.services.playcount.PlaycountIncrementer;
 import AudioPlayer.tagging.MetadataWriter;
-import util.File.Environment;
+import util.file.Environment;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.conf.Configurable;

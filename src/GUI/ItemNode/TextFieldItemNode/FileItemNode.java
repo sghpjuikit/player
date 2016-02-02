@@ -8,7 +8,7 @@ package gui.itemnode.TextFieldItemNode;
 
 import java.io.File;
 
-import util.File.Environment;
+import util.file.Environment;
 import util.parsing.Parser;
 
 /**

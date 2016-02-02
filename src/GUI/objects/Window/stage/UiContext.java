@@ -26,12 +26,12 @@ import Layout.widget.WidgetFactory;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import main.App;
-import util.File.FileUtil;
+import util.file.FileUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
-import static util.File.FileUtil.getName;
+import static util.file.FileUtil.getName;
 import static util.dev.Util.noØ;
 
 /**

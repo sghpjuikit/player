@@ -28,7 +28,7 @@ import util.functional.Functors.Ƒ2;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.UUID.fromString;
 import static main.App.APP;
-import static util.File.FileUtil.readFileLines;
+import static util.file.FileUtil.readFileLines;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
 import static util.functional.Util.stream;

@@ -36,8 +36,8 @@ import Layout.widget.feature.Feature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
 import util.ClassName;
-import util.File.Environment;
-import util.File.FileUtil;
+import util.file.Environment;
+import util.file.FileUtil;
 
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static Layout.widget.WidgetManager.WidgetSource.*;
@@ -46,7 +46,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
-import static util.File.FileUtil.listFiles;
+import static util.file.FileUtil.listFiles;
 import static util.Util.*;
 import static util.functional.Util.*;
 

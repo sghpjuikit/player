@@ -33,10 +33,10 @@ import static javafx.scene.paint.Color.CADETBLUE;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
-import util.File.FileUtil;
+import util.file.FileUtil;
 
 import static main.App.APP;
-import static util.File.FileUtil.listFiles;
+import static util.file.FileUtil.listFiles;
 
 /**
  <p>

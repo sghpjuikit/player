@@ -81,7 +81,7 @@ public class GUI {
 
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static final VarEnum<String> skin = new VarEnum<>("Default", GUI::setSkin, () -> skins);
+    public static final VarEnum<String> skin = new VarEnum<>("Default", () -> skins, GUI::setSkin);
     /**
      * Font of the application. Overrides font defined by skin. The font can be
      * overridden programmatically or stylesheet.

@@ -38,7 +38,6 @@ import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
-import gui.objects.spinner.Spinner;
 import main.App;
 import util.action.Action;
 import util.animation.Anim;
@@ -553,25 +552,10 @@ public class Window extends WindowBase {
      * @return indicator
      */
     public ProgressIndicator taskAdd() {
-        Spinner p = new Spinner();
-        Anim a = new Anim(at->setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
-        p.progressProperty().addListener((o,ov,nv) -> {
-            if(nv.doubleValue()==-1) {
-                // add indicator to header
-                leftHeaderBox.getChildren().add(p);
-                a.then(null)
-                 .play();
-            }
-            if(nv.doubleValue()==1) {
-                // remove indicator from header
-                a.then(() -> leftHeaderBox.getChildren().remove(p))
-                 .playClose();
-            }
-        });
-        return p;
-    }
-    boolean a(){
-        return true;
+        return App.Build.appProgressIndicator(
+            pi -> leftHeaderBox.getChildren().add(pi),      // add indicator to header on start
+            pi -> leftHeaderBox.getChildren().remove(pi)    // remove indicator from header on end
+        );
     }
 
 /**************************** WINDOW MECHANICS ********************************/

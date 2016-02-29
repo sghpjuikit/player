@@ -16,18 +16,18 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
 import AudioPlayer.tagging.Metadata;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import Layout.widget.Widget;
 import Layout.widget.feature.SongReader;
-import util.action.IsAction;
-import util.action.IsActionable;
 import gui.InfoNode.ItemInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import util.access.VarAction;
 import util.access.VarEnum;
+import util.action.IsAction;
+import util.action.IsActionable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 
 import static Layout.widget.WidgetManager.WidgetSource.NEW;
 import static gui.objects.PopOver.PopOver.ScreenPos.Screen_Bottom_Right;
@@ -84,6 +84,14 @@ public final class Notifier extends ServiceBase {
 
     @IsConfig(name = "Playback change graphics")
     public final VarEnum<String> graphics = new VarEnum<>("Normal",
+        () -> {
+            List<String> l = APP.widgetManager.getFactories()
+                        .filter(f->f.hasFeature(SongReader.class))
+                        .map(f->f.nameGui()).collect(toList());
+            l.add("Normal");
+            l.add("Normal - no cover");
+            return l;
+        },
         v -> {
             if("Normal".equals(v)) {
                 ItemInfo ii = new ItemInfo(true);
@@ -102,13 +110,6 @@ public final class Notifier extends ServiceBase {
                 songNotifInfo = (SongReader)wf.getController();
                 ((Pane)songNotifGui).setPrefSize(700, 300);
             }
-        },() -> {
-            List<String> l = APP.widgetManager.getFactories()
-                        .filter(f->f.hasFeature(SongReader.class))
-                        .map(f->f.nameGui()).collect(toList());
-            l.add("Normal");
-            l.add("Normal - no cover");
-            return l;
         });
 
 

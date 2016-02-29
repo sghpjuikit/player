@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ObservableValue;
@@ -27,12 +28,6 @@ import javafx.util.Duration;
 
 import com.sun.javafx.scene.traversal.Direction;
 
-import util.conf.Config;
-import util.conf.Config.ListConfig;
-import util.conf.Config.OverridablePropertyConfig;
-import util.conf.Config.PropertyConfig;
-import util.conf.Config.ReadOnlyPropertyConfig;
-import util.action.Action;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
@@ -45,6 +40,12 @@ import gui.objects.icon.Icon;
 import gui.objects.textfield.DecoratedTextField;
 import util.Password;
 import util.access.Vo;
+import util.action.Action;
+import util.conf.Config;
+import util.conf.Config.ListConfig;
+import util.conf.Config.OverridablePropertyConfig;
+import util.conf.Config.PropertyConfig;
+import util.conf.Config.ReadOnlyPropertyConfig;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 
@@ -238,10 +239,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     protected void apply(boolean user) {
         if(insonsistent_state) return;
         T t = get();
-
         boolean erroneous = t==null;
         if(erroneous) return;
-        boolean needsapply = !config.getValue().equals(t);
+        boolean needsapply = !Objects.equals(t, config.getValue());
         if(!needsapply) return;
 
         insonsistent_state = true;
@@ -290,6 +290,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         cf.setEditable(f.isEditable());
 
         return cf;
+    }
+
+    public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
+        return create(Config.forProperty(type, name, property));
+    }
+
+    private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
+        return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
+                ? (ObservableValue)((PropertyConfig)c).getProperty()
+                : c instanceof ReadOnlyPropertyConfig
+                    ? ((ReadOnlyPropertyConfig)c).getProperty()
+                    : null;
     }
 
 /***************************** IMPLEMENTATIONS ********************************/
@@ -485,11 +497,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private BooleanField(Config<Boolean> c) {
             super(c);
 
-            ObservableValue<Boolean> v = c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
-                    ? (ObservableValue)((PropertyConfig)c).getProperty()
-                    : c instanceof ReadOnlyPropertyConfig
-                        ? ((ReadOnlyPropertyConfig)c).getProperty()
-                        : null;
+            ObservableValue<Boolean> v = getObservableValue(c);
             observable = v!=null;
 
             cBox = new CheckIcon();
@@ -784,10 +792,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class FileField extends ConfigField<File> {
         FileItemNode editor = new FileItemNode();
+        boolean observable;
 
         public FileField(Config<File> c) {
             super(c);
-            refreshItem();
+
+            ObservableValue<File> v = getObservableValue(c);
+            observable = v!=null;
+            editor.setValue(config.getValue());
+            if(observable) v.addListener((o,ov,nv) -> editor.setValue(nv));
             editor.setOnItemChange((ov,nv) -> apply(false));
         }
 
@@ -798,7 +811,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return editor.getValue();
         }
         @Override public void refreshItem() {
-            editor.setValue(config.getValue());
+            if(!observable)
+                editor.setValue(config.getValue());
         }
     }
     private static class EffectField extends ConfigField<Effect> {

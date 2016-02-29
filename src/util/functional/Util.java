@@ -677,6 +677,12 @@ public class Util {
         for(I item : items)
             action.accept(item);
     }
+    
+    /** Functional equivalent of a for loop. */
+    public static <I> void forEach(I[] items, Consumer<? super I> action) {
+        for(I item : items)
+            action.accept(item);
+    }
 
     /**
      * Functional equivalent of a for loop. After each (last included) cycle the thread sleeps for

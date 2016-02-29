@@ -17,8 +17,6 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataGroup;
-import util.conf.Config;
-import util.conf.IsConfig;
 import Layout.widget.Widget.Info;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.Input;
@@ -35,11 +33,13 @@ import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
 import main.App;
-import util.file.Environment;
 import util.access.FieldValue.ObjectField.ColumnField;
 import util.access.VarEnum;
 import util.access.Vo;
 import util.async.executor.ExecuteN;
+import util.conf.Config;
+import util.conf.IsConfig;
+import util.file.Environment;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import web.HttpSearchQueryBuilder;
@@ -120,8 +120,9 @@ public class LibraryView extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
     @IsConfig(name = "Field")
-    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY, this::applyData,
-        ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
+    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY,
+        () -> filter(Metadata.Field.values(), Field::isTypeStringRepresentable),
+        this::applyData
     );
 
     private final ExecuteN runOnce = new ExecuteN(1);

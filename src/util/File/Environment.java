@@ -26,9 +26,9 @@ import AudioPlayer.playlist.PlaylistManager;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import gui.GUI;
-import util.file.AudioFileFormat.Use;
 import util.Util;
 import util.dev.TODO;
+import util.file.AudioFileFormat.Use;
 
 import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static java.awt.Desktop.Action.*;
@@ -36,6 +36,8 @@ import static java.util.stream.Collectors.groupingBy;
 import static main.App.APP;
 import static org.controlsfx.tools.Platform.WINDOWS;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.dev.TODO.Purpose.UNIMPLEMENTED;
+import static util.dev.TODO.Purpose.UNTESTED;
 import static util.dev.Util.log;
 import static util.functional.Util.filter;
 import static util.functional.Util.list;
@@ -71,6 +73,10 @@ public class Environment {
         browse(f.toURI());
     }
 
+    public static void browse(File f, boolean openDir) {
+        browse(f.toURI(), openDir);
+    }
+
     /**
      * Browses uri - opens it in its respective browser, e.g. internet browser or file explorer.
      * <p>
@@ -78,7 +84,11 @@ public class Environment {
      *
      * @param uri to browse
      */
+    @TODO(purpose = {UNIMPLEMENTED, UNTESTED}, note = "Non-windows platform impl. naively & untested")
     public static void browse(URI uri) {
+        browse(uri, true);
+    }
+    private static void browse(URI uri, boolean openDir) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(BROWSE)) {
             log(Environment.class).warn("Unsupported operation : " + BROWSE + " uri");
             return;
@@ -95,11 +105,14 @@ public class Environment {
             // need some testing to do...
             try {
                 File f = new File(uri);
+                    boolean isDir = f.isDirectory();
                 if (f.exists()) {
-                    if(Platform.getCurrent()==WINDOWS) {
+                    if(Platform.getCurrent()==WINDOWS && (openDir && !isDir)) {
+                        // select file or directory
                         Runtime.getRuntime().exec("explorer.exe /select," + f.getPath());
                     } else {
-                        open(f.isFile() ? f.getParentFile() : f);
+                        // open directory
+                        open(isDir ? f.getParentFile() : f);
                     }
                 }
                 return;

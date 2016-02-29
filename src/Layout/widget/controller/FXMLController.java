@@ -18,11 +18,11 @@ import javafx.scene.layout.Pane;
 
 import org.reactfx.Subscription;
 
-import util.conf.Config;
 import Layout.widget.Widget;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Inputs;
 import Layout.widget.controller.io.Outputs;
+import util.conf.Config;
 import util.dev.Dependency;
 
 /**
@@ -30,10 +30,10 @@ import util.dev.Dependency;
  *
  * @author uranium
  */
-abstract public class FXMLController implements Controller<Widget> {
+abstract public class FXMLController implements Controller<Widget<?>> {
 
     @Dependency("DO NOT RENAME - accessed using reflection")
-    public final Widget widget = null;
+    public final Widget<?> widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
     private final HashMap<String,Config<Object>> configs = new HashMap<>();

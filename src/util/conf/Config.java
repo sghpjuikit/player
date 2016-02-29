@@ -29,12 +29,12 @@ import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 
-import static util.conf.Configuration.configsOf;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.Util.getValueFromFieldMethodHandle;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
+import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
@@ -324,23 +324,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             return new PropertyConfig<>(type,name,(WritableValue<T>)property);
         if(property instanceof ObservableValue)
             return new ReadOnlyPropertyConfig<>(type,name,(ObservableValue<T>)property);
-        throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
-    }
-
-    public static <T> Config<T> forPropertyOfType(Class<T> type, String name, Object property) {
-        if(property instanceof Config)
-            return (Config<T>)property;
-        if(property instanceof VarList)
-            return new ListConfig(name,(VarList)property);
-        if(property instanceof Vo)
-            return new OverridablePropertyConfig<>(type,name,(Vo<T>)property);
-        if(property instanceof WritableValue)
-            return new PropertyConfig<>(type,name,(WritableValue<T>)property);
-        if(property instanceof ObservableValue)
-            return new ReadOnlyPropertyConfig<>(type,name,(ObservableValue<T>)property);
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
     }
-
 
     public static Collection<Config<?>> configs(Object o) {
         return configsOf(o.getClass(), o, false, true);

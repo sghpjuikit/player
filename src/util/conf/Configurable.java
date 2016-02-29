@@ -12,8 +12,8 @@ import javafx.beans.value.WritableValue;
 
 import util.Util;
 
-import static util.conf.Configuration.configsOf;
 import static util.Util.forEachJavaFXProperty;
+import static util.conf.Configuration.configsOf;
 
 /**
  * Defines object that can be configured.
@@ -185,7 +185,7 @@ public interface Configurable<T> {
 
     public static Configurable<?> configsFromFxPropertiesOf(Object o) {
         List<Config<?>> cs = new ArrayList<>();
-        forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forPropertyOfType(type,name,p)));
+        forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forProperty(type,name,p)));
         return new ListConfigurable(cs);
     }
 }

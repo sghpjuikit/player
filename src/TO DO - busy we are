@@ -3,11 +3,14 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- file downloader widget
+  - display progress
+  - overwrite file if exist option
+- all ConfigFields must support observable Configs, im awed they dont!!
+- when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
+- implement 'use embedded thumbnail' for all image formats, not just psd
 - impl layout refresh() pass so Widget.refresh() can run properly
 - parametric function state serialization
-- DirView .psd use embedded thumbnails first (instantaneous) and then update
-  can be implemented by returning V<Image> instead of Image from loadImage()
-- DirViewer cancel image loading when view changes or prevent image to be set
 - display progressbar when loading images (start on load start, use Thumbnail onLoaded callback) but
   delay a tiny bit (for continued display) and delay hiding a bit more than the bit
 - image widget add panning, zooming, rotating support + shortcuts
@@ -208,20 +211,17 @@ SOLVED (but the underlying cause still deserves attention)
   exceptions for images like 6k x 6k px & closing in on 10MB...
 - any VM arguments, in order to be used in self-contained app, need to be
   specified in the build.xml file
-- Event consuming (namely mouse events): As a general rule, always consume unless you have
-  a reason not to. Its simple: not consuming results in 'multiple' behavior problem since
-  event propagates until it is consumed. Normally, one event should cause one behavior.
-  
-  As an example, not consuming button mouse click may start window resizing if some of the
-  button's parent works that way. The graphcis you are coding must not assume what the
-  parent graphics does. Hence we consume the event. Simple.
+- Event consuming (namely mouse events): As a general rule, always consume unless you have a reason
+  not to. Its simple: not consuming results in 'multiple' behavior problem since event propagates 
+  until it is consumed. Normally, one event should cause one behavior.
 
-  AS a counter example, say you monitor movement of mouse (MOUSE_MOVED) and move a node
-  along with the mouse cursor. Maybe parent graphics shows an effect or monitors mouse coordinates,
-  but if the event gets consumed it will not.
+  As an example, not consuming button mouse click may start window resizing if some of the
+  button's parent works that way. The graphics must not assume what the parent does. Hence we 
+  consume the event. Simple.
+
+  A counter example, say you monitor movement of mouse (MOUSE_MOVED) and drag a node
+  a mouse. Maybe parent graphics shows an effect or monitors mouse coordinates,
+  but if the event gets consumed it wont be able to.
   Hence, it is important to think about whether the behavior is one-and-only or can play along
-  with different behaviors. The latter requires the graphics to 'know' its context (what its parents
-  do), so it imposes tight coupling (and should only be used where the graphics is tightly
-  coupled to begin with). This dilemma can be 'fixed': dont assume and consume. If the parent's 
-  behavior runs no matter what its children do, then it should use event flters, which execute
-  before handlers, so consuming in the handlers has no effect then.
+  with different behaviors. Dont assume and consume. If the parent's behavior needs to run no matter 
+  what its children do, then it should use event filters to bypass the consumption.

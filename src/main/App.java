@@ -21,6 +21,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableListBase;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
@@ -87,6 +88,7 @@ import gui.objects.Window.stage.WindowManager;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.icon.IconInfo;
+import gui.objects.spinner.Spinner;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
@@ -102,6 +104,7 @@ import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
+import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Configurable;
@@ -156,6 +159,7 @@ import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
+import static util.graphics.Util.setScaleXY;
 
 /**
  * Application. Represents the program.
@@ -1020,6 +1024,32 @@ public class App extends Application implements Configurable {
     public static void showSysInfo() {
         APP.actionPane.hide();
         APP.infoPane.show();
+    }
+
+    public static interface Build {
+
+        public static ProgressIndicator appProgressIndicator() {
+            return appProgressIndicator(null, null);
+        }
+
+        public static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
+            Spinner p = new Spinner();
+            Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
+                 a.affector.accept(0d);
+            p.progressProperty().addListener((o,ov,nv) -> {
+                if(nv.doubleValue()==-1) {
+                    if(onStart!=null) onStart.accept(p);
+                    a.then(null)
+                     .play();
+                }
+                if(nv.doubleValue()==1) {
+                    a.then(() -> { if(onFinish!=null) onFinish.accept(p); })
+                     .playClose();
+                }
+            });
+            return p;
+        }
+
     }
 
 

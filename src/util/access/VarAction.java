@@ -21,11 +21,11 @@ import static util.functional.Util.map;
 public class VarAction extends VarEnum<String> {
 
     public VarAction(Action a, Consumer<Action> applier) {
-        super(a.getName(), c(applier), () -> map(Action.getActions(), Action::getName));
+        super(a.getName(), () -> map(Action.getActions(), Action::getName), c(applier));
     }
 
     public VarAction(String action_name, Consumer<Action> applier) {
-        super(action_name, c(applier), () -> map(Action.getActions(), Action::getName));
+        super(action_name, () -> map(Action.getActions(), Action::getName), c(applier));
     }
 
     public Action getValueAction() {

@@ -12,30 +12,32 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Annotation type indicating a programming task needs to be done.
- * 
+ *
  * @author uranium
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(TODOs.class)
 public @interface TODO {
-    Purpose purpose() default Purpose.UNSPECIFIED;
+    
+    Purpose[] purpose() default Purpose.UNSPECIFIED;
     Severity severity() default Severity.UNSPECIFIED;
     String note() default "";
-    
-    
+
+
     public static enum Purpose {
         PERFORMANCE_OPTIMIZATION,
         BUG,
         DOCUMENTATION,
         READABILITY,
+        UNTESTED,
         ILL_DEPENDENCY,
         API,
         FUNCTIONALITY,
         UNIMPLEMENTED,
         UNSPECIFIED;
     }
-    
+
     public static enum Severity {
         CRITICAL,
         SEVERE,

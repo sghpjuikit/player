@@ -243,7 +243,7 @@ public class Util {
             if (s.charAt(i) != s.charAt(n-i-1)) return false;
         return true;
     }
-    
+
     public static boolean isNonEmptyPalindrome(String s) {
         return s.isEmpty() ? false : isPalindrome(s);
     }

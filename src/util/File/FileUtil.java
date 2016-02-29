@@ -591,7 +591,6 @@ public final class FileUtil {
      */
     public static void saveFileAs(String url, File file) throws IOException {
         if(file.exists()) file.delete();
-
         URL u = new URL(url);
         try (
             InputStream is = u.openStream();
@@ -599,7 +598,7 @@ public final class FileUtil {
         ) {
             byte[] b = new byte[2048];
             int length;
-            while ((length = is.read(b)) != -1)
+            while ((length = is.read(b)) > 0)
                 os.write(b, 0, length);
         }
    }

@@ -5,10 +5,6 @@
  */
 package gui.objects.tree;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -25,16 +21,16 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
-
-import static javafx.scene.input.TransferMode.COPY;
-import static javafx.scene.input.TransferMode.MOVE;
-import static javafx.scene.paint.Color.CADETBLUE;
-
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
+import de.jensd.fx.glyphs.GlyphsDude;
 import util.file.FileUtil;
 
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.input.TransferMode.COPY;
+import static javafx.scene.input.TransferMode.MOVE;
+import static javafx.scene.paint.Color.CADETBLUE;
 import static main.App.APP;
 import static util.file.FileUtil.listFiles;
 
@@ -97,24 +93,14 @@ public class FileTree extends TreeView<File>{
         else return new Rectangle(5, 5, CADETBLUE);
     }
 
-    // This method creates a TreeItem to represent the given File. It does this
-    // by overriding the TreeItem.getChildren() and TreeItem.isLeaf() methods
-    // anonymously, but this could be better abstracted by creating a
-    // 'FileTreeItem' subclass of TreeItem. However, this is left as an exercise
-    // for the reader.
-    public static TreeItem<File> createTreeItem(final File f) {
+    /**
+     * File tree item.
+     * <p>
+     * Based on example in the javadoc of {@link TreeItem}.
+     */
+    public static TreeItem<File> createTreeItem(File f) {
         return new TreeItem<File>(f) {
-            // We cache whether the File is a leaf or not. A File is a leaf if
-            // it is not a directory and does not have any files contained within
-            // it. We cache this as isLeaf() is called often, and doing the
-            // actual check on File is expensive.
             private boolean isLeaf;
-            // We do the children and leaf testing only once, and then set these
-            // booleans to false so that we do not check again during this
-            // run. A more complete implementation may need to handle more
-            // dynamic file system situations (such as where a folder has files
-            // added after the TreeView is shown). Again, this is left as an
-            // exercise for the reader.
             private boolean isFirstTimeChildren = true;
             private boolean isFirstTimeLeaf = true;
 
@@ -143,7 +129,7 @@ public class FileTree extends TreeView<File>{
                 // we make use of the fact that listFiles() gives us already
                 // sorted list
                 ObservableList<TreeItem<File>> dirs = FXCollections.observableArrayList();
-                List<TreeItem<File>> fils = new ArrayList();
+                List<TreeItem<File>> fils = new ArrayList<>();
                 listFiles(i.getValue()).forEach(f -> {
                     if(!f.isDirectory()) dirs.add(createTreeItem(f));
                     else                 fils.add(createTreeItem(f));

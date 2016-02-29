@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.File;
+package util.file;
 
 import java.io.*;
 import java.net.URI;
@@ -21,12 +21,12 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
-import util.File.AudioFileFormat.Use;
 import util.Util;
+import util.file.AudioFileFormat.Use;
 
 import static main.App.APP;
-import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.filenamizeString;
+import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
@@ -399,13 +399,13 @@ public final class FileUtil {
             writer.write(content);
             return true;
         } catch (IOException e) {
-            getLogger(Util.class).error("Couldnt save file: {}", file,e);
+            log(Util.class).error("Couldnt save file: {}", file,e);
             return false;
         } finally {
             try {
                 if(writer!=null) writer.close();
             } catch (IOException e) {
-                getLogger(Util.class).error("Couldnt save fclose file writer", e);
+                log(Util.class).error("Couldnt save fclose file writer", e);
             }
         }
      }
@@ -422,7 +422,7 @@ public final class FileUtil {
         try {
             return Files.readAllLines(Paths.get(filepath));
         } catch (IOException e) {
-            getLogger(Util.class).error("Problems reading file {}. File wasnt read.", filepath,e);
+            log(Util.class).error("Problems reading file {}. File wasnt read.", filepath,e);
             return new ArrayList<>();
         }
      }
@@ -431,7 +431,7 @@ public final class FileUtil {
         try {
             return Files.lines(f.toPath());
         } catch (IOException e) {
-            getLogger(Util.class).error("Problems reading file {}. File wasnt read.", f,e);
+            log(Util.class).error("Problems reading file {}. File wasnt read.", f,e);
             return Stream.empty();
         }
      }
@@ -468,11 +468,11 @@ public final class FileUtil {
         try {
            boolean success = f.delete();
            if (!success) {
-               getLogger(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown. ", f);
+               log(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
                f.deleteOnExit();
            }
         } catch(SecurityException e) {
-            getLogger(Util.class).error("Coud not delete file {}", f,e);
+            log(Util.class).error("Coud not delete file {}", f,e);
         }
     }
 
@@ -490,14 +490,14 @@ public final class FileUtil {
 
         ImageFileFormat t = ImageFileFormat.of(f.toURI());
         if (!t.isSupported()) {
-            getLogger(Util.class).error("Could not save image to file {}. Format {} not supported.", f,t);
+            log(Util.class).error("Could not save image to file {}. Format {} not supported.", f,t);
             return;
         }
 
         try {
             ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", f);
         } catch (IOException e) {
-            getLogger(Util.class).error("Could not save image to file {}", f,e);
+            log(Util.class).error("Could not save image to file {}", f,e);
         }
     }
 
@@ -517,7 +517,7 @@ public final class FileUtil {
      * copies that didnt throw IOException
      */
     public static List<File> copyFiles(List<File> files, File target, CopyOption... options) {
-        List<File> out = new ArrayList();
+        List<File> out = new ArrayList<>();
         for(File f : files) {
             try {
                 Path nf = target.toPath().resolve(f.toPath().getFileName());
@@ -526,7 +526,7 @@ public final class FileUtil {
                     out.add(new File(target, f.getName()));
                 }
             } catch(IOException e) {
-                getLogger(Util.class).error("Could not copy file {}", f,e);
+                log(Util.class).error("Could not copy file {}", f,e);
             }
         }
         return out;
@@ -546,7 +546,7 @@ public final class FileUtil {
             File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
             Files.copy(f.toPath(), nf.toPath(), options);
         } catch(IOException e) {
-            getLogger(Util.class).error("Could not copy file {}", f,e);
+            log(Util.class).error("Could not copy file {}", f,e);
         }
     }
 
@@ -576,7 +576,7 @@ public final class FileUtil {
             // copy file
             Files.copy(f.toPath(), nf.toPath(), options);
         } catch(IOException e) {
-            getLogger(Util.class).error("Could not copy file {}", f,e);
+            log(Util.class).error("Could not copy file {}", f,e);
         }
     }
 
@@ -593,18 +593,15 @@ public final class FileUtil {
         if(file.exists()) file.delete();
 
         URL u = new URL(url);
-        InputStream is = u.openStream();
-        OutputStream os = new FileOutputStream(file);
-
-        byte[] b = new byte[2048];
-        int length;
-
-        while ((length = is.read(b)) != -1) {
-            os.write(b, 0, length);
+        try (
+            InputStream is = u.openStream();
+            OutputStream os = new FileOutputStream(file);
+        ) {
+            byte[] b = new byte[2048];
+            int length;
+            while ((length = is.read(b)) != -1)
+                os.write(b, 0, length);
         }
-
-        is.close();
-        os.close();
    }
 
     /**

@@ -28,21 +28,22 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import Layout.widget.Widget;
 import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;
-import util.file.Environment;
-import util.file.FileUtil;
-import util.file.ImageFileFormat;
 import util.SingleR;
 import util.Util;
 import util.animation.Anim;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.dev.Dependency;
 import util.dev.TODO;
+import util.file.Environment;
+import util.file.FileUtil;
+import util.file.ImageFileFormat;
+import util.functional.Functors.Ƒ;
 
 import static Layout.widget.WidgetManager.WidgetSource.NEW;
 import static java.lang.Double.min;
@@ -57,10 +58,12 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.file.Environment.copyToSysClipboard;
 import static util.Util.getFieldValue;
 import static util.Util.menuItem;
+import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.file.Environment.copyToSysClipboard;
+import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.Util.bgr;
 import static util.graphics.Util.createFMNTStage;
 import static util.graphics.Util.setMinPrefMaxSize;
@@ -260,12 +263,14 @@ public class Thumbnail extends ImageNode {
 
 /******************************************************************************/
 
+    private File imagefile = null;
+
     @Override
     public void loadImage(Image img) {
         imagefile=null;
         setImgA(img);
     }
-    private File imagefile = null;
+
     @Override
     public void loadImage(File img) {
         imagefile = img;
@@ -377,6 +382,11 @@ public class Thumbnail extends ImageNode {
         } catch(IllegalArgumentException e) {
             return null;
         }
+    }
+
+    @Deprecated
+    public void setFile(File imageFile) {
+        imagefile = imageFile;
     }
 
     @Override
@@ -629,8 +639,13 @@ public class Thumbnail extends ImageNode {
                     });
 
                     // use widget for image viewing
-                    // execute after its shown so final layout is available to widget from the start
-                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
+                    // note: although we know the image size (== screen size) we can not use it
+                    //       as widget will use its own size, which can take time to initialize,
+                    //       so we need to delay execution
+                    Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
+                    Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
+                    if(s.isShowing()) r.run(); /// execute when/after window is shown
+                    else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.run());
                 }),
                 menuItem("Open image", e ->
                     Environment.open(m.getValue().getFile())

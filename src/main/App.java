@@ -94,11 +94,6 @@ import gui.pane.ActionPane.SlowColAction;
 import gui.pane.InfoPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
-import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
-import util.file.Environment;
-import util.file.FileUtil;
-import util.file.ImageFileFormat;
 import util.InstanceInfo;
 import util.InstanceName;
 import util.access.V;
@@ -114,6 +109,11 @@ import util.conf.Configuration;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.TODO;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
+import util.file.Environment;
+import util.file.FileUtil;
+import util.file.ImageFileFormat;
 import util.plugin.PluginMap;
 import util.reactive.RunnableSet;
 import util.serialize.xstream.BooleanPropertyConverter;
@@ -145,13 +145,13 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static org.atteo.evo.inflector.English.plural;
-import static util.file.Environment.browse;
 import static util.Util.getEnumConstants;
 import static util.Util.getGenericPropertyType;
 import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.file.Environment.browse;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
@@ -368,9 +368,9 @@ public class App extends Application implements Configurable {
         x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
-        x.omitField(ObservableListBase.class, "listenerHelper"); // bloat
-        x.omitField(ObservableListBase.class, "changeBuilder"); // bloat
-        x.omitField(ObservableListWrapper.class, "elementObserver"); // bloat
+        x.omitField(ObservableListBase.class, "listenerHelper"); // removes bloat
+        x.omitField(ObservableListBase.class, "changeBuilder"); // removes bloat
+        x.omitField(ObservableListWrapper.class, "elementObserver"); // removes bloat
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
         x.alias("item", PlaylistItem.class);

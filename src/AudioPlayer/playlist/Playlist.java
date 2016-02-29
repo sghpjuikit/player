@@ -47,20 +47,20 @@ import AudioPlayer.playback.PLAYBACK;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import unused.SimpleConfigurator;
+import util.collections.mapset.MapSet;
+import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
-import util.collections.mapset.MapSet;
-import util.conf.ValueConfig;
 import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.file.FileUtil.getFilesAudio;
 import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
+import static util.file.FileUtil.getFilesAudio;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
 
@@ -791,14 +791,17 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
     /** Serializes the playlist into file. */
     public void serializeToFile(File f) {
-        try {
+        try (
+            FileWriter fw = new FileWriter(f);
+            BufferedWriter bw = new BufferedWriter(fw);
+        ){
             LOGGER.info("Saving playlist into file {}", f);
             XStream x = new XStream(new DomDriver());
                     x.registerConverter(new PlaylistItemConverter());
                     x.omitField(ObservableListBase.class, "listenerHelper");
                     x.omitField(ObservableListBase.class, "changeBuilder");
                     x.omitField(ObservableListWrapper.class, "elementObserver");
-                    x.toXML(this, new BufferedWriter(new FileWriter(f)));
+                    x.toXML(this, bw);
         } catch (IOException ex) {
             LOGGER.error("Save playlist failed");
         }

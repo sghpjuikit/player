@@ -289,8 +289,10 @@ public class AudioPlayer implements Callable<Void> {
                     LOGGER.info("Audio Format Properties: {} = {}", key, properties.get(key));
                 }
             } catch (UnsupportedAudioFileException ex) {
+                closeStream();
                 throw new PlayerException(ex);
             } catch (IOException ex) {
+                closeStream();
                 throw new PlayerException(ex);
             }
         }

@@ -144,7 +144,6 @@ public final class Layout extends UniContainer {
         if(getChild() == null) return;
 
         try {
-
             X.toXML(this,f);
         } catch (IOException e) {
             LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
@@ -160,7 +159,7 @@ public final class Layout extends UniContainer {
 
     public Layout deserialize(File f) {
         Layout l;
-        
+
         try {
             l = X.fromXML(Layout.class,f);
             l.setName(FileUtil.getName(f)); // hmm

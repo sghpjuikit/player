@@ -53,6 +53,13 @@ public final class Async {
         } catch (InterruptedException ex) {}
     }
 
+    /** Sleeps currently executing thread for specified number of milliseconds. When interrupted, returns. */
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ex) {}
+    }
+
     /** Runnable that invokes {@link #sleep(javafx.util.Duration)}. */
     public static Runnable sleeping(Duration d) {
         return () -> sleep(d);
@@ -222,6 +229,7 @@ public final class Async {
             return t;
         };
     }
+
     public static ThreadFactory threadFactory(String name, boolean daemon) {
         return r -> {
             Thread t = new Thread(r);

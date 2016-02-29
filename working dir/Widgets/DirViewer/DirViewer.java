@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
@@ -28,11 +27,7 @@ import Layout.widget.controller.ClassController;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.image.Thumbnail;
-import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
-import util.file.Environment;
-import util.file.FileUtil;
-import util.file.ImageFileFormat;
+import unused.TriConsumer;
 import util.Sort;
 import util.Util;
 import util.access.FieldValue.FileField;
@@ -45,9 +40,15 @@ import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
+import util.file.Environment;
+import util.file.FileUtil;
+import util.file.ImageFileFormat;
 import util.functional.Functors.PƑ0;
 import util.graphics.drag.PlaceholderPane;
 
+import static DirViewer.DirViewer.FileSort.DIR_FIRST;
 import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
@@ -55,14 +56,15 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
-import static util.file.Environment.chooseFile;
-import static util.file.FileUtil.getName;
-import static util.file.FileUtil.listFiles;
 import static util.access.FieldValue.FileField.NAME;
 import static util.async.Async.FX;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.Async.runFX;
 import static util.async.Async.runLater;
+import static util.async.Async.sleep;
+import static util.file.Environment.chooseFile;
+import static util.file.FileUtil.getName;
+import static util.file.FileUtil.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchor;
 
@@ -91,9 +93,12 @@ public class DirViewer extends ClassController {
 
     Item item = null;   // item, children of which are displayed
     ImprovedGridView<Item> grid = new ImprovedGridView<>(CellSize.NORMAL.width,CellSize.NORMAL.height,5,5);
-    ExecutorService executor = newSingleDaemonThreadExecutor();
+    private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
+    private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
+    private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads would perform much better, but cause bugs
     boolean initialized = false;
     private volatile boolean isResizing = false;
+    private volatile long visitId = 0;
     final PlaceholderPane placeholder = new PlaceholderPane(FOLDER_PLUS,"Click to view directory", () -> {
         File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
         if(dir!=null) files.list.setAll(dir);
@@ -102,11 +107,13 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<>("All", f -> visit(new TopItem()), () -> map(filters,f->f.name));
+    final VarEnum<String> filter = new VarEnum<>("All", f -> visit(new TopItem()), () -> map(filters,f -> f.name));
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    final V<Sort> sort = new V<>(Sort.ASCENDING, s -> resort());
+    final V<Sort> sort = new V<>(Sort.ASCENDING, this::resort);
+    @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
+    final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final V<FileField> sortBy = new V<>(NAME, f -> resort());
+    final V<FileField> sortBy = new V<>(NAME, this::resort);
 
     public DirViewer() {
         files.onListInvalid(list -> visit(new TopItem()));
@@ -126,7 +133,7 @@ public class DirViewer extends ClassController {
         grid.setOnKeyPressed(e -> {
             if(e.getCode()==ENTER) {
                 Item si = grid.selectedItem.get();
-                if(si!=null) si.open();
+                if(si!=null) si.visit();
             }
             if(e.getCode()==BACK_SPACE)
                 visitUp();
@@ -144,10 +151,8 @@ public class DirViewer extends ClassController {
         cellSize.applyValue();
         // temporary bugfix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
-        // available, so we delay
-        runLater(() -> {
-            visit(new TopItem());
-        });
+        // available, so we delay wit runLater
+        runLater(() -> visit(new TopItem()));
     }
 
     // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
@@ -161,21 +166,24 @@ public class DirViewer extends ClassController {
             visit(item.parent);
     }
 
-    public void visit(Item dir) {
+    void visit(Item dir) {
         visit(dir, null);
     }
 
-    public void visit(Item dir, Item scrollTo) {
+    void visit(Item dir, Item scrollTo) {
         if(!initialized) return;
         // remember last item position
         if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+        if(item==dir) return;
+        visitId++;
+
         // load new item
         item = dir;
         if(item==null) {
             grid.getItems().clear();
         } if(item!=null) {
             Fut.fut(item)
-               .map(Item::children,executor)
+               .map(Item::children,executorIO)
                .use(newcells -> {
                    grid.getItems().setAll(newcells);
                    if(item.last_gridposition>=0)
@@ -193,9 +201,12 @@ public class DirViewer extends ClassController {
     }
 
     private Comparator<? super Item> buildSortComparator() {
-        Sort s = sort.get();
-        FileField by = sortBy.get();
-        return s.cmp(by(i -> (Comparable)by.getOf(i.val)));
+        Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
+             sortHomo = sort.get(); // sorts each group separately
+        FileField by = sortBy.get(); // precompute once for consistency and performance
+        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
+                         cmpHomo = sortHomo.cmp(by(i -> (Comparable)by.getOf(i.val)));
+        return cmpHetero.thenComparing(cmpHomo);
     }
 
     private boolean filter(File f) {
@@ -208,21 +219,17 @@ public class DirViewer extends ClassController {
     // Graphics representing the file. Cells are virtualized just like ListView or TableView does
     // it, but both vertically & horizontally. This avoids loading all files at once and allows
     // unlimited scaling.
-    private class Cell extends ImprovedGridCell<Item>{
+    private class Cell extends ImprovedGridCell<Item> {
         Pane root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executor.execute(() -> {
-            try {
-                Thread.sleep(10);
-                runFX(() -> {
-                    if(item==getItem())
-                        setCover(item);
-                });
-            } catch (InterruptedException e) {
-
-            }
-        }));
+        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executorThumbs.execute(task(() -> {
+            sleep(10); // gives FX thread some space to avoid lag under intense workload
+            runFX(() -> {
+                if(item==getItem())
+                    setCover(item);
+            });
+        })));
 
         @Override
         protected void updateItem(Item item, boolean empty) {
@@ -252,10 +259,11 @@ public class DirViewer extends ClassController {
                 //     - reduce ui performance when resizing
                 // We solve this by delaying the image loading & drawing. We reduce subsequent
                 // invokes into single update (last).
-                if(item.cover_loaded && !isResizing)
+                if(item.cover_loadedFull && !isResizing)
                     setCover(item);
                 else {
                     thumb.loadImage((File)null); // prevent displaying old content before cover loads
+                                                 // this should call setCoverPost() to allow animations
                     setCoverLater.push(item);
                 }
             }
@@ -267,11 +275,11 @@ public class DirViewer extends ClassController {
             thumb = new Thumbnail();
             thumb.getPane().setOnMouseClicked(e -> {
                 if(e.getButton()==PRIMARY && e.getClickCount()==2) {
-                    getItem().open();
+                    getItem().visit();
                     e.consume();
                 }
             });
-            thumb.getView().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.4,0) : null));
+            thumb.getPane().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.2,0) : null));
             root = new Pane(thumb.getPane(),name) {
                 // Cell layouting should be fast - gets called multiple times when grid resizes.
                 // Why not use custom pane for more speed if we can.
@@ -289,27 +297,37 @@ public class DirViewer extends ClassController {
             root.setMaxSize(-1,-1);
         }
 
+        /**
+         * Begins loading cover for the item. If item changes meanwhile, the result is stored
+         * (it will not need to load again) to the old item, but not showed.
+         * <p>
+         * Thumbnail quality may be decreased to achieve good performance, while loading high
+         * quality thumbnail in the bgr. Each phase uses its own executor.
+         */
         private void setCover(Item item) {
-            // not sure how to handle this asynchronously, needs some work, particularly if we want
-            // to bind this to some progress indicator
-            // the below seems to already help, but not entirely? hm. investigate
-            executor.execute(() -> {
-                item.loadCover((was_loaded,img) -> {
-                    runFX(() -> {
-                        thumb.loadImage(img);
-                        if(!was_loaded && img!=null) {
-                            new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
-                        }
-                    });
-                });
-            });
+            // load thumbnail
+            executorThumbs.execute(task(() ->
+                item.loadCover(false, (was_loaded,file,img) -> setCoverPost(item, was_loaded, file, img))
+            ));
+            // load high quality thumbnail
+            executorImage.execute(task(() ->
+                item.loadCover(true, (was_loaded,file,img) -> setCoverPost(item, was_loaded, file, img))
+            ));
+        }
 
-//            item.loadCover((was_loaded,img) -> {
-//                thumb.loadImage(img);
-//                if(!was_loaded && img!=null) {
-//                    new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
-//                }
-//            });
+        private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
+            runFX(() -> {
+                if(item==getItem()) { // prevents content inconsistency
+                    boolean changed = thumb.image.get()!=img;
+                    boolean changedFromEmpty = thumb.image.get()==null && img!=null;
+                    boolean changed1stTime = !imgAlreadyLoaded && img!=null;
+                    boolean animate = changedFromEmpty; // use impl you like, make this config?
+                    thumb.loadImage(img);
+                    thumb.setFile(imgFile);
+                    if(changedFromEmpty)
+                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+                }
+            });
         }
     }
     // File wrapper, content of Cell.
@@ -323,7 +341,7 @@ public class DirViewer extends ClassController {
         Set<String> all_children = null; // all files, cache, use instead File.exists to reduce I/O
         Image cover = null;         // cover cache
         File cover_file = null;         // cover file cache
-        boolean cover_loaded = false;
+        boolean coverFile_loaded = false, cover_loadedThumb = false, cover_loadedFull = false;
         double last_gridposition = -1;
 
         public Item(Item parent, File value, FileType valtype) {
@@ -379,20 +397,38 @@ public class DirViewer extends ClassController {
             return null;
         }
 
-        public void loadCover(BiConsumer<Boolean,Image> action) {
-            boolean was_loaded = cover_loaded;
-            if(!cover_loaded) {
-                File img_file = getCoverFile();
-                Image imgc = Thumbnail.getCached(img_file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
-                Image img = imgc!=null ? imgc : Util.loadImage(img_file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
-                cover = img;
-                cover_file = img_file;
-                cover_loaded = true;
+        public void loadCover(boolean full, TriConsumer<Boolean,File,Image> action) {
+            if(full) {
+                boolean was_loaded = cover_loadedFull;
+                File file = getCoverFile();
+                if(!cover_loadedFull) {
+                    Image img = Util.loadImageFull(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+                    if(img!=null) {
+                        cover = img;
+                        cover_file = file;
+                        cover_loadedFull = true;
+                    }
+                }
+                action.accept(was_loaded,file,cover);
+            } else {
+                boolean was_loaded = cover_loadedThumb;
+                File file = getCoverFile();
+                if(!cover_loadedThumb) {
+                    Image imgc = Thumbnail.getCached(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+                    Image img = imgc!=null ? imgc : Util.loadImageThumb(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+                    cover = img;
+                    cover_file = file;
+                    cover_loadedThumb = true;
+                }
+                action.accept(was_loaded,file,cover);
             }
-            action.accept(was_loaded,cover);
         }
 
+        // guaranteed to execute only once
         protected File getCoverFile() {
+            if(coverFile_loaded) return cover_file;
+            coverFile_loaded = true;
+
             if(all_children==null) buildChildren();
             if(valtype==FileType.DIRECTORY)
                 return getImageT(val,"cover");
@@ -408,8 +444,8 @@ public class DirViewer extends ClassController {
             }
         }
 
-        public void open() {
-            if(valtype==FileType.DIRECTORY) visit(this);
+        public void visit() {
+            if(valtype==FileType.DIRECTORY) DirViewer.this.visit(this);
             else Environment.open(val);
         }
 
@@ -445,16 +481,26 @@ public class DirViewer extends ClassController {
         new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
         new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
     ).toList();
+
     static {
         AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
         AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
         ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
         ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
     }
-    PƑ0<File,Boolean> getFilter() {
+
+    private PƑ0<File,Boolean> getFilter() {
         return stream(filters)
                 .findAny(f -> filter.getValue().equals(f.name))
                 .orElseGet(() -> new PƑ0<>("All",File.class,Boolean.class, file -> true));
+    }
+
+    private Runnable task(Runnable r) {
+        final long id = visitId;
+        return () -> {
+            if(id==visitId)
+                r.run();
+        };
     }
 
     private static final double CELL_TEXT_HEIGHT = 20;
@@ -478,5 +524,532 @@ public class DirViewer extends ClassController {
         }
     }
     public static enum FileType { FILE,DIRECTORY; }
+    public static enum FileSort {
+        DIR_FIRST(Sort.DESCENDING), FILE_FIRST(Sort.ASCENDING), NONE(Sort.NONE);
+
+        private final Sort sort;
+
+        private FileSort(Sort s) {
+            sort = s;
+        }
+    }
 
 }
+
+///*
+// * To change this license header, choose License Headers in Project Properties.
+// * To change this template file, choose Tools | Templates
+// * and open the template in the editor.
+// */
+//package DirViewer;
+//
+//import java.io.File;
+//import java.util.ArrayList;
+//import java.util.Comparator;
+//import java.util.HashSet;
+//import java.util.List;
+//import java.util.Set;
+//import java.util.concurrent.ExecutorService;
+//import java.util.stream.Stream;
+//
+//import javafx.event.Event;
+//import javafx.geometry.Insets;
+//import javafx.geometry.Pos;
+//import javafx.scene.control.Label;
+//import javafx.scene.effect.ColorAdjust;
+//import javafx.scene.image.Image;
+//import javafx.scene.layout.*;
+//
+//import Layout.widget.Widget;
+//import Layout.widget.controller.ClassController;
+//import gui.objects.grid.ImprovedGridCell;
+//import gui.objects.grid.ImprovedGridView;
+//import gui.objects.image.Thumbnail;
+//import unused.TriConsumer;
+//import util.Sort;
+//import util.Util;
+//import util.access.FieldValue.FileField;
+//import util.access.V;
+//import util.access.VarEnum;
+//import util.animation.Anim;
+//import util.async.executor.EventReducer;
+//import util.async.executor.FxTimer;
+//import util.async.future.Fut;
+//import util.conf.Config;
+//import util.conf.Config.VarList;
+//import util.conf.IsConfig;
+//import util.file.AudioFileFormat;
+//import util.file.AudioFileFormat.Use;
+//import util.file.Environment;
+//import util.file.FileUtil;
+//import util.file.ImageFileFormat;
+//import util.functional.Functors.PƑ0;
+//import util.graphics.drag.PlaceholderPane;
+//
+//import static DirViewer.DirViewer.FileSort.DIR_FIRST;
+//import static Layout.widget.Widget.Group.OTHER;
+//import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
+//import static javafx.scene.input.KeyCode.BACK_SPACE;
+//import static javafx.scene.input.KeyCode.ENTER;
+//import static javafx.scene.input.MouseButton.PRIMARY;
+//import static javafx.scene.input.MouseButton.SECONDARY;
+//import static main.App.APP;
+//import static util.access.FieldValue.FileField.NAME;
+//import static util.async.Async.FX;
+//import static util.async.Async.newSingleDaemonThreadExecutor;
+//import static util.async.Async.runFX;
+//import static util.async.Async.runLater;
+//import static util.file.Environment.chooseFile;
+//import static util.file.FileUtil.getName;
+//import static util.file.FileUtil.listFiles;
+//import static util.functional.Util.*;
+//import static util.graphics.Util.setAnchor;
+//
+///**
+// *
+// * @author Plutonium_
+// */
+//@Widget.Info(
+//    author = "Martin Polakovic",
+//    programmer = "Martin Polakovic",
+//    name = "Dir Viewer",
+//    description = "Displays directory hierarchy and files as thumbnails in a "
+//            + "vertically scrollable grid. Intended as simple library",
+//    howto = "",
+//    notes = "",
+//    version = "0.5",
+//    year = "2015",
+//    group = OTHER
+//)
+//public class DirViewer extends ClassController {
+//
+//    @IsConfig(name = "Location", info = "Root directory the contents of to display "
+//            + "This is not a file system browser, and it is not possible to "
+//            + "visit parent of this directory.")
+//    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
+//
+//    Item item = null;   // item, children of which are displayed
+//    ImprovedGridView<Item> grid = new ImprovedGridView<>(CellSize.NORMAL.width,CellSize.NORMAL.height,5,5);
+//    final ExecutorService executor = newSingleDaemonThreadExecutor();
+//    boolean initialized = false;
+//    private volatile boolean isResizing = false;
+//    final PlaceholderPane placeholder = new PlaceholderPane(FOLDER_PLUS,"Click to view directory", () -> {
+//        File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
+//        if(dir!=null) files.list.setAll(dir);
+//    });
+//
+//    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+//    final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
+//    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
+//    final VarEnum<String> filter = new VarEnum<>("All", f -> visit(new TopItem()), () -> map(filters,f -> f.name));
+//    @IsConfig(name = "Sort", info = "Sorting effect.")
+//    final V<Sort> sort = new V<>(Sort.ASCENDING, this::resort);
+//    @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
+//    final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
+//    @IsConfig(name = "Sort by", info = "Sorting criteria.")
+//    final V<FileField> sortBy = new V<>(NAME, this::resort);
+//
+//    public DirViewer() {
+//        files.onListInvalid(list -> visit(new TopItem()));
+//        files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
+//        grid.setCellFactory(grid -> new Cell());
+//        setAnchor(this,grid,0d);
+//        placeholder.showFor(this);
+//
+//        // delay cell loading when content is being resized (increases resize performance)
+//        double delay = 200; // ms
+//        FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
+//        grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
+//        grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
+//        grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
+//        grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
+//
+//        grid.setOnKeyPressed(e -> {
+//            if(e.getCode()==ENTER) {
+//                Item si = grid.selectedItem.get();
+//                if(si!=null) si.open();
+//            }
+//            if(e.getCode()==BACK_SPACE)
+//                visitUp();
+//        });
+//        grid.setOnMouseClicked(e -> {
+//            if(e.getButton()==SECONDARY)
+//                visitUp();
+//        });
+//        setOnScroll(Event::consume);
+//    }
+//
+//    @Override
+//    public void refresh() {
+//        initialized = true;
+//        cellSize.applyValue();
+//        // temporary bugfix, (we use progress indicator of the window this widget is loaded
+//        // in, but when this refresh() method is called its just during loading and window is not yet
+//        // available, so we delay wit runLater
+//        runLater(() -> visit(new TopItem()));
+//    }
+//
+//    // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
+//    // the user source - collection of directories // this should be implemented
+//    void visitUp() {
+////        if(item!=null) {
+////            if(item.parent!=null) visitDir(item.parent);
+////            else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
+////        }
+//        if(item!=null && item.parent!=null)
+//            visit(item.parent);
+//    }
+//
+//    public void visit(Item dir) {
+//        visit(dir, null);
+//    }
+//
+//    public void visit(Item dir, Item scrollTo) {
+//        if(!initialized) return;
+//        // remember last item position
+//        if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+//        // load new item
+//        item = dir;
+//        if(item==null) {
+//            grid.getItems().clear();
+//        } if(item!=null) {
+//            Fut.fut(item)
+//               .map(Item::children,executor)
+//               .use(newcells -> {
+//                   grid.getItems().setAll(newcells);
+//                   if(item.last_gridposition>=0)
+//                       grid.getSkinn().getFlow().setPosition(item.last_gridposition);
+//                   grid.requestFocus();
+//               },FX)
+//               .showProgress(getWidget().getWindow().taskAdd())
+//               .run();
+//        }
+//    }
+//
+//    /** Resorts grid's items according to current sort criteria. */
+//    private void resort() {
+//        grid.getItems().sort(buildSortComparator());
+//    }
+//
+//    private Comparator<? super Item> buildSortComparator() {
+//        Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
+//             sortHomo = sort.get(); // sorts each group separately
+//        FileField by = sortBy.get(); // precompute once for consistency and performance
+//        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
+//                         cmpHomo = sortHomo.cmp(by(i -> (Comparable)by.getOf(i.val)));
+//        return cmpHetero.thenComparing(cmpHomo);
+//    }
+//
+//    private boolean filter(File f) {
+//        return !f.isHidden() && f.canRead() && getFilter().apply(f);
+//    }
+//    private static boolean file_exists(Item c, File f) {
+//        return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
+//    }
+//
+//    // Graphics representing the file. Cells are virtualized just like ListView or TableView does
+//    // it, but both vertically & horizontally. This avoids loading all files at once and allows
+//    // unlimited scaling.
+//    private class Cell extends ImprovedGridCell<Item>{
+//        Pane root;
+//        Label name;
+//        Thumbnail thumb;
+//        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executor.execute(() -> {
+//            try {
+//                Thread.sleep(10);
+//                runFX(() -> {
+//                    if(item==getItem())
+//                        setCover(item);
+//                });
+//            } catch (InterruptedException e) {}
+//        }));
+//
+//        @Override
+//        protected void updateItem(Item item, boolean empty) {
+//            super.updateItem(item, empty);
+//
+//            if(item==null) {
+//                // empty cell has no graphics
+//                // we do not clear the content of the graphics however
+//                setGraphic(null);
+//            } else {
+//                if(root==null) {
+//                    // we create graphics only once and only when frst requested
+//                    createGraphics();
+//                    // we set graphics only once (when creating it)
+//                    setGraphic(root);
+//                }
+//                // if cell was previously empty, we set graphics back
+//                // this improves performance compared to setting it every time
+//                if(getGraphic()!=root) setGraphic(root);
+//
+//                // set name
+//                name.setText(getName(item.val));
+//                // set cover
+//                // The item caches the cover Image, so it is only loaded once. That is a heavy op.
+//                // This method can be called very frequently and:
+//                //     - block ui thread when scrolling
+//                //     - reduce ui performance when resizing
+//                // We solve this by delaying the image loading & drawing. We reduce subsequent
+//                // invokes into single update (last).
+//                if(item.cover_loaded && !isResizing)
+//                    setCover(item);
+//                else {
+//                    thumb.loadImage((File)null); // prevent displaying old content before cover loads
+//                    setCoverLater.push(item);
+//                }
+//            }
+//        }
+//
+//        private void createGraphics() {
+//            name = new Label();
+//            name.setAlignment(Pos.CENTER);
+//            thumb = new Thumbnail();
+//            thumb.getPane().setOnMouseClicked(e -> {
+//                if(e.getButton()==PRIMARY && e.getClickCount()==2) {
+//                    getItem().open();
+//                    e.consume();
+//                }
+//            });
+//            thumb.getPane().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.2,0) : null));
+//            root = new Pane(thumb.getPane(),name) {
+//                // Cell layouting should be fast - gets called multiple times when grid resizes.
+//                // Why not use custom pane for more speed if we can.
+//                @Override
+//                protected void layoutChildren() {
+//                    double w = getWidth();
+//                    double h = getHeight();
+//                    thumb.getPane().resizeRelocate(0,0,w,h-CELL_TEXT_HEIGHT);
+//                    name.resizeRelocate(0,h-CELL_TEXT_HEIGHT,w,CELL_TEXT_HEIGHT);
+//                }
+//            };
+//            root.setPadding(Insets.EMPTY);
+//            root.setMinSize(-1,-1);
+//            root.setPrefSize(-1,-1);
+//            root.setMaxSize(-1,-1);
+//        }
+//
+//        private void setCover(Item item) {
+//            // not sure how to handle this asynchronously, needs some work, particularly if we want
+//            // to bind this to some progress indicator
+//            // executor seems to already help, but not entirely? hm. investigate
+//            executor.execute(() -> {
+//                item.loadCover((was_loaded,file,img) -> {
+//                    runFX(() -> {
+//                        thumb.loadImage(img);
+//                        thumb.setFile(file);
+//                        if(!was_loaded && img!=null) {
+//                            new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+//                        }
+//                    });
+//                });
+//            });
+//
+////            item.loadCover((was_loaded,img) -> {
+////                thumb.loadImage(img);
+////                if(!was_loaded && img!=null) {
+////                    new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+////                }
+////            });
+//        }
+//    }
+//    // File wrapper, content of Cell.
+//    // We cache various stuff in here, including the cover Image and children files.
+//    private class Item {
+//
+//        final File val;
+//        final FileType valtype;
+//        final Item parent;
+//        Set<Item> children = null;      // filtered files
+//        Set<String> all_children = null; // all files, cache, use instead File.exists to reduce I/O
+//        Image cover = null;         // cover cache
+//        File cover_file = null;         // cover file cache
+//        boolean cover_loaded = false;
+//        double last_gridposition = -1;
+//
+//        public Item(Item parent, File value, FileType valtype) {
+//            this.val = value;
+//            this.valtype = valtype;
+//            this.parent = parent;
+//        }
+//
+//        public List<Item> children() {
+//            if (children == null) buildChildren();
+//            List<Item> l = list(children);
+//                       l.sort(buildSortComparator());
+//            return l;
+//        }
+//
+//        protected Stream<File> children_files() {
+//            return listFiles(val);
+//        }
+//
+//        private void buildChildren() {
+//            all_children = new HashSet<>();
+//            children = new HashSet<>();
+//            List<Item> fils = new ArrayList<>();
+//            children_files().forEach(f -> {
+//                all_children.add(f.getPath().toLowerCase());
+//                if(DirViewer.this.filter(f)) {
+//                    if(!f.isDirectory()) children.add(new Item(this,f,FileType.FILE));
+//                    else                 fils.add(new Item(this,f,FileType.DIRECTORY));
+//                }
+//            });
+//            children.addAll(fils);
+//        }
+//
+//        private File getImage(File dir, String name) {
+//            if(dir==null) return null;
+//            for(ImageFileFormat format: ImageFileFormat.values()) {
+//                if (format.isSupported()) {
+//                    File f = new File(dir,name + "." + format.toString());
+//                    if(dir==val ? file_exists(this,f) : file_exists(parent,f)) return f;
+//                }
+//            }
+//            return null;
+//        }
+//        private File getImageT(File dir, String name) {
+//            if(dir==null) return null;
+//
+//            for(ImageFileFormat format: ImageFileFormat.values()) {
+//                if (format.isSupported()) {
+//                    File f = new File(dir,name + "." + format.toString());
+//                    if(file_exists(this,f)) return f;
+//                }
+//            }
+//            return null;
+//        }
+//
+//        public void loadCover(TriConsumer<Boolean,File,Image> action) {
+////            boolean was_loaded = cover_loaded;
+////            File file = getCoverFile();
+////            if(!cover_loaded) {
+//////                Image imgc = Thumbnail.getCached(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+//////                if(imgc!=null) {
+//////                    cover = imgc;
+//////                    cover_file = file;
+//////                    cover_loaded = true;
+//////                } else {
+////                    Util.loadImage(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT, img -> {
+////                        cover_file = file;
+////                        cover_loaded = true;
+////                        cover = img;
+////                        action.accept(was_loaded, file, img);
+////                    });
+//////                }
+////            }
+////            action.accept(was_loaded,file,cover);
+//
+//
+//            boolean was_loaded = cover_loaded;
+//            File file = getCoverFile();
+//            if(!cover_loaded) {
+//                Image imgc = Thumbnail.getCached(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+//                Image img = imgc!=null ? imgc : Util.loadImage(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
+//                cover = img;
+//                cover_file = file;
+//                cover_loaded = true;
+//            }
+//            action.accept(was_loaded,file,cover);
+//        }
+//
+//        protected File getCoverFile() {
+//            if(cover_loaded) return cover_file;
+//            if(all_children==null) buildChildren();
+//            if(valtype==FileType.DIRECTORY)
+//                return getImageT(val,"cover");
+//            else {
+//                // image files are their own thumbnail
+//                if(ImageFileFormat.isSupported(val))
+//                    return val;
+//                else {
+//                    File i = getImage(val.getParentFile(),FileUtil.getName(val));
+//                    if(i==null && parent!=null) return parent.getCoverFile(); // return the parent image if available, needs some work
+//                    return i;
+//                }
+//            }
+//        }
+//
+//        public void open() {
+//            if(valtype==FileType.DIRECTORY) visit(this);
+//            else Environment.open(val);
+//        }
+//
+//    }
+//    private class TopItem extends Item {
+//
+//        public TopItem() {
+//            super(null,null,null);
+//        }
+//
+//        @Override
+//        protected Stream<File> children_files() {
+//            return listFiles(files.list.stream());
+//        }
+//
+//        @Override
+//        protected File getCoverFile() {
+//            return null;
+//        }
+//
+//    }
+//
+//    // Filter summary:
+//    // because we can not yet serialize functions (see Functors class and Parser) in  a way that
+//    // stores state such as negation or function chaining, I dont use predicates from Functors'
+//    // function pool, but 'hardcoded' the filters instead.
+//    // We use String config to save which one we use.
+//    private static final List<PƑ0<File,Boolean>> filters = stream(
+//        new PƑ0<>("All",        File.class,Boolean.class, file -> true),
+//        new PƑ0<>("None",       File.class,Boolean.class, file -> false),
+//        new PƑ0<>("Audio",      File.class,Boolean.class, file -> AudioFileFormat.isSupported(file, Use.APP)),
+//        new PƑ0<>("No Audio",   File.class,Boolean.class, file -> !AudioFileFormat.isSupported(file, Use.APP)),
+//        new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
+//        new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
+//    ).toList();
+//
+//    static {
+//        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
+//        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
+//        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
+//        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
+//    }
+//
+//    private PƑ0<File,Boolean> getFilter() {
+//        return stream(filters)
+//                .findAny(f -> filter.getValue().equals(f.name))
+//                .orElseGet(() -> new PƑ0<>("All",File.class,Boolean.class, file -> true));
+//    }
+//
+//    private static final double CELL_TEXT_HEIGHT = 20;
+//    public static enum CellSize {
+//        SMALL(80,100+CELL_TEXT_HEIGHT),
+//        NORMAL(160,200+CELL_TEXT_HEIGHT),
+//        LARGE(240,300+CELL_TEXT_HEIGHT),
+//        GIANT(400,500+CELL_TEXT_HEIGHT);
+//
+//        final double width;
+//        final double height;
+//
+//        CellSize(double width, double height) {
+//            this.width = width;
+//            this.height = height;
+//        }
+//
+//        void apply(ImprovedGridView<?> grid) {
+//            grid.setCellWidth(width);
+//            grid.setCellHeight(height);
+//        }
+//    }
+//    public static enum FileType { FILE,DIRECTORY; }
+//    public static enum FileSort {
+//        DIR_FIRST(Sort.DESCENDING), FILE_FIRST(Sort.ASCENDING), NONE(Sort.NONE);
+//
+//        private final Sort sort;
+//
+//        private FileSort(Sort s) {
+//            sort = s;
+//        }
+//    }
+//
+//}

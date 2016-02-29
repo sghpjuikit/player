@@ -26,10 +26,12 @@ public enum Sort {
      * is ascending, hence the comparator itself is returned when this is ascending. When this is
      * none, no order comparator (static instance) is returned.
      * <p>
-     * Applying this method multiple times will not produce any new comparator instances. Ascending
-     * and none will consistently return the same instance and reverse will flip between the reverse
+     * Applying this method multiple times will not produce any new comparator instances. {@link #ASCENDING}
+     * and {@link #NONE} will consistently return the same instance and {@link #DESCENDING} will flip between the reverse
      * and original instance of the comparator, i.e., reverse of a reverse will be the same comparator
-     * object/instance.
+     * object/instance. Formally:
+     * <p>
+     * c==DESCENDING.cmp(DESCENDING.cmp(c)) is always true.
      * <p>
      * Some code uses null comparator as a no comparator, hence this method accepts null. In such
      * case, null is always returned (no order has no reverse order).
@@ -37,12 +39,20 @@ public enum Sort {
      * @return null if c null, c if ascending, reverse to c if descending or no order
      * comparator (which always returns 0) when none.
      */
-    public <T> Comparator<? super T> cmp(Comparator<? super T> c) {
+    public <T> Comparator<T> cmp(Comparator<T> c) {
+        // Generics 101:
+        // The generic parameter used is <T>, not <? super T> as one would expect. This is because we
+        // are not consuming T, we are consuming the very Comparator<T>. Its generic type is already
+        // fully captured by T.
+        // If comparator has type <? super SomeClass> then that is what T captures, i.e., if we were
+        // to use <? super T> we would actually return <? super ? super SomeClass> which I dont even...
+        
         if(c==null) return null;
         switch (this) {
             case ASCENDING: return c;
-            // note the used implementation makes reversion effect on comparator void if applied
-            // multiple times (the comparator instance will flip between reversed and original)
+            // note the java implementation of ReversedComparator causes multiple calls to reversed()
+            // order to preserve the reference of the original comparator, i.e., calling reversed()
+            // twice will return the original object. This can be very important.
             case DESCENDING: return c.reversed();
             case NONE: return util.functional.Util.SAME;
             default: throw new SwitchException(this);

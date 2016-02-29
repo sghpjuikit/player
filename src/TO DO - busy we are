@@ -3,6 +3,14 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- impl layout refresh() pass so Widget.refresh() can run properly
+- parametric function state serialization
+- DirView .psd use embedded thumbnails first (instantaneous) and then update
+  can be implemented by returning V<Image> instead of Image from loadImage()
+- DirViewer cancel image loading when view changes or prevent image to be set
+- display progressbar when loading images (start on load start, use Thumbnail onLoaded callback) but
+  delay a tiny bit (for continued display) and delay hiding a bit more than the bit
+- image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
 - saving multiple playlists is bugged
 - I think spectrum suffers from logarithmic band intensity distribution

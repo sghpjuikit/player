@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.File;
+package util.file;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -26,7 +26,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
 import gui.GUI;
-import util.File.AudioFileFormat.Use;
+import util.file.AudioFileFormat.Use;
 import util.Util;
 import util.dev.TODO;
 

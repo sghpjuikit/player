@@ -5,6 +5,7 @@
 package util;
 
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -21,11 +22,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -44,9 +47,11 @@ import javafx.util.Duration;
 
 import org.jaudiotagger.tag.images.Artwork;
 
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import unused.TriConsumer;
-import util.file.FileUtil;
 import util.dev.TODO;
+import util.file.FileUtil;
 import util.functional.Functors.Ƒ1;
 
 import static java.lang.Math.*;
@@ -238,6 +243,7 @@ public class Util {
             if (s.charAt(i) != s.charAt(n-i-1)) return false;
         return true;
     }
+    
     public static boolean isNonEmptyPalindrome(String s) {
         return s.isEmpty() ? false : isPalindrome(s);
     }
@@ -257,16 +263,168 @@ public class Util {
      * further for small thumbnails, where intended size is known.
      *
      * @param file file to load.
-     * @param width
-     * @param height to resize image's width to. Use 0 or negative to use original image size.
+     * @param width target width.
+     * @param height target height. Use 0 or negative to use original image size.
      * The size will be clipped to original if it is greater.
+     *
+     * @throws IllegalArgumentException when on fx thread
      * @return loaded image or null if file null or not a valid image source.
      */
     public static Image loadImage(File file, double width, double height) {
         if (file == null) return null;
-        width = max(0,width);
-        height = max(0,height);
-        if (width == 0 && height == 0)
+
+        if(Platform.isFxApplicationThread())
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+
+        if(file.getPath().endsWith("psd")) {
+           return loadImageFull(file, width, height, false);
+        } else {
+            return loadImageThumb(file, width, height);
+        }
+    }
+
+    public static Image loadImageThumb(File file, double width, double height) {
+        if (file == null) return null;
+
+        if(Platform.isFxApplicationThread())
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+
+        // negative values have same effect as 0, 0 loads image at its size
+        int W = max(0,(int)width);
+        int H = max(0,(int)height);
+        boolean loadFullSize = W == 0 && H == 0;
+
+        // psd special case
+        if(!file.getPath().endsWith("psd")) {
+            return imgImplLoadFX(file, W, H, loadFullSize);
+        } else {
+            ImageReader reader = null;
+            try (ImageInputStream input = ImageIO.createImageInputStream(file)) {
+                Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+                if (!readers.hasNext()) return null;
+
+                reader = readers.next();
+                reader.setInput(input);
+                int ii = reader.getMinIndex(); // 1st image index
+                boolean thumbHas = imgImplHasThumbnail(reader, ii);
+                int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii,0),
+                    thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii,0);
+                boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
+
+                BufferedImage i;
+                if(thumbUse) {
+                    i = reader.readThumbnail(ii,0);
+                } else {
+                    ImageReadParam irp = new ImageReadParam();
+                    int sw = reader.getWidth(ii)/W;
+                    int sh = reader.getHeight(ii)/H;
+                    int px = loadFullSize ? 1 : max(1,max(sw,sh)*2/3); // quality == 2/3 == ok, great performance
+                    irp.setSourceSubsampling(px,px, 0,0);
+                    i = reader.read(ii,irp);
+
+                    // scale, also improves quality, very quick
+                    if(!loadFullSize)
+                        i = imgImplScale(i, W, H, Rendering.SPEED);
+                 }
+                 return SwingFXUtils.toFXImage(i, null);
+
+            } catch(IndexOutOfBoundsException | IOException e) {
+                return null;
+            } finally {
+                if(reader!=null) reader.dispose();
+            }
+        }
+    }
+
+    public static Image loadImageFull(File file, double width, double height) {
+        return loadImageFull(file, width, height, true);
+    }
+
+    private static Image loadImageFull(File file, double width, double height, boolean thumbLoadedBefore) {
+        if (file == null) return null;
+
+        if(Platform.isFxApplicationThread())
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+
+        // negative values have same effect as 0, 0 loads image at its size
+        int W = max(0,(int)width);
+        int H = max(0,(int)height);
+        boolean loadFullSize = W == 0 && H == 0;
+
+        // psd special case
+        if(!file.getPath().endsWith("psd")) {
+            return null;
+        } else {
+            ImageReader reader = null;
+            try (ImageInputStream input = ImageIO.createImageInputStream(file)) {
+                Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+                if (!readers.hasNext()) return null;
+
+                reader = readers.next();
+                reader.setInput(input);
+                int ii = reader.getMinIndex(); // 1st image index
+                boolean thumbHas = imgImplHasThumbnail(reader, ii);
+                int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii,0),
+                    thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii,0);
+                boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
+
+                BufferedImage i;
+                if(thumbUse) {
+                    if(thumbLoadedBefore) return null;
+                    i = reader.readThumbnail(ii,0);
+                } else {
+                    int sw = reader.getWidth(ii)/W;
+                    int sh = reader.getHeight(ii)/H;
+                    int px = loadFullSize ? 1 : max(1,max(sw,sh)/3);// quality 3 == great, with ok performance
+                    // max quality is px==1, but quality/performance ratio would suck
+                    // the only quality issue is with halftone patterns (like in manga),
+                    // they really ask for max quality
+                    ImageReadParam irp = new ImageReadParam();
+                    irp.setSourceSubsampling(px,px, 0,0);
+                    i = reader.read(ii,irp);
+
+                    // scale, also improves quality, fairly quick
+                    if(!loadFullSize)
+                        i = imgImplScale(i, W, H, Rendering.QUALITY);
+                 }
+                 return SwingFXUtils.toFXImage(i, null);
+
+            } catch(IndexOutOfBoundsException | IOException e) {
+                return null;
+            } finally {
+                if(reader!=null) reader.dispose();
+            }
+        }
+    }
+
+    /** Scales image to requested size, returning new image instance and flushing the old. Size must not be 0. */
+    private static BufferedImage imgImplScale(BufferedImage image, int W, int H, Rendering rendering) {
+        try {
+            BufferedImage i = Thumbnails.of(image)
+//                    .scalingMode(ScalingMode.BICUBIC) // default == best?, javadoc sux...
+                    .size(W,H).keepAspectRatio(true)
+                    .rendering(rendering)
+                    .asBufferedImage();
+            image.flush();
+            return i;
+        } catch (IOException ex) {
+            return image;
+        }
+    }
+
+    /** Returns true if the image has at least 1 embedded thumbnail of any size. */
+    private static boolean imgImplHasThumbnail(ImageReader reader, int ii) {
+        try {
+            reader.hasThumbnails(ii); // throws exception -> no thumb
+            return true;
+        } catch(IOException | IndexOutOfBoundsException e){
+            return false;
+        }
+    }
+
+    /** Loads javafx {@link Image}. */
+    private static Image imgImplLoadFX(File file, int W, int H, boolean loadFullSize) {
+        if (loadFullSize)
             return new Image(file.toURI().toString());
         else {
             // find out real image file resolution
@@ -275,8 +433,8 @@ public class Util {
             int h = d==null ? Integer.MAX_VALUE : d.height;
 
             // lets not surpass real size (Image unfortunately does that if we dont stop it)
-            int fin_width = min((int)width,w);
-            int fin_height = min((int)height,h);
+            int fin_width = min(W,w);
+            int fin_height = min(H,h);
             return new Image(file.toURI().toString(), fin_width, fin_height, true, true, true);
         }
     }
@@ -285,7 +443,7 @@ public class Util {
      * Returns image size in pixels or null if unable to find out. Does not read whole image into
      * memory. It still involves i/o.
      */
-    @TODO(purpose = BUG)
+    @TODO(purpose = BUG, note = "supressed by catching Nullpointer, though not a true solution")
     public static Dimension getImageDim(File f) {
         // see more at:
         // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
@@ -294,14 +452,14 @@ public class Util {
         Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(suffix);
         if (iter.hasNext()) {
             ImageReader reader = iter.next();
-            try {
-                ImageInputStream stream = new FileImageInputStream(f);
+            try( ImageInputStream stream = ImageIO.createImageInputStream(f) ) {
                 reader.setInput(stream);
-                int width = reader.getWidth(reader.getMinIndex());
-                int height = reader.getHeight(reader.getMinIndex());
+                int ii = reader.getMinIndex(); // 1st image index
+                int width = reader.getWidth(ii);
+                int height = reader.getHeight(ii);
                 result = new Dimension(width, height);
             } catch (IOException | NullPointerException e) {
-                getLogger(Util.class).warn("Problem finding out image size {}", f,e);
+                getLogger(Util.class).warn("Problem finding out image size {}", f ,e);
                 // we need to catch nullpointer as well, seems to be a bug, stacktrace below:
                 // java.lang.NullPointerException: null
                 //	at java.awt.color.ICC_Profile.activateDeferredProfile(ICC_Profile.java:1092) ~[na:na]
@@ -319,7 +477,7 @@ public class Util {
                 reader.dispose();
             }
         } else {
-            getLogger(Util.class).warn("No reader found for given file: " + f);
+            getLogger(Util.class).warn("No reader found for given file: {}", f);
         }
 
         return result;

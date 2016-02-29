@@ -30,10 +30,10 @@ import Layout.widget.feature.Feature;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
-import util.file.FileMonitor;
-import util.file.FileUtil;
 import util.SwitchException;
 import util.collections.mapset.MapSet;
+import util.file.FileMonitor;
+import util.file.FileUtil;
 
 import static Layout.widget.WidgetManager.WidgetSource.*;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -41,9 +41,9 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.toList;
 import static main.App.APP;
-import static util.file.FileUtil.getName;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
+import static util.file.FileUtil.getName;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -370,21 +370,16 @@ public final class WidgetManager {
             private Class<?> loadClassNoParent(final String name) throws ClassNotFoundException {
                 AccessControlContext acc = AccessController.getContext();
                 try {
-                    PrivilegedExceptionAction action = new PrivilegedExceptionAction() {
-                        @Override
-                        public Object run() throws ClassNotFoundException {
-                            try {
-                                File classFile = new File(dir,name.replace(".", File.separator) + ".class");
-                                FileInputStream fi = new FileInputStream(classFile);
-                                byte[] classBytes = new byte[fi.available()];
-                                fi.read(classBytes);
-                                return defineClass(name, classBytes, 0, classBytes.length);
-                            } catch(Exception e ) {
-                                throw new ClassNotFoundException(name);
-                            }
+                    return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>)() -> {
+                        File classFile = new File(dir,name.replace(".", File.separator) + ".class");
+                        try ( FileInputStream fi = new FileInputStream(classFile) ) {
+                            byte[] classBytes = new byte[fi.available()];
+                            fi.read(classBytes);
+                            return defineClass(name, classBytes, 0, classBytes.length);
+                        } catch(Exception e ) {
+                            throw new ClassNotFoundException(name);
                         }
-                    };
-                    return (Class)AccessController.doPrivileged(action, acc);
+                    }, acc);
                 } catch (java.security.PrivilegedActionException pae) {
                     throw new ClassNotFoundException(name);
                 }

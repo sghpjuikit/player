@@ -67,8 +67,16 @@ public class Util {
     }
 
     /**
-     * Runs action immediately consuming the property's value if non null or sets a
-     * listener which will run the action when the value changed to non null and remove itself.
+     * Runs action (consuming the property's value) immediately if value non null or sets a one-time
+     * listener which will run the action when the value changes to non null for the 1st time and
+     * remove itself.
+     * <p>
+     * It is guaranteed:
+     * <ul>
+     * <li> action executes at most once
+     * <li> action never consumes null
+     * <li> action executes as soon as the property value is not null - now or in the future
+     * </ul>
      * <p>
      * Used to execute some kind of initialization routine, which requires nonnull value (which is
      * not guaranteed to be the case).

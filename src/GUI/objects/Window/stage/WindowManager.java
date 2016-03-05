@@ -134,10 +134,9 @@ public class WindowManager implements Configurable<Object> {
     public Duration mini_inactive_delay = millis(700);
 
     @IsConfig(name="Mini widget", info="Widget to use in mini window.")
-    public final VarEnum<String> mini_widget = new VarEnum<String>("PlayerControlsTiny",
-        () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(wf -> wf.name()).collect(toList())
+    public final VarEnum<String> mini_widget = VarEnum.ofStream("PlayerControlsTiny",
+        () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(wf -> wf.name())
     );
-
 
 
     /**
@@ -200,16 +199,16 @@ public class WindowManager implements Configurable<Object> {
     }
 
     public static Window createWindowOwner() {
-	Window w = new Window();
-               w.getStage().initStyle(UTILITY);
-               w.s.setOpacity(0);
-               w.s.setScene(new Scene(new Region()));
-               ((Region)w.s.getScene().getRoot()).setBackground(null);
-               w.s.getScene().setFill(null);
-               w.s.setTitle(APP.name);
-               w.s.getIcons().add(APP.getIcon());
-               w.setSize(20, 20);
-	return w;
+        Window w = new Window();
+                   w.getStage().initStyle(UTILITY);
+                   w.s.setOpacity(0);
+                   w.s.setScene(new Scene(new Region()));
+                   ((Region)w.s.getScene().getRoot()).setBackground(null);
+                   w.s.getScene().setFill(null);
+                   w.s.setTitle(APP.name);
+                   w.s.getIcons().add(APP.getIcon());
+                   w.setSize(20, 20);
+        return w;
     }
 
     private void setAsMain(Window w) {
@@ -232,11 +231,11 @@ public class WindowManager implements Configurable<Object> {
 //            if(nv) APP.taskbarIcon.iconify(nv);
 //        });
 
-        Icon mainw_i = new Icon(FontAwesomeIcon.CIRCLE,5)
+        Icon i = new Icon(FontAwesomeIcon.CIRCLE,5)
                 .tooltip("Main window\n\nThis window is main app window\nClosing it will "
                        + "close application.");
         w.rightHeaderBox.getChildren().add(0, new Label(""));
-        w.rightHeaderBox.getChildren().add(0,mainw_i);
+        w.rightHeaderBox.getChildren().add(0, i);
     }
 
 

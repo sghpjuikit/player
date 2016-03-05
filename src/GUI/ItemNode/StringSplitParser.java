@@ -47,8 +47,8 @@ public class StringSplitParser implements Function<String, List<String>> {
     public static final char PARRSE_KEY_LIMITER = '%';
 
     public final String pex;
-    public final List<String> parse_keys = new ArrayList();
-    public final List<String> key_separators = new ArrayList();
+    public final List<String> parse_keys = new ArrayList<>();
+    public final List<String> key_separators = new ArrayList<>();
 
     /**
      * @param expression parsing expression
@@ -90,20 +90,18 @@ public class StringSplitParser implements Function<String, List<String>> {
      */
     @Override
     public List<String> apply(String text) {
-        List<String> out = new ArrayList(parse_keys.size());
-        int at = 0;
-        for(int i=0; i<key_separators.size(); i++) {
-            String sep = key_separators.get(i);
-            at = text.indexOf(sep);
-            if(at==-1) {
-                repeat(parse_keys.size()-out.size(),() -> out.add(null));
+        List<String> out = new ArrayList<>(parse_keys.size());
+        for (String sep : key_separators) {
+            int at = text.indexOf(sep);
+            if (at == -1) {
+                repeat(parse_keys.size() - out.size(), () -> out.add(null));
                 return out;
             }
-            String val = text.substring(0,at);
+            String val = text.substring(0, at);
             out.add(val);   // add ith value
-            text = text.substring(at+sep.length());
+            text = text.substring(at + sep.length());
         }
-            out.add(text);  //add last value (N values, N-1 separators)
+        out.add(text);  //add last value (N values, N-1 separators)
         return out;
     }
 
@@ -114,7 +112,7 @@ public class StringSplitParser implements Function<String, List<String>> {
      */
     public Map<String,String> applyM(String text) {
         List<String> splits = apply(text);
-        Map<String,String> m = new HashMap();
+        Map<String,String> m = new HashMap<>();
         forEachBoth(parse_keys, splits, m::put);
         return m;
     }

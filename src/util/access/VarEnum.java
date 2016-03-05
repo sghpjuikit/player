@@ -8,12 +8,14 @@ package util.access;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javafx.collections.ObservableList;
 
 import util.access.FieldValue.EnumerableValue;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static util.functional.Util.forEach;
 
 /**
@@ -23,6 +25,11 @@ import static util.functional.Util.forEach;
  * method for populating controls like ComboBox with human readable text.
  */
 public class VarEnum<T> extends V<T> implements EnumerableValue<T> {
+
+    public static <V> VarEnum<V> ofStream(V val, Supplier<Stream<V>> enumerator) {
+        return new VarEnum<>(val, () -> enumerator.get().collect(toList()));
+    }
+
 
     private final Supplier<Collection<T>> valueEnumerator;
 
@@ -36,6 +43,7 @@ public class VarEnum<T> extends V<T> implements EnumerableValue<T> {
         valueEnumerator = () -> enumerated;
     }
 
+    /** Performance optimization of variadic {@link #VarEnum(Object, java.util.function.Supplier, java.util.function.Consumer[])}. */
     public VarEnum(T val, Supplier<Collection<T>> enumerator, Consumer<T> applier) {
         super(val, applier);
         valueEnumerator = enumerator;

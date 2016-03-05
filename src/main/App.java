@@ -183,7 +183,7 @@ public class App extends Application implements Configurable {
      */
     public static void main(String[] args) {
         launch(args);
-        // auncherImpl.launchApplication(App.class, preloaderclass, args); launch with preloader
+        // LauncherImpl.launchApplication(App.class, preloaderclass, args); launch with preloader
     }
 
 

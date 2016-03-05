@@ -7,8 +7,8 @@ package web;
 
 import java.net.URI;
 
-import AudioPlayer.plugin.IsPluginType;
 import util.functional.Functors.Ƒ1;
+import util.plugin.IsPluginType;
 
 /**
  * Transforms text into a search query.

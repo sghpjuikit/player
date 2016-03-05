@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static util.Util.getSuperClasses;
 
 /**
@@ -18,24 +19,24 @@ import static util.Util.getSuperClasses;
  @author Plutonium_
  */
 public class PluginMap{
-    private final Map<Class,List<Class>> m = new HashMap();
-    
-    public void registerPluginType(Class p) {
+    private final Map<Class,List<Class>> m = new HashMap<>();
+
+    public <T> void registerPluginType(Class<T> p) {
         List<Class> superclasses = getSuperClasses(p);
         boolean exists = superclasses.stream().anyMatch(m::containsKey);
         if(exists) throw new IllegalStateException("Super class of " + p + " already registered as plugintype.");
-        
-        m.put(p, new ArrayList());
+
+        m.put(p, new ArrayList<>());
     }
-    
-    public void registerPlugin(Class p) {
+
+    public <T> void registerPlugin(Class<T> p) {
         List<Class> superclasses = getSuperClasses(p);
         if(superclasses.isEmpty()) throw new IllegalArgumentException("Plugin " + p + " must extend/implement at least one class/interface.");
-        
+
         superclasses.stream().filter(m::containsKey)
                     .map(m::get).forEach(l->l.add(p));
     }
-    
+
     public <T> List<T> getPlugins(Class<T> p) {
         List<Class> pcs = m.get(p);
         if(pcs==null) throw new IllegalArgumentException(p + " is not a registered plugin type.");

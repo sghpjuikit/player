@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioPlayer.plugin;
+package util.plugin;
 
 import java.lang.annotation.*;
+
+import org.atteo.classindex.IndexAnnotated;
+
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import org.atteo.classindex.IndexAnnotated;
 
 /**
  <p>
@@ -18,6 +20,4 @@ import org.atteo.classindex.IndexAnnotated;
 @IndexAnnotated
 @Retention(RUNTIME)
 @Target(TYPE)
-public @interface IsPlugin {
-    
-}
+public @interface IsPlugin {}

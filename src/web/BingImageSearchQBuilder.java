@@ -7,10 +7,10 @@ package web;
 
 import java.net.URI;
 
-import AudioPlayer.plugin.IsPlugin;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
+import util.plugin.IsPlugin;
 
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 

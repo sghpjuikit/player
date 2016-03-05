@@ -9,11 +9,11 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 
-import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
+import util.plugin.IsPlugin;
 
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import static util.parsing.StringParseStrategy.To.CONSTANT;

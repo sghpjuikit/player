@@ -6,23 +6,18 @@
 package util.reactive;
 
 import java.util.HashSet;
-
 import org.reactfx.Subscription;
+import util.functional.Functors.Ƒ;
 
-/**
- * Set of runnables. For use as a collection of handlers.
- * 
- * @author Plutonium_
- */
-public class RunnableSet extends HashSet<Runnable> implements Runnable {
+/** Set of runnables/functions taking o parameters. Use as a collection of handlers. */
+public class SetƑ extends HashSet<Runnable> implements Ƒ {
 
-
-    public RunnableSet() {
+    public SetƑ() {
         super(2);
     }
 
     @Override
-    public void run() {
+    public void apply() {
         forEach(Runnable::run);
     }
 

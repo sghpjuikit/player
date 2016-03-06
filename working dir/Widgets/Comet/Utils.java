@@ -54,7 +54,7 @@ import util.animation.Anim;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
-import util.reactive.RunnableSet;
+import util.reactive.SetƑ;
 
 import static Comet.Comet.*;
 import static gui.objects.icon.Icon.createInfoIcon;
@@ -94,7 +94,10 @@ import static util.reactive.Util.maintain;
  *
  * @author Plutonium_
  */
- class Utils {
+class Utils {
+
+    // superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
+    // subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
     static final double D360 = 2*PI;
     static final double D180 = PI;
@@ -107,8 +110,6 @@ import static util.reactive.Util.maintain;
     private static final Random RAND = new Random();
     static Font UI_FONT;
 
-// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
-// subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
     static {
         // Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
@@ -118,11 +119,11 @@ import static util.reactive.Util.maintain;
 
 
     /** Converts radians to degrees. */
-     static double deg(double rad) {
+    static double deg(double rad) {
         return Math.toDegrees(rad); //360*rad/(2*PI);
     }
     /** Returns angle in rad for given sin and cos. */
-     static double dirOf(double x, double y, double dist) {
+    static double dirOf(double x, double y, double dist) {
         double c = x/dist;
         double s = y/dist;
         double ac = acos(c);
@@ -139,21 +140,21 @@ import static util.reactive.Util.maintain;
      * Creates array of fire angles for specified number of turrets. Angles are a symmetrical
      * sequence with 0 in the middle and consistent angle gap in between each.
      */
-     static final Double[] calculateGunTurretAngles(int i) {
+    static Double[] calculateGunTurretAngles(int i) {
         if(i<=1) return array(0d);
         return ( i%2==1
             ? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
             : stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
         ).map(x -> ROCKET_GUN_TURRET_ANGLE_GAP*x)
-         .toArray(size -> new Double[size]);
+         .toArray(Double[]::new);
     }
 
     /** Relocates node such the center of the node is at the coordinates. */
-     static void relocateCenter(Node n, double x, double y) {
+    static void relocateCenter(Node n, double x, double y) {
         n.relocate(x-n.getLayoutBounds().getWidth()/2,y-n.getLayoutBounds().getHeight()/2);
     }
 
-     static Node createPlayerStat(Player p) {
+    static Node createPlayerStat(Player p) {
         Label score = new Label();
         installFont(score, UI_FONT);
         p.score.maintain(s -> score.setText("Score: " + s));
@@ -191,22 +192,22 @@ import static util.reactive.Util.maintain;
         return node;
     }
 
-     static void installFont(Labeled l, Font f) {
+    static void installFont(Labeled l, Font f) {
         Font ft = f==null ? Font.getDefault() : f;
         l.setFont(ft);
         l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; }"); // bugfix, suddenly !work without this...
     }
 
-     static Icon createPlayerLiveIcon() {
+    static Icon createPlayerLiveIcon() {
         return new Icon(MaterialDesignIcon.ROCKET,15);
     }
 
-     static Anim createHyperSpaceAnim(Node n) {
+    static Anim createHyperSpaceAnim(Node n) {
         return new Anim(millis(200), x -> setScaleXY(n,1-x*x));
     }
 
     /** Snapshot an image out of a node, consider transparency. */
-     static Image createImage(Node n) {
+    static Image createImage(Node n) {
         SnapshotParameters parameters = new SnapshotParameters();
         parameters.setFill(Color.TRANSPARENT);
 
@@ -219,7 +220,7 @@ import static util.reactive.Util.maintain;
         return wi;
     }
     /** Creates image from icon. */
-     static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
+    static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
         Icon i = new Icon(icon,radius);
         i.setFill(c);
         i.setEffect(effect);
@@ -233,7 +234,7 @@ import static util.reactive.Util.maintain;
      * @param px the x pivot co-ordinate for the rotation (in canvas co-ordinates).
      * @param py the y pivot co-ordinate for the rotation (in canvas co-ordinates).
      */
-     static void rotate(GraphicsContext gc, double angle, double px, double py) {
+    static void rotate(GraphicsContext gc, double angle, double px, double py) {
         Rotate r = new Rotate(angle, px, py);
         gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
     }
@@ -248,66 +249,69 @@ import static util.reactive.Util.maintain;
      * @param tlpx the top left x co-ordinate where the image will be plotted (in canvas co-ordinates).
      * @param tlpy the top left y co-ordinate where the image will be plotted (in canvas co-ordinates).
      */
-     static void drawRotatedImage(GraphicsContext gc, Image i, double angle, double tlpx, double tlpy) {
+    static void drawRotatedImage(GraphicsContext gc, Image i, double angle, double tlpx, double tlpy) {
         gc.save();
         rotate(gc, angle, tlpx + i.getWidth() / 2, tlpy + i.getHeight() / 2);
         gc.drawImage(i, tlpx, tlpy);
         gc.restore();
     }
-     static void drawImage(GraphicsContext gc, Image i, double x, double y) {
+    static void drawImage(GraphicsContext gc, Image i, double x, double y) {
         gc.drawImage(i, x+i.getWidth()/2, y+i.getHeight()/2, i.getWidth(), i.getHeight());
     }
-     static void drawScaledImage(GraphicsContext gc, Image i, double x, double y, double scale) {
+    static void drawScaledImage(GraphicsContext gc, Image i, double x, double y, double scale) {
         gc.drawImage(i, x-scale*(i.getWidth()/2), y-scale*(i.getHeight()/2), scale*i.getWidth(), scale*i.getHeight());
     }
-     static void drawOval(GraphicsContext g, double x, double y, double r) {
+    static void drawOval(GraphicsContext g, double x, double y, double r) {
         double d = 2*r;
         g.fillOval(x-r,y-r,d,d);
     }
-     static void drawRect(GraphicsContext g, double x, double y, double r) {
+    static void drawRect(GraphicsContext g, double x, double y, double r) {
         double d = 2*r;
         g.fillRect(x-r,y-r,d,d);
     }
 
-     static double durToTtl(Duration d) {
+    static double durToTtl(Duration d) {
         return d.toSeconds()*FPS;
     }
 
-     static double randMN(double m, double n) {
+    static double randMN(double m, double n) {
         return m+random()*(n-m);
     }
-     static double rand0N(double n) {
+    static double rand0N(double n) {
         return RAND.nextDouble()*n;
     }
-     static int rand0or1() {
+    static int rand0or1() {
         return randBoolean() ? 0 : 1;
     }
-     static int randInt(int n) {
+    static int randInt(int n) {
         return RAND.nextInt(n);
     }
-     static boolean randBoolean() {
+    static boolean randBoolean() {
         return RAND.nextBoolean();
     }
-     static <E extends Enum> E randEnum(Class<E> enumtype) {
+    static <E extends Enum> E randEnum(Class<E> enumtype) {
         return randOf(enumtype.getEnumConstants());
     }
-     static <T> T randOf(T a, T b) {
+    static <T> T randOf(T a, T b) {
         return randBoolean() ? a : b;
     }
-     static <T> T randOf(T... c) {
+    @SafeVarargs
+    static <T> T randOf(T... c) {
         int l = c.length;
         return l==0 ? null : c[randInt(c.length)];
     }
-     static <T> T randOf(Collection<T> c) {
-         if(c.isEmpty()) return null;
+    static <T> T randOf(Collection<T> c) {
+        if(c.isEmpty()) return null;
         int size = c.size();
         return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
     }
+
     /**
-     * Returns random element from collection C except for those elements listen as exceptions.
-     * Be sure not to cause infinite loop by excluding all elements.
-     */
-     static <T> T randomOfExcept(Collection<T> c, T... excluded) {
+      * Returns random element from collection C except for those elements listen as exceptions.
+      * Be sure not to cause infinite loop by excluding all elements.
+      */
+    @SafeVarargs
+    static <T> T randomOfExcept(Collection<T> c, T... excluded) {
         T t;
         do {
            t = randOf(c);
@@ -315,22 +319,22 @@ import static util.reactive.Util.maintain;
         return t;
     }
 
-    static enum Side {
-        LEFT,RIGHT;
+    enum Side {
+        LEFT,RIGHT
     }
-    static enum GunControl {
-        AUTO,MANUAL;
+    enum GunControl {
+        AUTO,MANUAL
     }
-    static enum AbilityState {
-        ACTIVATING, PASSSIVATING, NO_CHANGE;
+    enum AbilityState {
+        ACTIVATING, PASSSIVATING, NO_CHANGE
     }
-    static enum AbilityKind {
-        HYPERSPACE,DISRUPTOR,SHIELD;
+    enum AbilityKind {
+        HYPERSPACE,DISRUPTOR,SHIELD
     }
-    static enum Relations {
-        ALLY, NEUTRAL, ENEMY;
+    enum Relations {
+        ALLY, NEUTRAL, ENEMY
     }
-    static enum PlayerSpawners {
+    enum PlayerSpawners {
         CIRCLE,
         LINE,
         RECTANGLE;
@@ -548,42 +552,45 @@ import static util.reactive.Util.maintain;
         private final Map<Class,Set<O>> m = new HashMap<>();
         private final Ƒ1<O,Class> mapper;
 
-         ObjectStore(Ƒ1<O,Class> classMapper) {
+        ObjectStore(Ƒ1<O,Class> classMapper) {
             mapper = classMapper;
         }
 
-         void add(O o) {
+        void add(O o) {
             m.computeIfAbsent(mapper.apply(o), c -> new HashSet<>()).add(o);
         }
 
-         void remove(O o) {
+        void remove(O o) {
             Set l = m.get(mapper.apply(o));
             if(l!=null) l.remove(o);
         }
 
-         <T extends O> Set<T> get(Class<T> c) {
-            return m.getOrDefault(c,EMPTY_SET);
+        @SuppressWarnings("unchecked")
+        <T extends O> Set<T> get(Class<T> c) {
+            return (Set<T>) m.getOrDefault(c,EMPTY_SET);
         }
 
-         void clear() {
+        void clear() {
             m.values().forEach(Set::clear); m.clear();
         }
 
-         <T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
-            Set<T> l = (Set) m.get(c);
+        @SuppressWarnings("unchecked")
+        <T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
+            Set<T> l = (Set<T>) m.get(c);
             if(l!=null) l.forEach(action);
         }
 
-         void forEach(Consumer<? super O> action) {
+        void forEach(Consumer<? super O> action) {
             m.forEach((k,set) -> set.forEach(action));
         }
 
-         <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
+        @SuppressWarnings("unchecked")
+        <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
             if(t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
             else forEachCartesian(get(t),get(e), action);
         }
 
-         void forEachSet(Consumer<? super Set<O>> action) {
+        void forEachSet(Consumer<? super Set<O>> action) {
             m.values().forEach(action);
         }
     }
@@ -637,7 +644,8 @@ import static util.reactive.Util.maintain;
         private final int bucketspan;
         private final Set<PO>[][] a;
 
-         SpatialHash(int sizex, int sizey, int bucket_SPAN) {
+        @SuppressWarnings("unchecked")
+        SpatialHash(int sizex, int sizey, int bucket_SPAN) {
             xmax = sizex;
             ymax = sizey;
             bucketspan = bucket_SPAN;
@@ -679,7 +687,7 @@ import static util.reactive.Util.maintain;
         final List<TTL> lt = new ArrayList<>();
         final List<TTLC> ltc = new ArrayList<>();
         final List<PTTL> lpt = new ArrayList<>();
-        final RunnableSet lr = new RunnableSet();
+        final SetƑ lr = new SetƑ();
         final Set<Runnable> temp = new HashSet<>();
 
         /** Adds runnable that will run next time this runs. */
@@ -751,7 +759,7 @@ import static util.reactive.Util.maintain;
                 else t.run();
             }
 
-            lr.run();
+            lr.apply();
             lr.clear();
         }
 
@@ -805,12 +813,12 @@ import static util.reactive.Util.maintain;
          PTTL(Ƒ0<Double> TTL, Runnable R) {
             super(0, R);
             ttlperiod = TTL;
-            ttl = TTL.get();
+            ttl = TTL.apply();
         }
 
          public void run() {
             r.run();
-            ttl = ttlperiod.get();
+            ttl = ttlperiod.apply();
         }
 
     }
@@ -913,12 +921,12 @@ import static util.reactive.Util.maintain;
         /**
          * Sets the value of this vector to the mul
          * of vectors t1 and scalar s (this = s * t1).
-         * @param t1 the first vector
+         * @param v vector
          * @param s scalar
          */
-         void setMul(double s, Vec2 t2) {
-            this.x = s * t2.x;
-            this.y = s * t2.y;
+         void setMul(double s, Vec2 v) {
+            this.x = s * v.x;
+            this.y = s * v.y;
         }
 
         /**
@@ -1141,7 +1149,7 @@ import static util.reactive.Util.maintain;
             gc.strokeLine(x1, y1, x2, y2);
         }
 
-        class PointMass {
+        static class PointMass {
 
             private static final double DAMPING_INIT = 0.97;
 
@@ -1179,7 +1187,7 @@ import static util.reactive.Util.maintain;
                 damping = DAMPING_INIT;
             }
         }
-        class Spring {
+        static class Spring {
             PointMass end1;
             PointMass end2;
             double length;

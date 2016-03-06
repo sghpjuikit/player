@@ -256,15 +256,19 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         select(getSkinnable().getItems().size()-1);
     }
 
+    void selectNone() {
+        select(-1);
+    }
+
     void select(ImprovedGridCell<T> c) {
-        if(c==null || c.getItem()==null) return;
-        select(getSkinnable().getItems().indexOf(c.getItem()));
+        if(c==null || c.getItem()==null) selectNone();
+        else select(getSkinnable().getItems().indexOf(c.getItem()));
     }
 
     void select(int i) {
         if(f==null) return;
 
-        int imin = 0;
+        int imin = -1;
         int imax = getSkinnable().getItems().size()-1;
         i = clip(imin,i,imax);
         if(i==selectedI) return;
@@ -272,6 +276,14 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         // unselect
         if(selectedC!=null) selectedC.pseudoClassStateChanged(SELECTED_PC, false);
         if(selectedR!=null) selectedR.pseudoClassStateChanged(SELECTED_PC, false);
+        if(selectedC!=null) selectedC.updateSelected(false);
+        if(selectedR!=null) selectedR.updateSelected(false);
+        getSkinnable().selectedRow.set(null);
+        getSkinnable().selectedItem.set(null);
+        selectedC = null;
+        selectedR = null;
+
+        if(i==-1) return;
 
         // find index
         int rows = getItemCount();
@@ -298,6 +310,9 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         selectedR = r;
         selectedC = c;
         selectedC.requestFocus();
+        selectedR.updateSelected(true);
+        selectedC.updateSelected(true);
+        getSkinnable().selectedRow.set(r.getItem());
         getSkinnable().selectedItem.set(c.getItem());
     }
 }

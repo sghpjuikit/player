@@ -44,48 +44,21 @@ import javafx.scene.control.TextField;
  * the keyboard caret moves to the right, the text will become visible, but this
  * is because it will all scroll to the left (as is the case in a normal {@link TextField}).
  *
- * <br>
- * <center>
- * <img src="customTextField.png" alt="Screenshot of CustomTextField">
- * </center>
- *
- * @see TextFields
- * @see CustomPasswordField
  */
 public class DecoratedTextField extends TextField {
 
-    /**************************************************************************
-     *
-     * Private fields
-     *
-     **************************************************************************/
+    public final ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left");
+    public final ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right");
 
-
-
-
-    /**************************************************************************
-     *
-     * Constructors
-     *
-     **************************************************************************/
 
     /**
      * Instantiates a default CustomTextField.
      */
     public DecoratedTextField() {
-        getStyleClass().add("custom-text-field"); //$NON-NLS-1$
+        getStyleClass().add("custom-text-field");
+        setMinWidth(TextField.USE_PREF_SIZE);
+        setMaxWidth(TextField.USE_PREF_SIZE);
     }
-
-
-
-    /**************************************************************************
-     *
-     * Properties
-     *
-     **************************************************************************/
-
-    // --- left
-    private ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left"); //$NON-NLS-1$
 
     /**
      *
@@ -114,10 +87,6 @@ public class DecoratedTextField extends TextField {
         left.set(value);
     }
 
-
-    // --- right
-    private ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right"); //$NON-NLS-1$
-
     /**
      * Property representing the {@link Node} that is placed on the right of
      * the text field.
@@ -145,13 +114,6 @@ public class DecoratedTextField extends TextField {
         right.set(value);
     }
 
-
-
-    /**************************************************************************
-     *
-     * Public API
-     *
-     **************************************************************************/
 
     /**
      * {@inheritDoc}

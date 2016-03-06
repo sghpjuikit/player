@@ -261,8 +261,8 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         List<PlaylistItem> l = table.getSelectedItems();
         if(l.isEmpty()) return;
 
-        ValueConfig mc = new ValueConfig(String.class, "Name", "My Playlist");
-        SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
+        ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist");
+        SimpleConfigurator sc = new SimpleConfigurator<>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
                   p.setAll(l);

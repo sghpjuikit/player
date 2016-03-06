@@ -46,7 +46,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
-import Comet.Comet.PO.Engine;
 import Comet.Comet.Ship.Disruptor.DisruptorField;
 import Comet.Comet.Ship.Shield;
 import Comet.Utils.AbilityKind;
@@ -81,7 +80,7 @@ import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
-import util.reactive.RunnableSet;
+import util.reactive.SetƑ;
 
 import static Comet.Utils.*;
 import static Comet.Utils.AbilityKind.*;
@@ -166,7 +165,7 @@ public class Comet extends ClassController {
     GraphicsContext gc_bgr; // draws canvas game graphics on bgrcanvas
     final Text message = new Text();
     final Game game = new Game();
-    final RunnableSet every200ms = new RunnableSet();
+    final SetƑ every200ms = new SetƑ();
     final FxTimer timer200ms = new FxTimer(200,-1,every200ms);
 
     public Comet() {

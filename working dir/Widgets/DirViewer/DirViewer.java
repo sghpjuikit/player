@@ -218,9 +218,11 @@ public class DirViewer extends ClassController {
         return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
     }
 
-    // Graphics representing the file. Cells are virtualized just like ListView or TableView does
-    // it, but both vertically & horizontally. This avoids loading all files at once and allows
-    // unlimited scaling.
+    /**
+     * Graphics representing the file. Cells are virtualized just like ListView or TableView does
+     * it, but both vertically & horizontally. This avoids loading all files at once and allows
+     * unlimited scaling.
+     */
     private class Cell extends ImprovedGridCell<Item> {
         Pane root;
         Label name;
@@ -269,6 +271,12 @@ public class DirViewer extends ClassController {
                     setCoverLater.push(item);
                 }
             }
+        }
+
+        @Override
+        public void updateSelected(boolean selected) {
+            super.updateSelected(selected);
+            if(thumb!=null && thumb.image.get()!=null) thumb.animationPlayPause(selected);
         }
 
         private void createGraphics() {
@@ -332,8 +340,10 @@ public class DirViewer extends ClassController {
             });
         }
     }
-    // File wrapper, content of Cell.
-    // We cache various stuff in here, including the cover Image and children files.
+    /**
+     * File wrapper, content of Cell.
+     * We cache various stuff in here, including the cover Image and children files.
+     */
     private class Item {
 
         final File val;
@@ -386,6 +396,7 @@ public class DirViewer extends ClassController {
             }
             return null;
         }
+
         private File getImageT(File dir, String name) {
             if(dir==null) return null;
 
@@ -474,14 +485,14 @@ public class DirViewer extends ClassController {
     // stores state such as negation or function chaining, I dont use predicates from Functors'
     // function pool, but 'hardcoded' the filters instead.
     // We use String config to save which one we use.
-    private static final List<PƑ0<File,Boolean>> filters = stream(
+    private static final List<PƑ0<File,Boolean>> filters = list(
         new PƑ0<>("All",        File.class,Boolean.class, file -> true),
         new PƑ0<>("None",       File.class,Boolean.class, file -> false),
         new PƑ0<>("Audio",      File.class,Boolean.class, file -> AudioFileFormat.isSupported(file, Use.APP)),
         new PƑ0<>("No Audio",   File.class,Boolean.class, file -> !AudioFileFormat.isSupported(file, Use.APP)),
         new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
         new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
-    ).toList();
+    );
 
     static {
         AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));

@@ -3,6 +3,10 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- allow multiple app instances to connect to external/single db file
+- idea style of searching actions/shortcuts/configs
+- impl filter in Settings
+- impl filter in DirViewer + add conf gui header or sth.
 - file downloader widget
   - display progress
   - overwrite file if exist option

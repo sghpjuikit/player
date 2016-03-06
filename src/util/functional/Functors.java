@@ -73,7 +73,7 @@ public class Functors {
         // default Class<? super I> getTypeInput() {}
         // default Class<? super I> getTypeOutput() {}
     }
-    public static interface Ƒ extends Λ, IO<Void,Void>, Runnable {
+    public interface Ƒ extends Λ, IO<Void,Void>, Runnable {
         void apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
@@ -82,7 +82,7 @@ public class Functors {
             apply();
         }
     }
-    public static interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
+    public interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
         O apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
@@ -111,7 +111,7 @@ public class Functors {
      * method) or consumer (same and in addition ignores output - this is not pointless due to side
      * effects - consumer by nature relies on side effects.)
      */
-    public static interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
+    public interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
 
         public static Ƒ1<Void,Void> f1(Runnable r) {
             return i -> {
@@ -211,7 +211,7 @@ public class Functors {
 
         /**
          * Creates function which runs the action aftewards
-         * @returns function identical to this one, but one which runs the runnable after it computes
+         * @return  function identical to this one, but one which runs the runnable after it computes
          * @param after action that executes right after computation is done and before returning the output
          */
         default Ƒ1<I,O> andThen(Runnable after) {
@@ -332,7 +332,7 @@ public class Functors {
      * {@link Ƒ1} can not extend Predicate, doing so would not be typesafe, hence this subclass.
      * This class also preserves predicate identity during predicate combination operations.
      */
-    public static interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
+    public interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Predicate}. */
         @Deprecated
@@ -376,7 +376,7 @@ public class Functors {
      * <p>
      * Due to the signature, it is impossible to extend {@link Consumer}
      */
-    public static interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
+    public interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
         O apply(I i) throws E;
 
         default Ƒ1E<I,O,E> onEx(O or, Class<?>... ecs) {
@@ -399,7 +399,7 @@ public class Functors {
     // this class is ~pointless, although now lambda doenst have to return null like in case of F1E,
     // but now the some method takes parameter of this class. Which will prevent
     // other F1E from being used!
-    public static interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
+    public interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
 
         @Override
         default Void apply(I i) throws E{
@@ -409,7 +409,7 @@ public class Functors {
 
         void accept(I i) throws E;
     }
-    public static interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
+    public interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
         @Override
         O apply(I i, I2 i2);
 
@@ -428,7 +428,7 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ3<I,I2,I3,O> extends Λ, IO<I,O> {
+    public interface Ƒ3<I,I2,I3,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3);
 
         default Ƒ2<I,I2,O> toƑ2(I3 i3) {
@@ -446,7 +446,7 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ4<I,I2,I3,I4,O> extends Λ, IO<I,O> {
+    public interface Ƒ4<I,I2,I3,I4,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4);
 
         default Ƒ3<I,I2,I3,O> toƑ3(I4 i4) {
@@ -464,7 +464,7 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ, IO<I,O> {
+    public interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
 
         default Ƒ4<I,I2,I3,I4,O> toƑ4(I5 i5) {
@@ -482,7 +482,7 @@ public class Functors {
             };
         }
     }
-    public static interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ, IO<I,O> {
+    public interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
 
         default Ƒ5<I,I2,I3,I4,I5,O> toƑ5(I6 i6) {
@@ -501,13 +501,13 @@ public class Functors {
         }
     }
 
-    public static enum NullIn {
+    public enum NullIn {
         NULL,
-        APPLY;
+        APPLY
     }
-    public static enum NullOut {
+    public enum NullOut {
         NULL,
-        INPUT;
+        INPUT
     }
 
     // functor pools must not be accessed directly, as accessor must insert IDENTITY functor
@@ -623,12 +623,12 @@ public class Functors {
         add("More",             String.class,Boolean.class,(x,y) -> x.compareTo(y)>0, String.class,"");
         add("Less",             String.class,Boolean.class,(x,y) -> x.compareTo(y)<0, String.class,"");
         add("Char at",      String.class,Character.class,(x,i,dir) -> i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length()-1-i), Integer.class,StringDirection.class,0,FROM_START);
-        add("Length",       String.class,Integer.class,(x) -> x.length());
+        add("Length",       String.class,Integer.class, String::length);
         add("Length >",     String.class,Boolean.class,(x,l) -> x.length()>l, Integer.class,0);
         add("Length <",     String.class,Boolean.class,(x,l) -> x.length()<l, Integer.class,0);
         add("Length =",     String.class,Boolean.class,(x,l) -> x.length()==l, Integer.class,0);
-        add("Is empty",         String.class,Boolean.class, x -> x.isEmpty());
-        add("Is palindrome",    String.class,Boolean.class, x -> isNonEmptyPalindrome(x));
+        add("Is empty",         String.class,Boolean.class, String::isEmpty);
+        add("Is palindrome",    String.class,Boolean.class, Util::isNonEmptyPalindrome);
 
         add("to ASCII",    Character.class,Integer.class, x -> (int)x);
 
@@ -674,7 +674,7 @@ public class Functors {
         add("Is in the future",  Year.class,Boolean.class, x -> x.compareTo(Year.now())> 0);
         add("Is now",            Year.class,Boolean.class, x -> x.compareTo(Year.now())==0);
         add("Is in the past",    Year.class,Boolean.class, x -> x.compareTo(Year.now())< 0);
-        add("Is leap",   Year.class,Boolean.class, x -> x.isLeap());
+        add("Is leap",   Year.class,Boolean.class, Year::isLeap);
 
         add("Contains year",RangeYear.class,Boolean.class, RangeYear::contains, Year.class,Year.now());
         add("Is after",     RangeYear.class,Boolean.class, RangeYear::isAfter, Year.class,Year.now());
@@ -859,7 +859,7 @@ public class Functors {
             this.defaultValue = defaultValue;
         }
     }
-    public static interface Parameterized<P> {
+    public interface Parameterized<P> {
         public List<Parameter<P>> getParameters();
     }
     // parameterized function - variadic I -> O function factory with parameters

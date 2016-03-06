@@ -1,7 +1,7 @@
 
 package main;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,20 +16,29 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableListBase;
-import javafx.scene.ImageCursor;
+import javafx.scene.*;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import org.atteo.classindex.ClassIndex;
+import org.controlsfx.control.textfield.TextFields;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
@@ -61,11 +70,7 @@ import Layout.Component;
 import Layout.widget.Widget;
 import Layout.widget.WidgetManager;
 import Layout.widget.WidgetManager.WidgetSource;
-import Layout.widget.feature.ConfiguringFeature;
-import Layout.widget.feature.ImageDisplayFeature;
-import Layout.widget.feature.ImagesDisplayFeature;
-import Layout.widget.feature.PlaylistFeature;
-import Layout.widget.feature.SongWriter;
+import Layout.widget.feature.*;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -85,8 +90,10 @@ import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
+import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.spinner.Spinner;
+import gui.objects.textfield.DecoratedTextField;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
@@ -96,6 +103,7 @@ import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.InstanceInfo;
 import util.InstanceName;
+import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.Action;
@@ -104,11 +112,7 @@ import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.Fut;
-import util.conf.Config;
-import util.conf.Configurable;
-import util.conf.Configuration;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
+import util.conf.*;
 import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
@@ -118,48 +122,29 @@ import util.file.ImageFileFormat;
 import util.plugin.IsPlugin;
 import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
-import util.reactive.RunnableSet;
-import util.serialize.xstream.BooleanPropertyConverter;
-import util.serialize.xstream.DoublePropertyConverter;
-import util.serialize.xstream.IntegerPropertyConverter;
-import util.serialize.xstream.LongPropertyConverter;
-import util.serialize.xstream.ObjectPropertyConverter;
-import util.serialize.xstream.PlaybackStateConverter;
-import util.serialize.xstream.PlaylistItemConverter;
-import util.serialize.xstream.StringPropertyConverter;
-import util.serialize.xstream.VConverter;
+import util.reactive.SetƑ;
+import util.serialize.xstream.*;
 import util.units.FileSize;
 
-import static Layout.widget.WidgetManager.WidgetSource.ANY;
+import static Layout.widget.WidgetManager.WidgetSource.*;
 import static Layout.widget.WidgetManager.WidgetSource.NEW;
-import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.BRUSH;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMATION_OUTLINE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.util.Duration.millis;
 import static org.atteo.evo.inflector.English.plural;
-import static util.Util.getEnumConstants;
-import static util.Util.getGenericPropertyType;
-import static util.Util.getImageDim;
+import static util.Util.*;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layVertically;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.Util.*;
 
 /**
  * Application. Represents the program.
@@ -210,7 +195,7 @@ public class App extends Application implements Configurable {
     public final File DIR_WIDGETS = new File(DIR_APP,"widgets");
     /** Directory containing skins. */
     public final File DIR_SKINS = new File(DIR_APP,"skins");
-    public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");;
+    public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -248,7 +233,7 @@ public class App extends Application implements Configurable {
      * Simply put, do not run any more background tasks, as the application will begin closing in
      * the meantime and be in inconsistent state.
      */
-    public final RunnableSet onStop = new RunnableSet();
+    public final SetƑ onStop = new SetƑ();
     public boolean normalLoad = true;
     public boolean initialized = false;
     public final WindowManager windowManager = new WindowManager();
@@ -396,7 +381,7 @@ public class App extends Application implements Configurable {
         instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
         instanceName.add(Metadata.class,Metadata::getTitle);
         instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
-        instanceName.add(Component.class, o -> o.getName());
+        instanceName.add(Component.class, Component::getName);
 //        instanceName.add(List.class, o -> o.size() + " " + plural("item",o.size()));
         instanceName.add(List.class, o -> {
             Class<?> ec = getGenericPropertyType(o.getClass());
@@ -428,13 +413,9 @@ public class App extends Application implements Configurable {
             );
             return map;
         });
-        instanceInfo.add(PlaylistItem.class, o -> {
-            HashMap<String,String> m = new HashMap<>();
-            stream(PlaylistItem.Field.values()).filter(f -> f.isTypeString()).forEach(f ->
-                m.put(f.name(), (String)o.getField(f))
-            );
-            return m;
-        });
+        instanceInfo.add(PlaylistItem.class, o ->
+            stream(PlaylistItem.Field.values()).filter(TypedValue::isTypeString).toMap(f -> f.name(), f -> (String)f.getOf(o))
+        );
 
         // register actions
         actionPane.register(Widget.class,
@@ -886,7 +867,7 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
         ImprovedGridView<GlyphIcons> grid = new ImprovedGridView<>(70,80,5,5);
-                 grid.setCellFactory(view -> new ImprovedGridCell<GlyphIcons>() {
+                 grid.setCellFactory(view -> new ImprovedGridCell<>() {
                      Anim a;
                      @Override
                      protected void updateItem(GlyphIcons icon, boolean empty) {
@@ -968,7 +949,7 @@ public class App extends Application implements Configurable {
         );
     }
 
-    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL + SHIFT + O", global = true)
+    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     public static void openOpen() {
         APP.actionPane.show(Void.class, null, false,
             new FastAction<>(
@@ -1026,7 +1007,7 @@ public class App extends Application implements Configurable {
         APP.infoPane.show();
     }
 
-    public static interface Build {
+    public interface Build {
 
         public static ProgressIndicator appProgressIndicator() {
             return appProgressIndicator(null, null);

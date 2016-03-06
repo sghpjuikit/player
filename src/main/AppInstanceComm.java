@@ -90,7 +90,7 @@ public class AppInstanceComm {
 
 
     interface Mediator extends Remote {
-        public void newInstanceLaunched(List<String> params) throws RemoteException;
+        void newInstanceLaunched(List<String> params) throws RemoteException;
     }
     class AppMediator extends UnicastRemoteObject implements Mediator {
 

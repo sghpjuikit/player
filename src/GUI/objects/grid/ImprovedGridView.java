@@ -167,6 +167,7 @@ public class ImprovedGridView<T> extends Control {
      **************************************************************************/
 
     public final ObjectProperty<T> selectedItem = new SimpleObjectProperty<>();
+    public final ObjectProperty<T> selectedRow = new SimpleObjectProperty<>();
 
     // --- horizontal cell spacing
     /**

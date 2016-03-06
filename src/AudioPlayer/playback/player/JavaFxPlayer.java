@@ -24,6 +24,7 @@ import util.dev.TODO;
 import static javafx.scene.media.MediaPlayer.Status.*;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.BUG;
+import static util.dev.Util.log;
 import static util.reactive.Util.maintain;
 
 /**
@@ -68,11 +69,12 @@ public class JavaFxPlayer implements Play {
 
         Player.IO_THREAD.execute(() -> {
             Media media;
-            try{
+            try {
                 // bug here, which also
                 // blocks thread for like half second!, so i execute this not on fx
                 media = new Media(item.getURI().toString());
-            }catch(MediaException e) {
+            } catch(MediaException e) {
+                log(JavaFxPlayer.class).error("Media creation error for {}", item.getURI());
                 onFail.run();
                 return;
             }

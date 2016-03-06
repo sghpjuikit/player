@@ -19,7 +19,7 @@ import javafx.stage.Stage;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
-import util.reactive.RunnableSet;
+import util.reactive.SetƑ;
 
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -52,9 +52,9 @@ public class OverlayPane extends StackPane {
               + "usually does not cover entire screen, but can get in the way of other apps.")
     public final V<Display> display = new V<>(Display.SCREEN);
     /** Handlers called just after this pane was shown. */
-    public final RunnableSet onShown = new RunnableSet();
+    public final SetƑ onShown = new SetƑ();
     /** Handlers called just after this pane was hidden. */
-    public final RunnableSet onHidden = new RunnableSet();
+    public final SetƑ onHidden = new SetƑ();
 
     public OverlayPane() {
         setVisible(false);

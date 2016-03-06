@@ -687,10 +687,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     t += t.isEmpty() ? c.getName() : "+" + c.getName();
                     txtF.setText(t);
                 }
+                e.consume();
             });
             txtF.setEditable(false);
             txtF.setTooltip(new Tooltip(a.getInfo()));
-            txtF.focusedProperty().addListener( (o,ov,nv) -> {
+            txtF.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
                     txtF.setText(txtF.getPromptText());
                 } else {

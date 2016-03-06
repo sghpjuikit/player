@@ -10,6 +10,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.animation.Timeline;
 import javafx.beans.property.*;
@@ -127,7 +129,6 @@ public class Thumbnail extends ImageNode {
 
     @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
     public static Duration animDur = millis(100);
-    public static boolean animated = false;
 
     protected final ImageView imageView = new ImageView();
     protected final Pane img_border = new Pane();
@@ -140,8 +141,6 @@ public class Thumbnail extends ImageNode {
             double H = getHeight();
             double imgW = min(W,maxIMGW.get());
             double imgH = min(H,maxIMGH.get());
-            double imgWgap = (W-imgW)/2;
-            double imgHgap = (H-imgH)/2;
             imageView.setFitWidth(imgW);
             imageView.setFitHeight(imgH);
 //            imageView.resizeRelocate(imgWgap,imgHgap,imgW,imgH);
@@ -204,7 +203,7 @@ public class Thumbnail extends ImageNode {
      * Use when you want to use default sized thumbnail no post-initial changes
      * of the image are expected. In other words situations, where thumbnail object
      * is viewed as immutable create-destroy type.
-     * @param img
+     * @param img initial image, null if none
      */
     public Thumbnail(Image img) {
         this(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
@@ -220,7 +219,6 @@ public class Thumbnail extends ImageNode {
     /**
      * Use if you need different size than default thumbnail size and the image
      * is expected to change during life cycle.
-     * @param size
      */
     public Thumbnail (double width, double height) {
 
@@ -291,8 +289,8 @@ public class Thumbnail extends ImageNode {
         }
     }
 
-    private long loadId = 0;    // prevents wastful set image operatins
-    private static HashMap<String,Image> IMG_CACHE = new HashMap<>();   // caches images
+    private long loadId = 0;    // prevents wasteful set image operations
+    private static Map<String,Image> IMG_CACHE = new ConcurrentHashMap<>();   // caches images
 
     public static Image getCached(String url, double w, double h) {
         Image ci = url==null ? null : IMG_CACHE.get(url);
@@ -300,10 +298,12 @@ public class Thumbnail extends ImageNode {
     }
 
     public static Image getCached(File file, double w, double h) {
-        String url = null;
+        String url;
         try {
             url = file.toURI().toURL().toString();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            url = null;
+        }
         return getCached(url, w, h);
     }
 
@@ -349,7 +349,7 @@ public class Thumbnail extends ImageNode {
         if(i!=null) {
             Object animWrapper = getFieldValue(i, Object.class, "animation");
             animation = animWrapper==null ? null : getFieldValue(animWrapper, Timeline.class, "timeline");
-//            animationPause();
+            animationPause();
         }
     }
 
@@ -358,7 +358,16 @@ public class Thumbnail extends ImageNode {
     Timeline animation = null;
 
     public boolean isAnimated() {
-        return animation!=null;
+        return animation!=null; // same impl as Image.isAnimation(), which is not public
+    }
+
+    public boolean isAnimating() {
+        return animation!=null && animation.getCurrentRate()!=0;
+    }
+
+    public void animationPlayPause(boolean play) {
+        if(play) animationPlay();
+        else animationPause();
     }
 
     public void animationPlay() {
@@ -432,7 +441,7 @@ public class Thumbnail extends ImageNode {
      * image has been loaded with. The image can be loaded with any size, even
      * surpassing that of the resolution of the file.
      *
-     * @see #calculateImageLoadSize()
+     * @see #calculateImageLoadSize(javafx.scene.layout.Region)
      * @throws IllegalArgumentException if parameter < 1
      */
     public void setMaxScaleFactor(double val) {
@@ -515,7 +524,7 @@ public class Thumbnail extends ImageNode {
                 // set drag image
                 if(getImage()!=null) db.setDragView(getImage());
                 // set content
-                HashMap<DataFormat,Object> c = new HashMap();
+                HashMap<DataFormat,Object> c = new HashMap<>();
                 c.put(FILES, singletonList(getFile()));
                 db.setContent(c);
                 e.consume();
@@ -536,7 +545,7 @@ public class Thumbnail extends ImageNode {
 /********************************  HOVERING  **********************************/
 
     /** Duration of the scaling animation effect when transitioning to gover state. */
-    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", animDur);
+    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty<>(this, "durationOnHover", animDur);
     private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
     private final EventHandler<MouseEvent> hoverHandler = e -> {
             hoverAnimation.dur(durationOnHover.get());
@@ -644,8 +653,8 @@ public class Thumbnail extends ImageNode {
                     //       so we need to delay execution
                     Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
                     Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
-                    if(s.isShowing()) r.run(); /// execute when/after window is shown
-                    else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.run());
+                    if(s.isShowing()) r.apply(); /// execute when/after window is shown
+                    else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
                 }),
                 menuItem("Open image", e ->
                     Environment.open(m.getValue().getFile())

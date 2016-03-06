@@ -33,6 +33,7 @@ import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
+import gui.objects.textfield.autocomplete.AutoCompletion;
 import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
@@ -663,7 +664,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String n = f.name();
                Comparator<? super String> cmp = String::compareTo;
-               TextFields.bindAutoCompletion(
+               new AutoCompletion<>(
                    (TextField)c,
                    p -> DB.string_pool.getStrings(n).stream()
                           .filter(a -> a.startsWith(p.getUserText()))

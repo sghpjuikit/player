@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.text.Collator;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -183,6 +184,10 @@ public class Util {
      */
     public static boolean shouldBeEmpty(String str) {
         return str == null || str.trim().isEmpty() || str.equalsIgnoreCase("null");
+    }
+
+    public static boolean containsIgnoreCase(String text, String phrase) {
+        return text.toLowerCase().contains(phrase.toLowerCase());
     }
 
     /**

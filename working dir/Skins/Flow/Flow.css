@@ -186,30 +186,21 @@
     -fx-stroke-width: 2;
     -fx-fill: null; // bgr of the shape the path makes - we dont want any 
 }
-    -fx-border-color: black;
-    //-fx-border-insets:  0 -5 -5 -5;
-    -fx-effect: null;
-}
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-padding: 3;
+    -fx-padding: 5;
     -fx-background-color: null;
-    -fx-text-fill:-fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
 }
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
     -fx-background: null;
-    -fx-background-color: null;
-    -fx-text-fill: -fx-focus-color;
-}
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
-    -fx-background: null;
-    -fx-background-color: null;
+    -fx-background-color: rgba(0,0,0,0.2);
     -fx-text-fill: -fx-focus-color;
 }
 .combo-box-popup > .list-view > .placeholder > .label {
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
-
 
 
 .text-area > .scroll-pane > .scroll-bar > .thumb {

@@ -1407,13 +1407,9 @@
     -fx-background-color: null;
     -fx-text-fill:-fx-def-font-color;
 }
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
-    -fx-background: null;
-    -fx-background-color: null;
-    -fx-text-fill:-fx-def-font-color;
-}
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
     -fx-background: null;
     -fx-background-color: -fx-color-darker;
     -fx-text-fill:-fx-def-font-color;
@@ -1426,7 +1422,7 @@
 
 .label {
     -fx-text-fill: -fx-def-font-color;
-    /*decreases performance for little gain*/
+    /* decreases performance for little eye candy */
     /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );*/
 }
 
@@ -3486,7 +3482,14 @@ check-icon-disabling:selected {
     -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
 }
 
-/********************************* POPOVER ***********************************
+/********************************* AUTOCOMPLETE POPUP ******************************************************************
+ * Auto complete popup displayed when user types and showing available suggestions.
+ * Should look like a combobox popup.
+ * inherits: .combo-box-popup
+ */
+.auto-complete-popup > .list-view {}
+
+/********************************* POPOVER *****************************************************************************
  * Custom popup window. Can display arrow pointing to some location and be 'detached'.
  * inherits: Control
  * pseudoclasses : detached - when detached from its location, no arrow
@@ -3561,7 +3564,7 @@ check-icon-disabling:selected {
 .popover:focused > .popover-root > .bgr,
 .popover:detached:focused > .popover-root > .bgr {}
 
-/******************************* HELP POPOVER **********************************
+/******************************* HELP POPOVER **************************************************************************
  * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
  * Has purely informative use. Provides basically no interaction.
  */
@@ -3576,7 +3579,7 @@ check-icon-disabling:selected {
     -fx-text-alignment: justify;
 }
 
-/******************************* NOTIFICATION **********************************
+/******************************* NOTIFICATION **************************************************************************
  * Application notification popover. Does not style notification content.
  * inherits: .popover
  * radius fixed to 0 programmatically
@@ -3590,7 +3593,7 @@ check-icon-disabling:selected {
     -fx-font-weight: bold;
 }
 
-/************************************************************
+/***********************************************************************************************************************
  * Thumbnail.
  */
 
@@ -3617,7 +3620,7 @@ check-icon-disabling:selected {
     -fx-border-width: 2;
 }
 
-/********************************** SEEKER *************************************
+/********************************** SEEKER *****************************************************************************
  * 
  * inherits: .slider
  */
@@ -3655,7 +3658,7 @@ check-icon-disabling:selected {
     -fx-effect: none;
 }
 
-/******************************* VOLUME SLIDER *******************************
+/******************************* VOLUME SLIDER *************************************************************************
  *
  * inherits .slider
  */
@@ -3664,7 +3667,7 @@ check-icon-disabling:selected {
 .volume .thumb:hover {}
 .volume .track {}
 
-/*********************************** TEXT *********************************
+/*********************************** TEXT ******************************************************************************
  * javafx.scene.text.Text doesnt actually have a style class so this is a custom
  * implementation of that used by a sublass
  */
@@ -3672,7 +3675,7 @@ check-icon-disabling:selected {
     -fx-fill: -fx-def-font-color;
 }
 
-/********************************** CONFIG ************************************/
+/********************************** CONFIG ****************************************************************************/
 
 /** 
  * Text box for configuring objects, e.g. in settings. * 
@@ -3754,7 +3757,7 @@ check-icon-disabling:selected {
     -glyph-size: 11;
 }
 
-/************************************ RATING **********************************
+/************************************ RATING ***************************************************************************
  * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
  */
 
@@ -3796,7 +3799,7 @@ check-icon-disabling:selected {
 }
 
 
-/********************************** SPINNER ************************************
+/********************************** SPINNER ****************************************************************************
  * Simple progress indicator control.
  * inherits: .arc ().shape)
  */
@@ -3811,7 +3814,7 @@ check-icon-disabling:selected {
     -fx-fill: -fx-def-font-color;
 }
 
-/********************************** MENU ***************************************
+/********************************** MENU *******************************************************************************
  * Menu item with a check icon
  * inherits: .menu
  * pseudoclasses: no support -> use .menu-nochildren styleclass instead
@@ -3850,7 +3853,7 @@ check-icon-disabling:selected {
 }
 
 
-/***************************** WIDGET INPUT OUTPUT *****************************
+/***************************** WIDGET INPUT OUTPUT *********************************************************************
  * Shown in layout mode, a graph displaying widget outputs and inputs as nodes
  * and their bindings as edges.
  */

@@ -38,7 +38,6 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import org.atteo.classindex.ClassIndex;
-import org.controlsfx.control.textfield.TextFields;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
@@ -94,6 +93,8 @@ import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.spinner.Spinner;
 import gui.objects.textfield.DecoratedTextField;
+import gui.objects.textfield.autocomplete.AutoCompletion;
+import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
@@ -1033,6 +1034,55 @@ public class App extends Application implements Configurable {
 
     }
 
+    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+I ")
+    public static void showSearch() {
+        DecoratedTextField tf = new DecoratedTextField();
+
+        Region clearButton = new Region();
+        clearButton.getStyleClass().addAll("graphic"); //$NON-NLS-1$
+        StackPane clearB = new StackPane(clearButton);
+        clearB.getStyleClass().addAll("clear-button"); //$NON-NLS-1$
+        clearB.setOpacity(0.0);
+        clearB.setCursor(Cursor.DEFAULT);
+        clearB.setOnMouseReleased(e -> tf.clear());
+        clearB.managedProperty().bind(tf.editableProperty());
+        clearB.visibleProperty().bind(tf.editableProperty());
+        tf.right.set(clearB);
+        FadeTransition fade = new FadeTransition(millis(250), clearB);
+        tf.textProperty().addListener(new InvalidationListener() {
+            @Override public void invalidated(Observable arg0) {
+                String text = tf.getText();
+                boolean isTextEmpty = text == null || text.isEmpty();
+                boolean isButtonVisible = fade.getNode().getOpacity() > 0;
+
+                if (isTextEmpty && isButtonVisible) {
+                    setButtonVisible(false);
+                } else if (!isTextEmpty && !isButtonVisible) {
+                    setButtonVisible(true);
+                }
+            }
+
+            private void setButtonVisible( boolean visible ) {
+                fade.setFromValue(visible? 0.0: 1.0);
+                fade.setToValue(visible? 1.0: 0.0);
+                fade.play();
+            }
+        });
+
+
+        tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
+        tf.left.get().setMouseTransparent(true);
+
+        StringProperty text = tf.textProperty();
+        new ConfigSearch(
+            tf,
+            p -> APP.configuration.getFields(f -> containsIgnoreCase(f.getGuiName(),p.getUserText()))
+        );
+        PopOver<TextField> p = new PopOver<>(tf);
+        p.title.set("Search for an action or option");
+        p.setAutoHide(true);
+        p.show(PopOver.ScreenPos.App_Center);
+    }
 
     /**
      * Stream that self-inserts as {@link System#out}, but instead of redirecting it, it continues

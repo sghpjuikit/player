@@ -225,6 +225,7 @@ public class App extends Application implements Configurable {
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final InfoPane infoPane = new InfoPane();
     public final Guide guide = new Guide();
+    private final ConfigSearch.History configSearchHistory = new ConfigSearch.History();
 
     /**
      * Actions ran just before application stopping.
@@ -1010,11 +1011,11 @@ public class App extends Application implements Configurable {
 
     public interface Build {
 
-        public static ProgressIndicator appProgressIndicator() {
+        static ProgressIndicator appProgressIndicator() {
             return appProgressIndicator(null, null);
         }
 
-        public static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
+        static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
             Spinner p = new Spinner();
             Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
                  a.affector.accept(0d);
@@ -1076,6 +1077,7 @@ public class App extends Application implements Configurable {
         StringProperty text = tf.textProperty();
         new ConfigSearch(
             tf,
+            APP.configSearchHistory,
             p -> APP.configuration.getFields(f -> containsIgnoreCase(f.getGuiName(),p.getUserText()))
         );
         PopOver<TextField> p = new PopOver<>(tf);
@@ -1091,7 +1093,7 @@ public class App extends Application implements Configurable {
      * any count easily and without interfering with each other or the original stream. In addition,
      * execute on fx thread.
      */
-    public class SystemOutListener extends PrintStream {
+    public static  class SystemOutListener extends PrintStream {
         private final SystemOutDuplicateOutputStream clonedstream;
 
         public SystemOutListener() {
@@ -1120,7 +1122,7 @@ public class App extends Application implements Configurable {
     }
 
     /** *  Helper class for {@link SystemOutListener}. */
-    private class SystemOutDuplicateOutputStream extends OutputStream {
+    private static class SystemOutDuplicateOutputStream extends OutputStream {
         private final PrintStream sout = System.out;
         private final List<Consumer<String>> listeners = new ArrayList<>();
 

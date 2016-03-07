@@ -30,7 +30,6 @@
 package gui.objects.textfield.autocomplete;
 
 import javafx.beans.binding.Bindings;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
@@ -38,18 +37,23 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.MouseButton;
-import javafx.util.StringConverter;
 
 import gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent;
 
 public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
 
     private final AutoCompletePopup<T> control;
-    private final ListView<T> suggestionList;
-    final int LIST_CELL_HEIGHT = 24;
+    protected final ListView<T> suggestionList;
+    private final int LIST_CELL_HEIGHT = 24;
+    private final int activationClickCount;
 
     public AutoCompletePopupSkin(AutoCompletePopup<T> control){
+        this(control, 1);
+    }
+
+    public AutoCompletePopupSkin(AutoCompletePopup<T> control, int activationClickCount){
         this.control = control;
+        this.activationClickCount = activationClickCount;
         suggestionList = new ListView<>(control.getSuggestions());
 
         /**
@@ -62,34 +66,21 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
                 Bindings.min(control.visibleRowCountProperty(), Bindings.size(suggestionList.getItems()))
                         .multiply(LIST_CELL_HEIGHT).add(5));
         suggestionList.setCellFactory(this::buildListViewCellFactory);
-        registerEventListener();
-    }
 
-    private void registerEventListener(){
-        suggestionList.setOnMouseClicked(me -> {
-            if (me.getButton() == MouseButton.PRIMARY)
-                onSuggestionChosen(suggestionList.getSelectionModel().getSelectedItem());
+        suggestionList.setOnMouseClicked(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount()==activationClickCount)
+                chooseSuggestion();
         });
-
-
-        suggestionList.setOnKeyPressed(ke -> {
-            switch (ke.getCode()) {
-                case ENTER : onSuggestionChosen(suggestionList.getSelectionModel().getSelectedItem());
-                             break;
-                case ESCAPE: if (control.isHideOnEscape()) control.hide();
-                             break;
-                default    : break;
+        suggestionList.setOnKeyPressed(e -> {
+            switch (e.getCode()) {
+                case ENTER  : chooseSuggestion();
+                              break;
+                case ESCAPE : if (control.isHideOnEscape()) control.hide();
+                              break;
+                default     : break;
             }
+            e.consume();
         });
-    }
-
-    private void onSuggestionChosen(T suggestion){
-        if(suggestion != null)
-            Event.fireEvent(control, new SuggestionEvent<>(suggestion));
-    }
-
-    protected ListCell<T> buildListViewCellFactory(ListView<T> listview) {
-        return TextFieldListCell.forListView(control.getConverter()).call(listview);
     }
 
     @Override
@@ -104,4 +95,17 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
 
     @Override
     public void dispose() {}
+
+    private void chooseSuggestion(){
+        onSuggestionChosen(suggestionList.getSelectionModel().getSelectedItem());
+    }
+
+    private void onSuggestionChosen(T suggestion){
+        if(suggestion != null)
+            Event.fireEvent(control, new SuggestionEvent<>(suggestion));
+    }
+
+    protected ListCell<T> buildListViewCellFactory(ListView<T> listview) {
+        return TextFieldListCell.forListView(control.getConverter()).call(listview);
+    }
 }

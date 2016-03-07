@@ -61,7 +61,7 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
 
 
     private static final long AUTO_COMPLETE_DELAY = 250;
-    private final Node completionTarget;
+    protected final Node completionTarget;
     final AutoCompletePopup<T> popup = buildPopup();
     private final Object suggestionsTaskLock = new Object();
 

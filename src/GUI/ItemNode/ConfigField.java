@@ -185,7 +185,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      * @return setter control for this field
      */
     @Override
-    public Node getNode() {
+    public final HBox getNode() {
         if(!root.getChildren().contains(getControl()))
             root.getChildren().add(0, getControl());
         HBox.setHgrow(getControl(), SOMETIMES);

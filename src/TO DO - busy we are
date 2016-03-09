@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- DirViewer reload thumbnails when thumb size increases
+- dir viewer allow visiting up if parent is only 1
 - allow multiple app instances to connect to external/single db file
 - idea style of searching actions/shortcuts/configs
 - impl filter in Settings
@@ -26,7 +28,7 @@
 - wrap Icon in Stackpane to fix:
    - icon layout (not always in center)
    - icon effect (shadows) getting in the way of proepr layout
-   - scale down on hover 
+   - scale down on hover
 - widget compilation failure causes recompilation ad infinitum
 - toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscribtions
@@ -37,14 +39,10 @@
 - widget compilation - report errors back to user through gui (popup? notfication? else?)
 - widget manager monitor .fxml files too
 - libraryview placeholder doesnt detect empty table correctly
-- Thumbnails should reload image when they are resized. Im not sure making this global
-  behavior is a good idea, maybe it is. Hm. DirViewer suffers when user changes thumb size. This
-  sure can be solved manually, but...
 - explicit config for song enqueue order (Comparator)
 - make Configurator config field button single instance, use vertical animation
-- Configurator implement drag & drop of Configurables, support any object by turning it into 
+- Configurator implement drag & drop of Configurables, support any object by turning it into
   Configurable (but using which convention?)
-- dir viewer allow visiting up if parent is only 1
 - remove artwork caching?
 - improve table performance
 - Void config which doesnt serialize and has Runnable action executing when

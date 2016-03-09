@@ -6,11 +6,7 @@
 package DirViewer;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
@@ -91,7 +87,6 @@ public class DirViewer extends ClassController {
             + "visit parent of this directory.")
     final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 
-    Item item = null;   // item, children of which are displayed
     ImprovedGridView<Item> grid = new ImprovedGridView<>(CellSize.NORMAL.width,CellSize.NORMAL.height,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
@@ -103,7 +98,7 @@ public class DirViewer extends ClassController {
         File dir = chooseFile("Choose directory",true, APP.DIR_HOME, APP.windowOwner.getStage());
         if(dir!=null) files.list.setAll(dir);
     });
-    private PƑ0<File,Boolean> fltr; // initializing would only incurr performance impact, rebuild on filter settings change
+    private PƑ0<File,Boolean> fltr; // initializing pointless, rebuilda on filter settings change
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(CellSize.NORMAL, s -> s.apply(grid));
@@ -115,6 +110,10 @@ public class DirViewer extends ClassController {
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, this::resort);
+
+    @IsConfig(name = "Last visited", info = "Last visited item.", editable = false)
+    File lastVisited = null;
+    Item item = null;   // item, children of which are displayed
 
     public DirViewer() {
         files.onListInvalid(list -> visit(new TopItem()));
@@ -153,11 +152,38 @@ public class DirViewer extends ClassController {
         // temporary bugfix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
-        runLater(() -> visit(new TopItem()));
+        runLater(() ->{
+            Item topitem = new TopItem();
+            if(lastVisited==null) {
+                visit(topitem);
+            } else {
+                Stack<File> path = new Stack<>(); // nested items we need to rebuild to get to last visited
+                File f = lastVisited;
+                while(f!=null && !files.list.contains(f)) {
+                    path.push(f);
+                    f = f.getParentFile();
+                }
+                boolean success = files.list.contains(f);
+                if(success) {
+                    executorIO.execute(() -> {
+                        Item item = topitem;
+                        while (!path.isEmpty()) {
+                            File tmp = path.pop();
+                            item = stream(item.children()).findAny(child -> child.val.equals(tmp)).orElse(null);
+                        }
+                        Item i = item;
+                        runFX(() -> visit(i));
+                    });
+                } else {
+                    visit(topitem);
+                }
+
+            }
+        });
     }
 
     // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
-    // the user source - collection of directories // this should be implemented
+    // the user source - collection of directories // implement
     void visitUp() {
 //        if(item!=null) {
 //            if(item.parent!=null) visitDir(item.parent);
@@ -173,15 +199,15 @@ public class DirViewer extends ClassController {
 
     void visit(Item dir, Item scrollTo) {
         if(!initialized) return;
-        // remember last item position
         if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
         if(item==dir) return;
         visitId++;
 
-        // load new item
         item = dir;
+        lastVisited = dir.val;
         if(item==null) {
             grid.getItems().clear();
+            grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
         } if(item!=null) {
             Fut.fut(item)
                .map(Item::children,executorIO)
@@ -189,12 +215,11 @@ public class DirViewer extends ClassController {
                    grid.getItems().setAll(newcells);
                    if(item.last_gridposition>=0)
                        grid.getSkinn().getFlow().setPosition(item.last_gridposition);
-                   grid.requestFocus();
+                   grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
                },FX)
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }
-        grid.requestFocus();
     }
 
     /** Resorts grid's items according to current sort criteria. */

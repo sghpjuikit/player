@@ -48,6 +48,10 @@ import com.sun.javafx.event.EventHandlerManager;
 
 import util.access.V;
 
+import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
+import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.Util.setMinPrefMaxWidth;
+
 /**
  * The AutoCompletionBinding is the abstract base class of all auto-completion bindings.
  * This class is the core logic for the auto-completion feature but highly customizable.
@@ -184,6 +188,7 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
      */
     protected void showPopup(){
         popup.show(completionTarget);
+        setMinPrefMaxWidth(popup.getSkin().getNode(), completionTarget.getLayoutBounds().getWidth());
         selectFirstSuggestion(popup);
     }
 
@@ -197,7 +202,6 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
     protected void fireAutoCompletion(T completion){
         Event.fireEvent(this, new AutoCompletionEvent<>(completion));
     }
-
 
 
     /**

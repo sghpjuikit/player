@@ -37,13 +37,13 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Region;
 
 import gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent;
 
 public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
-
     private final AutoCompletePopup<T> control;
-    protected final ListView<T> suggestionList;
+    private final ListView<T> suggestionList;
     private final int LIST_CELL_HEIGHT = 24;
     private final int activationClickCount;
 
@@ -84,7 +84,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     }
 
     @Override
-    public Node getNode() {
+    public Region getNode() {
         return suggestionList;
     }
 

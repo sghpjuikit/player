@@ -24,14 +24,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
@@ -308,7 +301,7 @@ public class Util {
     }
 
     public static <E extends Event> void add1timeEventHandler(Stage etarget, EventType<E> etype, Consumer<E> ehandler) {
-        etarget.addEventHandler(etype, new EventHandler<E>() {
+        etarget.addEventHandler(etype, new EventHandler<>() {
             @Override
             public void handle(E e) {
                 ehandler.accept(e);
@@ -319,15 +312,69 @@ public class Util {
 
 /**************************************************************************************************/
 
-    public static void setMinPrefMaxSize(Node n, double widthheight) {
+    /**
+     * Sets minimal, preferred and maximal width and height of the node to provided value.
+     * Any bound property will be ignored. Null value will be ignored.
+     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     */
+    public static void setMinPrefMaxSize(Node n, Double widthheight) {
         setMinPrefMaxSize(n, widthheight,widthheight);
     }
 
-    public static void setMinPrefMaxSize(Node n, double width, double height) {
-        if(n instanceof Pane) {
-            ((Pane)n).setMinSize(width,height);
-            ((Pane)n).setPrefSize(width,height);
-            ((Pane)n).setMaxSize(width,height);
+    /**
+     * Sets minimal, preferred and maximal width and height of the node to provided values.
+     * Any bound property will be ignored. Null value will be ignored.
+     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     */
+    public static void setMinPrefMaxSize(Node n, Double width, Double height) {
+        if(n instanceof Region) {
+            Region r = (Region) n;
+            boolean wmin  = width!=null && !r.minWidthProperty().isBound();
+            boolean wpref = width!=null && !r.prefWidthProperty().isBound();
+            boolean wmax  = width!=null && !r.maxWidthProperty().isBound();
+            boolean hmin  = height!=null && !r.minHeightProperty().isBound();
+            boolean hpref = height!=null && !r.prefHeightProperty().isBound();
+            boolean hmax  = height!=null && !r.maxHeightProperty().isBound();
+
+
+            if(hmin && wmin)        r.setMinSize(width,height);
+            else if (hmin && !wmin) r.setMinHeight(height);
+            else if (!hmin && wmin) r.setMinWidth(height);
+
+            if(hpref && wpref)        r.setPrefSize(width,height);
+            else if (hpref && !wpref) r.setPrefHeight(height);
+            else if (!hpref && wpref) r.setPrefWidth(height);
+
+            if(hmax && wmax)        r.setMaxSize(width,height);
+            else if (hmax && !wmax) r.setMaxHeight(height);
+            else if (!hmax && wmax) r.setMaxWidth(height);
+        }
+    }
+
+    /**
+     * Sets minimal, preferred and maximal width of the node to provided value.
+     * Any bound property will be ignored. Null value will be ignored.
+     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     */
+    public static void setMinPrefMaxWidth(Node n, Double width) {
+        if(width!=null && n instanceof Region) {
+            Region r = (Region) n;
+            if(!r.minWidthProperty().isBound()) r.setMinWidth(width);
+            if(!r.prefWidthProperty().isBound()) r.setPrefWidth(width);
+            if(!r.maxWidthProperty().isBound()) r.setMaxWidth(width);
+        }
+    }
+
+    /**
+     * Sets minimal, preferred and maximal height of the node to provided value.
+     * If property bound, value null or node not a {@link javafx.scene.layout.Region}, this method is a no op.
+     */
+    public static void setMinPrefMaxHeight(Node n, Double height) {
+        if(height!=null && n instanceof Region) {
+            Region r = (Region) n;
+            if(!r.minHeightProperty().isBound()) r.setMinHeight(height);
+            if(!r.prefHeightProperty().isBound()) r.setPrefHeight(height);
+            if(!r.maxHeightProperty().isBound()) r.setMaxHeight(height);
         }
     }
 

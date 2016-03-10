@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -11,8 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
 
@@ -22,17 +22,18 @@ import util.action.Action;
 import util.conf.Config;
 
 import static util.functional.Util.map;
-import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.Util.setMinPrefMaxWidth;
 
 /**
  * Created by Plutonium_ on 3/6/2016.
  */
 public class ConfigSearch extends AutoCompletion<Entry> {
 
+    private final TextField textField;
     private final History history;
     private boolean ignoreevent = false;
-    private final TextField textField;
 
     public ConfigSearch(TextField textField, Callback<ISuggestionRequest, Collection<Config>> suggestionProvider) {
         this(textField, new History(), suggestionProvider);
@@ -43,17 +44,16 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         this.history = history;
 
         this.textField = textField;
-        setMinPrefMaxSize(textField,250);
-        textField.setPrefColumnCount(25); // removign this may cause the above line not work
+        this.textField.setPrefWidth(350); // note this dictates the popup width
 
         hideOnSuggestion.set(false);
         popup.setOnSuggestion(e -> {
-            try{
+            try {
                 ignoreInputChanges = true;
                 acceptSuggestion(e.getSuggestion());
                 fireAutoCompletion(e.getSuggestion());
                 if(hideOnSuggestion.get()) hidePopup();
-            }finally{
+            } finally {
                 // Ensure that ignore is always set back to false
                 ignoreInputChanges = false;
             }
@@ -67,15 +67,6 @@ public class ConfigSearch extends AutoCompletion<Entry> {
             protected Skin<?> createDefaultSkin() {
                 return new AutoCompletePopupSkin<Entry>(this,2) {
                     {
-                        // set width to that of the text field
-//                        setMinPrefMaxSize(suggestionList,444);
-//                        getSkinnable().setMinWidth(444);
-//                        getSkinnable().setPrefWidth(444);
-//                        getSkinnable().setMaxWidth(444);
-//                        ((Pane)getSkinnable().getScene().getRoot()).setMaxWidth(444);
-//                        ((Pane)getSkinnable().getScene().getRoot()).setPrefWidth(444);
-//                        ((Pane)getSkinnable().getScene().getRoot()).setMinWidth(444);
-
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                             if(!ignoreevent)
@@ -98,7 +89,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                             ignoreevent = false;
                             // e.consume(); // may brake functionality
                         });
-                        suggestionList.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                        getNode().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                             if(!ignoreevent)
                                 if(e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
                                     switch (e.getCode()) {
@@ -200,6 +191,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                 graphics = new Label(((Action)config).getKeys());
                 graphics.setCursor(Cursor.HAND);
                 graphics.setMouseTransparent(true);
+                ((Label)graphics).setTextAlignment(TextAlignment.RIGHT);
             } else {
                 graphics = config.getType()==Boolean.class || config.isTypeEnumerable()
                         ? ConfigField.create(config).getNode()
@@ -211,8 +203,10 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         }
     }
     static class EntryListCell extends ListCell<Entry> {
-        private Label text = new Label();
-        private HBox root = layHorizontally(10, Pos.CENTER_LEFT, new Pane(text));
+        private final Label text = new Label();
+        private final StackPane root = layStack(text,Pos.CENTER_LEFT, new StackPane(),Pos.CENTER_RIGHT);
+        private final StackPane congigNodeRoot = (StackPane) root.getChildren().get(1);
+        private final Tooltip tooltip = new Tooltip();
         private Config oldconfig = null; // cache
         private Node oldnode = null; // cache
 
@@ -220,7 +214,11 @@ public class ConfigSearch extends AutoCompletion<Entry> {
             text.setTextAlignment(TextAlignment.LEFT);
             text.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
             setMinPrefMaxSize(text,USE_COMPUTED_SIZE);
-            HBox.setHgrow(text, Priority.ALWAYS);
+            text.prefWidthProperty().bind(root.widthProperty().subtract(congigNodeRoot.widthProperty()).subtract(10));
+            text.setMinWidth(200);
+            text.maxWidthProperty().bind(root.widthProperty().subtract(100));
+            text.setPadding(new Insets(5,0,0,10));
+            Tooltip.install(root, tooltip);
         }
 
         @Override
@@ -231,14 +229,15 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                 setGraphic(null);
             } else {
                 if(getGraphic()!=root) setGraphic(root);
+                tooltip.setText(item.config.getGroup() + item.config.getGuiName() + "\n\n" + item.config.getInfo());
 
                 boolean changed = oldconfig!=item.config;
                 oldconfig = item.config;
                 Node node = !changed ? oldnode : item.getGraphics();
                 if(node instanceof HBox) ((HBox)node).setAlignment(Pos.CENTER_RIGHT);
-                if(oldnode!=null) root.getChildren().remove(oldnode);
+                if(oldnode!=null) congigNodeRoot.getChildren().remove(oldnode);
                 oldnode = node;
-                if(node!=null) root.getChildren().add(node);
+                if(node!=null) congigNodeRoot.getChildren().add(node);
                 text.setText(item.getName());
             }
         }

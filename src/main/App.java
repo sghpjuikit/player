@@ -1040,9 +1040,9 @@ public class App extends Application implements Configurable {
         DecoratedTextField tf = new DecoratedTextField();
 
         Region clearButton = new Region();
-        clearButton.getStyleClass().addAll("graphic"); //$NON-NLS-1$
+        clearButton.getStyleClass().addAll("graphic");
         StackPane clearB = new StackPane(clearButton);
-        clearB.getStyleClass().addAll("clear-button"); //$NON-NLS-1$
+        clearB.getStyleClass().addAll("clear-button");
         clearB.setOpacity(0.0);
         clearB.setCursor(Cursor.DEFAULT);
         clearB.setOnMouseReleased(e -> tf.clear());

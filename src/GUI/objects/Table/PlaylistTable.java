@@ -28,7 +28,7 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuR;
 import gui.objects.TableRow.ImprovedTableRow;
@@ -92,7 +92,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         VBox.setVgrow(this, Priority.ALWAYS);
 
         // initialize table
-        setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        setFixedCellSize(Gui.font.getValue().getSize() + 5);
         getSelectionModel().setSelectionMode(MULTIPLE);
 
         // initialize column factories
@@ -175,7 +175,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             // column time
             double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
             Text t2 = new Text(new FormattedDuration(mt).toString());
-                 t2.setFont(GUI.font.getValue());
+                 t2.setFont(Gui.font.getValue());
             double W3 = t2.getLayoutBounds().getWidth() + 5;
 
             columnIndex.setPrefWidth(W1);

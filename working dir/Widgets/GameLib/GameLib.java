@@ -24,7 +24,7 @@ import util.conf.Config.VarList;
 import util.conf.IsConfig;
 import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
 import gui.objects.image.cover.Cover;
@@ -210,7 +210,7 @@ public class GameLib extends FXMLController {
 
 
         file_tree.setShowRoot(false);
-        file_tree.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        file_tree.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         FileTree.from(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

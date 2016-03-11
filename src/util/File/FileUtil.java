@@ -399,13 +399,13 @@ public final class FileUtil {
             writer.write(content);
             return true;
         } catch (IOException e) {
-            log(Util.class).error("Couldnt save file: {}", file,e);
+            log(FileUtil.class).error("Couldnt save file: {}", file,e);
             return false;
         } finally {
             try {
                 if(writer!=null) writer.close();
             } catch (IOException e) {
-                log(Util.class).error("Couldnt save fclose file writer", e);
+                log(FileUtil.class).error("Couldnt save fclose file writer", e);
             }
         }
      }
@@ -422,7 +422,7 @@ public final class FileUtil {
         try {
             return Files.readAllLines(Paths.get(filepath));
         } catch (IOException e) {
-            log(Util.class).error("Problems reading file {}. File wasnt read.", filepath,e);
+            log(FileUtil.class).error("Problems reading file {}. File wasnt read.", filepath,e);
             return new ArrayList<>();
         }
      }
@@ -431,7 +431,7 @@ public final class FileUtil {
         try {
             return Files.lines(f.toPath());
         } catch (IOException e) {
-            log(Util.class).error("Problems reading file {}. File wasnt read.", f,e);
+            log(FileUtil.class).error("Problems reading file {}. File wasnt read.", f,e);
             return Stream.empty();
         }
      }
@@ -468,7 +468,7 @@ public final class FileUtil {
         try {
            boolean success = f.delete();
            if (!success) {
-               log(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
+               log(FileUtil.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
                f.deleteOnExit();
            }
         } catch(SecurityException e) {
@@ -490,14 +490,14 @@ public final class FileUtil {
 
         ImageFileFormat t = ImageFileFormat.of(f.toURI());
         if (!t.isSupported()) {
-            log(Util.class).error("Could not save image to file {}. Format {} not supported.", f,t);
+            log(FileUtil.class).error("Could not save image to file {}. Format {} not supported.", f,t);
             return;
         }
 
         try {
             ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", f);
         } catch (IOException e) {
-            log(Util.class).error("Could not save image to file {}", f,e);
+            log(FileUtil.class).error("Could not save image to file {}", f,e);
         }
     }
 
@@ -526,7 +526,7 @@ public final class FileUtil {
                     out.add(new File(target, f.getName()));
                 }
             } catch(IOException e) {
-                log(Util.class).error("Could not copy file {}", f,e);
+                log(FileUtil.class).error("Could not copy file {}", f,e);
             }
         }
         return out;
@@ -546,7 +546,7 @@ public final class FileUtil {
             File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
             Files.copy(f.toPath(), nf.toPath(), options);
         } catch(IOException e) {
-            log(Util.class).error("Could not copy file {}", f,e);
+            log(FileUtil.class).error("Could not copy file {}", f,e);
         }
     }
 
@@ -576,7 +576,7 @@ public final class FileUtil {
             // copy file
             Files.copy(f.toPath(), nf.toPath(), options);
         } catch(IOException e) {
-            log(Util.class).error("Could not copy file {}", f,e);
+            log(FileUtil.class).error("Could not copy file {}", f,e);
         }
     }
 

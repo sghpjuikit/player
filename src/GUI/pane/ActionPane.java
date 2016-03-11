@@ -33,6 +33,7 @@ import javafx.util.Duration;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
+import gui.Gui;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -305,7 +306,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
             if(fieldmap.containsKey(coltype)) {
                 FilteredTable<Object,?> t = new gui.objects.table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
-                t.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
+                t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {
                     TableColumn<?,?> c = new TableColumn<>(f.toString());

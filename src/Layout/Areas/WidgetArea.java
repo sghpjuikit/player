@@ -13,7 +13,7 @@ import org.reactfx.Subscription;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import util.SingleR;
 import util.SwitchException;
 import util.graphics.drag.DragUtil;
@@ -26,7 +26,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
-import static gui.GUI.openAndDo;
+import static gui.Gui.openAndDo;
 import static util.dev.Util.noØ;
 import static util.functional.Util.isInR;
 import static util.functional.Util.listRO;
@@ -83,7 +83,7 @@ public final class WidgetArea extends Area<Container> {
         );
 
         loadWidget();
-        if(GUI.isLayoutMode()) show(); else hide();
+        if(Gui.isLayoutMode()) show(); else hide();
     }
 
 

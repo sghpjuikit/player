@@ -188,7 +188,7 @@ public class Player {
 
     // runs refresh on bgr thread, thread safe
     private static void refreshItemsWithNow(List<Metadata> ms) {
-        System.out.println("refreshing now " + ms.size());
+//        System.out.println("refreshing now " + ms.size());
         noØ(ms);
         if(ms.isEmpty()) return;
 

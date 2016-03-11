@@ -24,6 +24,7 @@ import util.conf.IsConfigurable;
 import gui.objects.Window.stage.Window;
 import util.access.V;
 
+import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.App.APP;
 import static util.graphics.Util.setAnchors;
@@ -113,9 +114,13 @@ public class ClickEffect extends ServiceBase {
         screen.setStyle("-fx-background-color: null;");
         screen.setPickOnBounds(false);
 
-        AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
-        p.getChildren().add(screen);
-        setAnchors(screen,0d);
+        runLater(() -> {
+            AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
+            if(p!=null) {
+                p.getChildren().add(screen);
+                setAnchors(screen,0d);
+            }
+        });
     }
 
     @Override
@@ -127,9 +132,13 @@ public class ClickEffect extends ServiceBase {
     public void stop() {
         isRunning = false;
 
-        AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
-        p.getChildren().remove(screen);
-        screen = null;
+        runLater(() -> {
+            AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
+            if(p!=null) {
+                p.getChildren().remove(screen);
+                screen = null;
+            }
+        });
     }
 
 

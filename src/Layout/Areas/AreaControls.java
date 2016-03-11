@@ -29,7 +29,7 @@ import org.reactfx.EventSource;
 import Configurator.Configurator;
 import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
@@ -46,10 +46,10 @@ import static Layout.widget.Widget.LoadType.MANUAL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
-import static gui.GUI.OpenStrategy.INSIDE;
-import static gui.GUI.OpenStrategy.POPUP;
-import static gui.GUI.closeAndDo;
-import static gui.GUI.openAndDo;
+import static gui.Gui.OpenStrategy.INSIDE;
+import static gui.Gui.OpenStrategy.POPUP;
+import static gui.Gui.closeAndDo;
+import static gui.Gui.openAndDo;
 import static gui.objects.Window.stage.UiContext.showSettings;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -200,14 +200,14 @@ public final class AreaControls {
 	header_buttons.getChildren().addAll(infoB, loadB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
 
 	// build animations
-	contrAnim = new FadeTransition(GUI.duration_LM, root);
-	contAnim = new FadeTransition(GUI.duration_LM, area.getContent());
+	contrAnim = new FadeTransition(Gui.duration_LM, root);
+	contAnim = new FadeTransition(Gui.duration_LM, area.getContent());
 	BoxBlur blur = new BoxBlur(0, 0, 1);
 	area.getContent().setEffect(blur);
 	blurAnim = new Anim(at -> {
-            blur.setWidth(at*GUI.blur_LM);
-            blur.setHeight(at*GUI.blur_LM);
-        }).dur(GUI.duration_LM);
+            blur.setWidth(at* Gui.blur_LM);
+            blur.setHeight(at* Gui.blur_LM);
+        }).dur(Gui.duration_LM);
 
         // weak mode and strong mode - strong mode is show/hide called from external code
 	// - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
@@ -284,10 +284,10 @@ public final class AreaControls {
 	if (area.getActiveWidgets().isEmpty()) return;
         Widget w = area.getActiveWidgets().get(0);
 
-        if(GUI.open_strategy==POPUP) {
+        if(Gui.open_strategy==POPUP) {
             showSettings(w,propB);
         } else
-        if (GUI.open_strategy==INSIDE) {
+        if (Gui.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
                 Configurator sc = new Configurator(true);
                              sc.configure(w);
@@ -301,7 +301,7 @@ public final class AreaControls {
     }
 
     void changeWidget() {
-        if(GUI.open_strategy==POPUP) {
+        if(Gui.open_strategy==POPUP) {
             WidgetPicker w = new WidgetPicker();
             PopOver p = new PopOver(w.getNode());
                     p.title.set("Change widget");
@@ -320,7 +320,7 @@ public final class AreaControls {
                 });
             };
         } else
-        if (GUI.open_strategy==INSIDE) {
+        if (Gui.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
                 WidgetPicker w = new WidgetPicker();
                 w.onCancel = () -> {
@@ -355,10 +355,10 @@ public final class AreaControls {
     }
 
     void showInfo() {
-        if(GUI.open_strategy==POPUP) {
+        if(Gui.open_strategy==POPUP) {
             helpP.getM(this).show(infoB);
         } else
-        if (GUI.open_strategy==INSIDE) {
+        if (Gui.open_strategy==INSIDE) {
             closeAndDo(area.content_root, ()->{
                 Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
@@ -416,12 +416,12 @@ public final class AreaControls {
 	blurAnim.stop();
 	// put new values
 	contrAnim.setToValue(1);
-	contAnim.setToValue(1 - GUI.opacity_LM);
+	contAnim.setToValue(1 - Gui.opacity_LM);
 	blurAnim.setRate(1);
 	// play
 	contrAnim.play();
-	if (GUI.opacity_layoutMode) contAnim.play();
-	if (GUI.blur_layoutMode) blurAnim.play();
+	if (Gui.opacity_layoutMode) contAnim.play();
+	if (Gui.blur_layoutMode) blurAnim.play();
 	// handle graphics
 	area.getContent().setMouseTransparent(true);
 	root.setMouseTransparent(false);
@@ -437,8 +437,8 @@ public final class AreaControls {
 	contAnim.setToValue(1);
 	blurAnim.setRate(-1);
 	contrAnim.play();
-	if (GUI.opacity_layoutMode) contAnim.play();
-	if (GUI.blur_layoutMode) blurAnim.play();
+	if (Gui.opacity_layoutMode) contAnim.play();
+	if (Gui.blur_layoutMode) blurAnim.play();
 	area.getContent().setMouseTransparent(false);
 	root.setMouseTransparent(true);
 	// hide help popup if open

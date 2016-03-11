@@ -43,7 +43,7 @@ import util.conf.IsConfigurable;
 import util.file.FileMonitor;
 import util.file.FileUtil;
 
-import static gui.GUI.OpenStrategy.INSIDE;
+import static gui.Gui.OpenStrategy.INSIDE;
 import static java.io.File.separator;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.Collections.EMPTY_LIST;
@@ -69,10 +69,10 @@ import static util.file.FileMonitor.monitorFile;
  */
 @IsActionable
 @IsConfigurable
-public class GUI {
+public class Gui {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GUI.class);
-    private static final String DEF_SKIN = GUI.class.getResource("skin/Skin.css").toExternalForm();
+    private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
+    private static final String DEF_SKIN = Gui.class.getResource("skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
     public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 
@@ -81,7 +81,7 @@ public class GUI {
 
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static final VarEnum<String> skin = new VarEnum<>("Default", () -> skins, GUI::setSkin);
+    public static final VarEnum<String> skin = new VarEnum<>("Default", () -> skins, Gui::setSkin);
     /**
      * Font of the application. Overrides font defined by skin. The font can be
      * overridden programmatically or stylesheet.
@@ -90,7 +90,7 @@ public class GUI {
      * nothing.
      */
     @IsConfig(name = "Font", info = "Application font.")
-    public static final V<Font> font = new V<>(Font.getDefault(), GUI::applyFont);
+    public static final V<Font> font = new V<>(Font.getDefault(), Gui::applyFont);
 
     // non applied configs
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")

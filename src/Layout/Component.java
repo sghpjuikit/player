@@ -18,7 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import Layout.container.Container;
 import Layout.widget.Widget;
 import Layout.widget.Widget.LoadType;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.Window.stage.Window;
 import main.App;
 import util.access.V;
@@ -206,8 +206,8 @@ public abstract class Component {
         // cal when component parent changes
         public void initLocked(Component p) {
             unbind();
-            if(p==null) bind(locked.or(GUI.locked_layout));
-            else bind(p.lockedUnder.or(locked).or(GUI.locked_layout));
+            if(p==null) bind(locked.or(Gui.locked_layout));
+            else bind(p.lockedUnder.or(locked).or(Gui.locked_layout));
         }
 
         // call when cosing component

@@ -31,9 +31,9 @@ import com.sun.javafx.scene.traversal.Direction;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
-import gui.itemnode.TextFieldItemNode.EffectItemNode;
-import gui.itemnode.TextFieldItemNode.FileItemNode;
-import gui.itemnode.TextFieldItemNode.FontItemNode;
+import gui.itemnode.textfield.EffectItemNode;
+import gui.itemnode.textfield.FileItemNode;
+import gui.itemnode.textfield.FontItemNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
@@ -644,7 +644,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     // currently only hacks allow this
                     //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
                     n.impl_traverse(Direction.NEXT);
-                    System.out.println("traversied");
+                    // System.out.println("traversied");
                 }
                 e.consume();
             });

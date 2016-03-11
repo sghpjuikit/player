@@ -1,5 +1,5 @@
 
-package gui.itemnode.TextFieldItemNode;
+package gui.itemnode.textfield;
 
 import java.util.function.Consumer;
 

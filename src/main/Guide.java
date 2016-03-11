@@ -25,12 +25,11 @@ import org.reactfx.Subscription;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
-import main.Guide.Hint;
 import util.access.V;
 import util.action.Action;
 import util.animation.Anim;
@@ -276,7 +275,7 @@ public final class Guide implements Configurable {
                  int i = w.getTopContainer().getEmptySpot();
                  w.getTopContainer().ui.alignTab(i);
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
-                     1000, () -> GUI.setLayoutMode(true)
+                     1000, () -> Gui.setLayoutMode(true)
                  );
              }).withText("Test")
         );

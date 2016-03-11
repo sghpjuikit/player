@@ -38,7 +38,7 @@ import javafx.util.Duration;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.InfoNode.InfoTable;
+import gui.infonode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;

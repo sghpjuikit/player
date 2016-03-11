@@ -329,11 +329,11 @@ public abstract class Parser {
         }
 
         private <T> Function<String,T> getParserFromS(Class<T> c) {
-            return parsersFromS.computeIfAbsent(c, this::findFromSparser);
+            return (Function<String,T>) parsersFromS.computeIfAbsent(c, this::findFromSparser);
         }
 
         private <T> Function<T,String> getParserToS(Class<T> c) {
-            return parsersToS.computeIfAbsent(c, this::findToSparser);
+            return (Function<T, String>) parsersToS.computeIfAbsent(c, this::findToSparser);
         }
 
         private <T> Function<String,? super T> findFromSparser(Class<T> c) {

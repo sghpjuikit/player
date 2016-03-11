@@ -35,7 +35,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
@@ -80,7 +79,7 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
@@ -93,7 +92,6 @@ import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.spinner.Spinner;
 import gui.objects.textfield.DecoratedTextField;
-import gui.objects.textfield.autocomplete.AutoCompletion;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
@@ -512,7 +510,7 @@ public class App extends Application implements Configurable {
             new FastAction<>("Apply skin", "Apply skin on the application.",
                 BRUSH,
                 FileUtil::isValidSkinFile,
-                skin_file -> GUI.setSkin(FileUtil.getName(skin_file))),
+                skin_file -> Gui.setSkin(FileUtil.getName(skin_file))),
             new FastAction<>("View image", "Opens image in an image viewer widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
@@ -537,7 +535,7 @@ public class App extends Application implements Configurable {
         );
         parameterProcessor.addFileProcessor(
             FileUtil::isValidSkinFile,
-            fs -> GUI.setSkin(FileUtil.getName(fs.get(0)))
+            fs -> Gui.setSkin(FileUtil.getName(fs.get(0)))
         );
         parameterProcessor.addFileProcessor(
             ImageFileFormat::isSupported,
@@ -642,7 +640,7 @@ public class App extends Application implements Configurable {
             // we must apply skin before we load graphics, solely because if skin defines custom
             // Control Skins, it will only have effect when set before control is created
             // and yes, this means reapplying diferent skin will have no effect in this regard...
-            configuration.getFields(f -> f.getGroup().equals("GUI") && f.getGuiName().equals("Skin")).get(0).applyValue();
+            configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
             windowManager.deserialize(normalLoad);
 
             DB.start();
@@ -977,7 +975,7 @@ public class App extends Application implements Configurable {
                                 fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
                                 fc.setTitle("Open skin...");
                     File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-                    if(f!=null) GUI.setSkinExternal(f);
+                    if(f!=null) Gui.setSkinExternal(f);
                 }
             ),
             new FastAction<>(

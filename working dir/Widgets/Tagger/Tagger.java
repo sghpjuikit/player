@@ -25,7 +25,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import org.controlsfx.control.textfield.CustomTextField;
-import org.controlsfx.control.textfield.TextFields;
 
 import AudioPlayer.Item;
 import AudioPlayer.services.Database.DB;
@@ -41,8 +40,8 @@ import Layout.widget.controller.io.IsInput;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.TextFieldItemNode.MoodItemNode;
-import gui.itemnode.TextFieldItemNode.TextFieldItemNode;
+import gui.itemnode.textfield.MoodItemNode;
+import gui.itemnode.textfield.TextFieldItemNode;
 import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodePos;
 import gui.objects.icon.CheckIcon;

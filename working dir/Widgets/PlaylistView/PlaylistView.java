@@ -23,12 +23,11 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.ValueConfig;
 import Layout.widget.Widget;
-import Layout.widget.WidgetManager;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.Output;
 import Layout.widget.feature.PlaylistFeature;
 import Layout.widget.feature.SongReader;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import gui.objects.table.PlaylistTable;
@@ -46,7 +45,7 @@ import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static Layout.widget.WidgetManager.WidgetSource.OPEN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
-import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static util.Util.menuItem;
@@ -97,15 +96,15 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
     public final V<Boolean> scrollToPlaying = new V<>(true);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
@@ -157,7 +156,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         setAnchors(table.getRoot(),0d);
 
         // table properties
-        table.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
+        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));

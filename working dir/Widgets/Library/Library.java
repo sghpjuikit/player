@@ -36,8 +36,8 @@ import Layout.widget.controller.io.Output;
 import Layout.widget.feature.FileExplorerFeature;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
-import gui.GUI;
-import gui.InfoNode.InfoTask;
+import gui.Gui;
+import gui.infonode.InfoTask;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuR;
@@ -68,7 +68,7 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import static Layout.widget.Widget.Group.LIBRARY;
 import static Layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -150,15 +150,15 @@ public class Library extends FXMLController implements SongReader {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(editable = false)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
@@ -177,7 +177,7 @@ public class Library extends FXMLController implements SongReader {
         setAnchors(table.getRoot(),0d);
 
         // table properties
-        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(TITLE);
         d(maintain(orient,table.nodeOrientationProperty()));

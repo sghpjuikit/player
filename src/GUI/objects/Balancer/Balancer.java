@@ -1,6 +1,6 @@
 
 
-package gui.objects.Balancer;
+package gui.objects.balancer;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -19,14 +19,16 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
  */
 public class Balancer extends Control {
 
+    private static String STYLECLASS = "balancer";
+
     private DoubleProperty balance = new SimpleDoubleProperty(this, "balance", 0);
     private DoubleProperty max = new SimpleDoubleProperty(this, "max", 1);
     private DoubleProperty min = new SimpleDoubleProperty(this, "min", -1);
 
     /** Creates a default instance with default balance, min, max values. */
     public Balancer() {
-        getStyleClass().setAll("balancer");
-        setBalance(getBalance()); // refreshes graphics on creation
+        getStyleClass().setAll(STYLECLASS);
+        setBalance(getBalance()); // refresh
     }
 
     /** Creates a default instance with a specified balance value and
@@ -47,14 +49,8 @@ public class Balancer extends Control {
         setMin(min);
     }
 
-    /** {@inheritDoc} */
     @Override protected Skin<?> createDefaultSkin() {
         return new BalancerSkin(this);
-    }
-
-    /** {@inheritDoc} */
-    @Override public String getUserAgentStylesheet() {
-        return getClass().getResource("balancer.css").toExternalForm();
     }
 
     /** @return The current balance value. */
@@ -127,12 +123,6 @@ public class Balancer extends Control {
         private Rectangle forgroundClipRect;
         private double balance;
 
-        /***************************************************************************
-         *
-         * Constructors
-         *
-         **************************************************************************/
-
         public BalancerSkin(Balancer b) {
             super(b);
 
@@ -145,7 +135,7 @@ public class Balancer extends Control {
             backgroundContainer.setPreserveRatio(false);
             backgroundContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
             backgroundContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
-            backgroundContainer.getStyleClass().add("bgr");
+            backgroundContainer.getStyleClass().add("balancer-bgr");
             getChildren().setAll(backgroundContainer);
 
             foregroundContainer = new ImageView();
@@ -154,7 +144,7 @@ public class Balancer extends Control {
             foregroundContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
 
 
-            foregroundContainer.getStyleClass().add("foregr");
+            foregroundContainer.getStyleClass().add("balancer-foregr");
             foregroundContainer.setMouseTransparent(true);
             getChildren().add(foregroundContainer);
 

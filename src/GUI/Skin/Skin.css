@@ -3620,8 +3620,22 @@ check-icon-disabling:selected {
     -fx-border-width: 2;
 }
 
+
+/********************************** BALANCER *****************************************************************************
+ * Control for left-right volume balance.
+ * inherits: .control
+ */
+.balancer {}
+.balancer > .container {}
+.balancer-bgr {
+    -fx-image: url("balancer-bgr.png");
+}
+.balancer-foregr {
+    -fx-image: url("balancer-foregr.png");
+}
+
 /********************************** SEEKER *****************************************************************************
- * 
+ * Control for playback seeking.
  * inherits: .slider
  */
 

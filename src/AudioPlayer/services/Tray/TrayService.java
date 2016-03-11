@@ -28,7 +28,7 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-import gui.GUI;
+import gui.Gui;
 import util.access.V;
 
 import static javafx.application.Platform.runLater;
@@ -117,7 +117,7 @@ public class TrayService extends ServiceBase {
 //                            runLater(() -> cm.show(App.getWindow().getStage(), me.getScreenX(), me.getScreenY()-40));
 
                         if(me.getButton()==PRIMARY)
-                            runLater(GUI::toggleMinimize);
+                            runLater(Gui::toggleMinimize);
 
                         // run custom mouse action
                         if(onClick!=null)

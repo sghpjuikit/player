@@ -35,6 +35,7 @@ import Layout.widget.controller.Controller;
 import Layout.widget.controller.io.InOutput;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Output;
+import gui.Gui;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
@@ -189,7 +190,7 @@ public class IOLayer extends StackPane {
 
         setMouseTransparent(false);
         setPickOnBounds(false);
-        visibleProperty().bind(gui.GUI.layout_mode);
+        visibleProperty().bind(Gui.layout_mode);
 //        scaleXProperty().bind(scalex);
 //        scaleYProperty().bind(scaley);
         translateXProperty().bind(translation.multiply(scalex));

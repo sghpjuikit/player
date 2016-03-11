@@ -28,8 +28,8 @@ import Layout.widget.Widget;
 import Layout.widget.controller.FXMLController;
 import Layout.widget.feature.PlaybackFeature;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import gui.GUI;
-import gui.objects.Balancer.Balancer;
+import gui.Gui;
+import gui.objects.balancer.Balancer;
 import gui.objects.seeker.Seeker;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
@@ -135,7 +135,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        d(maintain(GUI.snapDistance, d->d ,seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, d->d ,seeker.chapSnapDist));
 
         // create play buttons
         p1.setOnMouseClicked(e->rewind());

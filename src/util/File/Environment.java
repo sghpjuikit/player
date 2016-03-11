@@ -25,7 +25,7 @@ import org.controlsfx.tools.Platform;
 import AudioPlayer.playlist.PlaylistManager;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
-import gui.GUI;
+import gui.Gui;
 import util.Util;
 import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
@@ -193,7 +193,7 @@ public class Environment {
     public static void openIn(File f, boolean inApp) {
         // open skin - always in app
         if((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) {
-            GUI.setSkin(FileUtil.getName(f));
+            Gui.setSkin(FileUtil.getName(f));
         }
 
         // open widget

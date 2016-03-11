@@ -34,7 +34,7 @@ import Layout.Component;
 import Layout.container.layout.Layout;
 import Layout.container.switchcontainer.SwitchContainer;
 import Layout.container.switchcontainer.SwitchPane;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
@@ -252,7 +252,7 @@ public class Window extends WindowBase {
         // layout mode on key press/release
 	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
+		Gui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
                 if(e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
                     runLater(() ->{
                         getSwitchPane().widget_io.layout();
@@ -300,14 +300,14 @@ public class Window extends WindowBase {
         lastFMB.setDisable(true);
 	Icon lockB = new Icon(null, 13, "Lock layout\n\nRestricts certain layout operations to "
                 + "prevent accidents and configuration getting in the way. Widgets, containers and "
-                + "layouts can also be locked individually.", GUI::toggleLayoutLocked);
-        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
+                + "layouts can also be locked individually.", Gui::toggleLayoutLocked);
+        maintain(Gui.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
 	Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
 	Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout",
                 () -> ((SwitchPane)getSwitchPane()).alignLeftTab());
 	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout",
                 () -> ((SwitchPane)getSwitchPane()).alignRightTab());
-        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
+        maintain(Gui.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
 	Icon guideB = new Icon(GRADUATION_CAP, 13, Action.get("Open guide"));
 	Icon helpB = createInfoIcon("Available actions:\n"
             + "\tHeader icons : Providing custom functionalities. See tooltips.\n"

@@ -24,7 +24,7 @@ import Layout.Areas.WidgetArea;
 import Layout.Component;
 import Layout.container.Container;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import util.access.V;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
@@ -129,7 +129,7 @@ public class SwitchPane implements ContainerNode {
         });
 
         root.addEventHandler(SCROLL, e-> {
-            if(gui.GUI.isLayoutMode()) {
+            if(Gui.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
@@ -212,7 +212,7 @@ public class SwitchPane implements ContainerNode {
             n = l.getRoot();
             as = l;
         }
-        if(GUI.isLayoutMode()) as.show();
+        if(Gui.isLayoutMode()) as.show();
         tab.getChildren().setAll(n);
     }
 
@@ -484,7 +484,7 @@ public class SwitchPane implements ContainerNode {
         // if (d!=1) zoomScaleFactor.set(d);
         // play
         z.stop();
-        z.setDuration(gui.GUI.duration_LM);
+        z.setDuration(Gui.duration_LM);
         z.setToX(d);
         z.play();
         zt.stop();

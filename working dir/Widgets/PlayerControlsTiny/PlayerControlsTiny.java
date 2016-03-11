@@ -24,15 +24,13 @@ import Layout.widget.controller.FXMLController;
 import Layout.widget.feature.HorizontalDock;
 import Layout.widget.feature.PlaybackFeature;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.seeker.Seeker;
 import gui.objects.icon.Icon;
 import util.Util;
 import util.access.V;
 import util.graphics.drag.DragUtil;
 
-import static AudioPlayer.playlist.sequence.PlayingSequence.LoopMode.OFF;
-import static AudioPlayer.playlist.sequence.PlayingSequence.LoopMode.SONG;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
@@ -104,7 +102,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
         // make seeker
         d(seeker.bindTime(ps.duration, ps.currentTime));
-        d(maintain(GUI.snapDistance, d->d, seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, d->d, seeker.chapSnapDist));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
 

@@ -31,7 +31,7 @@ import javafx.util.Callback;
 
 import com.sun.javafx.scene.control.VirtualScrollBar;
 
-import gui.GUI;
+import gui.Gui;
 import gui.objects.TableRow.ImprovedTableRow;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
@@ -198,7 +198,7 @@ public class ImprovedTable<T> extends TableView<T> {
         int s = getMaxIndex();
         int i = Util.decMin1(s);
         Text text = new Text();
-             text.setFont(GUI.font.getValue());
+             text.setFont(Gui.font.getValue());
              text.setText(i + ".");
              text.autosize();
              text.applyCss();

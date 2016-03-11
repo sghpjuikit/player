@@ -10,7 +10,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import gui.GUI;
+import gui.Gui;
 import gui.objects.Window.Resize;
 import util.access.CyclicEnum;
 import util.dev.Dependency;
@@ -485,9 +485,9 @@ public class WindowBase {
     public void snap() {
         // avoid snapping while isResizing. It leads to unwanted behavior
         // avoid when not desired
-        if(!GUI.snapping.get() || resizing.get()!=Resize.NONE) return;
+        if(!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
 
-        double S = GUI.snapDistance.get();
+        double S = Gui.snapDistance.get();
 
         // snap to screen edges (x and y separately)
         double SWm = screen.getBounds().getMinX();

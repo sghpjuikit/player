@@ -20,7 +20,7 @@ import Layout.*;
 import Layout.container.Container;
 import Layout.container.freeformcontainer.FreeFormContainer;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.Window.Resize;
 import gui.objects.Window.pane.PaneWindowControls;
 import gui.objects.icon.Icon;
@@ -66,7 +66,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
         rt.setOnMouseClicked(e -> {
-            if(!isAltCon && (GUI.isLayoutMode() || !container.lockedUnder.get())) {
+            if(!isAltCon && (Gui.isLayoutMode() || !container.lockedUnder.get())) {
                 any_window_clicked.set(any_window_clicked.get() && isHere(e));
                 // add new widget on left click
                 if(e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
@@ -98,7 +98,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double ww = container.properties.getD(i+"w");
                 if(container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
                 if(container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
-                maintain(GUI.snapping, w.snappable);    // this is bad!
+                maintain(Gui.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -112,7 +112,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double wh = container.properties.getD(i+"h");
                 if(container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
                 if(container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
-                maintain(GUI.snapping, w.snappable);    // this is bad!
+                maintain(Gui.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -210,8 +210,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             maintain(w.y, v -> { if(!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
             maintain(w.w, v -> { if(!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
             maintain(w.h, v -> { if(!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
-            maintain(GUI.snapDistance, d->d, w.snapDistance);
-            maintain(GUI.snapping, w.snappable);
+            maintain(Gui.snapDistance, d->d, w.snapDistance);
+            maintain(Gui.snapping, w.snappable);
         });
         maintain(container.lockedUnder, l -> !l, w.resizable);
         maintain(container.lockedUnder, l -> !l, w.movable);

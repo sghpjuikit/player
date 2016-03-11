@@ -15,7 +15,7 @@ import Layout.Component;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.widget.Widget;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.icon.Icon;
 import util.access.V;
 import util.collections.map.PropertyMap;
@@ -188,7 +188,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
             n = l.getRoot();
             as = l;
         }
-        if(GUI.isLayoutMode()) as.show();
+        if(Gui.isLayoutMode()) as.show();
 
         r.getChildren().setAll(n);
         setAnchors(n,0d);

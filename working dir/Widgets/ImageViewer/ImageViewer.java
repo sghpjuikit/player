@@ -29,7 +29,7 @@ import Layout.widget.controller.FXMLController;
 import Layout.widget.controller.io.IsInput;
 import Layout.widget.feature.ImageDisplayFeature;
 import Layout.widget.feature.ImagesDisplayFeature;
-import gui.InfoNode.ItemInfo;
+import gui.infonode.ItemInfo;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
 import main.App;

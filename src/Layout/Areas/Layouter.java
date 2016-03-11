@@ -11,7 +11,7 @@ import javafx.scene.layout.Pane;
 import Layout.container.Container;
 import Layout.container.bicontainer.BiContainer;
 import Layout.container.freeformcontainer.FreeFormContainer;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
 import util.animation.interpolator.CircularInterpolator;
@@ -19,7 +19,7 @@ import util.collections.Tuple3;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
-import static gui.GUI.*;
+import static gui.Gui.*;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -139,7 +139,7 @@ public final class Layouter implements ContainerNode {
     @Override
     public void hide() {
         // prevent leaving layout mode when layout mode active
-        if(GUI.isLayoutMode()) return;
+        if(Gui.isLayoutMode()) return;
         showControls(false);
 //        closeAndDo(cp.root, null);
     }
@@ -203,7 +203,7 @@ public final class Layouter implements ContainerNode {
                 root.setOnMouseExited(null);
                 // this is the crucial part
                 container.addChild(index, factory.create());
-                if(GUI.isLayoutMode()) container.show();
+                if(Gui.isLayoutMode()) container.show();
                 APP.actionStream.push("New widget");
             });
         };

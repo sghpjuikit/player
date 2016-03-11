@@ -36,6 +36,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
+import gui.Gui;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -59,7 +60,6 @@ import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.io.File.separator;
-import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -180,7 +180,7 @@ public class WindowManager implements Configurable<Object> {
     public Window create(Stage owner, StageStyle style) {
         Window w = new Window(owner,style);
         try {
-            w.root.getStylesheets().add( new File(APP.DIR_SKINS.getPath(), gui.GUI.skin.getValue() + separator + gui.GUI.skin.getValue() + ".css").toURI().toURL().toExternalForm());
+            w.root.getStylesheets().add( new File(APP.DIR_SKINS.getPath(), Gui.skin.getValue() + separator + Gui.skin.getValue() + ".css").toURI().toURL().toExternalForm());
         } catch (MalformedURLException ex) {
             Logger.getLogger(WindowManager.class.getName()).log(Level.SEVERE, null, ex);
         }

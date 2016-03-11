@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.itemnode.TextFieldItemNode;
+package gui.itemnode.textfield;
 
 import java.util.List;
 

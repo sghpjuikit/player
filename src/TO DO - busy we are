@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- DirViewer thumbnails do not load sometimes?
+- Logger log text jampled up sometimes
 - DirViewer reload thumbnails when thumb size increases
 - dir viewer allow visiting up if parent is only 1
 - allow multiple app instances to connect to external/single db file

@@ -23,7 +23,7 @@ import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Output;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
-import gui.GUI;
+import gui.Gui;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuMR;
@@ -110,15 +110,15 @@ public class LibraryView extends FXMLController {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(GUI.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(GUI.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(GUI.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(GUI.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(GUI.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY,
         () -> filter(Metadata.Field.values(), Field::isTypeStringRepresentable),
@@ -142,7 +142,7 @@ public class LibraryView extends FXMLController {
         setAnchors(table.getRoot(),0d);
 
         // table properties
-        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(VALUE);
         d(maintain(orient,table.nodeOrientationProperty()));
@@ -309,7 +309,6 @@ public class LibraryView extends FXMLController {
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         if(list==null) return;
-         if(fieldFilter.get()==CATEGORY)System.out.println("input change");
         fut(fieldFilter.getValue())
             .use(f -> {
                 List<MetadataGroup> mgs = stream(
@@ -322,7 +321,6 @@ public class LibraryView extends FXMLController {
                         selectionStore();
                         table.setItemsRaw(mgs);
                         selectionReStore();
-                         if(fieldFilter.get()==CATEGORY)System.out.println("setting value " + fl.size());
                         out_sel_met.setValue(fl);
                     }
                 });

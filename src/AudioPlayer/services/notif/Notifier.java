@@ -18,7 +18,7 @@ import AudioPlayer.services.Service.ServiceBase;
 import AudioPlayer.tagging.Metadata;
 import Layout.widget.Widget;
 import Layout.widget.feature.SongReader;
-import gui.InfoNode.ItemInfo;
+import gui.infonode.ItemInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;

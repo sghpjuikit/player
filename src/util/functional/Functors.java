@@ -611,24 +611,20 @@ public class Functors {
                     o.append(splits.get(keys.get(keys.size()-1)));
                 return o.toString();
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
-        add("Is",                   String.class,Boolean.class, (text,b) -> text.equals(b), String.class,"");
-        add("Contains",             String.class,Boolean.class, (text,b) -> text.contains(b), String.class,"");
-        add("Ends with",            String.class,Boolean.class, (text,b) -> text.endsWith(b), String.class,"");
-        add("Starts with",          String.class,Boolean.class, (text,b) -> text.startsWith(b), String.class,"");
-        add("Is (no case)",         String.class,Boolean.class,(text,b) -> text.equalsIgnoreCase(b), String.class,"");
-        add("Contains (no case)",   String.class,Boolean.class,(text,b) -> text.toLowerCase().contains(b.toLowerCase()),String.class,"",false,false,true);
-        add("Ends with (no case)",  String.class,Boolean.class,(text,b) -> text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
-        add("Starts with (no case)",String.class,Boolean.class,(text,b) -> text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
-        add("Matches regex",        String.class,Boolean.class,(text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
-        add("More",             String.class,Boolean.class,(x,y) -> x.compareTo(y)>0, String.class,"");
-        add("Less",             String.class,Boolean.class,(x,y) -> x.compareTo(y)<0, String.class,"");
+        add("Is",           String.class,Boolean.class, Util::equalsNoCase, String.class,Boolean.class,"",true);
+        add("Contains",     String.class,Boolean.class, Util::containsNoCase, String.class,Boolean.class,"",true);
+        add("Ends with",    String.class,Boolean.class, Util::endsWithNoCase, String.class,Boolean.class,"",true);
+        add("Starts with",  String.class,Boolean.class, Util::startsWithNoCase, String.class,Boolean.class,"",true);
+        add("Matches regex",String.class,Boolean.class, (text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
+        add("More",         String.class,Boolean.class, (x,y) -> x.compareTo(y)>0, String.class,"");
+        add("Less",         String.class,Boolean.class, (x,y) -> x.compareTo(y)<0, String.class,"");
         add("Char at",      String.class,Character.class,(x,i,dir) -> i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length()-1-i), Integer.class,StringDirection.class,0,FROM_START);
         add("Length",       String.class,Integer.class, String::length);
-        add("Length >",     String.class,Boolean.class,(x,l) -> x.length()>l, Integer.class,0);
-        add("Length <",     String.class,Boolean.class,(x,l) -> x.length()<l, Integer.class,0);
-        add("Length =",     String.class,Boolean.class,(x,l) -> x.length()==l, Integer.class,0);
-        add("Is empty",         String.class,Boolean.class, String::isEmpty);
-        add("Is palindrome",    String.class,Boolean.class, Util::isNonEmptyPalindrome);
+        add("Length >",     String.class,Boolean.class, (x,l) -> x.length()>l, Integer.class,0);
+        add("Length <",     String.class,Boolean.class, (x,l) -> x.length()<l, Integer.class,0);
+        add("Length =",     String.class,Boolean.class, (x,l) -> x.length()==l, Integer.class,0);
+        add("Is empty",     String.class,Boolean.class, String::isEmpty);
+        add("Is palindrome",String.class,Boolean.class, Util::isNonEmptyPalindrome);
 
         add("to ASCII",    Character.class,Integer.class, x -> (int)x);
 

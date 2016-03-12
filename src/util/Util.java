@@ -186,8 +186,36 @@ public class Util {
         return str == null || str.trim().isEmpty() || str.equalsIgnoreCase("null");
     }
 
-    public static boolean containsIgnoreCase(String text, String phrase) {
+    public static boolean equalsNoCase(String text, String phrase) {
+        return text.equalsIgnoreCase(phrase);
+    }
+
+    public static boolean equalsNoCase(String text, String phrase, boolean ignore) {
+        return ignore ? text.equals(phrase) : equalsNoCase(text, phrase);
+    }
+
+    public static boolean startsWithNoCase(String text, String phrase) {
+        return text.toLowerCase().startsWith(phrase.toLowerCase());
+    }
+
+    public static boolean startsWithNoCase(String text, String phrase, boolean ignore) {
+        return ignore ? text.startsWith(phrase) : startsWithNoCase(text, phrase);
+    }
+
+    public static boolean endsWithNoCase(String text, String phrase) {
+        return text.toLowerCase().startsWith(phrase.toLowerCase());
+    }
+
+    public static boolean endsWithNoCase(String text, String phrase, boolean ignore) {
+        return ignore ? text.endsWith(phrase) : endsWithNoCase(text, phrase);
+    }
+
+    public static boolean containsNoCase(String text, String phrase) {
         return text.toLowerCase().contains(phrase.toLowerCase());
+    }
+
+    public static boolean containsNoCase(String text, String phrase, boolean ignore) {
+        return ignore ? text.contains(phrase) : containsIgnoreCase(text, phrase);
     }
 
     /**
@@ -250,7 +278,7 @@ public class Util {
     }
 
     public static boolean isNonEmptyPalindrome(String s) {
-        return s.isEmpty() ? false : isPalindrome(s);
+        return !s.isEmpty() && isPalindrome(s);
     }
 
     /** Convenience method. Equivalent to: loadImage(file, size, size); */

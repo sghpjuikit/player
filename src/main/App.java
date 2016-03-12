@@ -1076,7 +1076,7 @@ public class App extends Application implements Configurable {
         new ConfigSearch(
             tf,
             APP.configSearchHistory,
-            p -> APP.configuration.getFields(f -> containsIgnoreCase(f.getGuiName(),p.getUserText()))
+            p -> APP.configuration.getFields(f -> containsNoCase(f.getGuiName(),p.getUserText()))
         );
         PopOver<TextField> p = new PopOver<>(tf);
         p.title.set("Search for an action or option");

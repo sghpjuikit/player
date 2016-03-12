@@ -16,42 +16,35 @@ import util.functional.Functors.Ƒ1;
  *
  * @author Plutonium_
  */
-public class R<T> {
+public class R<V> {
 
-    protected T t;
-    protected boolean isSet = false;
+    protected V v;
 
     public R() {}
 
-    public R(T value) {
+    public R(V value) {
         set(value);
     }
 
-    public T get() {
-        return t;
+    public V get() {
+        return v;
     }
 
-    public T get(T or) {
-        if(isSet) set(or);
-        return t;
+    public V get(V or) {
+        return v;
     }
 
-    public T get(Supplier<T> or) {
-        if(isSet) set(or.get());
-        return t;
+    public V get(Supplier<V> or) {
+        return v;
     }
 
-    public <M> T get(M m, Ƒ1<M,T> or) {
-        if(t==null) set(or.apply(m));
-        return t;
-    }
-
-    public boolean isSet() {
-        return isSet;
+    public <M> V get(M m, Ƒ1<M, V> or) {
+        if(v ==null) set(or.apply(m));
+        return v;
     }
 
     public boolean isØ() {
-        return t == null;
+        return v == null;
     }
 
     /** Sets value to null. */
@@ -59,16 +52,15 @@ public class R<T> {
         set(null);
     }
 
-    public void set(T val) {
-        isSet = true;
-        t = val;
+    public void set(V val) {
+        v = val;
     }
 
-    public void setOf(UnaryOperator<T> op) {
+    public void setOf(UnaryOperator<V> op) {
         set(op.apply(get()));
     }
 
-    public void setOf(T v2, BinaryOperator<T> op) {
+    public void setOf(V v2, BinaryOperator<V> op) {
         set(op.apply(get(), v2));
     }
 }

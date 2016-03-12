@@ -584,7 +584,7 @@ public class Functors {
         add("Plural",               String.class,String.class, English::plural);
         add("Replace 1st (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceFirst(n), Pattern.class,String.class ,Pattern.compile(""),"");
         add("Remove first (regex)", String.class,String.class, (s,r) -> r.matcher(s).replaceFirst(""), Pattern.class, Pattern.compile(""));
-        add("Replace all",          String.class,String.class, (s,o,n) -> s.replace(o,n), String.class,String.class, "","");
+        add("Replace all",          String.class,String.class, String::replace, String.class,String.class, "","");
         add("Replace all (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceAll(n), Pattern.class,String.class, Pattern.compile(""),"");
         add("Remove all",           String.class,String.class, (s,r) -> s.replace(r,""), String.class, "");
         add("Remove all (regex)",   String.class,String.class, (s,r) -> r.matcher(s).replaceAll(""), Pattern.class, Pattern.compile(""));
@@ -679,9 +679,9 @@ public class Functors {
         add("Is now",            RangeYear.class,Boolean.class, x -> x.isAfter(Year.now()));
         add("Is in the past",    RangeYear.class,Boolean.class, x -> x.isBefore(Year.now()));
 
-        add("After",   LocalDateTime.class,Boolean.class, (x,y) -> x.isAfter(y), LocalDateTime.class,LocalDateTime.now());
-        add("Before",  LocalDateTime.class,Boolean.class, (x,y) -> x.isBefore(y), LocalDateTime.class,LocalDateTime.now());
-        add("Is",      LocalDateTime.class,Boolean.class, (x,y) -> x.isEqual(y), LocalDateTime.class,LocalDateTime.now());
+        add("After",   LocalDateTime.class,Boolean.class, LocalDateTime::isAfter, LocalDateTime.class,LocalDateTime.now());
+        add("Before",  LocalDateTime.class,Boolean.class, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
+        add("Is",      LocalDateTime.class,Boolean.class, LocalDateTime::isEqual, LocalDateTime.class,LocalDateTime.now());
 
         add("File",    Item.class,File.class, Item::getFile);
 
@@ -849,6 +849,8 @@ public class Functors {
     public static class Parameter<P> {
         public final Class<P> type;
         public final P defaultValue;
+//        public final String name;
+//        public final String description;
 
         public Parameter(Class<P> type, P defaultValue) {
             this.type = type;

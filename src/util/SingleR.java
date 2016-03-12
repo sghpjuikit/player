@@ -51,15 +51,9 @@ public class SingleR<V,M> extends LazyR<V> {
      * @return the instance after applying mutation, ever null
      */
     public V getM(M mutation_source) {
-        if (isSet) {
-            set(builder.get());
-            builder = null;
-            isSet = true;
-        }
-
-        if (mutator != null) mutator.accept(t, mutation_source);
-
-        return t;
+        V v = get();
+        if (mutator != null) mutator.accept(v, mutation_source);
+        return v;
     }
 
 

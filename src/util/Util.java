@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.text.Collator;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -106,8 +105,6 @@ public class Util {
      * 01:00:06
      *    04:45
      *    00:34
-     * @param duration
-     * @return
      */
     public static String formatDuration(Duration duration) {
         double sec_total = duration.toMillis()/1000;
@@ -135,9 +132,6 @@ public class Util {
      *  1:00:06
      *     4:45
      *       34
-     * @param duration
-     * @param include_zeros
-     * @return
      */
     public static String formatDuration(Duration duration, boolean include_zeros) {
         if (include_zeros) return formatDuration(duration);
@@ -163,9 +157,9 @@ public class Util {
      * method. Use as a convenient filter for suspicious String objects.
      * More formally returns:
      * (shouldBeEmpty(str)) ? "" : str;
-     * @see shouldBeEmpty(String str)
-     * @param str String to emptify.
-     * @return "" if String should be empty, otherwise does nothing..
+     *
+     * @param str String to emptify
+     * @return "" if String should be empty, otherwise does nothing
      */
     public static String emptifyString(String str) {
         return shouldBeEmpty(str) ? "" : str;
@@ -215,14 +209,12 @@ public class Util {
     }
 
     public static boolean containsNoCase(String text, String phrase, boolean ignore) {
-        return ignore ? text.contains(phrase) : containsIgnoreCase(text, phrase);
+        return ignore ? text.contains(phrase) : containsNoCase(text, phrase);
     }
 
     /**
      * Checks and formats String so it can be safely used for naming a File.
      * Replaces all forbidden characters with "_".
-     * @param str
-     * @return
      */
     public static String filenamizeString(String str) {
         String out = str;
@@ -523,14 +515,11 @@ public class Util {
      * <p>
      * Method is deprecated as Artwork should not be used anyway. The method
      * works well though.
-     * @param art1
-     * @param art2
-     * @return
      */
     @Deprecated
     public static boolean equals(Artwork art1, Artwork art2) {
-        if (art1 == null && art2 == null) { return true; }
-        if (art1 == null || art2 == null) { return false; }
+        if (art1 == null && art2 == null) return true;
+        if (art1 == null || art2 == null) return false;
         return Arrays.equals(art1.getBinaryData(), art2.getBinaryData());
     }
 
@@ -550,8 +539,7 @@ public class Util {
     }
 
     /**
-     * @param number
-     * @return number of digits of a number
+     * Return number of digits of the number.
      */
     public static int digits(int number) {
         int x = number;
@@ -566,10 +554,10 @@ public class Util {
     /**
      * Creates zeropadded string - string of a number with '0' added in to
      * maintain consistency in number of length.
+     *
      * @param n number to turn onto zeropadded string
      * @param max number to zeropad to
      * @param ch character to use. Notable characters are: ' ' or '0'
-     * @return
      */
     public static String zeroPad(int n, int max, char ch) {
         int diff = digits(max) - digits(n);
@@ -673,9 +661,9 @@ public class Util {
      * @return the column
      */
     public static<T> TableColumn<T,Void> createIndexColumn(String name) {
-        TableColumn<T,Void> c = new TableColumn(name);
+        TableColumn<T,Void> c = new TableColumn<>(name);
                c.setSortable(false);
-               c.setCellFactory( column -> new TableCell<T,Void>(){
+               c.setCellFactory(column -> new TableCell<>(){
                 {
                     setAlignment(CENTER_RIGHT);
                 }

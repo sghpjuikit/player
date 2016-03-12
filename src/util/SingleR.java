@@ -6,7 +6,6 @@
 
 package util;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -18,21 +17,20 @@ import java.util.function.Supplier;
  * mutated (its state changed) before it is accessed. This allows a reuse of
  * the object across different objects that use it.
  *
- * @param <T> type of instance
+ * @param <V> type of instance
  * @param <M> type of object the instance relies on
  *
  * @author Plutonium_
  */
-public class SingleR<T,M> extends R<T> {
+public class SingleR<V,M> extends LazyR<V> {
 
-    private final Supplier<T> builder;
-    private final BiConsumer<T,M> mutator;
+    private final BiConsumer<V,M> mutator;
 
     /**
      *
      * @param builder produces the instance when it is requested.
      */
-    public SingleR(Supplier<T> builder) {
+    public SingleR(Supplier<V> builder) {
         this(builder, null);
     }
 
@@ -42,40 +40,32 @@ public class SingleR<T,M> extends R<T> {
      * @param mutator mutates instance's state for certain dependency object. use
      * null if no mutation is desired.
      */
-    public SingleR(Supplier<T> builder, BiConsumer<T,M> mutator) {
-        Objects.requireNonNull(builder);
-
-        this.builder = builder;
+    public SingleR(Supplier<V> builder, BiConsumer<V,M> mutator) {
+        super(builder);
         this.mutator = mutator;
     }
 
     /**
-     * Use when the state of the instance does not matter
-     * @return instance as is, but never null..
+     * Same as {@link #get()}, but mutates the value.
+     * @param mutation_source, use null when type Void
+     * @return the instance after applying mutation, ever null
      */
-    @Override
-    public T get() {
-        // initialize instance
-        if (t == null) t = builder.get();
+    public V getM(M mutation_source) {
+        if (isSet) {
+            set(builder.get());
+            builder = null;
+            isSet = true;
+        }
 
-        assert t!=null;
+        if (mutator != null) mutator.accept(t, mutation_source);
 
         return t;
     }
 
-    /**
-     * @param mutation_source, use null when type Void
-     * @return the instance after applying mutation, ever null
-     */
-    public T getM(M mutation_source) {
-        // initialize instance
-        if (t == null) t = builder.get();
 
-        assert t!=null;
-
-        // prepare instance
-        if (mutator != null) mutator.accept(t, mutation_source);
-
-        return t;
+    @Override
+    public void set(V val) {
+        if(isSet) throw new IllegalArgumentException("Singleton instance already set.");
+        super.set(val);
     }
 }

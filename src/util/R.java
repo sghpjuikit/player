@@ -12,19 +12,19 @@ import java.util.function.UnaryOperator;
 import util.functional.Functors.Ƒ1;
 
 /**
+ * Reference - object property.
  *
  * @author Plutonium_
  */
 public class R<T> {
 
     protected T t;
+    protected boolean isSet = false;
 
-    public R() {
-        this(null);
-    }
+    public R() {}
 
     public R(T value) {
-        t = value;
+        set(value);
     }
 
     public T get() {
@@ -32,30 +32,35 @@ public class R<T> {
     }
 
     public T get(T or) {
-        if(t==null) t = or;
+        if(isSet) set(or);
         return t;
     }
 
     public T get(Supplier<T> or) {
-        if(t==null) t = or.get();
+        if(isSet) set(or.get());
         return t;
     }
 
     public <M> T get(M m, Ƒ1<M,T> or) {
-        if(t==null) t = or.apply(m);
+        if(t==null) set(or.apply(m));
         return t;
+    }
+
+    public boolean isSet() {
+        return isSet;
     }
 
     public boolean isØ() {
         return t == null;
     }
 
-    /** Sets instance to null*/
+    /** Sets value to null. */
     public void setØ() {
-        t = null;
+        set(null);
     }
 
     public void set(T val) {
+        isSet = true;
         t = val;
     }
 

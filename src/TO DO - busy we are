@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- DirViewer cache everything in Item, not Cell as Cells get recreated frequently
+- DirViewer implement smart image cache, we must not cache all images, gifs can kill app instantly then
 - DirViewer thumbnails do not load sometimes?
 - Logger log text jampled up sometimes
 - DirViewer reload thumbnails when thumb size increases

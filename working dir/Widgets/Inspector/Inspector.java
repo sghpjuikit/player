@@ -19,6 +19,7 @@ import javafx.scene.control.TreeView;
 
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
+import Layout.widget.controller.io.Output;
 import Layout.widget.feature.FileExplorerFeature;
 import gui.objects.tree.TreeItems;
 import util.graphics.drag.DragUtil;
@@ -52,6 +53,8 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     private Node sel_node = null;
     private TreeView<Object> tree = new TreeView<>();
 
+    private Output<Object> out_sel;
+
     public Inspector() {
         setAnchor(this, tree,0d);
 
@@ -61,6 +64,8 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             Object oi = ov==null ? null : ov.getValue();
             Object ni = nv==null ? null : nv.getValue();
+
+            out_sel.setValue(ni);
 
             // selected node highlighting
             if(sel_node!=null) {
@@ -84,6 +89,11 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     }
 
     @Override
+    public void init() {
+        out_sel = outputs.create(widget.id,"Selected", Object.class, null);
+    }
+
+    @Override
     public void exploreFile(File f) {
         TreeItem<File> root = (TreeItem) tree.getRoot().getChildren().get(2);
 
@@ -94,7 +104,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         // expand the most possible
         Path p = f.toPath().getRoot();
         Optional<TreeItem<File>> item = root.getChildren().stream().filter(i -> i.getValue().toString().contains(f.toPath().getRoot().toString())).findFirst();
-        item.ifPresent(e->e.setExpanded(true));
+        item.ifPresent(e -> e.setExpanded(true));
         ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty(item.orElse(null));
 
         f.getAbsoluteFile().toPath().forEach(pth -> {

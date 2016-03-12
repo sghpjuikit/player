@@ -101,7 +101,7 @@ public class Functors {
          * function that does nothing should be used instead of this method.
          */
         default Ƒ toƑ() {
-            return () -> apply();
+            return this::apply;
         }
     }
     /**
@@ -113,18 +113,18 @@ public class Functors {
      */
     public interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
 
-        public static Ƒ1<Void,Void> f1(Runnable r) {
+        static Ƒ1<Void,Void> f1(Runnable r) {
             return i -> {
                 r.run();
                 return null;
             };
         }
 
-        public static <T> Ƒ1<Void,T> f1(Supplier<T> s) {
+        static <T> Ƒ1<Void,T> f1(Supplier<T> s) {
             return i -> s.get();
         }
 
-        public static <T> Ƒ1<T,Void> f1(Consumer<T> c) {
+        static <T> Ƒ1<T,Void> f1(Consumer<T> c) {
             return i -> {
                 c.accept(i);
                 return null;
@@ -134,17 +134,17 @@ public class Functors {
         @Override
         O apply(I i);
 
-        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Callback}. */
+        /** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Callback}. */
         @Deprecated
         @Override
         default O call(I i) {
             return apply(i);
         }
 
-        /** Equivalent to {@link #apply()}, ignoring the result. Exists for compatibility with {@link Consumer}. */
+        /** Equivalent to {@link #apply(Object)}}, ignoring the result. Exists for compatibility with {@link Consumer}. */
         @Deprecated
         @Override
-        public default void accept(I i) {
+        default void accept(I i) {
             apply(i); // and ignore result as a proper Consumer
         }
 
@@ -198,13 +198,13 @@ public class Functors {
         }
 
         @Override
-        default <V> Ƒ1<I, V> andThen(Function<? super O, ? extends V> after) {
+        default <R> Ƒ1<I,R> andThen(Function<? super O, ? extends R> after) {
             noØ(after);
             return (I t) -> after.apply(apply(t));
         }
 
         //* Purely to avoid ambiguity of method overloading. Same as andThen(Function). */
-        default <V> Ƒ1<I, V> andThen(Ƒ1<? super O, ? extends V> after) {
+        default <R> Ƒ1<I,R> andThen(Ƒ1<? super O, ? extends R> after) {
             noØ(after);
             return (I t) -> after.apply(apply(t));
         }
@@ -235,9 +235,9 @@ public class Functors {
         }
 
         @Override
-        default <V> Ƒ1<V,O> compose(Function<? super V, ? extends I> before) {
+        default <R> Ƒ1<R,O> compose(Function<? super R, ? extends I> before) {
             noØ(before);
-            return (V v) -> apply(before.apply(v));
+            return (R v) -> apply(before.apply(v));
         }
 
         /**
@@ -246,7 +246,7 @@ public class Functors {
          * @return composed function that applies this function to its input and then
          * mutates the output before returning it.
          */
-        public default Ƒ1<I,O> andApply(Consumer<O> mutator) {
+        default Ƒ1<I,O> andApply(Consumer<O> mutator) {
             return in -> {
                 O o = apply(in);
                 mutator.accept(o);
@@ -263,7 +263,7 @@ public class Functors {
          * @return composed function that applies this function to its input and then
          * mutates the output before returning it.
          */
-        public default Ƒ1<I,O> andApply(BiConsumer<I,O> mutator) {
+        default Ƒ1<I,O> andApply(BiConsumer<I,O> mutator) {
             return in -> {
                 O o = apply(in);
                 mutator.accept(in,o);
@@ -279,7 +279,7 @@ public class Functors {
          * @return composed function that applies this function to its input and then
          * applies the mutator before returning it.
          */
-        public default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
+        default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
             return in -> {
                 O o = apply(in);
                 return mutator.apply(in,o);
@@ -291,6 +291,7 @@ public class Functors {
          * type must conform to output type! This mostly makes sense when input and output type
          * match.
          */
+        @SuppressWarnings("unchecked")
         default Ƒ1<I,O> nonNull() {
             return in -> {
                 O out = apply(in);
@@ -306,6 +307,7 @@ public class Functors {
             return in -> in==null ? null : apply(in);
         }
 
+        @SuppressWarnings("unchecked")
         default Ƒ1<I,O> wrap(NullIn i, NullOut o) {
             if(i==NullIn.NULL && o==NullOut.NULL)
                 return in -> in==null ? null : apply(in);
@@ -332,12 +334,13 @@ public class Functors {
      * {@link Ƒ1} can not extend Predicate, doing so would not be typesafe, hence this subclass.
      * This class also preserves predicate identity during predicate combination operations.
      */
+    @SuppressWarnings("unchecked")
     public interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
-        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Predicate}. */
+        /** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Predicate}. */
         @Deprecated
         @Override
-        public default boolean test(I i) {
+        default boolean test(I i) {
             return apply(i);
         }
 
@@ -692,7 +695,7 @@ public class Functors {
 
         addPredicatesComparable(Short.class, new Short("0"));
         addPredicatesComparable(Integer.class, 0);
-        addPredicatesComparable(Long.class, 0l);
+        addPredicatesComparable(Long.class, 0L);
         addPredicatesComparable(Double.class, 0d);
         addPredicatesComparable(Float.class, 0f);
 
@@ -858,7 +861,7 @@ public class Functors {
         }
     }
     public interface Parameterized<P> {
-        public List<Parameter<P>> getParameters();
+        List<Parameter<P>> getParameters();
     }
     // parameterized function - variadic I -> O function factory with parameters
     public static abstract class PƑ<I,O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
@@ -867,6 +870,7 @@ public class Functors {
         public final Class<O> out;
         private final IO<I,O> ff;
 
+        @SuppressWarnings("unchecked")
         public PƑ(String name, Class<I> in, Class<O> out, IO<I,O> f) {
             this.name = name;
             this.in = unPrimitivize(in);

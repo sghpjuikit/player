@@ -16,7 +16,7 @@ import javafx.scene.layout.TilePane;
 
 import AudioPlayer.Item;
 import AudioPlayer.Player;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataWriter;
@@ -338,7 +338,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
         Collection<Metadata> items = includeAlbum
             // get all known songs from album
-            ? DB.items.o.getValue().stream()
+            ? Db.items.o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
                 .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
                 .collect(toSet())

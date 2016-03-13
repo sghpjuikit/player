@@ -17,7 +17,7 @@ import org.reactfx.Subscription;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
@@ -198,8 +198,8 @@ public class Player {
             MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,ms);
 
             // update library
-            DB.updatePer(ms);
-            DB.updateInMemoryDBfromPersisted();
+            Db.updatePer(ms);
+            Db.updateInMemoryDBfromPersisted();
 
             Async.runFX(() -> {
                 // update all playlist items referring to this updated metadata

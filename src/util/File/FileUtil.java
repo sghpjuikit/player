@@ -393,20 +393,15 @@ public final class FileUtil {
 
      public static boolean writeFile(File file, String content) {
         if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(file));
+        try (
+            Writer writerf = new FileWriter(file);
+            Writer writer = new BufferedWriter(writerf)
+        ){
             writer.write(content);
             return true;
         } catch (IOException e) {
             log(FileUtil.class).error("Couldnt save file: {}", file,e);
             return false;
-        } finally {
-            try {
-                if(writer!=null) writer.close();
-            } catch (IOException e) {
-                log(FileUtil.class).error("Couldnt save fclose file writer", e);
-            }
         }
      }
 

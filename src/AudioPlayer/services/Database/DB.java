@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.services.Database;
+package AudioPlayer.services.database;
 
 import java.io.File;
 import java.net.URI;
@@ -37,21 +37,22 @@ import static util.functional.Util.stream;
  *
  * @author Plutonium_
  */
-public class DB {
+public class Db {
 
-    private static final File MOODS_FILE = new File(App.DATA_FOLDER(), "MoodList.cfg");
+    private static final File MOODS_FILE = new File(APP.DIR_USERDATA, "MoodList.cfg");
 
     public static EntityManagerFactory emf;
     public static EntityManager em;
 
     public static void start() {
-        emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
+        File dbfile = new File(APP.DIR_LIBRARY, "library_database.odb");
+        emf = Persistence.createEntityManagerFactory(dbfile.getPath());
         em = emf.createEntityManager();
 
         new Fut<>()
             // load database
-            .supply(DB::getAllItems)
-            .use(DB::setInMemoryDB, FX)
+            .supply(Db::getAllItems)
+            .use(Db::setInMemoryDB, FX)
             .then(() -> {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
@@ -235,13 +236,13 @@ public class DB {
 
     @Entity(name = "StringStore")
     public static class StringStore {
-        private HashMap<String,HashSet<String>> pool = new HashMap();
+        private HashMap<String,HashSet<String>> pool = new HashMap<>();
 
         private StringStore() {}
 
         public Set<String> getStrings(String name) {
             String n = name.toLowerCase();
-            if (!string_pool.pool.containsKey(n)) string_pool.pool.put(n, new HashSet());
+            if (!string_pool.pool.containsKey(n)) string_pool.pool.put(n, new HashSet<>());
             return string_pool.pool.get(n);
         }
 

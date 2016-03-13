@@ -2,10 +2,7 @@
 package main;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +52,7 @@ import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.ClickEffect;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.notif.Notifier;
@@ -195,6 +192,12 @@ public class App extends Application implements Configurable {
     /** Directory containing skins. */
     public final File DIR_SKINS = new File(DIR_APP,"skins");
     public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");
+    /** Directory containing user data. */
+    public File DIR_USERDATA =  new File("UserData").getAbsoluteFile();
+    /** Directory containing library database. */
+    public File DIR_LIBRARY = new File(DIR_USERDATA, "Library");
+    /** Directory containing playlists. */
+    public File DIR_PLAYLISTS = new File(DIR_USERDATA, "Playlists");
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -315,7 +318,7 @@ public class App extends Application implements Configurable {
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
 
         // log uncaught thread termination exceptions
-        Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error(thread.getName(), ex));
+        Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
 
         // mark app instance so other instances can recognize it. !work so far
 //        try {
@@ -465,7 +468,7 @@ public class App extends Application implements Configurable {
             new FastColAction<>("Remove from library",
                 "Removes all specified items from library. After this library will contain none of these items.",
                 MaterialDesignIcon.DATABASE_MINUS,
-                DB::removeItems // id like this to be async. too
+                Db::removeItems // id like this to be async. too
             )
         );
         actionPane.register(File.class,
@@ -643,7 +646,7 @@ public class App extends Application implements Configurable {
             configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
             windowManager.deserialize(normalLoad);
 
-            DB.start();
+            Db.start();
 
             initialized = true;
 
@@ -686,7 +689,7 @@ public class App extends Application implements Configurable {
                     .filter(Service::isRunning)
                     .forEach(Service::stop);
         }
-        DB.stop();
+        Db.stop();
         Action.stopActionListening();
         appCommunicator.stop();
     }
@@ -792,21 +795,6 @@ public class App extends Application implements Configurable {
         return new Image(new File("icon512.png").toURI().toString());
     }
 
-    /** @return absolute file of Location of data. */
-    public static File DATA_FOLDER() {
-        return new File("UserData").getAbsoluteFile();
-    }
-
-    /**
-     * @return absolute file of Location of database. */
-    public static File LIBRARY_FOLDER() {
-        return new File(DATA_FOLDER(), "Library");
-    }
-
-    /** @return absolute file of Location of saved playlists. */
-    public static File PLAYLIST_FOLDER() {
-        return new File(DATA_FOLDER(),"Playlists");
-    }
 
 
     // jobs
@@ -829,7 +817,7 @@ public class App extends Application implements Configurable {
            return;
        }
 
-       Metadata m = DB.items_byId.get(i.getId());
+       Metadata m = Db.items_byId.get(i.getId());
        if(m!=null) {
            action.accept(m);
        } else {

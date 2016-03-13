@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import javafx.scene.layout.Region;
 
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import gui.objects.Pickers.MoodPicker;
 import gui.objects.PopOver.PopOver;
@@ -31,7 +31,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
         super(Parser.DEFAULT.toConverter(String.class));
         setEditable(true);
         // set autocompletion
-        bindAutoCompletion(this, p -> filter(DB.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> DB.autocmplt_filter.apply(t,p.getUserText())));
+        bindAutoCompletion(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocmplt_filter.apply(t,p.getUserText())));
     }
 
     /** @return the position for the picker to show on */

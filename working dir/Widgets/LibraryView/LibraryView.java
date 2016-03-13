@@ -1,6 +1,8 @@
 package LibraryView;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -13,7 +15,7 @@ import javafx.util.Callback;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataGroup;
@@ -33,7 +35,6 @@ import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
 import main.App;
-import util.access.FieldValue.ObjectField.ColumnField;
 import util.access.VarEnum;
 import util.access.Vo;
 import util.async.executor.ExecuteN;
@@ -203,9 +204,9 @@ public class LibraryView extends FXMLController {
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", () -> DB.removeItems(degroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", () -> DB.removeItems(degroup(table.getItems().stream().filter(mg -> mg.isPlaying())))),
-            menuItem("Remove all groups from library", () -> DB.removeItems(degroup(table.getItems())))
+            menuItem("Remove selected groups from library", () -> Db.removeItems(degroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", () -> Db.removeItems(degroup(table.getItems().stream().filter(mg -> mg.isPlaying())))),
+            menuItem("Remove all groups from library", () -> Db.removeItems(degroup(table.getItems())))
         );
 
         // key actions
@@ -349,7 +350,7 @@ public class LibraryView extends FXMLController {
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filterList(in_items.getValue(),false,true);
-                       l.sort(DB.library_sorter.get());
+                       l.sort(Db.library_sorter.get());
         return l;
     }
     private void playSelected() {
@@ -424,7 +425,7 @@ public class LibraryView extends FXMLController {
             m.getItems().addAll(menuItem("Play items", e -> play(m.getValue())),
                 menuItem("Enqueue items", e -> PlaylistManager.use(p -> p.addItems(m.getValue()))),
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
-                menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
+                menuItem("Remove from library", e -> Db.removeItems(m.getValue())),
                 new Menu("Show in",null,
                     menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
                         f -> f,
@@ -450,7 +451,7 @@ public class LibraryView extends FXMLController {
 
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
-        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(DB.library_sorter.get())));
+        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
     }
 
 }

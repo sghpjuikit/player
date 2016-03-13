@@ -244,14 +244,14 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         if(l.isEmpty()) return;
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        ValueConfig mc = new ValueConfig(String.class, "Name", initialName);
+        ValueConfig mc = new ValueConfig<>(String.class, "Name", initialName);
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
                   p.setAll(l);
-                  p.serializeToFile(new File(App.PLAYLIST_FOLDER(),n + ".xml"));
+                  p.serializeToFile(new File(APP.DIR_PLAYLISTS,n + ".xml"));
         });
-        PopOver p = new PopOver(sc);
+        PopOver p = new PopOver<>(sc);
                 p.title.set("Save playlist as...");
                 p.show(PopOver.ScreenPos.App_Center);
     }
@@ -265,9 +265,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
                   p.setAll(l);
-                  p.serializeToFile(new File(App.PLAYLIST_FOLDER(),n + ".xml"));
+                  p.serializeToFile(new File(APP.DIR_PLAYLISTS,n + ".xml"));
         });
-        PopOver p = new PopOver(sc);
+        PopOver p = new PopOver<>(sc);
                 p.title.set("Save selected items as...");
                 p.show(PopOver.ScreenPos.App_Center);
     }

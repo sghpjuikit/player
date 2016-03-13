@@ -18,7 +18,7 @@ import org.jaudiotagger.audio.AudioFile;
 
 import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import util.file.AudioFileFormat.Use;
 
 import static util.async.Async.runFX;
@@ -40,12 +40,10 @@ import static util.dev.Util.noØ;
 public class MetadataReader{
 
     private static Task<List<Metadata>> buildReadMetadata(Collection<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
-        // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onEnd);
 
-        // create task
-        final Task<List<Metadata>> task = new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd){
+        return new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
@@ -53,7 +51,7 @@ public class MetadataReader{
             @Override
             protected List<Metadata> call() throws Exception {
                 updateTitle("Reading metadata for items.");
-                List<Metadata> metadatas = new ArrayList();
+                List<Metadata> metadatas = new ArrayList<>();
 
                 for (Item item: items){
 
@@ -77,8 +75,6 @@ public class MetadataReader{
                 return metadatas;
             }
         };
-
-        return task;
     }
 
     /**
@@ -122,7 +118,7 @@ public class MetadataReader{
      * Items for which reading fails are ignored.
      */
     public static List<Metadata> readMetadata(Collection<? extends Item> items){
-        List<Metadata> metadatas = new ArrayList();
+        List<Metadata> metadatas = new ArrayList<>();
 
         for (Item item: items){
             // create metadata
@@ -248,52 +244,59 @@ public class MetadataReader{
      */
     public static Task<List<Metadata>> readAaddMetadata(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
         noØ(items);
-        final Task<List<Metadata>> task = new SuccessTask("Adding items to library", onEnd){
+        final Task<List<Metadata>> task = new SuccessTask<>("Adding items to library", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
 
             @Override
             protected List<Metadata> call() throws Exception {
-                List<Metadata> out = new ArrayList();
+                List<Metadata> out = new ArrayList<>();
                 Metadata m;
 
-                EntityManager em = DB.em;
+                EntityManager em = Db.em;
                               em.getTransaction().begin();
-                try {
-                    for (Item i : items){
-                        completed++;
-                        if (isCancelled()) break;
 
-                        Metadata l = em.find(Metadata.class, Metadata.metadataID(i.getURI()));
+                for (Item item : items){
+                    completed++;
+                    if (isCancelled()) {
+                        log(MetadataReader.class).info("Metadata reading was canceled.");
+                        break;
+                    }
+
+                    boolean succeeded = false;
+                    Metadata l = null;
+                    try {
+                        succeeded = false;
+                        l = null;
+                        l = em.find(Metadata.class, Metadata.metadataID(item.getURI()));
                         if(l == null) {
-                            MetadataWriter.useNoRefresh(i,w->w.setLibraryAddedNowIfEmpty());
-                            m = create(i);
+                            MetadataWriter.useNoRefresh(item, MetadataWriter::setLibraryAddedNowIfEmpty);
+                            m = create(item);
 
                             if (m.isEmpty()) skipped++;
                             else {
                                 em.persist(m);
                                 out.add(m);
-                            }
-                        } else {
-                            if(all_i) {
-                                skipped++;
-                                out.add(l);
+                                succeeded = true;
                             }
                         }
-
-
-
-                        // update
-                        updateMessage(all,completed,skipped);
-                        updateProgress(completed, all);
+                    } catch (Exception e) {
+                        log(MetadataReader.class).warn("Problem during reading tag of {}", item);
                     }
-                    em.getTransaction().commit();
-                    // update library model
-                    runFX(DB::updateInMemoryDBfromPersisted);
-                } catch (Exception e ) {
-                    e.printStackTrace();
+
+                    if(!succeeded) skipped++;
+                    if(!succeeded && all_i && l!=null) {
+                        out.add(l);
+                    }
+
+                    // update
+                    updateMessage(all,completed,skipped);
+                    updateProgress(completed, all);
                 }
+                em.getTransaction().commit();
+                // update library model
+                runFX(Db::updateInMemoryDBfromPersisted);
 
                 // update state
                 updateMessage(all,completed,skipped);
@@ -308,32 +311,32 @@ public class MetadataReader{
 
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){
         // create task
-        final Task<Void> task = new SuccessTask("Removing missing items from library",onEnd){
+        final Task<Void> task = new SuccessTask<>("Removing missing items from library",onEnd){
             private int all = 0;
             private int completed = 0;
             private int removed = 0;
 
             @Override
             protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
-                List<Metadata> library_items = DB.getAllItems();
+                List<Metadata> library_items = Db.getAllItems();
                 all = library_items.size();
-                DB.em.getTransaction().begin();
+                Db.em.getTransaction().begin();
 
                 for (Metadata m : library_items){
                     completed++;
                     if (isCancelled()) break;
 
                     if(!m.getFile().exists()) {
-                        DB.em.remove(m);
+                        Db.em.remove(m);
                         removed++;
                     }
                     updateMessage(all,completed,removed);
                     updateProgress(completed, all);
                 }
 
-                DB.em.getTransaction().commit();
+                Db.em.getTransaction().commit();
                 // update library model
-                runFX(DB::updateInMemoryDBfromPersisted);
+                runFX(Db::updateInMemoryDBfromPersisted);
 
                 // update state
                 updateMessage(all,completed,removed);

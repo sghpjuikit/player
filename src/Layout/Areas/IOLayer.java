@@ -373,13 +373,19 @@ public class IOLayer extends StackPane {
             this.xput = xput;
 
             if(xput instanceof Input) {
-                input = (Input<T>)xput; output = null; inoutput = null;
+                input = (Input<T>)xput;
+                output = null;
+                inoutput = null;
             } else
             if(xput instanceof Output) {
-                input = null; output = (Output<T>)xput; inoutput = null;
+                input = null;
+                output = (Output<T>)xput;
+                inoutput = null;
             } else
             if(xput instanceof InOutput) {
-                input = ((InOutput<T>)xput).i; output = ((InOutput<T>)xput).o; inoutput = (InOutput<T>)xput;
+                input = ((InOutput<T>)xput).i;
+                output = ((InOutput<T>)xput).o;
+                inoutput = (InOutput<T>)xput;
             } else {
                 throw new IllegalArgumentException("Not a valid type");
             }
@@ -390,23 +396,21 @@ public class IOLayer extends StackPane {
             });
 
 
-
             if(output!=null) {
-
                 Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
-                i.setOnMouseEntered(e -> a.playOpen());
-                t.setOnMouseExited(e -> a.playClose());
 
-                output.monitor(v -> {
-                    inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input -> {
-                        connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send());
-                    });
-                });
+                // This only makes sense when the descriptions are hidden by default, but that would
+                // be very confusing for the user. As it is, manual description show/hide is useless
+                // and even confusing
+                // i.setOnMouseEntered(e -> a.playOpen());
+                // t.setOnMouseExited(e -> a.playClose());
+
+                output.monitor(v ->
+                    inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
+                        connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
+                    )
+                );
                 output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
-    //            output.monitor(v -> APP.use(ClickEffect.class, c -> {
-    //                if(gui.GUI.isLayoutMode())
-    //                    c.run(getSceneXY());
-    //            }));
             }
         }
 
@@ -590,9 +594,7 @@ public class IOLayer extends StackPane {
             IOLayer.this.getChildren().add(n);
             PathTransition a = new PathTransition(millis(2000), this, n);
             a.setRate(-1);
-            a.setOnFinished(e -> {
-                IOLayer.this.getChildren().remove(n);
-            });
+            a.setOnFinished(e -> IOLayer.this.getChildren().remove(n));
             a.playFrom(a.getDuration());
         }
     }

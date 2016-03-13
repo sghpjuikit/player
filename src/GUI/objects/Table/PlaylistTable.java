@@ -24,7 +24,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import Layout.widget.feature.SongReader;
 import Layout.widget.feature.SongWriter;
@@ -399,7 +399,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     List<Metadata> items = m.getValue().stream()
                             .map(Item::toMeta)
                             .collect(Collectors.toList());
-                    DB.addItems(items);
+                    Db.addItems(items);
                 }),
                 new Menu("Search album cover",null,
                     menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),

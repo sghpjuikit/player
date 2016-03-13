@@ -23,10 +23,7 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.flac.FlacTag;
-import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
-import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
-import org.jaudiotagger.tag.id3.ID3v24Frame;
-import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.*;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
@@ -112,7 +109,8 @@ public class MetadataWriter extends MetaItem {
     private File file;
     private AudioFile audioFile;
     private Tag tag;
-    private int fields_changed = 0;
+    private int fields_changed;
+    private boolean hasCorruptedTag;
     // properties
     private final ReadOnlyBooleanWrapper isWriting = new ReadOnlyBooleanWrapper(false);
     public final ReadOnlyBooleanProperty writing = isWriting.getReadOnlyProperty();
@@ -164,7 +162,7 @@ public class MetadataWriter extends MetaItem {
                     tag.createField(FieldKey.ARTIST, a);
                     fields_changed++;
                 } catch (KeyNotFoundException ex) {
-                LOGGER.info("Artist field not found.",ex);
+                    LOGGER.info("Artist field not found.",ex);
                 } catch (FieldDataInvalidException ex) {
                     LOGGER.info("Invalid artist field data.",ex);
                 }
@@ -239,7 +237,7 @@ public class MetadataWriter extends MetaItem {
                     throw new IllegalArgumentException("Rating number must not be negative");
                 setRating(val);
             } catch (NumberFormatException ex) {
-                LOGGER.info("Rating field value not a number");
+                LOGGER.warn("Rating field value not a number");
             }
         }
     }
@@ -258,7 +256,7 @@ public class MetadataWriter extends MetaItem {
                 double val = Double.parseDouble(rating);
                 setRatingPercent(val);
             } catch (NumberFormatException ex) {
-                LOGGER.info("Rating field value not a number");
+                LOGGER.warn("Rating field value not a number");
             }
         }
     }
@@ -378,7 +376,7 @@ public class MetadataWriter extends MetaItem {
         else if(tag instanceof WavTag) setPlaycountID3(wavToId3((WavTag)tag), val);
     }
 
-    /** @param increments playcount by 1. */
+    /** Increments playcount by 1. */
     public void inrPlaycount(Metadata m) {
         setPlaycount(m.getPlaycount()+1);
     }
@@ -523,9 +521,9 @@ public class MetadataWriter extends MetaItem {
      * In order to not lose the original data, the chapters first need to be
      * obtained and the modified list passed as an argument to this method.
      *
-     * @param list of chapters that to write to tag
-     * @see addChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
-     * @see removeChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
+     * @param chapters chapters that to write to tag
+     * @see #addChapter(AudioPlayer.tagging.Chapters.Chapter, Metadata)
+     * @see #removeChapter(AudioPlayer.tagging.Chapters.Chapter, Metadata)
      */
     public void setChapters(Collection<Chapter> chapters) {
         setCustom2(chapters.stream().map(Chapter::toString).collect(joining("|")));
@@ -536,14 +534,14 @@ public class MetadataWriter extends MetaItem {
      * Adds the given chapter to the metadata or rewrites it if it already exists.
      * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
      * <p>
-     * Note: Dont abuse this method in loops and use {@link #setChapters(java.util.List)}.
+     * Note: Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
      *
-     * @param chapter
+     * @param chapter chapter to ad
      * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
-    public void addChapter(Chapter chapter, Metadata m) {
-        List<Chapter> chaps = list(m.getChapters());
+    public void addChapter(Chapter chapter, Metadata metadata) {
+        List<Chapter> chaps = list(metadata.getChapters());
         int i = chaps.indexOf(chapter);
         if(i==-1) chaps.add(chapter);
         else chaps.set(i, chapter);
@@ -556,14 +554,14 @@ public class MetadataWriter extends MetaItem {
      * nothing otherwise.
      * <p>
      * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
-     * Dont abuse this method in loops and use {@link #setChapters(java.util.List)}.
+     * Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
      *
-     * @param chapter
+     * @param chapter chapter to remove. Object equality will be used to remove the chapter.
      * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
-    public void removeChapter(Chapter chapter, Metadata m) {
-        List<Chapter> cs = m.getChapters();
+    public void removeChapter(Chapter chapter, Metadata metadata) {
+        List<Chapter> cs = metadata.getChapters();
         if(cs.remove(chapter)) setChapters(cs);
     }
 
@@ -682,7 +680,7 @@ public class MetadataWriter extends MetaItem {
     /**
      * Sets field for flac/ogg - use for non standard flac/ogg fields.
      * @param field arbitrary (vorbis is that cool) value denoting the field
-     * @param field null or "" deletes field, otherwise value to be set
+     * @param val null or "" deletes field, otherwise value to be set
      */
     private void setVorbisField(String field, String val) {
         boolean empty = val == null || val.isEmpty();
@@ -696,14 +694,14 @@ public class MetadataWriter extends MetaItem {
             else t.setField(field,val);
             fields_changed++;
         } catch (KeyNotFoundException | FieldDataInvalidException e) {
-
+            LOGGER.warn("Failed to set vorbis field {} to {} for {}", field, val, file, e);
         }
     }
 
     /**
      * Sets field for custom tag recognized only by this application.
-     * @param id
-     * @param val
+     * @param id field id
+     * @param val value to set
      */
     private void setCustomField(String id, String val) {
         boolean empty = val == null || val.isEmpty();
@@ -791,10 +789,10 @@ public class MetadataWriter extends MetaItem {
      * either because there was nothing to change or writing failed.
      */
     private boolean write() {
-        LOGGER.info("Writing {} tag fields to: {}", fields_changed,file);
+        LOGGER.debug("Writing {} tag fields to: {}", fields_changed,file);
 
-        // do nothing if nothing to write
-        if (!hasFields()) return false;
+        if (hasCorruptedTag) return false; // writing impossible
+        if (!hasFields()) return false; // nothing to write
 
         // save tag
         try {
@@ -807,12 +805,12 @@ public class MetadataWriter extends MetaItem {
 //            MetaItem.readAudioFile(getFile()).getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
         } catch (Exception ex) {
             if (isPlayingSame()) {
-                LOGGER.info("File being played, will attempt to suspend playback");
+                LOGGER.debug("File being played, will attempt to suspend playback");
                 PLAYBACK.suspend(); // asynchronous, we dont know how long it will take
                 // so we sleep the thread and try tagging again, twice once quickly, once longer
                 for(int i=1; i<=3; i+=2) {
                     int tosleep = i*i*250;
-                    LOGGER.info("Attempt {}, sleeping for {}",1+i/2,tosleep);
+                    LOGGER.debug("Attempt {}, sleeping for {}",1+i/2,tosleep);
                     try {
                         Thread.sleep(tosleep);
                         audioFile.commit();
@@ -827,12 +825,11 @@ public class MetadataWriter extends MetaItem {
                 }
                 PLAYBACK.activate();
             } else {
-                LOGGER.info("Can not write file tag: {}",audioFile.getFile().getPath(),ex);
+                LOGGER.debug("Can not write file tag: {}",audioFile.getFile().getPath(),ex);
                 return false;
             }
         }
 
-        LOGGER.info("Writing success");
         return true;
     }
 
@@ -862,15 +859,22 @@ public class MetadataWriter extends MetaItem {
         audioFile = null;
         tag = null;
         fields_changed = 0;
+        hasCorruptedTag = false;
         isWriting.set(false);
     }
 
-    @TODO(purpose = BUG, note = "audiofile can be null, needs to be checked and any taggng prevented in such case")
     public void reset(Item i) {
         file = i.isFileBased() ? i.getFile() : null;
         audioFile = readAudioFile(file);
-        // PROBLEM HERE, this is clear case for custom exception, but how do we handle it
-        tag = audioFile.getTagOrCreateAndSetDefault(); // tag must NEVER be null
+        try{
+            if (audioFile == null) throw new IllegalStateException("Couldnt read file " + file);
+            tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
+            hasCorruptedTag = false;
+        } catch (IllegalStateException | NullPointerException e) {
+            hasCorruptedTag = true;
+            tag = new ID3v24Tag(); // fake tag to write into
+            LOGGER.warn("Couldnt initialize MetadataWriter, writing to tag will be ignored", e);
+        }
         fields_changed = 0;
         isWriting.set(false);
     }
@@ -888,13 +892,12 @@ public class MetadataWriter extends MetaItem {
     public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
         Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
-            for(I i : items) {
-                if(i.isFileBased()) {
+            for(I i : items)
+                if (i.isFileBased()) {
                     w.reset(i);
                     setter.accept(w);
                     w.write();
                 }
-            }
             List<Metadata> fresh = MetadataReader.readMetadata(items);
             Player.refreshItemsWith(fresh);
             if(action!=null) runFX(() -> action.accept(fresh));

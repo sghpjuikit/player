@@ -28,6 +28,7 @@ import javafx.util.Duration;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.flac.FlacTag;
@@ -100,9 +101,8 @@ import static util.functional.Util.stream;
  * Every field returns string, primitive, or Object with toString method that
  * returns the best possible string representation of the field's value, including
  * its empty value.
- * Therefore, if framework were to be used, simply obtaining values for all
- * fields and using natural String (toString()) conversion is all that is needed.
- * As for how to leverage this: see {@link #getField()}.
+ * <p>
+ * To access any field in a general way, see {@link AudioPlayer.tagging.Metadata.Field}
  *
  * @author uranium
  */
@@ -361,19 +361,27 @@ public final class Metadata extends MetaItem<Metadata> {
         }
     }
 
-    private static String getGeneral(Tag tag, FieldKey f) {
-        String s = tag.getFirst(f);
-        if(s==null || "null".equalsIgnoreCase(s)) throw new RuntimeException("Illegal string value in tag: '" + s + "'");
-        return s;
+    private String getGeneral(Tag tag, FieldKey f) {
+        try {
+            String s = tag.getFirst(f); // can throw UnsupportedOperationException
+            if (s == null) {
+                log(Metadata.class).warn("Jaudiotagger returned null for {} of {}", f,uri);
+            }
+            return s;
+        } catch (UnsupportedOperationException | KeyNotFoundException e) {
+            log(Metadata.class).warn("Jaudiotagger failed to read {} of {}", f,uri, e);
+            return "";
+        }
     }
 
-    private static int getNumber(Tag tag, FieldKey field) {
+    private int getNumber(Tag tag, FieldKey field) {
         return number(getGeneral(tag, field));
     }
 
-    private static int number(String s) {
+    /** Returns parsed int from the text or -1 if impossible. */
+    private int number(String text) {
         try {
-            return s.isEmpty() ? -1 : parseInt(s);
+            return text.isEmpty() ? -1 : parseInt(text);
         } catch(NumberFormatException e){
             return -1;
         }

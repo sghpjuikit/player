@@ -25,7 +25,7 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
 import AudioPlayer.Item;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
@@ -197,8 +197,8 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
-        if(DB.items_byId.containsKey(getId())) {
-            update(DB.items_byId.get(getId()));
+        if(Db.items_byId.containsKey(getId())) {
+            update(Db.items_byId.get(getId()));
             return;
         }
 

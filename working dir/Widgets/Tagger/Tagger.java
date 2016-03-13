@@ -27,7 +27,7 @@ import javafx.scene.text.Text;
 import org.controlsfx.control.textfield.CustomTextField;
 
 import AudioPlayer.Item;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
@@ -665,7 +665,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                Comparator<? super String> cmp = String::compareTo;
                new AutoCompletion<>(
                    (TextField)c,
-                   p -> DB.string_pool.getStrings(n).stream()
+                   p -> Db.string_pool.getStrings(n).stream()
                           .filter(a -> a.startsWith(p.getUserText()))
                           .sorted(f!=YEAR ? cmp : cmp.reversed())
                           .collect(toList())

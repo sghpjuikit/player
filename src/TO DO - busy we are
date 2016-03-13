@@ -3,13 +3,32 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- database throws exception when transaction begins and library is importing files
+com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
+	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]
+	at com.objectdb.o.JPE.g(JPE.java:145) ~[objectdb.jar:na]
+	at com.objectdb.o.ERR.f(ERR.java:56) ~[objectdb.jar:na]
+	at com.objectdb.o.OBC.onObjectDBError(OBC.java:1503) ~[objectdb.jar:na]
+	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:287) ~[objectdb.jar:na]
+	at AudioPlayer.services.database.Db.updatePer(Db.java:181) ~[Player/:na]
+	at AudioPlayer.Player.lambda$refreshItemsWithNow$13(Player.java:201) ~[Player/:na]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1158) ~[na:na]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:632) ~[na:na]
+	at java.lang.Thread.run(Thread.java:804) ~[na:na]
+Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when a transaction is active
+	at com.objectdb.o.MSG.d(MSG.java:62) ~[objectdb.jar:na]
+	at com.objectdb.o.OBC.E(OBC.java:1460) ~[objectdb.jar:na]
+	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
+	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
+	... 5 common frames omitted
+
+
 - DirViewer cache everything in Item, not Cell as Cells get recreated frequently
 - DirViewer implement smart image cache, we must not cache all images, gifs can kill app instantly then
 - DirViewer thumbnails do not load sometimes?
-- Logger log text jampled up sometimes
+- Logger log text jambled up sometimes + doesnt write jaudiotagger log output sometimes
 - DirViewer reload thumbnails when thumb size increases
 - dir viewer allow visiting up if parent is only 1
-- allow multiple app instances to connect to external/single db file
 - idea style of searching actions/shortcuts/configs
 - impl filter in Settings
 - impl filter in DirViewer + add conf gui header or sth.

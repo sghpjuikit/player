@@ -24,7 +24,7 @@ import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import util.conf.Config;
@@ -201,8 +201,8 @@ public class Library extends FXMLController implements SongReader {
             editOnAdd_menuItem
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected from library", () -> DB.removeItems(table.getSelectedItems())),
-            menuItem("Remove all from library", () -> DB.removeItems(table.getItems())),
+            menuItem("Remove selected from library", () -> Db.removeItems(table.getSelectedItems())),
+            menuItem("Remove all from library", () -> Db.removeItems(table.getItems())),
             menuItem("Remove invalid items",this::removeInvalid)
         );
 
@@ -260,7 +260,7 @@ public class Library extends FXMLController implements SongReader {
                 }
             }
             else if (e.getCode() == DELETE)    // delete selected
-                DB.removeItems(table.getSelectedItems());
+                Db.removeItems(table.getSelectedItems());
             else if (e.getCode() == ESCAPE)    // deselect
                 table.getSelectionModel().clearSelection();
         });
@@ -288,7 +288,7 @@ public class Library extends FXMLController implements SongReader {
         table.setOnScroll(Event::consume);
 
         // update library comparator
-        maintain(table.itemsComparator,DB.library_sorter);
+        maintain(table.itemsComparator, Db.library_sorter);
     }
 
     @Override
@@ -403,7 +403,7 @@ public class Library extends FXMLController implements SongReader {
                     App.refreshItemsFromFileJob(m.getValue())
                 ),
                 menuItem("Remove from library", e ->
-                    DB.removeItems(m.getValue())
+                    Db.removeItems(m.getValue())
                 ),
                 new Menu("Show in",null,
                     menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),

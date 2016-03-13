@@ -61,6 +61,7 @@ import static util.functional.Util.list;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 
+@SuppressWarnings("unchecked")
 public class Functors {
 
     /** Marker interface for lambda. */
@@ -299,8 +300,9 @@ public class Functors {
             };
         }
 
+        @SuppressWarnings("cast")
         default Ƒ1<I,O> nonNull(O or) {
-            return andThen(o -> o==null ? or : o);
+            return andThen(o -> o==null ? or : (O)o);
         }
 
         default Ƒ1<I,O> passNull() {
@@ -352,7 +354,7 @@ public class Functors {
             else if(this==ISNTØ) return (ƑP)ISØ;
             else if(this==IS) return (ƑP)IS;
             else if(this==ISNT) return (ƑP)ISNT;
-            return i -> !test(i);
+            return i -> !apply(i);
         }
 
         @Override
@@ -361,7 +363,7 @@ public class Functors {
             if(this==p) return this;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ISNT;
             else if(p==ISNT || this==ISNT) return (ƑP)ISNT;
-            return i -> test(i) && test(i);
+            return i -> apply(i) && apply(i);
         }
 
         @Override
@@ -370,7 +372,7 @@ public class Functors {
             if(this==p) return this;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)IS;
             else if(this==IS || p==IS) return (ƑP)IS;
-            return i -> test(i) || test(i);
+            return i -> apply(i) || apply(i);
         }
 
     }
@@ -514,7 +516,6 @@ public class Functors {
     }
 
     // functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-    // manually
     private static final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
     private static final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
     private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
@@ -701,11 +702,11 @@ public class Functors {
 
         // fielded values
         for(Metadata.Field f : Metadata.Field.values())
-            add(f.name(), Metadata.class, f.getType(), m -> f.getOf(m));
+            add(f.name(), Metadata.class, f.getType(), f::getOf);
         for(PlaylistItem.Field f : PlaylistItem.Field.values())
-            add(f.name(), PlaylistItem.class, f.getType(), m -> f.getOf(m));
+            add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
         for(MetadataGroup.Field f : MetadataGroup.Field.values())
-            add(f.name(), MetadataGroup.class, f.getType(), m -> f.getOf(m));
+            add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
     }
 
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {

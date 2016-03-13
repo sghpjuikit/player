@@ -21,7 +21,7 @@ import com.google.common.reflect.TypeToken;
  *
  * @author Plutonium_
  */
-public class Put<T> implements WritableValue<T> {
+public class Put<T> implements XPut<T>, WritableValue<T> {
 
     public TypeToken<? super T> typet;
     final Class<? super T> type;

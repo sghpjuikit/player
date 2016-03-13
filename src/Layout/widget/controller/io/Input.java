@@ -9,11 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import org.reactfx.Subscription;
-
 import com.google.common.reflect.TypeToken;
-
 import Layout.Areas.IOLayer;
 
 /**
@@ -43,7 +40,6 @@ public class Input<T> extends Put<T>{
 //        System.out.println("rtype: " + new TypeToken<List<Integer>>(){}.getRawType());System.out.println("");
 //        System.out.println("rtype: " + TypeToken.of(type));System.out.println("");
 //        System.out.println("1stgt: " + getGenericPropertyType(new TypeToken<List<Integer>>(){}.getType()));
-
     }
 
 
@@ -57,7 +53,7 @@ public class Input<T> extends Put<T>{
      * {@code getType().isAssignableFrom(output.getType())}
      */
     public boolean canBind(Output<?> output) {
-        return getType().isAssignableFrom(output.getType());
+        return output.getType().isAssignableFrom(getType()) || getType().isAssignableFrom(output.getType());
     }
 
     /**
@@ -66,7 +62,12 @@ public class Input<T> extends Put<T>{
      * Binding multiple times has no effect.
      */
     public Subscription bind(Output<? extends T> output) {
-        sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
+        // Normally we would use this, but we want to allow binding to supertype too (e.g. Object -> File) and use
+        // Input.getType().isInstance(new_value) as a filter to selectively pick only the values we are interested
+        // in. This has use. Say a TreeView<Object> is displaying some heterogeneous object hierarchy and we want
+        // to only bind to selected values if they are of certain type and ignore the rest.
+        // sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
+        sources.computeIfAbsent(output, o -> o.monitor(this));
         IOLayer.addConnectionE(this, output);
         return () -> unbind(output);
     }

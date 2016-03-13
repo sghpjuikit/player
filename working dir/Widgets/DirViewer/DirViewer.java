@@ -108,7 +108,7 @@ public class DirViewer extends ClassController {
     });
 
 
-    private Input<Object> input_Dir;
+    private Input<File> input_Dir;
     private final SingleR<PƑ0<File,Boolean>,?> fff = new SingleR<>(this::buildFilter);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
@@ -135,9 +135,11 @@ public class DirViewer extends ClassController {
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
 
-        input_Dir = inputs.create("Root directory", Object.class, null, dir -> {
-            if(dir instanceof File && ((File)dir).isDirectory() && ((File)dir).exists())
-                files.setItems((File)dir);
+        input_Dir = inputs.create("Root directory", File.class, null, dir -> {
+//            if(dir instanceof File && ((File)dir).isDirectory() && ((File)dir).exists())
+//                files.setItems((File)dir);
+            if(dir!=null && dir.isDirectory() && dir.exists())
+                files.setItems(dir);
         });
 
         // delay cell loading when content is being resized (increases resize performance)

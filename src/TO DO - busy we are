@@ -22,7 +22,10 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
 
-
+- widget i/o binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
+- widget i/o 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
+  This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
+  there have to be default values as well, preferrably settable per i/o in widget controller
 - DirViewer cache everything in Item, not Cell as Cells get recreated frequently
 - DirViewer implement smart image cache, we must not cache all images, gifs can kill app instantly then
 - DirViewer thumbnails do not load sometimes?

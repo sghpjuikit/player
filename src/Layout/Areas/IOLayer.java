@@ -30,11 +30,13 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
 import Layout.container.switchcontainer.SwitchPane;
+import Layout.widget.Widget;
 import Layout.widget.WidgetManager.WidgetSource;
 import Layout.widget.controller.Controller;
 import Layout.widget.controller.io.InOutput;
 import Layout.widget.controller.io.Input;
 import Layout.widget.controller.io.Output;
+import Layout.widget.controller.io.XPut;
 import gui.Gui;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
@@ -299,7 +301,7 @@ public class IOLayer extends StackPane {
         double translation_offset = translation.get();
         double iconhalfsize = 5;
         APP.widgetManager.findAll(WidgetSource.LAYOUT)
-            .map(w -> w.getController()).filter(ISNTØ)
+            .map(Widget::getController).filter(ISNTØ)
             .forEach(c -> {
                 List<XNode> is = c.getInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
                 List<XNode> os = c.getOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
@@ -357,8 +359,8 @@ public class IOLayer extends StackPane {
     }
 
 
-    abstract class XNode<XPUT,T,P extends Pane> {
-        final XPUT xput;
+    abstract class XNode<X extends XPut<T>,T,P extends Pane> {
+        final X xput;
         final Input<T> input;
         final Output<T> output;
         final InOutput<T> inoutput;
@@ -369,7 +371,7 @@ public class IOLayer extends StackPane {
         double cx = 80 + random()*20;
         boolean selected = false;
 
-        XNode(XPUT xput) {
+        XNode(X xput) {
             this.xput = xput;
 
             if(xput instanceof Input) {
@@ -401,7 +403,9 @@ public class IOLayer extends StackPane {
 
                 // This only makes sense when the descriptions are hidden by default, but that would
                 // be very confusing for the user. As it is, manual description show/hide is useless
-                // and even confusing
+                // and even confusing. It could help when the layer is zoomed out though, this needs
+                // some figuring out.
+                //
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
@@ -437,10 +441,6 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             i.styleclass(INODE_STYLECLASS);
-
-            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
-            i.setOnMouseEntered(e -> a.playOpen());
-            t.setOnMouseExited(e -> a.playClose());
 
             // drag&drop
             installDrag(

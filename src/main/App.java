@@ -28,10 +28,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
+import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
@@ -82,6 +80,7 @@ import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
+import gui.objects.Window.stage.WindowBase;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
@@ -115,6 +114,7 @@ import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.FileUtil;
 import util.file.ImageFileFormat;
+import util.functional.Functors;
 import util.plugin.IsPlugin;
 import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
@@ -130,7 +130,11 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
+import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.*;
@@ -833,6 +837,34 @@ public class App extends Application implements Configurable {
 //       Metadata m = DB.items_byId.get(i.getId());
 //       return m==null ? MetadataReader.create(i) : m;
 //    }
+
+    public static void openImageFullscreen(File image, Screen screen) {
+        // find appropriate widget
+        Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
+        if(c==null) return; // one can never know
+        Node cn = c.load();
+        setMinPrefMaxSize(cn, USE_COMPUTED_SIZE); // make sure no settings prevents full size
+        StackPane root = new StackPane(cn);
+        root.setBackground(bgr(BLACK));
+        Stage s = createFMNTStage(screen);
+        s.setScene(new Scene(root));
+        s.show();
+
+        cn.requestFocus(); // for key events to work - just focus some root child
+        root.addEventFilter(KEY_PRESSED, ke -> {
+            if(ke.getCode()==ESCAPE)
+                s.hide();
+        });
+
+        // use widget for image viewing
+        // note: although we know the image size (== screen size) we can not use it
+        //       as widget will use its own size, which can take time to initialize,
+        //       so we need to delay execution
+        Functors.Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
+        Functors.Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
+        if(s.isShowing()) r.apply(); /// execute when/after window is shown
+        else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
+    }
 
 /************************************ actions *********************************/
 

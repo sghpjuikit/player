@@ -344,7 +344,12 @@ public class DirViewer extends ClassController {
         private void createGraphics() {
             name = new Label();
             name.setAlignment(Pos.CENTER);
-            thumb = new Thumbnail();
+            thumb = new Thumbnail() {
+                @Override
+                protected Object getRepresentant() {
+                    return getItem()==null ? null : getItem().val;
+                }
+            };
             thumb.getPane().setOnMouseClicked(e -> {
                 if(e.getButton()==PRIMARY && e.getClickCount()==2) {
                     getItem().visit();

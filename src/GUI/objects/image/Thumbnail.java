@@ -18,23 +18,25 @@ import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
-import javafx.scene.layout.*;
-import javafx.stage.*;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import Layout.widget.Widget;
-import Layout.widget.feature.ImageDisplayFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;
+import main.App;
 import util.SingleR;
 import util.Util;
 import util.animation.Anim;
@@ -45,30 +47,21 @@ import util.dev.TODO;
 import util.file.Environment;
 import util.file.FileUtil;
 import util.file.ImageFileFormat;
-import util.functional.Functors.Ƒ;
 
-import static Layout.widget.WidgetManager.WidgetSource.NEW;
 import static java.lang.Double.min;
 import static java.util.Collections.singletonList;
 import static javafx.scene.input.DataFormat.FILES;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.Util.getFieldValue;
 import static util.Util.menuItem;
-import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.copyToSysClipboard;
-import static util.graphics.Util.add1timeEventHandler;
-import static util.graphics.Util.bgr;
-import static util.graphics.Util.createFMNTStage;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.functional.Util.stream;
 
 /**
  * Thumbnail.
@@ -380,7 +373,7 @@ public class Thumbnail extends ImageNode {
 
 /**************************************************************************************************/
 
-    /** File representing the displayed image or null if no image displayed or not a file. */
+    /** File of the displayed image or null if no image displayed or not a file (e.g. over http). */
     @Override
     public File getFile() {
         // Since we delay image loading or something, image.get() can be null, in that case we fall
@@ -391,6 +384,11 @@ public class Thumbnail extends ImageNode {
         } catch(IllegalArgumentException e) {
             return null;
         }
+    }
+
+    /** Object for which this thumbnail displays the thumbnail. By default equivalent to {@link #getFile()} */
+    protected Object getRepresentant() {
+        return getFile();
     }
 
     @Deprecated
@@ -619,80 +617,53 @@ public class Thumbnail extends ImageNode {
         }
     );
 
-    private static final SingleR<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleR<>(
-        () -> {
-            ImprovedContextMenu<Thumbnail> m = new ImprovedContextMenu<>();
-            m.getItems().addAll(menuItem("Browse location", e ->
-                    Environment.browse(m.getValue().getFile())
-                ),
-                menuItem("Edit the image in editor", e ->
-                    Environment.edit(m.getValue().getFile())
-                ),
-                menuItem("Fulscreen", e -> {
-                    // find appropriate widget
-                    Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
-                    if(c==null) return; // one can never know
-                    Node cn = c.load();
-                    setMinPrefMaxSize(cn,USE_COMPUTED_SIZE); // make sure no settings prevents full size
-                    StackPane root = new StackPane(cn);
-                              root.setBackground(bgr(BLACK));
-                    Screen screen = WindowBase.getScreen(m.getX(),m.getY());
-                    Stage s = createFMNTStage(screen);
-                    s.setScene(new Scene(root));
-                    s.show();
-
-                    cn.requestFocus(); // for key events to work - just focus some root child
-                    root.addEventFilter(KEY_PRESSED, ke -> {
-                        if(ke.getCode()==ESCAPE)
-                            s.hide();
-                    });
-
-                    // use widget for image viewing
-                    // note: although we know the image size (== screen size) we can not use it
-                    //       as widget will use its own size, which can take time to initialize,
-                    //       so we need to delay execution
-                    Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
-                    Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
-                    if(s.isShowing()) r.apply(); /// execute when/after window is shown
-                    else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
-                }),
-                menuItem("Open image", e ->
-                    Environment.open(m.getValue().getFile())
-                ),
-                menuItem("Delete the image from disc", e ->
-                    FileUtil.deleteFile(m.getValue().getFile())
-                ),
-                menuItem("Save the image as ...", e -> {
-                   File of = m.getValue().getFile();
-                   FileChooser fc = new FileChooser();
-                       fc.getExtensionFilters().addAll(ImageFileFormat.filter());
-                       fc.setTitle("Save image as...");
-                       fc.setInitialFileName(of.getName());
-                       fc.setInitialDirectory(APP.DIR_APP);
-
-                   File nf = fc.showSaveDialog(APP.windowOwner.getStage());
-                   if(nf!=null) {
-                    try {
-                        Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException ex) {
-                        LOGGER.error("File export failed.",ex);
+    @TODO(note = "support non file objects and differentiate properly between file & image file")
+    private static final SingleR<ImprovedContextMenu<File>,Thumbnail> file_context_menu = new SingleR<>(
+        () -> new ImprovedContextMenu<File>(){{
+            getItems().setAll(
+                menuItem("Browse location", e -> Environment.browse(getValue())),
+                menuItem("Open (in asociated program)", e -> Environment.open(getValue())),
+                menuItem("Edit (in associated editor)", e -> Environment.edit(getValue())),
+                menuItem("Fullscreen", e -> {
+                    File f = getValue();
+                    if(ImageFileFormat.isSupported(f)) {
+                        Screen screen = WindowBase.getScreen(getX(),getY());
+                        App.openImageFullscreen(f,screen);
                     }
-                   }
+                }),
+                menuItem("Delete the image from disc", e -> FileUtil.deleteFile(getValue())),
+                menuItem("Save the image as ...", e -> {
+                    File f = getValue();
+                    FileChooser fc = new FileChooser();
+                    fc.getExtensionFilters().addAll(ImageFileFormat.filter());
+                    fc.setTitle("Save image as...");
+                    fc.setInitialFileName(f.getName());
+                    fc.setInitialDirectory(APP.DIR_APP);
+
+                    File nf = fc.showSaveDialog(APP.windowOwner.getStage());
+                    if(nf!=null) {
+                        try {
+                            Files.copy(f.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        } catch (IOException ex) {
+                            LOGGER.error("File export failed.",ex);
+                        }
+                    }
                 })
             );
-            return m;
-        },
+        }},
         (menu,thumbnail) -> {
-            File f = thumbnail.getFile();
-            menu.setValue(thumbnail);
-            menu.getItems().forEach(i->i.setDisable(f==null));
+            Object representant = thumbnail.getRepresentant();
+            File f = representant instanceof File ? (File) representant : null;
+            menu.setValue(f);
+            menu.getItems().forEach(i -> i.setDisable(f==null));
+            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).get().setDisable(f==null || !ImageFileFormat.isSupported(f));
         }
     );
 
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
         if(e.getButton()==SECONDARY) {
             // decide mode (image vs file), build lazily & show where requested
-            if (getFile() != null)
+            if (getRepresentant() instanceof File)
                 file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)
                 img_context_menu.getM(this).show(root,e);

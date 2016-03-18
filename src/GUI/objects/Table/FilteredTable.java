@@ -47,6 +47,7 @@ import util.access.FieldValue.ObjectField;
 import util.access.V;
 import util.async.executor.FxTimer;
 import util.collections.Tuple3;
+import util.dev.TODO;
 import util.functional.Functors;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
@@ -73,6 +74,7 @@ import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.collections.Tuples.tuple;
+import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
@@ -230,8 +232,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * @param index the index in filtered list of items visible in the table
      * @return index in the unfiltered list backing this table
      */
-    public int getSourceIndex(int i) {
-        return filtereditems.getSourceIndex(i);
+    public int getSourceIndex(int index) {
+        return filtereditems.getSourceIndex(index);
     }
 
 /******************************** TOP CONTROLS ********************************/
@@ -346,7 +348,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 return g;
             });
             setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
-            onItemChange = v -> filtereditems.setPredicate(v);
+            onItemChange = filtereditems::setPredicate;
             if(prefFilterType instanceof Enum) {
                 setData(d(prefFilterType));
             } else
@@ -356,7 +358,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     }
 
     private static <F extends ObjectField> List<Tuple3<String,Class,F>> d(F prefFilterType) {
-        F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
+        F[] es = getEnumConstants(prefFilterType.getClass());
         return stream(es)
                 .filter(ObjectField::isTypeStringRepresentable)
                 .map(mf -> tuple(mf.toString(),mf.getType(),mf))
@@ -492,32 +494,31 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         return searchAlg.getValue().predicate.test(t,q);
     }
 
-    public static enum Search {
-        CONTAINS((text,query) -> text.contains(query)),
-        STARTS_WITH((text,query) -> text.startsWith(query)),
-        ENDS_WITH((text,query) -> text.endsWith(query));
+    public enum Search {
+        CONTAINS(String::contains),
+        STARTS_WITH(String::startsWith),
+        ENDS_WITH(String::endsWith);
 
         final BiPredicate<String,String> predicate;
 
-        private Search(BiPredicate<String,String> p) {
+        Search(BiPredicate<String,String> p) {
             mapEnumConstant(this, Util::enumToHuman);
             predicate = p;
         }
-
     }
 
 /************************************* SORT ***********************************/
 
-    /** {@inheritDoc} */
     @Override
     public void sortBy(F field) {
         getSortOrder().clear();
-        allitems.sort(by(p -> (Comparable) field.getOf(p)));
+        allitems.sort(field.comparator());
     }
 
     /***
      * Sorts items using provided comparator. Any sort order is cleared.
-     * @param comparator
+     * @param comparator - the Comparator used to compare list elements. A null value indicates that the
+     *                   elements' natural ordering should be used
      */
     public void sort(Comparator<T> comparator) {
         getSortOrder().clear();
@@ -526,12 +527,14 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
 /*********************************** HELPER ***********************************/
 
+    @TODO(purpose = BUG)
     @Override
     protected Callback<TableColumn<T, Void>, TableCell<T, Void>> buildIndexColumnCellFactory() {
-        return (column -> new TableCell<T,Void>() {
+        return (column -> new TableCell<>() {
             {
                 setAlignment(Pos.CENTER_RIGHT);
             }
+
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
@@ -540,13 +543,13 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 else {
                     int j = getIndex();
                     String txt;
-                    if(zeropadIndex.get()) {
+                    if (zeropadIndex.get()) {
                         int i = showOriginalIndex.get() ? filtereditems.getSourceIndex(j) : j;      // BUG HERE
-                        txt = zeroPad(i+1, getMaxIndex(), '0');
+                        txt = zeroPad(i + 1, getMaxIndex(), '0');
                     } else
-                        txt = String.valueOf(j+1);
+                        txt = String.valueOf(j + 1);
 
-                    setText( txt + ".");
+                    setText(txt + ".");
                 }
             }
         });

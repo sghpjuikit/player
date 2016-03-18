@@ -99,7 +99,7 @@ public class FileTree extends TreeView<File>{
      * Based on example in the javadoc of {@link TreeItem}.
      */
     public static TreeItem<File> createTreeItem(File f) {
-        return new TreeItem<File>(f) {
+        return new TreeItem<>(f) {
             private boolean isLeaf;
             private boolean isFirstTimeChildren = true;
             private boolean isFirstTimeLeaf = true;

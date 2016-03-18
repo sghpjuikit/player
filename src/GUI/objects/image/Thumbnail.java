@@ -262,6 +262,11 @@ public class Thumbnail extends ImageNode {
         setImgA(img);
     }
 
+    public void loadImage(Image img, File imageFile) {
+        loadImage(img);
+        imagefile = imageFile;
+    }
+
     @Override
     public void loadImage(File img) {
         imagefile = img;
@@ -389,11 +394,6 @@ public class Thumbnail extends ImageNode {
     /** Object for which this thumbnail displays the thumbnail. By default equivalent to {@link #getFile()} */
     protected Object getRepresentant() {
         return getFile();
-    }
-
-    @Deprecated
-    public void setFile(File imageFile) {
-        imagefile = imageFile;
     }
 
     @Override
@@ -618,25 +618,25 @@ public class Thumbnail extends ImageNode {
     );
 
     @TODO(note = "support non file objects and differentiate properly between file & image file")
-    private static final SingleR<ImprovedContextMenu<File>,Thumbnail> file_context_menu = new SingleR<>(
-        () -> new ImprovedContextMenu<File>(){{
+    private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> file_context_menu = new SingleR<>(
+        () -> new ImprovedContextMenu<ContextMenuData>(){{
             getItems().setAll(
-                menuItem("Browse location", e -> Environment.browse(getValue())),
-                menuItem("Open (in asociated program)", e -> Environment.open(getValue())),
-                menuItem("Edit (in associated editor)", e -> Environment.edit(getValue())),
+                menuItem("Browse location", e -> Environment.browse(getValue().file)),
+                menuItem("Open (in asociated program)", e -> Environment.open(getValue().file)),
+                menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
                 menuItem("Fullscreen", e -> {
-                    File f = getValue();
+                    File f = getValue().fsImageFile;
                     if(ImageFileFormat.isSupported(f)) {
                         Screen screen = WindowBase.getScreen(getX(),getY());
                         App.openImageFullscreen(f,screen);
                     }
                 }),
-                menuItem("Delete the image from disc", e -> FileUtil.deleteFile(getValue())),
-                menuItem("Save the image as ...", e -> {
-                    File f = getValue();
+                menuItem("Delete from disc", e -> FileUtil.deleteFile(getValue().file)),
+                menuItem("Save as ...", e -> {
+                    File f = getValue().file;
                     FileChooser fc = new FileChooser();
                     fc.getExtensionFilters().addAll(ImageFileFormat.filter());
-                    fc.setTitle("Save image as...");
+                    fc.setTitle("Save as...");
                     fc.setInitialFileName(f.getName());
                     fc.setInitialDirectory(APP.DIR_APP);
 
@@ -652,17 +652,15 @@ public class Thumbnail extends ImageNode {
             );
         }},
         (menu,thumbnail) -> {
-            Object representant = thumbnail.getRepresentant();
-            File f = representant instanceof File ? (File) representant : null;
-            menu.setValue(f);
-            menu.getItems().forEach(i -> i.setDisable(f==null));
-            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).get().setDisable(f==null || !ImageFileFormat.isSupported(f));
+            ContextMenuData data = thumbnail.new ContextMenuData();
+            menu.setValue(data);
+            menu.getItems().forEach(i -> i.setDisable(data.menuDisabled));
+            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).get().setDisable(data.fsDisabled);
         }
     );
 
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
         if(e.getButton()==SECONDARY) {
-            // decide mode (image vs file), build lazily & show where requested
             if (getRepresentant() instanceof File)
                 file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)
@@ -671,4 +669,13 @@ public class Thumbnail extends ImageNode {
             e.consume();
         }
     };
+
+    private class ContextMenuData {
+        public final Object representant = getRepresentant();
+        public final File file = representant instanceof File ? (File) representant : null;
+        public final File iFile = getFile();
+        public final File fsImageFile = iFile!=null ? iFile : file;
+        public final boolean menuDisabled = file==null;
+        public final boolean fsDisabled = fsImageFile==null || !ImageFileFormat.isSupported(fsImageFile);
+    }
 }

@@ -143,8 +143,10 @@ public class Environment {
     }
 
     /**
-     * Edits file in default associated editor program.
-     * On some platforms the operation may be unsupported.
+     * Edits file in default associated editor program. If the file denotes a directory,
+     * {@link #open(java.io.File)} is called instead.
+     * <p>
+     * On some platforms the operation may be unsupported. In that case this method is a no-op.
      *
      * @param f
      */
@@ -153,19 +155,25 @@ public class Environment {
             log(Environment.class).warn("Unsupported operation : " + EDIT + " uri");
             return;
         }
-        try {
-            Desktop.getDesktop().edit(f);
-        } catch (IOException e) {
-            log(Environment.class).error("Opening file {} in editor failed", f, e);
-            APP.parameterProcessor.process(list(f.getPath())); // try open with this app
-        } catch (IllegalArgumentException e) {
-            // file doesnt exists, nothing for us to do
+
+        if(f.isDirectory()) {
+            open(f);
+        } else {
+            try {
+                Desktop.getDesktop().edit(f);
+            } catch (IOException e) {
+                log(Environment.class).error("Opening file {} in editor failed", f, e);
+                APP.parameterProcessor.process(list(f.getPath())); // try open with this app
+            } catch (IllegalArgumentException e) {
+                // file doesnt exists, nothing for us to do
+            }
         }
     }
 
     /**
      * Opens file in default associated program.
-     * On some platforms the operation may be unsupported.
+     * <p>
+     * On some platforms the operation may be unsupported. In that case this method is a no-op.
      *
      * @param f
      */

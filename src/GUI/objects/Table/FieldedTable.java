@@ -29,6 +29,7 @@ import javafx.util.Callback;
 
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.table.TableColumnInfo.ColumnInfo;
+import util.Sort;
 import util.access.FieldValue.ObjectField;
 import util.access.FieldValue.ObjectField.ColumnField;
 import util.dev.TODO;
@@ -48,7 +49,7 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
 
 /**
- * Table for {@link FieldedValue}. This facilitates column creation, sorting and
+ * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
  * potentially additional features (e.g. filtering - {@link FilteredTable}.
  * <p>
  * Supports column state serialization and deserialization - it is possible to
@@ -308,14 +309,14 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
      */
     public void sortBy(F field) {
         getSortOrder().clear();
-        getItems().sort(by(p -> (Comparable) field.getOf(p)));
+        getItems().sort(field.comparator());
     }
 
     /**
      * Sorts the items by the column.
      * Same as {@link #sortBy(javafx.scene.control.TableColumn,
      * javafx.scene.control.TableColumn.SortType)}, but uses
-     * {@link #getColumn(util.access.FieldValue.FieldEnum)} for column lookup.
+     * {@link #getColumn(util.access.FieldValue.ObjectField)} for column lookup.
      */
     public void sortBy(F field, SortType type) {
         getColumn(field).ifPresent(c -> sortBy(c, type));
@@ -335,11 +336,11 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
      */
     public TableCell<T,?> buildDefaultCell(F f) {
         Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-        TableCell<T,Object> cell = new TableCell<T,Object>(){
+        TableCell<T,Object> cell = new TableCell<>() {
             @Override
             protected void updateItem(Object item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : f.toS((T)getTableRow().getItem(),item,""));
+                setText(empty ? "" : f.toS((T) getTableRow().getItem(), item, ""));
             }
         };
         cell.setAlignment(a);
@@ -363,9 +364,9 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     // sort order -> comparator, never null
     private void updateComparator(Object ignored) {
         Comparator<? super T> c = getSortOrder().stream().map(column -> {
-                F f = (F) column.getUserData();
-                int dir = column.getSortType()==ASCENDING ? 1 : -1;
-                return (Comparator<T>)(m1,m2) -> dir*((Comparable)f.getOf(m1)).compareTo((f.getOf(m2)));
+                F field = (F) column.getUserData();
+                Sort sort = Sort.of(column.getSortType());
+                return sort.cmp(field.comparator());
             })
             .reduce(Comparator::thenComparing).orElse(SAME);
         itemsComparator.setValue(c);

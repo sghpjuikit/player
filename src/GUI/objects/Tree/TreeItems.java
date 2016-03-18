@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
@@ -25,9 +24,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 import AudioPlayer.services.Service;
-import util.conf.Configurable;
 import Layout.Component;
 import Layout.container.Container;
+import Layout.container.layout.Layout;
 import Layout.widget.Widget;
 import Layout.widget.WidgetFactory;
 import Layout.widget.WidgetManager.WidgetSource;
@@ -36,18 +35,20 @@ import Layout.widget.feature.Feature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
 import util.ClassName;
+import util.access.V;
+import util.conf.Configurable;
 import util.file.Environment;
 import util.file.FileUtil;
 
-import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static Layout.widget.WidgetManager.WidgetSource.*;
-import static gui.objects.tree.FileTree.createTreeItem;
 import static java.util.stream.Collectors.toList;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
-import static util.file.FileUtil.listFiles;
 import static util.Util.*;
+import static util.conf.Configurable.configsFromFxPropertiesOf;
+import static util.file.FileUtil.listFiles;
 import static util.functional.Util.*;
 
 /**
@@ -56,10 +57,10 @@ import static util.functional.Util.*;
  */
 public class TreeItems {
 
-    public static TreeItem<? extends Object> tree(Object o) {
-        if(o instanceof TreeItem)       return (TreeItem)o;
+    public static SimpleTreeItem<? extends Object> tree(Object o) {
+        if(o instanceof TreeItem)       return (SimpleTreeItem)o;
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
-        if(o instanceof WidgetFactory)  return new TreeItem<>(o);
+        if(o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
         if(o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
         if(o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
         if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
@@ -67,30 +68,34 @@ public class TreeItems {
         if(o instanceof File)           return new FileTreeItem((File)o);
         if(o instanceof Node)           return new NodeTreeItem((Node)o);
         if(o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
-        return new TreeItem<>(o);
+        return new SimpleTreeItem<>(o);
     }
 
-    public static TreeItem<Object> tree(Object v, Object... children) {
-        TreeItem t = new TreeItem();
+    public static SimpleTreeItem<Object> tree(Object v, Object... children) {
+        SimpleTreeItem<Object> t = new SimpleTreeItem<>(null);
         t.setValue(v);
-        t.getChildren().addAll(trees(children));
+        t.getChildren().addAll((List)trees(children));
         return t;
     }
 
-    public static TreeItem<Object> tree(Object v, List<? extends Object> cs) {
+    public static SimpleTreeItem<Object> tree(Object v, List<? extends Object> cs) {
         return new SimpleTreeItem(v,cs.stream());
     }
 
-    public static TreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
+    public static SimpleTreeItem<Object> tree(Object v, Stream<? extends Object> cs) {
+        return new STreeItem(v, () -> cs);
+    }
+
+    public static SimpleTreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
         return new STreeItem(v, cs);
     }
 
-    public static TreeItem<Object> treeApp() {
+    public static SimpleTreeItem<Object> treeApp() {
         TreeItem widgetT = tree("Widgets",
                      tree("Categories", (List)list(Widget.Group.values())),
-                     tree("Types", () -> APP.widgetManager.getFactories().sorted(by(f -> f.nameGui()))),
+                     tree("Types", () -> APP.widgetManager.getFactories().sorted(by(WidgetFactory::nameGui))),
                      tree("Open", (List)list(ANY,LAYOUT,STANDALONE)),
-                     tree("Features", () -> APP.widgetManager.getFeatures().sorted(by(f -> f.name())))
+                     tree("Features", () -> APP.widgetManager.getFeatures().sorted(by(Feature::name)))
                    );
         return tree("App",
                  tree("Behavior",
@@ -100,32 +105,32 @@ public class TreeItems {
                  tree("UI",
                    widgetT,
                    tree("Windows", () -> APP.windowManager.windows.stream()),
-                   tree("Layouts", () -> APP.widgetManager.getLayouts().sorted(by(l -> l.getName())))
+                   tree("Layouts", () -> APP.widgetManager.getLayouts().sorted(by(Layout::getName)))
                  ),
                  tree("Location", listFiles(APP.DIR_APP)),
                  tree("File system", map(File.listRoots(),FileTreeItem::new))
                );
     }
 
-    public static List<TreeItem<? extends Object>> trees(Object... children) {
+    public static List<SimpleTreeItem<? extends Object>> trees(Object... children) {
         return (stream(children).map(TreeItems::tree).collect(toList()));
     }
 
-    public static List<TreeItem<? extends Object>> trees(Collection<Object> children) {
+    public static List<SimpleTreeItem<? extends Object>> trees(Collection<Object> children) {
         return children.stream().map(TreeItems::tree).collect(toList());
     }
 
-    public static List<TreeItem<? extends Object>> trees(Stream<? extends Object> children) {
+    public static List<SimpleTreeItem<? extends Object>> trees(Stream<? extends Object> children) {
         return children.map(TreeItems::tree).collect(toList());
     }
 
 /**************************************************************************************************/
 
-    public static TreeCell<Object> buildTreeCell(TreeView<Object> t) {
-        return new TreeCell<Object>(){
+    public static <T> TreeCell<T> buildTreeCell(TreeView<T> t) {
+        return new TreeCell<>(){
             {
                 setOnMouseClicked(e -> {
-                    Object o = getItem();
+                    T o = getItem();
                     // context menu
                     if(o!=null && e.getButton()==SECONDARY && e.getClickCount()==1) {
                         if(!isSelected()) getTreeView().getSelectionModel().clearAndSelect(getIndex());
@@ -139,7 +144,7 @@ public class TreeItems {
                 });
             }
             @Override
-            protected void updateItem(Object o, boolean empty) {
+            protected void updateItem(T o, boolean empty) {
                 super.updateItem(o, empty);
                 if(!empty && o!=null) {
                     if(o instanceof Component)      setText(((Component)o).getName());
@@ -167,10 +172,9 @@ public class TreeItems {
         }
     }
 
-    public static void doOnSingleClick(Object o) {
-    }
+    public static void doOnSingleClick(Object o) {}
 
-    public static void showMenu(Object o, TreeView<Object> t, Node n, MouseEvent e) {
+    public static <T> void showMenu(T o, TreeView<T> t, Node n, MouseEvent e) {
         if(o instanceof File) {
             List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c->c.getValue() instanceof File, c->(File)c.getValue());
             if(files.isEmpty()) {
@@ -188,37 +192,39 @@ public class TreeItems {
         }
     }
 
-    private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu();
-
-    static{
-        m.getItems().addAll(
-            menuItem("Open", e -> {
-                Environment.open(m.getValue().get(0));
-            }),
-            menuItem("Open in-app", e -> {
-                Environment.openIn(m.getValue(),true);
-            }),
-            menuItem("Edit", e -> {
-                Environment.edit(m.getValue().get(0));
-            }),
+    private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu<>(){{
+        getItems().addAll(
+            menuItem("Open", e -> Environment.open(getValue().get(0))),
+            menuItem("Open in-app", e -> Environment.openIn(getValue(),true)),
+            menuItem("Edit", e -> Environment.edit(getValue().get(0))),
             menuItem("Copy", e -> {
                 ClipboardContent cc = new ClipboardContent();
-                cc.put(DataFormat.FILES, m.getValue());
+                cc.put(DataFormat.FILES, getValue());
                 Clipboard.getSystemClipboard().setContent(cc);
             }),
-            menuItem("Explore in browser", e -> {
-                Environment.browse(m.getValue().stream());
-            })
+            menuItem("Explore in browser", e -> Environment.browse(getValue().stream()))
         );
-    }
+    }};
 
+    public static class SimpleTreeItem<T> extends TreeItem<T> {
+        public final V<Boolean> showLeaves = new V<>(true);
 
+        public SimpleTreeItem(T v) {
+            this(v, stream());
+        }
 
-    public static class SimpleTreeItem extends TreeItem<Object> {
-
-        public SimpleTreeItem(Object v, Stream<? extends Object> children) {
+        public SimpleTreeItem(T v, Stream<T> children) {
             super(v);
-            getChildren().addAll((List)trees(children));
+            super.getChildren().addAll((Collection)trees(children));
+            showLeaves.addListener((o,ov,nv) -> {
+                if (nv) {
+                    throw new UnsupportedOperationException("Can not repopulate leaves yet");
+                } else {
+                    super.getChildren().removeIf(TreeItem::isLeaf);
+                }
+                stream(super.getChildren()).select(SimpleTreeItem.class)
+                        .forEach(i -> i.showLeaves.set(nv));
+            });
         }
 
         @Override
@@ -226,19 +232,19 @@ public class TreeItems {
             return getChildren().isEmpty();
         }
     }
-    public static class STreeItem extends TreeItem<Object> {
-        Supplier<Stream<? extends Object>> s;
+    public static class STreeItem<T> extends SimpleTreeItem<T> {
+        Supplier<Stream<T>> s;
         private boolean isFirstTimeChildren = true;
         private boolean isFirstTimeLeaf = true;
         private boolean isLeaf; // cache
 
-        public STreeItem(Object v, Supplier<Stream<? extends Object>> cs) {
+        public STreeItem(T v, Supplier<Stream<T>> cs) {
             super(v);
             s = cs;
         }
 
         @Override
-        public ObservableList<TreeItem<Object>> getChildren() {
+        public ObservableList<TreeItem<T>> getChildren() {
             if (isFirstTimeChildren) {
                 isFirstTimeChildren = false;
                 super.getChildren().setAll((List)trees(s.get()));
@@ -257,31 +263,40 @@ public class TreeItems {
             return false;
         }
     }
-    public static class WidgetItem extends STreeItem {
+    public static class WidgetItem extends STreeItem<Widget> {
 
         public WidgetItem(Widget v) {
-            super(v, () -> Stream.empty());
+            super(v, () -> stream());
         }
 
     }
-    public static class LayoutItem extends STreeItem {
+    public static class LayoutItem extends STreeItem<Component> {
 
         public LayoutItem(Component v) {
-            super(v, v instanceof Container ? () -> ((Container)v).getChildren().values().stream() : () -> Stream.empty());
+            super(v, v instanceof Container ? () -> ((Container)v).getChildren().values().stream() : () -> stream());
         }
 
     }
-    public static class FileTreeItem extends TreeItem<File> {
+    public static class FileTreeItem extends SimpleTreeItem<File> {
 
-        private boolean isLeaf;
+        private final boolean isLeaf;
         private boolean isFirstTimeChildren = true;
-        private boolean isFirstTimeLeaf = true;
 
-        public FileTreeItem(File value) {
+
+        public FileTreeItem(File value, boolean isFile) {
             super(value);
+            isLeaf = isFile; // cache, but now we must forbid value change
+            valueProperty().addListener((o,ov,nv) -> {
+                throw new RuntimeException("FileTreeItem value must never change");
+            });
         }
 
-        @Override public ObservableList<TreeItem<File>> getChildren() {
+        private FileTreeItem(File value) {
+            this(value, value.isFile());
+        }
+
+        @Override
+        public ObservableList<TreeItem<File>> getChildren() {
             ObservableList<TreeItem<File>> c = super.getChildren();
             if (isFirstTimeChildren) {
                 c.setAll(buildChildren(this));
@@ -290,30 +305,24 @@ public class TreeItems {
             return c;
         }
 
-        @Override public boolean isLeaf() {
-            if (isFirstTimeLeaf) {
-                isFirstTimeLeaf = false;
-                isLeaf = getValue().isFile();
-            }
-
+        @Override
+        public boolean isLeaf() {
             return isLeaf;
         }
 
-        private List<TreeItem<File>> buildChildren(TreeItem<File> i) {
-            // we want to sort the items : directories first
-            // we make use of the fact that listFiles() gives us already
-            // sorted list
-            List<TreeItem<File>> dirs = new ArrayList<>();
-            List<TreeItem<File>> fils = new ArrayList<>();
+        private List<? extends TreeItem<File>> buildChildren(TreeItem<File> i) {
+            List<FileTreeItem> dirs = new ArrayList<>();
+            List<FileTreeItem> fils = new ArrayList<>();
             listFiles(i.getValue()).forEach(f -> {
-                if(!f.isDirectory()) dirs.add(createTreeItem(f));
-                else                 fils.add(createTreeItem(f));
+                boolean isFile = f.isFile();
+                (isFile ? fils : dirs).add(new FileTreeItem(f,isFile));
             });
-                   dirs.addAll(fils);
+            if(showLeaves.get()) dirs.addAll(fils);
+            dirs.forEach(item -> item.showLeaves.set(showLeaves.get()));
             return dirs;
         }
     }
-    public static class NodeTreeItem extends TreeItem<Node> {
+    public static class NodeTreeItem extends SimpleTreeItem<Node> {
 
         public NodeTreeItem(Node value) {
             super(value);
@@ -343,21 +352,16 @@ public class TreeItems {
         }
 
         private ObservableList<TreeItem<Node>> buildChildren(TreeItem<Node> i) {
-                ObservableList<TreeItem<Node>> out = FXCollections.observableArrayList();
+            ObservableList<TreeItem<Node>> out = observableArrayList();
             Node value = i.getValue();
-            if (value != null) {
-                if(value instanceof Region) {
-                    new ArrayList<>(((Region)value).getChildrenUnmodifiable()).forEach(n -> {
-                        out.add(new NodeTreeItem(n));
-                    });
-                }
-            }
+            if(value instanceof Region)
+                ((Region)value).getChildrenUnmodifiable().forEach(n -> out.add(new NodeTreeItem(n)));
 
             return out;
         }
     }
 
-    public static Stream strm(Object o, Stream t) {
+    private static Stream strm(Object o, Stream t) {
         return Stream.concat(Stream.of(o), t);
     }
     private static String toS(Node n) {

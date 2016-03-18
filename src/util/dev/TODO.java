@@ -5,18 +5,13 @@
  */
 package util.dev;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
+import static java.lang.annotation.ElementType.*;
 
-/**
- * Annotation type indicating a programming task needs to be done.
- *
- * @author uranium
- */
+/** Annotation type indicating a programming task needs to be done. */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
+@Target({ANNOTATION_TYPE,CONSTRUCTOR,FIELD,LOCAL_VARIABLE,METHOD,PACKAGE,PARAMETER,TYPE,TYPE_PARAMETER,TYPE_USE})
 @Repeatable(TODOs.class)
 public @interface TODO {
     
@@ -25,7 +20,7 @@ public @interface TODO {
     String note() default "";
 
 
-    public static enum Purpose {
+    enum Purpose {
         PERFORMANCE_OPTIMIZATION,
         BUG,
         DOCUMENTATION,
@@ -38,7 +33,7 @@ public @interface TODO {
         UNSPECIFIED;
     }
 
-    public static enum Severity {
+    enum Severity {
         CRITICAL,
         SEVERE,
         MEDIUM,

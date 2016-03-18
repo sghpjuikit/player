@@ -7,6 +7,9 @@ package util;
 
 import java.util.Comparator;
 
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
+
 /**
  * Sort type.
  *
@@ -57,5 +60,17 @@ public enum Sort {
             case NONE: return util.functional.Util.SAME;
             default: throw new SwitchException(this);
         }
+    }
+
+    public static Sort of(SortType sort) {
+        switch (sort) {
+            case ASCENDING  : return ASCENDING;
+            case DESCENDING : return DESCENDING;
+            default : throw new SwitchException(sort);
+        }
+    }
+
+    public static Sort of(TableColumn<?,?> column) {
+        return of(column.getSortType());
     }
 }

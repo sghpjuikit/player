@@ -117,13 +117,11 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
     }
 
     public void updateGridViewItems() {
-        if (getSkinnable().getItems() != null) {
+        if (getSkinnable().getItems() != null)
             getSkinnable().getItems().removeListener(weakGridViewItemsListener);
-        }
 
-        if (getSkinnable().getItems() != null) {
+        if (getSkinnable().getItems() != null)
             getSkinnable().getItems().addListener(weakGridViewItemsListener);
-        }
 
         updateRowCount();
         flowRecreateCells();

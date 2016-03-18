@@ -2,7 +2,10 @@
 package main;
 
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -20,8 +23,10 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableListBase;
-import javafx.scene.*;
 import javafx.scene.Cursor;
+import javafx.scene.ImageCursor;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
@@ -50,9 +55,9 @@ import AudioPlayer.SimpleItem;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.ClickEffect;
-import AudioPlayer.services.database.Db;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
+import AudioPlayer.services.database.Db;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.playcount.PlaycountIncrementer;
 import AudioPlayer.services.tray.TrayService;
@@ -80,7 +85,6 @@ import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
-import gui.objects.Window.stage.WindowBase;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
@@ -145,6 +149,8 @@ import static util.file.Environment.browse;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.*;
+
+import gui.objects.Window.stage.Window;
 
 /**
  * Application. Represents the program.

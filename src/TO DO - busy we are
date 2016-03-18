@@ -28,7 +28,7 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   there have to be default values as well, preferrably settable per i/o in widget controller
 - DirViewer cache everything in Item, not Cell as Cells get recreated frequently
 - DirViewer implement smart image cache, we must not cache all images, gifs can kill app instantly then
-- DirViewer thumbnails do not load sometimes?
+- DirViewer thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?
 - Logger log text jambled up sometimes + doesnt write jaudiotagger log output sometimes
 - DirViewer reload thumbnails when thumb size increases
 - dir viewer allow visiting up if parent is only 1
@@ -238,7 +238,9 @@ SOLVED (but the underlying cause still deserves attention)
   Large images need more memory. Default heap size WILL cause out of memory
   exceptions for images like 6k x 6k px & closing in on 10MB...
 - any VM arguments, in order to be used in self-contained app, need to be
-  specified in the build.xml file
+  specified in the build.xml file (Netbeans), for IntelliJ Idea, i have no idea. Fortunately
+  I already have the .exe (which runs the application jar) built and it can be reused. It passes
+  the argument into VM itself.
 - Event consuming (namely mouse events): As a general rule, always consume unless you have a reason
   not to. Its simple: not consuming results in 'multiple' behavior problem since event propagates 
   until it is consumed. Normally, one event should cause one behavior.

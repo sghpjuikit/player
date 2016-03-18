@@ -108,12 +108,12 @@ public class ImprovedGridView<T> extends Control {
 
     /** Creates a default, empty GridView control. */
     public ImprovedGridView() {
-        this(observableArrayList());
+        this(null);
     }
 
     /** Convenience consturctor. Creates an empty GridView with specified sizes. */
     public ImprovedGridView(double cellWidth, double cellHeight, double vgap, double hgap) {
-        this(observableArrayList());
+        this(null);
         setCellWidth(cellWidth);
         setCellHeight(cellHeight);
         setHorizontalCellSpacing(hgap);
@@ -123,7 +123,7 @@ public class ImprovedGridView<T> extends Control {
     /** Convenience consturctor. Creates a default GridView with the provided items prepopulated. */
     public ImprovedGridView(ObservableList<T> items) {
         getStyleClass().add(DEFAULT_STYLE_CLASS);
-        setItems(items);
+        setItems(items==null ? observableArrayList() : items);
 
         // Decrease scrolling speed
         // The default scrolling speed is simply too much. On my system its more than a full
@@ -370,7 +370,8 @@ public class ImprovedGridView<T> extends Control {
 //    }
 
 
-    // --- cell factory
+    private ObjectProperty<Callback<ImprovedGridView<T>, ImprovedGridCell<T>>> cellFactory;
+
     /**
      * Property representing the cell factory that is currently set in this
      * GridView, or null if no cell factory has been set (in which case the
@@ -385,7 +386,6 @@ public class ImprovedGridView<T> extends Control {
         }
         return cellFactory;
     }
-    private ObjectProperty<Callback<ImprovedGridView<T>, ImprovedGridCell<T>>> cellFactory;
 
     /**
      * Sets the cell factory to use to create {@link GridCell} instances to
@@ -404,7 +404,8 @@ public class ImprovedGridView<T> extends Control {
     }
 
 
-    // --- items
+    private ObjectProperty<ObservableList<T>> items = new SimpleObjectProperty<>(this, "items");
+
     /**
      * The items to be displayed in the GridView (as rendered via {@link GridCell}
      * instances). For example, if the {@link ColorGridCell} were being used
@@ -418,19 +419,16 @@ public class ImprovedGridView<T> extends Control {
      * necessary.
      */
     public final ObjectProperty<ObservableList<T>> itemsProperty() {
-        if (items == null) {
-            items = new SimpleObjectProperty<>(this, "items"); //$NON-NLS-1$
-        }
         return items;
     }
-    private ObjectProperty<ObservableList<T>> items;
 
     /**
      * Sets a new {@link ObservableList} as the items list underlying GridView.
      * The old items list will be discarded.
      */
     public final void setItems(ObservableList<T> value) {
-        itemsProperty().set(value);
+        if(value!=null)
+            itemsProperty().set(value);
     }
 
     /**
@@ -438,9 +436,8 @@ public class ImprovedGridView<T> extends Control {
      * GridView.
      */
     public final ObservableList<T> getItems() {
-        return items == null ? null : items.get();
+        return items.get();
     }
-
 
 
 

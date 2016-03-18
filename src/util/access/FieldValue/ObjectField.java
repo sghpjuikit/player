@@ -5,6 +5,8 @@
  */
 package util.access.FieldValue;
 
+import java.util.Comparator;
+
 import util.Util;
 import util.access.TypedValue;
 
@@ -16,13 +18,13 @@ import static util.Util.mapEnumConstant;
  */
 public interface ObjectField<V> extends TypedValue {
 
-    public Object getOf(V value);
+    Object getOf(V value);
 
     /** Returns description of the field. */
-    public String description();
+    String description();
 
     /** Returns name of the field. */
-    public String name();
+    String name();
 
     /**
      * Returns whether this value has human readable string representation. This
@@ -47,9 +49,20 @@ public interface ObjectField<V> extends TypedValue {
      * Used as string converter for fielded values. For example in tables.
      * When the object signifies empty value, empty string is returned.
      */
-    public String toS(Object o, String empty_val);
+    String toS(Object o, String empty_val);
 
-    public default String toS(V v, Object o, String empty_val) {
+    /**
+     * Returns a comparator comparing by the value extracted by this field or {@link util.functional.Util#SAME} if
+     * this field does not extract {@link java.lang.Comparable} type.
+     */
+    @SuppressWarnings("unchecked")
+    default <C> Comparator<? super V> comparator() {
+        return Comparable.class.isAssignableFrom(getType())
+                ? (a,b) -> ((Comparable<C>)getOf(a)).compareTo((C)getOf(b))
+                : util.functional.Util.SAME;
+    }
+
+    default String toS(V v, Object o, String empty_val) {
         return ObjectField.this.toS(o, empty_val);
     };
 
@@ -57,7 +70,7 @@ public interface ObjectField<V> extends TypedValue {
      * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case.
      */
-    public default String toStringCapital() {
+    default String toStringCapital() {
         String s = toString();
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
@@ -67,7 +80,7 @@ public interface ObjectField<V> extends TypedValue {
      * Converts first letter of the string to upper case and all others into
      * lower case.
      */
-    public default String toStringCapitalCase() {
+    default String toStringCapitalCase() {
         String s = toString();
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
@@ -79,34 +92,35 @@ public interface ObjectField<V> extends TypedValue {
      * <p>
      * Use to make {@link Enum} constants more human readable, for gui for example.
      */
-    public default String toStringEnum() {
+    default String toStringEnum() {
         String s = toString().replaceAll("_", " ");
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
 
-    public default double c_width() {
+    default double c_width() {
         return 70;
     }
 
-    public default boolean c_visible() {
+    default boolean c_visible() {
         return true;
     }
 
-    public default int c_order() {
+    default int c_order() {
         return (this instanceof Enum) ? ((Enum)this).ordinal() : 1;
     }
 
 
-    public static enum ColumnField implements ObjectField<Object> {
+    enum ColumnField implements ObjectField<Object> {
         INDEX;
+
+        ColumnField() {
+            mapEnumConstant(this, f -> f.ordinal()==0 ? "#" : Util.enumToHuman(f));
+        }
 
         @Override
         public Object getOf(Object value) {
             throw new UnsupportedOperationException("Not supported yet.");
-        }
-        private ColumnField() {
-            mapEnumConstant(this, f -> f.ordinal()==0 ? "#" : Util.enumToHuman(f));
         }
 
         @Override

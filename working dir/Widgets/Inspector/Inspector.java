@@ -61,6 +61,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
         tree.setCellFactory(TreeItems::buildTreeCell);
         tree.setRoot(TreeItems.treeApp());
+        (((TreeItems.SimpleTreeItem)tree.getRoot().getChildren().get(3))).showLeaves.set(false);
         tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             Object oi = ov==null ? null : ov.getValue();
             Object ni = nv==null ? null : nv.getValue();
@@ -95,7 +96,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
 
     @Override
     public void exploreFile(File f) {
-        TreeItem<File> root = (TreeItem) tree.getRoot().getChildren().get(2);
+        TreeItem<File> root = (TreeItem) tree.getRoot().getChildren().get(3);
 
         // expand up to root + partitions
         tree.getRoot().setExpanded(true);

@@ -34,7 +34,7 @@ public enum FileField implements ObjectField<File> {
     private final Ƒ1<File,?> mapper;
     private final Class<?> type;
 
-    private <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
+    <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
         mapEnumConstant(this, Util::enumToHuman);
         this.mapper = mapper;
         this.description = description;

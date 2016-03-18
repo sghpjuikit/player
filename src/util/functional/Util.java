@@ -5,6 +5,7 @@
  */
 package util.functional;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collector;
@@ -188,19 +189,54 @@ public class Util {
     public static final Comparator<? super String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
 
     /**
-     * Creates comparator comparing E elements by derived {@link Comparable}, for
-     * example a Comparable field, obtained by the converter.
-     * Utilizes Comparable.compareTo().
-     * <p>
-     * Easy and concise way to compare objects without code duplication
+     * Creates comparator comparing E elements by extracte {@link Comparable} value.
      * <p>
      * This method is generic Comparator factory producing comparators comparing
      * the obtained result of the comparable supplier.
+     * <p>
+     * The returned comparator is serializable if the specified function
+     * and comparator are both serializable.
      *
-     * @param toStr E to Comparable mapper, derives Comparable from E.
+     * @param  <E> the type of element to be compared
+     * @param  <C> the type of the extracted value to compare by
+     * @param  extractor the function used to extract the value to compare by
+     * @return comparator that compares by an extracted comparable value
+     * @throws NullPointerException if argument is null
      */
-    public static<E,C extends Comparable<? super C>> Comparator<E> by(Callback<E,C> toStr) {
-        return (a,b) -> toStr.call(a).compareTo(toStr.call(b));
+    public static <E,C extends Comparable<? super C>> Comparator<E> by(Function<? super E, ? extends C> extractor) {
+        noØ(extractor);
+        return (Comparator<E> & Serializable) (a,b) -> extractor.apply(a).compareTo(extractor.apply(b));
+    }
+
+    /**
+     * Accepts a function that extracts a sort key from a type {@code T}, and
+     * returns a {@code Comparator<T>} that compares by that sort key using
+     * the specified {@link Comparator}.
+     * <p>
+     * The returned comparator is serializable if the specified function
+     * and comparator are both serializable.
+     *
+     * @apiNote
+     * For example, to obtain a {@code Comparator} that compares {@code Person} objects by their last name
+     * ignoring case differences,
+     *
+     * <pre>{@code
+     *     Comparator<Person> cmp = Comparator.comparing(
+     *             Person::getLastName,
+     *             String.CASE_INSENSITIVE_ORDER);
+     * }</pre>
+     *
+     * @param  <E> the type of element to be compared
+     * @param  <C> the type of the extracted value to compare by
+     * @param  extractor the function used to extract the value to compare by
+     * @param  comparator the {@code Comparator} used to compare the sort key
+     * @return comparator that compares by an extracted value using the specified {@code Comparator}
+     * @throws NullPointerException if any argument is null
+     */
+    public static <E, C> Comparator<E> by(Function<? super E, ? extends C> extractor, Comparator<? super C> comparator) {
+        noØ(extractor);
+        noØ(comparator);
+        return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a),extractor.apply(b));
     }
 
     /**
@@ -954,7 +990,7 @@ public class Util {
 
     @SafeVarargs
     public static <T> StreamEx<T> stream(T... t) {
-        return StreamEx.of(t);
+        return t.length==0 ? StreamEx.empty() : StreamEx.of(t);
     }
 
     public static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {

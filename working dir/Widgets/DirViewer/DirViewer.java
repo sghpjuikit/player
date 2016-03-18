@@ -108,8 +108,7 @@ public class DirViewer extends ClassController {
     });
 
 
-    private Input<File> input_Dir;
-    private final SingleR<PƑ0<File,Boolean>,?> fff = new SingleR<>(this::buildFilter);
+    private final SingleR<PƑ0<File,Boolean>,?> filterPredicate = new SingleR<>(this::buildFilter);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));
@@ -135,10 +134,10 @@ public class DirViewer extends ClassController {
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
 
-        input_Dir = inputs.create("Root directory", File.class, null, dir -> {
+        Input<File> input_Dir = inputs.create("Root directory", File.class, null, dir -> {
 //            if(dir instanceof File && ((File)dir).isDirectory() && ((File)dir).exists())
 //                files.setItems((File)dir);
-            if(dir!=null && dir.isDirectory() && dir.exists())
+            if (dir != null && dir.isDirectory() && dir.exists())
                 files.setItems(dir);
         });
 
@@ -265,15 +264,15 @@ public class DirViewer extends ClassController {
 
     private Comparator<? super Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
-                sortHomo = sort.get(); // sorts each group separately
-        FileField by = sortBy.get(); // precompute once for consistency and performance
+             sortHomo = sort.get(); // sorts each group separately
+        FileField field = sortBy.get(); // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                cmpHomo = sortHomo.cmp(by(i -> (Comparable)by.getOf(i.val)));
+                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 
     private boolean filter(File f) {
-        return !f.isHidden() && f.canRead() && fff.get().apply(f);
+        return !f.isHidden() && f.canRead() && filterPredicate.get().apply(f);
     }
 
     private static boolean file_exists(Item c, File f) {
@@ -396,8 +395,7 @@ public class DirViewer extends ClassController {
             runFX(() -> {
                 if(item==getItem()) { // prevents content inconsistency
                     boolean animate = animateThumbOn.get().needsAnimation(this,imgAlreadyLoaded,imgFile,img);
-                    thumb.loadImage(img);
-                    thumb.setFile(imgFile);
+                    thumb.loadImage(img, imgFile);
                     if(animate)
                         new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
                 }
@@ -418,7 +416,8 @@ public class DirViewer extends ClassController {
         Set<String> all_children = null; // all files, cache, use instead File.exists to reduce I/O
         Image cover = null;         // cover cache
         File cover_file = null;         // cover file cache
-        boolean coverFile_loaded = false, cover_loadedThumb = false, cover_loadedFull = false;
+        boolean coverFile_loaded = false, cover_loadedThumb = false;
+        volatile boolean cover_loadedFull = false;
         double last_gridposition = -1;
 
         public Item(Item parent, File value, FileType valtype) {
@@ -497,8 +496,7 @@ public class DirViewer extends ClassController {
                 boolean was_loaded = cover_loadedThumb;
                 if(!cover_loadedThumb) {
                     Image imgc = Thumbnail.getCached(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
-                    Image img = imgc!=null ? imgc : Util.loadImageThumb(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
-                    cover = img;
+                    cover = imgc!=null ? imgc : Util.loadImageThumb(file, cellSize.get().width,cellSize.get().height-CELL_TEXT_HEIGHT);
                     cover_loadedThumb = true;
                 }
                 action.accept(was_loaded,file,cover);
@@ -624,8 +622,8 @@ public class DirViewer extends ClassController {
 
         public boolean needsAnimation(Cell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
             if(this== IMAGE_CHANGE) return cell.thumb.image.get()!=img;
-            else if(this==IMAGE_CHANGE_1ST_TIME) return cell.thumb.image.get()==null && img!=null;
-            else if(this==IMAGE_CHANGE_FROM_EMPTY) return !imgAlreadyLoaded && img!=null;
+            else if(this==IMAGE_CHANGE_FROM_EMPTY) return cell.thumb.image.get()==null && img!=null;
+            else if(this==IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img!=null;
             else throw new SwitchException(this);
         }
     }

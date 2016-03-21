@@ -23,6 +23,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableListBase;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
@@ -83,9 +84,8 @@ import gui.Gui;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
-import gui.objects.Window.stage.UiContext;
+import gui.objects.Window.stage.*;
 import gui.objects.Window.stage.Window;
-import gui.objects.Window.stage.WindowManager;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.icon.Icon;
@@ -119,6 +119,7 @@ import util.file.Environment;
 import util.file.FileUtil;
 import util.file.ImageFileFormat;
 import util.functional.Functors;
+import util.graphics.MouseCapture;
 import util.plugin.IsPlugin;
 import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
@@ -149,8 +150,6 @@ import static util.file.Environment.browse;
 import static util.functional.Util.map;
 import static util.functional.Util.stream;
 import static util.graphics.Util.*;
-
-import gui.objects.Window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -226,6 +225,7 @@ public class App extends Application implements Configurable {
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     public final AppSerializator serializators = new AppSerializator(encoding);
     public final Configuration configuration = new Configuration();
+    public final MouseCapture mouseCapture = new MouseCapture();
     /** {@link System#out} provider. Allows multiple parties to listen to it and stop anytime. */
     public final SystemOutListener systemout = new SystemOutListener();
 
@@ -928,6 +928,20 @@ public class App extends Application implements Configurable {
                 }).toList();
         PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
                 o.show(App_Center);
+    }
+
+    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+SHIFT+P")
+    public static void openLauncher() {
+//        APP.widgetManager.use("AppLauncher", WidgetSource.NO_LAYOUT, c -> {});
+        APP.widgetManager.find("AppLauncher", WidgetSource.NO_LAYOUT, false)
+           .ifPresent(w -> {
+               javafx.stage.Window window = w.load().getScene().getWindow();
+               Rectangle2D s = getScreen(APP.mouseCapture.getMousePosition()).getVisualBounds();
+               window.setX(s.getMinX()+100);
+               window.setY(s.getMinY()+100);
+               w.load().prefWidth(s.getWidth()-200);
+               w.load().prefWidth(s.getHeight()-200);
+           });
     }
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")

@@ -1,20 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package gui.itemnode.textfield;
 
 import java.io.File;
 
 import util.file.Environment;
+import util.file.FileType;
 import util.parsing.Parser;
 
+import static util.file.FileType.DIRECTORY;
+import static util.file.FileType.FILE;
+
 /**
- * {@link AbstractFileField} for {@link File} objects denoting directories
+ * {@link TextFieldItemNode} for {@link File} objects denoting directories
  * specifically, not files.
- * <p>
+ *
  * @author Plutonium_
  */
 public class FileItemNode extends TextFieldItemNode<File> {
@@ -25,17 +24,14 @@ public class FileItemNode extends TextFieldItemNode<File> {
 
     @Override
     void onDialogAction() {
-        boolean isDir = v==null || v.isDirectory();
-        File f = Environment.chooseFile(isDir ? "Choose directory" : "Choose file", isDir, v, getScene().getWindow());
+        FileType type = v==null || v.isDirectory() ? DIRECTORY : FILE;
+        File f = Environment.chooseFile(type==DIRECTORY ? "Choose directory" : "Choose file", type, v, getScene().getWindow());
         if(f!=null) setValue(f);
     }
 
     @Override
     String itemToString(File item) {
-        if(item!=null && item.isDirectory())
-            return item.getPath();
-        else
-            return "";
+        return item==null ? "<none>" : item.getPath();
     }
 
 }

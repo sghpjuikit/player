@@ -28,7 +28,7 @@ import static util.reactive.Util.maintain;
  *
  * @author Plutonium_
  */
-public class PlaceholderPane extends StackPane {
+public class Placeholder extends StackPane {
 
     private static final String STYLECLASS = "placeholder-pane";
     private static final String STYLECLASS_ICON = "placeholder-pane-icon";
@@ -38,7 +38,7 @@ public class PlaceholderPane extends StackPane {
     private Subscription s;
 //    private Pane parent;
 
-    public PlaceholderPane(GlyphIcons icoN, String text, Runnable onClick) {
+    public Placeholder(GlyphIcons icoN, String text, Runnable onClick) {
         icon.icon(icoN);
         icon.onClick(onClick);
         desc.setText(text);

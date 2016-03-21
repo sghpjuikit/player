@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gui.objects.ContextMenu.ImprovedContextMenu;
-import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;
 import main.App;
 import util.SingleR;
@@ -627,7 +626,7 @@ public class Thumbnail extends ImageNode {
                 menuItem("Fullscreen", e -> {
                     File f = getValue().fsImageFile;
                     if(ImageFileFormat.isSupported(f)) {
-                        Screen screen = WindowBase.getScreen(getX(),getY());
+                        Screen screen = util.graphics.Util.getScreen(getX(),getY());
                         App.openImageFullscreen(f,screen);
                     }
                 }),

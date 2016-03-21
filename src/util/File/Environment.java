@@ -39,6 +39,7 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Purpose.UNTESTED;
 import static util.dev.Util.log;
+import static util.file.FileType.DIRECTORY;
 import static util.functional.Util.filter;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
@@ -230,8 +231,8 @@ public class Environment {
             openIn(files.get(0), inApp);
         } else {
             if(inApp) {
-                List<File> audio = filter(files, f->AudioFileFormat.isSupported(f, Use.PLAYBACK));
-                List<File> images = filter(files, f->ImageFileFormat.isSupported(f));
+                List<File> audio = filter(files, f -> AudioFileFormat.isSupported(f, Use.PLAYBACK));
+                List<File> images = filter(files, f -> ImageFileFormat.isSupported(f));
 
                 if(!audio.isEmpty())
                     PlaylistManager.use(p -> p.addUris(map(audio,File::toURI)));
@@ -247,8 +248,8 @@ public class Environment {
         }
     }
 
-    public static File chooseFile(String title, boolean dir, File initial, Window w, ExtensionFilter... exts) {
-        if(dir) {
+    public static File chooseFile(String title, FileType type, File initial, Window w, ExtensionFilter... exts) {
+        if(type==DIRECTORY) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
             c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));

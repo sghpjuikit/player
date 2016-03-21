@@ -119,7 +119,6 @@ public abstract class DecoratedTextFieldSkin extends TextFieldSkin {
         return super.getIndex(x - leftWidth, y);
     }
 
-
     @Override
     protected double computePrefWidth(double h, double topInset, double rightInset, double bottomInset, double leftInset) {
         final double pw = super.computePrefWidth(h, topInset, rightInset, bottomInset, leftInset);

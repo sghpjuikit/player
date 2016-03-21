@@ -41,7 +41,7 @@ import static util.functional.Util.IS;
  *
  * @author Plutonium_
  */
-public class DragPane extends PlaceholderPane {
+public class DragPane extends Placeholder {
 
     private static final String ACTIVE = "DRAG_PANE";
     private static final String INSTALLED = "DRAG_PANE_INSTALLED";

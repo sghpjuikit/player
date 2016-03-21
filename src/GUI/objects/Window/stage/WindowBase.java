@@ -14,6 +14,7 @@ import gui.Gui;
 import gui.objects.Window.Resize;
 import util.access.CyclicEnum;
 import util.dev.Dependency;
+import util.graphics.Util;
 
 import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.Window.stage.WindowBase.Maximized.NONE;
@@ -105,7 +106,7 @@ public class WindowBase {
 
         s.setX(X.get());
         s.setY(Y.get());
-        screen = getScreen(getCenterXY()); // update screen
+        screen = Util.getScreen(getCenterXY()); // update screen
         demax_x = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
         demax_x = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
@@ -128,26 +129,30 @@ public class WindowBase {
     public Stage getStage() {
         return s;
     }
+
     public double getHeight() {
         return s.getHeight();
     }
+
     public double getWidth() {
         return s.getWidth();
     }
+
     public double getX() {
         return s.getX();
     }
+
     public double getY() {
         return s.getY();
     }
+
     public double getCenterX() {
         return s.getX()+getWidth()/2;
     }
+
     public double getCenterY() {
         return s.getY()+getHeight()/2;
     }
-
-/********************************** SCREEN ************************************/
 
     // cached, needs to be updated when size or position changes
     Screen screen = Screen.getPrimary();
@@ -162,25 +167,6 @@ public class WindowBase {
         return screen;
     }
 
-    /** Returns screen containing the given coordinates. Never null. */
-    public static Screen getScreen(Point2D p) {
-        return getScreen(p.getX(), p.getY());
-    }
-    /** Returns screen containing the given coordinates. Never null. */
-    public static Screen getScreen(double x, double y) {
-        // rely on official util (someone hid it..., good work genius)
-        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
-//        for (Screen scr : Screen.getScreens())
-//            if (scr.getBounds().intersects(x,y,1,1)) {
-//                return scr;
-//                // unknown whether this affects functionality
-////                break;
-//            }
-//        // avoid null
-//        return Screen.getPrimary();
-    }
-
-/******************************************************************************/
 
     /**
      * The value of the property resizable
@@ -547,7 +533,7 @@ public class WindowBase {
         s.setY(y);
         X.set(x);
         Y.set(y);
-        screen = getScreen(getCenterXY()); // update screen
+        screen = Util.getScreen(getCenterXY()); // update screen
         if(snap) snap();
     }
 
@@ -582,7 +568,7 @@ public class WindowBase {
         // if(snap) snap();
         W.set(s.getWidth());
         H.set(s.getHeight());
-        screen = getScreen(getCenterXY()); // update screen
+        screen = Util.getScreen(getCenterXY()); // update screen
     }
 
     @Dependency("must update screen")
@@ -592,7 +578,7 @@ public class WindowBase {
         s.setHeight(height);
         W.set(s.getWidth());
         H.set(s.getHeight());
-        screen = getScreen(getCenterXY()); // update screen
+        screen = Util.getScreen(getCenterXY()); // update screen
     }
 
     /**

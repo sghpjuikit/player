@@ -66,7 +66,7 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
 
         // set the button to the right & action
         setRight(new ArrowDialogButton());
-        getRight().setOnMouseClicked( e -> onDialogAction());
+        getRight().setOnMouseClicked(e -> onDialogAction());
 
         setEditable(false);
 

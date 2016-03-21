@@ -16,6 +16,7 @@ import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -63,10 +64,13 @@ import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static util.Util.*;
 import static util.async.Async.run;
 import static util.functional.Util.*;
+import static util.graphics.Util.layAnchor;
+import static util.graphics.Util.setMinPrefMaxHeight;
 import static util.reactive.Util.maintain;
 
 /**
@@ -186,9 +190,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     @Override
     public final HBox getNode() {
-        if(!root.getChildren().contains(getControl()))
-            root.getChildren().add(0, getControl());
-        HBox.setHgrow(getControl(), SOMETIMES);
+        Node config = getControl();
+        if(!root.getChildren().contains(config))
+            root.getChildren().add(0, config);
+        HBox.setHgrow(config, ALWAYS);
+        HBox.setHgrow(config.getParent(), ALWAYS);
         return root;
     }
 
@@ -276,7 +282,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /**
      * Creates ConfigFfield best suited for the specified Field.
-     * @param f field for which the GUI will be created
+     * @param config field for which the GUI will be created
      */
     public static <T> ConfigField<T> create(Config<T> config) {
 
@@ -797,7 +803,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         public FileField(Config<File> c) {
             super(c);
-
             ObservableValue<File> v = getObservableValue(c);
             observable = v!=null;
             editor.setValue(config.getValue());
@@ -850,8 +855,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
 
-        ListConfigField<T,ConfigurableField> chain;
-        ListConfig<T> lc;
+        private final ListConfigField<T,ConfigurableField> chain;
+        private final ListConfig<T> lc;
 
         public ListField(Config<ObservableList<T>> c) {
             super(c);
@@ -900,8 +905,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if(value.getClass().equals(o.getClass())) return (T)o;
                 else return super.getValue();
             }
-
-
 
         }
     }

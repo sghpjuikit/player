@@ -17,7 +17,7 @@ import gui.Gui;
 import util.SingleR;
 import util.SwitchException;
 import util.graphics.drag.DragUtil;
-import util.graphics.drag.PlaceholderPane;
+import util.graphics.drag.Placeholder;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static Layout.widget.Widget.LoadType.AUTOMATIC;
@@ -48,8 +48,8 @@ public final class WidgetArea extends Area<Container> {
     @FXML public StackPane content_padding;
     private Subscription s,s2;
     private final Widget<?> widget;
-    private final SingleR<PlaceholderPane,Widget<?>> passiveLoadPane = new SingleR<>(
-        () -> new PlaceholderPane(UNFOLD, "", () -> loadWidget(true)),
+    private final SingleR<Placeholder,Widget<?>> passiveLoadPane = new SingleR<>(
+        () -> new Placeholder(UNFOLD, "", () -> loadWidget(true)),
         (ph,w) -> ph.desc.setText("Unfold " + w.custom_name.getValue() + " (Left Click)")
     );
 

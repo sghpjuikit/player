@@ -39,19 +39,19 @@ import static util.dev.Util.yes;
 public class Util {
 
     /** Function returning the inputs. */
-    public static final Ƒ1<? super Object,Object> IDENTITY = o -> o;
+    public static final Ƒ1<Object,Object> IDENTITY = o -> o;
 
     /** Predicate returning true iff object is not null. */
-    public static final ƑP<? super Object> ISNTØ = Objects::nonNull;
+    public static final ƑP<Object> ISNTØ = Objects::nonNull;
 
     /** Predicate returning true iff object is null. */
-    public static final ƑP<? super Object> ISØ = Objects::isNull;
+    public static final ƑP<Object> ISØ = Objects::isNull;
 
     /** Predicate returning true. Matches every object. */
-    public static final ƑP<? super Object> IS = o -> true;
+    public static final ƑP<Object> IS = o -> true;
 
     /** Predicate returning false. Matches no object. */
-    public static final ƑP<? super Object> ISNT = o -> false;
+    public static final ƑP<Object> ISNT = o -> false;
 
     /** Comparator returning 0. Produces no order change. */
     public static Comparator SAME = (a,b) -> 0;

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import de.jensd.fx.glyphs.GlyphIcons;
 import util.file.Environment;
 import util.async.future.Fut;
+import util.file.FileType;
 import util.graphics.drag.DragPane;
 import util.graphics.drag.DragUtil;
 
@@ -22,6 +23,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static util.async.future.Fut.fut;
+import static util.file.FileType.FILE;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
@@ -66,7 +68,7 @@ public class ThumbnailWithAdd extends Thumbnail {
         // add image on click
         root.addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton()==PRIMARY) {
-                File f = Environment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
+                File f = Environment.chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow());
                 if (f!= null && onFileDropped!=null) onFileDropped.accept(fut(f));
                 e.consume();
             }

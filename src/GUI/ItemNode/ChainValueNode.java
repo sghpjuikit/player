@@ -20,27 +20,33 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
-import util.conf.Config;
-import util.conf.Configurable;
 import Layout.widget.feature.ConfiguringFeature;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
+import util.conf.Config;
+import util.conf.Configurable;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.scene.paint.Color.BLACK;
 import static util.dev.Util.yes;
 import static util.functional.Util.*;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.setMinPrefMaxHeight;
 
 /**
  * {@link ValueNode} containing editable list of {@link ValueNode}.
@@ -86,7 +92,6 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         maxChainLength.set(max_len);
         this.chainedFactory = chainedFactory;
         growTo(len);
-
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
             if(m<chain.size()) {
@@ -296,16 +301,18 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         }
 
     }
-    public static class ConfigPane<T> implements ConfiguringFeature{
+    public static class ConfigPane<T> implements ConfiguringFeature {
         private final FlowPane root = new FlowPane(5,5);
         private final List<ConfigField<T>> configs = new ArrayList<>();
         Runnable onChange;
 
         public ConfigPane() {}
+
         public ConfigPane(Collection<Config<T>> configs) {
             this.configs.clear();
             configure((Collection)configs);
         }
+
         public ConfigPane(Configurable<T> configs) {
             this(configs.getFields());
         }
@@ -323,9 +330,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                       l.setPrefWidth(100);
                       l.setTextAlignment(TextAlignment.RIGHT);
                       l.setPadding(new Insets(0, 0, 0, 5));
-                HBox h = new HBox(5,l,cf.getNode());
+                HBox h = new HBox(5, l,cf.getNode());
                      if(l.getText().isEmpty()) h.getChildren().remove(l);
                      h.setAlignment(CENTER_LEFT);
+                HBox.setHgrow(cf.getNode(), ALWAYS);
                 return h;
             }));
         }
@@ -337,6 +345,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         public Stream<T> getValues() {
             return configs.stream().map(ConfigField::getValue);
         }
+
         public List<ConfigField<T>> getValuesC() {
             return configs;
         }

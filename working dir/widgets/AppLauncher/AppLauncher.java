@@ -1,36 +1,41 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package DirViewer;
+package AppLauncher;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
+
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
 
 import Layout.widget.Widget;
 import Layout.widget.controller.ClassController;
-import Layout.widget.controller.io.Input;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
-import util.SingleR;
+import main.ImageThumbIconTest;
+import sun.awt.shell.ShellFolder;
+import unused.TriConsumer;
 import util.Sort;
 import util.SwitchException;
 import util.access.FieldValue.FileField;
 import util.access.V;
-import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -38,59 +43,48 @@ import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
-import util.file.*;
-import util.file.AudioFileFormat.Use;
-import util.functional.Functors.PƑ0;
+import util.dev.Util;
+import util.file.Environment;
+import util.file.FileSort;
+import util.file.FileType;
+import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 
-import static DirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static DirViewer.DirViewer.CellSize.NORMAL;
+import static AppLauncher.AppLauncher.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static AppLauncher.AppLauncher.CellSize.NORMAL;
 import static Layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.access.FieldValue.FileField.NAME;
-import static util.async.Async.FX;
-import static util.async.Async.newSingleDaemonThreadExecutor;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
-import static util.async.Async.sleep;
+import static util.async.Async.*;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
-import static util.file.FileType.DIRECTORY;
+import static util.file.FileType.FILE;
 import static util.file.FileUtil.getName;
-import static util.file.FileUtil.listFiles;
-import static util.functional.Util.*;
+import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
+import static util.graphics.drag.DragUtil.installDrag;
 
-/**
- *
- * @author Plutonium_
- */
 @Widget.Info(
-        author = "Martin Polakovic",
-        programmer = "Martin Polakovic",
-        name = "Dir Viewer",
-        description = "Displays directory hierarchy and files as thumbnails in a "
-                + "vertically scrollable grid. Intended as simple library",
-        howto = "",
-        notes = "",
-        version = "0.5",
-        year = "2015",
-        group = OTHER
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "AppLauncher",
+    description = "Launches programs",
+    howto = "",
+    notes = "",
+    version = "1",
+    year = "2016",
+    group = OTHER
 )
-public class DirViewer extends ClassController {
+public class AppLauncher extends ClassController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
 
-    @IsConfig(name = "Location", info = "Root directory the contents of to display "
-            + "This is not a file system browser, and it is not possible to "
-            + "visit parent of this directory.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
+    @IsConfig(name = "Location", info = "Add program")
+    final VarList<File> files = new VarList<>(() -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
 
     private final ImprovedGridView<Item> grid = new ImprovedGridView<>(NORMAL.width,NORMAL.height,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
@@ -99,18 +93,18 @@ public class DirViewer extends ClassController {
     boolean initialized = false;
     private volatile boolean isResizing = false;
     private volatile long visitId = 0;
-    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS,"Click to view directory", () -> {
-        File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowOwner.getStage());
-        if(dir!=null) files.list.setAll(dir);
-    });
-    private final SingleR<PƑ0<File,Boolean>,?> filterPredicate = new SingleR<>(this::buildFilter);
+    private final Placeholder placeholder = new Placeholder(
+        FOLDER_PLUS, "Click to add launcher or drag & drop a file",
+        () -> {
+            File dir = chooseFile("Choose program or file", FILE, APP.DIR_HOME, APP.windowOwner.getStage());
+            if(dir!=null) files.list.add(dir);
+        }
+    );
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));
     @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
-    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<>("All", () -> map(filters,f -> f.name), v -> buildFilter(), f -> revisitCurrent());
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(ASCENDING, this::resort);
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
@@ -118,23 +112,14 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, this::resort);
 
-    @IsConfig(name = "Last visited", info = "Last visited item.", editable = false)
-    File lastVisited = null;
-    Item item = null;   // item, children of which are displayed
+    public AppLauncher() {
+        setPrefSize(500,500);
 
-    public DirViewer() {
-        files.onListInvalid(list -> revisitTop());
+        files.onListInvalid(list -> visit());
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
-
-        Input<File> input_Dir = inputs.create("Root directory", File.class, null, dir -> {
-//            if(dir instanceof File && ((File)dir).isDirectory() && ((File)dir).exists())
-//                files.setItems((File)dir);
-            if (dir != null && dir.isDirectory() && dir.exists())
-                files.setItems(dir);
-        });
 
         // delay cell loading when content is being resized (increases resize performance)
         double delay = 200; // ms
@@ -143,20 +128,19 @@ public class DirViewer extends ClassController {
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-
         grid.setOnKeyPressed(e -> {
             if(e.getCode()==ENTER) {
                 Item si = grid.selectedItem.get();
                 if(si!=null) doubleClickItem(si);
             }
-            if(e.getCode()==BACK_SPACE)
-                visitUp();
-        });
-        grid.setOnMouseClicked(e -> {
-            if(e.getButton()==SECONDARY)
-                visitUp();
         });
         setOnScroll(Event::consume);
+
+        installDrag(
+            this, FontAwesomeIcon.PLUS_SQUARE_ALT, "Add launcher",
+            DragUtil::hasFiles,
+            e -> files.list.addAll(DragUtil.getFiles(e))
+        );
     }
 
     @Override
@@ -166,32 +150,14 @@ public class DirViewer extends ClassController {
         // temporary bugfix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
-        runLater(this::revisitCurrent);
+        runLater(this::visit);
     }
 
-    // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
-    // the user source - collection of directories // implement
-    void visitUp() {
-//        if(item!=null) {
-//            if(item.parent!=null) visitDir(item.parent);
-//            else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
-//        }
-        if(item!=null && item.parent!=null)
-            visit(item.parent);
-    }
-
-    private void visit(Item dir) {
-        visit(dir, null);
-    }
-
-    private void visit(Item dir, Item scrollTo) {
+    private void visit() {
         if(!initialized) return;
-        if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
-        if(item==dir) return;
+        Item item = new TopItem();
+        item.last_gridposition = grid.getSkinn().getFlow().getPosition();
         visitId++;
-
-        item = dir;
-        lastVisited = dir.val;
         if(item==null) {
             grid.getItems().clear();
             grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
@@ -210,54 +176,10 @@ public class DirViewer extends ClassController {
         }
     }
 
-    /** Visits top/root item. Rebuilds entire hierarchy. */
-    private void revisitTop() {
-        disposeItems();
-        visit(new TopItem());
-    }
-
-    /** Visits last visited item. Rebuilds entire hierarchy. */
-    private void revisitCurrent() {
-        disposeItems();
-        Item topitem = new TopItem();
-        if(lastVisited==null) {
-            visit(topitem);
-        } else {
-            Stack<File> path = new Stack<>(); // nested items we need to rebuild to get to last visited
-            File f = lastVisited;
-            while(f!=null && !files.list.contains(f)) {
-                path.push(f);
-                f = f.getParentFile();
-            }
-            boolean success = files.list.contains(f);
-            if(success) {
-                executorIO.execute(() -> {
-                    Item item = topitem;
-                    while (!path.isEmpty()) {
-                        File tmp = path.pop();
-                        item = stream(item.children()).findAny(child -> child.val.equals(tmp)).orElse(null);
-                    }
-                    Item i = item;
-                    runFX(() -> visit(i));
-                });
-            } else {
-                visit(topitem);
-            }
-        }
-    }
-
-    private void disposeItems() {
-        Item i = item;
-        while(i!=null && i.parent!=null)
-            i = i.parent;
-        if(i!=null) i.dispose();
-    }
-
     private void doubleClickItem(Item i) {
-        if(i.valtype==DIRECTORY) DirViewer.this.visit(i);
-        else Environment.open(i.val);
+        Environment.open(i.val);
     }
-
+    private static FileSystemView fileUtils = FileSystemView.getFileSystemView();
     /** Resorts grid's items according to current sort criteria. */
     private void resort() {
         grid.getItems().sort(buildSortComparator());
@@ -265,19 +187,102 @@ public class DirViewer extends ClassController {
 
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
-             sortHomo = sort.get(); // sorts each group separately
+                sortHomo = sort.get(); // sorts each group separately
         FileField field = sortBy.get(); // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+                cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 
-    private boolean filter(File f) {
-        return !f.isHidden() && f.canRead() && filterPredicate.get().apply(f);
+    private static final FileSystemView fs = FileSystemView.getFileSystemView();
+    private static final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+
+    private static final Image getIcon(File file) {
+        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+        return i==null ? null : imageSwingToFx(i);
+
+//        ImageIcon i = getLargeIcon(file);
+//        return i==null ? null : imageAwtToFx(i.getImage());
     }
 
-    private static boolean file_exists(Item c, File f) {
-        return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
+    private static final void getIcon(File file, Consumer<Image> action) {
+//        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+//        return i==null ? null : imageSwingToFx(i);
+
+        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+        if(i==null) action.accept(null);
+        else imageSwingToFx(i, action);
+
+
+//        ImageIcon i = getLargeIcon(file);
+//        return i==null ? null : imageAwtToFx(i.getImage());
+    }
+
+    private static ImageIcon getLargeIcon(File file) {
+        try {
+            if(file==null) throw new FileNotFoundException("File is null");
+            ShellFolder sf = ShellFolder.getShellFolder(file);
+            return new ImageIcon(sf.getIcon(true), sf.getFolderType());
+        } catch (FileNotFoundException e) {
+            Util.log(AppLauncher.class).warn("Couldnt load icon for {}", file);
+            return null;
+        }
+    }
+
+    private static Image imageAwtToFx(java.awt.Image awtImage) {
+        if(awtImage==null) return null;
+        BufferedImage bimg;
+        if (awtImage instanceof BufferedImage) {
+            bimg = (BufferedImage) awtImage ;
+        } else {
+            bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = bimg.createGraphics();
+            graphics.drawImage(awtImage, 0, 0, null);
+            graphics.dispose();
+        }
+        return SwingFXUtils.toFXImage(bimg, null);
+    }
+
+    private static void imageAwtToFx(java.awt.Image awtImage, Consumer<Image> then) {
+        if(awtImage==null) {
+            then.accept(null);
+            return;
+        }
+        BufferedImage bimg;
+        if (awtImage instanceof BufferedImage) {
+            bimg = (BufferedImage) awtImage ;
+        } else {
+            bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = bimg.createGraphics();
+            graphics.drawImage(awtImage, 0, 0, null);
+            graphics.dispose();
+        }
+        runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
+    }
+
+    private static Image imageSwingToFx(javax.swing.Icon swingIcon) {
+        if(swingIcon==null) return null;
+        BufferedImage bimg = new BufferedImage(
+                swingIcon.getIconWidth(),
+                swingIcon.getIconHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+        swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
+        return SwingFXUtils.toFXImage(bimg, null);
+    }
+
+    private static void imageSwingToFx(javax.swing.Icon swingIcon, Consumer<Image> then) {
+        if(swingIcon==null) {
+            then.accept(null);
+            return;
+        }
+        BufferedImage bimg = new BufferedImage(
+                swingIcon.getIconWidth(),
+                swingIcon.getIconHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+        swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
+        runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
     }
 
     /**
@@ -385,18 +390,15 @@ public class DirViewer extends ClassController {
             // load thumbnail
             double width = cellSize.get().width,
                    height = cellSize.get().height-CELL_TEXT_HEIGHT;
-            executorThumbs.execute(task(() ->
-                    item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img))
-            ));
-            // load high quality thumbnail
-            executorImage.execute(task(() ->
-                    item.loadCover(true,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img))
-            ));
+//            executorThumbs.execute(task(() ->
+                    item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img));
+//            ));
         }
 
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
                 if(item==getItem()) { // prevents content inconsistency
+                    System.out.println("sss " + img + " " + imgFile);
                     boolean animate = animateThumbOn.get().needsAnimation(this,imgAlreadyLoaded,imgFile,img);
                     thumb.loadImage(img, imgFile);
                     if(animate)
@@ -412,13 +414,19 @@ public class DirViewer extends ClassController {
         }
 
         @Override
-        protected Item createItem(Item parent, File value, FileType type) {
+        protected FItem createItem(Item parent, File value, FileType type) {
             return new FItem(parent, value, type);
         }
 
         @Override
-        protected boolean filterChildFile(File f) {
-            return DirViewer.this.filter(f);
+        public void loadCover(boolean full, double width, double height, TriConsumer<Boolean, File, Image> action) {
+            if(!cover_loadedFull) {
+                cover_loadedFull = true;
+                cover_loadedThumb = true;
+//                cover = getIcon(val);
+                cover = ImageThumbIconTest.getFileIcon(val);
+                action.accept(false, null, cover);
+            }
         }
     }
     private class TopItem extends FItem {
@@ -429,7 +437,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected Stream<File> children_files() {
-            return listFiles(files.list.stream());
+            return files.list.stream();
         }
 
         @Override
@@ -438,33 +446,6 @@ public class DirViewer extends ClassController {
         }
     }
 
-    // Filter summary:
-    // because we can not yet serialize functions (see Functors class and Parser) in  a way that
-    // stores state such as negation or function chaining, I dont use predicates from Functors'
-    // function pool, but 'hardcoded' the filters instead.
-    // We use String config to save which one we use.
-    private static final List<PƑ0<File,Boolean>> filters = list(
-        new PƑ0<>("All",        File.class,Boolean.class, file -> true),
-        new PƑ0<>("None",       File.class,Boolean.class, file -> false),
-        new PƑ0<>("Audio",      File.class,Boolean.class, file -> AudioFileFormat.isSupported(file, Use.APP)),
-        new PƑ0<>("No Audio",   File.class,Boolean.class, file -> !AudioFileFormat.isSupported(file, Use.APP)),
-        new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
-        new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
-    );
-
-    static {
-        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
-        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
-        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
-        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
-    }
-
-    private PƑ0<File,Boolean> buildFilter() {
-        String type = filter.getValue();
-        return stream(filters)
-                .findAny(f -> type.equals(f.name))
-                .orElseGet(() -> stream(filters).findAny(f -> "All".equals(f.name)).get());
-    }
 
     private Runnable task(Runnable r) {
         final long id = visitId;

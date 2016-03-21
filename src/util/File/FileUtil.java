@@ -651,14 +651,34 @@ public final class FileUtil {
         else return f;
     }
 
+    /**
+     * Returns suffix after last '.' character of the path of the file or empty
+     * string if it doesn't contain the character.
+     *
+     * @return suffix after last '.' in the path or empty string
+     * @throws java.lang.NullPointerException if parameter null
+     */
     public static String getSuffix(File f) {
         return getSuffix(f.getPath());
     }
 
+    /**
+     * Returns suffix after last '.' character of the path of the uri or empty
+     * string if it doesn't contain the character.
+     *
+     * @return suffix after last '.' in the path or empty string
+     * @throws java.lang.NullPointerException if parameter null or if uri path not defined
+     */
     public static String getSuffix(URI f) {
         return getSuffix(f.getPath());
     }
 
+    /**
+     * Returns suffix after last '.' character or empty string if doesn't contain the character.
+     *
+     * @return suffix after last '.' or empty string
+     * @throws java.lang.NullPointerException if parameter null
+     */
     public static String getSuffix(String path) {
         int p = path.lastIndexOf('.');
         return (p == - 1) ? "" : path.substring(p + 1);

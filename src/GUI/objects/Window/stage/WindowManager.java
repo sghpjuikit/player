@@ -56,6 +56,7 @@ import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 import util.dev.TODO.Purpose;
+import util.graphics.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -224,9 +225,9 @@ public class WindowManager implements Configurable<Object> {
         // moves taskbar icon to respective screen's taskbar
         w.moving.addListener((o,ov,nv) -> {
             if(ov && !nv)
-                APP.taskbarIcon.setScreen(w.getScreen(w.getCenterXY()));
+                APP.taskbarIcon.setScreen(Util.getScreen(w.getCenterXY()));
         });
-        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(w.getScreen(w.getCenterXY())));
+        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(Util.getScreen(w.getCenterXY())));
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
 //            if(nv) APP.taskbarIcon.iconify(nv);
 //        });

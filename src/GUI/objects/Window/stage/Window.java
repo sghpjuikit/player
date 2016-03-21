@@ -25,7 +25,6 @@ import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.io.StreamException;
 
 import AudioPlayer.playback.PLAYBACK;
@@ -42,8 +41,8 @@ import main.App;
 import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.executor.FxTimer;
 import util.conf.IsConfigurable;
+import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -108,23 +107,6 @@ public class Window extends WindowBase {
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
-
-    private static double mouse_speed = 0;
-    public static double mouse_x = 0;
-    public static double mouse_y = 0;
-    private static final Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();
-    private static FxTimer mouse_pulse = new FxTimer(100, -1, () -> {
-        double x = robot.getMouseX();
-        double y = robot.getMouseY();
-        mouse_speed = sqrt(pow(mouse_x-x,2)+pow(mouse_y-y,2));
-        // System.out.println(mouse_speed);
-        mouse_x = x;
-        mouse_y = y;
-    });
-
-    static {
-        mouse_pulse.start();
-    }
 
 /**************************************************************************************************/
 
@@ -506,7 +488,7 @@ public class Window extends WindowBase {
 
     /** Set false to never show header. */
     public void setHeaderAllowed(boolean val) {
-	setHeaderVisible(val ? headerVisible : false);
+	setHeaderVisible(val && headerVisible);
 	headerAllowed = val;
     }
 
@@ -611,6 +593,8 @@ public class Window extends WindowBase {
 
     private double appX;
     private double appY;
+    private Subscription mouseMonitor = null;
+    private double mouseSpeed = 0;
 
     private void moveStart(MouseEvent e) {
         // disable when being resized, resize starts at mouse pressed so
@@ -619,61 +603,61 @@ public class Window extends WindowBase {
 	if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
 //        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
 
+        mouseMonitor = APP.mouseCapture.monitorMouseVelocity(speed -> mouseSpeed = speed);
         isMoving.set(true);
-	appX = e.getSceneX();
-	appY = e.getSceneY();
+        appX = e.getSceneX();
+        appY = e.getSceneY();
     }
 
     private void moveDo(MouseEvent e) {
-	if (!isMoving.get() || e.getButton() != PRIMARY) return;
+        if (!isMoving.get() || e.getButton() != PRIMARY) return;
 
-	double X = e.getScreenX();
-	double Y = e.getScreenY();
+        double X = e.getScreenX();
+        double Y = e.getScreenY();
+        Screen screen = Util.getScreen(X, Y);
 
-	// get screen
-	Screen screen = getScreen(X, Y);
+        double SWm = screen.getBounds().getMinX(); //screen_wbegin
+        double SHm = screen.getBounds().getMinY(); //screen_wbegin
+        double SW = screen.getBounds().getMaxX(); //screen_width
+        double SH = screen.getBounds().getMaxY(); //screen_height
+        double SW5 = screen.getBounds().getWidth() / 5;
+        double SH5 = screen.getBounds().getHeight() / 5;
 
-	double SWm = screen.getBounds().getMinX(); //screen_wbegin
-	double SHm = screen.getBounds().getMinY(); //screen_wbegin
-	double SW = screen.getBounds().getMaxX(); //screen_width
-	double SH = screen.getBounds().getMaxY(); //screen_height
-	double SW5 = screen.getBounds().getWidth() / 5;
-	double SH5 = screen.getBounds().getHeight() / 5;
+        if (isMaximized() == Maximized.NONE)
+            setXY(X - appX, Y - appY);
 
-	if (isMaximized() == Maximized.NONE)
-	    setXY(X - appX, Y - appY);
+        // (imitate Aero Snap)
+        Maximized to;
 
-	// (imitate Aero Snap)
-	Maximized to;
+        //left screen edge
+        if (X <= SWm + 10)
+            if (Y < SHm + SH5) to = Maximized.LEFT_TOP;
+            else if (Y < SH - SH5) to = Maximized.LEFT;
+            else to = Maximized.LEFT_BOTTOM; // left screen part
+        else if (X < SWm + SW5)
+            if (Y <= SHm) to = Maximized.LEFT_TOP;
+            else if (Y < SH - 1) to = Maximized.NONE;
+            else to = Maximized.LEFT_BOTTOM; // middle screen
+        else if (X < SW - SW5)
+            if (Y <= SHm) to = Maximized.ALL;
+            else if (Y < SH - 1) to = Maximized.NONE;
+            else to = Maximized.NONE; // right screen part
+        else if (X < SW - 10)
+            if (Y <= SHm) to = Maximized.RIGHT_TOP;
+            else if (Y < SH - 1) to = Maximized.NONE;
+            else to = Maximized.RIGHT_BOTTOM; // right screen edge
+        else
+            if (Y < SHm + SH5) to = Maximized.RIGHT_TOP;
+            else if (Y < SH - SH5) to = Maximized.RIGHT;
+            else to = Maximized.RIGHT_BOTTOM;
 
-	//left screen edge
-	if (X <= SWm + 10)
-	    if (Y < SHm + SH5) to = Maximized.LEFT_TOP;
-	    else if (Y < SH - SH5) to = Maximized.LEFT;
-	    else to = Maximized.LEFT_BOTTOM; // left screen part
-	else if (X < SWm + SW5)
-	    if (Y <= SHm) to = Maximized.LEFT_TOP;
-	    else if (Y < SH - 1) to = Maximized.NONE;
-	    else to = Maximized.LEFT_BOTTOM; // middle screen
-	else if (X < SW - SW5)
-	    if (Y <= SHm) to = Maximized.ALL;
-	    else if (Y < SH - 1) to = Maximized.NONE;
-	    else to = Maximized.NONE; // right screen part
-	else if (X < SW - 10)
-	    if (Y <= SHm) to = Maximized.RIGHT_TOP;
-	    else if (Y < SH - 1) to = Maximized.NONE;
-	    else to = Maximized.RIGHT_BOTTOM; // right screen edge
-	else
-	    if (Y < SHm + SH5) to = Maximized.RIGHT_TOP;
-	    else if (Y < SH - SH5) to = Maximized.RIGHT;
-	    else to = Maximized.RIGHT_BOTTOM;
-
-	setScreen(screen);
-	setMaximized(mouse_speed<10 ? to : isMaximized());
+        setScreen(screen);
+        setMaximized(mouseSpeed<100 ? to : isMaximized());
     }
 
     private void moveEnd(MouseEvent e) {
         isMoving.set(false);
+        mouseMonitor.unsubscribe();
     }
 
 /*******************************    RESIZING  *********************************/

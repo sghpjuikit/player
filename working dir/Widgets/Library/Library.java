@@ -58,6 +58,7 @@ import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
+import util.file.FileType;
 import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -77,6 +78,7 @@ import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static main.App.APP;
+import static util.file.FileType.DIRECTORY;
 import static util.file.FileUtil.getCommonRoot;
 import static util.file.FileUtil.getFilesAudio;
 import static util.Util.menuItem;
@@ -319,7 +321,7 @@ public class Library extends FXMLController implements SongReader {
         Window w = root.getScene().getWindow();
         ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         if(dir) {
-            File f = Environment.chooseFile("Add folder to library", true, last_file, w, ef);
+            File f = Environment.chooseFile("Add folder to library", DIRECTORY, last_file, w, ef);
             if(f!=null) {
                 addNeditDo(fut(() -> {
                     last_file = f.getParentFile()==null ? f : f.getParentFile();

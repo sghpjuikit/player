@@ -52,6 +52,7 @@ import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
+import util.file.FileType;
 import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -60,6 +61,7 @@ import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
+import static util.file.FileType.DIRECTORY;
 import static util.file.FileUtil.getFilesAudio;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
@@ -488,7 +490,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * Clears active playlist completely and adds all items from new playlist.
      * Starts playing item with the given index. If index is out of range for new
      * playlist, handles according to behavior in playItem(index int) method.
-     * @param p new playlist.
+     * @param items items.
      * @param from index of item to play from
      * @throws NullPointerException if param null.
      */
@@ -499,7 +501,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * Plays new playlist.
      * Clears active playlist completely and adds all items from new playlist.
      * Starts playing first file.
-     * @param p new playlist.
+     * @param items items.
      * @throws NullPointerException if param null.
      */
     public void setNplay(Stream<? extends Item> items) {
@@ -713,7 +715,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public void addOrEnqueueFolder(boolean add) {
         File dir = Environment.chooseFile("Choose Audio Files From Directory Tree",
-                true, PlaylistManager.browse, APP.windowOwner.getStage());
+                DIRECTORY, PlaylistManager.browse, APP.windowOwner.getStage());
         if (dir != null) {
             PlaylistManager.browse = dir;
             List<URI> queue = new ArrayList<>();

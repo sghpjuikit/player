@@ -7,6 +7,7 @@ package main;
 
 import java.util.function.Consumer;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
@@ -14,6 +15,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import gui.objects.Window.stage.Window;
+import util.graphics.Util;
 
 import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static javafx.stage.StageStyle.DECORATED;
@@ -124,7 +126,9 @@ public class TaskBar {
                 s.focusedProperty().addListener((o,ov,nv) -> {
                     if(inconsistent || forbidIconify) return;
 
-                    if(Window.mouse_y<getScreenForPoint(Window.mouse_x,Window.mouse_y).getBounds().getMaxY()-50) {
+                    // FIXME: only works when taskbar at the bottom of the screen!
+                    Point2D mouse = APP.mouseCapture.getMousePosition();
+                    if(mouse.getX()< Util.getScreen(mouse).getBounds().getMaxY()-50) {
                         if(nv) {
                             System.out.println("ALT TAB event");
                             inconsistent = true;

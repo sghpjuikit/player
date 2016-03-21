@@ -17,6 +17,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -448,6 +449,26 @@ public class Util {
 
 /**************************************************************************************************/
 
+    /** Returns screen containing the given coordinates. Never null. */
+    public static Screen getScreen(Point2D p) {
+        return getScreen(p.getX(), p.getY());
+    }
+
+    /** Returns screen containing the given coordinates. Never null. */
+    public static Screen getScreen(double x, double y) {
+        // rely on official util (someone hid it..., good work genius)
+        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+
+//        for (Screen scr : Screen.getScreens())
+//            if (scr.getBounds().intersects(x,y,1,1)) {
+//                return scr;
+//                // unknown whether this affects functionality
+////                break;
+//            }
+//        // avoid null
+//        return Screen.getPrimary();
+    }
+
     /** Captures screenshot of the entire screen and runs custom action on fx thread. */
     public static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
         Rectangle2D r = screen.getBounds();
@@ -493,4 +514,5 @@ public class Util {
             }
         });
     }
+
 }

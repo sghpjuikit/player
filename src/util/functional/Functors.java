@@ -998,27 +998,27 @@ public class Functors {
         }
     }
 
-    public static enum StringDirection {
+    public enum StringDirection {
         FROM_START,
         FROM_END;
     }
 
     public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
 
-        public final PƑ<I,O> pf;
+        final PƑ<I,O> pf;
         private final List<Config<Object>> cs = new ArrayList();
 
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(), p -> {
-                V a = new V(p.defaultValue);
-                return new AccessorConfig(p.type,"",a::setValue,a::getValue);
+                V<Object> a = new V<>(p.defaultValue);
+                return new AccessorConfig<>(p.type,"",a::setValue,a::getValue);
             }));
         }
 
         @Override
         public O apply(I i) {
-            return pf.apply(i, cs.stream().map(c->c.getValue()).toArray());
+            return pf.apply(i, cs.stream().map(Config::getValue).toArray());
         }
 
     }

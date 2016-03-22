@@ -305,7 +305,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             Collection<?> collection = (Collection) data;
             Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
             if(fieldmap.containsKey(coltype)) {
-                FilteredTable<Object,?> t = new gui.objects.table.FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
+                FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
                 t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {

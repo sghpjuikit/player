@@ -11,23 +11,40 @@ import org.reactfx.Subscription;
 
 import com.sun.glass.ui.Robot;
 
+import util.access.V;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 
 import static util.dev.TODO.Purpose.UNTESTED;
 
 /**
- * Provides access to mouse position and speed.
- * Is lazy, i.e., consumes resources only if observed.
+ * Provides access to mouse position and mouse speed.
+ * By default is lazy, i.e., consumes resources only if observed.
  */
 @TODO(purpose = UNTESTED, note = "Make sure the class is thread safe")
 public class MouseCapture {
     private Robot robot;
-    private Set<Consumer<Point2D>> positionSubscribers = new HashSet<>();
-    private Set<DoubleConsumer> velocitySubscribers = new HashSet<>();
+    private final Set<Consumer<Point2D>> positionSubscribers = new HashSet<>();
+    private final Set<DoubleConsumer> velocitySubscribers = new HashSet<>();
     private FxTimer pulse;
     private Point2D lastPos = null;
     private boolean calcSpeed = false;
+    private Subscription lazy;
+    /**
+     * Denotes lazyness. Performance optimization.
+     * Use false when it is expected that mouse will not be observed and a
+     * lot of mouse position queries will be invoked.
+     * True by default.
+     * <p>
+     * If true, the resources used will be initialized and destroyed on
+     * each mouse position query, unless mouse (speed or position) is observed.
+     * If false, the resources will will live even if the mouse is not observed and at least until value changes to
+     * true, possibly longer, depending on whether mouse is observed.
+     */
+    public V<Boolean> isLazy = new V<>(true, is -> {
+        if(is) lazy.unsubscribe();
+        else lazy = observeMousePosition(pos -> {});
+    });
 
     public Point2D getMousePosition() {
         boolean dispose = robot==null;
@@ -37,7 +54,7 @@ public class MouseCapture {
         return p;
     }
 
-    public Subscription monitorMousePosition(Consumer<Point2D> action) {
+    public Subscription observeMousePosition(Consumer<Point2D> action) {
         if(positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
             startPulse();
         positionSubscribers.add(action);
@@ -45,14 +62,13 @@ public class MouseCapture {
     }
 
     /** Measured in px/second. */
-    public Subscription monitorMouseVelocity(DoubleConsumer action) {
+    public Subscription observeMouseVelocity(DoubleConsumer action) {
         if(positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
             startPulse();
         velocitySubscribers.add(action);
         calcSpeed = true;
         return () -> unsubscribe(action);
     }
-
 
     private void startPulse() {
         if(pulse==null) pulse = new FxTimer(100, -1, () -> {

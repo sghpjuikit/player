@@ -19,21 +19,17 @@ import javafx.beans.value.WritableValue;
 
 import org.atteo.classindex.ClassIndex;
 
-import util.conf.Config.FieldConfig;
-import util.conf.Config.ListConfig;
-import util.conf.Config.OverridablePropertyConfig;
-import util.conf.Config.PropertyConfig;
-import util.conf.Config.ReadOnlyPropertyConfig;
-import util.conf.Config.VarList;
-import util.action.Action;
-import util.file.FileUtil;
 import util.access.Vo;
+import util.action.Action;
 import util.collections.mapset.MapSet;
+import util.conf.Config.*;
+import util.file.FileUtil;
 
 import static util.Util.getAllFields;
 import static util.Util.getGenericPropertyType;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
+import static util.functional.Util.byNC;
 
 /**
  * Provides methods to access configs of the application.
@@ -43,7 +39,7 @@ import static util.dev.Util.yesFinal;
 public class Configuration {
 
     private static Lookup methodLookup = MethodHandles.lookup();
-    private final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup() + "." + c.getName());
+    private final MapSet<String,Config> configs = new MapSet<>(c -> (c.getGroup() + "." + c.getName()).toLowerCase());
 
     public void collect(Configurable<?> c) {
         configs.addAll(c.getFields());
@@ -102,15 +98,14 @@ public class Configuration {
      * Loops through Configuration fields and stores them all into file.
      */
     public void save(String title, File file) {
-        String header = ""
-            + "# " + title + " configuration file.\n"
-            + "# " + java.time.LocalTime.now() + "\n";
-        StringBuilder content = new StringBuilder(header);
+        StringBuilder content = new StringBuilder()
+            .append("# " + title + " configuration file" + "\n")
+            .append("# Last edited: " + java.time.LocalDateTime.now() + "\n");
 
-        Function<Config,String> f = configs.keyMapper;
+        Function<Config,String> converter = configs.keyMapper;
         getFields().stream()
-                   .sorted(util.functional.Util.byNC(f::apply))
-                   .forEach(c -> content.append(f.apply(c) + " : " + c.getValueS() + "\n"));
+                   .sorted(byNC(converter))
+                   .forEach(c -> content.append("\n" + converter.apply(c) + " : " + c.getValueS()));
 
         FileUtil.writeFile(file, content.toString());
     }
@@ -126,12 +121,11 @@ public class Configuration {
      * If field of given name does not exist it will be ignored as well.
      */
     public void load(File file) {
-        FileUtil.readFileKeyValues(file).forEach((id,value) -> {
-            Config<?> c = configs.get(id);
+        FileUtil.readFileKeyValues(file).forEach((key,value) -> {
+            Config<?> c = configs.get(key.toLowerCase());
             if (c!=null) c.setValueS(value);
         });
     }
-
 
 /******************************************************************************/
 
@@ -139,7 +133,6 @@ public class Configuration {
         IsConfigurable a = c.getAnnotation(IsConfigurable.class);
         return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
     }
-
 
     private void discoverConfigFieldsOf(Class<?> c) {
         configs.addAll(configsOf(c, null, true, false));
@@ -152,9 +145,9 @@ public class Configuration {
                     if (a != null) {
                         String name = a.value();
                         String group = getGroup(c);
-                        String config_id = group+"."+name;
-                        if(configs.containsKey(config_id) && !name.isEmpty()) {
-                            Config config = configs.get(config_id);
+                        String config_id = group + "." + name;
+                        if(configs.containsKey(config_id.toLowerCase()) && !name.isEmpty()) {
+                            Config config = configs.get(config_id.toLowerCase());
                             if(config instanceof FieldConfig) {
                                 try {
                                     m.setAccessible(true);
@@ -212,7 +205,7 @@ public class Configuration {
             return newFromProperty(f, instance, name, anotation, group);
         } else {
             try {
-                noFinal(f);            // make sure the field is not final
+                noFinal(f);                // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);

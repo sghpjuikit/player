@@ -25,9 +25,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.graphics.Util.createFMNTStage;
-import static util.graphics.Util.screenCaptureAndDo;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.*;
 
 /**
  * Pane laying 'above' window creating 'overlay' bgr above it.
@@ -50,7 +48,7 @@ public class OverlayPane extends StackPane {
         name = "Display method",
         info = "Can be shown per window or per screen. The latter provides more space as window "
               + "usually does not cover entire screen, but can get in the way of other apps.")
-    public final V<Display> display = new V<>(Display.SCREEN);
+    public final V<Display> display = new V<>(Display.SCREEN_OF_MOUSE);
     /** Handlers called just after this pane was shown. */
     public final SetƑ onShown = new SetƑ();
     /** Handlers called just after this pane was hidden. */
@@ -139,8 +137,8 @@ public class OverlayPane extends StackPane {
     }
 
 
-    public static enum Display {
-        WINDOW, SCREEN;
+    public enum Display {
+        WINDOW, SCREEN_OF_WINDOW, SCREEN_OF_MOUSE;
 
         private void animStart(OverlayPane op) {
             if(this==WINDOW) {
@@ -177,7 +175,9 @@ public class OverlayPane extends StackPane {
                 op.animation.playOpenDo(null);
                 op.onShown.run();
             } else {
-                Screen screen = APP.windowManager.getActive().getScreen();
+                Screen screen = this==SCREEN_OF_WINDOW
+                                    ? APP.windowManager.getActive().getScreen()
+                                    : getScreen(APP.mouseCapture.getMousePosition());
                 screenCaptureAndDo(screen, image -> {
                     Pane bgr = new Pane();
                          bgr.getStyleClass().add("bgr-image");   // replicate app window bgr for style & consistency

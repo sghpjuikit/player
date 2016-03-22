@@ -190,8 +190,6 @@ public class App extends Application implements Configurable {
     public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
     /** Home directory of the os. */
     public final File DIR_HOME = new File(System.getProperty("user.home"));
-    /** File for application configuration. */
-    public final File FILE_SETTINGS = new File(DIR_APP,"settings.cfg");
     /** Directory for application logging. */
     public final File DIR_LOG = new File(DIR_APP,"log");
     /** File for application logging configuration. */
@@ -202,11 +200,13 @@ public class App extends Application implements Configurable {
     public final File DIR_SKINS = new File(DIR_APP,"skins");
     public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");
     /** Directory containing user data. */
-    public File DIR_USERDATA =  new File("UserData").getAbsoluteFile();
+    public File DIR_USERDATA =  new File("user").getAbsoluteFile();
     /** Directory containing library database. */
     public File DIR_LIBRARY = new File(DIR_USERDATA, "Library");
     /** Directory containing playlists. */
     public File DIR_PLAYLISTS = new File(DIR_USERDATA, "Playlists");
+    /** File for application configuration. */
+    public final File FILE_SETTINGS = new File(DIR_USERDATA,"application.properties");
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -882,7 +882,7 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Open app directory", desc = "Opens directory from which this application is "
             + "running from.")
     public static void openAppLocation() {
-        browse(APP.DIR_APP);
+        Environment.open(APP.DIR_APP);
     }
 
     @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")

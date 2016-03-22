@@ -180,13 +180,13 @@ public class Util {
 /******************************************** COMPARATORS *****************************************/
 
     /** Comparator utilizing Comparable.compareTo() of the Comparables. */
-    public static final Comparator<? super Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
+    public static final Comparator<? super Comparable> COMPARATOR_DEF = Comparable::compareTo;
 
     /** String comparator utilizing String.compareTo() of the Strings */
     public static final Comparator<? super String> COMPARATOR_STR = COMPARATOR_DEF;
 
     /** String comparator utilizing String.compareToIgnoreCase(). */
-    public static final Comparator<? super String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
+    public static final Comparator<? super String> COMPARATOR_STR_CASELESS = String::compareToIgnoreCase;
 
     /**
      * Creates comparator comparing E elements by extracte {@link Comparable} value.
@@ -248,18 +248,18 @@ public class Util {
      * @param cmpGetter E to String mapper, derives String from E.
      * the object.
      */
-    public static<E> Comparator<E> byNC(Callback<E,String> toStr) {
-        return (a,b) -> toStr.call(a).compareToIgnoreCase(toStr.call(b));
+    public static<E> Comparator<E> byNC(Function<E,String> toStr) {
+        return (a,b) -> toStr.apply(a).compareToIgnoreCase(toStr.apply(b));
     }
 
     /** @return set of elements of provided collection with no duplicates. Order undefined. */
     public static<E> Set<E> noDups(Collection<E> c) {
-        return new HashSet(c);
+        return new HashSet<>(c);
     }
 
     /** @return set of elements of provided collection with no duplicates. Retains order. */
     public static<E> Set<E> noDupsStable(Collection<E> c) {
-        return new LinkedHashSet(c);
+        return new LinkedHashSet<>(c);
     }
 
 

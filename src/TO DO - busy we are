@@ -22,6 +22,7 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
 
+- Configuration config mapset should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
 - refactor GridView Cell implementation
 - break File into FileFile and DirFile and AnyFile(?) for typesafe Configs, theres no way to tell which user wants...

@@ -207,6 +207,8 @@ public class App extends Application implements Configurable {
     public File DIR_LIBRARY = new File(DIR_USERDATA, "Library");
     /** Directory containing playlists. */
     public File DIR_PLAYLISTS = new File(DIR_USERDATA, "Playlists");
+    /** Directory containing application resources. */
+    public File DIR_RESOURCES = new File(DIR_APP, "resources");
     /** File for application configuration. */
     public final File FILE_SETTINGS = new File(DIR_USERDATA,"application.properties");
 

@@ -39,7 +39,7 @@ import static util.functional.Util.stream;
  */
 public class Db {
 
-    private static final File MOODS_FILE = new File(APP.DIR_USERDATA, "MoodList.cfg");
+    private static final File MOODS_FILE = new File(APP.DIR_RESOURCES, "moods.cfg");
 
     public static EntityManagerFactory emf;
     public static EntityManager em;

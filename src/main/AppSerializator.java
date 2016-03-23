@@ -34,25 +34,40 @@ public final class AppSerializator {
         x = new XStream(new DomDriver(encoding.name()));
     }
 
-    @TODO(purpose = READABILITY, note = "remove exception and use return boolean flag instead")
-    public void toXML(Object o, File file) throws IOException {
+    public void toXML(Object o, File file) throws SeriallizationException {
         try (
             FileOutputStream fos = new FileOutputStream(file);
             OutputStreamWriter ow = new OutputStreamWriter(fos,encoding);
             BufferedWriter w = new BufferedWriter(ow);
         ) {
             x.toXML(o, w);
-        } catch(XStreamException | IOException e) {
-            throw new IOException("Couldnt serialize file", e);
+        // We need to be absolutely sure sp catch everything
+        // Apparently XStreamException | IOException is not enough
+        } catch(Throwable e) {
+            throw new SeriallizationException("Couldn't serialize to file " + file, e);
         }
     }
 
-    public <T> T fromXML(Class<T> type, File file) throws StreamException {
+    public <T> T fromXML(Class<T> type, File file) throws SeriallizationException {
         try {
             return (T) x.fromXML(file);
-        } catch(ClassCastException e) {
-            throw new StreamException(e);
+        // We need to be absolutely sure sp catch everything
+        // Apparently ClassCastException is not enough
+        } catch(Throwable e) {
+            throw new SeriallizationException("Couldn't deserialize " + type + " from file " + file, e);
         }
+    }
+
+    public static class SeriallizationException extends Exception {
+
+        public SeriallizationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public SeriallizationException(Throwable cause) {
+            super(cause);
+        }
+
     }
 
 }

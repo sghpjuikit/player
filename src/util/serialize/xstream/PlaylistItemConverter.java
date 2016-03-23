@@ -4,7 +4,7 @@
  */
 package util.serialize.xstream;
 
-import AudioPlayer.playlist.PlaylistItem;
+import audio.playlist.PlaylistItem;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;

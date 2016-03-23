@@ -5,8 +5,8 @@
  */
 package util.serialize.xstream;
 
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.sequence.PlayingSequence;
+import audio.playback.PlaybackState;
+import audio.playlist.sequence.PlayingSequence;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;

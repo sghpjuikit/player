@@ -22,13 +22,13 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
-import Layout.container.bicontainer.BiContainer;
-import Layout.container.switchcontainer.SwitchContainer;
-import Layout.widget.Widget;
+import layout.container.bicontainer.BiContainer;
+import layout.container.switchcontainer.SwitchContainer;
+import layout.widget.Widget;
 import gui.Gui;
-import gui.objects.PopOver.PopOver;
+import gui.objects.popover.PopOver;
 import gui.objects.Text;
-import gui.objects.Window.stage.Window;
+import gui.objects.window.stage.Window;
 import gui.objects.icon.Icon;
 import util.access.V;
 import util.action.Action;
@@ -38,7 +38,7 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
-import static Layout.container.Container.testControlContainer;
+import static layout.container.Container.testControlContainer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DEBUG_STEP_OVER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_2;

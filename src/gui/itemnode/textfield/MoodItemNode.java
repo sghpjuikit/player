@@ -5,10 +5,10 @@ import java.util.function.Consumer;
 
 import javafx.scene.layout.Region;
 
-import AudioPlayer.services.database.Db;
-import AudioPlayer.tagging.Metadata;
-import gui.objects.Pickers.MoodPicker;
-import gui.objects.PopOver.PopOver;
+import services.database.Db;
+import audio.tagging.Metadata;
+import gui.objects.picker.MoodPicker;
+import gui.objects.popover.PopOver;
 import util.parsing.Parser;
 
 import static org.controlsfx.control.textfield.TextFields.bindAutoCompletion;

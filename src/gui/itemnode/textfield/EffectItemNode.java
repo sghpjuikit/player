@@ -28,9 +28,9 @@ import javafx.scene.effect.SepiaTone;
 import javafx.scene.effect.Shadow;
 import javafx.scene.input.MouseEvent;
 
-import gui.objects.Pickers.Picker;
-import gui.objects.PopOver.PopOver;
-import gui.objects.Window.stage.UiContext;
+import gui.objects.picker.Picker;
+import gui.objects.popover.PopOver;
+import gui.objects.window.stage.UiContext;
 import gui.objects.icon.Icon;
 import util.ClassName;
 
@@ -63,7 +63,7 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
             try {
                 return type==null ? null : type.newInstance();
             } catch (InstantiationException | IllegalAccessException x) {
-                log(this).error("Config couldnt instantiate effect", x);
+                log(EffectItemNode.class).error("Config couldnt instantiate effect", x);
                 return null;
             }
         }

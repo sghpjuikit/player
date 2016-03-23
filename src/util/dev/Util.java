@@ -94,14 +94,14 @@ public class Util {
         return o;
     }
 
-    public static Logger log(Object o) {
-        return LoggerFactory.getLogger(o.getClass());
-    }
-
-    public static Logger log(Class c) {
+    /**
+     * Returns {@link org.slf4j.Logger} for the specified class.
+     * Equivalent to:
+     * <pre>{@code LoggerFactory.getLogger(c);}</pre>
+     */
+    public static Logger log(Class<?> c) {
         return LoggerFactory.getLogger(c);
     }
-
 
     /**
      * Returns all running threads. Incurrs performance penalty, do not use

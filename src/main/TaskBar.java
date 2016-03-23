@@ -14,10 +14,9 @@ import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import gui.objects.Window.stage.Window;
+import gui.objects.window.stage.Window;
 import util.graphics.Util;
 
-import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static javafx.stage.StageStyle.DECORATED;
 import static javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST;
 import static main.App.APP;

@@ -24,8 +24,8 @@ import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
 
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.PlaylistManager;
+import audio.playback.PLAYBACK;
+import audio.playlist.PlaylistManager;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -180,7 +180,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Set keys and scope of this action. See {@link #setGlobal(boolean)} and
      * {@link #setKeys(java.lang.String)}
      * @param global
-     * @param keys
+     * @param key_combination
      */
     public void set(boolean global, String key_combination) {
         unregister();
@@ -210,7 +210,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void runUnsafe() {
-        log(this).info("Shortcut {} execuing, global: {}.", name,global);
+        log(Action.class).info("Shortcut {} execuing, global: {}.", name,global);
 
         action.run();
         APP.actionStream.push(name);
@@ -271,7 +271,7 @@ public final class Action extends Config<Action> implements Runnable {
             try {
                 this.keys = KeyCombination.keyCombination(keys);
             } catch (Exception e) {
-                log(this).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name,keys,e);
+                log(Action.class).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name,keys,e);
                 this.keys = NO_MATCH;   // disable shortcut for wrong keys
             }
         }

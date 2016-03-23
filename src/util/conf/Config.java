@@ -20,7 +20,7 @@ import org.reactfx.Subscription;
 
 import util.Util;
 import util.access.ApplicableValue;
-import util.access.FieldValue.EnumerableValue;
+import util.access.fieldvalue.EnumerableValue;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.Vo;
@@ -200,7 +200,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             for(T v : enumerateValues())
                 if(Parser.DEFAULT.toS(v).equalsIgnoreCase(str)) return v;
 
-            log(this).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
+            log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
             return getDefaultValue();
         } else {
             return Parser.DEFAULT.fromS(getType(), str);
@@ -273,13 +273,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
     /**
      * Creates config for plain object - value. The difference from
-     * {@link #forProperty(java.lang.String, java.lang.Object) } is that
+     * {@link #forProperty(Class, String, Object)} is that
      * property is a value wrapper while value is considered immutable, thus
-     * new wrapper needs to be created (and will be automatically).
+     * a wrapper needs to be created (and will be automatically).
      * <p>
-     * If the value is not a value (its class is supported by
-     * ({@link #forProperty(java.lang.String, java.lang.Object)})
-     * Equivalent of: {@code return forProperty(name, new Accessor(property));}
+     * If the value is not a value (its class is supported by ({@link #forProperty(Class, String, Object)}),
+     * then that method is called.
      * or is null, runtime exception is thrown.
      */
     public static <T> Config<T> forValue(Class type, String name, Object value) {

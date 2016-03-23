@@ -23,7 +23,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableListBase;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
@@ -50,26 +49,26 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.mapper.Mapper;
 
-import AudioPlayer.Item;
-import AudioPlayer.Player;
-import AudioPlayer.SimpleItem;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.services.ClickEffect;
-import AudioPlayer.services.Service;
-import AudioPlayer.services.ServiceManager;
-import AudioPlayer.services.database.Db;
-import AudioPlayer.services.notif.Notifier;
-import AudioPlayer.services.playcount.PlaycountIncrementer;
-import AudioPlayer.services.tray.TrayService;
-import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataGroup;
-import AudioPlayer.tagging.MetadataReader;
-import Layout.Component;
-import Layout.widget.Widget;
-import Layout.widget.WidgetManager;
-import Layout.widget.WidgetManager.WidgetSource;
-import Layout.widget.feature.*;
+import audio.Item;
+import audio.Player;
+import audio.SimpleItem;
+import audio.playlist.Playlist;
+import audio.playlist.PlaylistItem;
+import services.ClickEffect;
+import services.Service;
+import services.ServiceManager;
+import services.database.Db;
+import services.notif.Notifier;
+import services.playcount.PlaycountIncrementer;
+import services.tray.TrayService;
+import audio.tagging.Metadata;
+import audio.tagging.MetadataGroup;
+import audio.tagging.MetadataReader;
+import layout.Component;
+import layout.widget.Widget;
+import layout.widget.WidgetManager;
+import layout.widget.WidgetManager.WidgetSource;
+import layout.widget.feature.*;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -81,11 +80,11 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.objects.PopOver.PopOver;
-import gui.objects.TableCell.RatingCellFactory;
-import gui.objects.TableCell.TextStarRatingCellFactory;
-import gui.objects.Window.stage.*;
-import gui.objects.Window.stage.Window;
+import gui.objects.popover.PopOver;
+import gui.objects.tablecell.RatingCellFactory;
+import gui.objects.tablecell.TextStarRatingCellFactory;
+import gui.objects.window.stage.*;
+import gui.objects.window.stage.Window;
 import gui.objects.grid.ImprovedGridCell;
 import gui.objects.grid.ImprovedGridView;
 import gui.objects.icon.Icon;
@@ -128,12 +127,12 @@ import util.reactive.SetƑ;
 import util.serialize.xstream.*;
 import util.units.FileSize;
 
-import static Layout.widget.WidgetManager.WidgetSource.*;
-import static Layout.widget.WidgetManager.WidgetSource.NEW;
+import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
-import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
+import static gui.objects.popover.PopOver.ScreenPos.App_Center;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
@@ -193,24 +192,24 @@ public class App extends Application implements Configurable {
     /** Home directory of the os. */
     public final File DIR_HOME = new File(System.getProperty("user.home"));
     /** Directory for application logging. */
-    public final File DIR_LOG = new File(DIR_APP,"log");
+    public final File DIR_LOG = new File(DIR_APP, "log");
     /** File for application logging configuration. */
-    public final File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
+    public final File FILE_LOG_CONFIG = new File(DIR_LOG, "log_configuration.xml");
     /** Directory containing widgets - source files, class files and widget's resources. */
-    public final File DIR_WIDGETS = new File(DIR_APP,"widgets");
+    public final File DIR_WIDGETS = new File(DIR_APP, "widgets");
     /** Directory containing skins. */
-    public final File DIR_SKINS = new File(DIR_APP,"skins");
-    public final File DIR_LAYOUTS = new File(DIR_APP,"layouts");
+    public final File DIR_SKINS = new File(DIR_APP, "skins");
     /** Directory containing user data. */
-    public File DIR_USERDATA =  new File("user").getAbsoluteFile();
+    public final File DIR_USERDATA =  new File(DIR_APP, "user");
     /** Directory containing library database. */
-    public File DIR_LIBRARY = new File(DIR_USERDATA, "Library");
+    public final File DIR_LIBRARY = new File(DIR_USERDATA, "library");
+    public final File DIR_LAYOUTS = new File(DIR_USERDATA, "layouts");
     /** Directory containing playlists. */
-    public File DIR_PLAYLISTS = new File(DIR_USERDATA, "Playlists");
+    public File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
     /** Directory containing application resources. */
     public File DIR_RESOURCES = new File(DIR_APP, "resources");
     /** File for application configuration. */
-    public final File FILE_SETTINGS = new File(DIR_USERDATA,"application.properties");
+    public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
 
     /**
      * Event source and stream for executed actions, providing their name. Use

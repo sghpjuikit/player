@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import javafx.collections.ObservableList;
 
-import util.access.FieldValue.EnumerableValue;
+import util.access.fieldvalue.EnumerableValue;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;

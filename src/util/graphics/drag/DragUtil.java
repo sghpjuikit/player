@@ -17,10 +17,10 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 
-import AudioPlayer.Item;
-import AudioPlayer.SimpleItem;
-import Layout.Component;
-import Layout.widget.controller.io.Output;
+import audio.Item;
+import audio.SimpleItem;
+import layout.Component;
+import layout.widget.controller.io.Output;
 import de.jensd.fx.glyphs.GlyphIcons;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;

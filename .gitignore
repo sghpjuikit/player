@@ -1,10 +1,10 @@
 ########################
 ## Project Specific
 ##########################
-working dir/*.cfg
 working dir/user/*
 working dir/**/*class
-working dir/Layouts/**
+working dir/log/*zip
+working dir/log/*log
 
 #####################
 # NetBeans specific #

@@ -92,6 +92,7 @@ public class ImageThumbIconTest extends Application {
 
     public static Image getFileIcon(File file) {
         String ext = FileUtil.getSuffix(file.getPath()).toLowerCase();
+//        file.i
         String key = "exe".equals(ext) ? FileUtil.getName(file) : ext;
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key, key_ -> {

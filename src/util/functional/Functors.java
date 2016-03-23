@@ -17,10 +17,10 @@ import javafx.util.Callback;
 
 import org.atteo.evo.inflector.English;
 
-import AudioPlayer.Item;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataGroup;
+import audio.Item;
+import audio.playlist.PlaylistItem;
+import audio.tagging.Metadata;
+import audio.tagging.MetadataGroup;
 import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;

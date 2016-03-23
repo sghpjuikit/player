@@ -98,6 +98,7 @@ import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
 import gui.pane.InfoPane;
+import gui.pane.OverlayPane;
 import gui.pane.ShortcutPane;
 import util.ClassName;
 import util.InstanceInfo;
@@ -133,6 +134,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
+import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
@@ -933,15 +935,30 @@ public class App extends Application implements Configurable {
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+SHIFT+P")
     public static void openLauncher() {
 //        APP.widgetManager.use("AppLauncher", WidgetSource.NO_LAYOUT, c -> {});
-        APP.widgetManager.find("AppLauncher", WidgetSource.NO_LAYOUT, false)
-           .ifPresent(w -> {
-               javafx.stage.Window window = w.load().getScene().getWindow();
-               Rectangle2D s = getScreen(APP.mouseCapture.getMousePosition()).getVisualBounds();
-               window.setX(s.getMinX()+100);
-               window.setY(s.getMinY()+100);
-               w.load().prefWidth(s.getWidth()-200);
-               w.load().prefWidth(s.getHeight()-200);
-           });
+//        APP.widgetManager.find("AppLauncher", WidgetSource.NO_LAYOUT, false)
+//           .ifPresent(w -> {
+//               javafx.stage.Window window = w.load().getScene().getWindow();
+//               Rectangle2D s = getScreen(APP.mouseCapture.getMousePosition()).getVisualBounds();
+//               window.setX(s.getMinX()+100);
+//               window.setY(s.getMinY()+100);
+//               w.load().prefWidth(s.getWidth()-200);
+//               w.load().prefWidth(s.getHeight()-200);
+//           });
+        File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");;
+        Component c = UiContext.instantiateComponent(f);
+        if(c!=null) {
+            OverlayPane op = new OverlayPane() {
+                @Override
+                public void show() {
+                    getChildren().add(c.load());
+                    super.show();
+                }
+            };
+            op.display.set(SCREEN_OF_MOUSE);
+            op.show();
+            c.load().prefWidth(900);
+            c.load().prefHeight(700);
+       }
     }
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")

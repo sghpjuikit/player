@@ -147,16 +147,13 @@ public class AppLauncher extends ClassController {
     public void refresh() {
         initialized = true;
         cellSize.applyValue();
-        // temporary bugfix, (we use progress indicator of the window this widget is loaded
-        // in, but when this refresh() method is called its just during loading and window is not yet
-        // available, so we delay wit runLater
-        runLater(this::visit);
+        visit();
     }
 
     private void visit() {
         if(!initialized) return;
         Item item = new TopItem();
-        item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+//        item.last_gridposition = grid.getSkinn().getFlow().getPosition(); // can cause nullpointer here
         visitId++;
         if(item==null) {
             grid.getItems().clear();
@@ -171,7 +168,6 @@ public class AppLauncher extends ClassController {
                             grid.getSkinn().getFlow().setPosition(item.last_gridposition);
                         grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
                     },FX)
-                    .showProgress(getWidget().getWindow().taskAdd())
                     .run();
         }
     }

@@ -657,7 +657,7 @@ public class Window extends WindowBase {
 
     private void moveEnd(MouseEvent e) {
         isMoving.set(false);
-        mouseMonitor.unsubscribe();
+        if(mouseMonitor!=null) mouseMonitor.unsubscribe();
     }
 
 /*******************************    RESIZING  *********************************/
@@ -683,14 +683,14 @@ public class Window extends WindowBase {
             else if ((Y < L))                   r = Resize.N;
             isResizing.set(r);
         }
-	e.consume();
+	    e.consume();
     }
 
     @FXML
     private void border_onDragEnd(MouseEvent e) {
         // end resizing if active
-	if(isResizing.get()!=NONE) isResizing.set(NONE);
-	e.consume();
+        if(isResizing.get()!=NONE) isResizing.set(NONE);
+        e.consume();
     }
 
     @FXML
@@ -720,7 +720,7 @@ public class Window extends WindowBase {
                 setXY(getX(), e.getScreenY());
             }
         }
-	e.consume();
+	    e.consume();
     }
 
 /******************************************************************************/
@@ -741,12 +741,12 @@ public class Window extends WindowBase {
     }
 
     public static Window deserialize(File f) {
-	try {
-	    return App.APP.serializators.fromXML(Window.class, f);
-	} catch (StreamException e) {
-            LOGGER.error("Unable to load window from the file {}",e);
-	    return null;
-	}
+        try {
+            return App.APP.serializators.fromXML(Window.class, f);
+        } catch (StreamException e) {
+                LOGGER.error("Unable to load window from the file {}",e);
+            return null;
+        }
     }
 
 }

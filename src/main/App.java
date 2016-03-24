@@ -31,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.*;
@@ -54,6 +55,7 @@ import audio.Player;
 import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
+import layout.area.ContainerNode;
 import services.ClickEffect;
 import services.Service;
 import services.ServiceManager;
@@ -951,7 +953,16 @@ public class App extends Application implements Configurable {
             OverlayPane op = new OverlayPane() {
                 @Override
                 public void show() {
+                    OverlayPane root = this;
                     getChildren().add(c.load());
+                    if(c instanceof Widget) {
+                        ((Widget)c).areaTemp = new ContainerNode() {
+                            @Override public Pane getRoot() { return root; }
+                            @Override public void show() {}
+                            @Override public void hide() {}
+                            @Override public void close() { root.hide(); }
+                        };
+                    }
                     super.show();
                 }
             };
@@ -959,7 +970,7 @@ public class App extends Application implements Configurable {
             op.show();
             c.load().prefWidth(900);
             c.load().prefHeight(700);
-       }
+        }
     }
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")

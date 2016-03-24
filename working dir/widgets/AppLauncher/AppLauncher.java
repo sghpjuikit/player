@@ -110,6 +110,8 @@ public class AppLauncher extends ClassController {
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, this::resort);
+    @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
+    final V<Boolean> closeOnLaunch = new V<>(false);
 
     public AppLauncher() {
         setPrefSize(500,500);
@@ -172,7 +174,12 @@ public class AppLauncher extends ClassController {
     }
 
     private void doubleClickItem(Item i) {
-        Environment.open(i.val);
+        if(closeOnLaunch.get()) {
+            widget.areaTemp.close();
+            run(250, () -> Environment.open(i.val));
+        } else {
+            Environment.open(i.val);
+        }
     }
     private static FileSystemView fileUtils = FileSystemView.getFileSystemView();
     /** Resorts grid's items according to current sort criteria. */

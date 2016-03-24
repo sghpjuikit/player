@@ -19,10 +19,10 @@ public interface ContainerNode extends AltState {
 
     Pane getRoot();
 
-    public default Parent getParent() {
+    default Parent getParent() {
         return getRoot()==null ? null : getRoot().getParent();
     }
 
-    public default void close() {}
+    default void close() {}
 
 }

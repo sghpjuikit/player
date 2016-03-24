@@ -166,7 +166,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         container.getChildren().values().forEach(c -> {
             if(c instanceof Container) ((Container)c).show();
             if(c instanceof Widget) {
-                Area ct = ((Widget)c).areaTemp;
+                ContainerNode ct = ((Widget)c).areaTemp;
                 if(ct!=null) ct.show();
             }
         });
@@ -180,14 +180,14 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         container.getChildren().values().forEach(c -> {
             if(c instanceof Container) ((Container)c).hide();
             if(c instanceof Widget) {
-                Area ct = ((Widget)c).areaTemp;
+                ContainerNode ct = ((Widget)c).areaTemp;
                 if(ct!=null) ct.hide();
             }
         });
     }
 
     List<Node> getC() {
-        List<Node> o = new ArrayList(root.getChildren());
+        List<Node> o = new ArrayList<>(root.getChildren());
         o.remove(ctrls);
         return o;
     }

@@ -532,7 +532,7 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if(c instanceof Container) ((Container)c).show();
             if(c instanceof Widget) {
-                Area ct = ((Widget)c).areaTemp;
+                ContainerNode ct = ((Widget)c).areaTemp;
                 if(ct!=null) ct.show();
             }
         });
@@ -544,7 +544,7 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if(c instanceof Container) ((Container)c).hide();
             if(c instanceof Widget) {
-                Area ct = ((Widget)c).areaTemp;
+                ContainerNode ct = ((Widget)c).areaTemp;
                 if(ct!=null) ct.hide();
             }
         });

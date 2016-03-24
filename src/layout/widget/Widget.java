@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import layout.area.Area;
+import layout.area.ContainerNode;
 import layout.area.IOLayer;
 import layout.Component;
 import layout.container.Container;
@@ -87,7 +88,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     // I think this is the best and most painless way to wire widget with area & container (parent)
     // All the pseudo wiring through Controller is pure chaos.
     @XStreamOmitField @Deprecated public Container parentTemp;
-    @XStreamOmitField @Deprecated public Area areaTemp;
+    @XStreamOmitField @Deprecated public ContainerNode areaTemp;
 
     // configuration
 

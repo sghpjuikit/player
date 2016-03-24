@@ -309,9 +309,10 @@ public class IOLayer extends StackPane {
                 // Apparently during initiaization we are not ready yet
                 // I dont like this, but Im not going to hunt for this subtle bug, which may
                 // not be a bug at all
-                if(c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.root==null) return;
+                if(c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.getRoot()==null) return;
 
-                Bounds b = c.getWidget().areaTemp.root.localToScene(c.getWidget().areaTemp.root.getBoundsInLocal());
+                Node wr = c.getWidget().areaTemp.getRoot();
+                Bounds b = wr.localToScene(wr.getBoundsInLocal());
                 double basex = b.getMinX()/scalex.doubleValue()-translation_offset;
                 double basey = b.getMinY()-header_offset;
                 double w = b.getWidth()/scalex.doubleValue();

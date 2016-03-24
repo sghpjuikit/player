@@ -114,7 +114,7 @@ public class OverlayPane extends StackPane {
 
     // depth of field transition
     private Display displayForHide; // prevents inconsistency, see use
-    private Anim animation = new Anim(30, this::animDo).dur(millis(350)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
+    private Anim animation = new Anim(30, this::animDo).dur(millis(250)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
     private Stage stg = null;
     private BoxBlur blurback = new BoxBlur(0,0,3);  // we need best possible quality
     private BoxBlur blurfront = new BoxBlur(0,0,1); // we dont need quality, hence iterations==1

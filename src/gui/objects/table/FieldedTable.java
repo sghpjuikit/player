@@ -27,7 +27,7 @@ import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
-import gui.objects.ContextMenu.SelectionMenuItem;
+import gui.objects.contextmenu.SelectionMenuItem;
 import gui.objects.table.TableColumnInfo.ColumnInfo;
 import util.Sort;
 import util.access.fieldvalue.ObjectField;

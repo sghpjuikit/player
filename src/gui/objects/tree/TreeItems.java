@@ -32,7 +32,7 @@ import layout.widget.WidgetFactory;
 import layout.widget.WidgetManager.WidgetSource;
 import layout.widget.feature.ConfiguringFeature;
 import layout.widget.feature.Feature;
-import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.window.stage.Window;
 import util.ClassName;
 import util.access.V;

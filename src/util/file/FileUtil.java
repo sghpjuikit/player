@@ -7,10 +7,7 @@ package util.file;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -413,11 +410,11 @@ public final class FileUtil {
       * @return List of lines or empty list (if empty or on error). Never null.
       */
      public static List<String> readFileLines(String filepath) {
-        File file = new File(filepath);
         try {
             return Files.readAllLines(Paths.get(filepath));
         } catch (IOException e) {
-            log(FileUtil.class).error("Problems reading file {}. File wasnt read.", filepath,e);
+            if(!(e.getCause() instanceof NoSuchFileException))
+                log(FileUtil.class).error("Problems reading file {}. File wasnt read.", filepath,e);
             return new ArrayList<>();
         }
      }
@@ -426,7 +423,8 @@ public final class FileUtil {
         try {
             return Files.lines(f.toPath());
         } catch (IOException e) {
-            log(FileUtil.class).error("Problems reading file {}. File wasnt read.", f,e);
+            if(!(e.getCause() instanceof NoSuchFileException))
+                log(FileUtil.class).error("Problems reading file {}. File wasnt read.", f);
             return Stream.empty();
         }
      }

@@ -33,7 +33,7 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.image.cover.Cover;
 import main.App;
 import util.SingleR;
@@ -326,9 +326,9 @@ public class Thumbnail extends ImageNode {
     private void setImg(Image i, long id) {
         // cache
         if(i!=null && cache_images) {
-            Image ci = IMG_CACHE.get(i.impl_getUrl());
+            Image ci = IMG_CACHE.get(i.getUrl());
             if(ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
-                IMG_CACHE.put(i.impl_getUrl(), i);
+                IMG_CACHE.put(i.getUrl(), i);
         }
 
         // ignore outdated loadings
@@ -382,7 +382,7 @@ public class Thumbnail extends ImageNode {
     public File getFile() {
         // Since we delay image loading or something, image.get() can be null, in that case we fall
         // back to imagefile
-        String url = image.get()==null ? null : image.get().impl_getUrl();
+        String url = image.get()==null ? null : image.get().getUrl();
         try {
             return url==null ? imagefile : new File(URI.create(url));
         } catch(IllegalArgumentException e) {

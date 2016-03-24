@@ -52,7 +52,7 @@ import util.functional.Functors;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static gui.objects.ContextMenu.SelectionMenuItem.buildSingleSelectionMenu;
+import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static gui.objects.table.FilteredTable.Search.CONTAINS;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;

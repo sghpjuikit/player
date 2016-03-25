@@ -982,7 +982,7 @@ public class Util {
 
     /**
      * Intended use case: discovering the generic type of a javafx property in the runtime
-     * using reflection on parent object's Field or Method return type (javafx property specification).
+     * using reflection on parent object's {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method} return type (javafx property specification).
      * <p>
      * This works around java's type erasure and makes it possible to determine exact property type
      * even when property value is null or when the value is subtype of the property's generic type.
@@ -1193,7 +1193,7 @@ public class Util {
      * @return true if class is enum or false otherwise
      * @see #getEnumConstants(java.lang.Class)
      */
-    public static boolean isEnum(Class c) {
+    public static boolean isEnum(Class<?> c) {
         return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
     }
 

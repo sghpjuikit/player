@@ -47,14 +47,14 @@ import static util.dev.TODO.Purpose.BUG;
  */
 public class Util {
 
-    /** Constructs ordinary {@link HBox)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
     public static HBox layHorizontally(double gap, Pos align, Node... nodes) {
         HBox l = new HBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
 
-    /** Constructs ordinary {@link HBox)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
     public static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
         HBox l = new HBox(gap);
              l.setAlignment(align);
@@ -62,14 +62,14 @@ public class Util {
         return l;
     }
 
-    /** Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
     public static VBox layVertically(double gap, Pos align, Node... nodes) {
         VBox l = new VBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
 
-    /** Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
     public static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
         VBox l = new VBox(gap);
              l.setAlignment(align);
@@ -83,7 +83,7 @@ public class Util {
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
      * <p>
-     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
     public static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
         VBox l = layVertically(gap, align, header,content);
@@ -97,7 +97,7 @@ public class Util {
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
      * <p>
-     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
     public static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
         VBox l = layVertically(gap, align, content, header);
@@ -111,7 +111,7 @@ public class Util {
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
      * <p>
-     * Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style.
+     * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
     public static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
         VBox l = layVertically(gap, align, headerTop, content, headerBottom);
@@ -120,21 +120,21 @@ public class Util {
     }
 
     /**
-     * Constructs ordinary {@link StackPane)} with children aligned to {@link Pos#CENTER}.
+     * Constructs ordinary {@link javafx.scene.layout.StackPane} with children aligned to {@link Pos#CENTER}.
      * Convenience constructor for more fluent style.
      */
     public static StackPane layStack(Node... ns) {
         return new StackPane(ns);
     }
 
-    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n,Pos a) {
         StackPane l = new StackPane(n);
         StackPane.setAlignment(n, a);
         return l;
     }
 
-    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2) {
         StackPane l = new StackPane(n1,n2);
         StackPane.setAlignment(n1, a1);
@@ -142,7 +142,7 @@ public class Util {
         return l;
     }
 
-    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3) {
         StackPane l = new StackPane(n1,n2,n3);
         StackPane.setAlignment(n1, a1);
@@ -151,7 +151,7 @@ public class Util {
         return l;
     }
 
-    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
     public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
         StackPane l = new StackPane(n1,n2,n3,n4);
         StackPane.setAlignment(n1, a1);
@@ -161,21 +161,21 @@ public class Util {
         return l;
     }
 
-    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
     public static AnchorPane layAnchor(Node n, Double a) {
         AnchorPane p = new AnchorPane();
         setAnchor(p, n, a);
         return p;
     }
 
-    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
     public static AnchorPane layAnchor(Node n, Double top, Double right, Double bottom, Double left) {
         AnchorPane p = new AnchorPane();
         setAnchor(p, n, top, right, bottom, left);
         return p;
     }
 
-    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
     public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2) {
         AnchorPane p = new AnchorPane();
@@ -183,7 +183,7 @@ public class Util {
         return p;
     }
 
-    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
+    /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
     public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2,
                                                   Node n3, Double top3, Double right3, Double bottom3, Double left3) {
@@ -213,26 +213,26 @@ public class Util {
         if (left != null) AnchorPane.setLeftAnchor(n, left);
     }
 
-    /** Sets {@link AnchorPane)} anchors for node. Convenience method for more fluent style. */
+    /** Sets {@link javafx.scene.layout.AnchorPane} anchors for node. Convenience method for more fluent style. */
     public static void setAnchor(AnchorPane pane, Node n, Double a) {
         pane.getChildren().add(n);
         setAnchors(n, a);
     }
 
-    /** Sets {@link AnchorPane)} anchors for node. Convenience method for more fluent style. */
+    /** Sets {@link javafx.scene.layout.AnchorPane} anchors for node. Convenience method for more fluent style. */
     public static void setAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
         pane.getChildren().add(n);
         setAnchors(n, top, right, bottom, left);
     }
 
-    /** Sets {@link AnchorPane)} anchors for nodes. Convenience method for more fluent style. */
+    /** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
     public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2) {
         setAnchor(pane, n1, top1, right1, bottom1, left1);
         setAnchor(pane, n2, top2, right2, bottom2, left2);
     }
 
-    /** Sets {@link AnchorPane)} anchors for nodes. Convenience method for more fluent style. */
+    /** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
     public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2,
                                                   Node n3, Double top3, Double right3, Double bottom3, Double left3) {

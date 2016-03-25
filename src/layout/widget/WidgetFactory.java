@@ -11,7 +11,7 @@ import java.util.List;
 
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
-import util.ClassName;
+import util.type.ClassName;
 
 /**
  * Factory that creates widgets.

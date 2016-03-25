@@ -104,7 +104,7 @@ public class ImprovedGridViewSkin<T> implements Skin<ImprovedGridView> {
         Pane l = new StackPane();
              l.setMinHeight(25);
         root = Util.layHeaderTop(10, Pos.TOP_RIGHT, l, f);
-        root.getChildren().remove(0);
+        root.getChildren().remove(l);
 
         updateRowCount();
 

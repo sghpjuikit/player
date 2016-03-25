@@ -56,7 +56,7 @@ public interface ObjectField<V> extends TypedValue {
      * this field does not extract {@link java.lang.Comparable} type.
      */
     @SuppressWarnings("unchecked")
-    default <C> Comparator<? super V> comparator() {
+    default <C> Comparator<V> comparator() {
         return Comparable.class.isAssignableFrom(getType())
                 ? (a,b) -> ((Comparable<C>)getOf(a)).compareTo((C)getOf(b))
                 : util.functional.Util.SAME;

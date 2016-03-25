@@ -34,7 +34,7 @@ import layout.widget.feature.ConfiguringFeature;
 import layout.widget.feature.Feature;
 import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.window.stage.Window;
-import util.ClassName;
+import util.type.ClassName;
 import util.access.V;
 import util.conf.Configurable;
 import util.file.Environment;

@@ -51,15 +51,10 @@ public final class Notifier extends ServiceBase {
         APP.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
     }
 
-
     private static Notification n;
     private static Node songNotifGui;
     private static SongReader songNotifInfo;
-
-    // dependencies
     private Subscription d1, d2;
-
-/*****************************   CONFIGURATION   ******************************/
 
     @IsConfig(name = "On playback status change")
     public boolean showStatusNotification = true;
@@ -83,11 +78,11 @@ public final class Notifier extends ServiceBase {
     public final VarAction onClickR = new VarAction("Notification hide", null);
 
     @IsConfig(name = "Playback change graphics")
-    public final VarEnum<String> graphics = new VarEnum<>("Normal",
+    public final VarEnum<String> graphics = new VarEnum<String>("Normal",
         () -> {
             List<String> l = APP.widgetManager.getFactories()
-                        .filter(f->f.hasFeature(SongReader.class))
-                        .map(f->f.nameGui()).collect(toList());
+                        .filter(f -> f.hasFeature(SongReader.class))
+                        .map(f -> f.nameGui()).collect(toList());
             l.add("Normal");
             l.add("Normal - no cover");
             return l;
@@ -105,20 +100,19 @@ public final class Notifier extends ServiceBase {
                 songNotifGui = ii;
                 ((Pane)songNotifGui).setPrefSize(-1,-1);
             } else {
-                Widget<?> wf = APP.widgetManager.find(v, NEW, true).get();
-                songNotifGui = wf.load();
-                songNotifInfo = (SongReader)wf.getController();
-                ((Pane)songNotifGui).setPrefSize(700, 300);
+                APP.widgetManager.find(v, NEW, true).ifPresent( wf -> {
+                    songNotifGui = wf.load();
+                    songNotifInfo = (SongReader)wf.getController();
+                    ((Pane)songNotifGui).setPrefSize(700, 300);
+                });
             }
         });
-
 
 
     public Notifier() {
         super(true);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void start() {
         // create notification
@@ -136,26 +130,22 @@ public final class Notifier extends ServiceBase {
         d1 = Player.playingtem.onChange(this::songChange);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRunning() {
         return n!=null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void stop() {
         if(d1!=null) d1.unsubscribe();
-        if(d2!=null) d1.unsubscribe();
+        if(d2!=null) d2.unsubscribe();
         if(n!=null) n.hideImmediatelly();
         n = null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isSupported() { return true; }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDependency() { return false; }
 
@@ -196,7 +186,6 @@ public final class Notifier extends ServiceBase {
             n.hide();
         }
     }
-
 
     private void songChange(Metadata m) {
         if (showSongNotification) {

@@ -88,7 +88,7 @@ public class IOLayer extends StackPane {
 
     public static void relayout() {
         APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
-              .forEach(wio -> wio.requestLayout());
+              .forEach(IOLayer::requestLayout);
     }
 
     public static void addConnectionE(Input<?> i, Output<?> o) {
@@ -176,7 +176,7 @@ public class IOLayer extends StackPane {
     private final DoubleProperty scalex;
     private final DoubleProperty scaley;
 
-    private EditIOLine edit = null;
+    private EditIOLine<?> edit = null;
     private XNode selected = null;
 
     public IOLayer(SwitchPane sp) {
@@ -229,14 +229,14 @@ public class IOLayer extends StackPane {
         ns.forEach(this::removeChild);
     }
 
-    XNode editFrom = null; // editFrom == edit.node, editFrom.output == edit.output
-    XNode editTo = null;
+    private XNode editFrom = null; // editFrom == edit.node, editFrom.output == edit.output
+    private XNode editTo = null;
 
     void editBegin(XNode n) {
         if(n==null) return;
 
         editFrom = n;
-        edit = new EditIOLine(n);
+        edit = new EditIOLine<>(n);
 //        getChildren().add(edit);
 
         // start effect: disable & visually differentiate bindable & unbindable nodes

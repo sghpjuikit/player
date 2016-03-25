@@ -10,10 +10,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javafx.animation.FadeTransition;
@@ -101,9 +99,11 @@ import gui.pane.ActionPane.SlowColAction;
 import gui.pane.InfoPane;
 import gui.pane.OverlayPane;
 import gui.pane.ShortcutPane;
-import util.ClassName;
-import util.InstanceInfo;
-import util.InstanceName;
+import util.access.fieldvalue.FileField;
+import util.access.fieldvalue.ObjectField;
+import util.type.ClassName;
+import util.type.InstanceInfo;
+import util.type.InstanceName;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
@@ -127,6 +127,7 @@ import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
+import util.type.ObjectFieldMap;
 import util.units.FileSize;
 
 import static layout.widget.WidgetManager.WidgetSource.*;
@@ -150,8 +151,7 @@ import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
-import static util.functional.Util.map;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 import static util.graphics.Util.*;
 
 /**
@@ -180,12 +180,13 @@ public class App extends Application implements Configurable {
     }
 
 
-    /** Name of this application. Works only in dev mode.*/
+    /** Name of this application. */
     public final String name = "PlayerFX";
-    /** Url for github website for project of this application. */
-    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
+    /** Application code encoding. Useful for compilation during runtime. */
     public final Charset encoding = StandardCharsets.UTF_8;
+    /** Uri for github website for project of this application. */
+    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
     public final File DIR_APP = new File("").getAbsoluteFile();
@@ -201,15 +202,15 @@ public class App extends Application implements Configurable {
     public final File DIR_WIDGETS = new File(DIR_APP, "widgets");
     /** Directory containing skins. */
     public final File DIR_SKINS = new File(DIR_APP, "skins");
-    /** Directory containing user data. */
+     /* Directory containing user data created by application usage, such as customizations, song library, etc. */
     public final File DIR_USERDATA =  new File(DIR_APP, "user");
     /** Directory containing library database. */
     public final File DIR_LIBRARY = new File(DIR_USERDATA, "library");
     public final File DIR_LAYOUTS = new File(DIR_USERDATA, "layouts");
     /** Directory containing playlists. */
-    public File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
+    public final File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
     /** Directory containing application resources. */
-    public File DIR_RESOURCES = new File(DIR_APP, "resources");
+    public final File DIR_RESOURCES = new File(DIR_APP, "resources");
     /** File for application configuration. */
     public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
 
@@ -254,6 +255,8 @@ public class App extends Application implements Configurable {
     public final SetƑ onStop = new SetƑ();
     public boolean normalLoad = true;
     public boolean initialized = false;
+    private boolean close_prematurely = false;
+
     public final WindowManager windowManager = new WindowManager();
     public final WidgetManager widgetManager = new WidgetManager(windowManager);
     public final ServiceManager services = new ServiceManager();
@@ -262,7 +265,7 @@ public class App extends Application implements Configurable {
     public final ClassName className = new ClassName();
     public final InstanceName instanceName = new InstanceName();
     public final InstanceInfo instanceInfo = new InstanceInfo();
-
+    public final ObjectFieldMap classFields = new ObjectFieldMap();
 
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
     public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
@@ -298,8 +301,6 @@ public class App extends Application implements Configurable {
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
     public String TAG_MULTIPLE_VALUE = "<multi>";
 
-
-    private boolean close_prematurely = false;
 
     public App() {
         if(APP==null) APP = this;
@@ -386,6 +387,13 @@ public class App extends Application implements Configurable {
         x.useAttributeFor(Widget.class, "name");
         x.useAttributeFor(Playlist.class, "id");
 
+        // add optional object fields
+        classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
+        classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
+        classFields.add(MetadataGroup.class, set(getEnumConstants(MetadataGroup.Field.class)));
+        classFields.add(File.class, set(getEnumConstants(FileField.class)));
+        classFields.add(Object.class, ObjectField.ColumnField.INDEX);
+
         // add optional object class -> string converters
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
@@ -397,42 +405,38 @@ public class App extends Application implements Configurable {
         instanceName.add(Void.class, o -> "none");
         instanceName.add(Item.class, Item::getPath);
         instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
-        instanceName.add(Metadata.class,Metadata::getTitle);
+        instanceName.add(Metadata.class, Metadata::getTitle);
         instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
         instanceName.add(Component.class, Component::getName);
-//        instanceName.add(List.class, o -> o.size() + " " + plural("item",o.size()));
-        instanceName.add(List.class, o -> {
-            Class<?> ec = getGenericPropertyType(o.getClass());
-            return o.size() + " " + plural(className.get(ec == null ? Object.class : ec),o.size());
-                });
         instanceName.add(File.class, File::getPath);
+        instanceName.add(Collection.class, o -> {
+            Class<?> etype = getGenericPropertyType(o.getClass());
+            String ename = etype == null || etype==Object.class ? "Item" : className.get(etype);
+            return o.size() + " " + plural(ename,o.size());
+        });
 
         // add optional object instance -> info string converters
-        instanceInfo.add(File.class, o -> {
-            HashMap<String,String> m = new HashMap<>();
+        instanceInfo.add(File.class, (f,map) -> {
+            FileSize fs = new FileSize(f);
+            map.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
+            map.put("Format", FileUtil.getSuffix(f));
 
-            FileSize fs = new FileSize(o);
-            m.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
-            m.put("Format", FileUtil.getSuffix(o));
-
-            ImageFileFormat iff = ImageFileFormat.of(o.toURI());
+            ImageFileFormat iff = ImageFileFormat.of(f.toURI());
             if(iff.isSupported()) {
-                Dimension id = getImageDim(o);
-                m.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
+                Dimension id = getImageDim(f);
+                map.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
             }
-            return m;
         });
-        instanceInfo.add(Metadata.class, m -> {
-            HashMap<String,String> map = new HashMap<>();
+        instanceInfo.add(Metadata.class, (m,map) -> {
             stream(Metadata.Field.values())
                     .filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
-                    .forEach(f ->
-                map.put(f.name(), m.getFieldS(f))
+                    .forEach(f -> map.put(f.name(), m.getFieldS(f))
             );
-            return map;
         });
-        instanceInfo.add(PlaylistItem.class, o ->
-            stream(PlaylistItem.Field.values()).filter(TypedValue::isTypeString).toMap(f -> f.name(), f -> (String)f.getOf(o))
+        instanceInfo.add(PlaylistItem.class, p ->
+            stream(PlaylistItem.Field.values())
+                    .filter(TypedValue::isTypeString)
+                    .toMap(f -> f.name(), f -> (String)f.getOf(p))
         );
 
         // register actions
@@ -921,7 +925,7 @@ public class App extends Application implements Configurable {
                   root.setPrefSize(600, 720); // determines popup size
         List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
                                       MaterialDesignIcon.class,MaterialIcon.class)
-                .map((Class<?> c) -> {
+                .map(c -> {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {

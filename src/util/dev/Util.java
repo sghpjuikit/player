@@ -52,9 +52,20 @@ public class Util {
         if(o==null) throw new IllegalStateException("Null forbidden: " + message);
     }
 
+    public static void noØ(Object o1, Object o2) {
+        if(o1==null || o2==null) throw new IllegalStateException("Null forbidden");
+    }
+
+    public static void noØ(Object o1, Object o2, Object o3) {
+        if(o1==null || o2==null || o3==null) throw new IllegalStateException("Null forbidden");
+    }
+
+    public static void noØ(Object o1, Object o2, Object o3, Object o4) {
+        if(o1==null || o2==null || o3==null || o4==null) throw new IllegalStateException("Null forbidden");
+    }
+
     public static void noØ(Object... os) {
-        for(Object o : os)
-            if(o==null) throw new IllegalStateException("Null forbidden");
+        for(Object o : os) if(o==null) throw new IllegalStateException("Null forbidden");
     }
 
     public static void noFinal(Field f) {

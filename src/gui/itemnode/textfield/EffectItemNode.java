@@ -32,7 +32,7 @@ import gui.objects.picker.Picker;
 import gui.objects.popover.PopOver;
 import gui.objects.window.stage.UiContext;
 import gui.objects.icon.Icon;
-import util.ClassName;
+import util.type.ClassName;
 
 import static javafx.geometry.Pos.CENTER;
 import static util.conf.Configurable.configsFromFxPropertiesOf;

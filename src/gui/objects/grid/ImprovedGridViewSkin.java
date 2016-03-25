@@ -27,73 +27,86 @@
  */
 package gui.objects.grid;
 
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.css.PseudoClass;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.Skin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import com.sun.javafx.scene.control.VirtualScrollBar;
 
+import util.graphics.Util;
+
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static util.Util.clip;
-import static util.Util.getFieldValue;
-import static util.Util.invokeMethodP0;
+import static util.Util.*;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.layStack;
 
-public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<ImprovedGridView<T>,ImprovedGridRow<T>> {
+public class ImprovedGridViewSkin<T> implements Skin<ImprovedGridView> {
 
-    private final ListChangeListener<T> gridViewItemsListener = new ListChangeListener<T>() {
-        @Override public void onChanged(ListChangeListener.Change<? extends T> change) {
-            updateRowCount();
-            getSkinnable().requestLayout();
+    private class SkinDelegate extends CustomVirtualContainerBase<ImprovedGridView<T>,ImprovedGridRow<T>> {
+        public SkinDelegate(ImprovedGridView<T> control) {
+            super(control);
+            registerChangeListener(control.cellHeightProperty(), e -> flowRecreateCells());
+            registerChangeListener(control.cellWidthProperty(), e -> { updateRowCount(); flowRecreateCells(); });
+            registerChangeListener(control.horizontalCellSpacingProperty(), e -> { updateRowCount(); flowRecreateCells(); });
+            registerChangeListener(control.verticalCellSpacingProperty(), e -> flowRecreateCells());
+            registerChangeListener(control.widthProperty(), e -> updateRowCount());
+            registerChangeListener(control.heightProperty(), e -> updateRowCount());
+            registerChangeListener(control.itemsProperty(), e -> updateGridViewItems());
+            registerChangeListener(control.cellFactoryProperty(), e -> flowRecreateCells());
+            registerChangeListener(control.parentProperty(), e -> {
+                if (getSkinnable().getParent() != null && getSkinnable().isVisible())
+                    getSkinnable().requestLayout();
+            });
         }
-    };
-    private final WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(gridViewItemsListener);
+
+        @Override
+        int getItemCount() {
+            return ImprovedGridViewSkin.this.getItemCount();
+        }
+
+        @Override
+        void updateRowCount() {
+            ImprovedGridViewSkin.this.updateRowCount();
+        }
+    }
+
+    private final SkinDelegate skin;
+    private final VBox root;
+    private final WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(change -> {
+        updateRowCount();
+        getSkinnable().requestLayout();
+    });
     private final VirtualFlow<ImprovedGridRow<T>> f; // accesses superclass' flow field, dont name "flow"!
 
-    private void flowRecreateCells() {
-        invokeMethodP0(VirtualFlow.class,f,"recreateCells");
-    }
-    private void flowRebuildCells() {
-        invokeMethodP0(VirtualFlow.class,f,"rebuildCells");
-    }
-    private void flowReconfigureCells() {
-        invokeMethodP0(VirtualFlow.class,f,"reconfigureCells");
-    }
-
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     public ImprovedGridViewSkin(ImprovedGridView<T> control) {
-        super(control);
-
-        // make flow field accessible
-        f = getFieldValue(this,VirtualFlow.class,"flow");
-        updateGridViewItems();
-
+        skin = new SkinDelegate(control);
+        f = getFieldValue(skin,VirtualFlow.class,"flow"); // make flow field accessible
         f.setId("virtual-flow"); //$NON-NLS-1$
         f.setPannable(false);
         f.setVertical(true);
         f.setFocusTraversable(getSkinnable().isFocusTraversable());
         f.setCellFactory(f -> ImprovedGridViewSkin.this.createCell());
-        getChildren().add(f);
+
+        updateGridViewItems();
+
+        Pane l = new StackPane();
+             l.setMinHeight(25);
+        root = Util.layHeaderTop(10, Pos.TOP_RIGHT, l, f);
+        root.getChildren().remove(0);
 
         updateRowCount();
-
-        // Register listeners
-        registerChangeListener(control.itemsProperty(), e -> updateGridViewItems());
-        registerChangeListener(control.cellFactoryProperty(), e -> flowRecreateCells());
-        registerChangeListener(control.parentProperty(), e -> {
-            if (getSkinnable().getParent() != null && getSkinnable().isVisible()) {
-                getSkinnable().requestLayout();
-            }
-        });
-        registerChangeListener(control.cellHeightProperty(), e -> flowRecreateCells());
-        registerChangeListener(control.cellWidthProperty(), e -> { updateRowCount(); flowRecreateCells(); });
-        registerChangeListener(control.horizontalCellSpacingProperty(), e -> { updateRowCount(); flowRecreateCells(); });
-        registerChangeListener(control.verticalCellSpacingProperty(), e -> flowRecreateCells());
-        registerChangeListener(control.widthProperty(), e -> updateRowCount());
-        registerChangeListener(control.heightProperty(), e -> updateRowCount());
 
         // selection
         f.addEventHandler(KEY_PRESSED, e -> {
@@ -116,19 +129,32 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         return f;
     }
 
-    public void updateGridViewItems() {
-        if (getSkinnable().getItems() != null)
-            getSkinnable().getItems().removeListener(weakGridViewItemsListener);
+    @Override
+    public ImprovedGridView<T> getSkinnable() {
+        return skin.getSkinnable();
+    }
 
-        if (getSkinnable().getItems() != null)
+    @Override
+    public Node getNode() {
+        return root;
+    }
+
+    @Override
+    public void dispose() {
+        skin.dispose();
+    }
+
+    public void updateGridViewItems() {
+        if (getSkinnable().getItems() != null) {
+            getSkinnable().getItems().removeListener(weakGridViewItemsListener);
             getSkinnable().getItems().addListener(weakGridViewItemsListener);
+        }
 
         updateRowCount();
         flowRecreateCells();
         getSkinnable().requestLayout();
     }
 
-    @Override
     void updateRowCount() {
         if (f == null)
             return;
@@ -145,15 +171,6 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         updateRows(newCount);
     }
 
-    @Override protected void layoutChildren(double x, double y, double w, double h) {
-        double x1 = getSkinnable().getInsets().getLeft();
-        double y1 = getSkinnable().getInsets().getTop();
-        double w1 = getSkinnable().getWidth() - (getSkinnable().getInsets().getLeft() + getSkinnable().getInsets().getRight());
-        double h1 = getSkinnable().getHeight() - (getSkinnable().getInsets().getTop() + getSkinnable().getInsets().getBottom());
-
-        f.resizeRelocate(x1, y1, w1, h1);
-    }
-
     public ImprovedGridRow<T> createCell() {
         ImprovedGridRow<T> row = new ImprovedGridRow<>();
         row.setGridView(getSkinnable());
@@ -164,7 +181,6 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
      *  Returns the number of row needed to display the whole set of cells
      *  @return GridView row count
      */
-    @Override
     public int getItemCount() {
         final ObservableList<?> items = getSkinnable().getItems();
         return items == null ? 0 : (int)Math.ceil((double)items.size() / computeMaxCellsInRow());
@@ -219,9 +235,21 @@ public class ImprovedGridViewSkin<T> extends CustomVirtualContainerBase<Improved
         return f!=null && f.getFirstVisibleCell()!=null && f.getLastVisibleCell()!=null;
     }
 
-    @Override protected double computeMinHeight(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return 0;
+    private void flowRecreateCells() {
+        invokeMethodP0(VirtualFlow.class,f,"recreateCells");
     }
+
+    private void flowRebuildCells() {
+        invokeMethodP0(VirtualFlow.class,f,"rebuildCells");
+    }
+
+    private void flowReconfigureCells() {
+        invokeMethodP0(VirtualFlow.class,f,"reconfigureCells");
+    }
+
+/********************************************* FILTER *********************************************/
+
+
 
 /******************************************** SELECTION *******************************************/
 

@@ -934,20 +934,22 @@ public class Util {
     }
 
     /**
-     * Converts primitive to wrappers, otherwise does nothing.
-     * @param c
-     * @return Object class of given class or class itself if not primitive.
+     * Converts primitive class to wrapper class.
+     *
+     * @param c any class
+     * @return respective primitive wrapper class of given class or the class itself if it is not primitive.
      */
-    public static Class unPrimitivize(Class<?> c) {
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> unPrimitivize(Class<T> c) {
         if(c.isPrimitive()) {
-            if(c.equals(boolean.class)) return Boolean.class;
-            if(c.equals(int.class)) return Integer.class;
-            if(c.equals(float.class)) return Float.class;
-            if(c.equals(double.class)) return Double.class;
-            if(c.equals(long.class)) return Long.class;
-            if(c.equals(byte.class)) return Byte.class;
-            if(c.equals(short.class)) return Short.class;
-            if(c.equals(char.class)) return Character.class;
+            if(c.equals(boolean.class)) return (Class) Boolean.class;
+            if(c.equals(int.class)) return (Class) Integer.class;
+            if(c.equals(float.class)) return (Class) Float.class;
+            if(c.equals(double.class)) return (Class) Double.class;
+            if(c.equals(long.class)) return (Class) Long.class;
+            if(c.equals(byte.class)) return (Class) Byte.class;
+            if(c.equals(short.class)) return (Class) Short.class;
+            if(c.equals(char.class)) return (Class) Character.class;
         }
         return c;
     }

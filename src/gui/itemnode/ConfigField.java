@@ -285,7 +285,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      * @param config field for which the GUI will be created
      */
     public static <T> ConfigField<T> create(Config<T> config) {
-
         Config f = (Config)config;
         ConfigField cf = null;
         if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
@@ -571,7 +570,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             box.setAlignment(CENTER_LEFT);
             box.setSpacing(5);
 
-            Class type = unPrimitivize(config.getType());
+            Class type = config.getType();
             if(isIn(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
                 slider.setMajorTickUnit(1);
@@ -584,7 +583,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         @Override public Number get() {
             Double d = slider.getValue();
-            Class type = unPrimitivize(config.getType());
+            Class type = config.getType();
             if(Integer.class==type) return d.intValue();
             if(Double.class==type) return d;
             if(Float.class==type) return d.floatValue();

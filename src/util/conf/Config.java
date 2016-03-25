@@ -53,7 +53,7 @@ import static util.functional.Util.*;
  * it and can be used as non aggregate configurable type.
  * <p>
  * Because config is convertible from String and back it also provides convert
- * methods and implements {@link StrinParser}.
+ * methods and implements {@link StringConverter}.
  *
  * @param <T> type of value of this config
  *
@@ -156,8 +156,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     /**
      * Sets value converted from string.
      * Equivalent to: return setValue(fromS(str));
-     * @param str
+     * @param str string to parse
      */
+    @TODO(note = "Make this behave consistently for null values")
     public void setValueS(String str) {
         T v = fromS(str);
         if(v!=null) setValue(v);
@@ -347,22 +348,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         /**
          *
-         * @param name
-         * @param gui_name
-         * @param val
-         * @param category
-         * @param info
-         * @param editable
-         * @param visible
-         * @param min
-         * @param max
-         *
          * @throws NullPointerException if val parameter null. The wrapped value must
          * no be null.
          */
         @TODO(note = "make static map for valueEnumerators")
         ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
-            this.type = type;
+            this.type = unPrimitivize(type);
             this.gui_name = gui_name;
             this.name = name;
             this.defaultValue = val;
@@ -431,7 +422,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public boolean isMinMax() {
             return !(Double.compare(min, Double.NaN)==0 || Double.compare(max, Double.NaN)==0) &&
-                    Number.class.isAssignableFrom(unPrimitivize(getType()));
+                    Number.class.isAssignableFrom(getType());
         }
 
         @Override
@@ -439,7 +430,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             return defaultValue;
         }
     }
-    /** {@link Config} wrapping {@link Field}. Can wrap both static or instance fields. */
+    /** {@link Config} wrapping {@link java.lang.reflect.Field}. Can wrap both static or instance fields. */
     public static class FieldConfig<T> extends ConfigBase<T> {
 
         private final Object instance;
@@ -453,6 +444,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param category
          * @param instance owner of the field or null if static
          */
+        @SuppressWarnings("unchecked")
         FieldConfig(String name, IsConfig c, Object instance, String category, MethodHandle getter, MethodHandle setter) {
             super((Class)getter.type().returnType(), name, c, getValueFromFieldMethodHandle(getter, instance), category);
             this.getter = getter;
@@ -642,7 +634,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category category, for generating config groups
          * @param info description, for tooltip for example
-         * @param editable
          * @param min use in combination with max if value is Number
          * @param max use in combination with min if value is Number
          * @throws IllegalStateException if the property field is not final
@@ -764,7 +755,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /**
          * Sets value converted from string.
          * Equivalent to: return setValue(fromS(str));
-         * @param s
+         * @param str
          */
         @Override
         public void setValueS(String str) {
@@ -807,14 +798,18 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         public final VarList<T> a;
 
+        @SuppressWarnings("ubnchecked")
         public ListConfig(String name, IsConfig c, VarList<T> val, String category) {
             super((Class)ObservableList.class, name, c, val.getValue(), category);
             a = val;
         }
+
+        @SuppressWarnings("ubnchecked")
         public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable, double min, double max) {
             super((Class)ObservableList.class, name, gui_name, val.getValue(), category, info, editable, min, max);
             a = val;
         }
+
         public ListConfig(String name, VarList<T> val) {
             this(name, name, val, "", "", true, Double.NaN, Double.NaN);
         }
@@ -874,7 +869,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
                 .map(s -> {
                     T t = a.factory.get();
                     List<Config<Object>> configs = (List)list(a.toConfigurable.apply(t).getFields());
-                    List<String> vals = split(s, ";", x->x);
+                    List<String> vals = split(s, ";");
                     if(configs.size()==vals.size())
                          // its important to apply the values too
                         forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));

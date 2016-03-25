@@ -615,7 +615,7 @@ public class App extends Application implements Configurable {
                     if(allminimized)
                         windowManager.windows.stream().forEach(w -> w.setMinimized(false));
                     else
-                        windowManager.windows.stream().filter(w -> w.isShowing()).forEach(Window::focus);
+                        windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
                 }
             });
 
@@ -937,16 +937,6 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+SHIFT+P")
     public static void openLauncher() {
-//        APP.widgetManager.use("AppLauncher", WidgetSource.NO_LAYOUT, c -> {});
-//        APP.widgetManager.find("AppLauncher", WidgetSource.NO_LAYOUT, false)
-//           .ifPresent(w -> {
-//               javafx.stage.Window window = w.load().getScene().getWindow();
-//               Rectangle2D s = getScreen(APP.mouseCapture.getMousePosition()).getVisualBounds();
-//               window.setX(s.getMinX()+100);
-//               window.setY(s.getMinY()+100);
-//               w.load().prefWidth(s.getWidth()-200);
-//               w.load().prefWidth(s.getHeight()-200);
-//           });
         File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");;
         Component c = UiContext.instantiateComponent(f);
         if(c!=null) {

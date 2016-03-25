@@ -199,7 +199,7 @@ public class WindowManager implements Configurable<Object> {
         return w;
     }
 
-    public static Window createWindowOwner() {
+    public Window createWindowOwner() {
         Window w = new Window();
                    w.getStage().initStyle(UTILITY);
                    w.s.setOpacity(0);

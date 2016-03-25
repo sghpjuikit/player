@@ -19,10 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import layout.area.Area;
+import layout.Component;
 import layout.area.ContainerNode;
 import layout.area.IOLayer;
-import layout.Component;
 import layout.container.Container;
 import layout.widget.controller.Controller;
 import layout.widget.controller.io.Input;
@@ -35,12 +34,12 @@ import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.dev.Dependency;
 
-import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static util.file.FileUtil.writeFile;
 import static util.async.Async.runLater;
+import static util.file.FileUtil.writeFile;
 import static util.functional.Util.*;
 
 /**
@@ -52,7 +51,7 @@ import static util.functional.Util.*;
  * <p>
  * Widget can be thought of as a wrapper for controller (which may be used as
  * standalone object if implementation allows). The type of widget influences
- * the lifecycle. See {@link FXMLWidget} and {@link ClassWidget}.
+ * the lifecycle.
  *
  * @author uranium
  */
@@ -63,7 +62,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     // Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
     // appropriate factory)
-    // TODO: put it insode propertymap
+    // TODO: put inside propertymap
     private final String name;
 
     /**
@@ -76,19 +75,25 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
      */
     @Dependency("name - acceesed using reflection by name")
     @XStreamOmitField public final WidgetFactory<?> factory;
-    @XStreamOmitField protected C controller;
     @XStreamOmitField protected Node root;
+    @XStreamOmitField protected C controller;
 
     @XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
-    // Temporary workaround for bad design. Widget-COntainer-Controller-Area relationship is badly
+    // Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
     // designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
     // use controller (null) to obtain area.
     //
     // I think this is the best and most painless way to wire widget with area & container (parent)
     // All the pseudo wiring through Controller is pure chaos.
     @XStreamOmitField @Deprecated public Container parentTemp;
-    @XStreamOmitField @Deprecated public ContainerNode areaTemp;
+    /**
+     *  Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
+     *  field properly. There is no restriction where widget is loaded, so this field may be null.
+     *  <p>
+     *  This field allows widget to control its lifecycle and context from its controller.
+     */
+    @XStreamOmitField public ContainerNode areaTemp;
 
     // configuration
 
@@ -514,7 +519,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     /** Widget metadata. Passed from code to program. Use on controller class. */
     @Retention(value = RUNTIME)
     @Target(value = TYPE)
-    public static @interface Info {
+    public @interface Info {
 
         /**
          * Name of the widget. "" by default.

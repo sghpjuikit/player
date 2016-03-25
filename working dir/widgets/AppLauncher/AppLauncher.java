@@ -400,7 +400,6 @@ public class AppLauncher extends ClassController {
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
                 if(item==getItem()) { // prevents content inconsistency
-                    System.out.println("sss " + img + " " + imgFile);
                     boolean animate = animateThumbOn.get().needsAnimation(this,imgAlreadyLoaded,imgFile,img);
                     thumb.loadImage(img, imgFile);
                     if(animate)

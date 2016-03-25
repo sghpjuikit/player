@@ -78,7 +78,6 @@ public class Functors {
         void apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
-        @Deprecated
         default void run() {
             apply();
         }
@@ -87,7 +86,6 @@ public class Functors {
         O apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
-        @Deprecated
         default O get() {
             return apply();
         }
@@ -135,15 +133,13 @@ public class Functors {
         @Override
         O apply(I i);
 
-        /** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Callback}. */
-        @Deprecated
+        /** Equivalent to {@link #apply(Object)}. Exists for compatibility with {@link Callback}. */
         @Override
         default O call(I i) {
             return apply(i);
         }
 
         /** Equivalent to {@link #apply(Object)}}, ignoring the result. Exists for compatibility with {@link Consumer}. */
-        @Deprecated
         @Override
         default void accept(I i) {
             apply(i); // and ignore result as a proper Consumer
@@ -300,9 +296,8 @@ public class Functors {
             };
         }
 
-        @SuppressWarnings("cast")
         default Ƒ1<I,O> nonNull(O or) {
-            return andThen(o -> o==null ? or : (O)o);
+            return andThen(o -> o==null ? or : o);
         }
 
         default Ƒ1<I,O> passNull() {
@@ -340,7 +335,6 @@ public class Functors {
     public interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
         /** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Predicate}. */
-        @Deprecated
         @Override
         default boolean test(I i) {
             return apply(i);
@@ -972,7 +966,7 @@ public class Functors {
     public static class PƑ3<I,P1,P2,P3,O> extends PƑB<I,O,Ƒ4<I,P1,P2,P3,O>> {
         private Class<P1> p1;
         private Class<P2> p2;
-        private Class<P2> p3;
+        private Class<P3> p3;
         private P1 p1def;
         private P2 p2def;
         private P3 p3def;

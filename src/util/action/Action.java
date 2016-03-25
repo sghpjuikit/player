@@ -470,7 +470,11 @@ public final class Action extends Config<Action> implements Runnable {
 
 /*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
 
-    private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
+    private static boolean isIntelliJSupported = JIntellitype.isJIntellitypeSupported();
+    @IsConfig(name = "Is global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this systme")
+    private static boolean isGlobalShortcutsSupported = isIntelliJSupported;
+    @IsConfig(name = "Is media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this systme")
+    private static boolean isMedialShortcutsSupported = isIntelliJSupported;
     private static boolean isRunning = false;
 
     /**
@@ -549,7 +553,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Does nothing if not supported.
      */
     private static void startGlobalListening() {
-        if(isGlobalShortcutsSupported) {
+        if(isIntelliJSupported) {
             JIntellitype.getInstance().addHotKeyListener(global_listener);
             JIntellitype.getInstance().addIntellitypeListener(media_listener);
         }
@@ -563,7 +567,7 @@ public final class Action extends Config<Action> implements Runnable {
      * because bgr listening thread will not close.
      */
     private static void stopGlobalListening() {
-        if(isGlobalShortcutsSupported) {
+        if(isIntelliJSupported) {
             JIntellitype.getInstance().cleanUp();
         }
     }
@@ -575,7 +579,7 @@ public final class Action extends Config<Action> implements Runnable {
      * have no effect.
      */
     public static boolean isGlobalShortcutsSupported() {
-        return isGlobalShortcutsSupported;
+        return isIntelliJSupported;
     }
 
 /**************************************************************************************************/

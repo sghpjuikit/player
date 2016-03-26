@@ -25,13 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.grid;
 
 import javafx.scene.control.skin.CellSkinBase;
 
-public class ImprovedGridCellSkin<T> extends CellSkinBase<ImprovedGridCell<T>> {
+public class GridCellSkin<T,F> extends CellSkinBase<GridCell<T,F>> {
 
-    public ImprovedGridCellSkin(ImprovedGridCell<T> control) {
+    public GridCellSkin(GridCell<T,F> control) {
         super(control);
     }
 

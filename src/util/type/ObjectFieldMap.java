@@ -32,7 +32,7 @@ public class ObjectFieldMap {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Set<ObjectField<Object>> get(Class<T> c) {
+    public <T> Set<ObjectField<T>> get(Class<T> c) {
         noØ(c);
         return (Set) cache.computeIfAbsent(c, key -> stream(fields.getElementsOfSuperV(key)).flatMap(Set::stream).toSet());
     }

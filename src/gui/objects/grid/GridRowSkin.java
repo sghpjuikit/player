@@ -31,10 +31,11 @@ import javafx.scene.Node;
 import javafx.scene.control.skin.CellSkinBase;
 
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static util.Util.getAt;
 
-public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
+public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
 
-    public ImprovedGridRowSkin(ImprovedGridRow<T> control) {
+    public GridRowSkin(GridRow<T,F> control) {
         super(control);
 
         // Remove any children before creating cells (by default a LabeledText exist and we don't need it)
@@ -52,11 +53,8 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
      *  @return Cell element if exist else null
      */
     @SuppressWarnings("unchecked")
-	public ImprovedGridCell<T> getCellAtIndex(int index) {
-        if( index < getChildren().size() ) {
-            return (ImprovedGridCell<T>)getChildren().get(index);
-        }
-        return null;
+	public GridCell<T,F> getCellAtIndex(int index) {
+        return (GridCell<T,F>) getAt(index, getChildren());
     }
 
     /**
@@ -66,9 +64,9 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
     public void updateCells() {
         int rowIndex = getSkinnable().getIndex();
         if (rowIndex >= 0) {
-            ImprovedGridView<T> gridView = getSkinnable().getGridView();
-            int maxCellsInRow = ((ImprovedGridViewSkin<?>)gridView.getSkin()).computeMaxCellsInRow();
-            int totalCellsInGrid = gridView.getItems().size();
+            GridView<T,F> gridView = getSkinnable().getGridView();
+            int maxCellsInRow = ((GridViewSkin<?,?>)gridView.getSkin()).computeMaxCellsInRow();
+            int totalCellsInGrid = gridView.getItemsShown().size();
             int startCellIndex = rowIndex * maxCellsInRow;
             int endCellIndex = startCellIndex + maxCellsInRow - 1;
             int cacheIndex = 0;
@@ -76,8 +74,8 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
             for (int cellIndex = startCellIndex; cellIndex <= endCellIndex; cellIndex++, cacheIndex++) {
                 if (cellIndex < totalCellsInGrid) {
                     // Check if we can re-use a cell at this index or create a new one
-                    ImprovedGridCell<T> cell = getCellAtIndex(cacheIndex);
-                    if( cell == null ) {
+                    GridCell<T,F> cell = getCellAtIndex(cacheIndex);
+                    if(cell == null) {
                         cell = createCell();
                         getChildren().add(cell);
                     }
@@ -85,7 +83,7 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
                     cell.updateIndex(cellIndex);
                 }
                 // we are going out of bounds -> exist the loop
-                else { break; }
+                else break;
             }
 
             // In case we are re-using a row that previously had more cells than
@@ -94,43 +92,14 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
         }
     }
 
-    private ImprovedGridCell<T> createCell() {
-        ImprovedGridView<T> gridView = getSkinnable().gridViewProperty().get();
-        ImprovedGridCell<T> cell;
-        if (gridView.getCellFactory() != null) {
-            cell = gridView.getCellFactory().call(gridView);
-        } else {
-            cell = createDefaultCellImpl();
-        }
-        cell.updateGridView(gridView);
-        cell.addEventHandler(MOUSE_CLICKED, e -> getSkinnable().getGridView().getSkinn().select(cell));
-        return cell;
-    }
-
-    private ImprovedGridCell<T> createDefaultCellImpl() {
-        return new ImprovedGridCell<T>() {
-            @Override
-            protected void updateItem(T item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? "" : item.toString());
-            }
-        };
-    }
-
-    @Override protected double computeMinHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return super.computePrefHeight(width, topInset, rightInset, bottomInset, leftInset);
-    }
-
-    @Override protected double computeMaxHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return Double.MAX_VALUE;
-    }
-
-    @Override protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        ImprovedGridView<T> gv = getSkinnable().gridViewProperty().get();
+    @Override
+    protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
+        GridView<T,F> gv = getSkinnable().gridViewProperty().get();
         return gv.getCellHeight() + gv.getVerticalCellSpacing() * 2;
     }
 
-    @Override protected void layoutChildren(double x, double y, double w, double h) {
+    @Override
+    protected void layoutChildren(double x, double y, double w, double h) {
 //        double currentWidth = getSkinnable().getWidth();
         double cellWidth = getSkinnable().gridViewProperty().get().getCellWidth();
         double cellHeight = getSkinnable().gridViewProperty().get().getCellHeight();
@@ -141,7 +110,8 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
         double yPos = 0;
 
         // here we alter the horizontal spacing to get rid of the gap on the right
-        int columns = ((ImprovedGridViewSkin)getSkinnable().getGridView().getSkin()).computeMaxCellsInRow();
+        int columns = ((GridViewSkin)getSkinnable().getGridView().getSkin()).computeMaxCellsInRow();
+        // TODO: use hgap as min gap or something
         horizontalCellSpacing = (w-columns*cellWidth)/(columns+1);
 
         for (Node child : getChildren()) {
@@ -150,4 +120,26 @@ public class ImprovedGridRowSkin<T> extends CellSkinBase<ImprovedGridRow<T>> {
             xPos = xPos + horizontalCellSpacing + cellWidth; // + horizontalCellSpacing
         }
     }
+
+
+    private GridCell<T,F> createCell() {
+        GridView<T,F> gridView = getSkinnable().gridViewProperty().get();
+        GridCell<T,F> cell = gridView.getCellFactory()!=null
+                ? gridView.getCellFactory().call(gridView)
+                : createDefaultCellImpl();
+        cell.updateGridView(gridView);
+        cell.addEventHandler(MOUSE_CLICKED, e -> getSkinnable().getGridView().getSkinn().select(cell));
+        return cell;
+    }
+
+    private GridCell<T,F> createDefaultCellImpl() {
+        return new GridCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "" : item.toString());
+            }
+        };
+    }
+
 }

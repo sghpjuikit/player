@@ -150,8 +150,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             }
         });
 
-        // using EventFilter would cause ignoring first key stroke when setting
-        // search box visible
+        // addEventFilter would cause ignoring first key stroke when setting filter visible
         addEventHandler(KEY_PRESSED, e -> {
             KeyCode k = e.getCode();
             // CTRL+F -> toggle filter
@@ -182,13 +181,15 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 search(searchQuery.get());
             }
         });
+
         addEventFilter(KEY_PRESSED, e -> {
             if(e.getCode()==ESCAPE && searchIsActive()) {
                 searchEnd();
                 e.consume(); // must cause all KEY_PRESSED handlers to be ignored
             }
         });
-        addEventFilter(Event.ANY, e -> updateSearchStyles()); // isnt this overkill!?
+        // TODO: fix the overkill
+        addEventFilter(Event.ANY, e -> updateSearchStyles());
         changesOf(getItems()).subscribe(c -> updateSearchStyles());
         changesOf(getItems()).subscribe(c -> resizeIndexColumn());
 
@@ -240,7 +241,6 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     /** Filter pane in the top of the table. */
     public final Filter filterPane;
-
     /*
      * Predicate that filters the table list. Null predicate will match all
      * items (same as always true predicate). The value reflects the filter
@@ -322,7 +322,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * Visibility of the bottom controls and information panel. Displays
      * information about table items and menubar.
      */
-    public BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
+    public final BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
         @Override public void set(boolean v) {
             super.set(v);
             if(v) {

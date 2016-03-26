@@ -19,7 +19,7 @@ public interface TypedValue<C> {
      *
      * @return value type.
      */
-    public Class<C> getType();
+    Class<C> getType();
 
     /** @return whether type of the value is String */
     default boolean isTypeString() {

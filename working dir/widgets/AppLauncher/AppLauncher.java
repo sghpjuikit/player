@@ -24,8 +24,8 @@ import javafx.scene.layout.Pane;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.grid.ImprovedGridCell;
-import gui.objects.grid.ImprovedGridView;
+import gui.objects.grid.GridCell;
+import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
 import main.ImageThumbIconTest;
@@ -85,7 +85,7 @@ public class AppLauncher extends ClassController {
     @IsConfig(name = "Location", info = "Add program")
     final VarList<File> files = new VarList<>(() -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
 
-    private final ImprovedGridView<Item> grid = new ImprovedGridView<>(NORMAL.width,NORMAL.height,5,5);
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width,NORMAL.height,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
@@ -157,14 +157,14 @@ public class AppLauncher extends ClassController {
 //        item.last_gridposition = grid.getSkinn().getFlow().getPosition(); // can cause nullpointer here
         visitId++;
         if(item==null) {
-            grid.getItems().clear();
+            grid.getItemsRaw().clear();
             grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
         } if(item!=null) {
             Fut.fut(item)
                     .map(Item::children,executorIO)
                     .use(newcells -> newcells.sort(buildSortComparator()),executorIO)
                     .use(newcells -> {
-                        grid.getItems().setAll(newcells);
+                        grid.getItemsRaw().setAll(newcells);
                         if(item.last_gridposition>=0)
                             grid.getSkinn().getFlow().setPosition(item.last_gridposition);
                         grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
@@ -184,7 +184,7 @@ public class AppLauncher extends ClassController {
     private static FileSystemView fileUtils = FileSystemView.getFileSystemView();
     /** Resorts grid's items according to current sort criteria. */
     private void resort() {
-        grid.getItems().sort(buildSortComparator());
+        grid.getItemsRaw().sort(buildSortComparator());
     }
 
     private Comparator<Item> buildSortComparator() {
@@ -292,7 +292,7 @@ public class AppLauncher extends ClassController {
      * it, but both vertically & horizontally. This avoids loading all files at once and allows
      * unlimited scaling.
      */
-    private class Cell extends ImprovedGridCell<Item> {
+    private class Cell extends GridCell<Item,File> {
         Pane root;
         Label name;
         Thumbnail thumb;
@@ -470,7 +470,7 @@ public class AppLauncher extends ClassController {
             this.height = height;
         }
 
-        void apply(ImprovedGridView<?> grid) {
+        void apply(GridView<?,?> grid) {
             grid.setCellWidth(width);
             grid.setCellHeight(height);
         }

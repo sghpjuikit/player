@@ -22,26 +22,29 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
 
+- logback could monitor its configuration file
 - Configuration config mapset should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
-- refactor GridView Cell implementation
 - break File into FileFile and DirFile and AnyFile(?) for typesafe Configs, theres no way to tell which user wants...
   alternatively make File<FileType>
-- do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
-- widget i/o binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
-- widget i/o 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
-  This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
-  there have to be default values as well, preferrably settable per i/o in widget controller
-- DirViewer cache everything in Item, not Cell as Cells get recreated frequently
-- DirViewer implement smart image cache, we must not cache all images, gifs can kill app instantly then
-- DirViewer thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?
+- widget i/o
+    - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
+    - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
+      This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
+      there have to be default values as well, preferrably settable per i/o in widget controller
 - Logger log text jambled up sometimes + doesnt write jaudiotagger log output sometimes
-- DirViewer reload thumbnails when thumb size increases
-- dir viewer allow visiting up if parent is only 1
 - idea style of searching actions/shortcuts/configs
 - impl filter in Settings
-- impl filter in DirViewer + add conf gui header or sth.
-- file downloader widget
+- DirViewer
+    - optimize the annoying image loading delay that helps scrolling performance, its too much
+    - conf gui header
+    - impl searching (as opposed to filtering), filtering really makes inability to search evident, follow Table impl
+    - cache everything in Item, not Cell as Cells get recreated frequently
+    - implement smart image cache, we must not cache all images, gifs can kill app instantly then
+    - thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?
+    - reload thumbnails when thumb size increases
+    - allow visiting up if parent is only 1
+- FileDownloader widget
   - display progress
   - overwrite file if exist option
 - all ConfigFields must support observable Configs, im awed they dont!!
@@ -77,16 +80,20 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   Configurable (but using which convention?)
 - remove artwork caching?
 - improve table performance
-- Void config which doesnt serialize and has Runnable action executing when
+- impl Void config which doesnt serialize and has Runnable action executing when
   gui is clicked, the action may open some kind of manager for the section
   config belongs to
+  I think this actually solves the Q of Action being Config<Action>. Shouldnt it be Config<Void> ? I not, what
+  difference would be between the two and why shouldnt runnable Config<Void> have keys and become Action instead?
   do not show up in filter combobox
 - reimplement playcount, chapters tags as custom tags
-- FieldedValue hasField predicates
+- FieldedValue hasField predicates This will become part of ObjectField decoupling from Table filters,
+  generifying them, etc.
 - layout manager + mock widgets
-- main window switching
+- impl main window switching
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
+- MapSet is breaking Set equals contract! Java's IdentityHashmap is doing it too, so... fck it?
 - Metadata cover caching causes outdated data if cover is set to tag
 - layout mode zoom animation use loop to increase smoothness
 - filesize use unsigned long to support even larger units
@@ -123,8 +130,13 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off autoresize columns option
-- cleanups: Parser, Var, Ref, ActionPane.ActionData, SwitchPane ocnfigs, Action
-
+- refactor
+    - DirViewer's GridView Cell implementation
+    - GridView contructors
+- cleanups
+    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane ocnfigs, Action
+- annoying java "bugs" (problem scope == entire application)
+    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 -------------------------------------------------------------------------------- 
 --------------------------------- TESTING  -------------------------------------
 --------------------------------------------------------------------------------

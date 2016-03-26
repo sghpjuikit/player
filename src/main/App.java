@@ -85,8 +85,8 @@ import gui.objects.tablecell.RatingCellFactory;
 import gui.objects.tablecell.TextStarRatingCellFactory;
 import gui.objects.window.stage.*;
 import gui.objects.window.stage.Window;
-import gui.objects.grid.ImprovedGridCell;
-import gui.objects.grid.ImprovedGridView;
+import gui.objects.grid.GridCell;
+import gui.objects.grid.GridView;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.spinner.Spinner;
@@ -392,7 +392,6 @@ public class App extends Application implements Configurable {
         classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
         classFields.add(MetadataGroup.class, set(getEnumConstants(MetadataGroup.Field.class)));
         classFields.add(File.class, set(getEnumConstants(FileField.class)));
-        classFields.add(Object.class, ObjectField.ColumnField.INDEX);
 
         // add optional object class -> string converters
         className.add(Item.class, "Song");
@@ -901,8 +900,8 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-        ImprovedGridView<GlyphIcons> grid = new ImprovedGridView<>(70,80,5,5);
-                 grid.setCellFactory(view -> new ImprovedGridCell<>() {
+        GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x->x, 70,80,5,5);
+                 grid.setCellFactory(view -> new GridCell<>() {
                      Anim a;
                      @Override
                      protected void updateItem(GlyphIcons icon, boolean empty) {
@@ -929,7 +928,7 @@ public class App extends Application implements Configurable {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {
-                            grid.getItems().setAll(getEnumConstants(c));
+                            grid.getItemsRaw().setAll(getEnumConstants(c));
                             e.consume();
                         }
                     });

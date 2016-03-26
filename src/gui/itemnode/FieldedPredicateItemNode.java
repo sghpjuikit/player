@@ -36,7 +36,7 @@ import static util.functional.Util.ISØ;
 import static util.functional.Util.isInR;
 
 /**
- * Filter node producing {@link FieldedValue} predicate.
+ * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
  *
  * @author Plutonium_
  */
@@ -151,7 +151,8 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
 
     public void clear() {
         empty = true;
-        value = (Predicate)IS;
+        value = (Predicate<V>)IS;
+        // TODO: clear config (the predicate calues, e.g., )
     }
 
     private void generatePredicate() {
@@ -170,4 +171,5 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     public Node getNode() {
         return root;
     }
+
 }

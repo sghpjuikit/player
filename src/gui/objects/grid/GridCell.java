@@ -26,8 +26,6 @@
  */
 package gui.objects.grid;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.ListView;
@@ -43,82 +41,52 @@ import javafx.scene.control.TableView;
  *
  * @see GridView
  */
-public class ImprovedGridCell<T> extends IndexedCell<T> {
+public class GridCell<T,F> extends IndexedCell<T> {
 
-    /**************************************************************************
-     *
-     * Constructors
-     *
-     **************************************************************************/
-
-    /**
-     * Creates a default GridCell instance.
-     */
-	public ImprovedGridCell() {
-		getStyleClass().add("grid-cell"); //$NON-NLS-1$
-
-//		itemProperty().addListener(new ChangeListener<T>() {
-//            @Override public void changed(ObservableValue<? extends T> arg0, T oldItem, T newItem) {
-//                updateItem(newItem, newItem == null);
-//            }
-//        });
-
-		// TODO listen for index change and update index and item, rather than
-		// listen to just item update as above. This requires the GridCell to
-		// know about its containing GridRow (and the GridRow to know its
-		// containing GridView)
-		indexProperty().addListener(new InvalidationListener() {
-            @Override public void invalidated(Observable observable) {
-                final ImprovedGridView<T> gridView = getGridView();
-                if (gridView == null) return;
-
-                if(getIndex() < 0) {
-                    updateItem(null, true);
-                    return;
-                }
-                T item = gridView.getItems().get(getIndex());
-
-//                updateIndex(getIndex());
-                updateItem(item, item == null);
-            }
-        });
+	public GridCell() {
+		getStyleClass().add("grid-cell");
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override protected Skin<?> createDefaultSkin() {
-        return new ImprovedGridCellSkin<>(this);
+    @Override
+    public void updateIndex(int i) {
+        super.updateIndex(i);
+
+        GridView<T,F> gridView1 = getGridView();
+        if (gridView1 == null) return;
+
+        if(i<0) {
+            updateItem(null, true);
+        } else {
+            T item1 = gridView1.getItemsShown().get(i);
+            updateItem(item1, item1==null);
+        }
     }
 
-
-
-	/**************************************************************************
-     *
-     * Properties
-     *
-     **************************************************************************/
+	@Override
+    protected Skin<?> createDefaultSkin() {
+        return new GridCellSkin<>(this);
+    }
 
 	/**
      * The {@link GridView} that this GridCell exists within.
      */
-    public SimpleObjectProperty<ImprovedGridView<T>> gridViewProperty() {
+    public SimpleObjectProperty<GridView<T,F>> gridViewProperty() {
         return gridView;
     }
-    private final SimpleObjectProperty<ImprovedGridView<T>> gridView =
-            new SimpleObjectProperty<>(this, "gridView"); //$NON-NLS-1$
+
+    private final SimpleObjectProperty<GridView<T,F>> gridView = new SimpleObjectProperty<>(this, "gridView");
 
     /**
      * Sets the {@link GridView} that this GridCell exists within.
      */
-    public final void updateGridView(ImprovedGridView<T> gridView) {
+    public final void updateGridView(GridView<T,F> gridView) {
         this.gridView.set(gridView);
     }
 
     /**
      * Returns the {@link GridView} that this GridCell exists within.
      */
-    public ImprovedGridView<T> getGridView() {
+    public GridView<T,F> getGridView() {
         return gridView.get();
     }
 }

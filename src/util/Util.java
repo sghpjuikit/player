@@ -614,6 +614,27 @@ public class Util {
         return max(min,min(i,max));
     }
 
+    /** @return true iff number is a valid 0-based index of the collection, else false */
+    public static boolean isInRange(int i, Collection<?> c) {
+        return i>=0 && i<c.size();
+    }
+
+    /** @return true iff number is a valid 0-based index of the array, else false */
+    public static boolean isInRange(int i, Object... c) {
+        return i>=0 && i<c.length;
+    }
+
+    /** @return element at apecified index or null if out of bounds or element null */
+    public static <T> T getAt(int i, List<T> list) {
+        return isInRange(i, list) ? list.get(i) : null;
+    }
+
+    /** @return element at apecified index or null if out of bounds or element null */
+    @SafeVarargs
+    public static <T> T getAt(int i, T... array) {
+        return isInRange(i, (Object[]) array) ? array[i] : null;
+    }
+
     /** Returns sum of squares of all numbers. */
     public static double sumsqr(double... numbers) {
         double Σ = 0;

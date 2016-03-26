@@ -98,28 +98,29 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                         default   : break;
                                     }
                                     e.consume();
-                                } else if(e.getCode()==KeyCode.BACK_SPACE) {
-                                    // textField.deletePreviousChar(); // doenst work here
-                                    // e.consume();
-                                } else if(e.getCode()==KeyCode.END) {
-                                    if (e.isShiftDown()) textField.selectEnd();
-                                    else textField.positionCaret(textField.getLength());
-                                    e.consume();
-                                } else if(e.getCode()==KeyCode.HOME) {
-                                    if (e.isShiftDown()) textField.selectHome();
-                                    else textField.positionCaret(0);
-                                    e.consume();
-                                } else if(e.getCode()==KeyCode.LEFT) {
-                                    if (e.isControlDown()) textField.selectPreviousWord(); else textField.selectBackward();
-                                    if(!e.isShiftDown()) textField.deselect();
-                                    e.consume();
-                                } else if(e.getCode()==KeyCode.RIGHT) {
-                                    if(e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
-                                    if(!e.isShiftDown()) textField.deselect();
-                                    e.consume();
-                                } else if(!e.getCode().isNavigationKey()) {
-
                                 }
+//                                else if(e.getCode()==KeyCode.BACK_SPACE) {
+//                                    // textField.deletePreviousChar(); // doenst work here
+//                                    // e.consume();
+//                                } else if(e.getCode()==KeyCode.END) {
+//                                    if (e.isShiftDown()) textField.selectEnd();
+//                                    else textField.positionCaret(textField.getLength());
+//                                    e.consume();
+//                                } else if(e.getCode()==KeyCode.HOME) {
+//                                    if (e.isShiftDown()) textField.selectHome();
+//                                    else textField.positionCaret(0);
+//                                    e.consume();
+//                                } else if(e.getCode()==KeyCode.LEFT) {
+//                                    if (e.isControlDown()) textField.selectPreviousWord(); else textField.selectBackward();
+//                                    if(!e.isShiftDown()) textField.deselect();
+//                                    e.consume();
+//                                } else if(e.getCode()==KeyCode.RIGHT) {
+//                                    if(e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
+//                                    if(!e.isShiftDown()) textField.deselect();
+//                                    e.consume();
+//                                } else if(!e.getCode().isNavigationKey()) {
+//
+//                                }
                             ignoreevent = false;
                             // e.consume(); // may brake functionality
                         });
@@ -136,7 +137,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     @Override
     protected void acceptSuggestion(Entry suggestion) {
         if(Runnable.class.isAssignableFrom(suggestion.config.getType()))
-            ((Runnable)suggestion.config).run();Node n;
+            ((Runnable)suggestion.config).run();;
         history.add(this);
     }
 
@@ -202,7 +203,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
             return graphics;
         }
     }
-    static class EntryListCell extends ListCell<Entry> {
+    private static class EntryListCell extends ListCell<Entry> {
         private final Label text = new Label();
         private final StackPane root = layStack(text,Pos.CENTER_LEFT, new StackPane(),Pos.CENTER_RIGHT);
         private final StackPane congigNodeRoot = (StackPane) root.getChildren().get(1);

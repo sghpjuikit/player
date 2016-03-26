@@ -16,13 +16,13 @@ import util.collections.Tuple3;
 import static util.functional.Util.*;
 
 /**
- * Chained filter node producing {@link FieldedValue} predicate.
+ * Chained filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
  *
  * @author Plutonium_
  */
 public class FieldedPredicateChainItemNode<T,F extends ObjectField<T>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 
-    private final List<Tuple3<String,Class,F>> data = new ArrayList();
+    private final List<Tuple3<String,Class,F>> data = new ArrayList<>();
 
     public FieldedPredicateChainItemNode(Supplier<FieldedPredicateItemNode<T,F>> chainedFactory) {
         this(1,chainedFactory);

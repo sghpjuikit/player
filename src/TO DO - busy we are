@@ -22,6 +22,9 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
 
+- GridView selection
+    - selectDown not working 100%
+    - scrolling may cause selected cell to lose its selected pseudocalss
 - logback could monitor its configuration file
 - Configuration config mapset should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy

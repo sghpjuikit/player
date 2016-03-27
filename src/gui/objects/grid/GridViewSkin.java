@@ -53,7 +53,6 @@ import util.access.fieldvalue.ObjectField;
 import util.collections.Tuple3;
 import util.functional.Functors;
 import util.functional.Functors.Ƒ0;
-import util.graphics.Util;
 
 import static javafx.application.Platform.runLater;
 import static javafx.css.PseudoClass.getPseudoClass;
@@ -108,6 +107,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 if(c==KeyCode.HOME) selectFirst();
                 if(c==KeyCode.END) selectLast();
                 e.consume();
+            } else if(c==ESCAPE && !e.isConsumed()) {
+                selectNone();
             }
         });
     }
@@ -135,6 +136,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         ListChangeListener<T> itemsListener = change -> {
             updateRowCount();
             getSkinnable().requestLayout();
+            selectNone();
         };
         WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
         getSkinnable().getItemsShown().addListener(itemsListener);
@@ -357,7 +359,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             });
 
             // addEventFilter would cause ignoring first key stroke when setting filter visible
-            GridViewSkin.this.root.addEventHandler(KEY_PRESSED, e -> {
+            GridViewSkin.this.f.addEventHandler(KEY_PRESSED, e -> {
                 KeyCode k = e.getCode();
                 // CTRL+F -> toggle filter
                 if(k==F && e.isShortcutDown()) {
@@ -397,19 +399,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private GridCell<T,F> selectedC = null;
 
     void selectRight() {
-        select(selectedI+1);
+        selectNonNegative(selectedI+1);
     }
 
     void selectLeft() {
-        select(selectedI-1);
+        selectNonNegative(selectedI-1);
     }
 
     void selectUp() {
-        select(selectedI-computeMaxCellsInRow());
+        selectNonNegative(selectedI-computeMaxCellsInRow());
     }
 
     void selectDown() {
-        select(selectedI+computeMaxCellsInRow());
+        selectNonNegative(selectedI+computeMaxCellsInRow());
     }
 
     void selectFirst() {
@@ -429,6 +431,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         else select(getSkinnable().getItemsShown().indexOf(c.getItem()));
     }
 
+    void selectNonNegative(int i) {
+        if(i>=0) select(i);
+        else select(0);
+    }
+
     void select(int i) {
         if(f==null) return;
 
@@ -445,10 +452,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         if(selectedR!=null) selectedR.updateSelected(false);
         getSkinnable().selectedRow.set(null);
         getSkinnable().selectedItem.set(null);
-        selectedC = null;
         selectedR = null;
+        selectedC = null;
+        selectedI = -1;
 
-        if(i==-1 || itemCount==0) return;
+        if(i<0 || itemCount==0) return;
 
         // find index
         int rows = getItemCount();
@@ -461,8 +469,12 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         // show row & cell to select
         GridRow<T,F> fsc = f.getFirstVisibleCell();
         GridRow<T,F> lsc = f.getLastVisibleCell();
-        if(fsc.getIndex() > row || row > lsc.getIndex())
-        f.scrollTo(row);
+        boolean isUp   = row<=fsc.getIndex();
+        boolean isDown = row>=lsc.getIndex();
+        if(fsc.getIndex() >= row || row >= lsc.getIndex()) {
+            if(isUp) f.scrollToTop(row);
+            else f.scrollTo(row); // TODO: fix weird behavior
+        }
 
         // find row & cell to select
         GridRow<T,F> r = f.getCell(row);

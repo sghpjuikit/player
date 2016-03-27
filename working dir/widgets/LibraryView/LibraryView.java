@@ -121,7 +121,7 @@ public class LibraryView extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
-    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY,
+    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<Metadata.Field>(CATEGORY,
         () -> filter(Metadata.Field.values(), Field::isTypeStringRepresentable),
         this::applyData
     );
@@ -417,7 +417,7 @@ public class LibraryView extends FXMLController {
     private static Menu searchMenu;
     private static final TableContextMenuMR<Metadata, LibraryView> contxt_menu = new TableContextMenuMR<>(
         () -> {
-            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
+            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             MenuItem[] is = menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
                                       q -> "in " + Parser.DEFAULT.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
@@ -427,13 +427,13 @@ public class LibraryView extends FXMLController {
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> Db.removeItems(m.getValue())),
                 new Menu("Show in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
+                    menuItems(filterMap(APP.widgetManager.getFactories(), f->f.hasFeature(SongReader.class), f -> f.nameGui()),
                         f -> f,
                         f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.nameGui()),
+                    menuItems(filterMap(APP.widgetManager.getFactories(), f->f.hasFeature(SongWriter.class), f -> f.nameGui()),
                         f -> f,
                         f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
                     )

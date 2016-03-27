@@ -1065,17 +1065,17 @@ public class Util {
 
     /** Filters and then maps array. Returns list. Source remains unchanged. */
     @SafeVarargs
-    public static<T,R> List<R> filterMap(Predicate<T> f, Function<T,R> m, T... a ) {
+    public static<T,R> List<R> filterMap(Predicate<? super T> f, Function<? super T,? extends R> m, T... a ) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }
 
     /** Filters and then maps collection. Returns list. Source remains unchanged. */
-    public static<T,R> List<R> filterMap(Collection<T> c, Predicate<T> f, Function<T,R> m) {
+    public static<T,R> List<R> filterMap(Collection<T> c, Predicate<? super T> f, Function<? super T,? extends R> m) {
         return c.stream().filter(f).map(m).collect(toList());
     }
 
     /** Filters and then maps stream. Returns list. */
-    public static<T,R> List<R> filterMap(Stream<T> c, Predicate<T> f, Function<T,R> m) {
+    public static<T,R> List<R> filterMap(Stream<T> c, Predicate<? super T> f, Function<? super T,? extends R> m) {
         return c.filter(f).map(m).collect(toList());
     }
 

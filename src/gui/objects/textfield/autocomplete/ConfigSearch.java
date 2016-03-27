@@ -98,29 +98,31 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                         default   : break;
                                     }
                                     e.consume();
+                                } else if(e.isControlDown() && e.getCode()==KeyCode.A) {
+                                    textField.selectAll();
+                                    e.consume();
+                                } else if(e.getCode()==KeyCode.BACK_SPACE) {
+                                    // textField.deletePreviousChar(); // doenst work here
+                                    // e.consume();
+                                } else if(e.getCode()==KeyCode.END) {
+                                    if (e.isShiftDown()) textField.selectEnd();
+                                    else textField.positionCaret(textField.getLength());
+                                    e.consume();
+                                } else if(e.getCode()==KeyCode.HOME) {
+                                    if (e.isShiftDown()) textField.selectHome();
+                                    else textField.positionCaret(0);
+                                    e.consume();
+                                } else if(e.getCode()==KeyCode.LEFT) {
+                                    if (e.isControlDown()) textField.selectPreviousWord(); else textField.selectBackward();
+                                    if(!e.isShiftDown()) textField.deselect();
+                                    e.consume();
+                                } else if(e.getCode()==KeyCode.RIGHT) {
+                                    if(e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
+                                    if(!e.isShiftDown()) textField.deselect();
+                                    e.consume();
+                                } else if(!e.getCode().isNavigationKey()) {
+
                                 }
-//                                else if(e.getCode()==KeyCode.BACK_SPACE) {
-//                                    // textField.deletePreviousChar(); // doenst work here
-//                                    // e.consume();
-//                                } else if(e.getCode()==KeyCode.END) {
-//                                    if (e.isShiftDown()) textField.selectEnd();
-//                                    else textField.positionCaret(textField.getLength());
-//                                    e.consume();
-//                                } else if(e.getCode()==KeyCode.HOME) {
-//                                    if (e.isShiftDown()) textField.selectHome();
-//                                    else textField.positionCaret(0);
-//                                    e.consume();
-//                                } else if(e.getCode()==KeyCode.LEFT) {
-//                                    if (e.isControlDown()) textField.selectPreviousWord(); else textField.selectBackward();
-//                                    if(!e.isShiftDown()) textField.deselect();
-//                                    e.consume();
-//                                } else if(e.getCode()==KeyCode.RIGHT) {
-//                                    if(e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
-//                                    if(!e.isShiftDown()) textField.deselect();
-//                                    e.consume();
-//                                } else if(!e.getCode().isNavigationKey()) {
-//
-//                                }
                             ignoreevent = false;
                             // e.consume(); // may brake functionality
                         });

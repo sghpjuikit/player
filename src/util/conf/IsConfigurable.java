@@ -10,7 +10,7 @@ import org.atteo.classindex.IndexAnnotated;
  * application configuration. It is used in conjunction with {@link IsConfig} 
  * and {@link Config}.
  * <p>
- * Any class annotated with this annotation will be autodiscovered and added
+ * Any class annotated with this annotation will be auto-discovered and added
  * into configuration class pool. If class is not annotated by this annotation,
  * it will not be discovered and its configurable fields will not be detected.
  * <p>
@@ -18,7 +18,7 @@ import org.atteo.classindex.IndexAnnotated;
  * within the annotated class.
  * <p>
  * For detection purpose, this annotation itself is annotated by {@link IndexAnnotated}.
- * <p>
+ *
  * @author Plutonium_
  */
 @Documented

@@ -598,20 +598,78 @@ public class Util {
     }
 
     /** @return {@code max(min,min(i,max))} */
+    public static int clip(short min, short i, short max) {
+        return max(min,min(i,max));
+    }
+
+    /** @return {@code max(min,min(i,max))} */
     public static int clip(int min, int i, int max) {
         return max(min,min(i,max));
     }
+
     /** @return {@code max(min,min(i,max))} */
     public static long clip(long min, long i, long max) {
         return max(min,min(i,max));
     }
+
     /** @return {@code max(min,min(i,max))} */
     public static float clip(float min, float i, float max) {
         return max(min,min(i,max));
     }
+
     /** @return {@code max(min,min(i,max))} */
     public static double clip(double min, double i, double max) {
         return max(min,min(i,max));
+    }
+
+    /** @return true iff number belongs to the interval inclusive, else false */
+    public static boolean isInRangeInc(short i, short min, short max) {
+        return i>=min && i <=max;
+    }
+
+    /** @return true iff number belongs to the interval inclusive, else false */
+    public static boolean isInRangeInc(int i, int min, int max) {
+        return i>=min && i <=max;
+    }
+
+    /** @return true iff number belongs to the interval inclusive, else false */
+    public static boolean isInRangeInc(long i, long min, long max) {
+        return i>=min && i <=max;
+    }
+
+    /** @return true iff number belongs to the interval inclusive, else false */
+    public static boolean isInRangeInc(float i, float min, float max) {
+        return i>=min && i <=max;
+    }
+
+    /** @return true iff number belongs to the interval inclusive, else false */
+    public static boolean isInRangeInc(double i, double min, double max) {
+        return i>=min && i <=max;
+    }
+
+    /** @return true iff number belongs to the interval exclusive, else false */
+    public static boolean isInRangeExc(short i, short min, short max) {
+        return i>min && i <max;
+    }
+
+    /** @return true iff number belongs to the interval exclusive, else false */
+    public static boolean isInRangeExc(int i, int min, int max) {
+        return i>min && i <max;
+    }
+
+    /** @return true iff number belongs to the interval exclusive, else false */
+    public static boolean isInRangeExc(long i, long min, long max) {
+        return i>min && i <max;
+    }
+
+    /** @return true iff number belongs to the interval exclusive, else false */
+    public static boolean isInRangeExc(float i, float min, float max) {
+        return i>min && i <max;
+    }
+
+    /** @return true iff number belongs to the interval exclusive, else false */
+    public static boolean isInRangeExc(double i, double min, double max) {
+        return i>min && i <max;
     }
 
     /** @return true iff number is a valid 0-based index of the collection, else false */
@@ -620,7 +678,7 @@ public class Util {
     }
 
     /** @return true iff number is a valid 0-based index of the array, else false */
-    public static boolean isInRange(int i, Object... c) {
+    public static boolean isInRange(int i, Object[] c) {
         return i>=0 && i<c.length;
     }
 

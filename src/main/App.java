@@ -10,8 +10,10 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javafx.animation.FadeTransition;
@@ -53,22 +55,9 @@ import audio.Player;
 import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
-import layout.area.ContainerNode;
-import services.ClickEffect;
-import services.Service;
-import services.ServiceManager;
-import services.database.Db;
-import services.notif.Notifier;
-import services.playcount.PlaycountIncrementer;
-import services.tray.TrayService;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import audio.tagging.MetadataReader;
-import layout.Component;
-import layout.widget.Widget;
-import layout.widget.WidgetManager;
-import layout.widget.WidgetManager.WidgetSource;
-import layout.widget.feature.*;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
@@ -80,18 +69,20 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.objects.popover.PopOver;
-import gui.objects.tablecell.RatingCellFactory;
-import gui.objects.tablecell.TextStarRatingCellFactory;
-import gui.objects.window.stage.*;
-import gui.objects.window.stage.Window;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
+import gui.objects.popover.PopOver;
 import gui.objects.spinner.Spinner;
+import gui.objects.tablecell.RatingCellFactory;
+import gui.objects.tablecell.TextStarRatingCellFactory;
 import gui.objects.textfield.DecoratedTextField;
 import gui.objects.textfield.autocomplete.ConfigSearch;
+import gui.objects.window.stage.UiContext;
+import gui.objects.window.stage.Window;
+import gui.objects.window.stage.WindowBase;
+import gui.objects.window.stage.WindowManager;
 import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
@@ -99,14 +90,23 @@ import gui.pane.ActionPane.SlowColAction;
 import gui.pane.InfoPane;
 import gui.pane.OverlayPane;
 import gui.pane.ShortcutPane;
-import util.access.fieldvalue.FileField;
-import util.access.fieldvalue.ObjectField;
-import util.type.ClassName;
-import util.type.InstanceInfo;
-import util.type.InstanceName;
+import layout.Component;
+import layout.area.ContainerNode;
+import layout.widget.Widget;
+import layout.widget.WidgetManager;
+import layout.widget.WidgetManager.WidgetSource;
+import layout.widget.feature.*;
+import services.ClickEffect;
+import services.Service;
+import services.ServiceManager;
+import services.database.Db;
+import services.notif.Notifier;
+import services.playcount.PlaycountIncrementer;
+import services.tray.TrayService;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
+import util.access.fieldvalue.FileField;
 import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
@@ -127,11 +127,12 @@ import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
+import util.type.ClassName;
+import util.type.InstanceInfo;
+import util.type.InstanceName;
 import util.type.ObjectFieldMap;
 import util.units.FileSize;
 
-import static layout.widget.WidgetManager.WidgetSource.*;
-import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
@@ -145,6 +146,8 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
+import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.*;
 import static util.UtilExp.setupCustomTooltipBehavior;
@@ -153,6 +156,8 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
+
+import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -1011,7 +1016,7 @@ public class App extends Application implements Configurable {
         );
     }
 
-    @IsAction(name = "Open...", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     public static void openOpen() {
         APP.actionPane.show(Void.class, null, false,
             new FastAction<>(

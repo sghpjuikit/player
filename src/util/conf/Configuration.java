@@ -24,6 +24,7 @@ import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
 import util.file.FileUtil;
+import util.functional.Functors.Ƒ1;
 
 import static util.Util.getAllFields;
 import static util.Util.getGenericPropertyType;
@@ -32,14 +33,14 @@ import static util.dev.Util.yesFinal;
 import static util.functional.Util.byNC;
 
 /**
- * Provides methods to access configs of the application.
- *
- * @author uranium
+ * Provides methods to access configs.
  */
 public class Configuration {
 
-    private static Lookup methodLookup = MethodHandles.lookup();
-    private final MapSet<String,Config> configs = new MapSet<>(c -> (c.getGroup() + "." + c.getName()).toLowerCase());
+    private static final Lookup methodLookup = MethodHandles.lookup();
+    private static final Ƒ1<String,String> mapper = s -> s.replaceAll(" ", "_").toLowerCase();
+
+    private final MapSet<String,Config> configs = new MapSet<>(mapper.compose(c -> c.getGroup() + "." + c.getName()));
 
     public void collect(Configurable<?> c) {
         configs.addAll(c.getFields());
@@ -55,21 +56,20 @@ public class Configuration {
 
     public void collectStatic() {
         // for all discovered classes
-        ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
-            // add class fields
-            discoverConfigFieldsOf(c);
-            // add methods in the end to avoid incorrect initialization
-            discoverMethodsOf(c);
+        ClassIndex.getAnnotated(IsConfigurable.class).forEach(c -> {
+            discoverConfigFieldsOf(c);  // add class fields
+            discoverMethodsOf(c);   // add methods in the end to avoid incorrect initialization
         });
     }
 
+    @SuppressWarnings("unchecked")
     public void collectComplete() {
         configs.stream().filter(Config::isEditable)
                         .filter(c -> c.getType().equals(Boolean.class))
                         .map(c -> (Config<Boolean>) c)
                         .forEach(c -> {
                             String name = c.getGroup() + " " + c.getName() + " - toggle";
-                            Runnable r = ()->c.setNextNapplyValue();
+                            Runnable r = c::setNextNapplyValue;
                             Action.getActions().add(new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false));
                         });
 
@@ -99,8 +99,20 @@ public class Configuration {
      */
     public void save(String title, File file) {
         StringBuilder content = new StringBuilder()
-            .append("# " + title + " configuration file" + "\n")
-            .append("# Last edited: " + java.time.LocalDateTime.now() + "\n");
+            .append("# " + title + " property file" + "\n")
+            .append("# Last auto-modified: " + java.time.LocalDateTime.now() + "\n")
+            .append("#\n")
+            .append("# Properties are in the format: {property path}.{property.name}{separator}{property value}\n")
+            .append("# \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n")
+            .append("# \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n")
+            .append("# \t{separator}      must be ' - ' sequence\n")
+            .append("# \t{property value} can be any string (even empty)\n")
+            .append("# Properties must be separated by combination of '\\n', '\\r' characters\n")
+            .append("#\n")
+            .append("# Ignored lines:\n")
+            .append("# \tcomment lines (start with '#')\n")
+            .append("# \tempty lines\n")
+            .append("\n");
 
         Function<Config,String> converter = configs.keyMapper;
         getFields().stream()
@@ -122,7 +134,7 @@ public class Configuration {
      */
     public void load(File file) {
         FileUtil.readFileKeyValues(file).forEach((key,value) -> {
-            Config<?> c = configs.get(key.toLowerCase());
+            Config<?> c = configs.get(mapper.apply(key));
             if (c!=null) c.setValueS(value);
         });
     }
@@ -145,9 +157,9 @@ public class Configuration {
                     if (a != null) {
                         String name = a.value();
                         String group = getGroup(c);
-                        String config_id = group + "." + name;
-                        if(configs.containsKey(config_id.toLowerCase()) && !name.isEmpty()) {
-                            Config config = configs.get(config_id.toLowerCase());
+                        String config_id = mapper.apply(group + "." + name);
+                        if(configs.containsKey(config_id) && !name.isEmpty()) {
+                            Config config = configs.get(config_id);
                             if(config instanceof FieldConfig) {
                                 try {
                                     m.setAccessible(true);
@@ -164,22 +176,20 @@ public class Configuration {
         }
     }
 
-    static List<Config<?>> configsOf(Class<?> clazz, Object instnc, boolean include_static, boolean include_instance) {
-        // check arguments
-        if(include_instance && instnc==null)
+    static List<Config<?>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
+        if(include_instance && instance==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
         List<Config<?>> out = new ArrayList<>();
 
         for(Field f : getAllFields(clazz)) {
-            Config<?> c = createConfig(clazz, f, instnc, include_static, include_instance);
+            Config<?> c = createConfig(clazz, f, instance, include_static, include_instance);
             if(c!=null) out.add(c);
         }
         return out;
     }
 
-    static Config<?> createConfig(Class<?> cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
-        // that are annotated
+    static Config<?> createConfig(Class<?> cl, Field f, Object instance, boolean include_static, boolean include_instance) {
         Config<?> c = null;
         IsConfig a = f.getAnnotation(IsConfig.class);
         if (a != null) {
@@ -187,55 +197,56 @@ public class Configuration {
             String name = f.getName();
             int modifiers = f.getModifiers();
             if (include_static && Modifier.isStatic(modifiers))
-                c = createConfig(f, instnc, name, a, group);
+                c = createConfig(f, instance, name, a, group);
 
             if (include_instance && !Modifier.isStatic(modifiers))
-                c = createConfig(f, instnc, name, a, group);
+                c = createConfig(f, instance, name, a, group);
 
         }
         return c;
     }
 
-    private static Config<?> createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
+    private static Config<?> createConfig(Field f, Object instance, String name, IsConfig annotation, String group) {
         Class<?> c = f.getType();
         if(Config.class.isAssignableFrom(c)) {
             return newFromConfig(f, instance);
         } else
         if(WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c)) {
-            return newFromProperty(f, instance, name, anotation, group);
+            return newFromProperty(f, instance, name, annotation, group);
         } else {
             try {
                 noFinal(f);                // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
-                return new FieldConfig<>(name, anotation, instance, group, getter, setter);
+                return new FieldConfig<>(name, annotation, instance, group, getter, setter);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Unreflecting field " + f.getName() + " failed. " + e.getMessage());
             }
         }
     }
 
-    private static Config<?> newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
+    @SuppressWarnings("unchecked")
+    private static Config<?> newFromProperty(Field f, Object instance, String name, IsConfig annotation, String group) {
         try {
-            yesFinal(f);            // make sure the field is final
+            yesFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
             if(VarList.class.isAssignableFrom(f.getType()))
-                return new ListConfig(name, anotation, (VarList)f.get(instance), group);
+                return new ListConfig<>(name, annotation, (VarList)f.get(instance), group);
             if(Vo.class.isAssignableFrom(f.getType())) {
                 Vo<?> property = (Vo)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
-                return new OverridablePropertyConfig(property_type, name, anotation, property, group);
+                return new OverridablePropertyConfig(property_type, name, annotation, property, group);
             }
             if(WritableValue.class.isAssignableFrom(f.getType())) {
                 WritableValue<?> property = (WritableValue)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
-                return new PropertyConfig(property_type, name, anotation, property, group);
+                return new PropertyConfig(property_type, name, annotation, property, group);
             }
             if(ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
                 ReadOnlyProperty<?> property = (ReadOnlyProperty)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
-                return new ReadOnlyPropertyConfig(property_type, name, anotation, property, group);
+                return new ReadOnlyPropertyConfig(property_type, name, annotation, property, group);
             }
             throw new IllegalArgumentException("Wrong class");
         } catch (IllegalAccessException | SecurityException e) {

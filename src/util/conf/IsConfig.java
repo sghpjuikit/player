@@ -18,7 +18,7 @@ import java.lang.annotation.*;
  * deserialized.
  * Second use is for annotating non static instance fields and comes in
  * combination with {@link Configurable} interface that basically exports all
- * annnotated fields of the object (or its sub-objects) as a powerful way to
+ * annotated fields of the object (or its sub-objects) as a powerful way to
  * access those fields and see the object in terms of how it can be configured.
  * <p>
  * Furthermore, the type of the field (its Class) should have implemented
@@ -27,7 +27,7 @@ import java.lang.annotation.*;
  * can produce unnecessary method calls and operations potentially with heavy
  * performance impact (for example if a big application module ends up refreshing
  * because of an incorrectly captured value change). The toString() method is
- * useful for debugging and messaging and should be overriden and return human
+ * useful for debugging and messaging and should be overridden and return human
  * readable information about the state of the object or its value.
  * <p>
  * <p>
@@ -44,8 +44,6 @@ import java.lang.annotation.*;
  * <p>
  * All fields are default-initialized and will never be null. Null checks are
  * unnecessary.
- * <p>
- * @author uranium
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -62,22 +60,26 @@ public @interface IsConfig {
     String info() default "";
     /** 
      * @return category of the field belongs to. Use for aggregation of
-      * the configuration fields. Default value is "". The default value will be
-      * set from category or name of the class containing the field. See 
-      * {@link IsConfigurable}. */
+     * the configuration fields. Default value is "". The default value will be
+     * set from category or name of the class containing the field. See
+     * {@link IsConfigurable}.
+     */
     String group() default "";
     /** 
      * @return the intended editability of the configuration field by the user.
-      * Should be adhered to by the graphical user interface for example by not
-      * displaying this config. Default true.*/
+     * Should be adhered to by the graphical user interface for example by not
+     * displaying this config. Default true.
+     */
     boolean editable() default true;
     /** 
      * Applicable only for numbers. Returns double.
+     *
      * @return the minimum allowable value
      */
     double min() default Double.NaN;
     /** 
      * Applicable only for numbers. Returns double.
+     *
      * @return the maximum allowable value
      */
     double max() default Double.NaN;

@@ -85,7 +85,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
 
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, f);
-        filter = new Filter(control.type, control.filtereditems);
+        filter = new Filter(control.type, control.itemsFiltered);
 
         control.parentProperty().addListener((o,ov,nv) -> {
             root.requestLayout();
@@ -331,7 +331,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 return g;
             });
 //            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
-//            onItemChange = getSkinnable().filtereditems::setPredicate;
+//            onItemChange = getSkinnable().itemsFiltered::setPredicate;
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
             setData(attributes.get());
 
@@ -393,25 +393,29 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
 /******************************************** SELECTION *******************************************/
 
+    private static final int NO_SELECT = Integer.MIN_VALUE;
     private static final PseudoClass SELECTED_PC = getPseudoClass("selected");
     private int selectedI = -1;
     private GridRow<T,F> selectedR = null;
     private GridCell<T,F> selectedC = null;
 
     void selectRight() {
-        selectNonNegative(selectedI+1);
+        select(selectedI+1);
     }
 
     void selectLeft() {
-        selectNonNegative(selectedI-1);
+        select(selectedI-1);
     }
 
     void selectUp() {
-        selectNonNegative(selectedI-computeMaxCellsInRow());
+        select(selectedI-computeMaxCellsInRow());
     }
 
     void selectDown() {
-        selectNonNegative(selectedI+computeMaxCellsInRow());
+        int sel = selectedI+computeMaxCellsInRow();
+        int max = getSkinnable().getItemsShown().size()-1;
+        if(sel>max) selectLast();
+        else select(sel);
     }
 
     void selectFirst() {
@@ -423,29 +427,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void selectNone() {
-        select(-1);
-    }
-
-    void select(GridCell<T,F> c) {
-        if(c==null || c.getItem()==null) selectNone();
-        else select(getSkinnable().getItemsShown().indexOf(c.getItem()));
-    }
-
-    void selectNonNegative(int i) {
-        if(i>=0) select(i);
-        else select(0);
-    }
-
-    void select(int i) {
-        if(f==null) return;
-
-        int itemCount = getSkinnable().getItemsShown().size();
-        int imin = -1;
-        int imax = itemCount-1;
-        i = clip(imin,i,imax);
-        if(i==selectedI) return;
-
-        // unselect
         if(selectedC!=null) selectedC.pseudoClassStateChanged(SELECTED_PC, false);
         if(selectedR!=null) selectedR.pseudoClassStateChanged(SELECTED_PC, false);
         if(selectedC!=null) selectedC.updateSelected(false);
@@ -454,9 +435,25 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         getSkinnable().selectedItem.set(null);
         selectedR = null;
         selectedC = null;
-        selectedI = -1;
+        selectedI = NO_SELECT;
+    }
 
-        if(i<0 || itemCount==0) return;
+    void select(GridCell<T,F> c) {
+        if(c==null || c.getItem()==null) selectNone();
+        else select(c.getIndex());
+    }
+
+    /** Select cell (and row it is in) at index. No-op if out of range. */
+    void select(int i) {
+        if(f==null) return;
+        if(i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
+
+        int itemCount = getSkinnable().getItemsShown().size();
+        int imin = 0;
+        int imax = itemCount-1;
+        if(itemCount==0 || i==selectedI || !isInRangeInc(i,imin,imax)) return;
+
+        selectNone();
 
         // find index
         int rows = getItemCount();
@@ -492,4 +489,5 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         getSkinnable().selectedRow.set(r.getItem());
         getSkinnable().selectedItem.set(c.getItem());
     }
+
 }

@@ -24,7 +24,6 @@ import util.conf.Config;
 import static util.functional.Util.map;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
-import static util.graphics.Util.setMinPrefMaxWidth;
 
 /**
  * Created by Plutonium_ on 3/6/2016.

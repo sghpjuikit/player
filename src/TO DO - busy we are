@@ -3,28 +3,11 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- database throws exception when transaction begins and library is importing files
-com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
-	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]
-	at com.objectdb.o.JPE.g(JPE.java:145) ~[objectdb.jar:na]
-	at com.objectdb.o.ERR.f(ERR.java:56) ~[objectdb.jar:na]
-	at com.objectdb.o.OBC.onObjectDBError(OBC.java:1503) ~[objectdb.jar:na]
-	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:287) ~[objectdb.jar:na]
-	at AudioPlayer.services.database.Db.updatePer(Db.java:181) ~[Player/:na]
-	at AudioPlayer.Player.lambda$refreshItemsWithNow$13(Player.java:201) ~[Player/:na]
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1158) ~[na:na]
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:632) ~[na:na]
-	at java.lang.Thread.run(Thread.java:804) ~[na:na]
-Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when a transaction is active
-	at com.objectdb.o.MSG.d(MSG.java:62) ~[objectdb.jar:na]
-	at com.objectdb.o.OBC.E(OBC.java:1460) ~[objectdb.jar:na]
-	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
-	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
-	... 5 common frames omitted
-
+- unify Table & Grid Filter + instantiate it lazily
+- Configuration should implement Configurable
 - GridView selection
-    - selectDown not working 100%
-    - scrolling may cause selected cell to lose its selected pseudocalss
+    - selectDown bug due to cells not being ready sometimes (so they pseudoclasses wont get applied)
+    - scrolling may cause selected cell to lose its selected pseudoclass
 - logback could monitor its configuration file
 - Configuration config mapset should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
@@ -120,9 +103,7 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 - LastFM -> service, implement properly
 - popover position jumps on app drag start & fix icon shadows affecting
   layout
-- item->metadata
-- cleanup PopOver positioning
-- finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember 
+- finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random playorder
 - Generic FileType class, particularly need separation on 'groups' like
   audio, video, image, etc... See:
@@ -193,6 +174,24 @@ GENERAL
 - javafx player MediaException: system cant find media file when weird character                   (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
   Its patched so playback continues with next item, but that isnt a solution. Fill a bug.
+- database throws exception when transaction begins and library is importing files
+com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
+	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]
+	at com.objectdb.o.JPE.g(JPE.java:145) ~[objectdb.jar:na]
+	at com.objectdb.o.ERR.f(ERR.java:56) ~[objectdb.jar:na]
+	at com.objectdb.o.OBC.onObjectDBError(OBC.java:1503) ~[objectdb.jar:na]
+	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:287) ~[objectdb.jar:na]
+	at AudioPlayer.services.database.Db.updatePer(Db.java:181) ~[Player/:na]
+	at AudioPlayer.Player.lambda$refreshItemsWithNow$13(Player.java:201) ~[Player/:na]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1158) ~[na:na]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:632) ~[na:na]
+	at java.lang.Thread.run(Thread.java:804) ~[na:na]
+Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when a transaction is active
+	at com.objectdb.o.MSG.d(MSG.java:62) ~[objectdb.jar:na]
+	at com.objectdb.o.OBC.E(OBC.java:1460) ~[objectdb.jar:na]
+	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
+	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
+	... 5 common frames omitted
 
 SOLVED (but the underlying cause still deserves attention) 
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment                           (medium)
@@ -254,7 +253,7 @@ SOLVED (but the underlying cause still deserves attention)
 ------------------------------------- NOTES ------------------------------------
 --------------------------------------------------------------------------------
 
-- util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
+- util.dev.TODO annotates also bugged code, CTRL+F it throughout the project
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory
   exceptions for images like 6k x 6k px & closing in on 10MB...

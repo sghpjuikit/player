@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 
@@ -18,17 +17,17 @@ import static util.conf.Configuration.configsOf;
 /**
  * Defines object that can be configured.
  * <p>
- * Configurable object exports its configurable state as {@link Config} fields that
+ * Configurable object exports its configurable state as {@link util.conf.Config} fields that
  * encapsulate the configurable values.
  * This can be used to save, restore, serialization or manipulate this state.
  * <p>
  * Any object can be configurable - an object with
- * some state (fields) or properties {@link Property}, composite object composed
+ * some state (fields) or properties {@link javafx.beans.property.Property}, composite object composed
  * of sub Configurables exposing all its aggregated
  * subparts as one or it could even be a simple collection of unrelated Configs.
  * <p>
  * This interface already provides complete default implementation capable of
- * discovering fields with {@link Configuration.IsConfig} annotation.
+ * discovering fields with {@link util.conf.IsConfig} annotation.
  * <p>
  * Note, that every Config is already a singleton Configurable.
  * <p>
@@ -92,7 +91,7 @@ public interface Configurable<T> {
      *
      * @return Configs of this configurable
      */
-    default public Collection<Config<T>> getFields() {
+    default Collection<Config<T>> getFields() {
         return (Collection) configsOf(getClass(), this, false, true);
     }
 
@@ -105,7 +104,7 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @return config with given name or null if does not exist.
      */
-    default public Config<T> getField(String name) {
+    default Config<T> getField(String name) {
         try {
             return getFieldOrThrow(name);
         } catch (IllegalArgumentException e) {
@@ -122,7 +121,7 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @return config with given name or null if does not exist.
      */
-    default public Config<T> getFieldOrThrow(String name) {
+    default Config<T> getFieldOrThrow(String name) {
         try {
             Class<?> c = this.getClass();
             Field f = Util.getField(c,name);
@@ -142,7 +141,7 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @param v value
      */
-    default public void setField(String name, T v) {
+    default void setField(String name, T v) {
         Config<T> c = getField(name);
         if(c!=null) c.setValue(v);
     }
@@ -157,7 +156,7 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @param v value
      */
-    default public void setFieldOrThrow(String name, T v) {
+    default void setFieldOrThrow(String name, T v) {
         Config<T> c = getField(name);
         if(c!=null) c.setValue(v);
         else throw new IllegalArgumentException("Config field '" + name + "' not found.");
@@ -173,17 +172,17 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @param v text value to be parsed
      */
-    default public void setField(String name, String v) {
+    default void setField(String name, String v) {
         Config<T> c = getField(name);
         if(c!=null) c.setValueS(v);
     }
 
 
-    public static <E extends ObservableValue & WritableValue> Collection<Config<?>> configsFromFieldsOf(Object o) {
+    static <E extends ObservableValue & WritableValue> Collection<Config<?>> configsFromFieldsOf(Object o) {
         return configsOf(o.getClass(), o, false, true);
     }
 
-    public static Configurable<?> configsFromFxPropertiesOf(Object o) {
+    static Configurable<?> configsFromFxPropertiesOf(Object o) {
         List<Config<?>> cs = new ArrayList<>();
         forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forProperty(type,name,p)));
         return new ListConfigurable(cs);

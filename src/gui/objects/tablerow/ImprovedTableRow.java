@@ -23,17 +23,17 @@ import static util.collections.Tuples.tuple;
 
 /**
  * {@link TableRow} with additional methods.
- * <p>
+ * <p/>
  * Flow API for frequently used mouse handlers
  * For example: {@code new ImprovedRow().onLeftSingleClick((row,event) -> ...);}
- * <p>
+ * <p/>
  * It is possible to apply various pseudoclasses using predicates on the item T
  * of the row. See {@link #styleRuleAdd(java.lang.String, java.util.function.Predicate)}.
  * Note that if the nature of the item's property predicating rows style is not
  * observable (POJO) or is external, all the styles must be applied on change
  * manually. This can be done simply by calling table.refresh();
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImprovedTableRow<T> extends TableRow<T>{
     
@@ -70,22 +70,25 @@ public class ImprovedTableRow<T> extends TableRow<T>{
         onL1Click = handler;
         return this;
     }
+
     public ImprovedTableRow<T> onLeftDoubleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
         onL2Click = handler;
         return this;
     }
+
     public ImprovedTableRow<T> onRightSingleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
         onR1Click = handler;
         return this;
     }
+
     public ImprovedTableRow<T> onRightDoubleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
         onR2Click = handler;
         return this;
     }
     
 /************************************* css ************************************/
-    
-    private final List<Tuple2<PseudoClass,Predicate<T>>> stylerules = new ArrayList(); 
+
+    private final List<Tuple2<PseudoClass,Predicate<T>>> stylerules = new ArrayList<>();
     
     /**
      * Adds styling rule that updates row's pseudoclass based on condition.

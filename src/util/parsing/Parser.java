@@ -47,15 +47,15 @@ import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
-import static util.Util.getConstructorAnnotated;
-import static util.Util.getMethodAnnotated;
+import static util.type.Util.getConstructorAnnotated;
+import static util.type.Util.getMethodAnnotated;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 
 /**
  * Multi type bidirectional object-string converter.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class Parser {
 
@@ -113,12 +113,12 @@ public abstract class Parser {
     /**
      * Fx parser.
      * Used when {@link StringParseStrategy.To#FX} or {link StringParseStrategy.From#FX}.
-     * <p>
+     * <p/>
      * The parser converts object to string that contains exact object class and name-value pairs
      * of all its javafx property beans. The parser converts back to object by invoking the
      * no argument constructor (which must be accessible) of the class found in the string and
      * setting the bean values in the string to respective javafx beans of the object.
-     * <p>
+     * <p/>
      * The exact string format is subject to change. Dont rely on it.
      */
     public static final Parser FX = new Parser() {
@@ -237,14 +237,14 @@ public abstract class Parser {
      * <li> Lazy initialization. Individual parsers are initialized only on parsing request. Until
      * then no instance is created.
      * </ul>
-     * <p>
+     * <p/>
      * Only one parser can be registered per single class. But the same parser instance can be
      * reused across subclasses.
-     * <p>
+     * <p/>
      * Parser lookup is polymorphic. This means that if there is no parser for given type, parser
      * for any supertype or interface that type extends will be looked up as well. Hence adding
      * parser for given type adds it for the entire subclass hierarchy.
-     * <p>
+     * <p/>
      * Each parser must adhere to convention:
      * <ul>
      * <li> Parser must never assume anything about the input. To string parser can
@@ -260,7 +260,7 @@ public abstract class Parser {
      * From string parser returning null always indicates error. To string parser returning null
      * will produce null string constant.
      * </ul>
-     * <p>
+     * <p/>
      * This class acts as a generic parser. It:
      * <ul>
      * <li> tries to build parser if none is available looking for {@link StringParseStrategy}
@@ -268,7 +268,7 @@ public abstract class Parser {
      * <li> if no parser is available, toString() method is used for to string parsing
      * and an error parser always producing null for string to object parsing.
      * </ul>
-     * <p>
+     * <p/>
      * For registering a parser, there are two options:
      * <ul>
      * <li> Use {@link StringParseStrategy} and let the parser be created and
@@ -276,7 +276,7 @@ public abstract class Parser {
      * of the parsed class. If the method throws an exception, it is important to let
      * this know, either by using throws clause or define it in an annotation. Using
      * both is unnecessary, but recommended.
-     * <p>
+     * <p/>
      * This allows only one implementation, tightly coupled to the parsed object's class.
      * <li> Create parser and register it manually {@link #addParser(java.lang.Class, util.parsing.StringConverter)}.
      * It is recommended (although not necessary) to register both to string and from string.

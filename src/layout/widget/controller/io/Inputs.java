@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Inputs {
     private final Map<String,Input<?>> m;

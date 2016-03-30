@@ -27,14 +27,14 @@ import util.functional.Functors.Ƒ2;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.UUID.fromString;
 import static main.App.APP;
-import static util.file.FileUtil.readFileLines;
+import static util.file.Util.readFileLines;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
 import static util.functional.Util.stream;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Db {
 
@@ -112,7 +112,7 @@ public class Db {
 
     /**
      * Returns item from library.
-     * <p>
+     * <p/>
      * Never pass the returned item into the application before making sure it
      * is not null.
      * @return item from library with the URI of the specified item or null if not found.
@@ -201,9 +201,9 @@ public class Db {
 
     /**
      * In memory item database. Use for library.
-     * <p>
+     * <p/>
      * Items are hashed by {@link Item#getId()}.
-     * <p>
+     * <p/>
      * Thread-safe, accessible (write/read) from any thread, uses
      * {@link ConcurrentHashMap} underneath.
      */
@@ -214,7 +214,7 @@ public class Db {
     /**
      * Comparator defining the sorting for items in operations that wish to
      * provide consistent sorting across the application.
-     * <p>
+     * <p/>
      * The comparator should reflect library table sort order.
      */
     public static ObjectProperty<Comparator<? super Metadata>> library_sorter = new SimpleObjectProperty<>(Metadata::compareTo);
@@ -222,7 +222,7 @@ public class Db {
     /**
      * In memory storage for strings that persists in database.
      * Map that maps sets of strings to string keys. The keys are case-insensitive.
-     * <p>
+     * <p/>
      * The store is loaded when DB starts. Changes persist immediately.
      */
     public static StringStore string_pool;

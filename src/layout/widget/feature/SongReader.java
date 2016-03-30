@@ -17,7 +17,7 @@ import static util.dev.Util.noØ;
 /**
  * Capable of reading data to song tags
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Song metadata reader", 

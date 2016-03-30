@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface ApplicableValue<V> extends AccessibleValue<V> {
 
@@ -25,11 +25,11 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
     /**
      * Similar to {@link #applyValue()}, but instead of value of this accessor,
      * provided value is used
-     * <p>
+     * <p/>
      * This method is a setter like {@link #setValue(java.lang.Object)}, but the
      * value is not set, only still applied. So the immediate effect is the same,
      * but there is still value to fall back on later.
-     * <p>
+     * <p/>
      * Useful for internal application within the object, where the value should
      * change, but when queried (getValue)) from outside, this should not be
      * reflected.

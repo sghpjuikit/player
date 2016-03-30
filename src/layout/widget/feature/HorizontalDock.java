@@ -7,7 +7,7 @@ package layout.widget.feature;
 
 /**
  * Denotes widget that can be used as a vertically thin horizontal bar
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Horizontal dock",

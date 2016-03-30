@@ -24,8 +24,8 @@ import static javafx.util.Duration.seconds;
 
 /**
  * Simple Preloader Using the ProgressBar Control
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 public class AppPreloader {
     Stage stage;

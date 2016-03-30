@@ -61,13 +61,13 @@ import static main.App.APP;
 import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
-import static util.file.FileUtil.getFilesAudio;
+import static util.file.Util.getFilesAudio;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
@@ -341,7 +341,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
     /**
      * Updates all not updated items.
-     * <p>
+     * <p/>
      * If some item is not on playlist it will also be updated but it will have
      * no effect on this playlist (but will on others, if they contain it).
      *
@@ -397,7 +397,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
     /***
      * Plays specified item or if not possible, uses the specified function to calculate the next item to play.
-     * <p>
+     * <p/>
      * This method is asynchronous.
      *
      * @param item item to play

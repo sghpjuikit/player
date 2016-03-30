@@ -62,7 +62,7 @@ import static util.async.Async.*;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.FILE;
-import static util.file.FileUtil.getName;
+import static util.file.Util.getName;
 import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
@@ -384,7 +384,7 @@ public class AppLauncher extends ClassController {
         /**
          * Begins loading cover for the item. If item changes meanwhile, the result is stored
          * (it will not need to load again) to the old item, but not showed.
-         * <p>
+         * <p/>
          * Thumbnail quality may be decreased to achieve good performance, while loading high
          * quality thumbnail in the bgr. Each phase uses its own executor.
          */

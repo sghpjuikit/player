@@ -39,13 +39,13 @@ import static util.graphics.drag.DragUtil.installDrag;
  * Graphics for when components of a {@link Container}} is null at certain index. It shows a
  * component chooser for user to choose container or widget to put into parent container at the
  * index - it allows creation of layouts.
- * <p>
+ * <p/>
  * Uses two nested {@link Picker} - 1 for components and 2 for widgets.
  * The component picker is top level picker offering component type choices (all container
  * implementations or widget). If user picks container it will be constructed. If user picks widget
  * option, widget picker will be displayed, constructing widgets.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class Layouter implements ContainerNode {
 

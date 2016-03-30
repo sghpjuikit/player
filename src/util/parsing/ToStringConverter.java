@@ -9,7 +9,7 @@ package util.parsing;
 /**
  * Object to String converter.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @FunctionalInterface
 public interface ToStringConverter<T> {

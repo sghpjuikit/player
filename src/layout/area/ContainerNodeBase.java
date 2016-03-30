@@ -41,7 +41,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
 

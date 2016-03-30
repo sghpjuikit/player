@@ -22,7 +22,7 @@ import static util.async.Async.runLater;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class JavaSoundPlayer implements Play {
 

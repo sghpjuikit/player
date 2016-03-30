@@ -20,7 +20,7 @@ import javafx.util.Duration;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public class PlaybackStateConverter implements Converter {
     

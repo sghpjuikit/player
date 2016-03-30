@@ -19,7 +19,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Outputs {
     private final Map<String,Output<?>> m;

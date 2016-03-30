@@ -35,7 +35,7 @@ public class MouseCapture {
      * Use false when it is expected that mouse will not be observed and a
      * lot of mouse position queries will be invoked.
      * True by default.
-     * <p>
+     * <p/>
      * If true, the resources used will be initialized and destroyed on
      * each mouse position query, unless mouse (speed or position) is observed.
      * If false, the resources will will live even if the mouse is not observed and at least until value changes to

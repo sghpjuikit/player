@@ -11,7 +11,7 @@ import javafx.scene.input.TransferMode;
 /**
  * Complete enumeration for {@link TransferMode}.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public enum DragType {
     COPY{

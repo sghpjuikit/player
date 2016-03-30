@@ -11,7 +11,7 @@ import javafx.scene.image.Image;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
  public interface Cover {
     /**

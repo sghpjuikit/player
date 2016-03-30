@@ -17,11 +17,11 @@ import static util.functional.Util.repeat;
 /**
  * Function that transforms strings into list of strings by splitting the original
  * string by delimiters.
- * <p>
+ * <p/>
  * Defined by parsing expression, e.g. "%first% - %second%". The 'first'
  * and 'second' are parse keys and the ' - ' is delimiter. There can be any
  * number of parse keys (and delimiters).
- * <p>
+ * <p/>
  * The parsing expression must:
  * <ul>
  * <li> start and end with a parse key - must not start or end with delimiter
@@ -29,19 +29,19 @@ import static util.functional.Util.repeat;
  * <li> no parse key can contain the {@link #PARRSE_KEY_LIMITER} character
  * <li> parse keys dont have to have unique names
  * </ul>
- * <p>
+ * <p/>
  * Te output list is always of the
  * same size as number of parsing keys (e.g. "%one% - %two%" will produce
  * list of size 2). If the text parsing failed at any point, the remaining
  * strings will be null. Parsing fails when the delimiter can not be found in
  * the parsed text.
- * <p>
+ * <p/>
  * For example parsing expression '%one%:%two%,%three%' will split string
  * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string
  * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is
  * not present.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class StringSplitParser implements Function<String, List<String>> {
     public static final char PARRSE_KEY_LIMITER = '%';

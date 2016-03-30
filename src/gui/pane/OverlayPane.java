@@ -29,12 +29,12 @@ import static util.graphics.Util.*;
 
 /**
  * Pane laying 'above' window creating 'overlay' bgr above it.
- * <p>
+ * <p/>
  * This implementation has no content. Rather than using {@link StackPane#getChildren()}, use
  * {@link #setContent(javafx.scene.layout.Pane)}, which also applies {@link #CONTENT_STYLECLASS}
  * styleclass on it. Content will align to center unless set otherwise.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class OverlayPane extends StackPane {
 

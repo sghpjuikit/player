@@ -23,11 +23,11 @@ import util.access.Vo;
 import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
-import util.file.FileUtil;
+import util.file.Util;
 import util.functional.Functors.Ƒ1;
 
-import static util.Util.getAllFields;
-import static util.Util.getGenericPropertyType;
+import static util.type.Util.getAllFields;
+import static util.type.Util.getGenericPropertyType;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
 import static util.functional.Util.byNC;
@@ -119,21 +119,21 @@ public class Configuration {
                    .sorted(byNC(converter))
                    .forEach(c -> content.append("\n" + converter.apply(c) + " : " + c.getValueS()));
 
-        FileUtil.writeFile(file, content.toString());
+        Util.writeFile(file, content.toString());
     }
 
     /**
      * Loads previously saved configuration file and set its values for this.
-     * <p>
+     * <p/>
      * Attempts to load all configuration fields from file. Fields might not be
      * read either through I/O error or parsing errors. Parsing errors are
      * recoverable, meaning corrupted fields will be ignored.
      * Default values will be used for all unread fields.
-     * <p>
+     * <p/>
      * If field of given name does not exist it will be ignored as well.
      */
     public void load(File file) {
-        FileUtil.readFileKeyValues(file).forEach((key,value) -> {
+        Util.readFileKeyValues(file).forEach((key, value) -> {
             Config<?> c = configs.get(mapper.apply(key));
             if (c!=null) c.setValueS(value);
         });

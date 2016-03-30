@@ -180,7 +180,7 @@ public enum AudioFileFormat {
             if (path.endsWith(f.name()))
                 return f;
         // cover damaged or weird paths
-        String suffix = FileUtil.getSuffix(path);
+        String suffix = Util.getSuffix(path);
         for(AudioFileFormat f: values())
             if (suffix.equalsIgnoreCase(f.toString()))
                 return f;

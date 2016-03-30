@@ -106,7 +106,7 @@ public enum ImageFileFormat {
      * @return
      */
     public static ImageFileFormat of(URI uri) {
-        String suffix = FileUtil.getSuffix(uri);
+        String suffix = Util.getSuffix(uri);
         for(ImageFileFormat f: values())
             if (suffix.equalsIgnoreCase(f.toString()))
                 return f;

@@ -17,11 +17,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -33,35 +29,33 @@ import javafx.util.Duration;
 import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
-import gui.Gui;
-import util.conf.Configurable;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
-import util.action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
+import gui.Gui;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
+import util.access.V;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
-import util.access.V;
+import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.collections.map.ClassMap;
+import util.conf.Configurable;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.table.FieldedTable.defaultCell;
-import static gui.pane.ActionPane.GroupApply.FOR_ALL;
-import static gui.pane.ActionPane.GroupApply.FOR_EACH;
-import static gui.pane.ActionPane.GroupApply.NONE;
+import static gui.pane.ActionPane.GroupApply.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
@@ -72,25 +66,20 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static main.App.APP;
-import static util.Util.getEnumConstants;
 import static util.async.Async.FX;
 import static util.async.Async.sleeping;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.no;
 import static util.functional.Util.*;
-import static util.graphics.Util.layHeaderTopBottom;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layScrollVTextCenter;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.layVertically;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
+import static util.type.Util.getEnumConstants;
 
 /**
  * Action chooser pane. Displays icons representing certain actions.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Action Chooser")
 public class ActionPane extends OverlayPane implements Configurable<Object> {
@@ -303,6 +292,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         double gap = 0;
         if(data instanceof Collection && !((Collection)data).isEmpty()) {
             Collection<?> collection = (Collection) data;
+            // TODO: improve collection element type recognition
             Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
             if(fieldmap.containsKey(coltype)) {
                 FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);

@@ -12,17 +12,17 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static util.Util.getSuperClasses;
+import util.type.Util;
 
 /**
- <p>
- @author Plutonium_
+ <p/>
+ @author Martin Polakovic
  */
 public class PluginMap{
     private final Map<Class,List<Class>> m = new HashMap<>();
 
     public <T> void registerPluginType(Class<T> p) {
-        List<Class> superclasses = getSuperClasses(p);
+        List<Class> superclasses = Util.getSuperClasses(p);
         boolean exists = superclasses.stream().anyMatch(m::containsKey);
         if(exists) throw new IllegalStateException("Super class of " + p + " already registered as plugintype.");
 
@@ -30,7 +30,7 @@ public class PluginMap{
     }
 
     public <T> void registerPlugin(Class<T> p) {
-        List<Class> superclasses = getSuperClasses(p);
+        List<Class> superclasses = Util.getSuperClasses(p);
         if(superclasses.isEmpty()) throw new IllegalArgumentException("Plugin " + p + " must extend/implement at least one class/interface.");
 
         superclasses.stream().filter(m::containsKey)

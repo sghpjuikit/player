@@ -26,7 +26,7 @@ import static util.graphics.Util.setAnchors;
  * vertical gap as well, but horizontal gap is adjusted so the cells are laid
  * out in the whole horizontal space.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class CellPane extends Pane {
     double cellw = 100;

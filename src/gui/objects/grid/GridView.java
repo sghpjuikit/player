@@ -61,13 +61,13 @@ import static util.functional.Util.stream;
  * visual, scrollable, grid-like fashion. In other words, whereas a ListView
  * shows one {@link ListCell} per row, in a GridView there will be zero or more
  * {@link GridCell} instances on a single row.
- * <p>
+ * <p/>
  * This approach means that the number of GridCell instances
  * instantiated will be a significantly smaller number than the number of
  * items in the GridView items list, as only enough GridCells are created for
  * the visible area of the GridView. This helps to improve performance and
  * reduce memory consumption.
- * <p>
+ * <p/>
  * Because each {@link GridCell} extends from {@link Cell}, the same approach
  * of cell factories that is taken in other UI controls is also taken in GridView.
  * This has two main benefits:

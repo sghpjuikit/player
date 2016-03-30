@@ -15,12 +15,12 @@ import static util.file.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Representation of audio resource referenced by {@link URI}.
- * <p>
+ * <p/>
  * Item has two distinct identities:
  * <ul>
  * <li> Resource identity revolves around the underlying resource this item
  * represents. Implementation independent (all subclasses will work this way).
- * Obtained by {@link #getURI()} and compared by {@link #same(audio.playlist.Item)}
+ * Obtained by {@link #getURI()} and compared by {@link #same(Item)}
  * <li> Object identity revolves around identity of this item as an object in
  * the application. For example items in a playlist
  * can have same resource identity (same song being in the playlist twice), but
@@ -31,14 +31,9 @@ import static util.file.AudioFileFormat.Use.PLAYBACK;
  * </ul>
  *
  * @param <CT> ComparableType. Subclasses should implements their own - self.
- *
- * @author uranium
+ * @author Martin Polakovic
  */
 public abstract class Item<CT extends Item> implements Comparable<CT> {
-
-
-
-/******************************************************************************/
 
     /**
      * Returns the resource identifier denoting the audui resorce of this item.
@@ -71,9 +66,9 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     /**
      * Returns human-readable string representation of the path to the resource
      * of this item. Useful for displaying path in the graphical user interface.
-     * <p>
+     * <p/>
      * Uses getUri().getPath() and removes leading '/' character.
-     * <p>
+     * <p/>
      * The path doesnt guarantee the possibility to backward-reconstruct the
      * original URI resource, and must not be used this way.
      * @return string portion of the URI of this item or "" if not available
@@ -86,7 +81,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 
     /**
      * Parent directory of the resource. Only for file based items.
-     * <p>
+     * <p/>
      * Use to get location of the item, for example to fetch additional resources
      * located there, such as cover.
      * @see #getPath()
@@ -126,7 +121,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 
     /**
      * Returns suffix of the filename. For example: "mp3, flac"
-     * <p>
+     * <p/>
      * It doesnt necessarily reflect real type of the file. Dont use this method
      * to find out type of the file. Use {@link #getFormat()}.
      * @return the suffix of the file of this item or empty string if none.
@@ -159,12 +154,12 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 
     /**
      * Returns initial name. Name derived purely from URI of the item.
-     * <p>
+     * <p/>
      * Name can denote an item such as PlaylistItem.
-     * <p>
+     * <p/>
      * Use as an initialization value when only URI is known about the item and
      * more user-friendly information is desired than the raw uri.
-     * <p>
+     * <p/>
      * Default implementation is equivalent to {@link #getFilename()}
      *
      * @return initial name of the item.
@@ -268,7 +263,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     /**
      * Converts this item to {@link SimpleItem} - an {@link Item} wrapper
      * for {@link URI}.
-     * <p>
+     * <p/>
      * Use when using this item is not desirable (e.g. due to memory or possible illegal
      * state in the future) and only the resource identity needs to be
      * preserved.
@@ -282,7 +277,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 
     /**
      * Converts this item to {@link PlaylistItem}.
-     * <p>
+     * <p/>
      * Subclases that contain values for fields contained in PlaylistItem should
      * override this method.
      *

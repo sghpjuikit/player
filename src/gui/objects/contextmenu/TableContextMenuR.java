@@ -15,7 +15,7 @@ import javafx.scene.input.MouseEvent;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class TableContextMenuR<E> extends TableContextMenuMR<E,TableView<E>> {
     

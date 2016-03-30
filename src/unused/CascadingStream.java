@@ -20,7 +20,7 @@ import static util.dev.TODO.Severity.CRITICAL;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class CascadingStream<E> {
     

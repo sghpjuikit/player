@@ -79,9 +79,9 @@ import static util.reactive.Util.maintain;
 
 /**
  Window for application.
- <p>
+ <p/>
  Window with basic functionality.
- <p>
+ <p/>
  Below is a code example creating and configuring custom window instance:
  <pre>
      Window w = Window.create();
@@ -92,7 +92,7 @@ import static util.reactive.Util.maintain;
             w.show();
             w.setLocationCenter();
  </pre>
- <p>
+ <p/>
  @author plutonium
  */
 @IsConfigurable
@@ -405,7 +405,7 @@ public class Window extends WindowBase {
 
     /**
      Returns layout aggregator of this window.
-     <p>
+     <p/>
      @return layout aggregator, never null.
      */
     public SwitchPane getSwitchPane() {
@@ -418,13 +418,13 @@ public class Window extends WindowBase {
 
     /**
      Blocks input to content, but not to root.
-     <p>
+     <p/>
      Use when any input to content is not desirable, for example during
      window manipulation like animations.
-     <p>
+     <p/>
      Sometimes content could consume or interfere with the input directed
      towards the window (root), in such situations this method will help.
-     <p>
+     <p/>
      @param val
      */
     public void setContentMouseTransparent(boolean val) {
@@ -524,10 +524,10 @@ public class Window extends WindowBase {
      * <li> Stop the indicator by setting progress to 1, when your task finishes.
      * </ul>
      * Always do both on FX application thread.
-     * <p>
+     * <p/>
      * Multiple indicators are supported. Never use the same one for more than
      * one task/work.
-     * <p>
+     * <p/>
      * Indicator is disposed of automatically when progress is set to 1. Be sure
      * that the task finishes at some point!
      *

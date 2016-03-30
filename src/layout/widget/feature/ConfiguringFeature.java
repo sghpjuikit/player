@@ -14,7 +14,7 @@ import util.conf.Configurable;
 /**
  * Editor for {@link Configurable}.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Configurator",

@@ -16,7 +16,6 @@ import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -49,6 +48,7 @@ import util.conf.Config.PropertyConfig;
 import util.conf.Config.ReadOnlyPropertyConfig;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
+import util.type.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
@@ -65,22 +65,20 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static javafx.scene.layout.Priority.SOMETIMES;
 import static util.Util.*;
 import static util.async.Async.run;
 import static util.functional.Util.*;
 import static util.graphics.Util.layAnchor;
-import static util.graphics.Util.setMinPrefMaxHeight;
 import static util.reactive.Util.maintain;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
- * <p>
+ * <p/>
  * Convenient way to create wide and diverse property sheets, that take
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 abstract public class ConfigField<T> extends ConfigNode<T> {
 
@@ -925,7 +923,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 }
             };
             ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
-            util.Util.setField(cf.config, "defaultValue", c.getDefaultValue());
+            Util.setField(cf.config, "defaultValue", c.getDefaultValue());
             maintain(vo.override, b -> !b, cf.getControl().disableProperty());
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }

@@ -41,7 +41,7 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
-import util.file.FileUtil;
+import util.file.Util;
 import util.access.V;
 import util.access.VarEnum;
 import util.async.future.Fut;
@@ -65,7 +65,7 @@ import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
-import static util.file.FileUtil.writeFile;
+import static util.file.Util.writeFile;
 import static util.Util.*;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
@@ -181,13 +181,13 @@ public class Converter extends ClassController implements SongWriter {
         // Therefore, the order below matters.
         acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
-            FileUtil.renameFileNoSuffix(file, name);
+            Util.renameFileNoSuffix(file, name);
         }));
         acts.accumulate(new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
-            FileUtil.renameFile(file, name);
+            Util.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
+        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(util.type.Util.getEnumConstants(Metadata.Field.class),Object::toString), data -> {
             List<Item> songs = (List)list(source);
             if(songs.isEmpty()) return;
             Fut.fut()

@@ -41,13 +41,13 @@ import static util.Util.clip;
  * <img src="rating-horizontal.png"/>
  * </center>
  *
- * <p>To create a Rating control that looks like this is simple:
+ * <p/>To create a Rating control that looks like this is simple:
  *
  * <pre>
  * {@code
  * final Rating rating = new Rating();}</pre>
  *
- * <p>This creates a default horizontal rating control. To create a vertical
+ * <p/>This creates a default horizontal rating control. To create a vertical
  * Rating control, simply change the orientation, as such:
  *
  * <pre>
@@ -55,7 +55,7 @@ import static util.Util.clip;
  * final Rating rating = new Rating();
  * rating.setOrientation(Orientation.VERTICAL);}</pre>
  *
- * <p>The end result of making this one line change is shown in the screenshot
+ * <p/>The end result of making this one line change is shown in the screenshot
  * below:
  *
  * <br/>
@@ -63,7 +63,7 @@ import static util.Util.clip;
  * <img src="rating-vertical.png"/>
  * </center>
  *
- * <p>One of the features of the Rating control is that it doesn't just allow
+ * <p/>One of the features of the Rating control is that it doesn't just allow
  * for 'integer' ratings: it also allows for the user to click anywhere within
  * the rating area to set a 'float' rating. This is hard to describe, but easy
  * to show in a picture:
@@ -73,7 +73,7 @@ import static util.Util.clip;
  * <img src="rating-partial.png"/>
  * </center>
  *
- * <p>In essence, in the screenshot above, the user clicked roughly in the
+ * <p/>In essence, in the screenshot above, the user clicked roughly in the
  * middle of the third star. This results in a rating of approximately 2.44.
  * To enable {@link #partialRatingProperty() partial ratings}, simply do the
  * following when instantiating the Rating control:
@@ -83,7 +83,7 @@ import static util.Util.clip;
  * final Rating rating = new Rating();
  * rating.setPartialRating(true);}</pre>
  *
- * <p>So far all of the Rating controls demonstrated above have
+ * <p/>So far all of the Rating controls demonstrated above have
  * required the user to click on the stars to register their rating. This may not
  * be the preferred user interaction - often times the preferred approach is to
  * simply allow for the rating to be registered by the user hovering their mouse
@@ -95,7 +95,7 @@ import static util.Util.clip;
  * final Rating rating = new Rating();
  * rating.setUpdateOnHover(true);}</pre>
  *
- * <p>It is also allowable to have a Rating control that both updates on hover
+ * <p/>It is also allowable to have a Rating control that both updates on hover
  * and allows for partial values: the 'golden fill' of the default graphics will
  * automatically follow the users mouse as they move it along the Rating scale.
  * To enable this, just set both properties to true.

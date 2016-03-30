@@ -14,7 +14,7 @@ import util.functional.Functors.Ƒ1;
 /**
  * Reference - object property.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class R<V> {
 

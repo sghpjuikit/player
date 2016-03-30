@@ -9,17 +9,17 @@ import org.atteo.classindex.IndexAnnotated;
  * interface and is part of a framework to create centralized globally accessible
  * application configuration. It is used in conjunction with {@link IsConfig} 
  * and {@link Config}.
- * <p>
+ * <p/>
  * Any class annotated with this annotation will be auto-discovered and added
  * into configuration class pool. If class is not annotated by this annotation,
  * it will not be discovered and its configurable fields will not be detected.
- * <p>
+ * <p/>
  * Also allows to specify default category name for all configuration fields
  * within the annotated class.
- * <p>
+ * <p/>
  * For detection purpose, this annotation itself is annotated by {@link IndexAnnotated}.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Documented
 @IndexAnnotated

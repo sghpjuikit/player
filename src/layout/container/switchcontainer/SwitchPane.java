@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javafx.animation.*;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
 import javafx.scene.Node;
@@ -15,16 +16,15 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+import gui.Gui;
 import layout.AltState;
-import layout.area.Area;
+import layout.Component;
 import layout.area.ContainerNode;
 import layout.area.IOLayer;
 import layout.area.Layouter;
 import layout.area.WidgetArea;
-import layout.Component;
 import layout.container.Container;
 import layout.widget.Widget;
-import gui.Gui;
 import util.access.V;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
@@ -45,11 +45,11 @@ import static util.reactive.Util.maintain;
 
 /**
  * Pane with switchable content.
- * <p>
+ * <p/>
  * Pane allowing unlimited amount of contents, displaying exactly one spanning
  * its entire space and providing mechanism for content switching. It can be
  * compared to virtual desktops.
- * <p>
+ * <p/>
  * The content switches by invoking drag event using the right (secondary) mouse
  * button.
  *
@@ -307,9 +307,9 @@ public class SwitchPane implements ContainerNode {
     /**
      * Scrolls to the current tab.
      * It is pointless to use this method when autoalign is enabled.
-     * <p>
+     * <p/>
      * Use to force-align tabs.
-     * <p>
+     * <p/>
      * Equivalent to {@code alignTab(currTab());}
      *
      * @return index of current tab after aligning
@@ -321,7 +321,7 @@ public class SwitchPane implements ContainerNode {
     /**
      * Scrolls to tab right from the current tab.
      * Use to force-align tabs.
-     * <p>
+     * <p/>
      * Equivalent to {@code alignTab(currTab()+1);}
      *
      * @return index of current tab after aligning
@@ -333,7 +333,7 @@ public class SwitchPane implements ContainerNode {
     /**
      * Scrolls to tab left from the current tab.
      * Use to force-align tabs.
-     * <p>
+     * <p/>
      * Equivalent to {@code alignTab(currTab()-1);}
      *
      * @return index of current tab after aligning
@@ -380,7 +380,7 @@ public class SwitchPane implements ContainerNode {
     /**
      * Executes {@link #alignTabs()} if the position of the tabs fullfills
      * snap requirements.
-     * <p>
+     * <p/>
      * Use to align tabs while adhering to user settings.
      *
      * @return index of current tab after aligning

@@ -13,7 +13,7 @@ import util.collections.map.ClassMap;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ServiceManager {
 

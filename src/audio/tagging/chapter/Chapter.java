@@ -10,10 +10,10 @@ import javafx.util.Duration;
 
 /**
  * Chapter is a text associated with specific point of time in a song item.
- * <p>
+ * <p/>
  * Chapter always has time and text assigned to it. Time must always be specified
  * while text is "" by default.
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class Chapter implements Comparable<Chapter> {
     

@@ -26,7 +26,7 @@ import static util.functional.Util.list;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class TaskBar {
 
@@ -93,7 +93,7 @@ public class TaskBar {
     /**
      * When user right clicks on taskbar icon and chooses "close window" (Windows platform)
      * the window associated with the icon closes.
-     * <p>
+     * <p/>
      * We detect the event and let dev handle it appropriately. For example application can
      * terminate or certain window/s closed.
      */

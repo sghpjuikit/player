@@ -24,7 +24,7 @@ import static util.Util.clip;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class MetaItem<CI extends Item> extends Item<CI> {
 

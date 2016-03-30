@@ -13,7 +13,7 @@ import layout.AltState;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface ContainerNode extends AltState {
 

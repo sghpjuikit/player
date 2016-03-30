@@ -10,12 +10,12 @@ import java.util.List;
 
 import util.dev.TODO;
 
-import static util.Util.getEnumConstants;
+import static util.type.Util.getEnumConstants;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 
 /**
  * Value that is part of a sequence.
- * <p>
+ * <p/>
  * The sequence is normally deterministic, but is not limited to be. It can also
  * be random, or influenced externally.
  *
@@ -35,7 +35,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 
     /**
      * Defers to {@link #next()}.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override

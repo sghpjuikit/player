@@ -38,7 +38,7 @@ import util.type.ClassName;
 import util.access.V;
 import util.conf.Configurable;
 import util.file.Environment;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static java.util.stream.Collectors.toList;
@@ -48,12 +48,13 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
 import static util.Util.*;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
-import static util.file.FileUtil.listFiles;
+import static util.file.Util.listFiles;
 import static util.functional.Util.*;
+import static util.graphics.Util.menuItem;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class TreeItems {
 
@@ -150,8 +151,8 @@ public class TreeItems {
                     if(o instanceof Component)      setText(((Component)o).getName());
                     else if(o instanceof Service)   setText(((Service)o).getClass().getSimpleName());
                     else if(o instanceof WidgetFactory)  setText(((WidgetFactory)o).nameGui());
-                    else if(isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
-                    else if(o instanceof File)      setText(FileUtil.getNameFull((File)o));
+                    else if(util.type.Util.isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
+                    else if(o instanceof File)      setText(Util.getNameFull((File)o));
                     else if(o instanceof Node)      setText(toS((Node)o));
                     else if(o instanceof Window)    setText(windowToName((Window)o));
                     else setText(o.toString());
@@ -365,7 +366,7 @@ public class TreeItems {
         return Stream.concat(Stream.of(o), t);
     }
     private static String toS(Node n) {
-        return emptifyString(n.getId()) + ":" + APP.className.get(n.getClass());
+        return emptyOr(n.getId()) + ":" + APP.className.get(n.getClass());
     }
     private static String windowToName(Window w) {
         String n = "window " + list(APP.windowManager.windows).indexOf(w);

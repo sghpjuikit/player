@@ -12,7 +12,7 @@ import audio.playback.PlaybackState;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface Play {
 

@@ -35,7 +35,7 @@ import static util.dev.Util.noØ;
  * operation after Metadata has been created ( with the exception of some of
  * the non-tag (possibly external) information - cover, etc)
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class MetadataReader{
 
@@ -81,16 +81,16 @@ public class MetadataReader{
      * Creates list of Metadata for provided items. Use to read multiple files
      * at once. The work runs on background thread. The procedures executed on
      * task completion will be automatically executed from FXApplication thread.
-     * <p>
+     * <p/>
      * This method returns {@link Task} doing the work, which allows binding to
      * its properties (for example progress) and more.
-     * <p>
+     * <p/>
      * When any error occurs during the reading process, the reading will stop
      * and return all obtained metadata.
-     * <p>
+     * <p/>
      * The result of the task is list of metadatas (The list will not be null
      * nor contain null values) if task finshes sccessfully or null otherwise.
-     * <p>
+     * <p/>
      * Calling this method will immediately start the reading process (on
      * another thread).
      *
@@ -133,7 +133,7 @@ public class MetadataReader{
      * Reads {@link Metadata} for specified item.
      * When error occurs during reading {@link Metadata#EMPTY()} will be
      * returned.
-     * <p>
+     * <p/>
      * Incurs costly I/O.
      * Avoid using this method in loops or in chains on main application thread.
      *
@@ -164,10 +164,10 @@ public class MetadataReader{
      * Calling this method will immediately start the execution. The procedures
      * executed on task completion will always be executed from FXApplication
      * thread.
-     * <p>
+     * <p/>
      * This method returns {@link Task} doing the work, which allows binding to
      * its properties (for example progress) and more.
-     * <p>
+     * <p/>
      * The result of the task is nonempty Metadata if task finshes successfully
      * or null otherwise.
      *

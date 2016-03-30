@@ -11,7 +11,9 @@ import util.functional.Functors.Ƒ1;
 import util.plugin.IsPluginType;
 
 /**
- * Transforms text into a search query.
+ * Builds a {@link java.net.URI} for searching for a resource with a string.
+ *
+ * @author Martin Polakovic
  */
 @IsPluginType
-public interface HttpSearchQueryBuilder extends Ƒ1<String,URI> {}
+public interface SearchUriBuilder extends Ƒ1<String,URI> {}

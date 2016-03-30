@@ -33,7 +33,7 @@ import gui.objects.window.stage.WindowManager;
 import util.SwitchException;
 import util.collections.mapset.MapSet;
 import util.file.FileMonitor;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -43,7 +43,7 @@ import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
-import static util.file.FileUtil.getName;
+import static util.file.Util.getName;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -56,7 +56,7 @@ public final class WidgetManager {
 
     /**
      * Collection of valid widget factories by their name..
-     * <p>
+     * <p/>
      * Factories can be removed, added or swapped for new one in runtime. This happens when
      * widgets files are discovered/deleted/modified.
      */
@@ -80,7 +80,7 @@ public final class WidgetManager {
 
         // external factories
         File dir = APP.DIR_WIDGETS;
-        if (!FileUtil.isValidatedDirectory(dir)) {
+        if (!Util.isValidatedDirectory(dir)) {
             LOGGER.error("External widgets registration failed.");
             return;
         }
@@ -287,7 +287,7 @@ public final class WidgetManager {
     private static Class<?> loadClass(String widgetname, File classFile) {
         try {
             File dir = classFile.getParentFile();
-            String classname = widgetname + "." + FileUtil.getName(classFile);
+            String classname = widgetname + "." + Util.getName(classFile);
 
             ClassLoader controllerClassloader = createControllerClassLoader(dir, widgetname);
 
@@ -307,18 +307,18 @@ public final class WidgetManager {
     /**
      * Creates class loader which first tries to load the class in the provided directory and only
      * delegates to its parent class loader if it fails.
-     * <p>
+     * <p/>
      * This is not normal class loader behavior, since class loader first consults parent to avoid
      * loading any class more than once. Thus, multiple instances of this class loader load
      * different class even when loading the same class file!
      * If the controller attempts to load the same class more than once it throws LinkageError
      * (attempted duplicate class definition).
-     * <p>
+     * <p/>
      * Normally, this can be accomplished easily using different instances of URLClassLoader, but
      * in case the loaded class is on the classpath this will not work because the parent class
      * loader is consulted first and it will find the class (since it is on the classpath), load and
      * cache it (and prevent loading it ever again, unless we use custom class loader).
-     * <p>
+     * <p/>
      * We care, because if we limit ourselves (with loading classes multiple times) to classes not
      * on the classpath, all external widget classes must not be on the classpath, meaning we have
      * to create separate project for every widget, since if they were part of this project,
@@ -327,7 +327,7 @@ public final class WidgetManager {
      * application and widgets as one project.
      * Now we dont need multiple projects (per widget) as we dont mind widget class files on
      * the classpath since this class loader will load them from their widget location.
-     * <p>
+     * <p/>
      * To explain - yes, external widgets have 2 copies of compiled class files now. One where its
      * source files (.java) are, where they are loaded from and the other in the application jar.
      * The class files must be copied manually from classpath to widget's locations when they change.
@@ -453,7 +453,7 @@ public final class WidgetManager {
      * available for future widget search query. Use true if you want to simply
      * use the widget as a custom graphics, use false to let it be part of layout.
      * Can not be changed later.
-     * <p>
+     * <p/>
      * Note that using true will cause the returned widget (if any) be visible in
      * one way or another depending on strategy. So for example newly created
      * widget will be put into layout or will show in a popup. If this behavior is
@@ -574,7 +574,7 @@ public final class WidgetManager {
 
         /**
          * Union of {@link #LAYOUT} and {@link #STANDALONE}.
-         * <p>
+         * <p/>
          * This is the recommended source when creating widget is not intended.
          */
         OPEN,
@@ -587,7 +587,7 @@ public final class WidgetManager {
 
         /**
          * Union of {@link #NEW}, {@link #STANDALONE}.
-         * <p>
+         * <p/>
          * This is the recommended source when it is expected to call the widget
          * multiple times and layout is not to be included,
          * because it creates new widget, but reuses standalone ones.
@@ -656,7 +656,7 @@ public final class WidgetManager {
     public void findLayouts() {
         // get + verify path
         File dir = APP.DIR_LAYOUTS;
-        if (!FileUtil.isValidatedDirectory(dir)) {
+        if (!Util.isValidatedDirectory(dir)) {
             LOGGER.error("Layout directory not accessible: ", dir);
             return;
         }
@@ -667,7 +667,7 @@ public final class WidgetManager {
         layouts.clear();
         if (files.length == 0) return;
         for (File f : files) {
-            layouts.add(FileUtil.getName(f));
+            layouts.add(Util.getName(f));
         }
     }
 

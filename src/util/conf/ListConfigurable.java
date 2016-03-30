@@ -10,12 +10,12 @@ import static util.functional.Util.list;
 /**
  * Collection implementation of {@link Configurable}. Aggregates {@link Config}
  * by index as a list retaining the order in which the configs were inserted.
- * <p>
+ * <p/>
  * This implementation provides O(n) field access.
- * <p>
+ * <p/>
  * Use to access configs by index.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ListConfigurable<T> implements Configurable<T> {
 
@@ -32,9 +32,9 @@ public class ListConfigurable<T> implements Configurable<T> {
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Implementation details:
-     * <p>
+     * <p/>
      * The configs retain their position - are in the order in which they were
      * added, thus allowing for safe casting, since we know the order.
      *
@@ -48,7 +48,7 @@ public class ListConfigurable<T> implements Configurable<T> {
     /**
      * Convenience method. Returns config at specific index within the resulting
      * list of {@link #getFields() } method.
-     * <p>
+     * <p/>
      * Runs in O(1).
      * @param at
      * @return
@@ -68,7 +68,7 @@ public class ListConfigurable<T> implements Configurable<T> {
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Implementation details:
      * Runs in O(n).
      */

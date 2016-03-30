@@ -9,33 +9,33 @@ import java.util.List;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 
-import util.Util;
+import util.type.Util;
 
-import static util.Util.forEachJavaFXProperty;
+import static util.type.Util.forEachJavaFXProperty;
 import static util.conf.Configuration.configsOf;
 
 /**
  * Defines object that can be configured.
- * <p>
+ * <p/>
  * Configurable object exports its configurable state as {@link util.conf.Config} fields that
  * encapsulate the configurable values.
  * This can be used to save, restore, serialization or manipulate this state.
- * <p>
+ * <p/>
  * Any object can be configurable - an object with
  * some state (fields) or properties {@link javafx.beans.property.Property}, composite object composed
  * of sub Configurables exposing all its aggregated
  * subparts as one or it could even be a simple collection of unrelated Configs.
- * <p>
+ * <p/>
  * This interface already provides complete default implementation capable of
  * discovering fields with {@link util.conf.IsConfig} annotation.
- * <p>
+ * <p/>
  * Note, that every Config is already a singleton Configurable.
- * <p>
+ * <p/>
  * It is possible to use your own implementation. It requires to override only
  * getFields and getField methods - the way how the configs are derived).
  * Then one could combine the provided implementation
  * by calling super(), adding custom Configs or manipulate them, etc.
- * <p>
+ * <p/>
  * This class provides static utility methods for basic implementations.
  * <pre>
  * The following are some possible implementations for a Configurable:
@@ -43,7 +43,7 @@ import static util.conf.Configuration.configsOf;
  *    - collection: impl. relying on collection storing the Configs as properties
  *    - mix: combination of the above
  * </pre>
- * <p>
+ * <p/>
  * Default implementation has the advantage of not storing the configs in memory.
  * The fields can be accessed individually (unless all are requested) and created
  * temporarily for one-time use.
@@ -53,39 +53,39 @@ import static util.conf.Configuration.configsOf;
  * In most use cases it raw Configurable should be used.
  * This parameter only is useful for singleton Configurable and Configurable
  * with all Configs of the same type, avoiding the need to cast.
- * <p>
+ * <p/>
  * If all configs of this configurable contain the same type of value,
  * use this generic parameter.
  *
  * @see MapConfigurable
  * @see ListConfigurable
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public interface Configurable<T> {
 
     /**
      * Get all configs of this configurable.
-     * <p>
+     * <p/>
      * Configs know the type of its value, but that is lost since configs with
      * different values can form the state of this configurable. Casting is
      * necessary when accessing configs' value directly.
-     * <p>
+     * <p/>
      * There are three possible resolutions:<br>
-     * <p>
+     * <p/>
      * 1:    Hold the reference to needed config if this configurable was constructed
      * manually.
-       <p>
+       <p/>
      * 2:   Casting to Config with the correct generic parameter and then calling
      * the getValue() :
-       <p>
+       <p/>
      * {@code String val = ((Config<String>) c.getFields().get(0)).getValue()}
-       <p>
+       <p/>
      * 3:   Or obtaining the value and then casting it to the correct type. This
      * should be the preferred way of doing this. Like this:
-       <p>
+       <p/>
      * {@code String val = (String) c.getFields().get(0).getValue()}
-       <p>
+       <p/>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
      *
@@ -97,7 +97,7 @@ public interface Configurable<T> {
 
     /**
      * Get config of this configurable with provided name. Null if not found.
-     * <p>
+     * <p/>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
      *
@@ -114,7 +114,7 @@ public interface Configurable<T> {
 
     /**
      * Get config of this configurable with provided name. Throws {@link IllegalArgumentException} if not found.
-     * <p>
+     * <p/>
      * Note: if all configs of this configurable contain the same type of value,
      * use generic configurable to get config field with proper generic type.
      *
@@ -135,7 +135,7 @@ public interface Configurable<T> {
      * Safe set method.
      * Sets value of config with given name if it exists.
      * Non null equivalent to: return getField(name).setValue(value);
-     * <p>
+     * <p/>
      * Use when input isnt guaranteed to be valid, e.g. contents of a file.
 
      * @param name unique name of the field
@@ -150,7 +150,7 @@ public interface Configurable<T> {
      * Unsafe set method.
      * Sets value of config with given name if it exists or throws an exceptioon.
      * Equivalent to: return getField(name).setValue(value);
-     * <p>
+     * <p/>
      * Use when input is guaranteed to be valid, e.g. using valid value in source code.
 
      * @param name unique name of the field
@@ -165,7 +165,7 @@ public interface Configurable<T> {
     /**
      * Safe set method.
      * Sets value of config with given name if it exists, parsing the text input.
-     * <p>
+     * <p/>
      * Exception-free equivalent to: return getField(name).setValueS(value);
      * Use when deserializing.
 

@@ -33,27 +33,28 @@ import util.conf.Config;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.dev.Dependency;
+import util.type.Util;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
 import static util.async.Async.runLater;
-import static util.file.FileUtil.writeFile;
+import static util.file.Util.writeFile;
 import static util.functional.Util.*;
 
 /**
  * Widget graphical component with a functionality.
- * <p>
+ * <p/>
  * The functionality is handled by widget's {@link Controller}. The controller
  * is instantiated when widget loads. The widget-controller relationship is 1:1
  * and permanent.
- * <p>
+ * <p/>
  * Widget can be thought of as a wrapper for controller (which may be used as
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object> {
 
@@ -67,7 +68,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     /**
      * Factory that produced this widget.
-     * <p>
+     * <p/>
      * Note that in case the application creates another version of the factory (e.g., when the
      * widget source code has been modified and recompiled in runtime), even though the old factory
      * will be removed from the list of factories (substituted by the new factory), this field will
@@ -90,7 +91,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     /**
      *  Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
      *  field properly. There is no restriction where widget is loaded, so this field may be null.
-     *  <p>
+     *  <p/>
      *  This field allows widget to control its lifecycle and context from its controller.
      */
     @XStreamOmitField public ContainerNode areaTemp;
@@ -138,7 +139,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     /**
      * Non null only if within container and loaded.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -148,12 +149,12 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     /**
      * Returns this widget's content.
-     * <p>
+     * <p/>
      * If called the 1st time, loads this widget's content and instantiates its
      * controller. The controller will be null until the first time this method
      * is called.
      * Any subsequent call of this method will simply return the content.
-     * <p>
+     * <p/>
      * Details:
      * <ul>
      * <li> graphics and controller is created only once when needed and reused
@@ -221,8 +222,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         // inject this widget into the controller
         // temporary 'dirty' solution
         try {
-            util.Util.getField(c.getClass(), "widget"); // we use this as a check, throws Exception on fail
-            util.Util.setField(c, "widget", this); // executes only if the field exists
+            Util.getField(c.getClass(), "widget"); // we use this as a check, throws Exception on fail
+            Util.setField(c, "widget", this); // executes only if the field exists
         } catch (NoSuchFieldException ex) {
 
         }
@@ -269,10 +270,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     /**
      * Returns controller of the widget. It provides access to public behavior
      * of the widget.
-     * <p>
+     * <p/>
      * The controller is instantiated when widget loads. The controller is null
      * before that and this method should not be invoked.
-     * <p>
+     * <p/>
      * Do not check the output of this method for null! Receiving null implies
      * wrong use of this method.
      *
@@ -330,7 +331,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         properties.clear();
         properties.putAll(w.properties);
 
-        util.Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required
+        Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required
         preferred.setVof(w.preferred);
         forbid_use.setVof(w.forbid_use);
         custom_name.setVof(w.custom_name);
@@ -347,7 +348,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     /**
      * Returns whether this widget is empty.
-     * <p>
+     * <p/>
      * Empty widget has no graphics. {@link Controller#isEmpty()} indicates
      * state - that there is no data to display within widget's graphics.
      */
@@ -357,7 +358,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     /**
      * Returns singleton list containing the controller of this widget
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -419,7 +420,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         super.readResolve();
 
         // try to assign factory (it must exist) or fallback to empty eidget
-        if(factory==null) util.Util.setField(this, "factory", APP.widgetManager.factories.get(name));
+        if(factory==null) Util.setField(this, "factory", APP.widgetManager.factories.get(name));
         if(factory==null) return Widget.EMPTY();
 
         if(configs==null) configs = new HashMap<>();
@@ -576,7 +577,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         /**
          * Any words from the author, generally about the intention behind or bugs
          * or plans for the widget or simply unrelated to anything else information.
-         * <p>
+         * <p/>
          * For example: "To do: simplify user interface." or: "Discontinued."
          * @return
          */

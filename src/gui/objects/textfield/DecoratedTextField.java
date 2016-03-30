@@ -37,7 +37,7 @@ import javafx.scene.control.TextField;
  * inside the text field itself, without being on top of the users typed-in text.
  *
  * <h3>Screenshot</h3>
- * <p>The following screenshot is taken from the HelloControlsFX sample application,
+ * <p/>The following screenshot is taken from the HelloControlsFX sample application,
  * and shows a normal TextField, with a {@link TextFields#createClearableTextField() clearable text field},
  * followed by three CustomTextFields. Note what happens with long text input -
  * it is prevented from going beneath the left and right graphics. Of course, if

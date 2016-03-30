@@ -15,7 +15,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public class Balancer extends Control {
 

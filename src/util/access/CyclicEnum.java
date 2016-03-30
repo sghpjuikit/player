@@ -12,13 +12,13 @@ package util.access;
  * @param <E> {@link Enum} type. It must be the same type as the extending enum.
  * For example: {@code enum MyEnum implements CyclicEnum<MyEnum>}
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
 
     /**
      * Returns cyclically next enum constant value from list of all values.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      *
      * @return next cyclical enum constant according to its ordinal number.
@@ -30,7 +30,7 @@ public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
 
     /**
      * Returns cyclically previous enum constant value from list of all values.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      *
      * @return previous cyclical enum constant according to its ordinal number.

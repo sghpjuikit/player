@@ -22,8 +22,8 @@ import static util.graphics.Util.setAnchors;
  * Implementation of {@link Container Container} storing one child component. It
  * is expected the child will be non-Container component as putting any container
  * within this would turn this into unnecessary intermediary.
- * <p>
- * @author uranium
+ * <p/>
+ * @author Martin Polakovic
  */
 public class UniContainer extends Container<ContainerNode> {
 

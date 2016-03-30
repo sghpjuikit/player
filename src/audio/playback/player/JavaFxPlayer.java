@@ -29,7 +29,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class JavaFxPlayer implements Play {
 

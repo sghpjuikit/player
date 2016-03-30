@@ -21,7 +21,7 @@ import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
  * Logger widget conroller.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

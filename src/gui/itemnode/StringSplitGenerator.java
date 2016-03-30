@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class StringSplitGenerator extends ValueNode<StringSplitParser> {
     private final TextField root = new TextField();

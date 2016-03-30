@@ -26,12 +26,12 @@ import static util.graphics.Util.setAnchor;
  * Graphical part of the container within layout.
  * The container - area is 1:1 non null relationship. Container makes up for the
  * abstract side, this class represents the graphical side.
- * <p>
+ * <p/>
  * The lifecycle of the graphics entirely depends on the lifecycle of the
  * container. Instances of this class can not live outside of container's
  * life cycle. Note that the opposite doesnt necessarily hold true.
- * <p>
- * @author uranium
+ * <p/>
+ * @author Martin Polakovic
  */
 public abstract class Area<T extends Container> implements ContainerNode {
 
@@ -93,9 +93,9 @@ public abstract class Area<T extends Container> implements ContainerNode {
      * Refresh area. Refreshes the content - wrapped components by calling their
      * refresh() method. Some components might not support this behavior and
      * will do nothing.
-     * <p>
+     * <p/>
      * Implementation decides which components need and will get refreshed.
-     * <p>
+     * <p/>
      * Default implementation refreshes all active widgets (ignores containers).
      */
     public void refresh() {
@@ -106,7 +106,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     }
     /**
      * Adds component to the area.
-     * <p>
+     * <p/>
      * Implementation decides how exactly. Simple
      * implementation storing single component would remove the old component
      * from layout map and add new one to the parent container.
@@ -116,10 +116,10 @@ public abstract class Area<T extends Container> implements ContainerNode {
 
     /**
      * Detaches the content into standalone content. Opens new window.
-     * <p>
+     * <p/>
      * Implementation decides specifics of the operation. {@link PolyArea} could
      * detach only some components or itself or only active component.
-     * <p>
+     * <p/>
      * Default implementation detaches the first active component. Does nothing
      * if no active component available.
      */

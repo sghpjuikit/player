@@ -17,8 +17,8 @@ import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
- * <p>
- * @author uranium
+ * <p/>
+ * @author Martin Polakovic
  *
  * Warning: do not use this class.
  * @TODO implement load() properly, currently works only for Containers. Hence

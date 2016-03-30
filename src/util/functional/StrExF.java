@@ -17,7 +17,7 @@ import util.parsing.StringParseStrategy.To;
 /**
  * String expression function
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @StringParseStrategy(
     from = From.ANNOTATED_METHOD, to = To.TO_STRING_METHOD,

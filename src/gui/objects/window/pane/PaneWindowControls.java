@@ -102,13 +102,13 @@ public class PaneWindowControls extends WindowPane {
 
     /**
      Blocks input to content, but not to root.
-     <p>
+     <p/>
      Use when any input to content is not desirable, for example during
      window manipulation like animations.
-     <p>
+     <p/>
      Sometimes content could consume or interfere with the input directed
      towards the window (root), in such situations this method will help.
-     <p>
+     <p/>
      @param val
      */
     public void setContentMouseTransparent(boolean val) {

@@ -15,7 +15,7 @@ import static java.lang.Integer.min;
  * Accumulates values into range and stores minimum, maximum and specificness - whether any value
  * the range was created for was unspecified/empty, in this case -1.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class RangeYear {
     private int min = Integer.MAX_VALUE;

@@ -14,11 +14,11 @@ import util.conf.Config.ConfigBase;
 /**
  * {@link Config} wrapper for a standalone object. This is the only implementation
  * of the Config that can be instantiated.
- * <p>
+ * <p/>
  * The aim is to create custom Configs that are not associated with any field and
  * are not a part of the automated configuration framework. Instead they simply
  * wrap an Object value.
- * <p>
+ * <p/>
  * The sole use case of this class is for {@link ValueConfigurable}. Normally
  * a {@link Configurable} exports object's properties and attributes by introspection
  * and reflection. Because Configurable provides standard to accessing and configuring
@@ -26,23 +26,23 @@ import util.conf.Config.ConfigBase;
  * into a Config and construct a Configurable around it. This Configurable could
  * aggregate multiple unrelated values and virtually pass them off as a configurable
  * portion of some object which does not exist.
- * <p>
+ * <p/>
  * In reality ValueConfig simply pretends and only sets and returns its wrapped
  * value.
- * <p>
+ * <p/>
  * An expected example for the mentioned use case is to pass values into a method
  * or object that takes Configurable as a parameter. This object usually operates
  * with the configs in order to change state of the configured object (in this
  * case we simply change the values itself - each value represented by one
  * ValueConfig and aggregated by ValueConfigurable). The modification is could
  * be done by the user through GUI.
- * <p>
+ * <p/>
  * Basically, this class can be used to pass an object somewhere to modify its
  * value and then provide the result.
  *
  * @param V - type of value - wrapped object
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public final class ValueConfig<V> extends ConfigBase<V> {
 
@@ -79,7 +79,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
      * the returned object reference will most likely be entirely new one.
      * Dont store the old object in order to avoid using this getter and directly
@@ -98,7 +98,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     }
 
     /** {@inheritDoc}
-     * <p>
+     * <p/>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
      * the returned object reference will most likely be entirely new one.
      * Dont store the old object in order to avoid using this getter and directly
@@ -121,9 +121,9 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      * {@inheritDoc}
      * Runs the associated applier to apply the changes of the value or to
      * simply execute its code. Does nothing if no applier available.
-     * <p>
+     * <p/>
      * Mostly called automatically by the object/framework doing the modification.
-     * <p>
+     * <p/>
      * Equivalent to: return applier==null ? true : getApplier().call(value);
      */
     @Override
@@ -144,7 +144,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      * @param applier Runnable to apply the changes of the value or to
      * simply execute some code when there is intention to apply the value.
      * The runnable is called in {@link #applyValue()} method.
-     * <p>
+     * <p/>
      * For example apply a different css stylesheet to a gui or the application.
      */
     public void setApplier(Consumer<V> applier) {

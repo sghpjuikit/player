@@ -15,26 +15,26 @@ import javafx.util.Callback;
 
 import audio.Player;
 import audio.playlist.PlaylistManager;
-import services.database.Db;
 import audio.tagging.Metadata;
 import audio.tagging.Metadata.Field;
 import audio.tagging.MetadataGroup;
+import gui.Gui;
+import gui.objects.contextmenu.ImprovedContextMenu;
+import gui.objects.contextmenu.SelectionMenuItem;
+import gui.objects.contextmenu.TableContextMenuMR;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable.PojoV;
+import gui.objects.table.TableColumnInfo;
+import gui.objects.tablecell.NumberRatingCellFactory;
+import gui.objects.tablerow.ImprovedTableRow;
 import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
-import gui.Gui;
-import gui.objects.contextmenu.ImprovedContextMenu;
-import gui.objects.contextmenu.SelectionMenuItem;
-import gui.objects.contextmenu.TableContextMenuMR;
-import gui.objects.tablecell.NumberRatingCellFactory;
-import gui.objects.tablerow.ImprovedTableRow;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable.PojoV;
-import gui.objects.table.TableColumnInfo;
 import main.App;
+import services.database.Db;
 import util.access.VarEnum;
 import util.access.Vo;
 import util.async.executor.ExecuteN;
@@ -43,14 +43,12 @@ import util.conf.IsConfig;
 import util.file.Environment;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
-import web.HttpSearchQueryBuilder;
+import web.SearchUriBuilder;
 
 import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.Metadata.Field.CATEGORY;
 import static audio.tagging.MetadataGroup.Field.*;
 import static audio.tagging.MetadataGroup.degroup;
-import static layout.widget.Widget.Group.LIBRARY;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
 import static java.util.Collections.EMPTY_LIST;
@@ -65,15 +63,15 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
+import static layout.widget.Widget.Group.LIBRARY;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.Util.menuItem;
-import static util.Util.menuItems;
 import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
 @Info(
@@ -418,7 +416,7 @@ public class LibraryView extends FXMLController {
     private static final TableContextMenuMR<Metadata, LibraryView> contxt_menu = new TableContextMenuMR<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
-            MenuItem[] is = menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
+            MenuItem[] is = menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),
                                       q -> "in " + Parser.DEFAULT.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);

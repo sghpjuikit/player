@@ -13,7 +13,7 @@ import util.functional.Operable;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class SuccessTask<T,O> extends Task<T> implements Operable<O> {
     

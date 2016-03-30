@@ -14,7 +14,7 @@ import static util.file.FileType.FILE;
  * {@link TextFieldItemNode} for {@link File} objects denoting directories
  * specifically, not files.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FileItemNode extends TextFieldItemNode<File> {
 

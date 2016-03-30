@@ -64,21 +64,21 @@ import static util.functional.Util.*;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
- * <br><p>
+ * <br><p/>
  * The popover can be queried for content safely because of the generic parameter
  * utilizing {@link #getContentNode()}
- * <br><p>
+ * <br><p/>
  * The popover can be queried for skin (see {@link #getSkinn()}). The skin
  * should extend {@link PopOverSkin} and has additional methods that help with
  * the visual side of the popover.
- * <br><p>
+ * <br><p/>
  * The popup window has a very lightweight appearance (no default
  * window decorations) and an arrow pointing at the owner. Due to the nature of
  * popup windows the PopOver will move around with the parent window when the
  * user drags it. <br>
  * PopOver controls are automatically resizing themselves when the content node
  * changes its size.
- * <br><p><pre>
+ * <br><p/><pre>
  * The popover has two modes of behavior marked with detached property.
  * Detached popover:
  *  - has no arrow
@@ -88,24 +88,24 @@ import static util.functional.Util.*;
  * </pre>
  * It is a draggable more standalone window compared to
  * normal mode which comes close to tooltip in terms of functionality.
- * <p>
+ * <p/>
  * The header can still be visible in normal mode. To be precise, the header is
  * visible when popover is detached or when at least one of the following is not
  * empty: header icons list, title text.
- * <p>
+ * <p/>
  * The close button however appears only in detached mode. This is because in
  * normal mode autohide is usually on. Therefore in normal mode, close button is
  * substituted with autohide icon which allows setting autohiding on/off. It
  * 'pins' the popover to the screen.
- * <br><p><p>
+ * <br><p/><p/>
  * Popover can become
  * detached when dragged by mouse but only if it is detachable. Detaching is not
  * reversible, respectively it is only during the initial mouse drag that detached
  * the popover - if the popover is returned to the original position.
- * <br><p><p>
+ * <br><p/><p/>
  * There is a notion of owner node and owner window. The popover tries to
  * act as a child to the Node and Window.
- * <p>
+ * <p/>
  * Popover will move with the owner as if locked onto its position. The relocation
  * takes place when Node owner changes location within its parent or when window
  * owner changes its location within the screen or its size.
@@ -113,16 +113,16 @@ import static util.functional.Util.*;
  * will hide when window owner hides or when node owner is detached from the
  * scene graph (specifically when its Scene changes) or when node owner's turns
  * invisible.
- * <p>
+ * <p/>
  * Both are set automatically when any of the show() methods is called depending
  * on the parameter of the show method. If Node is specified, it will become an
  * owner node and the window the node is within will become owner window. If
  * only window is specified it becomes owner window and owner node is left empty.
- * <br><p><p>
+ * <br><p/><p/>
  * There is a lot of use cases for popover. The content can vary greatly from
  * simple text or icon to a very complex components in which case it is easier
  * to think of the popover as standalone window.
- * <p>
+ * <p/>
  * Below are some of the expected use cases along with the recommended
  * configurations:
  * <pre>
@@ -154,7 +154,7 @@ import static util.functional.Util.*;
  *  - arrow visible : false or depending on context
  *  - detached : true or depending on context
  * </pre>
- * <br><p>
+ * <br><p/>
  * The popover supports nested instances - popovers opened from other
  * popovers. However the owning window will be the owning window of the parent
  * popup, not the popup itself. Although Node inside a popup can be an owner node
@@ -173,7 +173,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Creates simple help popover designed as a tooltip for help buttons.
-     * <p>
+     * <p/>
      * The content of the popover is specified text and title: "Help".
      * <pre>
      *  For example: "Left click : Executes action\n
@@ -181,12 +181,12 @@ public class PopOver<N extends Node> extends PopupControl {
      * </pre>
      * The created popover is not detached, not detachable, hide on click is true,
      * autohide true, rest default.
-     * <p>
+     * <p/>
      * Tip: make use of {@link #setChildPopup(gui.objects.popover.PopOver)}
-     * <p>
+     * <p/>
      * Tip: Associate help popovers with buttons marked with question mark or
      * similar icon.
-     * <p>
+     * <p/>
      * Tip: Help popover is intended to help user with familiarizing with the
      * functionalities of the application and as such is not expected to be
      * showed frequently.
@@ -198,7 +198,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * it to null. When the popover is requested do a null check before the show()
      * method is called and construct the popover if it was null. Or construct
      * a method getHelpPopover() for this. Lazy singleton pattern.
-     * <p>
+     * <p/>
      * Note: following the above advice and assuming the request for the popover
      * comes from button click (more precisely an event handler) it is likely
      * that the event handler will be written as lambda. In that case the
@@ -490,17 +490,17 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Sets moving with owner behavior on or off. Default on (true).
-     * <p>
+     * <p/>
      * This functionality is characterized by the popup moving with the owning
      * Window or Node - its positioning relative to its owner becomes absolute.
-     * <p>
+     * <p/>
      * There are two 'modes' decided automatically depending on the way this
      * popover was shown. The position can be absolute relative to the Node or
      * relative to the Window (or none). The first will reposition this popup
      * in order for it to stay with the Node (even when the Node only changes
      * its position within the Window that remained static). Second simply
      * follows the Window and the third does nothing.
-     * <p>
+     * <p/>
      * The 'mode' is decided based on the parameters of the show method that was
      * called.
      * Must never be called before the popover is shown.
@@ -974,7 +974,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /**
      * Controls the size of the arrow. Default value is 12.
      * Set to arbitrary positive value or 0 to disable arrow.
-     * <p>
+     * <p/>
      * Disabling arrow
      * has an effect of not positioning the popover so the arrow points to the
      * specific point. Rather the popover's upper left corner will.
@@ -997,7 +997,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Sets the value of the arrow size property.
-     * <p>
+     * <p/>
      * Set to arbitrary positive value or 0 to disable arrow.
      *
      * @param size arrow size
@@ -1204,10 +1204,10 @@ public class PopOver<N extends Node> extends PopupControl {
     /**
      * Sets closing behavior when receives click event. The detached value is
      * ignored - popup will always hide. Default false (off).
-     * <p>
+     * <p/>
      * Even if true, this behavior can be prevented when the content of the
      * popup consumes the MOUSE_CLICKED event.
-     * <p>
+     * <p/>
      * Tip: It should only be used when content is static and does not react
      * on mouse events - for example in case of informative popups.
      * Also, it is recommended to use this in conjunction with {@link #setAutoHide(boolean)}
@@ -1215,7 +1215,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * content auto-closing when clicked anywhere but on it, or static popup
      * displaying information hovering above its owner, while the owner can be
      * used with the popup open but conveniently closing on mouse click.
-     * <p>
+     * <p/>
      * Of course any combination of the values is possible. Completely custom
      * implementation can be used too using mouse click event handler on the
      * content.
@@ -1288,17 +1288,17 @@ public class PopOver<N extends Node> extends PopupControl {
      * Modifiable list of children of the header. The elements are Nodes displayed
      * in the header. The list is modifiable and any changes will be immediatelly
      * reflected visually.
-     * <p>
+     * <p/>
      * Use to customize header for example by adding icon or buttons for controlling
      * the content of the popup.
-     * <p>
+     * <p/>
      * Note that the order of the items matters. The nodes will be displayed in
      * the header in the same order as they are in the list. The ascending order
      * goes from left to right.
-     * <p>
+     * <p/>
      * Tip: add node to specific position by add(int i, element e) and replace
      * the node with set(int i, element e); called on the returned list.
-     * <p>
+     * <p/>
      * The added node will probably have assigned a mouse click event handler
      * that executes a click behavior. In such case it is recommended to always
      * consume the event to prevent popover autohiding features to occur by

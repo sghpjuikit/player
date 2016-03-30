@@ -25,7 +25,7 @@ import util.units.RangeYear;
 
 import static java.util.stream.Collectors.toSet;
 import static util.Util.capitalizeStrong;
-import static util.Util.mapEnumConstant;
+import static util.type.Util.mapEnumConstantName;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.equalNonNull;
 import static util.functional.Util.groupBy;
@@ -33,14 +33,14 @@ import static util.functional.Util.groupBy;
 /**
  * Simple transfer class for result of a database query, that groups items by
  * one field and aggregates additional information about the groups.
- * <p>
+ * <p/>
  * An example is listing all artists and number of items per each. A query for
  * this uses GROUP BY 'specific field'
- * <p>
+ * <p/>
  * The accompanying information are always the same, the only changing variable
  * is the {@link Metadata.Field} according to which the items are grouped.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Immutable
 public final class MetadataGroup {
@@ -191,7 +191,7 @@ public final class MetadataGroup {
         private final Class type;
 
         <T> Field(Class<T> type, Ƒ1<MetadataGroup,?> extractor, String description) {
-            mapEnumConstant(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
+            mapEnumConstantName(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
             this.desc = description;
             this.extr = extractor;
             this.type = type;

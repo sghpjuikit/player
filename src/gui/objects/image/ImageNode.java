@@ -18,7 +18,7 @@ import util.conf.IsConfigurable;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @IsConfigurable("Images")
 public abstract class ImageNode {
@@ -42,7 +42,7 @@ public abstract class ImageNode {
      * <li> In some cases, user expects the image to be scalable. This removes
      * any potential blur or artifacts from over-scaling low-resolution version.
      * </ul>
-     * <p>
+     * <p/>
      */
     @IsConfig(name="Image load multiplier", min = 1, max = 2, info="To spare "
        + "memory, images are only loaded up to requested size. "
@@ -79,11 +79,11 @@ public abstract class ImageNode {
     /**
      * Calculates size of the image to load. Returns recommended size for the
      * image.
-     * <p>
+     * <p/>
      * The image normally loads 1:1 with the resolution size of the file, but it
      * is often wasteful, particlarly for big images and even more if the size
      * the image will be used with is rather small.
-     * <p>
+     * <p/>
      * In order to limit memory consumption
      * the size of the specified component will be assumed to be an upper bound
      * of image's loaded size. The image is assumed to be square and the returned

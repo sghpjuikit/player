@@ -8,7 +8,7 @@ package gui.infonode;
 /**
  * Node bindable to an element and displaying information about it.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface InfoNode<B> {
     

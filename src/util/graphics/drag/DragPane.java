@@ -25,21 +25,21 @@ import static util.functional.Util.IS;
 /**
  * Placeholder node as a visual aid for mouse drag operations. Shown when drag enters drag
  * accepting {@link Node} and hidden when it exists.
- * <p>
+ * <p/>
  * This pane shows icon and description of the action that will take place when
  * drag is dropped and accepted and highlights the drag accepting area.
- * <p>
+ * <p/>
  * The drag areas (the nodes which install this pane) do not have to be mutually exclusive, i.e.,
  * the nodes can cover each other, e.g. drag accepting node can be a child of already drag accepting
  * pane. The highlighted area then activates for the topmost drag accepting node
- * <p>
+ * <p/>
  * The node should be drag accepting - have a drag over handler/filter. The condition under which
  * the node accepts the drag (e.g. only text) should be expressed as a {@link Predicate} and used
  * when installing this pane. Otherwise it will be shown for drag of any content and confuse user.
- * <p>
+ * <p/>
  * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate)}
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class DragPane extends Placeholder {
 
@@ -66,7 +66,7 @@ public class DragPane extends Placeholder {
     /**
      * Installs drag highlighting for specified node and drag defined by specified predicate,
      * displaying specified icon and action description.
-     * <p>
+     * <p/>
      *
      * @param node drag accepting node. The node should be the accepting object for the drag event.
      *
@@ -78,16 +78,16 @@ public class DragPane extends Placeholder {
      * can be different under some circumstances.
      * @param cond predicate filtering the drag events. The highlighting will show if the drag
      * event tests true.
-     * <p>
+     * <p/>
      * Must be consistent with the node's DRAG_OVER event handler which accepts the drag in order
      * for highlighting to make sense! Check out
      * {@link DragUtil#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String, java.util.function.Predicate, java.util.function.Consumer) }
      * which guarantees consistency.
-     * <p>
+     * <p/>
      * Normally, one simple queries the Dragboard of the event for type of content. Predicate
      * returning always true will cause the drag highlighting to show regardless of the content of
      * the drag - even if the node does not allow the content to be dropped.
-     * <p>
+     * <p/>
      * It is recommended to build a predicate and use it for drag over handler as well,
      * see {@link DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute
      * consistency in drag highlighting and drag accepting behavior.
@@ -103,12 +103,12 @@ public class DragPane extends Placeholder {
      * </pre>
      * Exception condition should be a subset of condition - if condition returns false, the except
      * should as well. It should only constrict the condition
-     * <p>
+     * <p/>
      * Using more strict condition (logically equivalent with using except condition) will not have
      * the same effect, because then any parent node which can accept the event will be able to do
      * so and also show drag highlight if it is installed. Normally that is the desired behavior
      * here, but there are cases when it is not.
-     * <p>
+     * <p/>
      * Generally, this is useful to hint that the node which would normally accept the event, can
      * not. If the condition is not met, parents may accept the event instead. But if it is and the
      * except condition returns true, then area covering the node will refuse the drag whether

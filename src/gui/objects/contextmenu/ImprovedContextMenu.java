@@ -18,7 +18,7 @@ import util.access.AccessibleValue;
  * Usually, this object is set before showing the menu and allows menu items
  * to use this value for action.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleValue<E> {
     
@@ -51,9 +51,9 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
     /**
      * Shows the context menu for node at proper coordinates derived from mouse 
      * event.
-     * <p>
+     * <p/>
      * Prefer this method to show context menu. Use in MouseClick handler.
-     * <p>
+     * <p/>
      * Reason:
      * When showing ContextMenu, there is a big difference between show(Window,x,y)
      * and (Node,x,y). The former will not hide the menu when next click happens

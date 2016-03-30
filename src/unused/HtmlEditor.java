@@ -14,7 +14,7 @@ import static util.graphics.Util.setAnchors;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 //@IsWidget // enable to make into widget
 public class HtmlEditor extends ClassController  {

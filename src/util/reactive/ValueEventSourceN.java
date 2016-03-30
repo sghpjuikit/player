@@ -6,8 +6,8 @@
 package util.reactive;
 
 /**
- <p>
- @author Plutonium_
+ <p/>
+ @author Martin Polakovic
  */
 public class ValueEventSourceN<T> extends ValueEventSource<T> {
     private T v;

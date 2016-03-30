@@ -19,16 +19,16 @@ import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistItem.Field;
 import audio.playlist.PlaylistManager;
+import gui.Gui;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
+import gui.objects.table.PlaylistTable;
+import gui.objects.table.TableColumnInfo;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.PlaylistFeature;
 import layout.widget.feature.SongReader;
-import gui.Gui;
-import gui.objects.popover.PopOver;
-import gui.objects.icon.Icon;
-import gui.objects.table.PlaylistTable;
-import gui.objects.table.TableColumnInfo;
 import unused.SimpleConfigurator;
 import util.access.V;
 import util.access.Vo;
@@ -36,20 +36,21 @@ import util.async.executor.ExecuteN;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.ValueConfig;
+import util.type.Util;
 import util.units.FormattedDuration;
 
-import static layout.widget.Widget.Group.PLAYLIST;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
-import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static layout.widget.Widget.Group.PLAYLIST;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
+import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static util.Util.menuItem;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.list;
+import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -300,7 +301,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         if(leaf!=null) {
             if(leaf.id.equals(PlaylistManager.active))
                 PlaylistManager.active = id;
-            util.Util.setField(Playlist.class, leaf, "id", id);
+            Util.setField(Playlist.class, leaf, "id", id);
         }
         return leaf==null ? new Playlist(id) : leaf;
     }

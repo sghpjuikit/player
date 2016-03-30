@@ -34,7 +34,7 @@ import static util.dev.Util.log;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @TODO(purpose = DOCUMENTATION)
 public class FileMonitor {
@@ -78,13 +78,13 @@ public class FileMonitor {
     /**
      * Creates and starts directory monitoring reporting events for single file contained within
      * the directory.
-     * <p>
+     * <p/>
      * Shorctcut for:
-     * <p>
+     * <p/>
      * {@code
      * monitorDirsFiles(monitoredFile.getParentFile(), file -> file.equals(monitoredFile), (type,file) -> handler.accept(type));
      * }
-     * <p>
+     * <p/>
      *
      * @param monitoredFile
      * @param handler handles the event taking the event type as parameter

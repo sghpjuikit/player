@@ -11,8 +11,8 @@ import javafx.scene.text.Text;
 import de.jensd.fx.glyphs.GlyphIcons;
 
 /**
- <p>
- @author Plutonium_
+ <p/>
+ @author Martin Polakovic
  */
 public class Icons {
     

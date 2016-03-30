@@ -48,15 +48,13 @@ import com.sun.javafx.event.EventHandlerManager;
 
 import util.access.V;
 
-import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
-import static util.graphics.Util.setMinPrefMaxSize;
 import static util.graphics.Util.setMinPrefMaxWidth;
 
 /**
  * The AutoCompletionBinding is the abstract base class of all auto-completion bindings.
  * This class is the core logic for the auto-completion feature but highly customizable.
- *
- * <p>To use the autocompletion functionality, refer to the {@link org.controlsfx.control.textfield.TextFields} class.
+ * <p/>
+ * To use the autocompletion functionality, refer to the {@link org.controlsfx.control.textfield.TextFields} class.
  *
  * @param <T> Model-Type of the suggestions
  * @see org.controlsfx.control.textfield.TextFields

@@ -19,7 +19,7 @@ import static util.Util.capitalizeStrong;
  * Displays an icon with its name. Has tooltip displaying additional information.
  * Mouse click copies icon name to system clipboard.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class IconInfo extends VBox {
 

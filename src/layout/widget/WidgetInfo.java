@@ -15,7 +15,7 @@ import static util.functional.Util.toS;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface WidgetInfo {
 
@@ -76,7 +76,7 @@ public interface WidgetInfo {
     /**
      * Any words from the author, generally about the intention behind or bugs
      * or plans for the widget or simply unrelated to anything else.
-     * <p>
+     * <p/>
      * For example: "To do: simplify user interface." or: "Discontinued."
      * @return
      */

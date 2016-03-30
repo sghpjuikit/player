@@ -26,20 +26,20 @@ import util.graphics.fxml.ConventionFxmlLoader;
 /**
  * Configurable state transformer graphical control. Graphics to configure 
  * {@link Configurable}.
- * <p>
+ * <p/>
  * When OK button is clicked all changed {@ConfigField}s with unapplied values
  * will be set and applied. Then the specified behavior is executed.
  * 
  * @param <T> Specifies generic type of Configurable for this component. Only
  * use it for singleton configurables or configurables that contain configs with
  * the same value type.
- * <p>
+ * <p/>
  * The advantage of using generic version is in accessing the values in the
  * OK button callback. The configurable is provided as a parameter and if this
  * object is generic it will provide correct configurable returning correct
  * values without type casting.
  * @see Configurable  
- * @author uranium
+ * @author Martin Polakovic
  */
 public class SimpleConfigurator<T> extends AnchorPane {
     
@@ -54,7 +54,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
      * Procedure executed when user finishes the configuring. 
      * Invoked when ok button is pressed.
      * Default implementation does nothing. Must not be null.
-     * <p>
+     * <p/>
      * For example one might want to close this control when no item is selected.
      */
     public Consumer<Configurable<T>> onOK = c -> {};

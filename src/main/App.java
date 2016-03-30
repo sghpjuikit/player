@@ -118,7 +118,7 @@ import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
 import util.functional.Functors;
 import util.graphics.MouseCapture;
@@ -127,10 +127,7 @@ import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
-import util.type.ClassName;
-import util.type.InstanceInfo;
-import util.type.InstanceName;
-import util.type.ObjectFieldMap;
+import util.type.*;
 import util.units.FileSize;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -149,22 +146,22 @@ import static javafx.util.Duration.millis;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
-import static util.Util.*;
-import static util.UtilExp.setupCustomTooltipBehavior;
+import static util.Util.containsNoCase;
+import static util.Util.getImageDim;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 
-import gui.objects.window.stage.Window;
-
 /**
  * Application. Represents the program.
- * <p>
+ * <p/>
  * Single instance:<br>
  * Application can only instantiate single instance, any subsequent call to constructor throws
  * an exception.
+ *
+ * @author Martin Polakovic
  */
 @IsActionable
 @IsConfigurable("General")
@@ -222,12 +219,12 @@ public class App extends Application implements Configurable {
     /**
      * Event source and stream for executed actions, providing their name. Use
      * for notifications of running the action or executing additional behavior.
-     * <p>
+     * <p/>
      * A use case could be an application wizard asking user to do something.
      * The code in question simply notifies this stream of the name of action
      * upon execution. The wizard would then monitor this stream
      * and get notified if the expected action was executed.
-     * <p>
+     * <p/>
      * Running an {@link Action} always fires an event.
      * Supports custom actions. Simply push a String value into the stream.
      */
@@ -251,7 +248,7 @@ public class App extends Application implements Configurable {
 
     /**
      * Actions ran just before application stopping.
-     * <p>
+     * <p/>
      * At the time of execution all parts of application are fully operational, i.e., the stopping
      * has not started yet. However, this assumption is valid only for operations on fx thread.
      * Simply put, do not run any more background tasks, as the application will begin closing in
@@ -317,7 +314,7 @@ public class App extends Application implements Configurable {
      * after the Application class is loaded and constructed. An application may
      * override this method to perform initialization prior to the actual starting
      * of the application.
-     * <p>
+     * <p/>
      * NOTE: This method is not called on the JavaFX Application Thread. An
      * application must not construct a Scene or a Stage in this method. An
      * application may construct other JavaFX objects in this method.
@@ -393,10 +390,10 @@ public class App extends Application implements Configurable {
         x.useAttributeFor(Playlist.class, "id");
 
         // add optional object fields
-        classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
-        classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
-        classFields.add(MetadataGroup.class, set(getEnumConstants(MetadataGroup.Field.class)));
-        classFields.add(File.class, set(getEnumConstants(FileField.class)));
+        classFields.add(PlaylistItem.class, set(util.type.Util.getEnumConstants(PlaylistItem.Field.class)));
+        classFields.add(Metadata.class, set(util.type.Util.getEnumConstants(Metadata.Field.class)));
+        classFields.add(MetadataGroup.class, set(util.type.Util.getEnumConstants(MetadataGroup.Field.class)));
+        classFields.add(File.class, set(util.type.Util.getEnumConstants(FileField.class)));
 
         // add optional object class -> string converters
         className.add(Item.class, "Song");
@@ -414,7 +411,7 @@ public class App extends Application implements Configurable {
         instanceName.add(Component.class, Component::getName);
         instanceName.add(File.class, File::getPath);
         instanceName.add(Collection.class, o -> {
-            Class<?> etype = getGenericPropertyType(o.getClass());
+            Class<?> etype = util.type.Util.getGenericPropertyType(o.getClass());
             String ename = etype == null || etype==Object.class ? "Item" : className.get(etype);
             return o.size() + " " + plural(ename,o.size());
         });
@@ -423,7 +420,7 @@ public class App extends Application implements Configurable {
         instanceInfo.add(File.class, (f,map) -> {
             FileSize fs = new FileSize(f);
             map.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
-            map.put("Format", FileUtil.getSuffix(f));
+            map.put("Format", Util.getSuffix(f));
 
             ImageFileFormat iff = ImageFileFormat.of(f.toURI());
             if(iff.isSupported()) {
@@ -535,8 +532,8 @@ public class App extends Application implements Configurable {
             ),
             new FastAction<>("Apply skin", "Apply skin on the application.",
                 BRUSH,
-                FileUtil::isValidSkinFile,
-                skin_file -> Gui.setSkin(FileUtil.getName(skin_file))),
+                Util::isValidSkinFile,
+                skin_file -> Gui.setSkin(Util.getName(skin_file))),
             new FastAction<>("View image", "Opens image in an image viewer widget.",
                 IMAGE,
                 ImageFileFormat::isSupported,
@@ -560,8 +557,8 @@ public class App extends Application implements Configurable {
             fs -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(fs))
         );
         parameterProcessor.addFileProcessor(
-            FileUtil::isValidSkinFile,
-            fs -> Gui.setSkin(FileUtil.getName(fs.get(0)))
+            Util::isValidSkinFile,
+            fs -> Gui.setSkin(Util.getName(fs.get(0)))
         );
         parameterProcessor.addFileProcessor(
             ImageFileFormat::isSupported,
@@ -595,7 +592,7 @@ public class App extends Application implements Configurable {
      * The main entry point for applications. The start method is
      * called after the init method has returned, and after the system is ready
      * for the application to begin running.
-     * <p>
+     * <p/>
      * NOTE: This method is called on the JavaFX Application Thread.
      * @param primaryStage the primary stage for this application, onto which
      * the application scene can be set. The primary stage will be embedded in
@@ -933,7 +930,7 @@ public class App extends Application implements Configurable {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {
-                            grid.getItemsRaw().setAll(getEnumConstants(c));
+                            grid.getItemsRaw().setAll(util.type.Util.getEnumConstants(c));
                             e.consume();
                         }
                     });

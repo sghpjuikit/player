@@ -21,7 +21,7 @@ import util.animation.Loop;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

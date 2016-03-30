@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- remove uri builder classes and change plugin model for simple property file with uri building formats
+- try player out this implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
 - GridView selection
@@ -88,13 +90,13 @@
 - volume add linear vs logarithmic option
 - Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
-- make generic rater control, use in fileinfo
+- make generic rater control, use in FileInfo
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
-- decide what exactly is plugin and service. Stuff avaiable in app from the
+- decide what exactly is plugin and service. Stuff available in app from the
   being a service doesnt sit well with me. Basically the only thing i did it
   like that was to be able to control lifecycle. 
-  1: plugins may me implementation of functionalities that will be 'exposed'
+  1: plugins may me implementation of functionalitties that will be 'exposed'
      as pluggable (@IsPluggable). These may be services too.
   2: service is anything requiring a lifecycle and with no ui
   3: core services should be exposed as APP components in addition to being
@@ -116,9 +118,9 @@
   menu item for on/off autoresize columns option
 - refactor
     - DirViewer's GridView Cell implementation
-    - GridView contructors
+    - GridView constructors
 - cleanups
-    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane ocnfigs, Action
+    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action
 - annoying java "bugs" (problem scope == entire application)
     - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 -------------------------------------------------------------------------------- 
@@ -134,10 +136,10 @@
 --------------------------------------------------------------------------------
 
 GENERAL
-- cant hide index column, shows artefacts                                                           (medium)
-- transparent stage causing massive perfomance degradation for larger stages                        (major, javaFX bug)
+- cant hide index column, shows artifacts                                                           (medium)
+- transparent stage causing massive performance degradation for larger stages                        (major, javaFX bug)
   problem: transparent skins, window shadows & screen mouse effects unsupported 
-- deactivator position | size a bit off when loading first time & into small                        (minor)
+- de-activator position | size a bit off when loading first time & into small                        (minor)
   area. It requires area resize call to initialize correct height/y-ccord 
   use black bgr on the buttons pane to see the issue 
 - playlist item moving change order when moving fast even for jsut 1 block                          (minor)

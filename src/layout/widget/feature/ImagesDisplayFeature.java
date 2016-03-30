@@ -11,7 +11,7 @@ import java.util.Collection;
 /**
  * Displays images.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Images display",

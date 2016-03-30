@@ -13,7 +13,7 @@ import javafx.util.Duration;
 /**
 * Provides factory methods for timers that are manipulated from and execute
 * their action on the JavaFX application thread.
-* <p>
+* <p/>
 * @author Tomas Mikula
 */
 public class FxTimer {
@@ -138,7 +138,7 @@ public class FxTimer {
     /**
      * If timer running, executes {@link #start(javafx.util.Duration)}, else
      * executes {@link #setPeriod(javafx.util.Duration)}
-     * <p>
+     * <p/>
      * Basically same as {@link #start(javafx.util.Duration)}, but restarts
      * only if needed (when running).
      *

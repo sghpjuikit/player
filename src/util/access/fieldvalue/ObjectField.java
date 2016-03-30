@@ -10,11 +10,11 @@ import java.util.Comparator;
 import util.Util;
 import util.access.TypedValue;
 
-import static util.Util.mapEnumConstant;
+import static util.type.Util.mapEnumConstantName;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface ObjectField<V> extends TypedValue {
 
@@ -30,13 +30,13 @@ public interface ObjectField<V> extends TypedValue {
      * Returns whether this value has human readable string representation. This
      * denotes, whether this type should be attempted to be displayed as text (not if it is String),
      * e.g., when generating generic table columns.
-     * <p>
+     * <p/>
      * The type does not have to be String for this field to be string representable. Any type
      * can be string representable as long as it provides a string converter producing human
      * readable string (compact enough to be used in gui such as tables). Example of string field
      * that is not string representable would be a fulltext field - field that is a concatenation
      * of all string fields, used for fulltext search.
-     * <p>
+     * <p/>
      * Default implementation returns true;
      *
      * @return whether the field can be displayed as a human readable text in a gui
@@ -89,7 +89,7 @@ public interface ObjectField<V> extends TypedValue {
      * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case and all others into
      * lower case and replaces all '_' with ' '.
-     * <p>
+     * <p/>
      * Use to make {@link Enum} constants more human readable, for gui for example.
      */
     default String toStringEnum() {
@@ -115,7 +115,7 @@ public interface ObjectField<V> extends TypedValue {
         INDEX;
 
         ColumnField() {
-            mapEnumConstant(this, f -> f.ordinal()==0 ? "#" : Util.enumToHuman(f));
+            mapEnumConstantName(this, f -> f.ordinal()==0 ? "#" : Util.enumToHuman(f));
         }
 
         @Override

@@ -20,7 +20,7 @@ import static util.functional.Util.filter;
  * and button to open mood picker popup. The position of the picker popup can be
  * customized.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class MoodItemNode extends TextFieldItemNode<String> {
 

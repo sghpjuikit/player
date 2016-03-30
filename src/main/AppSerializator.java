@@ -21,7 +21,7 @@ import static util.dev.TODO.Purpose.READABILITY;
 /**
  * Composition of serializators for the application.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class AppSerializator {
 

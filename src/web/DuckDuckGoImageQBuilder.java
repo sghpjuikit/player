@@ -15,12 +15,11 @@ import util.plugin.IsPlugin;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
- <p>
- @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsPlugin
 @StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "DuckDuckGo" )
-public class DuckDuckGoImageQBuilder implements HttpSearchQueryBuilder {
+public class DuckDuckGoImageQBuilder implements SearchUriBuilder {
 
     @ParsesFromString
     public DuckDuckGoImageQBuilder() {}

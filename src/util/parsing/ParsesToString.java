@@ -15,13 +15,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Makes the method responsible for the parsing to String.
- * <p>
+ * <p/>
  * The annotated element must be:
  * <ul>
  * <li> method
  * <li> return String
  * <ul> take either no parameter or single parameter of type the same or supertype of the class it is defined in
- * <p>
+ * <p/>
  * The method can be static. Or instance and taking a proper argument.
  */
 @Documented

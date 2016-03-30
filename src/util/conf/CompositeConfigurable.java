@@ -12,12 +12,12 @@ import java.util.Collection;
 /**
  * Defines a {@link Configurable} object which contains another Configurable as
  * its part, for example when using Composition.
- * <p>
+ * <p/>
  * This enables the object to act as a Configurable proxy for its internal
  * Configurable.
- * <p>
+ * <p/>
  * New introduced method returns the internal sub configurable.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface CompositeConfigurable<T> extends Configurable<T> {
 

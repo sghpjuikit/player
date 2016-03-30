@@ -9,7 +9,7 @@ import util.collections.map.ClassMap;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ClassName {
 
@@ -28,7 +28,7 @@ public class ClassName {
      * Returns name of the class. If there is no registered name, names of
      * superclasses are looked up. If this fails, the name is derived from the
      * class.
-     * <p>
+     * <p/>
      * Name computation is in order:
      * <ul>
      * <li> registered name of class

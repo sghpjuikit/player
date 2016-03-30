@@ -16,7 +16,7 @@ import util.SingleR;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,TreeView<E>> {
     

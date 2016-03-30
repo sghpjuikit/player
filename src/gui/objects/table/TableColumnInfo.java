@@ -27,7 +27,7 @@ import static util.functional.Util.*;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @TODO(purpose = DOCUMENTATION)
 public final class TableColumnInfo {

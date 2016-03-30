@@ -11,8 +11,8 @@ import java.util.List;
 /**
  * Selection logic for selection of next and previous item in a list. Used in
  * combination with {@link ItemSelector}.
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 @FunctionalInterface
 public interface Selection<E> {

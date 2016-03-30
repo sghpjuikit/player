@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T> {
 

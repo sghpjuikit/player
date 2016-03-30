@@ -26,7 +26,7 @@ import util.access.V;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.file.Environment;
-import util.file.FileUtil;
+import util.file.Util;
 import util.graphics.drag.DragUtil;
 
 import static javafx.geometry.Pos.CENTER;
@@ -40,7 +40,7 @@ import static util.graphics.Util.setAnchor;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",
@@ -105,7 +105,7 @@ public class FileDownloader extends ClassController  {
             File dest = downloadDir.get();
             fut().then(() -> {
                     try {
-                        FileUtil.saveFileTo(url, dest);
+                        Util.saveFileTo(url, dest);
                     } catch(IOException ex) {
                         ex.printStackTrace();
                     }

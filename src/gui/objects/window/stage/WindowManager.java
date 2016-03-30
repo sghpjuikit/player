@@ -49,14 +49,13 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.window.stage.WindowBase.Maximized;
 import gui.objects.icon.Icon;
 import main.App;
-import util.file.FileUtil;
+import util.file.Util;
 import util.access.V;
 import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 import util.dev.TODO.Purpose;
-import util.graphics.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -72,7 +71,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.file.FileUtil.listFiles;
+import static util.file.Util.listFiles;
 import static util.dev.Util.log;
 import static util.dev.Util.no;
 import static util.functional.Util.mapB;
@@ -83,7 +82,7 @@ import static util.reactive.Util.maintain;
 /**
  * Manages windows.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Window")
 @IsActionable
@@ -154,10 +153,10 @@ public class WindowManager implements Configurable<Object> {
     /**
      * Same as {@link #getFocused()} but when none focused returns main window
      * instead of null.
-     * <p>
+     * <p/>
      * Both methods are equivalent except for when the application itself has no
      * focus - which is when no window has focus.
-     * <p>
+     * <p/>
      * Use when null must absolutely be avoided and the main window substitute
      * for focused window will not break expected behavior and when this method
      * can get called when app has no focus (such as through global shortcut).
@@ -225,9 +224,9 @@ public class WindowManager implements Configurable<Object> {
         // moves taskbar icon to respective screen's taskbar
         w.moving.addListener((o,ov,nv) -> {
             if(ov && !nv)
-                APP.taskbarIcon.setScreen(Util.getScreen(w.getCenterXY()));
+                APP.taskbarIcon.setScreen(util.graphics.Util.getScreen(w.getCenterXY()));
         });
-        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(Util.getScreen(w.getCenterXY())));
+        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(util.graphics.Util.getScreen(w.getCenterXY())));
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
 //            if(nv) APP.taskbarIcon.iconify(nv);
 //        });
@@ -370,7 +369,7 @@ public class WindowManager implements Configurable<Object> {
     public void serialize() {
         // make sure directory is accessible
         File dir = new File(APP.DIR_LAYOUTS,"current");
-        if (!FileUtil.isValidatedDirectory(dir)) {
+        if (!Util.isValidatedDirectory(dir)) {
             log(WindowManager.class).error("Serialization of windows and layouts failed. " + dir.getPath() +
                     " could not be accessed.");
             return;
@@ -409,7 +408,7 @@ public class WindowManager implements Configurable<Object> {
 
             // make sure directory is accessible
             File dir = new File(APP.DIR_LAYOUTS, "current");
-            if (!FileUtil.isValidatedDirectory(dir)) {
+            if (!Util.isValidatedDirectory(dir)) {
                 log(WindowManager.class).error("Deserialization of windows and layouts failed. " + dir.getPath() +
                         " could not be accessed.");
                 return;

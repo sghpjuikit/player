@@ -31,7 +31,7 @@ import static util.graphics.Util.setAnchors;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @IsConfigurable
 public class ClickEffect extends ServiceBase {

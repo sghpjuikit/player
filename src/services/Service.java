@@ -16,7 +16,7 @@ import util.access.V;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface Service extends Configurable {
     void start();

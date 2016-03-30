@@ -18,7 +18,6 @@ import javafx.collections.ObservableList;
 
 import org.reactfx.Subscription;
 
-import util.Util;
 import util.access.ApplicableValue;
 import util.access.fieldvalue.EnumerableValue;
 import util.access.TypedValue;
@@ -28,12 +27,13 @@ import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
+import util.type.Util;
 
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
-import static util.Util.getValueFromFieldMethodHandle;
-import static util.Util.isEnum;
-import static util.Util.unPrimitivize;
+import static util.type.Util.getValueFromFieldMethodHandle;
+import static util.type.Util.isEnum;
+import static util.type.Util.unPrimitivize;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -41,23 +41,23 @@ import static util.functional.Util.*;
 
 /**
  * Object representation of a configurable value.
- * <p>
+ * <p/>
  * Config encapsulates access to a value. It allows to obtain the value or
  * change it and also provides additional information associated with it.
- * <p>
+ * <p/>
  * Useful for creating {@link Configurable} objects or exporting values from
  * objects in a standardized way.
- * <p>
+ * <p/>
  * An aggregation of configs is {@link Configurable}. Note that, technically,
  * config is a singleton configurable. Therefore config actually implements
  * it and can be used as non aggregate configurable type.
- * <p>
+ * <p/>
  * Because config is convertible from String and back it also provides convert
  * methods and implements {@link StringConverter}.
  *
  * @param <T> type of value of this config
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringConverter<T>, TypedValue<T>, EnumerableValue<T> {
 
@@ -69,7 +69,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Semantically equivalent to getValue().getClass(), but null-safe and
      * potentially better performing.
      */
@@ -79,7 +79,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     /**
      * Alternative name of this config. Intended to be human readable and
      * appropriately formated.
-     * <p>
+     * <p/>
      * Default value is set to be equivalent to name, but can be specified to
      * differ. Always use for gui building instead of {@link #getName()}.
      */
@@ -167,7 +167,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     /**
      * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
      * Note: invoking this method produces no effects on this config instance. Consider this method static.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -178,7 +178,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     /**
      * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
      * Note: invoking this method produces no effects on this config instance. Consider this method static.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -238,9 +238,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * This method is inherited from Configurable and is not intended to be used
      * manually on objects of this class, rather, in situations this config
      * acts as singleton {@link Configurable}.
-     * <p>
+     * <p/>
      * {@inheritDoc }
-     * <p>
+     * <p/>
      * Implementation details: returns self if name equals with parameter or null
      * otherwise
      * @param name
@@ -256,9 +256,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * This method is inherited from Configurable and is not intended to be used
      * manually on objects of this class, rather, in situations this config
      * acts as singleton {@link Configurable}.
-     * <p>
+     * <p/>
      * {@inheritDoc }
-     * <p>
+     * <p/>
      * Implementation details: returns singleton list of self.
      * @return
      */
@@ -277,7 +277,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * {@link #forProperty(Class, String, Object)} is that
      * property is a value wrapper while value is considered immutable, thus
      * a wrapper needs to be created (and will be automatically).
-     * <p>
+     * <p/>
      * If the value is not a value (its class is supported by ({@link #forProperty(Class, String, Object)}),
      * then that method is called.
      * or is null, runtime exception is thrown.
@@ -707,7 +707,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Vo<T> property, String category) {
             super(property_type, name, c, property, category);
-            util.Util.setField(this, "defaultValue", property.real.getValue());
+            Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
 
@@ -721,7 +721,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, boolean editable, double min, double max) {
             super(property_type, name, gui_name, property, category, info, editable, min, max);
-            util.Util.setField(this, "defaultValue", property.real.getValue());
+            Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
 
@@ -765,7 +765,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /**
          * Inherited method from {@link StringConverter}
          * Note: this config remains intact.
-         * <p>
+         * <p/>
          * {@inheritDoc}
          */
         @Override
@@ -776,7 +776,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /**
          * Inherited method from {@link StringConverter}
          * Note: this config remains intact.
-         * <p>
+         * <p/>
          * {@inheritDoc}
          */
         @Override

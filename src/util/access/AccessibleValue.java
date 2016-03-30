@@ -18,7 +18,7 @@ import util.functional.Operable;
 /**
  * {@link WritableValue), with added default methods. A lightweight interface
  * for value wrappers.
- * <p>
+ * <p/>
  * The value does not have to be wrapped directly within this object, rather
  * this object is a means to access it, hence the more applicable name -
  * accessible vlaue.
@@ -26,7 +26,7 @@ import util.functional.Operable;
  * @param <V> type of accessible value
  * @see SequentialValue
  * @see Operable
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>, Operable<V> {
 
@@ -58,7 +58,7 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Only available for {@link SequentialValue} types for which
      * next value is returned, {@link Boolean}
      * which is equivalent to negation and {@link Enum} which return the next declared
@@ -84,7 +84,7 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
      * <li> {@link Enum} which return the previous declared enum constant.
      * </ul>
      * Otherwise does nothing.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override

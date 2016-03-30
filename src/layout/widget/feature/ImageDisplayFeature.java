@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Displays image.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Image display",

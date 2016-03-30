@@ -26,7 +26,7 @@ import static util.functional.Util.toCSList;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

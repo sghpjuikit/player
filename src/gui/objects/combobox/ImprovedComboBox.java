@@ -21,7 +21,7 @@ import javafx.util.Duration;
 import static java.util.Objects.requireNonNull;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.util.Duration.millis;
-import static util.Util.getFieldValue;
+import static util.type.Util.getFieldValue;
 
 /**
  * ComboBox with extra functions.
@@ -31,7 +31,7 @@ import static util.Util.getFieldValue;
  * <li> Searching & scrolling when typing
  * </ul>
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImprovedComboBox<T> extends ComboBox<T> {
 

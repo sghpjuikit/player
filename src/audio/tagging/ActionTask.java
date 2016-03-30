@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ActionTask<T> extends SuccessTask<T,ActionTask<T>> {
 

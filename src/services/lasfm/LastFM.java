@@ -17,22 +17,21 @@ import org.reactfx.Subscription;
 
 import audio.Player;
 import audio.tagging.Metadata;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
-import util.conf.MapConfigurable;
-import util.conf.ValueConfig;
 import de.umass.lastfm.*;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import unused.SimpleConfigurator;
 import util.Password;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.conf.MapConfigurable;
+import util.conf.ValueConfig;
 import util.dev.TODO;
 
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.Util.log;
 
 /**
- *
- * @author Michal
+ * @author Michal Szeman
  */
 @IsConfigurable("LastFM")
 public class LastFM {
@@ -46,15 +45,14 @@ public class LastFM {
 
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
-
-
     private static boolean loginSuccess;
-    private boolean durationSatisfied;
+    private static boolean durationSatisfied;
+
     @IsConfig(name = "Scrobbling on")
     private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false){
         @Override
-        public void set(boolean nv) {
-            if (nv){
+        public void set(boolean newValue) {
+            if (newValue){
                 if(isLoginSet()){
                     session = Authenticator.getMobileSession(
                             acquireUserName(),
@@ -123,9 +121,9 @@ public class LastFM {
 
     public static SimpleConfigurator getLastFMconfig(){
         return new SimpleConfigurator<String>(
-            new MapConfigurable(
-                new ValueConfig(String.class, "name", acquireUserName()),
-                new ValueConfig(Password.class, "pwd", acquirePassword())
+            new MapConfigurable<>(
+                new ValueConfig<>(String.class, "name", acquireUserName()),
+                new ValueConfig<>(Password.class, "pwd", acquirePassword())
             ),
             c -> saveLogin(
                 c.getField("name").getValue(),
@@ -135,12 +133,12 @@ public class LastFM {
 
     }
 
-    public static final boolean saveUserName(String username) {
+    public static boolean saveUserName(String username) {
         preferences.put("lastfm_username", username);
         return preferences.get("lastfm_username", "").equals(username);
 
     }
-    public static final boolean savePassword(Password pass) {
+    public static boolean savePassword(Password pass) {
         preferences.put("lastfm_password", pass.get());
         return preferences.get("lastfm_password", "").equals(pass.get());
     }
@@ -153,7 +151,7 @@ public class LastFM {
 
     /************** Scrobble logic - event handlers etc ***********************/
 
-    public static final void updateNowPlaying() {
+    public static void updateNowPlaying() {
         Metadata currentMetadata = audio.Player.playingtem.get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
@@ -200,8 +198,6 @@ public class LastFM {
             reset();
         };
 
-/***************************   GETTERS and SETTERS    *************************/
-
     public static boolean getScrobblingEnabled() {
         return scrobblingEnabled.get();
     }
@@ -210,11 +206,9 @@ public class LastFM {
         return scrobblingEnabled;
     }
 
-
-    public void setScrobblingEnabled(boolean value) {
-        LastFM.scrobblingEnabled.set(value);
+    public static void setScrobblingEnabled(boolean value) {
+        scrobblingEnabled.set(value);
     }
-
 
     private static void setTimeSatisfied(boolean b) {
         timeSatisfied = b;

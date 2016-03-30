@@ -15,8 +15,8 @@ import util.type.ClassName;
 
 /**
  * Factory that creates widgets.
- * <p>
- * @author uranium
+ * <p/>
+ * @author Martin Polakovic
  */
 @Widget.Info // empty widget info with default values
 public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {

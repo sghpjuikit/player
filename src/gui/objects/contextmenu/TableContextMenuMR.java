@@ -17,7 +17,7 @@ import util.SingleR;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class TableContextMenuMR<E,M> extends SingleR<ImprovedContextMenu<List<E>>,M> {
     

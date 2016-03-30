@@ -9,7 +9,7 @@ package layout.widget.feature;
 /**
  * Controls song playback.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Playback", 

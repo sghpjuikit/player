@@ -23,10 +23,10 @@ import static util.reactive.Util.maintain;
 /**
  * Pane with a placeholder, mostly showed instead of content when there is none, e.g., "click to
  * add items".
- * <p>
+ * <p/>
  * Normally it highlights on hover/mouse over to signal possible interaction.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Placeholder extends StackPane {
 

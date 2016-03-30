@@ -20,17 +20,17 @@ import static util.dev.TODO.Severity.SEVERE;
 /**
  * {@link Set} backed by {@link Map} using provided key mapper function for
  * identity check instead of equals() and hashCode().
- * <p>
+ * <p/>
  * The underlying map hashing the elements by key is {@link HashMap} by default,
  * but this is not forced. If desired, pass an arbitrary map into a constructor.
- * <p>
+ * <p/>
  * Similarly to other sets, this can be used to easily filter duplicates from
  * collection, but leveraging arbitrary element identity.
  * Use like this: {@code new MapSet<K,E>(e -> e.identity(), elements) }
  *
  * @see #keyMapper
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class MapSet<K,E> implements Set<E> {
 
@@ -58,7 +58,7 @@ public class MapSet<K,E> implements Set<E> {
      * Function transforming element to its key. Used for all collection
      * operations, e.g add(), addAll(), remove(), etc. Two elements are mapped
      * to the same key if this function produces the same key for them.
-     * <p>
+     * <p/>
      * Note, that if the function returned a constant, this set would become
      * singleton set. Using hashCode() would result in same mapping strategy
      * as default maps and collections use.

@@ -9,7 +9,7 @@ package util.access;
  *
  * @param <E> type of value
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface CyclicValue<E> {
 

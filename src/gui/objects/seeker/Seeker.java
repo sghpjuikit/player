@@ -65,11 +65,11 @@ import static util.reactive.Util.maintain;
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.
  * Also manages (displays, edits, etc.) song chapters ({@link Metadata#getChapters()}).
- * <p>
+ * <p/>
  * This control overrides {@link #layoutChildren()} and some layout properties may not work. For
  * example padding. Use padding on the parent of this control, rather than this control directly.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class Seeker extends AnchorPane {
 
@@ -351,7 +351,7 @@ public final class Seeker extends AnchorPane {
      * or current time value changes and display time position. At the end, the binding must be
      * disposed, which is done by running the returned object. It will remove the listeners and stop
      * the updating.
-     * <p>
+     * <p/>
      * It is recommended to create a duration property which always contains the total and current
      * time of the playing song and then call this method only once and subsequently call dispose
      * only once as well at the end of the entire playback.

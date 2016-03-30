@@ -3,7 +3,7 @@ package gui.objects.window;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
  public enum Resize {
     N,

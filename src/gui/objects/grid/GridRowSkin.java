@@ -59,7 +59,7 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
 
     /**
      *  Update all cells
-     *  <p>Cells are only created when needed and re-used when possible.</p>
+     *  <p/>Cells are only created when needed and re-used when possible.</p>
      */
     public void updateCells() {
         int rowIndex = getSkinnable().getIndex();

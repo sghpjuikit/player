@@ -38,7 +38,7 @@ import static util.reactive.Util.maintain;
  * Graphical wrapper for {@link Widget}. Every widget is always contained in this area. It manages
  * widget's lifecycle, provides user interface for interacting (configuration, etc.) with the
  * widget and is a sole entry point for widget loading.
- * <p>
+ * <p/>
  * Maintains final 1:1 relationship with the widget. Widget area can contain only 1 widget provided
  * at the creation and it can not be changed (although the parent container can create another one).
  */

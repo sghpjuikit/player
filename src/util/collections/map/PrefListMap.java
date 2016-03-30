@@ -13,7 +13,7 @@ import util.collections.list.PrefList;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class PrefListMap<E,K> extends ListMap<E,K> {
 

@@ -17,7 +17,7 @@ import static util.dev.Util.log;
 
 /**
  *
- * @author Michal
+ * @author Michal Szeman
  */
 public class Scrobbling {
 

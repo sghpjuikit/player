@@ -2,7 +2,6 @@
 package layout;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.UUID;
 
@@ -21,18 +20,18 @@ import layout.widget.Widget.LoadType;
 import gui.Gui;
 import gui.objects.window.stage.Window;
 import main.App;
-import main.AppSerializator;
 import main.AppSerializator.SeriallizationException;
 import util.access.V;
 import util.collections.map.PropertyMap;
 import util.conf.IsConfig;
+import util.type.Util;
 
 import static layout.widget.Widget.LoadType.AUTOMATIC;
 import static main.App.APP;
 import static util.dev.Util.log;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  *
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
@@ -83,7 +82,7 @@ public abstract class Component {
     /**
      * Parent component. Root component (at the top of the hierarchy) has no parent. Component,
      * which is not part of the hierarchy or is not loaded yet will have no parent either.
-     * <p>
+     * <p/>
      * Use to traverse hierarchy.
      *
      * @return parent container of this container */
@@ -100,7 +99,7 @@ public abstract class Component {
 
     /**
      * Top level parent - root of the hierarchy.
-     * <p>
+     * <p/>
      * If this component has no parent:
      * <ul>
      * <li> {@link Widget} returns null
@@ -180,7 +179,7 @@ public abstract class Component {
         //
         // We must always initialize it manually (we use @XStreamOmit for that) and because
         // it really should be final, but the initialization is here, we use reflection
-        if(lockedUnder == null) util.Util.setField(this, "lockedUnder", new LockedProperty());
+        if(lockedUnder == null) Util.setField(this, "lockedUnder", new LockedProperty());
         return this;
     }
 
@@ -190,7 +189,7 @@ public abstract class Component {
      * Whether the container is locked. The effect of lock is not specifically defined and
      * may vary. Generally, the container becomes immune against certain
      * layout changes.
-     * <p>
+     * <p/>
      * @see #lockedUnder which may be better fit for use, as any of the parents may be locked
      */
     public final BooleanProperty locked = new SimpleBooleanProperty(false);

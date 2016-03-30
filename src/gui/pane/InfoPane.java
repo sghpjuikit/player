@@ -40,7 +40,7 @@ import static util.graphics.Util.layVertically;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Shortcut Viewer")
 public class InfoPane extends OverlayPane {

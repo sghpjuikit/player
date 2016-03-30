@@ -21,7 +21,7 @@ import static java.util.Collections.EMPTY_MAP;
 
 /**
  * Empty widget.
- * <p>
+ * <p/>
  * Useful for certain layout operations and as a fill in for null.
  */
 @Widget.Info(

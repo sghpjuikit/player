@@ -14,17 +14,16 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- Map for caching and splitting collections. It splits elements E to cache buckets 
- C based on key K derived from elements E
-
- @param <E> element that will be split/accumulated
- @param <K> key extracted from element E to hash cache buckets on.
- @param <C> cache bucket/accumulation container. A (not necessarily) a collection
- such as List. Can even be an element E itself. For example a sum. Depends on 
- accumulation strategy. Because of this, elements can not be removed.
- <p>
- @see ListMap
- @author Plutonium_
+ * Map for caching and splitting collections. It splits elements E to cache buckets
+ * C based on key K derived from elements E*
+ * @param <E> element that will be split/accumulated
+ * @param <K> key extracted from element E to hash cache buckets on.
+ * @param <C> cache bucket/accumulation container. A (not necessarily) a collection
+ * such as List. Can even be an element E itself. For example a sum. Depends on
+ * accumulation strategy. Because of this, elements can not be removed.
+ *
+ * @see ListMap
+ * @author Martin Polakovic
  */
 public class CollectionMap<E,K,C> extends HashMap<K,C> {
     /** Extracts keys from elements. Determines the splitting parts of the caching 

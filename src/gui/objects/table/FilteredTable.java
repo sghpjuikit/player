@@ -22,12 +22,7 @@ import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -35,18 +30,18 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.infonode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.icon.Icon;
 import util.Util;
-import util.access.fieldvalue.ObjectField;
 import util.access.V;
+import util.access.fieldvalue.ObjectField;
 import util.async.executor.FxTimer;
 import util.collections.Tuple3;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.dev.TODO;
 import util.functional.Functors;
 
@@ -68,23 +63,21 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.Util.getEnumConstants;
-import static util.Util.mapEnumConstant;
-import static util.Util.menuItem;
-import static util.Util.zeroPad;
+import static util.Util.*;
 import static util.async.Async.runLater;
 import static util.collections.Tuples.tuple;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
 
 /**
  *
  * Table with a search filter header that supports filtering with provided gui.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Table")
 public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
@@ -204,7 +197,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     }
 
     /** Return the items assigned to this this table. Includes the filtered out items.
-     * <p>
+     * <p/>
      * This list can be modified, but it is recommended to use {@link #setItemsRaw(java.util.Collection)}
      * to change the items in the table.
      */
@@ -214,7 +207,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     /**
      * Sets items to the table. If any filter is in effect, it will be applied.
-     * <p>
+     * <p/>
      * Do not use {@link #setItems(javafx.collections.ObservableList)} or
      * {@code getItems().setAll(new_items)}. It will cause the filters to stop
      * working. The first replaces the table item list (instance of {@link FilteredList},
@@ -254,12 +247,12 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     /**
      * Visibility of the filter pane.
      * Filter is displayed in the top of the table.
-     * <p>
+     * <p/>
      * Setting filter visible will
      * also make it focused (to allow writing filter query immediatelly). If you
      * wish for the filter to gain focus set this proeprty to true (focus will
      * be set even if filter already was visible).
-     * <p>
+     * <p/>
      * Setting filter invisible will also clear any search query and effectively
      * disable filter, displaying all table items.
      */
@@ -358,7 +351,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     }
 
     private static <F extends ObjectField> List<Tuple3<String,Class,F>> d(F prefFilterType) {
-        F[] es = getEnumConstants(prefFilterType.getClass());
+        F[] es = util.type.Util.getEnumConstants(prefFilterType.getClass());
         return stream(es)
                 .filter(ObjectField::isTypeStringRepresentable)
                 .map(mf -> tuple(mf.toString(),mf.getType(),mf))
@@ -502,7 +495,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         final BiPredicate<String,String> predicate;
 
         Search(BiPredicate<String,String> p) {
-            mapEnumConstant(this, Util::enumToHuman);
+            util.type.Util.mapEnumConstantName(this, Util::enumToHuman);
             predicate = p;
         }
     }

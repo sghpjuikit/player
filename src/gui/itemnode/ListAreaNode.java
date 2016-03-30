@@ -29,7 +29,7 @@ import static util.functional.Util.*;
 /**
  * List editor with transformation ability. Editable area with function editor
  * displaying the list contents.
- * <p>
+ * <p/>
  * Allows:
  * <ul>
  * <li> displaying the elements of the list as strings in the text area
@@ -37,11 +37,11 @@ import static util.functional.Util.*;
  * <li> creating and applying arbitrary function chain transformation on the list
  * elements producing list of different type
  * </ul>
- * <p>
+ * <p/>
  * The input list is retained and all (if any) transformations are applied on it
  * every time a change in the transformation chain occurs. Every time the text is
  * updated, all manual changes of the text are lost.
- * <p>
+ * <p/>
  * The input can be set:
  * <ul>
  * <li> as string which will be split by lines to list of strings. {@link #setData(java.lang.String)}
@@ -50,7 +50,7 @@ import static util.functional.Util.*;
  * but is not necessary. The area can be used without input. Transformation chain
  * starts a Void.class which still allows functions that supply value, which in
  * return again allows scaling the transformation chain without limitation.
- * <p>
+ * <p/>
  * The result can be accessed as:
  * <ul>
  * <li> text at any time equal to the visible text of the text area. {@link #getValueAsS()}
@@ -58,7 +58,7 @@ import static util.functional.Util.*;
  * area. List can be empty, but not null. {@link #getValue() }
  * </ul>
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @TODO(purpose = FUNCTIONALITY, note = "manual text edits should be part of transformation chain. It "
         + "is doable like this:"
@@ -76,7 +76,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     /**
      * Output list, i.e., input list after transformation of each element.
      * The text of this area shows string representation of this list.
-     * <p>
+     * <p/>
      * Note that the area is editable, but the changes
      * will (and possibly could) only be reflected in this list if its type is {@link String}, i.e.,
      * if the last transformation transforms into String. This is apparent from the fact that
@@ -87,11 +87,11 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * reflected in this list, i.e., {@link #getValue() )} and this will contain equal elements
      * <li?output type is not Stirng: it is considered arbitrary user change of the text representation
      * of transformation output (i.e., this list), but not the output itself.
-     * <p>
+     * <p/>
      * In fact, when further transforming the elements, the manual edit will be ignored, and this is
      * true even for String due to imperfect implementation.
      * </ul>
-     * <p>
+     * <p/>
      * When observing this list, changes of the text area will only be reflected in it (and fire
      * list change events) when the output type is String. You may observe the text directly using
      * {@link #output_string}
@@ -99,7 +99,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     public final ObservableList<Object> output = FXCollections.observableArrayList();
     /**
      * Text of the text area. Editable both graphically and programmatically.
-     * <p>
+     * <p/>
      * The text of this area shows string representation of the transformation output {@link #output}
      * and may not reflect it exactly when edited.
      */
@@ -142,7 +142,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     /**
      * Sets the input list directly. Must be homogeneous - all elements of the
      * same type.
-     * <p>
+     * <p/>
      * Discards previous input list. Transformation chain is cleared if the type
      * of list has changed.
      * Updates text of the text area.
@@ -161,7 +161,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
 
     /**
      * Sets the input list by splitting the text by '\n' newline character.
-     * <p>
+     * <p/>
      * Discards previous input list. Transformation chain is cleared if the type
      * of list has changed.
      * Updates text of the text area.

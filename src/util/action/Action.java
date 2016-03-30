@@ -46,13 +46,13 @@ import static util.reactive.Util.listChangeHandler;
 
 /**
  * Encapsulates application behavior.
- * <p>
+ * <p/>
  * An action can wrap any {@link Runnable}. The aim however is to allow a
  * framework make convenient externalization of application behavior possible.
  * With the help of {@link IsAction} annotation methods can be annotated and
  * invoked directly as actions anytime. Example of use for action is generating
  * shortcuts for the application.
- * <p>
+ * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
 @IsConfigurable
@@ -167,7 +167,7 @@ public final class Action extends Config<Action> implements Runnable {
      * </pre>
      * Incorrect keys will be substituted with "", which is equivalent to
      * deactivating the shortcut.
-     * <p>
+     * <p/>
      * To check the result of the assignment of the keys use {@link #getKeys()}
      * or {@link #hasKeysAssigned()} method.
      */
@@ -218,15 +218,15 @@ public final class Action extends Config<Action> implements Runnable {
 
     /**
      * Activates shortcut. Only registered shortcuts can be invoked.
-     * <p>
+     * <p/>
      * If the {@link #hasKeysAssigned()} returns false, registration will not
      * take place.
-     * <p>
+     * <p/>
      * For local action this method will succeed only after {@link Scene} is
      * already initialized.
      * For global, platform support is required. If it isnt, shortcut will
      * be registered locally, although the action will remain global.
-     * <p>
+     * <p/>
      * Note that shortcut can be registered globally multiple times even with
      * the same keys and locally with different keys. Make sure the action is
      * unregistered before registering it.

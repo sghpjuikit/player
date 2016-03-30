@@ -25,18 +25,17 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
 import de.jensd.fx.glyphs.GlyphsDude;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import static javafx.scene.paint.Color.CADETBLUE;
 import static main.App.APP;
-import static util.file.FileUtil.listFiles;
+import static util.file.Util.listFiles;
 
 /**
- <p>
- @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FileTree extends TreeView<File>{
 
@@ -84,9 +83,9 @@ public class FileTree extends TreeView<File>{
         File f = p.toFile();
         if(p.toString().endsWith(".css"))
             return GlyphsDude.createIcon(CSS3,"11");
-        if((f.isDirectory() && APP.DIR_SKINS.equals(p.toFile().getParentFile())) || FileUtil.isValidSkinFile(p.toFile()))
+        if((f.isDirectory() && APP.DIR_SKINS.equals(p.toFile().getParentFile())) || Util.isValidSkinFile(p.toFile()))
             return GlyphsDude.createIcon(PAINT_BRUSH,"11");
-        if((f.isDirectory() && APP.DIR_WIDGETS.equals(p.toFile().getParentFile())) || FileUtil.isValidWidgetFile(p.toFile()))
+        if((f.isDirectory() && APP.DIR_WIDGETS.equals(p.toFile().getParentFile())) || Util.isValidWidgetFile(p.toFile()))
             return GlyphsDude.createIcon(GE,"11");
 
         if(f.isFile()) return new Circle(2.5, CADETBLUE);
@@ -95,7 +94,7 @@ public class FileTree extends TreeView<File>{
 
     /**
      * File tree item.
-     * <p>
+     * <p/>
      * Based on example in the javadoc of {@link TreeItem}.
      */
     public static TreeItem<File> createTreeItem(File f) {

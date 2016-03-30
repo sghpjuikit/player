@@ -20,7 +20,7 @@ import util.dev.Dependency;
 /**
  * Controller for {@link ClassWidget}
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 abstract public class ClassController extends AnchorPane implements Controller<Widget<?>> {
 

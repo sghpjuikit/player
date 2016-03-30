@@ -56,8 +56,8 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static main.App.APP;
-import static util.file.FileUtil.copyFileSafe;
-import static util.file.FileUtil.copyFiles;
+import static util.file.Util.copyFileSafe;
+import static util.file.Util.copyFiles;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
 import static util.async.executor.EventReducer.toLast;
@@ -67,8 +67,8 @@ import static util.graphics.Util.setAnchor;
 
 /**
  * File info widget controller.
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

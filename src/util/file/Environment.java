@@ -26,7 +26,6 @@ import audio.playlist.PlaylistManager;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import gui.Gui;
-import util.Util;
 import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
 
@@ -48,7 +47,7 @@ import static util.functional.Util.map;
  * Provides methods to handle external platform specific tasks. Browsing
  * files, opening files in external apps, clipboard, etc.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @TODO(purpose = FUNCTIONALITY, note = "support printing, mailing")
 @TODO(note = "File highlighting, test non windows platforms")
@@ -80,7 +79,7 @@ public class Environment {
 
     /**
      * Browses uri - opens it in its respective browser, e.g. internet browser or file explorer.
-     * <p>
+     * <p/>
      * On some platforms the operation may be unsupported.
      *
      * @param uri to browse
@@ -146,7 +145,7 @@ public class Environment {
     /**
      * Edits file in default associated editor program. If the file denotes a directory,
      * {@link #open(java.io.File)} is called instead.
-     * <p>
+     * <p/>
      * On some platforms the operation may be unsupported. In that case this method is a no-op.
      *
      * @param f
@@ -173,7 +172,7 @@ public class Environment {
 
     /**
      * Opens file in default associated program.
-     * <p>
+     * <p/>
      * On some platforms the operation may be unsupported. In that case this method is a no-op.
      *
      * @param f
@@ -194,20 +193,20 @@ public class Environment {
     }
 
     public static boolean isOpenableInApp(File f) {
-        return ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) ||
-               ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) ||
+        return ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) ||
+               ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) ||
                AudioFileFormat.isSupported(f,Use.PLAYBACK) || ImageFileFormat.isSupported(f);
     }
 
     public static void openIn(File f, boolean inApp) {
         // open skin - always in app
-        if((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) {
-            Gui.setSkin(FileUtil.getName(f));
+        if((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) {
+            Gui.setSkin(Util.getName(f));
         }
 
         // open widget
-        else if((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
-            String n = FileUtil.getName(f);
+        else if((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) {
+            String n = Util.getName(f);
             APP.widgetManager.find(n, NO_LAYOUT, false);
         }
 
@@ -252,12 +251,12 @@ public class Environment {
         if(type==DIRECTORY) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
+            c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));
             return c.showDialog(w);
         } else {
             FileChooser c = new FileChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
+            c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));
             if (exts !=null) c.getExtensionFilters().addAll(exts);
             return c.showOpenDialog(w);
         }
@@ -266,7 +265,7 @@ public class Environment {
     public static List<File> chooseFiles(String title, File initial, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
+        c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         return c.showOpenMultipleDialog(w);
     }
@@ -274,7 +273,7 @@ public class Environment {
     public static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial,APP.DIR_APP));
+        c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));
         c.setInitialFileName(title);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         c.showSaveDialog(w);

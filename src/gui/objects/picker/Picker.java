@@ -33,16 +33,16 @@ import static util.graphics.Util.setScaleXY;
 
 /**
  * Generic item picker.
- * <p>
+ * <p/>
  * Node displaying elements as grid.
  * Elements are converted to their text representation according to provided
  * mapper. Element should override toString() method if no mapper is provided.
- * <p>
+ * <p/>
  * Elements will be sorted lexicographically.
- * <p>
+ * <p/>
  * Elements will be represented graphically depending on the cell factory.
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 public class Picker<E> {
 
@@ -74,7 +74,7 @@ public class Picker<E> {
      * Procedure executed when no item is selected. Invoked when user cancels
      * the picking by right click.
      * Default implementation does nothing. Must not be null;
-     * <p>
+     * <p/>
      * For example one might want to close this picker when no item is selected.
      */
     public Runnable onCancel = DEF_onCancel;

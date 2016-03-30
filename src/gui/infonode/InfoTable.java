@@ -22,7 +22,7 @@ import static org.atteo.evo.inflector.English.plural;
  *
  * @param <E> type of table element
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public final class InfoTable<E> implements InfoNode<TableView<E>> {
 

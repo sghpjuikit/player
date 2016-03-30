@@ -22,7 +22,7 @@ import static util.functional.Util.IDENTITY;
 /**
  * Function editor with function chaining.
  * Provides ui for creating functions.
- * <p>
+ * <p/>
  * This editor provides editable and scalable chain of stackable functions. The
  * chain:
  * <ul>
@@ -48,7 +48,7 @@ import static util.functional.Util.IDENTITY;
  * </ul>
  *
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<Object,Object>> {
 
@@ -130,10 +130,10 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
      * <li> determined by object type this chain's reduction function will be aplied to
      * <li> determines available functions in the dropdown box or the 1st chain element
      * <ul>
-     * <p>
+     * <p/>
      * If the class changes, entire transformation chain is cleared.
      * Callign this method always results in an update event.
-     * <p>
+     * <p/>
      * Default Void.class
      */
     public void setTypeIn(Class c) {
@@ -148,7 +148,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
 
     /**
      * Sets null handling during chain function reduction.
-     * <p>
+     * <p/>
      * Calling this method results in an update event.
      */
     public void setNullHandling(NullIn ni, NullOut no) {

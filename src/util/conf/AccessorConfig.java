@@ -18,11 +18,11 @@ import util.access.FunctAccessor;
  * value, instead contains the getter and setter which call the code that
  * provides the actual value. This can be thought of some kind of intermediary.
  * See {@link FunctAccessor} which this config implements.
- * <p>
+ * <p/>
  * Use when wrapping the value is not desired, rather it is defined by a means
  * of accessing it.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleValue<T> {
 

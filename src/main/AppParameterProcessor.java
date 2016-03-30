@@ -20,7 +20,7 @@ import static util.functional.Util.ISNTØ;
 /**
  * Processes application parameters.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class AppParameterProcessor {
     private final List<ParameterProcessor> processors = new ArrayList<>();

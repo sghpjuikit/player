@@ -8,11 +8,11 @@ package util.collections.map.abstr;
 import java.util.Collection;
 import java.util.List;
 
-import static util.Util.getSuperClassesInc;
+import static util.type.Util.getSuperClassesInc;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface MapByClass<E> {
 
@@ -51,7 +51,7 @@ public interface MapByClass<E> {
      * <li>Void.class or void.class
      * </ul>
      * or empty list if no such mapping exists.
-     * <p>
+     * <p/>
      * Note: Void.class is useful for mapping objects based on their generic
      * type.
      */

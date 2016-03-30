@@ -17,10 +17,10 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
  * Simple class for file size handling, used primarily for its string representation.
- * <p>
+ * <p/>
  * Simple example of use: {@code new FileSize(bytes).toString() }.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @Immutable
 @StringParseStrategy(
@@ -125,10 +125,10 @@ public final class FileSize implements Comparable<FileSize> {
 
     /**
      * Returns human readable file size text.
-     * <p>
+     * <p/>
      * Displays "Unknown" if value -1 which is an 'unknown' value.
      * Appends byte units after the value.
-     * <p>
+     * <p/>
      * Most appropriate unit prefix is calculated and the value converted. The
      * text value granularity is 0.01 of the used unit. Example 3.56
      * @return string representation of the object

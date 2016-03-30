@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * parameter type. When the input gets a value passed in, thw annotated method
  * will be invoked with the value as parameter.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Documented
 @Retention(RUNTIME)

@@ -2,7 +2,6 @@
 package layout.container.layout;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,18 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import com.thoughtworks.xstream.io.StreamException;
 
 import layout.container.uncontainer.UniContainer;
 import main.App;
 import main.AppSerializator;
 import main.AppSerializator.SeriallizationException;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static main.App.APP;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class Layout extends UniContainer {
 
@@ -37,7 +35,7 @@ public final class Layout extends UniContainer {
     /**
      * Creates new layout with unique name. Use to create completely
      * new layouts.
-     * <p>
+     * <p/>
      * @see #setName(java.lang.String)
      */
     public Layout() {
@@ -48,10 +46,10 @@ public final class Layout extends UniContainer {
      * Creates new layout with specified name. Please note that the name must
      * be unique. Use to create layout based on a name parameter, for example
      * when deserializing a file.
-     * <p>
+     * <p/>
      * Do not use.
      * This method is not intended to be used outside of serialization context.
-     * <p>
+     * <p/>
      * Note that creating new Layout with specified name is dangerous due to
      * how {@link #equals(java.lang.Object)}
      * is implemented. For example creating layout with a name that of a different
@@ -79,7 +77,7 @@ public final class Layout extends UniContainer {
 
     /**
      * Sets name.
-     * <p>
+     * <p/>
      * Do not use.
      * This method is not intended to be used outside of serialization context.
      * @param new_name - name to put.
@@ -163,10 +161,10 @@ public final class Layout extends UniContainer {
 
         try {
             l = X.fromXML(Layout.class,f);
-            l.setName(FileUtil.getName(f)); // hmm
+            l.setName(Util.getName(f)); // hmm
         } catch (SeriallizationException e) {
             LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
-            l = new Layout(FileUtil.getName(f));
+            l = new Layout(Util.getName(f));
         }
 
         l.properties.forEach(properties::put);
@@ -191,7 +189,7 @@ public final class Layout extends UniContainer {
      * application.
      */
     public void removeFile() {
-       FileUtil.deleteFile(getFile());
+       Util.deleteFile(getFile());
     }
 
      /** @return true if and only if two layouts share the same name. */

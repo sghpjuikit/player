@@ -15,7 +15,7 @@ import layout.area.IOLayer;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Input<T> extends Put<T>{
     final String name;
@@ -49,7 +49,7 @@ public class Input<T> extends Put<T>{
 
     /**
      * Return true if this input can receive values from given output. Equivalent to
-     * <p>
+     * <p/>
      * {@code getType().isAssignableFrom(output.getType())}
      */
     public boolean canBind(Output<?> output) {

@@ -17,7 +17,7 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 /**
  * Indicates that the class has defined strategy for parsing to and from String.
  * This gives hint to parser as to how the parsing should be done.
- * <p>
+ * <p/>
  * The strategy for parsing from and to String must be consistent, i.e. parsing
  * from string the object was parsed into must not fail and be able to return
  * non null value.
@@ -41,14 +41,14 @@ public @interface StringParseStrategy {
      * exception. Here it is possible to specify all exceptions regarding the
      * conversion process. Parser can then catch them and provide a unification
      * mechanism for handling erroneous input and failed conversions.
-     * <p>
+     * <p/>
      * This shifts the implementation in fail cases from the object to the
      * parsing framework, see {@link Parser}.
-     * <p>
+     * <p/>
      * Enumerate all exceptions (runtime or checked) that can be thrown as a
      * result of to string conversion failure. Exceptions due to programming
      * error or other causes should not be listed).
-     * <p>
+     * <p/>
      * Default value is empty array.
      */
     Class<? extends Exception>[] exTo() default {};
@@ -62,9 +62,9 @@ public @interface StringParseStrategy {
         /**
          * Will use fx parser. The string format of the fx parser is subject to change and should
          * not be relied on and will not be disclosed here.
-         * <p>
+         * <p/>
          * Should be used in combination with {#link StringParseStrategy.To#FX }.
-         * <p>
+         * <p/>
          * Instance will be created by invoking the public no-arg constructor (fails if not
          * accessible) of the exact class, name of which is in the string.
          * Parser then uses available name-value pairs and sets the values to appropriate
@@ -86,9 +86,9 @@ public @interface StringParseStrategy {
         /**
          * Will use fx parser. The string format of the fx parser is subject to change and should
          * not be relied on and will not be disclosed here.
-         * <p>
+         * <p/>
          * Should be used in combination with {#link StringParseStrategy.From#FX }.
-         * <p>
+         * <p/>
          * The parsed string contains exact class and name-value pairs of all
          * javafx property beans.
          */

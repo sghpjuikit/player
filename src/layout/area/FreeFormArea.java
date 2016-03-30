@@ -39,8 +39,8 @@ import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 

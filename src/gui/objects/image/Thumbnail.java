@@ -37,14 +37,13 @@ import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.image.cover.Cover;
 import main.App;
 import util.SingleR;
-import util.Util;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.Dependency;
 import util.dev.TODO;
 import util.file.Environment;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
 
 import static java.lang.Double.min;
@@ -56,26 +55,26 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.Util.getFieldValue;
-import static util.Util.menuItem;
+import static util.type.Util.getFieldValue;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.copyToSysClipboard;
 import static util.functional.Util.stream;
+import static util.graphics.Util.menuItem;
 
 /**
  * Thumbnail.
- * <p>
+ * <p/>
  * Resizable image container with additional features.
- * <p>
+ * <p/>
  * Features:
  * <ul>
  * <li> Resizable. The image resizes in layout automatically. For manual resize
  * set preferred, minimal and maximal size of the root {@link #getPane()}.
- * <p>
+ * <p/>
  * This size is applied on the root of this thubmnail, which contains the image.
  * The image will try to use maximum space available, depending on the aspect
  * ratios of the image and this thumbnail.
- * <p>
+ * <p/>
  * The image retains aspect ratio and is always fully visible inside this thumbnail.
  * If the aspect ratio of this thumbnail differs from that of the image, there
  * will be empty space left on left+right or top+bottom. Image is center - aligned.
@@ -93,18 +92,18 @@ import static util.functional.Util.stream;
  * clipboard (if it is available).
  * <li> Background can be used. Background is visible on the empty space resulting
  * from different aspect ratio of this thumbnail and image.
- * <p>
+ * <p/>
  * Define background style in css.
  * <li> Border. Can be set to frame whole thumbnail or image respectively. Framing
  * whole thumbnail will frame also the empty areas and background.
  * Useful for small thumbnails to give them 'rectangular' size by setting both
  * background and border framing to whole thumbnail. Big image may do the opposite
  *  - display no background and frame image only.
- * <p>
+ * <p/>
  * Define border style in css.
  * <li> Context menu. Shown on right click. Has additional menu items if the
  * file is set.
- * <p>
+ * <p/>
  * Image can be opened in native application, edited in native editor,
  * browsed in native file system, exported as file or viewed fullscreen inside
  * the application, and more.
@@ -271,7 +270,7 @@ public class Thumbnail extends ImageNode {
         imagefile = img;
         Point2D size = calculateImageLoadSize(root);
         Image c = getCached(img, size.getX(), size.getY());
-        Image i = c!=null ? c : Util.loadImage(img, size.getX(), size.getY());
+        Image i = c!=null ? c : util.Util.loadImage(img, size.getX(), size.getY());
         setImgA(i);
     }
 
@@ -409,10 +408,10 @@ public class Thumbnail extends ImageNode {
 
     /**
      * Returns root pane. Also image drag gesture source {@see #setDragEnabled(boolean)}.
-     * <p>
+     * <p/>
      * Note that in order for the image to resize prefSize of this pane
      * must be used!
-     * <p>
+     * <p/>
      * {@inheritDoc }
      */
     @Dependency("Must return image drag gesture root")
@@ -427,13 +426,13 @@ public class Thumbnail extends ImageNode {
 
     /**
      * Sets maximum allowed scaling factor for the image.
-     * <p>
+     * <p/>
      * The image in the thumbnail scales with it, but only up to its own maximal
      * size defined by:    imageSize * maximumScaleFactor
-     * <p>
+     * <p/>
      *
      * Default value is 1.3.
-     * <p>
+     * <p/>
      * Note that original size in this context means size (width and height) the
      * image has been loaded with. The image can be loaded with any size, even
      * surpassing that of the resolution of the file.
@@ -493,13 +492,13 @@ public class Thumbnail extends ImageNode {
 
     /**
      * Allow image file drag from this thumbnail.
-     * <p>
+     * <p/>
      * Dragging is done with left button and only possible if this thumbnail
      * has file set. The file will be put into dragboard, use Dataformat.FILES
      * to retrieve it.
-     * <p>
+     * <p/>
      * The gesture source can be obtained by {@link #getPane()}
-     * <p>
+     * <p/>
      * Default true.
      */
     public void setDragEnabled(boolean val) {
@@ -603,7 +602,7 @@ public class Thumbnail extends ImageNode {
                         fc.setInitialFileName("new_image");
                         fc.setInitialDirectory(APP.DIR_APP);
                     File f = fc.showSaveDialog(APP.windowOwner.getStage());
-                    FileUtil.writeImage(m.getValue(), f);
+                    Util.writeImage(m.getValue(), f);
                 }),
                 menuItem("Copy the image to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE,m.getValue()))
             );
@@ -630,7 +629,7 @@ public class Thumbnail extends ImageNode {
                         App.openImageFullscreen(f,screen);
                     }
                 }),
-                menuItem("Delete from disc", e -> FileUtil.deleteFile(getValue().file)),
+                menuItem("Delete from disc", e -> Util.deleteFile(getValue().file)),
                 menuItem("Save as ...", e -> {
                     File f = getValue().file;
                     FileChooser fc = new FileChooser();

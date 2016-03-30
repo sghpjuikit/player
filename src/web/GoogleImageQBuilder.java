@@ -15,12 +15,11 @@ import util.plugin.IsPlugin;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
- <p>
- @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsPlugin
 @StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Google" )
-public class GoogleImageQBuilder implements HttpSearchQueryBuilder {
+public class GoogleImageQBuilder implements SearchUriBuilder {
 
     @ParsesFromString
     public GoogleImageQBuilder() {}

@@ -17,23 +17,23 @@ import layout.widget.feature.Feature;
  * as a bridge between that object and the rest of application. Controllers are
  * used to manage the content and control and define its behavior for example of
  * fxml graphics.
- * <p>
+ * <p/>
  * Controller can be considered behavior defining object and also API of the
  * object to allow external control. Controller can make object fully autonomous
  * an inaccessible or provide certain degree of access from outside.
  * For more about how to use Controller without relying on type safety, read
  * {@link Feature}.
- * <p>
+ * <p/>
  * Encapsulation is still valid approach and it is recommended to make methods
  * and fields public only when trying to export state or functionality when using
  * the controller when knowing its full class
- * <p>
+ * <p/>
  * Implements {@link util.conf.Configurable} interface which is useful for
  * user customization of internal properties.
- * <p>
+ * <p/>
  * It is intended for controller to implement {@link Layout.Widgets.Features.Feature}
  * interfaces.
- * <p>
+ * <p/>
  * This is also marker interface. It helps flag objects that act as controllers,
  * even if they dont provide any public control. This way it is more clear whether
  * Object is its own controller, which is also possible. Such cases could be
@@ -53,7 +53,7 @@ import layout.widget.feature.Feature;
  * - controller is garbage collected
  * </pre>
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public interface Controller<W extends Widget> extends CachedConfigurable<Object> {
 
@@ -64,11 +64,11 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
 
     /**
      * Initializes the controller. Use as a constructor.
-     * <p>
+     * <p/>
      * If the contorller makes use of the {@link util.conf.IsConfig} anotated properties,
      * they will not be initialized and their values shouldnt be used in this
      * method.
-     * <p>
+     * <p/>
      * Dont invoke this method, it is called automatically at widget's creation.
      * Invoking this method will have no effect.
      */
@@ -76,17 +76,17 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
 
     /**
      * Refreshes the controller state.
-     * <p>
+     * <p/>
      * Brings GUI up to date ensuring all potential changes are accounted for.
      * Invoked after widget loads for the 1st time or manually by the user from
      * user interface.
-     * <p>
+     * <p/>
      * Is invoked on user request (to bring the widget state up to date) or when
      * widget is loaded 1st time.
      * At this point all {@link util.conf.IsConfig configs}
      * are available and have their values set, but not applied - that should be
      * executed in this method.
-     * <p>
+     * <p/>
      * In case that widget has nothing to refresh, such implementations
      * could do nothing.
      */
@@ -111,7 +111,7 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
      * Returns whether widget displays any content. Empty controller generally
      * means there is no content in the wodget whatsoever, but it depends
      * on implementation.
-     * <p>
+     * <p/>
      * By default this method returns false;
      *
      * @return

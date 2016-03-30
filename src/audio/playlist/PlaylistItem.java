@@ -29,7 +29,7 @@ import services.database.Db;
 import audio.tagging.Metadata;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.file.FileUtil;
+import util.file.Util;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.async.Async;
@@ -38,15 +38,15 @@ import util.units.FormattedDuration;
 
 import static util.file.AudioFileFormat.Use.APP;
 import static util.Util.capitalizeStrong;
-import static util.Util.mapEnumConstant;
+import static util.type.Util.mapEnumConstantName;
 import static util.dev.Util.log;
 
 /**
  * Defines item in playlist.
- * <p>
+ * <p/>
  * As a playlist item this object carries three pieces of information: artist,
  * title and time duration, besides URI as an Item object.
- * <p>
+ * <p/>
  * Cannot be changed, only updated. In order to limit object initialization
  * performance impact of I/O tag read operation only URI is necessary to
  * instantiate this class. In such case, the other fields must be manually
@@ -62,7 +62,7 @@ import static util.dev.Util.log;
  * </pre>
  * SERIALIZATION
  * - this class is serializable by XStream using PlaylistItemConverter.
- * <p>
+ * <p/>
  * Note:
  * Dont try to change property implementations SimpleObjectProperty
  * into more generic ObjectProperty. It will cause XStream serializing
@@ -98,7 +98,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
      * Full Constructor.
      * Use when all info is available. Item is initialized to updated state,
      * which avoids updating it and consequent I/O operation.
-     * <p>
+     * <p/>
      * When the parameter values are still intended to be updated, do not use
      * this constructor.
      *
@@ -181,12 +181,12 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     /**
      * Updates this item by reading the tag of the source file.
      * Involves I/O, so dont use on main thread. Safe to call from bgr thread.
-     * <p>
+     * <p/>
      * Calling this method on updated playlist item has no effect. E.g.:
      * <ul>
      * <li> calling this method more than once
      * <li> calling this method on playlist item created from metadata
-     * <p>
+     * <p/>
      * note: {@code this.toMeta().toPlaylist()} effectively
      * prevents unupdated items from ever updating. Never use toMeta where full
      * metadata object is required.
@@ -245,7 +245,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
     private void setATN(String art, String titl) {
         artist = art;
-        title = titl.isEmpty() ? FileUtil.getName(getURI()) : titl;
+        title = titl.isEmpty() ? Util.getName(getURI()) : titl;
         if(artist.isEmpty() && title.isEmpty())
             name.set(getInitialName());
         else
@@ -285,7 +285,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
      * returns cached value so the curruptness check involving I/O can be avoided.
      * Use when performance is prioritized, for example when iterating lists in
      * tables.
-     * <p>
+     * <p/>
      * If the validity of the check is prioritized, use {@link #isCorrupt(util.file.AudioFileFormat.Use)}}.
      * @return cached corrupted value
      */
@@ -297,10 +297,10 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * This implementation returns metadata with artist, length and title fields
      * set as defined in this item, leaving other fields else empty.
-     * <p>
+     * <p/>
      * This method shouldnt be run before this item is updated. See
      * {@link #isUpdated()}.
      * @return
@@ -312,7 +312,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * This implementation returns this object.
      */
     @Override
@@ -356,7 +356,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
     /**
      * Compares by name.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -396,7 +396,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     /**
      *
      */
-    public static enum Field implements ObjectField<PlaylistItem> {
+    public enum Field implements ObjectField<PlaylistItem> {
         NAME(PlaylistItem::getName,"'Song artist' - 'Song title'"),
         TITLE(PlaylistItem::getTitle,"Song title"),
         ARTIST(PlaylistItem::getArtist,"Song artist"),
@@ -407,8 +407,8 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         private final String desc;
         private final Ƒ1<PlaylistItem,?> extr;
 
-        private Field(Ƒ1<PlaylistItem,?> extractor, String description) {
-            mapEnumConstant(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
+        Field(Ƒ1<PlaylistItem,?> extractor, String description) {
+            mapEnumConstantName(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
                             ? "Time"
                             : capitalizeStrong(constant.name().replace('_', ' ')));
             this.desc = description;
@@ -427,7 +427,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
         /**
          * Returns true.
-         * <p>
+         * <p/>
          * {@inheritDoc}
          */
         @Override
@@ -443,7 +443,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
         /**
          * Returns true.
-         * <p>
+         * <p/>
          * {@inheritDoc}
          */
         @Override

@@ -24,7 +24,7 @@ import layout.widget.controller.io.Output;
 import de.jensd.fx.glyphs.GlyphIcons;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
 import util.async.future.Fut;
 import util.functional.Functors.Ƒ1;
@@ -36,7 +36,7 @@ import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static main.App.APP;
-import static util.file.FileUtil.getFilesAudio;
+import static util.file.Util.getFilesAudio;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.functional.Util.IS;
@@ -44,7 +44,7 @@ import static util.functional.Util.filterMap;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class DragUtil {
 
@@ -277,7 +277,7 @@ public final class DragUtil {
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,
      * list of items in this exact order.
-     * <p>
+     * <p/>
      * Use in conjunction with {@link #audioDragAccepthandler}
      *
      * @param e
@@ -313,7 +313,7 @@ public final class DragUtil {
      */
     public static boolean hasAudio(DragEvent e) {
         Dragboard d = e.getDragboard();
-        return (d.hasFiles() && FileUtil.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
+        return (d.hasFiles() && Util.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
                          hasItemList(e);
     }
@@ -326,7 +326,7 @@ public final class DragUtil {
      */
     public static boolean hasImage(DragEvent e) {
         Dragboard d = e.getDragboard();
-        return (d.hasFiles() && FileUtil.containsImageFiles(d.getFiles())) ||
+        return (d.hasFiles() && Util.containsImageFiles(d.getFiles())) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
 
@@ -341,7 +341,7 @@ public final class DragUtil {
 
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            List<File> fs = FileUtil.getImageFiles(files);
+            List<File> fs = Util.getImageFiles(files);
             if(!fs.isEmpty())
                 return fut(fs.get(0));
 
@@ -367,7 +367,7 @@ public final class DragUtil {
 
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            List<File> fs = FileUtil.getImageFiles(files);
+            List<File> fs = Util.getImageFiles(files);
             if(!fs.isEmpty())
                 return fs.get(0);
         }
@@ -378,7 +378,7 @@ public final class DragUtil {
      * Returns supplier of image files in the dragboard.
      * Always call {@link #hasImage(javafx.scene.input.Dragboard) } before this
      * method to check the content.
-     * <p>
+     * <p/>
      * The supplier supplies:
      * <ul>
      * <ls>If there was an url, single image will be downloaded on background thread,
@@ -395,7 +395,7 @@ public final class DragUtil {
 
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            List<File> images = FileUtil.getImageFiles(files);
+            List<File> images = Util.getImageFiles(files);
             if(!images.isEmpty())
                 return fut(images);
         }
@@ -403,7 +403,7 @@ public final class DragUtil {
             String url = d.getUrl();
             return fut(() -> {
                 try {
-                    File f = FileUtil.saveFileTo(url, APP.DIR_TEMP);
+                    File f = Util.saveFileTo(url, APP.DIR_TEMP);
                          f.deleteOnExit();
                     return singletonList(f);
                 } catch(IOException ex) {
@@ -418,7 +418,7 @@ public final class DragUtil {
      * Returns supplier of audio items in the dragboard.
      * Always call {@link #hasAudio(javafx.scene.input.Dragboard) before this
      * method to check the content.
-     * <p>
+     * <p/>
      * The supplier supplies:
      * <ul>
      * <ls>If there was an url, stream of single http based item.
@@ -457,7 +457,7 @@ public final class DragUtil {
                 // e.g. anime-pictures.net
                 //
                 // https://code.google.com/p/jsslutils/wiki/SSLContextFactory
-                File f = FileUtil.saveFileTo(url, APP.DIR_TEMP);
+                File f = Util.saveFileTo(url, APP.DIR_TEMP);
                      f.deleteOnExit();
                 return f;
             } catch(IOException e) {

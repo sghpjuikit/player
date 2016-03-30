@@ -12,7 +12,7 @@ import util.parsing.Parser;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FontItemNode extends TextFieldItemNode<Font> {
 

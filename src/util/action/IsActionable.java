@@ -17,9 +17,9 @@ import org.atteo.classindex.IndexAnnotated;
 /**
  * Marks class containing {@link IsAction} annotated method. If such class is not
  * annotated by this annotation, the action will not be discovered.
- * <p>
+ * <p/>
  * For that purpose, this annotation itself is annotated by {@link IndexAnnotated}.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Documented
 @IndexAnnotated

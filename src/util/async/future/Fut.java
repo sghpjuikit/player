@@ -21,8 +21,8 @@ import util.functional.Functors.Ƒ1;
 import static util.async.Async.eFX;
 
 /**
- <p>
- @author Plutonium_
+ <p/>
+ @author Martin Polakovic
  */
 public class Fut<T> implements Runnable{
 
@@ -149,13 +149,13 @@ public class Fut<T> implements Runnable{
     /**
      * Returns new future, which sets progress to 0 on fx thread, then executes
      * this future and then sets progress to 1, again on fx thread.
-     * <p>
+     * <p/>
      * Note that when chaining futures, the position within chain decides when
      * does the progress reach 1. It will not be at the end of the chain, but
      * at the position of this method in it. The progress is set to 0 always at
      * the beginning of the computation, i.e. the chain length or position of
      * this method within it does not have effect.
-     * <p>
+     * <p/>
      * To set the progress to 1 at the end of computation, this method must be
      * the last element of the chain.
      * To set the progress to 0 somewhere during the computation, a future for

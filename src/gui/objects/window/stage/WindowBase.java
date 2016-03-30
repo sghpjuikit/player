@@ -26,14 +26,14 @@ import static util.async.Async.runLater;
 
 /**
  * Customized Stage, window of the application.
- * <p>
- * <p>
+ * <p/>
+ * <p/>
  * Screen depended methods:
  * <br>
  * Several features are screen dependent (like maximization) as they behave
  * differently per screen. Their methods are annotated with {@link Dependency}
  * annotation set to value SCREEN.
- * <p>
+ * <p/>
  * Prior to calling these methods, correct screen to this window has to be set.
  * For example the window will maximize within its screen, so correct screen
  * needs to be set first. The responsibility of deciding, which window is correct
@@ -461,10 +461,10 @@ public class WindowBase {
 
     /**
      * Snaps window to edge of the screen or other window.
-     * <p>
+     * <p/>
      * Executes snapping. Window will snap if snapping is allowed and if the
      * preconditions of window's state require snapping to be done.
-     * <p>
+     * <p/>
      * Because convenience methods are provided that auto-snap on position
      * change, there is little use for calling this method externally.
      */
@@ -514,10 +514,10 @@ public class WindowBase {
 
     /**
      * Sets position of the window on the screen.
-     * <p>
+     * <p/>
      * Note: Always use methods provided in this class for isResizing and never
      * those in the Stage of this window.
-     * <p>
+     * <p/>
      * If the window is in full screen mode, this method is no-op.
      *
      * @param x x coordinate for left upper corner

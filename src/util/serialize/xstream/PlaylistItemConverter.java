@@ -13,7 +13,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import java.net.URI;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  * 
  * Converter class used for de/serializing PlaylistItem class with XStream.
  */

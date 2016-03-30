@@ -6,11 +6,11 @@
 
 package util.access;
 
-import static util.Util.unPrimitivize;
+import static util.type.Util.unPrimitivize;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface TypedValue<C> {
 
@@ -28,7 +28,7 @@ public interface TypedValue<C> {
 
     /**
      * Returns whether type is numeric.
-     * <p>
+     * <p/>
      * For example gui text field for this value might want to allow only numeric
      * characters to be inputted.
      *
@@ -42,10 +42,10 @@ public interface TypedValue<C> {
     /**
      * Stricter version of {@link #isTypeNumber()}, limiting the types to those
      * that can contain floating point character '.'.
-     * <p>
+     * <p/>
      * This method might be used whether text representation of the value can
      * contain '.' character and consequently restrict input.
-     * <p>
+     * <p/>
      * Default implementation checks whether type is Float, float, Double, double
      * or and extending class of them.
      *

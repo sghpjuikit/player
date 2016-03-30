@@ -9,7 +9,7 @@ import static javafx.util.Duration.ZERO;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class RealTimeProperty {
     

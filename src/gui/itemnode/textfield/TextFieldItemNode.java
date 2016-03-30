@@ -22,39 +22,38 @@ import util.parsing.StringConverter;
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text
  * field that brings up a popup picker for tits item type.
- * <p>
+ * <p/>
  * Text field stores the item by providing String converting mechanism - a value
  * factory. The parsing doesn't have to be reversible as the original item is
  * contained. Although only Object -> String parsing is necessary, the class
- * still requires full fledged parser, although String -> Object parsing doesnt
+ * still requires full fledged parser, although String -> Object parsing does not
  * have to be implemented.
- * <p>
+ * <p/>
  * It is recommended for classes to provide default parser implementations to
  * allow simple instantiation hiding any parsing related matters from the
  * programmer. Different parser can be used to specify different string
  * representation of the objects.
- * <p>
+ * <p/>
  * It is possible to specify the converting mechanism in several ways. One can
  * provide default (if implemented) or custom string-item parser in the
- * constructor. Or create anonymous class and override {@link itemToString}
+ * constructor. Or create anonymous class and override {@link #itemToString(Object)}
  * method. Or provide custom value factory which will always override the above.
- * <p>
+ * <p/>
  * In addition there is a dialog button calling implementation dependant item
  * chooser expected in form of a pop-up.
- * <p>
+ * <p/>
  * Useful for displaying property sheets and bring easy object selection
  * feature.
- * <p>
+ *
  * @param <T> type of item
- * <p>
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class TextFieldItemNode<T> extends DecoratedTextField implements AccessibleValue<T> {
 
     T v;
     private StringConverter<T> converter;
     private BiConsumer<T,T> onItemChange;
-    private Callback<T, String> valueFactory;
+    private Callback<T,String> valueFactory;
 
     /**
      * Constructor. Creates instance of the item text field utilizing parser
@@ -71,20 +70,16 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
         setEditable(false);
 
         //set same css style as TextField
-        getStyleClass().setAll(STYLECLASS());
+        getStyleClass().setAll(STYLE_CLASS());
     }
 
-    /***/
+
     public TextFieldItemNode(StringConverter<T> parser) {
         this();
         converter = parser;
     }
 
-
-    /**
-     * Behavior to be executed on dialog button click. Executes specified
-     * method that gets ahold of new Item.
-     */
+    /** Behavior to be executed on dialog button click. Should cause an execution of an {@link #setValue(Object)}. */
     abstract void onDialogAction();
 
     /**
@@ -92,20 +87,21 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
      * provided implementation. The item change event is fired.
      */
     @Override
-    public void setValue(T nv) {
+    public void setValue(T value) {
         T ov = v;
-        if(ov==nv || (ov!=null && nv!=null && ov.equals(nv))) return;
+        if(ov==value || (ov!=null && value!=null && ov.equals(value))) return;
 
-        v = nv;
-        String text = valueFactory.call(nv);    // use factory to convert
+        v = value;
+        String text = valueFactory.call(value);    // use factory to convert
         setText(text);
         setPromptText(text);
-        if(onItemChange!=null) onItemChange.accept(ov,nv);
+        if(onItemChange!=null) onItemChange.accept(ov,value);
     }
 
     /**
      * Sets behavior to execute when item changes. The item change ignores
-     * equality check and will fire even for same object to be set. */
+     * equality check and will fire even for same object to be set.
+     */
     public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
         onItemChange=_onFontChange;
     }
@@ -121,7 +117,8 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
      * String. This an alternative to using String Parser.
      * Default factory invokes {@link #itemToString} method. Invoking this method
      * will override that behavior.
-     * @param value factory for converting item to string. It takes item as
+     *
+     * @param factory factory for converting item to string. It takes item as
      * a parameter and returns the String.
      */
     public void setValueFactory(Callback<T,String> factory) {
@@ -131,7 +128,8 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
     /**
      * Default implementation uses provided parser. Default implementation of the
      * value factory invokes this method.
-     * @param item
+     *
+     * @param item item to convert
      * @return String as a representation of the item.
      * @throws RuntimeException if no parser is provided
      */
@@ -140,33 +138,24 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
         else return "";
     }
 
-/******************************************************************************/
-
-
     /**
      * Returns style class as text field.
-     * <p>
      * Should be: text-input, text-field.
      */
-    public static List<String> STYLECLASS() {
+    public static List<String> STYLE_CLASS() {
         // debug (prints: text-input, text-field.)
         // new TextField().getStyleClass().forEach(System.out::println);
 
         // manually
-        List<String> out = new ArrayList();
+        List<String> out = new ArrayList<>();
                      out.add("text-input");
                      out.add("text-field");
         return out;
     }
 
-
-/******************************************************************************/
-
     /**
      * Button for calling dialogs, from within {@link TextFieldItemNode}.
      * The button has its own css style class "dialog-button".
-     * <p>
-     * @author Plutonium_
      */
     public static class ArrowDialogButton extends StackPane {
 

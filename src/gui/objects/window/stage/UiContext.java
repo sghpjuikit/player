@@ -26,17 +26,17 @@ import layout.widget.WidgetFactory;
 import gui.objects.popover.PopOver;
 import gui.objects.icon.Icon;
 import main.App;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
-import static util.file.FileUtil.getName;
+import static util.file.Util.getName;
 import static util.dev.Util.noØ;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @IsConfigurable
 public final class UiContext {
@@ -171,7 +171,7 @@ public final class UiContext {
             Component w = null;
 
             // simple launcher version, contains widget name on 1st line
-            String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
+            String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
             wf = APP.widgetManager.factories.get(wn);
             if(wf!=null) w = wf.create();
 

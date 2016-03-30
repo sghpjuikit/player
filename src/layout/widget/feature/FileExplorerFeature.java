@@ -7,12 +7,12 @@ package layout.widget.feature;
 
 import java.io.File;
 import java.util.Collection;
-import static util.file.FileUtil.getCommonRoot;
+import static util.file.Util.getCommonRoot;
 
 /**
  * File system viewer.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Feature(
   name = "Song info",

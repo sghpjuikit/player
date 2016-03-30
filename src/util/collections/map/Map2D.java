@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toSet;
 /**
  * 2 dimensional map - map with key consisting of two keys. For key identity, see {@link Key}.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Map2D<K1,K2,E> extends HashMap<Key<K1,K2>,E> {
 
@@ -62,22 +62,22 @@ public class Map2D<K1,K2,E> extends HashMap<Key<K1,K2>,E> {
     /**
      * 2 dimensional map key consisting of 2 subkeys.
      * Use with {@link Map2D} or any map implementation.
-     * <p>
+     * <p/>
      * It is impossible to safely use this class to map objects by 2 subkeys of the same type when
      * the subkey's value sets are not distinct (see below).
-     * <p>
+     * <p/>
      * Note that if type of subkeys a and b are equivalent, i.e. this key is homogeneous,
      * (e.g. (String, String)), the following is always true:
-     * <p>
+     * <p/>
      * {@code new Key(a,b).equals(new Key(b,a))}
-     * <p>
+     * <p/>
      * In fact, this is always true, but remains hidden due to compile-time order enforcement when
      * this key is heterogeneous, i.e. it is impossible to do both:
-     * <p>
+     * <p/>
      * {@code new Key(a,b);}
-     * <p>
+     * <p/>
      * and
-     * <p>
+     * <p/>
      * {@code new Key(b,a);}
      */
     public static class Key<K1,K2> {
@@ -104,9 +104,9 @@ public class Map2D<K1,K2,E> extends HashMap<Key<K1,K2>,E> {
         /**
          * Keys are equal when their subkeys are equal. Note that subkey order does not play a
          * role, i.e.
-         * <p>
+         * <p/>
          * {@code new Key(a,b).equals(new Key(b,a))}
-         * <p>
+         * <p/>
          * always hold true.
          */
         @Override

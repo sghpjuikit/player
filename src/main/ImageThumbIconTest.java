@@ -20,7 +20,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import util.file.FileUtil;
+import util.file.Util;
 
 // http://stackoverflow.com/questions/15629069/extract-application-icons-from-desktop-folder-to-application
 // http://stackoverflow.com/questions/15149565/how-does-jtree-display-file-name/15150756#15150756
@@ -92,9 +92,9 @@ public class ImageThumbIconTest extends Application {
 
     public static Image getFileIcon(File file) {
         // FIXME: !work for windows shortcuts
-        String ext = FileUtil.getSuffix(file.getPath()).toLowerCase();
+        String ext = Util.getSuffix(file.getPath()).toLowerCase();
 //        file.i
-        String key = "exe".equals(ext) ? FileUtil.getName(file) : ext;
+        String key = "exe".equals(ext) ? Util.getName(file) : ext;
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key, key_ -> {
             javax.swing.Icon jswingIcon = null;

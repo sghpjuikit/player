@@ -30,7 +30,7 @@ import static util.functional.Util.*;
  * @param <IN> type of function input
  * @param <OUT> type of function output
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
     private final HBox root = new HBox(5);
@@ -67,7 +67,7 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
 
     /**
      * Focuses the first parameter's config field if any.
-     * <p>
+     * <p/>
      * {@inheritDoc }
      */
     @Override

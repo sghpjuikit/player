@@ -47,7 +47,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Shortcut Viewer")
 public class ShortcutPane extends OverlayPane {

@@ -29,34 +29,34 @@ import static util.functional.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  * Component able to store other Components.
- * <p>
+ * <p/>
  * The key element for layouts and their modularity.
- * <p>
+ * <p/>
  * Containers are components storing their children and with layout-defining
  * behavior such as loading itself and its content and supporting layout
  * operations requiring the awarenes of the component within layout hierarchy.
- * <p>
+ * <p/>
  Containers are not graphical components, Containers wrap them. This creates
  an abstraction layer that allows for defining layout hierarchy - layout maps
  separately from scene-graph - the graphical hierarchy.
  Layout mapB is complete hierarchical structure of Components spanning from
  single Container called root.
- <p>
+ <p/>
  Containers need to be lightweight wrappers able to be serialized so its layout
  mapB can be later be reconstructed during/by deserialization.
- <p>
+ <p/>
  * The children of the container are indexed in order to identify their position
  * within the container. How the indexes are interpreted is left up on the container's
  * implementation logic. The children collection is implemented as Map<Integer,
  * Component>.
- * <p>
+ * <p/>
  * Container is called pure, if it can contain only containers.
  * Container is called leaf, if it can contain only non-containers.
  * Note the difference between containing and able to contain! The pure and leaf
  * containers can have their own class implementation.
- * <p>
+ * <p/>
  Container implementation (extending class) must handle
  - adding the child to its child mapB (includes the index interpretation)
  - removing previously assigned children
@@ -182,7 +182,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 
     /**
      * Removes child of this container at specified index.
-     * <p>
+     * <p/>
      * Equivalent to: addChild(index, null);
      * @param index of the child to remove. Null is ignored.
      */
@@ -323,7 +323,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * component will be closed.
      * This has an effect of closing the whole layout branch spanning from this
      * container.
-     * <p>
+     * <p/>
      * If this container is root (in case of {@link Layout}, only its children will close.
      */
     public void close() {

@@ -51,7 +51,7 @@ import static util.functional.Util.*;
  * @param <C> type of chained. This chain will be made of links of chained of
  * exactly this type, either provided manually or constructed using factory.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 
@@ -119,7 +119,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * Grows the chain to 1.
      * It is important for the chain length to be at least 1, otherwise it will
      * become non-editable and always empty!
-     * <p>
+     * <p/>
      * Equivalent to {@code growTo(1); }
      *
      * @see #growTo(int)
@@ -148,7 +148,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
     /**
      * Invokes focus on last chained element.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override

@@ -38,7 +38,7 @@ import static util.functional.Util.isInR;
 /**
  * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @TODO(purpose = READABILITY, note = "Get rid of that Tuple")
 public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueNode<Predicate<V>> {
@@ -117,7 +117,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
      * The class specifies the type of object the filter is generated for.
      * The passed object's purpose is to be returned along with the filter, mostly to be used in the generated filter
      * </pre>
-     * <p>
+     * <p/>
      * If there is no object to pass, use null.
      * @param classes
      */
@@ -135,7 +135,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
 
     /**
      * Focuses the filter's first parameter's config field if any.
-     * <p>
+     * <p/>
      * {@inheritDoc }
      */
     @Override

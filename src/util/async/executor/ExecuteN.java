@@ -9,11 +9,11 @@ import java.util.concurrent.Executor;
 
 /**
  * Executor with an execution count limit. 
- * <p>
+ * <p/>
  * Guarantees the number of executions (irrelevant of the Runnable), as
  * one may wish for this executor to execute at most most n times.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ExecuteN implements Executor {
     

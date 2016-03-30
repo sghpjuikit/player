@@ -20,7 +20,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable("Tabs")
 public class SwitchContainer extends Container<SwitchPane> {

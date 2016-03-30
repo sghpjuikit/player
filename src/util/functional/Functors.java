@@ -25,9 +25,8 @@ import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;
 import util.file.AudioFileFormat;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
-import util.Util;
 import util.access.V;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
@@ -105,7 +104,7 @@ public class Functors {
     }
     /**
      * Function. Provides additional methods.
-     * <p>
+     * <p/>
      * Can also be used as a callback (it falls back to the {@link #apply(java.lang.Object)}
      * method) or consumer (same and in addition ignores output - this is not pointless due to side
      * effects - consumer by nature relies on side effects.)
@@ -327,7 +326,7 @@ public class Functors {
     }
     /**
      * Predicate.
-     * <p>
+     * <p/>
      * {@link Ƒ1} can not extend Predicate, doing so would not be typesafe, hence this subclass.
      * This class also preserves predicate identity during predicate combination operations.
      */
@@ -372,7 +371,7 @@ public class Functors {
     }
     /**
      * Function throwing an exception.
-     * <p>
+     * <p/>
      * Due to the signature, it is impossible to extend {@link Consumer}
      */
     public interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
@@ -391,7 +390,7 @@ public class Functors {
     }
     /**
      * {@link Consumer} which throws an exception.
-     * <p>
+     * <p/>
      * Consumer version of {@link Ƒ1E}, so lambda expression does not need to return void (null)
      * at the end
      */
@@ -549,7 +548,7 @@ public class Functors {
         add("Xor",          Boolean.class, Boolean.class, Boolean::logicalXor, Boolean.class,true);
 
         add("'_' -> ' '", String.class,String.class, s -> s.replace("_", " "));
-        add("-> file name", String.class,String.class, Util::filenamizeString);
+        add("-> file name", String.class,String.class, util.Util::filenamizeString);
         add("Anime", String.class,String.class, s -> {
             // remove the super annoying '_'
             s = s.replaceAll("_", " ");
@@ -609,10 +608,10 @@ public class Functors {
                     o.append(splits.get(keys.get(keys.size()-1)));
                 return o.toString();
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
-        add("Is",           String.class,Boolean.class, Util::equalsNoCase, String.class,Boolean.class,"",true);
-        add("Contains",     String.class,Boolean.class, Util::containsNoCase, String.class,Boolean.class,"",true);
-        add("Ends with",    String.class,Boolean.class, Util::endsWithNoCase, String.class,Boolean.class,"",true);
-        add("Starts with",  String.class,Boolean.class, Util::startsWithNoCase, String.class,Boolean.class,"",true);
+        add("Is",           String.class,Boolean.class, util.Util::equalsNoCase, String.class,Boolean.class,"",true);
+        add("Contains",     String.class,Boolean.class, util.Util::containsNoCase, String.class,Boolean.class,"",true);
+        add("Ends with",    String.class,Boolean.class, util.Util::endsWithNoCase, String.class,Boolean.class,"",true);
+        add("Starts with",  String.class,Boolean.class, util.Util::startsWithNoCase, String.class,Boolean.class,"",true);
         add("Matches regex",String.class,Boolean.class, (text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
         add("More",         String.class,Boolean.class, (x,y) -> x.compareTo(y)>0, String.class,"");
         add("Less",         String.class,Boolean.class, (x,y) -> x.compareTo(y)<0, String.class,"");
@@ -622,12 +621,12 @@ public class Functors {
         add("Length <",     String.class,Boolean.class, (x,l) -> x.length()<l, Integer.class,0);
         add("Length =",     String.class,Boolean.class, (x,l) -> x.length()==l, Integer.class,0);
         add("Is empty",     String.class,Boolean.class, String::isEmpty);
-        add("Is palindrome",String.class,Boolean.class, Util::isNonEmptyPalindrome);
+        add("Is palindrome",String.class,Boolean.class, util.Util::isNonEmptyPalindrome);
 
         add("to ASCII",    Character.class,Integer.class, x -> (int)x);
 
-        add("Name",       File.class,String.class, FileUtil::getName, true,true,true);
-        add("Suffix",     File.class,String.class, FileUtil::getSuffix);
+        add("Name",       File.class,String.class, Util::getName, true,true,true);
+        add("Suffix",     File.class,String.class, Util::getSuffix);
         add("Name.Suffix",File.class,String.class, File::getName);
         add("Path",       File.class,String.class, File::getAbsolutePath);
         add("Size",       File.class,FileSize.class, FileSize::new);
@@ -703,35 +702,42 @@ public class Functors {
             add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
     }
 
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
+    public static <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
         addF(new PƑ0(name,i,o,f));
     }
-    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
+
+    public static <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
         addF(new PƑ1(name,i,o,p1,p1def,f));
     }
-    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
+
+    public static <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
         addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f));
     }
-    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
+
+    public static <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
         addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
     }
 
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
+    public static <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
         addF(new PƑ0(name,i,o,f),pi,po,pio);
     }
-    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
+
+    public static <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
         addF(new PƑ1(name,i,o,p1,p1def,f),pi,po,pio);
     }
-    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
+
+    public static <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
         addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f),pi,po,pio);
     }
-    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
+
+    public static <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
         addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f),pi,po,pio);
     }
 
     public static <E extends Enum> void addPredicatesOf(Class<E> c) {
         add("Is", c,Boolean.class, (a,b) -> a==b, c, c.getEnumConstants()[0], false,false,true);
     }
+
     public static <C extends Comparable> void addPredicatesComparable(Class<C> c, C def_val) {
         add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
         add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
@@ -747,12 +753,14 @@ public class Functors {
         fsO.accumulate(f);
         fsIO.accumulate(f);
     }
+
     /** Add function to the pool and sets as preferred according to parameters. */
     public static void addF(PƑ f, boolean i, boolean o, boolean io) {
         fsI.accumulate(f, i);
         fsO.accumulate(f, o);
         fsIO.accumulate(f, io);
     }
+
     /** Remove function from the pool. */
     public static void remF(PƑ f) {
         fsI.deaccumulate(f);
@@ -767,14 +775,14 @@ public class Functors {
 
     /** Returns all functions taking input I. */
     public static <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
-        PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
+        PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(util.type.Util.unPrimitivize(i)));
         addSelfFunctor(l,i);
         return l;
     }
 
     /** Returns all functions producing output O. */
     public static <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
-        List ll = fsO.get(unPrimitivize(o));
+        List ll = fsO.get(util.type.Util.unPrimitivize(o));
         PrefList l =  ll==null ? new PrefList() : (PrefList) ll;
         addSelfFunctor(l,o);
         return l;
@@ -787,8 +795,8 @@ public class Functors {
         // keeping duplicate elements in check
         PrefList pl = new PrefList();
         Object pref = null;
-        for(Class c : getSuperClassesInc(unPrimitivize(i))) {
-            List l = fsIO.get(Objects.hash(c,unPrimitivize(o)));
+        for(Class c : util.type.Util.getSuperClassesInc(util.type.Util.unPrimitivize(i))) {
+            List l = fsIO.get(Objects.hash(c, util.type.Util.unPrimitivize(o)));
             PrefList ll = l==null ? null : (PrefList) l;
             if(ll!=null) {
                 if(pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
@@ -819,7 +827,7 @@ public class Functors {
 
     public static <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
         @SuppressWarnings("unchecked")
-        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
+        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(util.type.Util.unPrimitivize(i), util.type.Util.unPrimitivize(o)));
         return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
     }
 
@@ -868,8 +876,8 @@ public class Functors {
         @SuppressWarnings("unchecked")
         public PƑ(String name, Class<I> in, Class<O> out, IO<I,O> f) {
             this.name = name;
-            this.in = unPrimitivize(in);
-            this.out = unPrimitivize(out);
+            this.in = util.type.Util.unPrimitivize(in);
+            this.out = util.type.Util.unPrimitivize(out);
             this.ff = f;
         }
 
@@ -925,7 +933,7 @@ public class Functors {
 
         public PƑ1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, Ƒ2<I,P1,O> f) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
+            this.p1 = util.type.Util.unPrimitivize(p1type);
             this.p1def = p1def;
         }
 
@@ -947,8 +955,8 @@ public class Functors {
 
         public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
-            this.p2 = unPrimitivize(p2type);
+            this.p1 = util.type.Util.unPrimitivize(p1type);
+            this.p2 = util.type.Util.unPrimitivize(p2type);
             this.p1def = p1def;
             this.p2def = p2def;
         }
@@ -973,9 +981,9 @@ public class Functors {
 
         public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
-            this.p2 = unPrimitivize(p2type);
-            this.p3 = unPrimitivize(p3type);
+            this.p1 = util.type.Util.unPrimitivize(p1type);
+            this.p2 = util.type.Util.unPrimitivize(p2type);
+            this.p3 = util.type.Util.unPrimitivize(p3type);
             this.p1def = p1def;
             this.p2def = p2def;
             this.p3def = p3def;

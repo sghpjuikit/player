@@ -37,7 +37,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UTILITY;
 import static main.App.APP;
-import static util.Util.menuItem;
+import static util.graphics.Util.menuItem;
 import static util.dev.Util.log;
 
 /**
@@ -54,7 +54,7 @@ public class TrayService extends ServiceBase {
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
     public final V<Boolean> showTooltip = new V<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-    public final V<Boolean> showplaying_inTooltip = new V<>(true);
+    public final V<Boolean> showPlayingInTooltip = new V<>(true);
 
     private boolean running = false;
     private ObservableList<javafx.scene.control.MenuItem> menuItems;
@@ -95,7 +95,7 @@ public class TrayService extends ServiceBase {
             try {
                 tray = SystemTray.getSystemTray();
                 trayIcon = new TrayIcon(ImageIO.read(image));
-                trayIcon.setToolTip("PlayerFX");
+                trayIcon.setToolTip(APP.name);
                 trayIcon.addMouseListener(new MouseAdapter() {
                     @Override public void mouseClicked(MouseEvent e) {
                         // transform to javaFX MouseEvent
@@ -132,7 +132,7 @@ public class TrayService extends ServiceBase {
         });
 
         d1 = Player.playingtem.onUpdate(m ->
-           setTooltipText(!showplaying_inTooltip.get() || m.getTitle().isEmpty() ? "PlayerFX" : "PlayerFX - " + m.getTitle()));
+           setTooltipText(!showPlayingInTooltip.get() || m.getTitle().isEmpty() ? APP.name : APP.name + " - " + m.getTitle()));
 
         running = true;
     }
@@ -162,7 +162,7 @@ public class TrayService extends ServiceBase {
     /**
      * Sets the tooltip string for this tray icon. The tooltip is displayed
      * automatically when the mouse hovers over the icon.
-     * <p>
+     * <p/>
      * If {@link #showTooltip} is set to false no tooltip will be displayed
      * regardless of the value. Otherwise:
      * <ul>
@@ -181,7 +181,7 @@ public class TrayService extends ServiceBase {
         EventQueue.invokeLater(() -> trayIcon.setToolTip(s));
     }
 
-    /**  Equivalent to: {@code showNotification(caption,text,NONE)} */
+    /**  Equivalent to: {@code showNotification(caption,text,NONE)}. */
     public void showNotification(String caption, String text){
         if(!isRunning()) return;
 
@@ -189,15 +189,13 @@ public class TrayService extends ServiceBase {
     }
 
     /**
-    Shows an OS tray bubble message notification.
-
-    @param caption - the caption displayed above the text, usually in bold; may
-    be null
-    @param text - the text displayed for the particular message; may be null
-    @param type - an enum indicating the message type
-
-    @throws NullPointerException - if both caption and text are null
-    */
+     * Shows an OS tray bubble message notification.
+     *
+     * @param caption - the caption displayed above the text, usually in bold; may be null
+     * @param text - the text displayed for the particular message; may be null
+     * @param type - an enum indicating the message type
+     * @throws NullPointerException - if both caption and text are null
+     */
     public void showNotification(String caption, String text, TrayIcon.MessageType type){
         if(!isRunning()) return;
 
@@ -217,7 +215,7 @@ public class TrayService extends ServiceBase {
             try {
                 trayIcon.setImage(ImageIO.read(img));
             } catch (IOException e){
-                log(TrayService.class).error("Couldnt read the image for tray icon.", e);
+                log(TrayService.class).error("Could not read the image for tray icon.", e);
             }
         }
     }

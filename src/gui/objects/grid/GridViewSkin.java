@@ -53,6 +53,7 @@ import util.access.fieldvalue.ObjectField;
 import util.collections.Tuple3;
 import util.functional.Functors;
 import util.functional.Functors.Ƒ0;
+import util.type.Util;
 
 import static javafx.application.Platform.runLater;
 import static javafx.css.PseudoClass.getPseudoClass;
@@ -76,7 +77,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     public GridViewSkin(GridView<T,F> control) {
         skin = new SkinDelegate(control);
 
-        f = getFieldValue(skin,VirtualFlow.class,"flow"); // make flow field accessible
+        f = Util.getFieldValue(skin,VirtualFlow.class,"flow"); // make flow field accessible
         f.setId("virtual-flow");
         f.setPannable(false);
         f.setVertical(true);
@@ -206,7 +207,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     protected double getVScrollbarWidth() {
         if(f!=null) {
-            VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
+            VirtualScrollBar vsb = Util.getFieldValue(f, VirtualScrollBar.class, "vbar");
             return vsb!=null && vsb.isVisible() ? vsb.getWidth() : 0;
         }
         return 0;
@@ -229,15 +230,15 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     private void flowRecreateCells() {
-        invokeMethodP0(VirtualFlow.class,f,"recreateCells");
+        Util.invokeMethodP0(VirtualFlow.class,f,"recreateCells");
     }
 
     private void flowRebuildCells() {
-        invokeMethodP0(VirtualFlow.class,f,"rebuildCells");
+        Util.invokeMethodP0(VirtualFlow.class,f,"rebuildCells");
     }
 
     private void flowReconfigureCells() {
-        invokeMethodP0(VirtualFlow.class,f,"reconfigureCells");
+        Util.invokeMethodP0(VirtualFlow.class,f,"reconfigureCells");
     }
 
     private class SkinDelegate extends CustomVirtualContainerBase<GridView<T,F>,GridRow<T,F>> {
@@ -278,12 +279,12 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     /**
      * Visibility of the filter pane.
      * Filter is displayed in the top of the table.
-     * <p>
+     * <p/>
      * Setting filter visible will
      * also make it focused (to allow writing filter query immediatelly). If you
      * wish for the filter to gain focus set this proeprty to true (focus will
      * be set even if filter already was visible).
-     * <p>
+     * <p/>
      * Setting filter invisible will also clear any search query and effectively
      * disable filter, displaying all table items.
      */

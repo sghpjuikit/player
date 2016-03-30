@@ -14,7 +14,7 @@ import util.animation.Anim;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class GlowIcon extends Icon {
     

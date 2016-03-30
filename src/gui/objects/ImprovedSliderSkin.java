@@ -15,12 +15,12 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
-import static util.Util.getFieldValue;
+import static util.type.Util.getFieldValue;
 
 /**
  * SliderSkin skin that adds animations & improved usability - track expands on mouse hover.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImprovedSliderSkin extends SliderSkin {
 

@@ -31,7 +31,7 @@ import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.skin.VirtualFlow;
 
-import static util.Util.invokeMethodP1;
+import static util.type.Util.invokeMethodP1;
 
 /**
  * Parent class to control skins whose contents are virtualized and scrollable.

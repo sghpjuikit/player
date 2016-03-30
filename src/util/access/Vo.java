@@ -20,7 +20,7 @@ import javafx.beans.value.WritableValue;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Vo<T> implements ObservableValue<T>, WritableValue<T> {
     public final BooleanProperty override = new SimpleBooleanProperty(true);

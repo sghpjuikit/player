@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface FunctAccessibleValue<T> extends ApplicableValue<T> {
     

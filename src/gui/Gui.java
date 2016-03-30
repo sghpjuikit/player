@@ -41,7 +41,7 @@ import util.animation.interpolator.CircularInterpolator;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.FileMonitor;
-import util.file.FileUtil;
+import util.file.Util;
 
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.io.File.separator;
@@ -65,7 +65,7 @@ import static util.file.FileMonitor.monitorFile;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @IsActionable
 @IsConfigurable
@@ -163,13 +163,13 @@ public class Gui {
      * Component might rely on this method to alter its behavior. For example
      * it can leave layout mode on its own independently but forbid this
      * behavior if this method returns TRUE.
-     * <p>
+     * <p/>
      * Note that this method consistently returns FALSE at the time
      * of entering and leaving the layout mode, thus allowing to safely query
      * layout mode state just before the state change. In other words the state
      * change itself will not influence the result, which changes only after the
      * change occurred. not after it was invoked.
-     * <p>
+     * <p/>
      * Basically, at the time of invoking show() and hide() methods the flag
      * is (and must be) FALSE and never TRUE
      *
@@ -223,7 +223,7 @@ public class Gui {
 
     /**
      * Sets layout mode on/off.
-     * <p>
+     * <p/>
      * Note that {@link #isLayoutMode()} consistently returns FALSE at the time
      * of entering and leaving the layout mode.
      * @see #isLayoutMode()
@@ -346,7 +346,7 @@ public class Gui {
 
         // get + verify path
         File dir = APP.DIR_SKINS;
-        if (!FileUtil.isValidatedDirectory(dir)) {
+        if (!Util.isValidatedDirectory(dir)) {
             LOGGER.error("Search for skins failed." + dir.getPath() + " could not be accessed.");
             return EMPTY_SET;
         }
@@ -358,7 +358,7 @@ public class Gui {
         for (File d: dirs) {
             String name = d.getName();
             File css = new File(d, name + ".css");
-            if(FileUtil.isValidFile(css)) {
+            if(Util.isValidFile(css)) {
                 skins.add(name);
                 LOGGER.info("\t" + name);
             }
@@ -411,7 +411,7 @@ public class Gui {
      * still be parsing errors resulting in imperfect skin application.
      */
     public static boolean setSkinExternal(File cssFile) {
-        if (APP.windowOwner.isInitialized() && FileUtil.isValidSkinFile(cssFile)) {
+        if (APP.windowOwner.isInitialized() && Util.isValidSkinFile(cssFile)) {
             try {
                 monitorSkinStart(cssFile);
                 String url = cssFile.toURI().toURL().toExternalForm();
@@ -422,7 +422,7 @@ public class Gui {
                 // add new skin
                 StyleManager.getInstance().addUserAgentStylesheet(url);
                 // set current skin
-                skin.setValue(FileUtil.getName(cssFile));
+                skin.setValue(Util.getName(cssFile));
                 // store its url so we can remove the skin later
                 skinOldUrl = url;
                 return true;
@@ -461,8 +461,8 @@ public class Gui {
 
     public static List<File> getGuiImages() {
         File location = new File(APP.DIR_SKINS, skin + separator + "Images");
-        if(FileUtil.isValidDirectory(location)) {
-            return FileUtil.getFilesImage(location, 1).collect(toList());
+        if(Util.isValidDirectory(location)) {
+            return Util.getFilesImage(location, 1).collect(toList());
         } else {
             LOGGER.warn("Can not access skin directory: " + location.getPath());
             return EMPTY_LIST;

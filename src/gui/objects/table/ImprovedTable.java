@@ -37,11 +37,12 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
 import static java.lang.Math.floor;
-import static util.Util.getFieldValue;
+import static util.type.Util.getFieldValue;
+import static util.graphics.Util.selectRows;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImprovedTable<T> extends TableView<T> {
 
@@ -236,7 +237,7 @@ public class ImprovedTable<T> extends TableView<T> {
             if(!selected.contains(i))
                 inverse.add(i);
 
-        Util.selectRows(inverse, getSelectionModel());
+        selectRows(inverse, getSelectionModel());
     }
 
     /** Selects no items. Equivalent to {@code getSelectionModel().clearSelection(); }*/
@@ -249,11 +250,11 @@ public class ImprovedTable<T> extends TableView<T> {
     /**
      * Equivalent to {@link #setOnDragOver(javafx.event.EventHandler)}, but
      * does nothing if the drag gesture source is this table.
-     * <p>
+     * <p/>
      * Drag over events should accept drag&drops (which is prevented), so other
      * drag event setters need not this special handling. In effect drag from
      * self to self is completely forbidden.
-     * <p>
+     * <p/>
      * Note this works only when this table correctly assignes itself as the
      * drag source in the DRAG_DETECTED using {@link #startDragAndDrop(javafx.scene.input.TransferMode...)}
      */
@@ -271,12 +272,12 @@ public class ImprovedTable<T> extends TableView<T> {
      * Order of underlying items backing the table remain unchanged. Sort order of
      * the table is changed so specified column is primary sorting column and
      * other columns remain unaffected.
-     * <p>
+     * <p/>
      * This is a programmatic equivalent of sorting the table manually by
      * clicking on columns' header (which operates through sort order).
-     * <p>
+     * <p/>
      * When column is invisible - does nothing.
-     * <p>
+     * <p/>
      * Note, that if the field must support sorting - return Comparable type.
      */
     public void sortBy(TableColumn c, TableColumn.SortType type) {

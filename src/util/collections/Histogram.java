@@ -19,7 +19,7 @@ import static util.functional.Util.map;
 
 /**
  * Histogram of H for elements E by their property P (key).
- * <p>
+ * <p/>
  * For example histogram of numbers
  *
  * @param <K> key
@@ -74,7 +74,7 @@ public final class Histogram<K,E,H> extends HashMap<K,H> {
      * Same as {@link #toList(java.util.function.BiFunction)}, but there is additional record
      * inserted in the beginning of the list - accumulation of all elements (while each record
      * represents accumulation of the elements mapped to single key).
-     * <p>
+     * <p/>
      * This item can be recognized as the function will receive {@link #ALL} as a key input
      * instead of an actual key. Because this special key is of different type, the function's
      * input is broadened to Object.

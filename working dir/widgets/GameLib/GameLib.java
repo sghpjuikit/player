@@ -32,7 +32,7 @@ import gui.objects.image.cover.FileCover;
 import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
 import util.file.Environment;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
 import util.SwitchException;
 import util.animation.Anim;
@@ -53,9 +53,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import static util.file.FileUtil.listFiles;
-import static util.file.FileUtil.readFileKeyValues;
-import static util.file.FileUtil.readFileLines;
+import static util.file.Util.listFiles;
+import static util.file.Util.readFileKeyValues;
+import static util.file.Util.readFileLines;
 import static util.animation.Anim.Affectors.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
@@ -64,8 +64,8 @@ import static util.functional.Util.by;
 
 /**
  *
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",
@@ -218,7 +218,7 @@ public class GameLib extends FXMLController {
                 File f = new File(nv.getValue(),"readme.txt");
                 if(f.exists()) {
                     String s = readFileLines(f).collect(joining("\n"));
-                    info_text.setText(FileUtil.getName(f) + "\n\n" + s);
+                    info_text.setText(Util.getName(f) + "\n\n" + s);
                 }
             }
         });

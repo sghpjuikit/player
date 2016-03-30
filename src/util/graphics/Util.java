@@ -5,14 +5,17 @@
  */
 package util.graphics;
 
-import java.awt.EventQueue;
-import java.awt.Rectangle;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
@@ -21,41 +24,59 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Callback;
+import javafx.util.Duration;
+
+import org.reactfx.EventSource;
+import org.reactfx.Subscription;
 
 import util.dev.TODO;
+import util.functional.Functors.Ƒ1;
 
+import static java.time.Duration.ofMillis;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.BUG;
+import static util.dev.Util.log;
 
 /**
  * Graphic utility methods.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
-public class Util {
+public interface Util {
 
     /** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
-    public static HBox layHorizontally(double gap, Pos align, Node... nodes) {
+    static HBox layHorizontally(double gap, Pos align, Node... nodes) {
         HBox l = new HBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
-    public static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
+    static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
         HBox l = new HBox(gap);
              l.setAlignment(align);
              l.getChildren().addAll(nodes);
@@ -63,14 +84,14 @@ public class Util {
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
-    public static VBox layVertically(double gap, Pos align, Node... nodes) {
+    static VBox layVertically(double gap, Pos align, Node... nodes) {
         VBox l = new VBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
-    public static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
+    static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
         VBox l = new VBox(gap);
              l.setAlignment(align);
              l.getChildren().addAll(nodes);
@@ -82,10 +103,10 @@ public class Util {
      * shrinks to its content.
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
-     * <p>
+     * <p/>
      * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
-    public static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
+    static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
         VBox l = layVertically(gap, align, header,content);
         VBox.setVgrow(content,ALWAYS);
         return l;
@@ -96,10 +117,10 @@ public class Util {
      * shrinks to its content.
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
-     * <p>
+     * <p/>
      * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
-    public static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
+    static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
         VBox l = layVertically(gap, align, content, header);
         VBox.setVgrow(content,ALWAYS);
         return l;
@@ -110,10 +131,10 @@ public class Util {
      * and bottom shrink to their content.
      * Sets {@link VBox#setVgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
      * to {@link javafx.scene.layout.Priority#ALWAYS}.
-     * <p>
+     * <p/>
      * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
      */
-    public static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
+    static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
         VBox l = layVertically(gap, align, headerTop, content, headerBottom);
         VBox.setVgrow(content,ALWAYS);
         return l;
@@ -123,19 +144,19 @@ public class Util {
      * Constructs ordinary {@link javafx.scene.layout.StackPane} with children aligned to {@link Pos#CENTER}.
      * Convenience constructor for more fluent style.
      */
-    public static StackPane layStack(Node... ns) {
+    static StackPane layStack(Node... ns) {
         return new StackPane(ns);
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-    public static StackPane layStack(Node n,Pos a) {
+    static StackPane layStack(Node n,Pos a) {
         StackPane l = new StackPane(n);
         StackPane.setAlignment(n, a);
         return l;
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2) {
+    static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2) {
         StackPane l = new StackPane(n1,n2);
         StackPane.setAlignment(n1, a1);
         StackPane.setAlignment(n2, a2);
@@ -143,7 +164,7 @@ public class Util {
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3) {
+    static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3) {
         StackPane l = new StackPane(n1,n2,n3);
         StackPane.setAlignment(n1, a1);
         StackPane.setAlignment(n2, a2);
@@ -152,7 +173,7 @@ public class Util {
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
+    static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
         StackPane l = new StackPane(n1,n2,n3,n4);
         StackPane.setAlignment(n1, a1);
         StackPane.setAlignment(n2, a2);
@@ -162,21 +183,21 @@ public class Util {
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
-    public static AnchorPane layAnchor(Node n, Double a) {
+    static AnchorPane layAnchor(Node n, Double a) {
         AnchorPane p = new AnchorPane();
         setAnchor(p, n, a);
         return p;
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
-    public static AnchorPane layAnchor(Node n, Double top, Double right, Double bottom, Double left) {
+    static AnchorPane layAnchor(Node n, Double top, Double right, Double bottom, Double left) {
         AnchorPane p = new AnchorPane();
         setAnchor(p, n, top, right, bottom, left);
         return p;
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
-    public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
+    static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2) {
         AnchorPane p = new AnchorPane();
         setAnchor(p, n1, top1, right1, bottom1, left1, n2, top2, right2, bottom2, left2);
@@ -184,7 +205,7 @@ public class Util {
     }
 
     /** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
-    public static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
+    static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2,
                                                   Node n3, Double top3, Double right3, Double bottom3, Double left3) {
         AnchorPane p = new AnchorPane();
@@ -193,7 +214,7 @@ public class Util {
     }
 
     /** Sets {@link AnchorPane} anchors to the same value. Null clears all anchors. */
-    public static void setAnchors(Node n, Double a) {
+    static void setAnchors(Node n, Double a) {
         if (a == null) {
             AnchorPane.clearConstraints(n);
         } else {
@@ -205,7 +226,7 @@ public class Util {
     }
 
     /** Sets {@link AnchorPane} anchors. Null clears the respective anchor. */
-    public static void setAnchors(Node n, Double top, Double right, Double bottom, Double left) {
+    static void setAnchors(Node n, Double top, Double right, Double bottom, Double left) {
         AnchorPane.clearConstraints(n);
         if (top != null) AnchorPane.setTopAnchor(n, top);
         if (right != null) AnchorPane.setRightAnchor(n, right);
@@ -214,26 +235,26 @@ public class Util {
     }
 
     /** Sets {@link javafx.scene.layout.AnchorPane} anchors for node. Convenience method for more fluent style. */
-    public static void setAnchor(AnchorPane pane, Node n, Double a) {
+    static void setAnchor(AnchorPane pane, Node n, Double a) {
         pane.getChildren().add(n);
         setAnchors(n, a);
     }
 
     /** Sets {@link javafx.scene.layout.AnchorPane} anchors for node. Convenience method for more fluent style. */
-    public static void setAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
+    static void setAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
         pane.getChildren().add(n);
         setAnchors(n, top, right, bottom, left);
     }
 
     /** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
-    public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
+    static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2) {
         setAnchor(pane, n1, top1, right1, bottom1, left1);
         setAnchor(pane, n2, top2, right2, bottom2, left2);
     }
 
     /** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
-    public static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
+    static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
                                                   Node n2, Double top2, Double right2, Double bottom2, Double left2,
                                                   Node n3, Double top3, Double right3, Double bottom3, Double left3) {
         setAnchor(pane, n1, top1, right1, bottom1, left1);
@@ -244,7 +265,7 @@ public class Util {
     /** Gives the text shape wrapping to its width and scrollable functionalities. */
     @Deprecated
     @TODO(purpose = BUG)
-    public static ScrollPane layScrollVText(Text t) {
+    static ScrollPane layScrollVText(Text t) {
         // This is how it should be done, but there is a bug.
         // Unfortunately the pane resizes with the text so we cant bind
         // t.wrappingWidthProperty().bind(sa.widthProperty());
@@ -274,7 +295,7 @@ public class Util {
 
     @Deprecated // the behavior may be unpredictable/change in the future
     @TODO(purpose = BUG)
-    public static ScrollPane layScrollVTextCenter(Text t) {
+    static ScrollPane layScrollVTextCenter(Text t) {
         double reserve = 5;
         ScrollPane s = new ScrollPane(new StackPane(t));
                    s.setOnScroll(Event::consume);
@@ -286,69 +307,72 @@ public class Util {
         return s;
     }
 
-    /** Creates most simple background with solid bgr color fill and no radius or insets.*/
-    public static Background bgr(Color c) {
+    /** @return simple background with specified solid fill color and no radius or insets.*/
+    static Background bgr(Color c) {
         return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
     }
 
-    public static void setScaleXY(Node n, double s) {
+    /** @return simple border with specified color, solid style, no radius and default width.*/
+    static Border border(Color c) {
+        return new Border(new BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
+    }
+
+    static void setScaleXY(Node n, double s) {
         n.setScaleX(s);
         n.setScaleY(s);
     }
 
-    public static void setScaleXY(Node n, double x, double y) {
+    static void setScaleXY(Node n, double x, double y) {
         n.setScaleX(x);
         n.setScaleY(y);
     }
 
-    public static <E extends Event> void add1timeEventHandler(Stage etarget, EventType<E> etype, Consumer<E> ehandler) {
+    static <E extends Event> void add1timeEventHandler(Stage etarget, EventType<E> etype, Consumer<E> ehandler) {
         etarget.addEventHandler(etype, new EventHandler<>() {
             @Override
-            public void handle(E e) {
-                ehandler.accept(e);
+            public void handle(E event) {
+                ehandler.accept(event);
                 etarget.removeEventHandler(etype, this);
             }
         });
     }
-
-/**************************************************************************************************/
 
     /**
      * Sets minimal, preferred and maximal width and height of the node to provided value.
      * Any bound property will be ignored. Null value will be ignored.
      * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
      */
-    public static void setMinPrefMaxSize(Node n, Double widthheight) {
-        setMinPrefMaxSize(n, widthheight,widthheight);
+    static void setMinPrefMaxSize(Node n, Double widthheight) {
+        setMinPrefMaxSize(n, widthheight, widthheight);
     }
 
     /**
      * Sets minimal, preferred and maximal width and height of the node to provided values.
      * Any bound property will be ignored. Null value will be ignored.
+     *
      * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
      */
-    public static void setMinPrefMaxSize(Node n, Double width, Double height) {
+    static void setMinPrefMaxSize(Node n, Double width, Double height) {
         if(n instanceof Region) {
             Region r = (Region) n;
-            boolean wmin  = width!=null && !r.minWidthProperty().isBound();
-            boolean wpref = width!=null && !r.prefWidthProperty().isBound();
-            boolean wmax  = width!=null && !r.maxWidthProperty().isBound();
+            boolean wmin  = width!=null  && !r.minWidthProperty().isBound();
+            boolean wpref = width!=null  && !r.prefWidthProperty().isBound();
+            boolean wmax  = width!=null  && !r.maxWidthProperty().isBound();
             boolean hmin  = height!=null && !r.minHeightProperty().isBound();
             boolean hpref = height!=null && !r.prefHeightProperty().isBound();
             boolean hmax  = height!=null && !r.maxHeightProperty().isBound();
 
+            if(hmin && wmin)    r.setMinSize(width,height);
+            else if (hmin)      r.setMinHeight(height);
+            else if (wmin)      r.setMinWidth(height);
 
-            if(hmin && wmin)        r.setMinSize(width,height);
-            else if (hmin && !wmin) r.setMinHeight(height);
-            else if (!hmin && wmin) r.setMinWidth(height);
+            if(hpref && wpref)  r.setPrefSize(width,height);
+            else if (hpref)     r.setPrefHeight(height);
+            else if (wpref)     r.setPrefWidth(height);
 
-            if(hpref && wpref)        r.setPrefSize(width,height);
-            else if (hpref && !wpref) r.setPrefHeight(height);
-            else if (!hpref && wpref) r.setPrefWidth(height);
-
-            if(hmax && wmax)        r.setMaxSize(width,height);
-            else if (hmax && !wmax) r.setMaxHeight(height);
-            else if (!hmax && wmax) r.setMaxWidth(height);
+            if(hmax && wmax)    r.setMaxSize(width,height);
+            else if (hmax)      r.setMaxHeight(height);
+            else if (wmax)      r.setMaxWidth(height);
         }
     }
 
@@ -357,7 +381,7 @@ public class Util {
      * Any bound property will be ignored. Null value will be ignored.
      * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
      */
-    public static void setMinPrefMaxWidth(Node n, Double width) {
+    static void setMinPrefMaxWidth(Node n, Double width) {
         if(width!=null && n instanceof Region) {
             Region r = (Region) n;
             if(!r.minWidthProperty().isBound()) r.setMinWidth(width);
@@ -370,7 +394,7 @@ public class Util {
      * Sets minimal, preferred and maximal height of the node to provided value.
      * If property bound, value null or node not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
-    public static void setMinPrefMaxHeight(Node n, Double height) {
+    static void setMinPrefMaxHeight(Node n, Double height) {
         if(height!=null && n instanceof Region) {
             Region r = (Region) n;
             if(!r.minHeightProperty().isBound()) r.setMinHeight(height);
@@ -379,26 +403,256 @@ public class Util {
         }
     }
 
-    public static void removeFromParent(Node parent, Node child) {
+    static void removeFromParent(Node parent, Node child) {
         if(parent==null || child==null) return;
         if(parent instanceof Pane) {
             ((Pane)parent).getChildren().remove(child);
         }
     }
 
-    public static void removeFromParent(Node child) {
+    static void removeFromParent(Node child) {
         if(child==null) return;
         removeFromParent(child.getParent(),child);
     }
 
 /**************************************************************************************************/
 
+    @Deprecated
+    static Subscription hovered(Node n, Consumer<? super Boolean> handler) {
+        EventSource<Boolean> events = new EventSource<>();
+        EventHandler<MouseEvent> eTrue = e -> events.push(true);
+        EventHandler<MouseEvent> eFalse = e -> events.push(false);
+        ChangeListener<Boolean> eVal = (o, ov, nv) -> events.push(nv);
+
+        n.hoverProperty().addListener(eVal);
+        //        n.addEventFilter(MOUSE_MOVED, eTrue);
+        //        n.addEventFilter(MOUSE_ENTERED_TARGET, eTrue);
+        //        n.addEventFilter(MOUSE_EXITED_TARGET, eFalse);
+        Subscription s = events.successionEnds(ofMillis(50)).subscribe(handler);
+
+        return Subscription.multi(
+                s,
+                () -> n.removeEventFilter(MOUSE_MOVED, eTrue),
+                () -> n.removeEventFilter(MOUSE_ENTERED_TARGET, eTrue),
+                () -> n.removeEventFilter(MOUSE_EXITED_TARGET, eFalse),
+                () -> n.hoverProperty().removeListener(eVal)
+        );
+    }
+
+
+
+    //http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration
+    /**
+     * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
+     * All Tooltips share the same TooltipBehavior instance via a static private member BEHAVIOR, which
+     * has default values of 1sec for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
+     *
+     * The hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
+     * this custom instance.
+     */
+    @Deprecated
+    static void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
+        try {
+
+            Class TTBehaviourClass = null;
+            Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
+            for (Class c:declaredClasses) {
+                if (c.getCanonicalName().equals("javafx.scene.control.Tooltip.TooltipBehavior")) {
+                    TTBehaviourClass = c;
+                    break;
+                }
+            }
+            if (TTBehaviourClass == null) {
+                // abort
+                return;
+            }
+            @SuppressWarnings("unchecked") Constructor constructor = TTBehaviourClass.getDeclaredConstructor(
+                    Duration.class, Duration.class, Duration.class, boolean.class);
+            if (constructor == null) {
+                // abort
+                return;
+            }
+            constructor.setAccessible(true);
+            Object behaviour = constructor.newInstance(
+                    new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
+                    new Duration(closeDelayInMillis), false);
+            Field behaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
+            if (behaviourField == null) {
+                // abort
+                return;
+            }
+            behaviourField.setAccessible(true);
+
+            // Cache the default behavior if needed.
+            Object defaultTTBehavior = behaviourField.get(Tooltip.class);
+            behaviourField.set(Tooltip.class, behaviour);
+
+        } catch (Exception e) {
+            log(Util.class).warn("Aborted customizing tooltip behavior",e);
+        }
+    }
+
+    /**
+     * Creates column that indexes rows from 1 and is right aligned. The column
+     * is of type Void - table data type agnostic.
+     *
+     * @param name name of the column. For example "#"
+     * @return the column
+     */
+    static <T> TableColumn<T,Void> createIndexColumn(String name) {
+        TableColumn<T,Void> c = new TableColumn<>(name);
+        c.setSortable(false);
+        c.setCellFactory(column -> new TableCell<>(){
+            {
+                setAlignment(CENTER_RIGHT);
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setText(null);
+                else setText(String.valueOf(getIndex()+1)+ ".");
+            }
+        });
+        return c;
+    }
+
+    /**
+     * Creates default cell factory, which sets cell text to provided text when
+     * cells text equals "". This is to differentiate between empty cell and nonempty
+     * cell with 'empty' value.
+     * For example: '<empty cell>'
+     *
+     * @param empty_value empty cell string value
+     * @return cell factory
+     */
+    static Callback<TableColumn<?,?>, TableCell<?,?>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
+        return new Callback<>() {
+            @Override
+            public TableCell<?,?> call(TableColumn<?, ?> param) {
+                return new TableCell<>() {
+                    @Override
+                    protected void updateItem(Object item, boolean empty) {
+                        if (item == getItem()) return;
+
+                        super.updateItem(item, empty);
+
+                        if (item == null) {
+                            super.setText(null);
+                            super.setGraphic(null);
+                        } else if ("".equals(item)) {
+                            super.setText(empty_value);
+                            super.setGraphic(null);
+                        } else if (item instanceof Node) {
+                            super.setText(null);
+                            super.setGraphic((Node) item);
+                        } else {
+                            super.setText(item.toString());
+                            super.setGraphic(null);
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Same as {@link #cellFactoryAligned(javafx.geometry.Pos, String)}, but
+     * the alignment is inferred from the type of element in the cell (not table
+     * or column, because we are aligning cell content) in the following way:
+     * <br>
+     * String content is aligned to CENTER_LEFT and the rest CENTER_RIGHT.
+     * <p/>
+     * The factory will need to be cast if it its generic types are declared.
+     *
+     * @param type for cell content.
+     */
+    static <T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
+        Pos a = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+        return cellFactoryAligned(a, no_val_text);
+    }
+
+    /**
+     * Returns {@link TableColumn#DEFAULT_CELL_FACTORY} (the default factory used
+     * when no factory is specified), aligning the cell content to specified value.
+     * <p/>
+     * The factory will need to be cast if it its generic types are declared.
+     *
+     * @param a cell alignment
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    static <T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
+        Ƒ1<TableColumn<?,?>, TableCell<?,?>> f = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
+        return (Ƒ1) f.andApply(cell -> cell.setAlignment(a));
+    }
+
+    /**
+     * Convenience method to make it easier to select given rows of the
+     * TableView via its SelectionModel.
+     * This methods provides alternative to TableViewSelectionModel.selectIndices()
+     * that requires array parameter. This method makes the appropriate conversions
+     * and selects the items using List parameter
+     * <p/>
+     * After the method is invoked only the provided rows will be selected - it
+     * clears any previously selected rows.
+     *
+     * @param selectedIndexes
+     * @param selectionModel
+     */
+    static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
+        selectionModel.clearSelection();
+        int[] newSelected = new int[selectedIndexes.size()];
+        for (int i = 0; i < selectedIndexes.size(); i++) {
+            newSelected[i] = selectedIndexes.get(i);
+        }
+        if (newSelected.length != 0) {
+            selectionModel.selectIndices(newSelected[0], newSelected);
+        }
+    }
+
+    EventHandler<MouseEvent> consumeOnSecondaryButton = e-> {
+        if (e.getButton()== MouseButton.SECONDARY) e.consume();
+    };
+
+    static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
+        MenuItem i = new MenuItem(text);
+        if(action!=null) i.setOnAction(action);
+        return i;
+    }
+
+    static MenuItem menuItem(String text, Runnable action) {
+        return menuItem(text, action==null ? null : a -> action.run());
+    }
+
+    /**
+     * Generates menu items from list of services or actions. Use to populate
+     * context menu dynamically.
+     * <p/>
+     * For example context menu that provides menu items for searching given
+     * text on the web, using different search engines. What we want is to
+     * generate menu items each executing the same type action.
+     *
+     * @param <A> service or action that can facilitates the action
+     * @param from list of service
+     * @param toStr service to string converter for menu item text
+     * @param action item click action, uses service A possibly on some parameter
+     * like selected table item
+     * @return menu item
+     */
+    static <A> MenuItem[] menuItems(List<A> from, Function<A,String> toStr, Consumer<A> action) {
+        return from.stream()
+                .map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
+                .toArray(MenuItem[]::new);
+    }    
+    
+/**************************************************************************************************/
+
     /**
      * Create fullscreen modal no taskbar stage on given screen. The stage will have its owner,
      * style and modality initialized and be prepared to be shown.
-     * <p>
+     * <p/>
      * Use: just set your scene on it and call show().
-     * <p>
+     * <p/>
      * Easy way to get popup like behavior that:
      * <ul>
      * <li> is always fullscreen
@@ -407,7 +661,7 @@ public class Util {
      * doable using owner stage with UTILITY style).
      * </ul>
      */
-    public static Stage createFMNTStage(Screen screen) {
+    static Stage createFMNTStage(Screen screen) {
         // Using owner stage of UTILITY style is the only way to get a 'top level'
         // window with no taskbar.
         Stage owner = new Stage(UTILITY);
@@ -450,12 +704,12 @@ public class Util {
 /**************************************************************************************************/
 
     /** Returns screen containing the given coordinates. Never null. */
-    public static Screen getScreen(Point2D p) {
+    static Screen getScreen(Point2D p) {
         return getScreen(p.getX(), p.getY());
     }
 
     /** Returns screen containing the given coordinates. Never null. */
-    public static Screen getScreen(double x, double y) {
+    static Screen getScreen(double x, double y) {
         // rely on official util (someone hid it..., good work genius)
         return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 
@@ -470,7 +724,7 @@ public class Util {
     }
 
     /** Captures screenshot of the entire screen and runs custom action on fx thread. */
-    public static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
+    static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
         Rectangle2D r = screen.getBounds();
         screenCaptureAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
     }
@@ -479,7 +733,7 @@ public class Util {
      * Captures screenshot of the screen of given size and position and runs custom
      * action on fx thread.
      */
-    public static void screenCaptureAndDo(int x, int y, int w, int h, Consumer<Image> action) {
+    static void screenCaptureAndDo(int x, int y, int w, int h, Consumer<Image> action) {
         screenCaptureRawAndDo(
             x, y, w, h,
             img -> {
@@ -490,7 +744,7 @@ public class Util {
     }
 
     /** Captures screenshot of the entire screen and runs custom action on non fx thread. */
-    public static void screenCaptureRawAndDo(Screen screen, Consumer<BufferedImage> action) {
+    static void screenCaptureRawAndDo(Screen screen, Consumer<BufferedImage> action) {
         Rectangle2D r = screen.getBounds();
         screenCaptureRawAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
     }
@@ -498,11 +752,11 @@ public class Util {
     /**
      * Captures screenshot of the screen of given size and position and runs custom
      * action on non fx thread.
-     * <p>
+     * <p/>
      * Based on:
      * <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafxdev-screen-capture-tool</a>
      */
-    public static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
+    static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
         EventQueue.invokeLater(() -> {
             try {
                 Robot robot = new Robot();

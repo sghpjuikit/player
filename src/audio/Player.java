@@ -36,7 +36,7 @@ import static util.functional.Util.list;
 
 /**
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 public class Player {
 
@@ -98,7 +98,7 @@ public class Player {
      * Adds songs refreshed event handler. When application updates song metadata it will fire this
      * event. For example widget displaying song information may update that information, if the
      * event contains the song.
-     * <p>
+     * <p/>
      * Say, there is a widget with an input, displaying its value and sending it to its output, for
      * others to listen. And both are of {@link Item} type and updating the contents may be heavy
      * operation we want to avoid unless necessary.
@@ -106,7 +106,7 @@ public class Player {
      * there may be widgets whose inputs are not bound, but set manually. In order to not update the
      * input multiple times (by us and because it is bound) it should be checked whether input is
      * bound and then handled accordingly.
-     * <p>
+     * <p/>
      * But because the input can be bound to multiple outputs, we must check whether the input is
      * bound to the particular output it is displaying value of (and would be auto-updated from).
      * This is potentially complex or impossible (with unfortunate
@@ -127,9 +127,9 @@ public class Player {
 
     /**
      * Read metadata from tag of all items and invoke {@link #refreshItemsWith(java.util.List)}.
-     * <p>
+     * <p/>
      * Safe to call from any thread.
-     * <p>
+     * <p/>
      * Use when metadata of the items changed.
      */
     public static void refreshItems(Collection<? extends Item> is) {
@@ -160,13 +160,13 @@ public class Player {
     /**
      * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given
      * data for the whole application.
-     * <p>
+     * <p/>
      * Safe to call from any thread.
      *
      * @param ms metadata to refresh
      * @param allowDelay flag for using delayed refresh to reduce refresh successions to single
      * refresh. Normally false is used.
-     * <p>
+     * <p/>
      * Use false to refresh immediatelly and true to queue the refresh for future
      * execution (will wait few seconds for next refresh request and if it comes, will wait again
      * and so on until none will come, which is when all queued refreshes execute all at once).
@@ -230,7 +230,7 @@ public class Player {
 
         /**
          * Returns the playing item and all its information.
-         * <p>
+         * <p/>
          * Note: It is always safe to call this method, even during playing item
          * change events.
          */
@@ -268,13 +268,13 @@ public class Player {
 
         /**
          * Add behavior to playing item changed event.
-         * <p>
+         * <p/>
          * The event is fired every time playing item changes. This includes
          * replaying the same item.
-         * <p>
+         * <p/>
          * Use in cases requiring constantly updated information about the playing
          * item.
-         * <p>
+         * <p/>
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */
@@ -284,21 +284,21 @@ public class Player {
 
         /**
          * Add behavior to playing item updated event.
-         * <p>
+         * <p/>
          * The event is fired every time playing item changes or even if some of its
          * metadata is changed such artist or rating. More eager version of change
          * event.
-         * <p>
+         * <p/>
          * Use in cases requiring not only change updates, but also constantly
          * (real time) updated information about the playing item, such as when
          * displaying this information somewhere - for example artist of the
          * played item.
-         * <p>
+         * <p/>
          * Do not use when only the identity (defined by its URI) of the played
          * item is required. For example lastFM scrobbling service would not want
          * to update played item status when the metadata of the item change as it
          * isnt a change in played item - it is still the same item.
-         * <p>
+         * <p/>
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */

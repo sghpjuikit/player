@@ -13,20 +13,20 @@ import javafx.scene.layout.Pane;
 
 /**
  * Pane displaying an image and content - another pane.
- * <p>
+ * <p/>
  * The image and content are laid out horizontally or vertically both occupying
  * either total height or width of this pane, depending on
  * the aspect ratio of this pane and that of the image. The image attemps to
  * 'expand' as much as possible (taking aspect ratios into consideration), while
  * the remaining space is left for the content.
- * <p>
+ * <p/>
  * Content can have minimum size set, which forbids expanding the image if it
  * would shrink the content beyond it.
- * <p>
+ * <p/>
  * Both image and content can be set invisible. Gap between image and pane can 
  * be set.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ImageFlowPane extends Pane {
     

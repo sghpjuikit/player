@@ -28,7 +28,7 @@ import util.dev.Dependency;
 /**
  * Controller for {@link FXMLWidget}
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 abstract public class FXMLController implements Controller<Widget<?>> {
 
@@ -105,7 +105,7 @@ abstract public class FXMLController implements Controller<Widget<?>> {
     /**
      * Adds the subscription to the list of subscriptions that unsubscribe when
      * this controller's widget is closed.
-     * <p>
+     * <p/>
      * Anything that needs to be disposed can be passed here as runnable at any
      * time.
      */

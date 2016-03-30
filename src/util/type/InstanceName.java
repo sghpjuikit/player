@@ -12,7 +12,7 @@ import util.functional.Functors.Ƒ1;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class InstanceName {
 
@@ -23,7 +23,7 @@ public class InstanceName {
     /**
      * Registers name function for specified class and all its subclasses that 
      * dont have any name registered.
-     * <p>
+     * <p/>
      * Use {@link Void} class to handle null (since only null can be an 'instance' of Void). 
      * @param <T>
      * @param c

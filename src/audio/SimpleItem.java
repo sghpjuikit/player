@@ -13,8 +13,8 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 /**
  * Simplest {@link Item} implementation. 
  * Wraps URI. Immutable.
-
-* @author uranium
+ *
+ * @author Martin Polakovic
  */
 @Immutable
 public class SimpleItem extends Item {

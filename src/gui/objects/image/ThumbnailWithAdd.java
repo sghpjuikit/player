@@ -28,11 +28,11 @@ import static util.file.FileType.FILE;
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
  * defined. Thumbnail has a highlight mode showed on hover.
- * <p>
+ * <p/>
  * File can be accepted either by using file chooser opened by clicking on this
  * thumbnail, or by file drag&drop.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ThumbnailWithAdd extends Thumbnail {
 
@@ -40,7 +40,7 @@ public class ThumbnailWithAdd extends Thumbnail {
     /**
      * Action for when image file is dropped or received from file chooser.
      * Default does nothing. Null indicates no action.
-     * <p>
+     * <p/>
      * Obtaining the image file may be blocking operation (hence the {@link Fut}). The future will
      * never be null, but the obtained image can be null!
      */

@@ -53,10 +53,9 @@ import gui.objects.image.cover.Cover.CoverSource;
 import gui.objects.image.cover.FileCover;
 import gui.objects.image.cover.ImageCover;
 import util.file.AudioFileFormat;
-import util.file.FileUtil;
+import util.file.Util;
 import util.file.ImageFileFormat;
 import util.SwitchException;
-import util.Util;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
@@ -71,9 +70,9 @@ import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
-import static util.file.FileUtil.EMPTY_URI;
-import static util.Util.emptifyString;
-import static util.Util.mapEnumConstant;
+import static util.file.Util.EMPTY_URI;
+import static util.Util.emptyOr;
+import static util.type.Util.mapEnumConstantName;
 import static util.dev.Util.log;
 import static util.functional.Util.equalNull;
 import static util.functional.Util.list;
@@ -86,25 +85,25 @@ import static util.functional.Util.stream;
  * Everything that is possible to know about the audio file is accessible through
  * this class. This class also provides some non-tag, application specific
  * or external information associated with this song, like cover files.
- * <p>
+ * <p/>
  * The class is practically immutable and does not provide any setters, nor
  * allows updating of its state or any of its values.
- * <p>
+ * <p/>
  * Metadata can be empty and hsould be used instead of null. See {@link #EMPTY}
- * <p>
+ * <p/>
  * The getters of this class return mostly string. For empty fields the output
  * is "" (empty string) and for non-string getters it varies, but it is never
  * null. See documentation
  * for the specific field. The rule is however, that the check for empty value
  * should be necessary only in rare cases.
- * <p>
+ * <p/>
  * Every field returns string, primitive, or Object with toString method that
  * returns the best possible string representation of the field's value, including
  * its empty value.
- * <p>
+ * <p/>
  * To access any field in a general way, see {@link audio.tagging.Metadata.Field}
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @Entity(name = "MetadataItem")
 public final class Metadata extends MetaItem<Metadata> {
@@ -146,12 +145,12 @@ public final class Metadata extends MetaItem<Metadata> {
     /**
      * EMPTY metadata. Substitute for null. Always use instead of null. Also
      * corrupted items should transform into EMPTY metadata.
-     * <p>
+     * <p/>
      * All fields are at their default values.
-     * <p>
+     * <p/>
      * There are two ways to check whether Metadata object is EMPTY. Either use
      * reference operator this == Metadata.EMPTY or call {@link #isEmpty()}.
-     * <p>
+     * <p/>
      * Note: The reference operator works, because there is always only one
      * instance of EMPTY metadata.
      */
@@ -174,7 +173,7 @@ public final class Metadata extends MetaItem<Metadata> {
     // primary key & resource identifier. see getURI() and consturctors.
     // for empty metadata use special 'empty' uri
     @Id
-    private String uri = FileUtil.EMPTY_URI.toString();
+    private String uri = Util.EMPTY_URI.toString();
 
             // header fields
     private long filesize = 0;
@@ -290,9 +289,9 @@ public final class Metadata extends MetaItem<Metadata> {
             bitrate = (int)header.getBitRateAsNumber();
             duration = 1000 * header.getTrackLength();
             // format and encoding type are switched in jaudiotagger library...
-            encoding = emptifyString(header.getFormat());
-            channels = emptifyString(header.getChannels());
-            sample_rate = emptifyString(header.getSampleRate());
+            encoding = emptyOr(header.getFormat());
+            channels = emptyOr(header.getChannels());
+            sample_rate = emptyOr(header.getSampleRate());
         }
     }
 
@@ -413,10 +412,10 @@ public final class Metadata extends MetaItem<Metadata> {
 //        for (TagField field: tag.getFields(f)) {
 //            String tmp = field.toString();
 //                   tmp = tmp.substring(6, tmp.length()-3);
-//            out.add(Util.emptifyString(tmp));
+//            out.add(Util.emptyOr(tmp));
 //        }
         for (String val: tag.getAll(f))
-            out.add(Util.emptifyString(val));
+            out.add(util.Util.emptyOr(val));
         } catch(Exception w) {
             // contrary to what compiler is saying, no, exception is not too broad
             // do not change the exception or some weird stuff will be happening
@@ -479,7 +478,7 @@ public final class Metadata extends MetaItem<Metadata> {
             // todo: also check ID3v24Frames.FRAME_ID_PLAY_COUNTER
 
             // PUBLISHER -----------------------------------------------------------
-            publisher = emptifyString(t.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
+            publisher = emptyOr(t.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
 
             // CATEGORY ------------------------------------------------------------
             // the general acquisition is good enough
@@ -534,8 +533,8 @@ public final class Metadata extends MetaItem<Metadata> {
         //      tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER) // works
         //      tag.getFirst(Mp4FieldKey.LABEL) // not same as WINAMP_PUBLISHER, but perhaps also valid
         //      tag.getFirst(FieldKey.KEY)
-        publisher = emptifyString(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
-        if(publisher.isEmpty()) publisher = emptifyString(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
+        publisher = emptyOr(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
+        if(publisher.isEmpty()) publisher = emptyOr(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
 
         // CATEGORY ------------------------------------------------------------
         // the general acquisition is good enough
@@ -547,20 +546,20 @@ public final class Metadata extends MetaItem<Metadata> {
     private void loadFieldsVorbis(VorbisCommentTag tag) {
         // RATING --------------------------------------------------------------
         // some players use 0-5 value, so extends it to 100
-        rating = number(emptifyString(tag.getFirst("RATING")));
+        rating = number(emptyOr(tag.getFirst("RATING")));
         if(0<rating && rating<6) rating *=20;
 
         // PLAYCOUNT -----------------------------------------------------------
         // if we want to support playcount in vorbis specific field, we can
         // just lets not overwrite value we obtained with previous methods
-        // if(playcount==-1) playcount = number(emptifyString(tag.getFirst("PLAYCOUNT")));
+        // if(playcount==-1) playcount = number(emptyOr(tag.getFirst("PLAYCOUNT")));
 
         // PUBLISHER -----------------------------------------------------------
-        publisher = emptifyString(tag.getFirst("PUBLISHER"));
+        publisher = emptyOr(tag.getFirst("PUBLISHER"));
 
         // CATEGORY ------------------------------------------------------------
         // try to get category the winamp way, dont if we already have a value
-        if(category.isEmpty()) category = emptifyString(tag.getFirst("CATEGORY"));
+        if(category.isEmpty()) category = emptyOr(tag.getFirst("CATEGORY"));
     }
 
 /******************************************************************************/
@@ -733,7 +732,7 @@ public final class Metadata extends MetaItem<Metadata> {
      * format track/tracks_total. If you just need this information as a string
      * and dont intend to sort or use the numerical values
      * then use this method instead of {@link #getTrack()} and {@link #getTracksTotal())}.
-     * <p>
+     * <p/>
      * If disc or disc_total information is unknown the respective portion in the
      * output will be substitued by character '?'.
      * Example: 1/1, 4/23, ?/?, ...
@@ -759,7 +758,7 @@ public final class Metadata extends MetaItem<Metadata> {
      * format disc/discs_total. If you just need this information as a string
      * and dont intend to sort or use the numerical values
      * then use this method instead of {@link #getDisc() ()} and {@link #getDiscsTotal()}.
-     * <p>
+     * <p/>
      * If disc or disc_total information is unknown the respective portion in the
      * output will be substitued by character '?'.
      * Example: 1/1, ?/?, 5/?, ...
@@ -848,7 +847,7 @@ public final class Metadata extends MetaItem<Metadata> {
     /**
      * Identical to getCoverFromDir() method, but returns the image file
      * itself. Only file based items.
-     * <p>
+     * <p/>
      * If the Image object of the cover suffices, it is recommended to
      * avoid this method, or even better use getCoverFromAnySource()
      * @return
@@ -858,7 +857,7 @@ public final class Metadata extends MetaItem<Metadata> {
         if(!isFileBased()) return null;
 
         File dir = getFile().getParentFile();
-        if (!FileUtil.isValidDirectory(dir)) return null;
+        if (!Util.isValidDirectory(dir)) return null;
 
         File[] files;
         files = dir.listFiles( f -> {
@@ -1037,7 +1036,7 @@ public final class Metadata extends MetaItem<Metadata> {
     /**
      * Returns chapters associated with this item. A {@link Chapter} represents
      * a time specific song comment. The result is ordered by natural order.
-     * <p>
+     * <p/>
      * Chapters are concatenated into string located in the Custom2 tag field.
      *
      * @return ordered list of chapters parsed from tag data
@@ -1229,7 +1228,7 @@ public final class Metadata extends MetaItem<Metadata> {
         private final Ƒ1<Metadata,?> extr;
 
         private Field(Ƒ1<Metadata,?> extractor, String description) {
-            mapEnumConstant(this, Util::enumToHuman);
+            mapEnumConstantName(this, util.Util::enumToHuman);
             this.desc = description;
             this.extr = extractor;
         }
@@ -1285,7 +1284,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
         /**
          * Returns true.
-         * <p>
+         * <p/>
          * {@inheritDoc}
          */
         @Override

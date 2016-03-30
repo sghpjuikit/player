@@ -68,7 +68,7 @@ public class ItemInfo extends AnchorPane implements SongReader {
 
     /**
      Displays metadata information and title.
-     <p>
+     <p/>
      @param title
      @param m
      */

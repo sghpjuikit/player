@@ -62,14 +62,14 @@ import static util.async.Async.sleep;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
-import static util.file.FileUtil.getName;
-import static util.file.FileUtil.listFiles;
+import static util.file.Util.getName;
+import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchor;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
         author = "Martin Polakovic",
@@ -377,7 +377,7 @@ public class DirViewer extends ClassController {
         /**
          * Begins loading cover for the item. If item changes meanwhile, the result is stored
          * (it will not need to load again) to the old item, but not showed.
-         * <p>
+         * <p/>
          * Thumbnail quality may be decreased to achieve good performance, while loading high
          * quality thumbnail in the bgr. Each phase uses its own executor.
          */

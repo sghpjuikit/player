@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
@@ -24,55 +26,52 @@ import audio.Player;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
-import services.database.Db;
 import audio.tagging.Metadata;
-import layout.widget.feature.SongReader;
-import layout.widget.feature.SongWriter;
 import gui.Gui;
 import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.contextmenu.TableContextMenuR;
 import gui.objects.tablerow.ImprovedTableRow;
+import layout.widget.feature.SongReader;
+import layout.widget.feature.SongWriter;
 import main.App;
-import util.file.Environment;
-import util.Util;
+import services.database.Db;
 import util.access.V;
 import util.dev.TODO;
+import util.file.Environment;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
-import web.HttpSearchQueryBuilder;
+import web.SearchUriBuilder;
 
 import static audio.playlist.PlaylistItem.Field.*;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.*;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.Util.*;
 import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.Util.SAME;
-import static util.functional.Util.filterMap;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
+import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
 /**
  * Playlist table GUI component.
- * <p>
- * Introduces two additional TableCell css pseudoclasses: {@link #playingRowCSS}
- * and {@link #corruptRowCSS} that style the cells containing played item and
- * corrupted item respectively.
- * <p>
+ * <p/>
+ * Introduces two additional TableCell css pseudoclasses: {@link #STYLE_PLAYED} and {@link #STYLE_CORRUPT} for cells
+ * containing played item and corrupted item respectively.
+ * <p/>
  * Always call {@link #dispose()}
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
+
+    private static final String STYLE_CORRUPT = "corrupt";
+    private static final String STYLE_PLAYED = "played";
 
     public final V<Boolean> scrollToPlaying = new V<>(true);
     private final TableColumn<PlaylistItem,String> columnName;
@@ -120,7 +119,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         columnTime = (TableColumn) getColumn(LENGTH).get();
 
         // initialize row factories
-        setRowFactory(t -> new ImprovedTableRow<PlaylistItem>() {
+        setRowFactory(t -> new ImprovedTableRow<>() {
             {
                 // remember position for moving selected rows on mouse drag
                 setOnMousePressed( e -> last = e.getScreenY());
@@ -143,8 +142,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
                 // additional css styleclasses
-                styleRuleAdd("played", p -> p==getPlaylist().getPlaying());
-                styleRuleAdd("corrupt", PlaylistItem::isCorruptCached);
+                styleRuleAdd(STYLE_PLAYED, p -> p==getPlaylist().getPlaying());
+                styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
             }
         });
         // maintain playing item css by refreshing index column
@@ -181,7 +180,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             columnIndex.setPrefWidth(W1);
             columnTime.setPrefWidth(W3);
 
-            List<TableColumn> cs = new ArrayList(resize.getTable().getColumns());
+            List<TableColumn> cs = new ArrayList<>(resize.getTable().getColumns());
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if(mc!=null) {
                 cs.remove(mc);
@@ -339,12 +338,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
         // get selected
         // construct new list (oldS), must not be observable (like indices)
-        List<Integer> oldS = new ArrayList();
+        List<Integer> oldS = new ArrayList<>();
                       oldS.addAll(getSelectionModel().getSelectedIndices());
         // move in playlist
         List<Integer> newS = getPlaylist().moveItemsBy(oldS, by);
         // select back
-        Util.selectRows(newS, getSelectionModel());
+        selectRows(newS, getSelectionModel());
 
         movingitems = false;    // release lock
     }
@@ -364,7 +363,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
     private static final TableContextMenuR<PlaylistItem> contxt_menu = new TableContextMenuR<> (
         () -> {
-            ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
+            ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e -> {
                     PlaylistManager.use(p -> p.playItem(m.getValue().get(0)));
                 }),
@@ -402,7 +401,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     Db.addItems(items);
                 }),
                 new Menu("Search album cover",null,
-                    menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
+                    menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),
                             q -> "in " + Parser.DEFAULT.toS(q),
                             q -> App.itemToMeta(m.getValue().get(0), i -> Environment.browse(q.apply(i.getAlbum()))))
                 )

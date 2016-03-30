@@ -13,9 +13,9 @@ import javafx.beans.value.ChangeListener;
 /**
  * {@link javafx.scene.text.Text} with a default styleclass "text-shape" and
  * support for automatic wrap width based on contained text value.
- * <p>
+ * <p/>
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Text extends javafx.scene.text.Text {
     public static final String STYLECLASS = "text-shape";
@@ -37,13 +37,13 @@ public class Text extends javafx.scene.text.Text {
     /**
      * Sets wrappingWidth to achieve roughly rectangular size. There is a slight
      * horizontal bias (width > height).
-     * <p>
+     * <p/>
      * Use this feature when this Text object is expected to have size dependent
      * on its text and influences the size of its parent. For example popups
      * displaying text.
-     * <p>
+     * <p/>
      * Invoke after text has been set.
-     * <p>
+     * <p/>
      * The value depends on type and size of the font and might not produce
      * optimal results. Try and see.
      */

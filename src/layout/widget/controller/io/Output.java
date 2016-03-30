@@ -15,7 +15,7 @@ import com.google.common.reflect.TypeToken;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Output<T> extends Put<T> {
     public final Id id;

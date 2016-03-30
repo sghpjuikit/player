@@ -64,9 +64,9 @@ import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
- FXML Controller class
- <p>
- @author Plutonium_
+ * Controls for a widget area.
+ *
+ * @author Martin Polakovic
  */
 public final class AreaControls {
 

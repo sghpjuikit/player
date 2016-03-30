@@ -33,39 +33,39 @@ import static util.functional.Util.forEachIStream;
 /**
  * Features:
  * <ul>
- * <li> Animation effect<p>
+ * <li> Animation effect<p/>
  * Each animator has an 'applier' which is a double {@link Consumer} that takes
  * the animation value as parameter (after it is interpolated) and applies it.
- * <p>
+ * <p/>
  * The applier can do anything from setting opacity or position
- * <li> Simple interpolation<p>
+ * <li> Simple interpolation<p/>
  * Interpolator is a function transforming double parameter p from 0-1 interval
  * to different double within the same interval.
- * <p>
+ * <p/>
  * Interpolation can be set as mathematical double to double function. Reversing
  * interpolator is simply a matter of calling it with argument 1-p, where p is double
  * from 0-1 interval.
- * <p>
+ * <p/>
  * Developer has a choice to set interpolator or use it within the applier itself,
  * or using both (which can reduce interpolator complexity).
- * <li> Reversibility<p>
+ * <li> Reversibility<p/>
  * Can be played backwards to 'revert' its effect even when it is playing. The phase
  * that runs forward (rate==1) is called 'opening' phase while the backward
  * phase is called 'closing'.
  * <li> Fluent API for frequently used methods. For example {@link #dur(double)}
  * or {@link #intpl(java.util.function.Function) }
- * <p>
+ * <p/>
  * For example animation used to show and hide button using opacity would
  * fade it from 0 to 1 during the opening phase. If the closing is invoked
  * the button will fade out from its current opacity, not from its maximum (1),
  * which would be the case with standard transition. Even worse, using separate
  * transition would require stopping the other transition, using reverse
  * interpolator, etc.
- * <p>
+ * <p/>
  * See {@link #playClose()} and {@link #playOpen() }.
  * </ul>
- * <p>
- * @author Plutonium_
+ * <p/>
+ * @author Martin Polakovic
  */
 public class Anim extends Transition {
 
@@ -171,7 +171,7 @@ public class Anim extends Transition {
     /**
      * Plays this animation onward from beginning if stopped else from its
      * current position.
-     * <p>
+     * <p/>
      * Useful for animations that are used to both 'open' and 'close', i.e.,
      * are used to play with rate 1 and rate -1 to reverse-play their effect.
      */
@@ -185,7 +185,7 @@ public class Anim extends Transition {
     /**
      * Plays this animation backward from beginning if stopped else from its
      * current position.
-     * <p>
+     * <p/>
      * Useful for animations that are used to both 'open' and 'close', i.e.,
      * are used to play with rate 1 and rate -1 to reverse-play their effect.
      */
@@ -356,7 +356,7 @@ public class Anim extends Transition {
          * The final interpolator will be divided into subranges in which each
          * respective interpolator will be used with the input in the range
          * mapped back to 0-1.
-         * <p>
+         * <p/>
          * For example pseudocode: of(0.2,x->0.5, 0.8,x->0.1) will
          * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2
          *

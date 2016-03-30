@@ -65,7 +65,7 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsConfigurable
 public final class Guide implements Configurable {

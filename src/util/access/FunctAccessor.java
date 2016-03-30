@@ -12,7 +12,7 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Immutable
 public class FunctAccessor<T> implements FunctAccessibleValue<T> {

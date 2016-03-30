@@ -54,8 +54,8 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.Util.getEnumConstants;
-import static util.Util.getFieldValue;
+import static util.type.Util.getEnumConstants;
+import static util.type.Util.getFieldValue;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.setScaleXY;
@@ -275,7 +275,7 @@ public class Icon<I extends Icon<?>> extends Text {
 
     /**
      * Creates and sets onMouseClick handler. Can also set tooltip. Returns this icon (fluent API).
-     * <p>
+     * <p/>
      * The handler executes the action only on left button click
      * THe handler can be retrieved or removed using {@link #getOnMouseClicked()} and
      * {@link #setOnMouseClicked(javafx.event.EventHandler)}.

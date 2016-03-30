@@ -11,10 +11,10 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Container annotation for {@link TIDO}.
- * <p>
+ * <p/>
  * Used solely by compiler and has no practical use for developer.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -49,8 +49,8 @@ import static util.reactive.Util.maintain;
 
 /**
  * Playback Controller class
- * <p>
- * @author uranium
+ * <p/>
+ * @author Martin Polakovic
  */
 @Widget.Info(
     name = "Playback",

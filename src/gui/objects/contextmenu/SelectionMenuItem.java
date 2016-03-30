@@ -27,7 +27,7 @@ import static util.functional.Util.map;
  * selection changes on/off on mouse click but this default behavior can be
  * changed using {@link #setOnMouseClicked(java.lang.Runnable)} which overrides
  * it.
- * <p>
+ * <p/>
  * Features:
  * <ul>
  * <li> Check icon reflecting selection state
@@ -35,7 +35,7 @@ import static util.functional.Util.map;
  * <li> Custom click implementation
  * </ul>
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class SelectionMenuItem extends Menu {
 
@@ -112,7 +112,7 @@ public class SelectionMenuItem extends Menu {
      * Overrides default click implementation which changes the selection value.
      * After using this method, icon will still reflect the selection, but it it
      * will not change unless changed manually from the handler.
-     * <p>
+     * <p/>
      * This is useful for cases, where the menu lists items to choose from and
      * exactly one must be selected at any time. This requires deselection to
      * be impossible.

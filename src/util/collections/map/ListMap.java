@@ -16,13 +16,13 @@ import java.util.stream.Stream;
 /**
 More specific cache map using {@link ArrayList} as a cache bucket/accumulation
 container.
-<p>
+<p/>
 Cache factory returns new list and accumulator adds element to the list, key
 mapper remains unimplemented.
-<p>
+<p/>
 Defines a
 
- @author Plutonium_
+ @author Martin Polakovic
  */
 public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
 

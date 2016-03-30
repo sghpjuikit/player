@@ -15,12 +15,11 @@ import util.plugin.IsPlugin;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
- *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @IsPlugin
 @StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Wikipedia" )
-public class WikipediaQBuilder implements HttpSearchQueryBuilder {
+public class WikipediaQBuilder implements SearchUriBuilder {
 
     @ParsesFromString
     public WikipediaQBuilder() {}

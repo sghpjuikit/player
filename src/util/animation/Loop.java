@@ -13,8 +13,10 @@ import com.sun.scenario.animation.shared.TimerReceiver;
 
 /**
  * Timer, that executes behavior in each frame while it is active.
- * <p>
+ * <p/>
  * The methods {@link #start()} and {@link #stop()} allow to start and stop the timer.
+ *
+ * @author Martin Polakovic
  */
 public final class Loop {
 

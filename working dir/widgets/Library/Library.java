@@ -24,11 +24,19 @@ import audio.Item;
 import audio.Player;
 import audio.SimpleItem;
 import audio.playlist.PlaylistManager;
-import services.database.Db;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
-import util.conf.Config;
-import util.conf.IsConfig;
+import gui.Gui;
+import gui.infonode.InfoTask;
+import gui.objects.contextmenu.ImprovedContextMenu;
+import gui.objects.contextmenu.SelectionMenuItem;
+import gui.objects.contextmenu.TableContextMenuR;
+import gui.objects.spinner.Spinner;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable;
+import gui.objects.table.ImprovedTable.PojoV;
+import gui.objects.table.TableColumnInfo;
+import gui.objects.tablerow.ImprovedTableRow;
 import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
@@ -36,37 +44,28 @@ import layout.widget.controller.io.Output;
 import layout.widget.feature.FileExplorerFeature;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
-import gui.Gui;
-import gui.infonode.InfoTask;
-import gui.objects.contextmenu.ImprovedContextMenu;
-import gui.objects.contextmenu.SelectionMenuItem;
-import gui.objects.contextmenu.TableContextMenuR;
-import gui.objects.tablerow.ImprovedTableRow;
-import gui.objects.spinner.Spinner;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable;
-import gui.objects.table.ImprovedTable.PojoV;
-import gui.objects.table.TableColumnInfo;
 import main.App;
-import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
-import util.file.Environment;
-import util.access.fieldvalue.ObjectField.ColumnField;
+import services.database.Db;
 import util.access.Vo;
+import util.access.fieldvalue.ObjectField.ColumnField;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
+import util.conf.Config;
+import util.conf.IsConfig;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
+import util.file.Environment;
 import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
-import web.HttpSearchQueryBuilder;
+import web.SearchUriBuilder;
 
-import static audio.tagging.Metadata.Field.*;
-import static layout.widget.Widget.Group.LIBRARY;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
+import static audio.tagging.Metadata.Field.RATING;
+import static audio.tagging.Metadata.Field.TITLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
@@ -76,20 +75,19 @@ import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
+import static layout.widget.Widget.Group.LIBRARY;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.file.FileType.DIRECTORY;
-import static util.file.FileUtil.getCommonRoot;
-import static util.file.FileUtil.getFilesAudio;
-import static util.Util.menuItem;
-import static util.Util.menuItems;
 import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
 import static util.async.Async.runNew;
 import static util.async.future.Fut.fut;
+import static util.file.FileType.DIRECTORY;
+import static util.file.Util.getCommonRoot;
+import static util.file.Util.getFilesAudio;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
-import static util.graphics.Util.setAnchors;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -372,7 +370,7 @@ public class Library extends FXMLController implements SongReader {
     /**
      * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
      * and displays them in the table.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -393,7 +391,7 @@ public class Library extends FXMLController implements SongReader {
 
     private static final TableContextMenuR<Metadata> contxt_menu = new TableContextMenuR<> (
         () -> {
-            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
+            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e ->
                     PlaylistManager.use(p -> p.setNplay(m.getValue()))
                 ),
@@ -428,7 +426,7 @@ public class Library extends FXMLController implements SongReader {
                     )
                 ),
                 new Menu("Search album cover",null,
-                    menuItems(APP.plugins.getPlugins(HttpSearchQueryBuilder.class),
+                    menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),
                         q -> "in " + Parser.DEFAULT.toS(q),
                         q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum()))
                     )

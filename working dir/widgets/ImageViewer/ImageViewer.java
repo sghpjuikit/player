@@ -56,8 +56,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static util.file.FileUtil.getCommonRoot;
-import static util.file.FileUtil.getFilesImage;
+import static util.file.Util.getCommonRoot;
+import static util.file.Util.getFilesImage;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
@@ -67,7 +67,7 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

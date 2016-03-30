@@ -43,7 +43,7 @@ import static util.graphics.Util.layHorizontally;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class EffectItemNode extends TextFieldItemNode<Effect> {
 
@@ -124,9 +124,9 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
     void onDialogAction() {}
 
     @Override
-    public void setValue(Effect val) {
-        propB.setDisable(val==null);
-        super.setValue(val);
+    public void setValue(Effect value) {
+        propB.setDisable(value ==null);
+        super.setValue(value);
     }
 
     private void openChooser(MouseEvent me) {

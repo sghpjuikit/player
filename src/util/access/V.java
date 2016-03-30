@@ -18,10 +18,10 @@ import org.reactfx.Subscription;
 /**
  * Var/variable - simple object wrapper similar to {@link javafx.beans.property.Property}, but
  * simpler (no binding) and with the ability to apply value change.
- * <p>
+ * <p/>
  * Does not permit null values.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class V<T> extends SimpleObjectProperty<T> implements ApplicableValue<T> {
 

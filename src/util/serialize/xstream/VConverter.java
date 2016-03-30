@@ -17,7 +17,7 @@ import util.access.V;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class VConverter extends AbstractPropertyConverter<Object> implements Converter {
 

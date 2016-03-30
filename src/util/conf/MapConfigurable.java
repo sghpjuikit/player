@@ -9,12 +9,12 @@ import java.util.Map;
 /**
  * Collection implementation of {@link Configurable}. Aggregates {@link Config}
  * by name as a map with config name as a key.
- * <p>
+ * <p/>
  * This implementation provides O(1) field access.
- * <p>
+ * <p/>
  * Use to access configs by name.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class MapConfigurable<T> implements Configurable<T> {
     
@@ -32,9 +32,9 @@ public class MapConfigurable<T> implements Configurable<T> {
     
     /**
      * {@inheritDoc}
-     * <p>
+     * <p/>
      * Implementation details:
-     * <p>
+     * <p/>
      * The configs do not retain their position.
      */
     @Override
@@ -44,7 +44,7 @@ public class MapConfigurable<T> implements Configurable<T> {
 
     /** 
      * {@inheritDoc} 
-     * <p>
+     * <p/>
      * Implementation details:
      * Runs in O(1).
      */

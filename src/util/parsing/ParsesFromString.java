@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Makes the method or constructor responsible for the parsing from String.
- * <p>
+ * <p/>
  * The annotated element must be:
  * <ul>
  * <li> constructor or static method

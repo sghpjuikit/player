@@ -5,7 +5,7 @@ package util.parsing;
  * String to Object bidirectional converter.
  *
  * @param <T> type of object
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public interface StringConverter<T> extends ToStringConverter<T>, FromStringConverter<T> {
 

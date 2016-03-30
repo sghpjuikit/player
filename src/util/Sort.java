@@ -13,7 +13,7 @@ import javafx.scene.control.TableColumn.SortType;
 /**
  * Sort type.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public enum Sort {
     /** From minimal to maximal element. */
@@ -28,14 +28,14 @@ public enum Sort {
      * comparator is returned, otherwise no new comparator is built. By definition every comparator
      * is ascending, hence the comparator itself is returned when this is ascending. When this is
      * none, no order comparator (static instance) is returned.
-     * <p>
+     * <p/>
      * Applying this method multiple times will not produce any new comparator instances. {@link #ASCENDING}
      * and {@link #NONE} will consistently return the same instance and {@link #DESCENDING} will flip between the reverse
      * and original instance of the comparator, i.e., reverse of a reverse will be the same comparator
      * object/instance. Formally:
-     * <p>
+     * <p/>
      * c==DESCENDING.cmp(DESCENDING.cmp(c)) is always true.
-     * <p>
+     * <p/>
      * Some code uses null comparator as a no comparator, hence this method accepts null. In such
      * case, null is always returned (no order has no reverse order).
      *

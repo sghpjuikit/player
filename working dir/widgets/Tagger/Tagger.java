@@ -78,19 +78,19 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
-import static util.file.FileUtil.EMPTY_COLOR;
+import static util.file.Util.EMPTY_COLOR;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
 import static util.functional.Util.*;
 
 /**
  * Tagger graphical component.
- * <p>
+ * <p/>
  * Can read and write metadata from/into files.
  * Currently supports files only. File types are limited to those supported
  * by the application.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Widget.Info(
     name = "Tagger",
@@ -335,7 +335,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     /**
      * Reads metadata on provided items and fills the data for tagging.
      * If list contains Metadata, reading is skipped.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -620,7 +620,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c = control;
             f = field;
 
-            c.getStyleClass().setAll(TextFieldItemNode.STYLECLASS());
+            c.getStyleClass().setAll(TextFieldItemNode.STYLE_CLASS());
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
 

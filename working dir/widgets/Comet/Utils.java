@@ -92,7 +92,7 @@ import static util.reactive.Util.maintain;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 class Utils {
 
@@ -707,7 +707,7 @@ class Utils {
 
         /**
          * Adds an animation.
-         * <p>
+         * <p/>
          * Adds runnable that will consume double every time this runs during the specified time from now on.
          * The double is interpolated from 0 to 1 by precalculated step from duration.
          */
@@ -717,7 +717,7 @@ class Utils {
 
         /**
          * Adds an animation.
-         * <p>
+         * <p/>
          * Adds runnable that will consume double every time this runs during the specified time from now on.
          * The double is interpolated between specified values by precalculated step from duration.
          */

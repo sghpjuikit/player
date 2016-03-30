@@ -5,24 +5,28 @@
  */
 package gui.objects.window.pane;
 
-import gui.objects.window.Resize;
-import gui.objects.window.stage.WindowBase.Maximized;
-import static gui.objects.window.stage.WindowBase.Maximized.ALL;
-import static java.lang.Math.abs;
-import static java.lang.Math.ceil;
 import java.util.List;
+
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.Node;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 
+import gui.objects.window.Resize;
+import gui.objects.window.stage.WindowBase.Maximized;
+
+import static gui.objects.window.stage.WindowBase.Maximized.ALL;
+import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.*;
+
 /**
- <p>
- @author Plutonium_
+ * Window implemented as a {@link javafx.scene.layout.Pane} for in-application windows.
+ *
+ * @author Martin Polakovic
  */
 public class WindowPane {
     

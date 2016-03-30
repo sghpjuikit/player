@@ -23,7 +23,7 @@ import static javafx.util.Duration.ZERO;
 
 /**
  * Very simple custom {@link ProgressIndicator}.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Spinner extends ProgressIndicator {
 

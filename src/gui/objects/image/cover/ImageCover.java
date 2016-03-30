@@ -16,12 +16,12 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
  * Denotes Cover represented by a {@link Image} or {@link BufferedImage}.
- * <p>
+ * <p/>
  * This class is fully polymorphic
  * Should never be used directly but instead use the {@Cover} interface
  * and leverage polymorphism.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Immutable
 public class ImageCover implements Cover {

@@ -15,10 +15,10 @@ import java.lang.annotation.Target;
 
 /**
  * Container annotation for {@link Repeatable} {@link IsAction}.
- * <p>
+ * <p/>
  * Used solely by compiler and has no practical use for developer.
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

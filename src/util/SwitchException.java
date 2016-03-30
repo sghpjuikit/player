@@ -7,7 +7,7 @@ package util;
 
 /**
  * Runtime exception for switch cases that represent programming error and must never execute.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class SwitchException extends RuntimeException {
 

@@ -25,7 +25,7 @@ import javafx.util.Duration;
  *       }
  *   }
  * 
- * @author uranium
+ * @author Martin Polakovic
  */
 public interface AltState {
     /**

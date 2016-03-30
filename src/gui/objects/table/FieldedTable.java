@@ -42,38 +42,38 @@ import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static util.Util.getEnumConstants;
-import static util.Util.invokeMethodP0;
+import static util.type.Util.getEnumConstants;
+import static util.type.Util.invokeMethodP0;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
  * potentially additional features (e.g. filtering - {@link FilteredTable}.
- * <p>
+ * <p/>
  * Supports column state serialization and deserialization - it is possible to
  * restore previous state. This includes column order, column names, sort order,
  * and column widths.
- * <p>
+ * <p/>
  * Nested columns are not supported.
- * <p>
+ * <p/>
  * The columns use userData property to store the field F for identification.
  * Use {@link #setUserData(java.lang.Object)}
  * to obtain the exact F field the column represents. Every column will return
  * a value except for index column, which returns null. Never use
  * {@link #getUserData()} on the columns or column lookup will break.
- * <p>
+ * <p/>
  * Only visible columns are built.
- * <p>
+ * <p/>
  * Has redesigned menu for column visibility. The table header button opening it is
  * hidden by default and the menu can also be shown by right click on the table
  * header.
- * <p>
+ * <p/>
 
  * @param <T> type of element in the table, must be aware of its fields
  * @param <F> field of the T to access the fields
 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> {
 
@@ -286,7 +286,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     /**
      * Comparator for ordering items reflecting this table's sort order.
      * Read only, changing value will have no effect.
-     * <p>
+     * <p/>
      * The value is never null, rather {@link util.functional.Util#SAME} is used to indicate no
      * particular order.
      */
@@ -296,12 +296,12 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
      * Sorts the items by the field. Sorting does not operate on table's sort
      * order and is applied to items backing the table. Any sort order of
      * the table will be removed.
-     * <p>
+     * <p/>
      * This is not a programmatic equivalent of sorting the table manually by
      * clicking on their header (which operates through sort order).
-     * <p>
+     * <p/>
      * Works even when field's respective column is invisible.
-     * <p>
+     * <p/>
      * Note, that the field must support sorting - return Comparable type.
      *
      * @param field
@@ -326,7 +326,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
     /**
      * Use as cell factory for columns created in column factory.
-     * <p>
+     * <p/>
      * This cell factory
      * <ul>
      * <li> sets text using {@link ObjectField#toS(java.lang.Object, java.lang.String)}

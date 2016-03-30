@@ -12,13 +12,13 @@ import util.functional.Functors.Ƒ2;
 /**
  * Event frequency reducer. Consumes events and reduces close temporal successions into (exactly)
  * single event.
- * <p>
+ * <p/>
  * The reducing can work in two ways:
  * <ul>
  * <li>Firing the first event will
  * be instantaneous (as soon as it arrives) and will in effect ignore all future events of the
  * succession.
- * <p>
+ * <p/>
  * <li>Firing the final event will cause all previous events to be accumulated into one event using
  * a reduction function (by default it simply ignores the events until the last one). It is then
  * fired, when the succession ends. Note the dalay between last consumed event of the succession and
@@ -30,7 +30,7 @@ import util.functional.Functors.Ƒ2;
  * again when new events are captured quickly one after another. For this chose {@link #FIRST}.
  * If one needs the most up to date information (perhaps the events update UI), then
  * {@link #LAST} is recommended.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public abstract class EventReducer<E> {
     protected Consumer<E> action;

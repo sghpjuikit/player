@@ -27,7 +27,7 @@ import static main.App.APP;
 import static util.functional.Util.stream;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  *
  * Low level representation of state of player used for
  * serialization of player's state to maintain state across sessions..

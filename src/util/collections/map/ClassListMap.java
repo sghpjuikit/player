@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * Multi value per key version of {@link ClassMap}
  * 
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ClassListMap<E> extends ListMap<E,Class> implements MapByClass<E> {
 

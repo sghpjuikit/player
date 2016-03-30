@@ -33,7 +33,7 @@ import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
- * @author uranium
+ * @author Martin Polakovic
  */
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 

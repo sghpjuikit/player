@@ -12,7 +12,7 @@ import java.util.function.UnaryOperator;
 
 /**
  * List with a preferred item. The item is always contained within list.
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class PrefList<E> extends ArrayList<E> {
     private E pref;

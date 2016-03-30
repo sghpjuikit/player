@@ -19,7 +19,7 @@ import com.google.common.reflect.TypeToken;
 
 /**
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class Put<T> implements XPut<T>, WritableValue<T> {
 

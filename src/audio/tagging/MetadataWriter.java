@@ -59,7 +59,7 @@ import static main.App.APP;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.Util.clip;
-import static util.Util.emptifyString;
+import static util.Util.emptyOr;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.list;
@@ -69,10 +69,10 @@ import static util.functional.Util.split;
  *
  * Manages writing Metadata objects back into files. Handles all tag related data
  * for items.
- * <p>
+ * <p/>
  * The writer must be instantiated for use. It is reusable for an item.
  *
- * @author uranium
+ * @author Martin Polakovic
  */
 @TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
 public class MetadataWriter extends MetaItem {
@@ -531,7 +531,7 @@ public class MetadataWriter extends MetaItem {
      * Convenience method.
      * Adds the given chapter to the metadata or rewrites it if it already exists.
      * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
-     * <p>
+     * <p/>
      * Note: Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
      *
      * @param chapter chapter to ad
@@ -550,7 +550,7 @@ public class MetadataWriter extends MetaItem {
      * Convenience method.
      * Removes the given chapter from the metadata if it already exists or does
      * nothing otherwise.
-     * <p>
+     * <p/>
      * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
      * Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
      *
@@ -703,7 +703,7 @@ public class MetadataWriter extends MetaItem {
      */
     private void setCustomField(String id, String val) {
         boolean empty = val == null || val.isEmpty();
-        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptifyString(tag.getFirst(FieldKey.CUSTOM5)) : "";
+        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
         List<String> tagfields = list(split(ov,SEPARATOR_GROUP.toString()));
         tagfields.removeIf(tagfield -> tagfield.startsWith(id));
         tagfields.add(id+val);
@@ -713,7 +713,7 @@ public class MetadataWriter extends MetaItem {
     }
 
     private boolean hasCustomField(String id) {
-        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptifyString(tag.getFirst(FieldKey.CUSTOM5)) : "";
+        String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
         return ov.contains(SEPARATOR_GROUP + id);
     }
 
@@ -779,7 +779,7 @@ public class MetadataWriter extends MetaItem {
 
     /**
      * Writes all changes to tag.
-     * <p>
+     * <p/>
      * Must never execute on main thread. This method is blocking due to I/O
      * and possibly sleeping the thread.
      *

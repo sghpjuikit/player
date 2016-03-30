@@ -11,13 +11,13 @@ import javafx.fxml.FXMLLoader;
 
 /**
  * Loader enriched by convention loading for simple exceptionless loading.
- * <p>
+ * <p/>
  * Usage example (in a object's constructor for example) :
  * <pre>{@code 
    new ConventionFxmlLoader(this).loadNoEx();
  * }</pre>
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 public class ConventionFxmlLoader extends FXMLLoader {
     
@@ -41,7 +41,7 @@ public class ConventionFxmlLoader extends FXMLLoader {
     
     /** Equivalent to {@link #setConvention(java.lang.Class, java.lang.Object)}
      *  where class is the class of the root-controller. 
-     * <p>
+     * <p/>
      * Note, that using this method for root+controller with inheritance is dangerous
      * as it will look for incorrect fxml resource id subclass attempts to use the
      * same resource as its superclass.
@@ -60,9 +60,9 @@ public class ConventionFxmlLoader extends FXMLLoader {
     
     /** Loads fxml resource of the same name as the object's class from location
      * of the class. Sets the object as both root and controller.
-     * <p>
+     * <p/>
      * For example class MyClass.class would have MyClass.fxml in its location.
-     * <p>
+     * <p/>
      * Equivalent to 
      * <pre>{@code 
         Class c = root_controller.getClass();

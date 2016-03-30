@@ -17,12 +17,12 @@ import util.Util;
 
 /**
  * Denotes Cover represented by a {@link File}.
- * <p>
+ * <p/>
  * This class is fully polymorphic
  * Should never be used directly but instead use the {@Cover} interface
  * and leverage polymorphism.
  *
- * @author Plutonium_
+ * @author Martin Polakovic
  */
 @Immutable
 public class FileCover implements Cover {

@@ -3,7 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- implement get system icon for file properly
 - remove uri builder classes and change plugin model for simple property file with uri building formats
+  Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
 - try player out this implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
@@ -250,7 +252,7 @@ SOLVED (but the underlying cause still deserves attention)
 - Thumbnail border has inconsistent border width/size and is not crisp. See Thumbnail.java file     // medium
 - tables consuming SHIFT key and local shortcuts like SHIFT+ARROWs !work after any
   table receives focus for the 1st time -> useless...
- 
+
 -------------------------------------------------------------------------------- 
 ------------------------------------- NOTES ------------------------------------
 --------------------------------------------------------------------------------

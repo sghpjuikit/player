@@ -50,15 +50,8 @@ import static util.file.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
 import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
-import static util.functional.Util.IDENTITY;
-import static util.functional.Util.IS;
-import static util.functional.Util.ISNT;
-import static util.functional.Util.ISNTØ;
-import static util.functional.Util.ISØ;
-import static util.functional.Util.isInR;
-import static util.functional.Util.list;
-import static util.functional.Util.map;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
+import static util.type.Util.unPrimitivize;
 
 @SuppressWarnings("unchecked")
 public class Functors {
@@ -658,8 +651,8 @@ public class Functors {
         add("<  Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
         add("=  Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
         add(">  More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
-        add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
-        add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
+        add("Is unknown",   FileSize.class,Boolean.class, x -> x.inBytes()==-1);
+        add("Is known",     FileSize.class,Boolean.class, x -> x.inBytes()>-1);
 
         add("Is after",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
         add("Is",           Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
@@ -667,7 +660,7 @@ public class Functors {
         add("Is in the future",  Year.class,Boolean.class, x -> x.compareTo(Year.now())> 0);
         add("Is now",            Year.class,Boolean.class, x -> x.compareTo(Year.now())==0);
         add("Is in the past",    Year.class,Boolean.class, x -> x.compareTo(Year.now())< 0);
-        add("Is leap",   Year.class,Boolean.class, Year::isLeap);
+        add("Is leap",      Year.class,Boolean.class, Year::isLeap);
 
         add("Contains year",RangeYear.class,Boolean.class, RangeYear::contains, Year.class,Year.now());
         add("Is after",     RangeYear.class,Boolean.class, RangeYear::isAfter, Year.class,Year.now());
@@ -775,14 +768,14 @@ public class Functors {
 
     /** Returns all functions taking input I. */
     public static <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
-        PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(util.type.Util.unPrimitivize(i)));
+        PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(unPrimitivize(i)));
         addSelfFunctor(l,i);
         return l;
     }
 
     /** Returns all functions producing output O. */
     public static <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
-        List ll = fsO.get(util.type.Util.unPrimitivize(o));
+        List ll = fsO.get(unPrimitivize(o));
         PrefList l =  ll==null ? new PrefList() : (PrefList) ll;
         addSelfFunctor(l,o);
         return l;
@@ -791,12 +784,12 @@ public class Functors {
     /** Returns all functions taking input I and producing output O. */
     public static <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
         // this is rather messy, but works
-        // we accumulate result for al superclasses & retain first found preferred element, while
+        // we accumulate result for all superclasses & retain first found preferred element, while
         // keeping duplicate elements in check
         PrefList pl = new PrefList();
         Object pref = null;
-        for(Class c : util.type.Util.getSuperClassesInc(util.type.Util.unPrimitivize(i))) {
-            List l = fsIO.get(Objects.hash(c, util.type.Util.unPrimitivize(o)));
+        for(Class c : util.type.Util.getSuperClassesInc(unPrimitivize(i))) {
+            List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
             PrefList ll = l==null ? null : (PrefList) l;
             if(ll!=null) {
                 if(pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
@@ -827,7 +820,7 @@ public class Functors {
 
     public static <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
         @SuppressWarnings("unchecked")
-        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(util.type.Util.unPrimitivize(i), util.type.Util.unPrimitivize(o)));
+        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
         return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
     }
 
@@ -876,8 +869,8 @@ public class Functors {
         @SuppressWarnings("unchecked")
         public PƑ(String name, Class<I> in, Class<O> out, IO<I,O> f) {
             this.name = name;
-            this.in = util.type.Util.unPrimitivize(in);
-            this.out = util.type.Util.unPrimitivize(out);
+            this.in = unPrimitivize(in);
+            this.out = unPrimitivize(out);
             this.ff = f;
         }
 
@@ -933,7 +926,7 @@ public class Functors {
 
         public PƑ1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, Ƒ2<I,P1,O> f) {
             super(_name,i,o,f);
-            this.p1 = util.type.Util.unPrimitivize(p1type);
+            this.p1 = unPrimitivize(p1type);
             this.p1def = p1def;
         }
 
@@ -955,8 +948,8 @@ public class Functors {
 
         public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
             super(_name,i,o,f);
-            this.p1 = util.type.Util.unPrimitivize(p1type);
-            this.p2 = util.type.Util.unPrimitivize(p2type);
+            this.p1 = unPrimitivize(p1type);
+            this.p2 = unPrimitivize(p2type);
             this.p1def = p1def;
             this.p2def = p2def;
         }
@@ -981,9 +974,9 @@ public class Functors {
 
         public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
             super(_name,i,o,f);
-            this.p1 = util.type.Util.unPrimitivize(p1type);
-            this.p2 = util.type.Util.unPrimitivize(p2type);
-            this.p3 = util.type.Util.unPrimitivize(p3type);
+            this.p1 = unPrimitivize(p1type);
+            this.p2 = unPrimitivize(p2type);
+            this.p3 = unPrimitivize(p3type);
             this.p1def = p1def;
             this.p2def = p2def;
             this.p3def = p3def;

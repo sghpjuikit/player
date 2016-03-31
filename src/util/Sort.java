@@ -8,7 +8,7 @@ package util;
 import java.util.Comparator;
 
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.control.TreeTableColumn;
 
 /**
  * Sort type.
@@ -42,14 +42,8 @@ public enum Sort {
      * @return null if c null, c if ascending, reverse to c if descending or no order
      * comparator (which always returns 0) when none.
      */
+    @SuppressWarnings("unchecked")
     public <T> Comparator<T> cmp(Comparator<T> c) {
-        // Generics 101:
-        // The generic parameter used is <T>, not <? super T> as one would expect. This is because we
-        // are not consuming T, we are consuming the very Comparator<T>. Its generic type is already
-        // fully captured by T.
-        // If comparator has type <? super SomeClass> then that is what T captures, i.e., if we were
-        // to use <? super T> we would actually return <? super ? super SomeClass> which I dont even...
-        
         if(c==null) return null;
         switch (this) {
             case ASCENDING: return c;
@@ -57,20 +51,36 @@ public enum Sort {
             // order to preserve the reference of the original comparator, i.e., calling reversed()
             // twice will return the original object. This can be very important.
             case DESCENDING: return c.reversed();
-            case NONE: return util.functional.Util.SAME;
+            case NONE: return (Comparator) util.functional.Util.SAME;
             default: throw new SwitchException(this);
         }
     }
 
-    public static Sort of(SortType sort) {
+    /** @return a corresponding sort for {@link TableColumn.SortType}. */
+    public static Sort of(TableColumn.SortType sort) {
         switch (sort) {
-            case ASCENDING  : return ASCENDING;
-            case DESCENDING : return DESCENDING;
+            case ASCENDING  : return Sort.ASCENDING;
+            case DESCENDING : return Sort.DESCENDING;
             default : throw new SwitchException(sort);
         }
     }
 
+    /** @return a corresponding sort for {@link TreeTableColumn.SortType}. */
+    public static Sort of(TreeTableColumn.SortType sort) {
+        switch (sort) {
+            case ASCENDING  : return Sort.ASCENDING;
+            case DESCENDING : return Sort.DESCENDING;
+            default : throw new SwitchException(sort);
+        }
+    }
+
+    /** @return sort of the given column based on its {@link TableColumn.SortType}. */
     public static Sort of(TableColumn<?,?> column) {
+        return of(column.getSortType());
+    }
+
+    /** @return sort of the given column based on its {@link TreeTableColumn.SortType}. */
+    public static Sort of(TreeTableColumn<?,?> column) {
         return of(column.getSortType());
     }
 }

@@ -30,34 +30,35 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 )
 public final class FileSize implements Comparable<FileSize> {
 
-    /** 1024^1 */
+    /** {@code 1024^1} */
     public static final long Ki = 1024;
-    /** 1024^2 */
+    /** {@code 1024^2} */
     public static final long Mi = Ki*Ki;
-    /** 1024^3 */
+    /** {@code 1024^3} */
     public static final long Gi = Ki*Mi;
-    /** 1024^4 */
+    /** {@code 1024^4} */
     public static final long Ti = Mi*Mi;
-    /** 1024^5 */
+    /** {@code 1024^5} */
     public static final long Pi = Ti*Ki;
-    /** 1024^6 */
+    /** {@code 1024^6} */
     public static final long Ei = Ti*Mi;
-    /** 0 */
+    /** {@code 0} */
     public static final long MIN = 0;
-    /** 2^63-1 */
+    /** {@code 2^63-1} */
     public static final long MAX = Long.MAX_VALUE;
-    /** Not available value. -1 */
+    /** Not available value. {@code -1} */
     public static final long NA = -1;
-    /** Not available string value. "Unknown"*/
+    /** Not available string value. {@code "Unknown"}*/
     public static final String NAString = "Unknown";
 
 
     private final long v;
 
     /**
-     * Creates filesize set to size of the specified file. If the value can not
+     * Creates file size set to size of the specified file. If the value can not
      * be determined it will be set to -l.
-     * @param f non null file to read filesize of
+     *
+     * @param f non null file to read file size of
      * @throws NullPointerException if param null
      */
     public FileSize(File f) {
@@ -65,18 +66,20 @@ public final class FileSize implements Comparable<FileSize> {
     }
 
     /**
-     * Creates filesize set to specified value.
+     * Creates file size set to specified value.
+     *
      * @param bytes amount of bytes as a size value or -l if unknown.
      * @throws IllegalArgumentException if param negative
      */
     public FileSize(long bytes) {
-        if(bytes<-1) throw new IllegalArgumentException("Filesize value must be -1 or larger");
+        if(bytes<-1) throw new IllegalArgumentException("File size value must be -1 or larger");
         v = bytes;
     }
+
     /**
-     * Creates filesize set to specified value.
-     * @param number of bytes as String, optionally with unit appended. Consistent
-     * with toStrong().
+     * Creates file size set to specified value.
+     *
+     * @param bytes of bytes as String, optionally with unit appended. Consistent with toStrong().
      */
     @ParsesFromString
     public FileSize(String bytes) {
@@ -84,10 +87,9 @@ public final class FileSize implements Comparable<FileSize> {
     }
 
     /**
-     * Returns filesize in bytes. Equivalent to {@code new Filesize(f).inBytes;},
-     * but does not create a Filesize object.
+     * Returns file size in bytes. Equivalent to {@code new FileSize(f).inBytes;}, but does not create an object.
      *
-     * @return filesize of the file in bytes
+     * @return size of the file in bytes
      */
     public static long inBytes(File f) {
         long l = f.length();
@@ -98,26 +100,32 @@ public final class FileSize implements Comparable<FileSize> {
     public long inBytes() {
         return v;
     }
+
     /** @return file size in kB or -1 if unknown */
     public long inkBytes() {
         return v==-1 ? -1 : v/Ki;
     }
+
     /** @return file size in MB or -1 if unknown */
     public long inMBytes() {
         return v==-1 ? -1 : v/Mi;
     }
+
     /** @return file size in GB or -1 if unknown */
     public long inGBytes() {
         return v==-1 ? -1 : v/Gi;
     }
+
     /** @return file size in TB or -1 if unknown */
     public long inTBytes() {
         return v==-1 ? -1 : v/Ti;
     }
+
     /** @return file size in PB or -1 if unknown */
     public long inPBytes() {
         return v==-1 ? -1 : v/Pi;
     }
+
     /** @return file size in EB or -1 if unknown */
     public long inEBytes() {
         return v==-1 ? -1 : v/Ei;
@@ -131,6 +139,7 @@ public final class FileSize implements Comparable<FileSize> {
      * <p/>
      * Most appropriate unit prefix is calculated and the value converted. The
      * text value granularity is 0.01 of the used unit. Example 3.56
+     *
      * @return string representation of the object
      */
     @Override
@@ -162,8 +171,7 @@ public final class FileSize implements Comparable<FileSize> {
     /** @return true if the value is the same */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
-        return o instanceof Bitrate && ((FileSize)o).v==v;
+        return (this == o) || (o instanceof FileSize && ((FileSize)o).v == v);
     }
 
     @Override

@@ -107,6 +107,7 @@ import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
+import util.access.fieldvalue.ObjectField;
 import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
@@ -178,7 +179,7 @@ public class App extends Application implements Configurable {
      */
     public static void main(String[] args) {
         launch(args);
-        // LauncherImpl.launchApplication(App.class, preloaderclass, args); launch with preloader
+        // LauncherImpl.launchApplication(App.class, preloaderClass, args); launch with preloader
     }
 
 
@@ -297,10 +298,10 @@ public class App extends Application implements Configurable {
             + "also disable ALT+TAB functionality.")
     public final V<Boolean> taskbarEnabled = new V<>(true,taskbarIcon::setVisible);
 
-    @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
+    @IsConfig(info = "Preferred text when no tag value for field. This value can be overridden.")
     public String TAG_NO_VALUE = "<none>";
 
-    @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
+    @IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
     public String TAG_MULTIPLE_VALUE = "<multi>";
 
 
@@ -411,9 +412,9 @@ public class App extends Application implements Configurable {
         instanceName.add(Component.class, Component::getName);
         instanceName.add(File.class, File::getPath);
         instanceName.add(Collection.class, o -> {
-            Class<?> etype = util.type.Util.getGenericPropertyType(o.getClass());
-            String ename = etype == null || etype==Object.class ? "Item" : className.get(etype);
-            return o.size() + " " + plural(ename,o.size());
+            Class<?> eType = util.type.Util.getGenericPropertyType(o.getClass());
+            String eName = eType == null || eType==Object.class ? "Item" : className.get(eType);
+            return o.size() + " " + plural(eName,o.size());
         });
 
         // add optional object instance -> info string converters
@@ -437,7 +438,7 @@ public class App extends Application implements Configurable {
         instanceInfo.add(PlaylistItem.class, p ->
             stream(PlaylistItem.Field.values())
                     .filter(TypedValue::isTypeString)
-                    .toMap(f -> f.name(), f -> (String)f.getOf(p))
+                    .toMap(ObjectField::name, f -> (String)f.getOf(p))
         );
 
         // register actions
@@ -502,7 +503,7 @@ public class App extends Application implements Configurable {
                 FontAwesomeIcon.FOLDER_OPEN_ALT,
                 Environment::browse),
             new FastColAction<>("Add to new playlist",
-                "Add items to exsisting playlist widget if possible or to a new one if not.",
+                "Add items to existing playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
                 f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))
@@ -662,7 +663,7 @@ public class App extends Application implements Configurable {
             // load windows, layouts, widgets
             // we must apply skin before we load graphics, solely because if skin defines custom
             // Control Skins, it will only have effect when set before control is created
-            // and yes, this means reapplying diferent skin will have no effect in this regard...
+            // and yes, this means reapplying different skin will have no effect in this regard...
             configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
             windowManager.deserialize(normalLoad);
 
@@ -774,7 +775,7 @@ public class App extends Application implements Configurable {
 
                 // attempt 1:
                 // User directory. Unfortunately nothing forbids user (or more likely
-                // developer) to copypaste the app and run it from elsewhere). We want to
+                // developer) to copy-paste the app and run it from elsewhere). We want to
                 // defend against this as well.
                 String udir = vm.getSystemProperties().getProperty("user.dir");
                 if(udir!=null && ud.equals(udir)) i=1;
@@ -884,7 +885,7 @@ public class App extends Application implements Configurable {
 
 /************************************ actions *********************************/
 
-    @IsAction(name = "Open on github", desc = "Opens github page for this application. For developers.")
+    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
     public static void openAppGithubPage() {
         browse(APP.GITHUB_URI);
     }
@@ -918,7 +919,7 @@ public class App extends Application implements Configurable {
                          graphics.setGlyph(empty ? null : icon);
 
                          // really cool when scrolling with scrollbar
-                         // but when using mouse wheel it is very ugyly & distracting
+                         // but when using mouse wheel it is very ugly & distracting
                          // a.play();
                      }
                  });
@@ -951,6 +952,8 @@ public class App extends Application implements Configurable {
                     OverlayPane root = this;
                     getChildren().add(c.load());
                     if(c instanceof Widget) {
+                        ((Widget)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
+                        ((Widget)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
                         ((Widget)c).areaTemp = new ContainerNode() {
                             @Override public Pane getRoot() { return root; }
                             @Override public void show() {}
@@ -1006,7 +1009,7 @@ public class App extends Application implements Configurable {
             ),
             new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
             new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
-            new FastAction<>(GITHUB,Action.get("Open on github")),
+            new FastAction<>(GITHUB,Action.get("Open on Github")),
             new FastAction<>(CSS3,Action.get("Open css guide")),
             new FastAction<>(IMAGE,Action.get("Open icon viewer")),
             new FastAction<>(FOLDER,Action.get("Open app directory"))

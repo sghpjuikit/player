@@ -32,6 +32,5 @@ public final class Password {
     public static Password valueOf(String s) {
         return new Password(s);
     }
-    
-    
+
 }

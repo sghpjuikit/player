@@ -70,8 +70,7 @@ public class Bitrate implements Comparable<Bitrate> {
     /** @return true if the value is the same. */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
-        return o instanceof Bitrate && ((Bitrate)o).bitrate==bitrate;
+        return (this == o) || (o instanceof Bitrate && ((Bitrate) o).bitrate == bitrate);
     }
 
     @Override

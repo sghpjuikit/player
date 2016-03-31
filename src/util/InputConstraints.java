@@ -25,53 +25,49 @@ import javafx.scene.input.KeyEvent;
  *
  * @author Jens Deters
  */
-public class InputConstraints {
+public interface InputConstraints {
 
-    private InputConstraints() {
-        // not needed here
-    }
-
-    public static void noLeadingAndTrailingBlanks(final TextInputControl textField) {
+    static void noLeadingAndTrailingBlanks(final TextInputControl textField) {
         textField.addEventFilter(KeyEvent.KEY_TYPED, createNoLeadingBlanksInputHandler());
-        textField.focusedProperty().addListener(o -> {
-            textField.setText(textField.getText().trim());
-        });
+        textField.focusedProperty().addListener(o ->
+            textField.setText(textField.getText().trim())
+        );
     }
 
-    public static void noLeadingBlanks(final TextInputControl textField) {
+    static void noLeadingBlanks(final TextInputControl textField) {
         textField.addEventFilter(KeyEvent.KEY_TYPED, createNoLeadingBlanksInputHandler());
     }
 
-    public static void noBlanks(final TextInputControl textField) {
+    static void noBlanks(final TextInputControl textField) {
         textField.addEventFilter(KeyEvent.KEY_TYPED, createNoBlanksInputHandler());
-        textField.focusedProperty().addListener(o -> {
-            textField.setText(textField.getText().trim());
-        });
+        textField.focusedProperty().addListener(o ->
+            textField.setText(textField.getText().trim())
+        );
     }
     
-    public static void numbersOnly(final TextInputControl textField, boolean negative, boolean floating) {
+    static void numbersOnly(final TextInputControl textField, boolean negative, boolean floating) {
         numbersOnly(textField, Integer.MAX_VALUE, negative, floating);
     }
 
-    public static void numbersOnly(final TextInputControl textField, int maxLenth, boolean negative, boolean floating) {
-        textField.addEventFilter(KeyEvent.KEY_TYPED, createNumbersOnlyInputHandler(negative ? 1+maxLenth : maxLenth, negative, floating));
-        textField.focusedProperty().addListener(o -> {
-            textField.setText(textField.getText().trim());
-        });
+    static void numbersOnly(final TextInputControl textField, int maxLength, boolean negative, boolean floating) {
+        textField.addEventFilter(KeyEvent.KEY_TYPED, createNumbersOnlyInputHandler(negative ? 1+maxLength : maxLength, negative, floating));
+        textField.focusedProperty().addListener(o ->
+            textField.setText(textField.getText().trim())
+        );
     }
 
-    public static void lettersOnly(final TextInputControl textField) {
+    static void lettersOnly(final TextInputControl textField) {
         lettersOnly(textField, Integer.MAX_VALUE);
     }
 
-    public static void lettersOnly(final TextInputControl textField, int maxLenth) {
-        textField.addEventFilter(KeyEvent.KEY_TYPED, createLettersOnlyInputHandler(maxLenth));
-        textField.focusedProperty().addListener(o -> {
-            textField.setText(textField.getText().trim());
-        });
+    static void lettersOnly(final TextInputControl textField, int maxLength) {
+        textField.addEventFilter(KeyEvent.KEY_TYPED, createLettersOnlyInputHandler(maxLength));
+        textField.focusedProperty().addListener(o ->
+                textField.setText(textField.getText().trim())
+        );
     }
 
-    public static EventHandler<KeyEvent> createNoLeadingBlanksInputHandler() {
+    static EventHandler<KeyEvent> createNoLeadingBlanksInputHandler() {
         return (KeyEvent event) -> {
             if (event.getSource() instanceof TextInputControl) {
                 TextInputControl textField = (TextInputControl) event.getSource();
@@ -82,21 +78,22 @@ public class InputConstraints {
         };
     }
 
-    public static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength, boolean negative, boolean floating) {
+    static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength, boolean negative, boolean floating) {
         String n = negative ? "//-" : "";
         String f = floating ? "." : "";
         String pattern = "[0-9" + f + n + "]";
         return createPatternInputHandler(maxLength, pattern);
     }
-    public static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength) {
+
+    static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength) {
         return createPatternInputHandler(maxLength, "[0-9.//-]");
     }
 
-    public static EventHandler<KeyEvent> createLettersOnlyInputHandler(int maxLength) {
+    static EventHandler<KeyEvent> createLettersOnlyInputHandler(int maxLength) {
         return createPatternInputHandler(maxLength, "[A-Za-z]");
     }
 
-    public static EventHandler<KeyEvent> createNoBlanksInputHandler() {
+    static EventHandler<KeyEvent> createNoBlanksInputHandler() {
         return (KeyEvent event) -> {
             if (event.getSource() instanceof TextInputControl) {
                 if (" ".equals(event.getCharacter())) {
@@ -106,7 +103,7 @@ public class InputConstraints {
         };
     }
 
-    public static EventHandler<KeyEvent> createPatternInputHandler(int maxLength, String pattern) {
+    static EventHandler<KeyEvent> createPatternInputHandler(int maxLength, String pattern) {
         return e -> {
             if (e.getSource() instanceof TextInputControl) {
                 TextInputControl textField = (TextInputControl) e.getSource();

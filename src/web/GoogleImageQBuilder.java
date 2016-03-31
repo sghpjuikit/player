@@ -9,16 +9,16 @@ import java.net.URI;
 
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
-import util.parsing.StringParseStrategy.From;
 import util.plugin.IsPlugin;
 
+import static util.parsing.StringParseStrategy.From.ANNOTATED_METHOD;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
  * @author Martin Polakovic
  */
 @IsPlugin
-@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Google" )
+@StringParseStrategy( from = ANNOTATED_METHOD, to = CONSTANT, constant = "Google" )
 public class GoogleImageQBuilder implements SearchUriBuilder {
 
     @ParsesFromString

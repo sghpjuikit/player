@@ -37,9 +37,11 @@ public class GeneralPlayer {
 
     private final JavaSoundPlayer fp = new JavaSoundPlayer();
     private final JavaFxPlayer dp = new JavaFxPlayer();
+//    private final GPlayer gp = new GPlayer();
     private Play p;
 
     private Play getPlayer(Item i) {
+//        return gp;
         AudioFileFormat f = i.getFormat();
         if(!f.isSupported(Use.PLAYBACK)) return null;
         if(f==mp3 || f==wav || f==mp4 || f==m4a) return dp;

@@ -51,6 +51,7 @@ import util.graphics.drag.Placeholder;
 
 import static AppLauncher.AppLauncher.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static AppLauncher.AppLauncher.CellSize.NORMAL;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -112,6 +113,8 @@ public class AppLauncher extends ClassController {
     final V<FileField> sortBy = new V<>(NAME, this::resort);
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);
+    @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
+    final V<Boolean> closeOnRightClick = new V<>(false);
 
     public AppLauncher() {
         setPrefSize(500,500);
@@ -134,6 +137,10 @@ public class AppLauncher extends ClassController {
                 Item si = grid.selectedItem.get();
                 if(si!=null) doubleClickItem(si);
             }
+        });
+        grid.setOnMouseClicked(e -> {
+            if(e.getButton()==SECONDARY && closeOnRightClick.get())
+                widget.areaTemp.close();
         });
         setOnScroll(Event::consume);
 

@@ -16,7 +16,8 @@ public class LazyR<V> extends R<V> {
     protected boolean isSet = false;
 
     /**
-     * @param builder produces the instance when it is frst accessed
+     * @param builder produces the instance when it is first accessed. Builder can produce null. It will never execute
+     *                more than once.
      */
     public LazyR(Supplier<V> builder) {
         Objects.requireNonNull(builder);
@@ -38,11 +39,13 @@ public class LazyR<V> extends R<V> {
         super.set(val);
     }
 
+    @Override
     public V get(V or) {
         if(!isSet) set(or);
         return v;
     }
 
+    @Override
     public V get(Supplier<V> or) {
         if(!isSet) set(or.get());
         return v;

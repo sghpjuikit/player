@@ -49,6 +49,7 @@ import com.sun.javafx.scene.control.VirtualScrollBar;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import main.App;
+import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
 import util.collections.Tuple3;
 import util.functional.Functors;
@@ -327,10 +328,16 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                     in -> Functors.getIO(in, Boolean.class),
                     in -> Functors.getPrefIO(in, Boolean.class)
                 );
+                @SuppressWarnings("unchecked")
+                ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
+                g.setPrefTypeSupplier(() -> tuple(prefField.toString(), prefField.getType(), prefField));
 //                g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
                 g.setData(attributes.get());
                 return g;
             });
+            @SuppressWarnings("unchecked")
+            ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
+            setPrefTypeSupplier(() -> tuple(prefField.toString(), prefField.getType(), prefField));
 //            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
 //            onItemChange = getSkinnable().itemsFiltered::setPredicate;
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));

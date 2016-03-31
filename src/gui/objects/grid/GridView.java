@@ -24,10 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.grid;
 
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -51,13 +51,12 @@ import util.access.V;
 import util.functional.Functors.Ƒ1;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toCollection;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.async.Async.runLater;
 import static util.functional.Util.stream;
 
 /**
- * A GridView is a virtualised control for displaying items in a
+ * A GridView is a virtualized control for displaying items in a
  * visual, scrollable, grid-like fashion. In other words, whereas a ListView
  * shows one {@link ListCell} per row, in a GridView there will be zero or more
  * {@link GridCell} instances on a single row.
@@ -71,7 +70,6 @@ import static util.functional.Util.stream;
  * Because each {@link GridCell} extends from {@link Cell}, the same approach
  * of cell factories that is taken in other UI controls is also taken in GridView.
  * This has two main benefits:
- *
  * <ol>
  *   <li>GridCells are created on demand and without user involvement,
  *   <li>GridCells can be arbitrarily complex. A simple GridCell may just have
@@ -79,8 +77,6 @@ import static util.functional.Util.stream;
  *   GridCell can have an arbitrarily complex scenegraph set inside its
  *   {@link GridCell#graphicProperty() graphic property} (as it accepts any Node).
  * </ol>
- *
- *
  *
  * @see GridCell
  */
@@ -91,7 +87,6 @@ public class GridView<T,F> extends Control {
     final FilteredList<T> itemsFiltered;
     final SortedList<T> itemsSorted;
     final Ƒ1<T,F> filterByMapper;
-
 
     /*
      * Predicate that filters the table list. Null predicate will match all
@@ -120,16 +115,17 @@ public class GridView<T,F> extends Control {
         this(type, filterByMapper, null);
     }
 
-    /** Convenience consturctor. Creates an empty GridView with specified sizes. */
-    public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, double cellWidth, double cellHeight, double vgap, double hgap) {
+    /** Convenience constructor. Creates an empty GridView with specified sizes. */
+    public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, double cellWidth, double cellHeight, double vGap, double hGap) {
         this(type, filterByMapper, null);
         setCellWidth(cellWidth);
         setCellHeight(cellHeight);
-        setHorizontalCellSpacing(hgap);
-        setVerticalCellSpacing(vgap);
+        setHorizontalCellSpacing(hGap);
+        setVerticalCellSpacing(vGap);
     }
 
     /** Convenience constructor. Creates a default GridView with the provided items. */
+    @SuppressWarnings("unchecked")
     public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, ObservableList<T> backingList) {
         this.type = type;
         this.filterByMapper = filterByMapper==null ? x -> (F)x : filterByMapper;
@@ -146,7 +142,7 @@ public class GridView<T,F> extends Control {
         // Decrease scrolling speed
         // The default scrolling speed is simply too much. On my system its more than a full
         // vertical 'view' which is very confusing as user loses any indication of scrolling amount.
-        // impl: consume scroll events and refire with smaller vertical values
+        // impl: consume scroll events and re-fire with smaller vertical values
         double factor = 1/3d;
         addEventFilter(ScrollEvent.ANY, e -> {
             if(scrollFlag) {
@@ -389,15 +385,17 @@ public class GridView<T,F> extends Control {
 
     private static final String DEFAULT_STYLE_CLASS = "grid-view";
 
-    private static class StyleableProperties {
-        private static final CssMetaData<GridView<?,?>,Number> HORIZONTAL_CELL_SPACING =
+    private interface StyleableProperties {
+        CssMetaData<GridView<?,?>,Number> HORIZONTAL_CELL_SPACING =
             new CssMetaData<>("-fx-horizontal-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
 
-            @Override public Double getInitialValue(GridView<?,?> node) {
+            @Override
+            public Double getInitialValue(GridView<?,?> node) {
                 return node.getHorizontalCellSpacing();
             }
 
-            @Override public boolean isSettable(GridView<?,?> n) {
+            @Override
+            public boolean isSettable(GridView<?,?> n) {
                 return n.horizontalCellSpacing == null || !n.horizontalCellSpacing.isBound();
             }
 
@@ -408,14 +406,16 @@ public class GridView<T,F> extends Control {
             }
         };
 
-        private static final CssMetaData<GridView<?,?>,Number> VERTICAL_CELL_SPACING =
+        CssMetaData<GridView<?,?>,Number> VERTICAL_CELL_SPACING =
             new CssMetaData<>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
 
-            @Override public Double getInitialValue(GridView<?,?> node) {
+            @Override
+            public Double getInitialValue(GridView<?,?> node) {
                 return node.getVerticalCellSpacing();
             }
 
-            @Override public boolean isSettable(GridView<?,?> n) {
+            @Override
+            public boolean isSettable(GridView<?,?> n) {
                 return n.verticalCellSpacing == null || !n.verticalCellSpacing.isBound();
             }
 
@@ -426,14 +426,16 @@ public class GridView<T,F> extends Control {
             }
         };
 
-        private static final CssMetaData<GridView<?,?>,Number> CELL_WIDTH =
+        CssMetaData<GridView<?,?>,Number> CELL_WIDTH =
             new CssMetaData<>("-fx-cell-width", StyleConverter.getSizeConverter(), 64d) {
 
-            @Override public Double getInitialValue(GridView<?,?> node) {
+            @Override
+            public Double getInitialValue(GridView<?,?> node) {
                 return node.getCellWidth();
             }
 
-            @Override public boolean isSettable(GridView<?,?> n) {
+            @Override
+            public boolean isSettable(GridView<?,?> n) {
                 return n.cellWidth == null || !n.cellWidth.isBound();
             }
 
@@ -444,14 +446,16 @@ public class GridView<T,F> extends Control {
             }
         };
 
-        private static final CssMetaData<GridView<?,?>,Number> CELL_HEIGHT =
+        CssMetaData<GridView<?,?>,Number> CELL_HEIGHT =
             new CssMetaData<>("-fx-cell-height", StyleConverter.getSizeConverter(), 64d) {
 
-            @Override public Double getInitialValue(GridView<?,?> node) {
+            @Override
+            public Double getInitialValue(GridView<?,?> node) {
                 return node.getCellHeight();
             }
 
-            @Override public boolean isSettable(GridView<?,?> n) {
+            @Override
+            public boolean isSettable(GridView<?,?> n) {
                 return n.cellHeight == null || !n.cellHeight.isBound();
             }
 
@@ -462,9 +466,9 @@ public class GridView<T,F> extends Control {
             }
         };
 
-        static final List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(Control.getClassCssMetaData())
+        List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(Control.getClassCssMetaData())
                 .append(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT)
-                .collect(toCollection(() -> unmodifiableList(new ArrayList<>())));
+                .toList());
     }
 
     /**
@@ -475,9 +479,6 @@ public class GridView<T,F> extends Control {
         return StyleableProperties.STYLEABLES;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
         return getClassCssMetaData();

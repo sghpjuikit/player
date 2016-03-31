@@ -6,15 +6,19 @@
 package util;
 
 /**
- * Runtime exception for switch cases that represent programming error and must never execute.
+ * Runtime exception for switch cases that represent programming error and must never execute. This can defend against
+ * code modifications, e.g., adding an enum constant. Use in default case, or case that must never execute.
+ *
  * @author Martin Polakovic
  */
 public class SwitchException extends RuntimeException {
 
     /**
-     * @param o  value of the switch case - the object passed into switch statement.
+     * Constructs new switch exception.
+     *
+     * @param switchValue value of the switch case - the object passed into switch statement.
      */
-    public SwitchException(Object o) {
-        super("Illegal switch case (unimplemented or forbidden): " + o);
+    public SwitchException(Object switchValue) {
+        super("Illegal switch case (unimplemented or forbidden): " + switchValue);
     }
 }

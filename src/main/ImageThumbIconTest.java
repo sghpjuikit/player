@@ -8,7 +8,6 @@ import java.util.HashMap;
 import javax.swing.filechooser.FileSystemView;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
@@ -22,14 +21,17 @@ import javafx.stage.Stage;
 
 import util.file.Util;
 
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static javafx.collections.FXCollections.observableArrayList;
+
 // http://stackoverflow.com/questions/15629069/extract-application-icons-from-desktop-folder-to-application
 // http://stackoverflow.com/questions/15149565/how-does-jtree-display-file-name/15150756#15150756
 // http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
 // http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
 public class ImageThumbIconTest extends Application {
 
-    ListView<String> list = new ListView<String>();
-    ObservableList<String> data = FXCollections.observableArrayList(
+    ListView<String> list = new ListView<>();
+    ObservableList<String> data = observableArrayList(
             "C:\\software\\CCleaner\\CCleaner.exe",
             "C:\\software\\Sublime Text 2.0.2 (P)\\sublime_text.exe",
             "a.msg", "a1.msg", "b.txt", "c.pdf",
@@ -96,7 +98,7 @@ public class ImageThumbIconTest extends Application {
 //        file.i
         String key = "exe".equals(ext) ? Util.getName(file) : ext;
 
-        return mapOfFileExtToSmallIcon.computeIfAbsent(key, key_ -> {
+        return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
             javax.swing.Icon jswingIcon = null;
             if (file.exists()) {
                 jswingIcon = getJSwingIconFromFileSystem(file);
@@ -105,11 +107,9 @@ public class ImageThumbIconTest extends Application {
                 try {
                     tempFile = File.createTempFile("icon", ext);
                     jswingIcon = getJSwingIconFromFileSystem(tempFile);
-                }
-                catch (IOException ignored) {
+                } catch (IOException ignored) {
                     // Cannot create temporary file.
-                }
-                finally {
+                } finally {
                     if (tempFile != null) tempFile.delete();
                 }
             }
@@ -118,10 +118,9 @@ public class ImageThumbIconTest extends Application {
     }
 
     private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
-        BufferedImage bufferedImage = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(),
-                BufferedImage.TYPE_INT_ARGB);
-        jswingIcon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);
-        return SwingFXUtils.toFXImage(bufferedImage, null);
+        BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
+        jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
+        return SwingFXUtils.toFXImage(image, null);
     }
 
 }

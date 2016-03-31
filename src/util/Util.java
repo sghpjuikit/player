@@ -55,20 +55,12 @@ public interface Util {
     }
 
     /**
-     * Compares two Artwork objects.
-     * Artwork's equals() method does not return true properly. Use this method
-     * instead.
-     * <p/>
-     * Method is deprecated as Artwork should not be used anyway. The method
-     * works well though.
+     * Artwork's equals() method does not return true properly. Use this method instead.
      *
      * @return true iff artwork are equal
      */
-    @Deprecated
-    static boolean equals(Artwork art1, Artwork art2) {
-        if (art1 == null && art2 == null) return true;
-        if (art1 == null || art2 == null) return false;
-        return Arrays.equals(art1.getBinaryData(), art2.getBinaryData());
+    static boolean equals(Artwork a1, Artwork a2) {
+        return (a1==null && a2==null) || (a1!=null && a2!=null && Arrays.equals(a1.getBinaryData(), a2.getBinaryData()));
     }
 
     /**
@@ -194,32 +186,20 @@ public interface Util {
 
     /**
      * Checks and formats String so it can be safely used for naming a File.
-     * Replaces all forbidden characters with "_".
+     * Replaces any {@code '/', '\', ':', '*', '?', '<', '>', '|'} with '_'.
+     *
+     * @return string with any filename forbidden character replaced by '_'
      */
     static String filenamizeString(String str) {
-        String out = str;
-               out = out.replace("/", "_");
-               out = out.replace("\\", "_");
-               out = out.replace(":", "_");
-               out = out.replace("*", "_");
-               out = out.replace("?", "_");
-               out = out.replace("<", "_");
-               out = out.replace(">", "_");
-               out = out.replace("|", "_");
-        return out;
+        return str.replaceAll("[/\\\\:*?<>|]", "_");
     }
 
-    /**
-     * Converts first letter of the string to upper case.
-     */
+    /** Converts first letter of the string to upper case. */
     static String capitalize(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
-    /**
-     * Converts first letter of the string to upper case and all others into
-     * lower case.
-     */
+    /** Converts first letter of the string to upper case and all others into lower case. */
     static String capitalizeStrong(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
@@ -244,7 +224,7 @@ public interface Util {
     /** @return true if the string is palindrome (empty string is palindrome) */
     static boolean isPalindrome(String s) {
         int n = s.length();
-        for( int i = 0; i < n/2; i++ )
+        for(int i = 0; i < n/2; i++)
             if (s.charAt(i) != s.charAt(n-i-1)) return false;
         return true;
     }
@@ -453,9 +433,9 @@ public interface Util {
         // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
         Dimension result = null;
         String suffix = util.file.Util.getSuffix(f.toURI());
-        Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(suffix);
-        if (iter.hasNext()) {
-            ImageReader reader = iter.next();
+        Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(suffix);
+        if (readers.hasNext()) {
+            ImageReader reader = readers.next();
             try( ImageInputStream stream = ImageIO.createImageInputStream(f) ) {
                 reader.setInput(stream);
                 int ii = reader.getMinIndex(); // 1st image index
@@ -488,38 +468,40 @@ public interface Util {
     }
 
     /**
-     * Logarithm
+     * Logarithm.
+     *
      * @param base of the log
-     * @param i number to calculate log for
-     * @return base specified logarithm of the number
+     * @param number number to calculate log for
+     * @return logarithm of the number
      */
-    static int log(int base, int i) {
+    static int log(int base, int number) {
         short p = 0;
-        while(pow(base, p) <= i)
+        while(pow(base, p) <= number)
             p++;
         return p;
     }
 
     /**
-     * Return number of digits of the number.
+     * @return the number of digits of the number.
      */
     static int digits(int number) {
         int x = number;
-        int cifres = 0;
+        int digits = 0;
         while (x > 0) {
             x /= 10;
-            cifres++;
+            digits++;
         }
-        return cifres;
+        return digits;
     }
 
     /**
-     * Creates zero-padded string - string of a number with '0' added in to
+     * Creates left zero-padded string - string of a number with '0' added in to
      * maintain consistency in number of length.
      *
      * @param n number to turn onto zero-padded string
      * @param max number to zero-pad to
      * @param ch character to use. Notable characters are: ' ' or '0'
+     * @return left zero-padded string to specified length
      */
     static String zeroPad(int n, int max, char ch) {
         int diff = digits(max) - digits(n);
@@ -531,6 +513,7 @@ public interface Util {
 
     /**
      * Examples: 9 for 1-10, 99 for 10-99, 999 for numbers 100-999, etc.
+     *
      * @return largest number of the same decimal length as specified number.
      */
     static int decMin1(int n) {
@@ -654,7 +637,7 @@ public interface Util {
     }
 
     /** Returns sum of squares of all numbers. */
-    static double sumsqr(double... numbers) {
+    static double sqrΣ(double... numbers) {
         double Σ = 0;
         for(double x : numbers)
             Σ += x*x;
@@ -683,7 +666,7 @@ public interface Util {
      * Returns n random elements from the source list. Source list wont be changed.
      *
      * @return specified number of random elements from the list
-     * @throws IndexOutOfBoundsException if list doesnt have enough elements
+     * @throws IndexOutOfBoundsException if list does not have enough elements
      */
     private static <T> ArrayList<T> randN(int amount, List<T> source){
         if(amount>=source.size()) return new ArrayList<>(source);

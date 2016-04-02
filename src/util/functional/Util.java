@@ -1108,16 +1108,26 @@ public interface Util {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
     }
+
     static List<String> split(String txt, String regex, int i) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).collect(toList());
+    }
+
+    static List<String> splitToNonemptyOrnull(String txt, String regex, int i) {
+        if(txt.isEmpty()) return EMPTY_LIST;
+        String[] a = txt.split(regex, i);
+        if(a.length<i) return null;
+        for(String s : a)
+            if(s==null || s.isEmpty())
+                return null;
+        return Stream.of(a).collect(toList());
     }
 
     static List<String> split(String txt, String regex) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).collect(toList());
     }
-
 
     /**
      * Finds the smallest integer key greater than or equal to specified value, that the map

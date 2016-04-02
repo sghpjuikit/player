@@ -6,7 +6,7 @@
 - implement get system icon for file properly
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
-- try player out this implementation from gstreamer org.gstreamer.elements.PlayBin2.
+- try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
 - GridView selection
@@ -109,12 +109,7 @@
   layout
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random playorder
-- Generic FileType class, particularly need separation on 'groups' like
-  audio, video, image, etc... See:
-  http://stackoverflow.com/questions/51438/getting-a-files-mime-type-in-java
-  http://stackoverflow.com/questions/7904497/is-there-an-enum-with-mime-types-in-java
-  http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/net/MediaType.html
-- unify table column resizing, namely getMain column and autoresize with 
+- unify table column resizing, namely getMain column and autoresize with
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off autoresize columns option
@@ -125,7 +120,8 @@
     - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action
 - annoying java "bugs" (problem scope == entire application)
     - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
--------------------------------------------------------------------------------- 
+
+--------------------------------------------------------------------------------
 --------------------------------- TESTING  -------------------------------------
 --------------------------------------------------------------------------------
 

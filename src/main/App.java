@@ -121,6 +121,7 @@ import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.Util;
 import util.file.ImageFileFormat;
+import util.file.mimetype.MimeTypes;
 import util.functional.Functors;
 import util.graphics.MouseCapture;
 import util.plugin.IsPlugin;
@@ -260,6 +261,11 @@ public class App extends Application implements Configurable {
     public boolean initialized = false;
     private boolean close_prematurely = false;
 
+    /**
+     * File mime type map.
+     * Initialized with the built-in mime types definitions.
+     */
+    public final MimeTypes mimeTypes = new MimeTypes();
     public final WindowManager windowManager = new WindowManager();
     public final WidgetManager widgetManager = new WidgetManager(windowManager);
     public final ServiceManager services = new ServiceManager();
@@ -475,14 +481,14 @@ public class App extends Application implements Configurable {
                 items -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addItems(items))
             ),
             new FastColAction<>("Add to existing playlist",
-                "Add items to exsisting playlist widget if possible or to a new one if not.",
+                "Add items to existing playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 items -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addItems(items))
             ),
             new FastColAction<>("Update from file",
-                "Updates library metadata of the specified items from their files. The difference betwee"
-                + "database and real metadata information is a result of a bug or file edited externally. "
-                + "After this library will contain uptodate metadata for specified items.",
+                "Updates library data for the specified items from their file metadata. The difference between the data "
+                + "in the database and real metadata cab be a result of a bug or file edited externally. "
+                + "After this, the library will be synchronized with the file data.",
                 FontAwesomeIcon.REFRESH,
                 Player::refreshItems // this needs to be asynchronous
             ),
@@ -952,9 +958,9 @@ public class App extends Application implements Configurable {
                     OverlayPane root = this;
                     getChildren().add(c.load());
                     if(c instanceof Widget) {
-                        ((Widget)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
-                        ((Widget)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
-                        ((Widget)c).areaTemp = new ContainerNode() {
+                        ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
+                        ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
+                        ((Widget<?>)c).areaTemp = new ContainerNode() {
                             @Override public Pane getRoot() { return root; }
                             @Override public void show() {}
                             @Override public void hide() {}

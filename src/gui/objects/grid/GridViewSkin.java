@@ -72,7 +72,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private final SkinDelegate skin;
     private final VBox root;
     private final StackPane filterPane = new StackPane();
-    private final VirtualFlow<GridRow<T,F>> f; // accesses superclass' flow field, dont name "flow"!
+    private final VirtualFlow<GridRow<T,F>> f; // accesses superclass' flow field, do not name "flow"!
 
     @SuppressWarnings("unchecked")
     public GridViewSkin(GridView<T,F> control) {
@@ -457,9 +457,9 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         if(i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
 
         int itemCount = getSkinnable().getItemsShown().size();
-        int imin = 0;
-        int imax = itemCount-1;
-        if(itemCount==0 || i==selectedI || !isInRangeInc(i,imin,imax)) return;
+        int iMin = 0;
+        int iMax = itemCount-1;
+        if(itemCount==0 || i==selectedI || !isInRangeInc(i,iMin,iMax)) return;
 
         selectNone();
 

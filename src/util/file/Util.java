@@ -21,6 +21,7 @@ import javafx.scene.paint.Color;
 import util.file.AudioFileFormat.Use;
 
 import static main.App.APP;
+import static util.Util.emptyOr;
 import static util.Util.filenamizeString;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -358,6 +359,7 @@ public interface Util {
      * {@link #getName(java.io.File)}.
      * <p/>
      * If the path part of the URI is empty or null empty string will be returned.
+     *
      * @param u
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
@@ -366,7 +368,7 @@ public interface Util {
      */
     static String getName(URI u) {
         String p = u.getPath();
-        if(p==null || p.isEmpty()) return "";   // shouldnt happen ever, but just in case some badly damaged http URL gets through here
+        if(p==null || p.isEmpty()) return "";   // badly damaged http URL could get here
         int i = p.lastIndexOf('/');
         if(i==-1 || p.length()<2) return p;     // another exceptional state check
         p = p.substring(i+1);       // remove leading '/' character
@@ -374,97 +376,98 @@ public interface Util {
         return (i==-1) ? p : p.substring(0, i);
     }
 
-     /**
-      * Writes a textual file with specified content, name and location.
-      *
-      * @param filepath file to create. If exists, it will be overwritten.
-      * Do not use .txt extension as it can cause problems with newline characters.
-      * @param content Text that will be written to the file.
-      * @return true if no IOException occurs else false
-      * @throws RuntimeException when param is directory
-      */
-     static boolean writeFile(String filepath, String content) {
-          return writeFile(new File(filepath), content);
-     }
+    /**
+     * Writes a textual file with specified content, name and location.
+     *
+     * @param filepath file to create. If exists, it will be overwritten.
+     *                 Do not use .txt extension as it can cause problems with newline characters.
+     * @param content  Text that will be written to the file.
+     * @return true if no IOException occurs else false
+     * @throws RuntimeException when param is directory
+     */
+    static boolean writeFile(String filepath, String content) {
+        return writeFile(new File(filepath), content);
+    }
 
-     static boolean writeFile(File file, String content) {
+    static boolean writeFile(File file, String content) {
         if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
         try (
-            Writer writerf = new FileWriter(file);
-            Writer writer = new BufferedWriter(writerf)
-        ){
+                Writer writerf = new FileWriter(file);
+                Writer writer = new BufferedWriter(writerf)
+        ) {
             writer.write(content);
             return true;
         } catch (IOException e) {
-            log(Util.class).error("Couldnt save file: {}", file,e);
+            log(Util.class).error("Couldnt save file: {}", file, e);
             return false;
         }
-     }
+    }
 
-     /**
-      * Reads file as a text file and returns all its content as list of all lines,
-      * with newlines removed. Joining the lines with '\n' will build the original
-      * content.
-      * @param filepath
-      * @return List of lines or empty list (if empty or on error). Never null.
-      */
-     static List<String> readFileLines(String filepath) {
+    /**
+     * Reads file as a text file and returns all its content as list of all lines,
+     * with newlines removed. Joining the lines with '\n' will build the original
+     * content.
+     *
+     * @param filepath
+     * @return List of lines or empty list (if empty or on error). Never null.
+     */
+    static List<String> readFileLines(String filepath) {
         try {
             return Files.readAllLines(Paths.get(filepath));
         } catch (IOException e) {
-            if(!(e.getCause() instanceof NoSuchFileException))
-                log(Util.class).error("Problems reading file {}. File wasnt read.", filepath,e);
+            if (!(e.getCause() instanceof NoSuchFileException))
+                log(Util.class).error("Problems reading file {}. File wasnt read.", filepath, e);
             return new ArrayList<>();
         }
-     }
+    }
 
-     static Stream<String> readFileLines(File f) {
+    static Stream<String> readFileLines(File f) {
         try {
             return Files.lines(f.toPath());
         } catch (IOException e) {
-            if(!(e.getCause() instanceof NoSuchFileException))
+            if (!(e.getCause() instanceof NoSuchFileException))
                 log(Util.class).error("Problems reading file {}. File wasnt read.", f);
             return Stream.empty();
         }
-     }
+    }
 
-     /**
-      * Reads files as key-value storage. Empty lines or lines starting with '#'
-      * (comment) will be ignored.
-      * <pre>{@code
-      * File format per line (input):
-      *     "key : value"
-      * Map of lines (output):
-      *     <String key, String value>
-      * }</pre>
-      *
-      * @param file file to read
-      * @return map of key-value pairs
-      */
-     static Map<String,String> readFileKeyValues(File file) {
-        Map<String,String> m = new HashMap<>();
-        readFileLines(file.getAbsolutePath())
-             .forEach(line -> {
-                String l = util.Util.emptyOr(line);
-                if (!l.isEmpty() && !l.startsWith("#")) {
-                    String key = l.substring(0, l.indexOf(" : "));
-                    String value = l.substring(l.indexOf(" : ")+3);
-                    m.put(key, value);
-                }
-             });
+    /**
+     * Reads files as key-value storage. Empty lines or lines starting with '#'
+     * (comment) will be ignored.
+     * <pre>{@code
+     * File format per line (input):
+     *     "key : value"
+     * Map of lines (output):
+     *     <String key, String value>
+     * }</pre>
+     *
+     * @param file file to read
+     * @return map of key-value pairs
+     */
+    static Map<String, String> readFileKeyValues(File file) {
+        Map<String, String> m = new HashMap<>();
+        readFileLines(file.getAbsolutePath()).forEach(line -> {
+            String l = emptyOr(line);
+            if (!l.isEmpty() && !l.startsWith("#")) {
+                String key = l.substring(0, l.indexOf(" : "));
+                String value = l.substring(l.indexOf(" : ") + 3);
+                m.put(key, value);
+            }
+        });
         return m;
-     }
+    }
+
 
     static void deleteFile(File f) {
         if (!f.exists()) return;
         try {
-           boolean success = f.delete();
-           if (!success) {
-               log(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
-               f.deleteOnExit();
-           }
-        } catch(SecurityException e) {
-            log(util.Util.class).error("Coud not delete file {}", f,e);
+            boolean success = f.delete();
+            if (!success) {
+                log(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
+                f.deleteOnExit();
+            }
+        } catch (SecurityException e) {
+            log(util.Util.class).error("Coud not delete file {}", f, e);
         }
     }
 
@@ -673,15 +676,19 @@ public interface Util {
     /**
      * Returns suffix after last '.' character or empty string if doesn't contain the character.
      *
-     * @return suffix after last '.' or empty string
+     * @return suffix after last '.' or empty string if does not contain '.'
      * @throws java.lang.NullPointerException if parameter null
      */
     static String getSuffix(String path) {
         int p = path.lastIndexOf('.');
-        return (p == - 1) ? "" : path.substring(p + 1);
+        return (p > -1) ? "" : path.substring(p + 1);
     }
 
-    /** Deletes the file and if it denotes a directory, all its content too. */
+    /**
+     * Deletes the file and if it denotes a directory, all its content too.
+     *
+     * @throws java.lang.NullPointerException if parameter null
+     */
     static void removeDir(File dir) {
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();

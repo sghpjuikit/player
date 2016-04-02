@@ -25,9 +25,7 @@ import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
-import util.SingleR;
-import util.Sort;
-import util.SwitchException;
+import util.*;
 import util.access.fieldvalue.FileField;
 import util.access.V;
 import util.access.VarEnum;
@@ -40,6 +38,7 @@ import util.conf.Config.VarList;
 import util.conf.IsConfig;
 import util.file.*;
 import util.file.AudioFileFormat.Use;
+import util.file.Util;
 import util.functional.Functors.PƑ0;
 import util.graphics.drag.Placeholder;
 
@@ -53,6 +52,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
+import static util.Util.capitalize;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.FX;
 import static util.async.Async.newSingleDaemonThreadExecutor;
@@ -90,27 +90,27 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
+    final VarList<File> files = new VarList<>(() -> new File("C:\\"), f -> Config.forValue(File.class, "File", f));
 
-    private final GridView<Item,File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width,NORMAL.height,5,5);
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width, NORMAL.height, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
     private volatile boolean isResizing = false;
     private volatile long visitId = 0;
-    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS,"Click to view directory", () -> {
+    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to view directory", () -> {
         File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowOwner.getStage());
-        if(dir!=null) files.list.setAll(dir);
+        if (dir != null) files.list.setAll(dir);
     });
-    private final SingleR<PƑ0<File,Boolean>,?> filterPredicate = new SingleR<>(this::buildFilter);
+    private final SingleR<PƑ0<File, Boolean>, ?> filterPredicate = new SingleR<>(this::buildFilter);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));
     @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<>("All", () -> map(filters,f -> f.name), v -> buildFilter(), f -> revisitCurrent());
+    final VarEnum<String> filter = new VarEnum<>("File - all", () -> map(filters, f -> f.name), v -> buildFilter(), f -> revisitCurrent());
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(ASCENDING, this::resort);
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
@@ -126,7 +126,7 @@ public class DirViewer extends ClassController {
         files.onListInvalid(list -> revisitTop());
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.setCellFactory(grid -> new Cell());
-        setAnchor(this,grid,0d);
+        setAnchor(this, grid, 0d);
         placeholder.showFor(this);
 
         Input<File> input_Dir = inputs.create("Root directory", File.class, null, dir -> {
@@ -139,21 +139,21 @@ public class DirViewer extends ClassController {
         // delay cell loading when content is being resized (increases resize performance)
         double delay = 200; // ms
         FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
-        grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
-        grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
-        grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-        grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
+        grid.widthProperty().addListener((o, ov, nv) -> isResizing = true);
+        grid.heightProperty().addListener((o, ov, nv) -> isResizing = true);
+        grid.widthProperty().addListener((o, ov, nv) -> resizeTimer.start(300));
+        grid.heightProperty().addListener((o, ov, nv) -> resizeTimer.start(300));
 
         grid.setOnKeyPressed(e -> {
-            if(e.getCode()==ENTER) {
+            if (e.getCode() == ENTER) {
                 Item si = grid.selectedItem.get();
-                if(si!=null) doubleClickItem(si);
+                if (si != null) doubleClickItem(si);
             }
-            if(e.getCode()==BACK_SPACE)
+            if (e.getCode() == BACK_SPACE)
                 visitUp();
         });
         grid.setOnMouseClicked(e -> {
-            if(e.getButton()==SECONDARY)
+            if (e.getButton() == SECONDARY)
                 visitUp();
         });
         setOnScroll(Event::consume);
@@ -176,7 +176,7 @@ public class DirViewer extends ClassController {
 //            if(item.parent!=null) visitDir(item.parent);
 //            else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
 //        }
-        if(item!=null && item.parent!=null)
+        if (item != null && item.parent != null)
             visit(item.parent);
     }
 
@@ -185,52 +185,56 @@ public class DirViewer extends ClassController {
     }
 
     private void visit(Item dir, Item scrollTo) {
-        if(!initialized) return;
-        if(item!=null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
-        if(item==dir) return;
+        if (!initialized) return;
+        if (item != null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+        if (item == dir) return;
         visitId++;
 
         item = dir;
         lastVisited = dir.val;
-        if(item==null) {
+        if (item == null) {
             grid.getItemsRaw().clear();
             grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
         } else {
             Fut.fut(item)
-                    .map(Item::children,executorIO)
-                    .use(newcells -> newcells.sort(buildSortComparator()),executorIO)
+                    .map(Item::children, executorIO)
+                    .use(newcells -> newcells.sort(buildSortComparator()), executorIO)
                     .use(newcells -> {
                         grid.getItemsRaw().setAll(newcells);
-                        if(item.last_gridposition>=0)
+                        if (item.last_gridposition >= 0)
                             grid.getSkinn().getFlow().setPosition(item.last_gridposition);
                         grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
-                    },FX)
+                    }, FX)
                     .showProgress(getWidget().getWindow().taskAdd())
                     .run();
         }
     }
 
-    /** Visits top/root item. Rebuilds entire hierarchy. */
+    /**
+     * Visits top/root item. Rebuilds entire hierarchy.
+     */
     private void revisitTop() {
         disposeItems();
         visit(new TopItem());
     }
 
-    /** Visits last visited item. Rebuilds entire hierarchy. */
+    /**
+     * Visits last visited item. Rebuilds entire hierarchy.
+     */
     private void revisitCurrent() {
         disposeItems();
         Item topitem = new TopItem();
-        if(lastVisited==null) {
+        if (lastVisited == null) {
             visit(topitem);
         } else {
             Stack<File> path = new Stack<>(); // nested items we need to rebuild to get to last visited
             File f = lastVisited;
-            while(f!=null && !files.list.contains(f)) {
+            while (f != null && !files.list.contains(f)) {
                 path.push(f);
                 f = f.getParentFile();
             }
             boolean success = files.list.contains(f);
-            if(success) {
+            if (success) {
                 executorIO.execute(() -> {
                     Item item = topitem;
                     while (!path.isEmpty()) {
@@ -248,27 +252,29 @@ public class DirViewer extends ClassController {
 
     private void disposeItems() {
         Item i = item;
-        while(i!=null && i.parent!=null)
+        while (i != null && i.parent != null)
             i = i.parent;
-        if(i!=null) i.dispose();
+        if (i != null) i.dispose();
     }
 
     private void doubleClickItem(Item i) {
-        if(i.valtype==DIRECTORY) DirViewer.this.visit(i);
+        if (i.valtype == DIRECTORY) DirViewer.this.visit(i);
         else Environment.open(i.val);
     }
 
-    /** Resorts grid's items according to current sort criteria. */
+    /**
+     * Resorts grid's items according to current sort criteria.
+     */
     private void resort() {
         grid.getItemsRaw().sort(buildSortComparator());
     }
 
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
-             sortHomo = sort.get(); // sorts each group separately
+                sortHomo = sort.get(); // sorts each group separately
         FileField field = sortBy.get(); // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+                cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 
@@ -277,7 +283,7 @@ public class DirViewer extends ClassController {
     }
 
     private static boolean file_exists(Item c, File f) {
-        return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
+        return c != null && f != null && c.all_children.contains(f.getPath().toLowerCase());
     }
 
     /**
@@ -285,14 +291,14 @@ public class DirViewer extends ClassController {
      * it, but both vertically & horizontally. This avoids loading all files at once and allows
      * unlimited scaling.
      */
-    private class Cell extends GridCell<Item,File> {
+    private class Cell extends GridCell<Item, File> {
         Pane root;
         Label name;
         Thumbnail thumb;
         EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
-                if(item==getItem())
+                if (item == getItem())
                     setCover(item);
             });
         })));
@@ -301,12 +307,12 @@ public class DirViewer extends ClassController {
         protected void updateItem(Item item, boolean empty) {
             super.updateItem(item, empty);
 
-            if(item==null) {
+            if (item == null) {
                 // empty cell has no graphics
                 // we do not clear the content of the graphics however
                 setGraphic(null);
             } else {
-                if(root==null) {
+                if (root == null) {
                     // we create graphics only once and only when frst requested
                     createGraphics();
                     // we set graphics only once (when creating it)
@@ -314,7 +320,7 @@ public class DirViewer extends ClassController {
                 }
                 // if cell was previously empty, we set graphics back
                 // this improves performance compared to setting it every time
-                if(getGraphic()!=root) setGraphic(root);
+                if (getGraphic() != root) setGraphic(root);
 
                 // set name
                 name.setText(getName(item.val));
@@ -325,10 +331,10 @@ public class DirViewer extends ClassController {
                 //     - reduce ui performance when resizing
                 // We solve this by delaying the image loading & drawing. We reduce subsequent
                 // invokes into single update (last).
-                if(item.cover_loadedFull && !isResizing)
+                if (item.cover_loadedFull && !isResizing)
                     setCover(item);
                 else {
-                    thumb.loadImage((File)null); // prevent displaying old content before cover loads
+                    thumb.loadImage((File) null); // prevent displaying old content before cover loads
                     // this should call setCoverPost() to allow animations
                     setCoverLater.push(item);
                 }
@@ -338,7 +344,7 @@ public class DirViewer extends ClassController {
         @Override
         public void updateSelected(boolean selected) {
             super.updateSelected(selected);
-            if(thumb!=null && thumb.image.get()!=null) thumb.animationPlayPause(selected);
+            if (thumb != null && thumb.image.get() != null) thumb.animationPlayPause(selected);
         }
 
         private void createGraphics() {
@@ -347,31 +353,31 @@ public class DirViewer extends ClassController {
             thumb = new Thumbnail() {
                 @Override
                 protected Object getRepresentant() {
-                    return getItem()==null ? null : getItem().val;
+                    return getItem() == null ? null : getItem().val;
                 }
             };
             thumb.getPane().setOnMouseClicked(e -> {
-                if(e.getButton()==PRIMARY && e.getClickCount()==2) {
+                if (e.getButton() == PRIMARY && e.getClickCount() == 2) {
                     doubleClickItem(getItem());
                     e.consume();
                 }
             });
-            thumb.getPane().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.2,0) : null));
-            root = new Pane(thumb.getPane(),name) {
+            thumb.getPane().hoverProperty().addListener((o, ov, nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0, 0, 0.2, 0) : null));
+            root = new Pane(thumb.getPane(), name) {
                 // Cell layouting should be fast - gets called multiple times when grid resizes.
                 // Why not use custom pane for more speed if we can.
                 @Override
                 protected void layoutChildren() {
                     double w = getWidth();
                     double h = getHeight();
-                    thumb.getPane().resizeRelocate(0,0,w,h-CELL_TEXT_HEIGHT);
-                    name.resizeRelocate(0,h-CELL_TEXT_HEIGHT,w,CELL_TEXT_HEIGHT);
+                    thumb.getPane().resizeRelocate(0, 0, w, h - CELL_TEXT_HEIGHT);
+                    name.resizeRelocate(0, h - CELL_TEXT_HEIGHT, w, CELL_TEXT_HEIGHT);
                 }
             };
             root.setPadding(Insets.EMPTY);
-            root.setMinSize(-1,-1);
-            root.setPrefSize(-1,-1);
-            root.setMaxSize(-1,-1);
+            root.setMinSize(-1, -1);
+            root.setPrefSize(-1, -1);
+            root.setMaxSize(-1, -1);
         }
 
         /**
@@ -384,27 +390,28 @@ public class DirViewer extends ClassController {
         private void setCover(Item item) {
             // load thumbnail
             double width = cellSize.get().width,
-                   height = cellSize.get().height-CELL_TEXT_HEIGHT;
+                    height = cellSize.get().height - CELL_TEXT_HEIGHT;
             executorThumbs.execute(task(() ->
-                    item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img))
+                    item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
             ));
             // load high quality thumbnail
             executorImage.execute(task(() ->
-                    item.loadCover(true,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img))
+                    item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
             ));
         }
 
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
-                if(item==getItem()) { // prevents content inconsistency
-                    boolean animate = animateThumbOn.get().needsAnimation(this,imgAlreadyLoaded,imgFile,img);
+                if (item == getItem()) { // prevents content inconsistency
+                    boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, imgFile, img);
                     thumb.loadImage(img, imgFile);
-                    if(animate)
-                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+                    if (animate)
+                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
                 }
             });
         }
     }
+
     private class FItem extends Item {
 
         public FItem(Item parent, File value, FileType type) {
@@ -421,10 +428,11 @@ public class DirViewer extends ClassController {
             return DirViewer.this.filter(f);
         }
     }
+
     private class TopItem extends FItem {
 
         public TopItem() {
-            super(null,null,null);
+            super(null, null, null);
         }
 
         @Override
@@ -443,23 +451,22 @@ public class DirViewer extends ClassController {
     // stores state such as negation or function chaining, I dont use predicates from Functors'
     // function pool, but 'hardcoded' the filters instead.
     // We use String config to save which one we use.
-    private static final List<PƑ0<File,Boolean>> filters = list(
-        new PƑ0<>("All",        File.class,Boolean.class, file -> true),
-        new PƑ0<>("None",       File.class,Boolean.class, file -> false),
-        new PƑ0<>("Audio",      File.class,Boolean.class, file -> AudioFileFormat.isSupported(file, Use.APP)),
-        new PƑ0<>("No Audio",   File.class,Boolean.class, file -> !AudioFileFormat.isSupported(file, Use.APP)),
-        new PƑ0<>("Image",      File.class,Boolean.class, file -> ImageFileFormat.isSupported(file)),
-        new PƑ0<>("No Image",   File.class,Boolean.class, file -> !ImageFileFormat.isSupported(file))
-    );
+    private static final List<PƑ0<File, Boolean>> filters = list();
 
     static {
-        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f)));
-        AudioFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())!=f)));
-        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f)));
-        ImageFileFormat.formats().forEach(f -> filters.add(new PƑ0<>("No " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())!=f)));
+        filters.add(new PƑ0<>("File - all", File.class, Boolean.class, file -> true));
+        filters.add(new PƑ0<>("File - none", File.class, Boolean.class, file -> false));
+        APP.mimeTypes.setOfGroups().forEach(group -> {
+            filters.add(new PƑ0<>("Mime - is " + capitalize(group), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file).isOfType(group)));
+            filters.add(new PƑ0<>("Mime - no " + capitalize(group), File.class, Boolean.class, file -> !APP.mimeTypes.ofFile(file).isOfType(group)));
+        });
+        APP.mimeTypes.setOfExtensions().forEach(extension -> {
+            filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file).isOfType(extension)));
+            filters.add(new PƑ0<>("Type - no " + extension, File.class, Boolean.class, file -> !APP.mimeTypes.ofFile(file).isOfType(extension)));
+        });
     }
 
-    private PƑ0<File,Boolean> buildFilter() {
+    private PƑ0<File, Boolean> buildFilter() {
         String type = filter.getValue();
         return stream(filters)
                 .findAny(f -> type.equals(f.name))
@@ -469,16 +476,16 @@ public class DirViewer extends ClassController {
     private Runnable task(Runnable r) {
         final long id = visitId;
         return () -> {
-            if(id==visitId)
+            if (id == visitId)
                 r.run();
         };
     }
 
     enum CellSize {
-        SMALL (80, 100+CELL_TEXT_HEIGHT),
-        NORMAL(160,200+CELL_TEXT_HEIGHT),
-        LARGE (240,300+CELL_TEXT_HEIGHT),
-        GIANT (400,500+CELL_TEXT_HEIGHT);
+        SMALL(80, 100 + CELL_TEXT_HEIGHT),
+        NORMAL(160, 200 + CELL_TEXT_HEIGHT),
+        LARGE(240, 300 + CELL_TEXT_HEIGHT),
+        GIANT(400, 500 + CELL_TEXT_HEIGHT);
 
         final double width;
         final double height;
@@ -488,7 +495,7 @@ public class DirViewer extends ClassController {
             this.height = height;
         }
 
-        void apply(GridView<?,?> grid) {
+        void apply(GridView<?, ?> grid) {
             grid.setCellWidth(width);
             grid.setCellHeight(height);
         }
@@ -497,9 +504,10 @@ public class DirViewer extends ClassController {
         IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
 
         public boolean needsAnimation(Cell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
-            if(this== IMAGE_CHANGE) return cell.thumb.image.get()!=img;
-            else if(this==IMAGE_CHANGE_FROM_EMPTY) return cell.thumb.image.get()==null && img!=null;
-            else if(this==IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img!=null;
+            if (this == IMAGE_CHANGE) return cell.thumb.image.get() != img;
+            else if (this == IMAGE_CHANGE_FROM_EMPTY)
+                return cell.thumb.image.get() == null && img != null;
+            else if (this == IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img != null;
             else throw new SwitchException(this);
         }
     }

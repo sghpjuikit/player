@@ -59,9 +59,9 @@ public class TrayService extends ServiceBase {
     private boolean running = false;
     private ObservableList<javafx.scene.control.MenuItem> menuItems;
     private EventHandler<javafx.scene.input.MouseEvent> onClick;
-    private static SystemTray tray;
+    private SystemTray tray;
     private File image = new File(APP.DIR_APP, "icon16.png");
-    private static TrayIcon trayIcon;
+    private TrayIcon trayIcon;
 
     private Subscription d1;
 

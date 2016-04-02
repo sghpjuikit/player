@@ -124,8 +124,8 @@ public final class Guide implements Configurable {
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
                 // load widgets
-                bc.addChild(1,APP.widgetManager.factories.getOrOther("Playlist","Empty").create());
-                bc.addChild(2,APP.widgetManager.factories.getOrOther("Playback","Empty").create());
+                bc.addChild(1,APP.widgetManager.factories.get("PlaylistView","EmptyWidget").create());
+                bc.addChild(2,APP.widgetManager.factories.get("PlayerControls","EmptyWidget").create());
                 // go to layout
                 la.ui.alignTab(bc);
                 // go to next guide

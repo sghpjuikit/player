@@ -50,6 +50,7 @@ import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.list;
+import static util.functional.Util.stream;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -198,8 +199,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             menuItem("Save playlist as...", this::savePlaylist)
         );
         Menu sortM = new Menu("Order by");
-        for(Field f : Field.values())
-            sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
+        stream(Field.values())
+                .map(f -> menuItem(f.toStringEnum(), () -> table.sortBy(f)))
+                .forEach(sortM.getItems()::add);
         table.menuOrder.getItems().add(0, sortM);
 
         // prevent scrol event to propagate up

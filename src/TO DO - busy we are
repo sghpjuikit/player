@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- file type filter (serializable one...)
+- function nodes should support custom name/icon for function parameters. This is probably best done
+  by ParameterToNodeStrategy, where
 - implement get system icon for file properly
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
@@ -32,7 +35,7 @@
     - cache everything in Item, not Cell as Cells get recreated frequently
     - implement smart image cache, we must not cache all images, gifs can kill app instantly then
     - thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?
-    - reload thumbnails when thumb size increases
+    - reload thumbnails when thumb size increasese
     - allow visiting up if parent is only 1
 - FileDownloader widget
   - display progress

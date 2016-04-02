@@ -37,9 +37,9 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
     public final File location;
 
     /** Whether this factory will be preferred over others of the same group. */
-    boolean preferred = false;
+    private boolean preferred = false;
     /** Whether this factory will be ignored on widget requests. */
-    boolean ignored = false;
+    private boolean ignored = false;
 
     /**
      * Implementation note: this constructor must be called from every extending
@@ -50,8 +50,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
      * There are no restrictions here, but other factories might impose some.
      * In any case, it is recommended for the class to implement {@link Controller}
      * and also be annotated with {@link Widget.Info}
-     *
-     * @param type controller class
+     * @param location location of the widget, may be null
      */
     private WidgetFactory(String name, Class<C> type, File location) {
         this.name = name;
@@ -153,7 +152,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
     public Class type() { return controller_class; }
 
     @Override
-    public boolean hasFeature(Class feature) {
+    public boolean hasFeature(Class<?> feature) {
         return feature.isAssignableFrom(controller_class);
     }
 

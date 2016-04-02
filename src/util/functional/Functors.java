@@ -24,6 +24,7 @@ import audio.tagging.MetadataGroup;
 import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;
+import main.App;
 import util.file.AudioFileFormat;
 import util.file.Util;
 import util.file.ImageFileFormat;
@@ -33,6 +34,7 @@ import util.collections.map.PrefListMap;
 import util.conf.AccessorConfig;
 import util.conf.Config;
 import util.conf.Configurable;
+import util.file.mimetype.MimeType;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -51,6 +53,7 @@ import static util.Util.*;
 import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.*;
+import static util.functional.Util.toS;
 import static util.type.Util.unPrimitivize;
 
 @SuppressWarnings("unchecked")
@@ -618,16 +621,16 @@ public class Functors {
 
         add("to ASCII",    Character.class,Integer.class, x -> (int)x);
 
-        add("Name",       File.class,String.class, Util::getName, true,true,true);
-        add("Suffix",     File.class,String.class, Util::getSuffix);
-        add("Name.Suffix",File.class,String.class, File::getName);
         add("Path",       File.class,String.class, File::getAbsolutePath);
         add("Size",       File.class,FileSize.class, FileSize::new);
+        add("Name",       File.class,String.class, Util::getName, true,true,true);
+        add("Name.Suffix",File.class,String.class, File::getName);
+        add("Suffix",     File.class,String.class, Util::getSuffix);
+        add("MimeType",   File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
+        add("MimeGroup",  File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
 
-        // I Dont consider this a good idea. FileFormat predicates shouldnt go to File.
-        // Left here for reference.
-        // AudioFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> AudioFileFormat.of(file.toURI())==f));
-        // ImageFileFormat.formats().forEach(f -> add("Is " + f.name(), File.class,Boolean.class, file -> ImageFileFormat.of(file.toURI())==f));
+        add("Group",      MimeType.class,String.class, MimeType::getGroup);
+        add("Extensions", MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
 
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
         add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));

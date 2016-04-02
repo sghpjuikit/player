@@ -143,16 +143,16 @@ public class MapSet<K,E> implements Set<E> {
         return m.get(key);
     }
 
+    public E get(K key, K key2) {
+        return m.containsKey(key) ? m.get(key) : get(key2);
+    }
+
     public E getOr(K key, E e) {
         return m.containsKey(key) ? m.get(key) : e;
     }
 
     public E getOrSupply(K key, Supplier<E> supplier) {
         return m.containsKey(key) ? m.get(key) : supplier.get();
-    }
-
-    public E getOrOther(K key, K key2) {
-        return m.containsKey(key) ? m.get(key) : get(key2);
     }
 
     @Override

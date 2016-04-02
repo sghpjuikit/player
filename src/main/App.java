@@ -206,7 +206,7 @@ public class App extends Application implements Configurable {
     public final File DIR_WIDGETS = new File(DIR_APP, "widgets");
     /** Directory containing skins. */
     public final File DIR_SKINS = new File(DIR_APP, "skins");
-     /* Directory containing user data created by application usage, such as customizations, song library, etc. */
+    /** Directory containing user data created by application usage, such as customizations, song library, etc. */
     public final File DIR_USERDATA =  new File(DIR_APP, "user");
     /** Directory containing library database. */
     public final File DIR_LIBRARY = new File(DIR_USERDATA, "library");
@@ -217,6 +217,12 @@ public class App extends Application implements Configurable {
     public final File DIR_RESOURCES = new File(DIR_APP, "resources");
     /** File for application configuration. */
     public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
+
+    /**
+     * File mime type map.
+     * Initialized with the built-in mime types definitions.
+     */
+    public final MimeTypes mimeTypes = new MimeTypes();
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -261,11 +267,6 @@ public class App extends Application implements Configurable {
     public boolean initialized = false;
     private boolean close_prematurely = false;
 
-    /**
-     * File mime type map.
-     * Initialized with the built-in mime types definitions.
-     */
-    public final MimeTypes mimeTypes = new MimeTypes();
     public final WindowManager windowManager = new WindowManager();
     public final WidgetManager widgetManager = new WidgetManager(windowManager);
     public final ServiceManager services = new ServiceManager();

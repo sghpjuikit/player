@@ -17,6 +17,7 @@ import layout.widget.controller.Controller;
 import layout.widget.controller.io.Inputs;
 import layout.widget.controller.io.Outputs;
 
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_MAP;
 
 /**
@@ -47,7 +48,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
     public Collection<Config<Object>> getFields() {
         // cant use default implementation. it calls getFields on the controller
         // since this=this.controller -> StackOverflow
-        return Collections.EMPTY_LIST;
+        return EMPTY_LIST;
     }
 
     @Override

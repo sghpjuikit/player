@@ -60,7 +60,7 @@ public final class WidgetManager {
      * Factories can be removed, added or swapped for new one in runtime. This happens when
      * widgets files are discovered/deleted/modified.
      */
-    public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(factory -> factory.name());
+    public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(WidgetFactory::name);
     private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetname);
     private boolean initialized = false;
     private final WindowManager windowManager; // use App instead, but that requires different App initialization
@@ -85,7 +85,7 @@ public final class WidgetManager {
             return;
         }
 
-        for(File widget_dir : dir.listFiles(f -> f.isDirectory())) {
+        for(File widget_dir : dir.listFiles(File::isDirectory)) {
             String name = getName(widget_dir);
             monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
                     .registerExternalFactory();
@@ -109,11 +109,11 @@ public final class WidgetManager {
 
     private void constructFactory(Class<?> controller_class, File dir) {
         if(controller_class==null) {
-            LOGGER.warn("Widget class {} is null",controller_class);
+            LOGGER.warn("Widget class {} is null", dir);
             return;
         }
         if(!Controller.class.isAssignableFrom(controller_class)) {
-            LOGGER.warn("Widget class {} does not implement Controller",controller_class);
+            LOGGER.warn("Widget class {} {} does not implement Controller", controller_class,dir);
             return;
         }
 
@@ -219,9 +219,9 @@ public final class WidgetManager {
             File srcfile = new File(widgetdir,widgetname + ".java");
 
             // Source file is available if exists
-            // Class file is available if exists and source file doesnt. But if both do, classfile must
+            // Class file is available if exists and source file does not. But if both do, classfile must
             // not be outdated, which we check by modification time. This avoids nasty class version
-            // errors as consequently we recompile the sourcefile.
+            // errors as consequently we recompile the source file.
             boolean srcfile_available = srcfile.exists();
             boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
 
@@ -237,9 +237,9 @@ public final class WidgetManager {
                 // does not exist yet), so we compile in the bgr as we should.
                 // Else, we are initializing now, and we must be able to
                 // provide all factories before widgets start loading so we compile on this (ui/fx)
-                // thread. This blocks and delays startup, but thats fine, how else are we going to
-                // load widgets if we dont have class files for them?
-                // We could in theory load he widgets lazily - provide a mock up and reload them afrer
+                // thread. This blocks and delays startup, but that iss fine, how else are we going to
+                // load widgets if we do not have class files for them?
+                // We could in theory load he widgets lazily - provide a mock up and reload them after
                 // factories are ready (we finish compiling on bgr thread). Too much work for no real
                 // benefit - This is developer convenience feature anyway. We only need to compile
                 // once, then any subsequent app start will be compile-free.
@@ -273,7 +273,7 @@ public final class WidgetManager {
         // - need UTF-8
         Stream<String> options = stream("-encoding",APP.encoding.name());
         Stream<String> paths = stream(files).map(File::getPath);
-        String[] arguments = stream(options,paths).toArray(i -> new String[i]);
+        String[] arguments = stream(options,paths).toArray(String[]::new);
         LOGGER.info("Compiling with command: {} ", (Object[])arguments);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int success = compiler.run(null, null, null, arguments);

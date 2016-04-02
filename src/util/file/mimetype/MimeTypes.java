@@ -12,6 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import one.util.streamex.StreamEx;
 
 import static util.file.Util.getSuffix;
 
@@ -89,8 +93,8 @@ public class MimeTypes {
 	}
 
 
-	private final Map<String, MimeType> types = new HashMap<>();
-	private final Map<String, MimeType> extensions = new HashMap<>();
+	private final Map<String, MimeType> types = new ConcurrentHashMap<>();
+	private final Map<String, MimeType> extensions = new ConcurrentHashMap<>();
 
 	public MimeTypes() {
 		this(getDefaultMimeTypesDefinition());
@@ -184,4 +188,17 @@ public class MimeTypes {
 	public MimeType ofURI(URI url) {
 		return extensions.get(getSuffix(url).toLowerCase());
 	}
+
+	public Set<String> setOfGroups() {
+		return StreamEx.ofValues(types).map(MimeType::getGroup).toSet();
+	}
+
+	public Set<MimeType> setOfMimeTypes() {
+		return StreamEx.ofValues(types).toSet();
+	}
+
+	public Set<String> setOfExtensions() {
+		return StreamEx.ofKeys(extensions).toSet();
+	}
+
 }

@@ -291,7 +291,7 @@ public class WindowManager implements Configurable<Object> {
                 mini_widget,
                 name -> {
                     // Create widget or supply empty if not available
-                    Widget<?> newW = APP.widgetManager.factories.getOrOther(name,"Empty").create();
+                    Widget<?> newW = APP.widgetManager.factories.get(name,"Empty").create();
                     // Close old widget if any to free resources
                     Widget<?> oldW = (Widget) content.getProperties().get("widget");
                     if(oldW!=null) oldW.close();

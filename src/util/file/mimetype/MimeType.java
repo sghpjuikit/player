@@ -17,17 +17,26 @@ import java.util.Objects;
  * @author https://github.com/amr/mimetypes
  */
 public class MimeType {
+
+	private String mimeType;
+	private String[] extensions;
+
 	public MimeType(String mimeType, String... extensions) {
 		this.mimeType = mimeType;
 		this.extensions = extensions;
 	}
 
-	private String mimeType;
-
-	private String[] extensions;
-
 	public String getMimeType() {
 		return mimeType;
+	}
+
+	public String getGroup() {
+		int i = mimeType.indexOf('/');
+		return i<0 ? mimeType : mimeType.substring(0,i);
+	}
+
+	public boolean isOfType(String type) {
+		return mimeType.equalsIgnoreCase(type);
 	}
 
 	public String[] getExtensions() {
@@ -59,5 +68,10 @@ public class MimeType {
 		int result = mimeType.hashCode();
 		result = 47 * result + Arrays.hashCode(extensions);
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return mimeType;
 	}
 }

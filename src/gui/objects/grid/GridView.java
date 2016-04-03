@@ -30,6 +30,7 @@ package gui.objects.grid;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import javafx.beans.property.DoubleProperty;
@@ -50,9 +51,12 @@ import javafx.util.Callback;
 import util.access.V;
 import util.functional.Functors.Ƒ1;
 
+import static gui.objects.grid.GridView.SelectionOn.KEY_PRESSED;
+import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.async.Async.runLater;
+import static util.functional.Util.set;
 import static util.functional.Util.stream;
 
 /**
@@ -348,7 +352,7 @@ public class GridView<T,F> extends Control {
     }
 
 
-    private ObjectProperty<Callback<GridView<T,F>, GridCell<T,F>>> cellFactory;
+    private ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactory = new SimpleObjectProperty<>(this, "cellFactory");
 
     /**
      * Property representing the cell factory that is currently set in this
@@ -358,10 +362,7 @@ public class GridView<T,F> extends Control {
      * visible area of the GridView. Refer to the GridView class documentation
      * for more information and examples.
      */
-    public final ObjectProperty<Callback<GridView<T,F>, GridCell<T,F>>> cellFactoryProperty() {
-        if (cellFactory == null) {
-            cellFactory = new SimpleObjectProperty<>(this, "cellFactory");
-        }
+    public final ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactoryProperty() {
         return cellFactory;
     }
 
@@ -369,16 +370,16 @@ public class GridView<T,F> extends Control {
      * Sets the cell factory to use to create {@link GridCell} instances to
      * show in the GridView.
      */
-    public final void setCellFactory(Callback<GridView<T,F>, GridCell<T,F>> value) {
-        cellFactoryProperty().set(value);
+    public final void setCellFactory(Callback<GridView<T,F>,GridCell<T,F>> value) {
+	    cellFactory.set(value);
     }
 
     /**
      * Returns the cell factory that will be used to create {@link GridCell}
      * instances to show in the GridView.
      */
-    public final Callback<GridView<T,F>, GridCell<T,F>> getCellFactory() {
-        return cellFactory == null ? null : cellFactory.get();
+    public final Callback<GridView<T,F>,GridCell<T,F>> getCellFactory() {
+        return cellFactory.get();
     }
 
 
@@ -475,7 +476,7 @@ public class GridView<T,F> extends Control {
      * @return The CssMetaData associated with this class, which may include the
      * CssMetaData of its super classes.
      */
-    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
+    public static List<CssMetaData<? extends Styleable,?>> getClassCssMetaData() {
         return StyleableProperties.STYLEABLES;
     }
 
@@ -483,4 +484,9 @@ public class GridView<T,F> extends Control {
     public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
         return getClassCssMetaData();
     }
+
+
+    public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESSED);
+
+    public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESSED }
 }

@@ -30,6 +30,8 @@ package gui.objects.grid;
 import javafx.scene.Node;
 import javafx.scene.control.skin.CellSkinBase;
 
+import gui.objects.grid.GridView.SelectionOn;
+
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.getAt;
 
@@ -123,12 +125,19 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
 
 
     private GridCell<T,F> createCell() {
-        GridView<T,F> gridView = getSkinnable().gridViewProperty().get();
-        GridCell<T,F> cell = gridView.getCellFactory()!=null
-                ? gridView.getCellFactory().call(gridView)
+        GridView<T,F> grid = getSkinnable().gridViewProperty().get();
+        GridCell<T,F> cell = grid.getCellFactory()!=null
+                ? grid.getCellFactory().call(grid)
                 : createDefaultCellImpl();
-        cell.updateGridView(gridView);
-        cell.addEventHandler(MOUSE_CLICKED, e -> getSkinnable().getGridView().getSkinn().select(cell));
+        cell.updateGridView(grid);
+        cell.addEventHandler(MOUSE_CLICKED, e -> {
+            if(grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
+                getSkinnable().getGridView().getSkinn().select(cell);
+        });
+        cell.hoverProperty().addListener((o,ov,nv) -> {
+            if(nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
+                getSkinnable().getGridView().getSkinn().select(cell);
+        });
         return cell;
     }
 

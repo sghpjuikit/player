@@ -12,8 +12,8 @@ import javafx.scene.layout.VBox;
 import de.jensd.fx.glyphs.GlyphIcons;
 
 import static javafx.geometry.Pos.CENTER;
-import static util.file.Environment.copyToSysClipboard;
 import static util.Util.capitalizeStrong;
+import static util.file.Environment.copyToSysClipboard;
 
 /**
  * Displays an icon with its name. Has tooltip displaying additional information.
@@ -54,4 +54,7 @@ public class IconInfo extends VBox {
         return glyph;
     }
 
+    public void select(boolean value) {
+        graphics.select(value);
+    }
 }

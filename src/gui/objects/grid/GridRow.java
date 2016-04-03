@@ -48,4 +48,5 @@ class GridRow<T,F> extends IndexedCell<T>{
     public GridView<T,F> getGridView() {
         return gridView.get();
     }
+
 }

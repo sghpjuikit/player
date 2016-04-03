@@ -3173,6 +3173,7 @@
  * Icon
  * Text using glyph to make icon.
  * inherits: nothing
+ * pseudoclasses: selected - used to achieve hover effect even when mouse is not hovering
  * properties: -glyph-name - String of the glyph
  *             -glyph-size - size
  */
@@ -3182,11 +3183,17 @@
     -glyph-size: 12;
 }
 
-.icon:hover {
+.icon:hover,
+.icon:selected {
     -fx-fill: -fx-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+    /*
+    This enlarges the icon on hover. It works, however since javafx css does not support animation,
+    the Icon uses its own non css implementation for this. Enabling it here would interfere with the
+    code.
     -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+    */
 }
 .icon:disabled {
     -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
@@ -4084,4 +4091,12 @@ check-icon-disabling:selected {
     -fx-background-insets: -8 -8 12 -8;
     -fx-background-color: black;
     -fx-padding: -4;
+}
+
+/**
+ * Cell displaying icon. Used in icon browser.
+ */
+.icon-grid-cell,
+.grid-cell:selected {
+    -fx-background-color: null;
 }

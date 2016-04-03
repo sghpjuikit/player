@@ -40,7 +40,7 @@ import de.jensd.fx.glyphs.octicons.OctIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.popover.PopOver;
-import util.R;
+import util.LazyR;
 import util.action.Action;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
@@ -54,17 +54,17 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.type.Util.getEnumConstants;
-import static util.type.Util.getFieldValue;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.setScaleXY;
+import static util.type.Util.getEnumConstants;
+import static util.type.Util.getFieldValue;
 
 public class Icon<I extends Icon<?>> extends Text {
 
     // animation builder, & reusable supplier
-    private static final Ƒ1<Icon,Anim> Apress = i -> { double s = signum(i.getScaleX()); return new Anim(millis(400), p -> setScaleXY(i,s*(1-0.3*p*p*p),1-0.3*p*p*p)); };
-    private static final Ƒ1<Icon,Anim> Ahover = i -> { double s = signum(i.getScaleX()); return new Anim(millis(200), p -> setScaleXY(i,s*(1+0.1*p*p*p),1+0.1*p*p*p)); };
+    private static final Ƒ1<Icon,Anim> Apress = i -> { double s = signum(i.getScaleX()); return new Anim(millis(300), p -> setScaleXY(i,s*(1-0.3*p*p),1-0.3*p*p)); };
+    private static final Ƒ1<Icon,Anim> Ahover = i -> { double s = signum(i.getScaleX()); return new Anim(millis(150), p -> setScaleXY(i,s*(1+0.1*p*p),1+0.1*p*p)); };
     private static final Double DEFAULT_ICON_SIZE = 12.0;
     private static final String DEFAULT_FONT_SIZE = "1em";
     private static final EventHandler<Event> CONSUMER = Event::consume;
@@ -116,15 +116,9 @@ public class Icon<I extends Icon<?>> extends Text {
     }
 
     public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
-        glyphSizeProperty().addListener((o,ov,nv) -> {
-            updateSize();
-        });
-        glyphStyleProperty().addListener((o,ov,nv) -> {
-            updateStyle();
-        });
-        glyphNameProperty().addListener((o,ov,nv) -> {
-            updateIcon();
-        });
+        glyphSizeProperty().addListener((o,ov,nv) -> updateSize());
+        glyphStyleProperty().addListener((o,ov,nv) -> updateStyle());
+        glyphNameProperty().addListener((o,ov,nv) -> updateIcon());
 
 //        setFont(new Font("FontAwesome", DEFAULT_ICON_SIZE));
 
@@ -136,14 +130,7 @@ public class Icon<I extends Icon<?>> extends Text {
         onClick(onClick);
         setCache(true);
 
-        // install click animation
-        R<Anim> ra = new R<>(); // lazy singleton
-//        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,Apress).playOpenDo(null));
-//        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,Apress).playOpenDoClose(null));
-        hoverProperty().addListener((o,ov,nv) -> {
-            if(nv) ra.get(this,Ahover).playOpen();
-            else ra.get(this,Ahover).playClose();
-        });
+	    hoverProperty().addListener((o,ov,nv) -> select(nv)); // mouse hover animation
     }
 
     public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -169,6 +156,15 @@ public class Icon<I extends Icon<?>> extends Text {
     public Action getOnClickAction() {
         return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
     }
+
+/******************************************************************************/
+
+	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));
+
+	public void select(boolean value) {
+		pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
+		ra.get(this,Ahover).playFromDir(value);
+	}
 
 /********************************* FLUENT API *********************************/
 

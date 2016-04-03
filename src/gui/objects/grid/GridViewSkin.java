@@ -48,6 +48,7 @@ import com.sun.javafx.scene.control.VirtualScrollBar;
 
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
+import gui.objects.grid.GridView.SelectionOn;
 import main.App;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
@@ -100,15 +101,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         f.addEventHandler(KEY_PRESSED, e -> {
             KeyCode c = e.getCode();
             if(c.isNavigationKey()) {
-                if(c==KeyCode.UP || c==KeyCode.KP_UP) selectUp();
-                if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectDown();
-                if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectLeft();
-                if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectRight();
-                if(c==KeyCode.PAGE_DOWN) selectDown();
-                if(c==KeyCode.PAGE_UP) selectUp();
-                if(c==KeyCode.HOME) selectFirst();
-                if(c==KeyCode.END) selectLast();
-                e.consume();
+                if(control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
+                    if(c==KeyCode.UP || c==KeyCode.KP_UP) selectUp();
+                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectDown();
+                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectLeft();
+                    if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectRight();
+                    if(c==KeyCode.PAGE_DOWN) selectDown();
+                    if(c==KeyCode.PAGE_UP) selectUp();
+                    if(c==KeyCode.HOME) selectFirst();
+                    if(c==KeyCode.END) selectLast();
+                    e.consume();
+                }
             } else if(c==ESCAPE && !e.isConsumed()) {
                 selectNone();
             }

@@ -9,8 +9,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import util.functional.Functors.Ƒ1;
-
 /**
  * Reference - object property.
  *
@@ -37,11 +35,6 @@ public class R<V> {
     }
 
     public V get(Supplier<V> or) {
-        return v;
-    }
-
-    public <M> V get(M m, Ƒ1<M, V> or) {
-        if(v ==null) set(or.apply(m));
         return v;
     }
 

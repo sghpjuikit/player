@@ -71,6 +71,7 @@ import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
+import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
@@ -119,8 +120,8 @@ import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
-import util.file.Util;
 import util.file.ImageFileFormat;
+import util.file.Util;
 import util.file.mimetype.MimeTypes;
 import util.functional.Functors;
 import util.graphics.MouseCapture;
@@ -129,7 +130,10 @@ import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
-import util.type.*;
+import util.type.ClassName;
+import util.type.InstanceInfo;
+import util.type.InstanceName;
+import util.type.ObjectFieldMap;
 import util.units.FileSize;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -155,6 +159,9 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
+import static util.type.Util.getEnumConstants;
+
+import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -398,10 +405,10 @@ public class App extends Application implements Configurable {
         x.useAttributeFor(Playlist.class, "id");
 
         // add optional object fields
-        classFields.add(PlaylistItem.class, set(util.type.Util.getEnumConstants(PlaylistItem.Field.class)));
-        classFields.add(Metadata.class, set(util.type.Util.getEnumConstants(Metadata.Field.class)));
-        classFields.add(MetadataGroup.class, set(util.type.Util.getEnumConstants(MetadataGroup.Field.class)));
-        classFields.add(File.class, set(util.type.Util.getEnumConstants(FileField.class)));
+        classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
+        classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
+        classFields.add(MetadataGroup.class, set(getEnumConstants(MetadataGroup.Field.class)));
+        classFields.add(File.class, set(getEnumConstants(FileField.class)));
 
         // add optional object class -> string converters
         className.add(Item.class, "Song");
@@ -910,16 +917,24 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-        GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x->x, 70,80,5,5);
+        double iconSize = 45;
+        GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
+                 grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESSED));
                  grid.setCellFactory(view -> new GridCell<>() {
                      Anim a;
+
+                     {
+                         getStyleClass().add("icon-grid-cell");
+                     }
+
                      @Override
                      protected void updateItem(GlyphIcons icon, boolean empty) {
                          super.updateItem(icon, empty);
                          IconInfo graphics;
-                         if(getGraphic() instanceof IconInfo) graphics = (IconInfo) getGraphic();
+                         if(getGraphic() instanceof IconInfo)
+                             graphics = (IconInfo) getGraphic();
                          else {
-                             graphics = new IconInfo(null,55);
+                             graphics = new IconInfo(null,iconSize);
                              setGraphic(graphics);
                              a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
                          }
@@ -928,6 +943,13 @@ public class App extends Application implements Configurable {
                          // really cool when scrolling with scrollbar
                          // but when using mouse wheel it is very ugly & distracting
                          // a.play();
+                     }
+
+                     @Override
+                     public void updateSelected(boolean selected) {
+                         super.updateSelected(selected);
+                         IconInfo graphics = (IconInfo) getGraphic();
+                         if(graphics!=null) graphics.select(selected);
                      }
                  });
         StackPane root = new StackPane(grid);
@@ -938,7 +960,7 @@ public class App extends Application implements Configurable {
                     Button b = new Button(c.getSimpleName());
                     b.setOnMouseClicked(e -> {
                         if(e.getButton()==PRIMARY) {
-                            grid.getItemsRaw().setAll(util.type.Util.getEnumConstants(c));
+                            grid.getItemsRaw().setAll(getEnumConstants(c));
                             e.consume();
                         }
                     });

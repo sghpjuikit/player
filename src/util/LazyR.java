@@ -1,7 +1,10 @@
 package util;
 
-import java.util.Objects;
 import java.util.function.Supplier;
+
+import util.functional.Functors;
+
+import static util.dev.Util.noØ;
 
 /**
  * Lazy reference.
@@ -20,7 +23,7 @@ public class LazyR<V> extends R<V> {
      *                more than once.
      */
     public LazyR(Supplier<V> builder) {
-        Objects.requireNonNull(builder);
+        noØ(builder);
         this.builder = builder;
     }
 
@@ -48,6 +51,11 @@ public class LazyR<V> extends R<V> {
     @Override
     public V get(Supplier<V> or) {
         if(!isSet) set(or.get());
+        return v;
+    }
+
+    public <M> V get(M m, Functors.Ƒ1<M, V> or) {
+        if(!isSet) set(or.apply(m));
         return v;
     }
 

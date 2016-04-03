@@ -161,11 +161,11 @@ public class AppLauncher extends ClassController {
     private void visit() {
         if(!initialized) return;
         Item item = new TopItem();
-//        item.last_gridposition = grid.getSkinn().getFlow().getPosition(); // can cause nullpointer here
+//        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause nullpointer here
         visitId++;
         if(item==null) {
             grid.getItemsRaw().clear();
-            grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
+            grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
         } if(item!=null) {
             Fut.fut(item)
                     .map(Item::children,executorIO)
@@ -173,8 +173,8 @@ public class AppLauncher extends ClassController {
                     .use(newcells -> {
                         grid.getItemsRaw().setAll(newcells);
                         if(item.last_gridposition>=0)
-                            grid.getSkinn().getFlow().setPosition(item.last_gridposition);
-                        grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
+                            grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+                        grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
                     },FX)
                     .run();
         }

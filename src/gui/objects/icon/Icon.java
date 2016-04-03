@@ -139,7 +139,7 @@ public class Icon<I extends Icon<?>> extends Text {
     }
 
     public Icon(GlyphIcons ico, double size, Action action) {
-        this(ico, size, action.getInfo(), (Runnable)action);
+        this(ico, size, action.getInfo(), action);
     }
 
     @FXML
@@ -168,17 +168,20 @@ public class Icon<I extends Icon<?>> extends Text {
 
 /********************************* FLUENT API *********************************/
 
+	@SuppressWarnings("unchecked")
     public I icon(GlyphIcons i) {
         glyph = i;
         setIcon(i);
         return (I)this;
     }
 
+	@SuppressWarnings("unchecked")
     public I size(double s) {
         setGlyphSize(s);
         return (I)this;
     }
 
+	@SuppressWarnings("unchecked")
     public final I tooltip(String text) {
         boolean willBeEmpty = text==null || text.isEmpty();
         Tooltip old = getTooltip();
@@ -200,6 +203,7 @@ public class Icon<I extends Icon<?>> extends Text {
         return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
     }
 
+	@SuppressWarnings("unchecked")
     public final I tooltip(Tooltip t) {
         Tooltip old = getTooltip();
         if(t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
@@ -238,6 +242,7 @@ public class Icon<I extends Icon<?>> extends Text {
     }
 
     /** Sets styleclass. Returns this icon (fluent API). */
+    @SuppressWarnings("unchecked")
     public final I styleclass(String s) {
         getStyleClass().add(s);
         updateIcon();
@@ -255,6 +260,7 @@ public class Icon<I extends Icon<?>> extends Text {
      * {@code setOnMouseClicked(action);}.
      *
      * @return this icon (fluent API). */
+    @SuppressWarnings("unchecked")
     public final I onClick(EventHandler<MouseEvent> action) {
         setOnMouseClicked(action==null ? null : e -> {
             if(e.getButton()==PRIMARY){

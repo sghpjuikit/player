@@ -132,11 +132,11 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
         cell.updateGridView(grid);
         cell.addEventHandler(MOUSE_CLICKED, e -> {
             if(grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
-                getSkinnable().getGridView().getSkinn().select(cell);
+                getSkinnable().getGridView().implGetSkin().select(cell);
         });
         cell.hoverProperty().addListener((o,ov,nv) -> {
             if(nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
-                getSkinnable().getGridView().getSkinn().select(cell);
+                getSkinnable().getGridView().implGetSkin().select(cell);
         });
         return cell;
     }

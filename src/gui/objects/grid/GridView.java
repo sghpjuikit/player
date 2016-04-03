@@ -175,7 +175,7 @@ public class GridView<T,F> extends Control {
     }
 
     @SuppressWarnings("unchecked")
-    public GridViewSkin<T,F> getSkinn() {
+    public GridViewSkin<T,F> implGetSkin() {
         return (GridViewSkin) getSkin();
     }
 
@@ -188,7 +188,13 @@ public class GridView<T,F> extends Control {
         return itemsSorted;
     }
 
-
+	/**
+	 * Contains {@link gui.objects.grid.GridView.SelectionOn} constants, signaling when should the selection change.
+	 * By default, contains {@link SelectionOn#MOUSE_CLICK} and {@link SelectionOn#KEY_PRESSED}.
+	 * <p/>
+	 * Removing all elements from this sets will cause this grid ignore selection
+	 */
+	public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESSED);
 
     /**
      * Property for specifying how much spacing there is between each cell
@@ -485,8 +491,6 @@ public class GridView<T,F> extends Control {
         return getClassCssMetaData();
     }
 
-
-    public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESSED);
 
     public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESSED }
 }

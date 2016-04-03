@@ -6,7 +6,9 @@
 package DirViewer;
 
 import java.io.File;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
@@ -16,19 +18,21 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
 
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import layout.widget.controller.io.Input;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
-import util.*;
-import util.access.fieldvalue.FileField;
+import layout.widget.Widget;
+import layout.widget.controller.ClassController;
+import layout.widget.controller.io.Input;
+import util.SingleR;
+import util.Sort;
+import util.SwitchException;
 import util.access.V;
 import util.access.VarEnum;
+import util.access.fieldvalue.FileField;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -36,29 +40,25 @@ import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
-import util.file.*;
-import util.file.AudioFileFormat.Use;
-import util.file.Util;
+import util.file.Environment;
+import util.file.FileSort;
+import util.file.FileType;
 import util.functional.Functors.PƑ0;
 import util.graphics.drag.Placeholder;
 
 import static DirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static DirViewer.DirViewer.CellSize.NORMAL;
-import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
 import static util.access.fieldvalue.FileField.NAME;
-import static util.async.Async.FX;
-import static util.async.Async.newSingleDaemonThreadExecutor;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
-import static util.async.Async.sleep;
+import static util.async.Async.*;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
@@ -186,7 +186,7 @@ public class DirViewer extends ClassController {
 
     private void visit(Item dir, Item scrollTo) {
         if (!initialized) return;
-        if (item != null) item.last_gridposition = grid.getSkinn().getFlow().getPosition();
+        if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
         visitId++;
 
@@ -194,7 +194,7 @@ public class DirViewer extends ClassController {
         lastVisited = dir.val;
         if (item == null) {
             grid.getItemsRaw().clear();
-            grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
+            grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
         } else {
             Fut.fut(item)
                     .map(Item::children, executorIO)
@@ -202,8 +202,8 @@ public class DirViewer extends ClassController {
                     .use(newcells -> {
                         grid.getItemsRaw().setAll(newcells);
                         if (item.last_gridposition >= 0)
-                            grid.getSkinn().getFlow().setPosition(item.last_gridposition);
-                        grid.getSkinn().getFlow().requestFocus(); // fixes focus problem
+                            grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+                        grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
                     }, FX)
                     .showProgress(getWidget().getWindow().taskAdd())
                     .run();
@@ -446,11 +446,14 @@ public class DirViewer extends ClassController {
         }
     }
 
-    // Filter summary:
-    // because we can not yet serialize functions (see Functors class and Parser) in  a way that
-    // stores state such as negation or function chaining, I dont use predicates from Functors'
-    // function pool, but 'hardcoded' the filters instead.
-    // We use String config to save which one we use.
+    /**
+     * Filter summary: because we can not yet serialize functions (see {@link util.functional.Functors} and
+     * {@link util.parsing.Parser}) in  a way that stores (e.g. negation or function chaining), we do not use
+     * predicates from function pool, but hardcoded filters, which we look up by name.
+     * <p/>
+     * We use String config field to save which filter we use. Of course, we give up filter chaining and other stuff...
+     * For now, it is good enough.
+     */
     private static final List<PƑ0<File, Boolean>> filters = list();
 
     static {

@@ -3,10 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- file type filter (serializable one...)
+- ConfigSearch should open Settings and look up the property
 - function nodes should support custom name/icon for function parameters. This is probably best done
   by ParameterToNodeStrategy, where
-- implement get system icon for file properly
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
 - try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
@@ -26,7 +25,6 @@
       This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
       there have to be default values as well, preferrably settable per i/o in widget controller
 - Logger log text jambled up sometimes + doesnt write jaudiotagger log output sometimes
-- idea style of searching actions/shortcuts/configs
 - impl filter in Settings
 - DirViewer
     - optimize the annoying image loading delay that helps scrolling performance, its too much
@@ -40,6 +38,7 @@
 - FileDownloader widget
   - display progress
   - overwrite file if exist option
+  - support image tag writing on download to tag images immediatelly and conveniently
 - all ConfigFields must support observable Configs, im awed they dont!!
 - when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
 - implement 'use embedded thumbnail' for all image formats, not just psd
@@ -53,10 +52,6 @@
 - I think spectrum suffers from logarithmic band intensity distribution
 - custom control skins not working for new windows
 - display window snap preview & snap only on mouse release
-- wrap Icon in Stackpane to fix:
-   - icon layout (not always in center)
-   - icon effect (shadows) getting in the way of proepr layout
-   - scale down on hover
 - widget compilation failure causes recompilation ad infinitum
 - toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscribtions
@@ -108,8 +103,7 @@
      registered as services. for sanity.
 - guide -> core service, finish guide hints to cover all the basics
 - LastFM -> service, implement properly
-- popover position jumps on app drag start & fix icon shadows affecting
-  layout
+- popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random playorder
 - unify table column resizing, namely getMain column and autoresize with
@@ -119,6 +113,9 @@
 - refactor
     - DirViewer's GridView Cell implementation
     - GridView constructors
+    - Icon - Extract custom stuff to separate Icon classes and clean up generic Icon class.
+           - Add selectedProperty for easy control and observation.
+    - main.ImageThumbIconTest
 - cleanups
     - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action
 - annoying java "bugs" (problem scope == entire application)

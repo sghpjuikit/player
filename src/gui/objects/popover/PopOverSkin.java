@@ -223,7 +223,7 @@ public class PopOverSkin implements Skin<PopOver> {
             }
         });
 
-        // bugfix
+        // bug fix
         // When owning window is not focused, interacting with the popover is impossible (its focus
         // seems to be tied in with its owner window's focus). Unfortunately clicking on the popover
         // when its owner doesnt have focus does not focus it, which is really annoying.

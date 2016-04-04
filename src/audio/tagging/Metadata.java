@@ -838,7 +838,7 @@ public final class Metadata extends MetaItem<Metadata> {
                        + ((RenderedImage)cover.getImage()).getWidth() + "x"
                        + ((RenderedImage)cover.getImage()).getHeight();
         } catch(IOException | NullPointerException e) {
-            // ^ why do we catch Nullpointer here? Not a bugfix! Investigate & remove!
+            // ^ why do we catch Nullpointer here? Not a bug fix! Investigate & remove!
             // nevermind errors. Return "" on fail.
             return "";
         }

@@ -343,16 +343,16 @@ public class WindowManager implements Configurable<Object> {
                 a.playFrom(d);
             });
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
-                if(!miniWindow.isShowing()) return;     // bugfix
+                if(!miniWindow.isShowing()) return;     // bug fix
                 shower.start(mini_hover_delay);         // open after delay
             });
             mw_root.addEventHandler(MOUSE_CLICKED, e -> {
                 if(e.getButton()==PRIMARY) {
-                    if(!miniWindow.isShowing()) return; // bugfix
+                    if(!miniWindow.isShowing()) return; // bug fix
                     shower.runNow();                    // open with delay
                 }
                 if(e.getButton()==SECONDARY) {
-                    if(!miniWindow.isShowing()) return; // bugfix
+                    if(!miniWindow.isShowing()) return; // bug fix
                     hider.runNow();                     // open with delay
                 }
             });

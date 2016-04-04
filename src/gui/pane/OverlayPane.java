@@ -214,7 +214,7 @@ public class OverlayPane extends StackPane {
         }
 
         private void animDo(OverlayPane op, double x) {
-            if(op.opacityNode==null) return; // bugfix, not 100% sure why it is necessary
+            if(op.opacityNode==null) return; // bug fix, not 100% sure why it is necessary
 
             op.opacityNode.setOpacity(1-x*0.5);
             op.setOpacity(x);

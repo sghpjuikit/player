@@ -187,7 +187,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void loopModeChanged(LoopMode looping) {
-        loopB.size(looping==LoopMode.RANDOM ? ICON_SIZE : ICON_SIZE+3); //bugfix
+        loopB.size(looping==LoopMode.RANDOM ? ICON_SIZE : ICON_SIZE+3); // bug fix
         switch (looping) {
             case OFF:       loopB.setIcon(REPEAT_OFF);
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));

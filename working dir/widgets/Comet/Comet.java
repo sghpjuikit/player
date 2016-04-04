@@ -2440,7 +2440,7 @@ public class Comet extends ClassController {
         }
 
         void checkCollision(PO e) {
-            if(owner==e) return; // avoid self-hits (bugfix)
+            if(owner==e) return; // avoid self-hits (bug fix)
             if(isin_hyperspace!=e.isin_hyperspace) return;   // forbid space-hyperspace interaction
 
             // Fast bullets need interpolating (we check inter-frame collisions)

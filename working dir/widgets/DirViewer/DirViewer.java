@@ -163,7 +163,7 @@ public class DirViewer extends ClassController {
     public void refresh() {
         initialized = true;
         cellSize.applyValue();
-        // temporary bugfix, (we use progress indicator of the window this widget is loaded
+        // temporary bug fix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
         runLater(this::revisitCurrent);

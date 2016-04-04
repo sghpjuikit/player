@@ -195,7 +195,7 @@ class Utils {
     static void installFont(Labeled l, Font f) {
         Font ft = f==null ? Font.getDefault() : f;
         l.setFont(ft);
-        l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; }"); // bugfix, suddenly !work without this...
+        l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; }"); // bug fix, suddenly !work without this...
     }
 
     static Icon createPlayerLiveIcon() {

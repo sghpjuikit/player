@@ -161,7 +161,7 @@ public class Thumbnail extends ImageNode {
         }
     };
 
-    // bugfix
+    // bug fix
     // Inconsistent border width and can be blurry, and image under it can stick out (very ugly).
     // Probably problem with drawing at non-integer coordinates. See:
     // http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used

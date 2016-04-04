@@ -119,7 +119,7 @@ public final class Seeker extends AnchorPane {
                            p = clip(0,p,1);
                     PLAYBACK.seek(p);
                     run(100, () -> user_drag = false);
-                    if(seeker.isHover()) addB.show(); // ~bugfix
+                    if(seeker.isHover()) addB.show(); // ~bug fix
                 }
                 if(e.getButton()==SECONDARY) {
                     user_drag = false;
@@ -193,7 +193,7 @@ public final class Seeker extends AnchorPane {
         double h = getHeight();
 
         if(!chapters.isEmpty()) {
-            double fix = 1+chapters.get(0).getLayoutBounds().getWidth()/2; // bugfix
+            double fix = 1+chapters.get(0).getLayoutBounds().getWidth()/2; // bug fix
             for(Chap c : chapters) {
                 c.relocate(clip(fix,w * c.position,getWidth()-fix), h/2 - c.getHeight()/2);
             }
@@ -201,8 +201,8 @@ public final class Seeker extends AnchorPane {
 
         seeker.relocate(0, h/2 - seeker.getHeight()/2);
         addB.root.relocate(addB.root.getLayoutX(),h/2-addB.root.getHeight()/2);
-        r1.relocate(r1.getX(),5);
-        r2.relocate(r2.getX(),h-r2.getLayoutBounds().getHeight()-5);
+        r1.relocate(r1.getLayoutX(),5);
+        r2.relocate(r2.getLayoutX(),h-r2.getLayoutBounds().getHeight()-5);
     }
 
     private void onHoverChanged(Consumer<? super Boolean> handler) {
@@ -236,8 +236,8 @@ public final class Seeker extends AnchorPane {
         // apply
         double x = macurx;
                x = clip(0,x,getWidth());        // fixes outside of area bugs
-        r1.setX(x - MA_WIDTH2);
-        r2.setX(x - MA_WIDTH2);
+        r1.setLayoutX(x - MA_WIDTH2);
+        r2.setLayoutX(x - MA_WIDTH2);
         // we can also move add chapter button here (for different behavior)
         // addB.root.setLayoutX(macurx-addB.root.getWidth()/2);
     }
@@ -389,7 +389,7 @@ public final class Seeker extends AnchorPane {
     }
 
     private void timeUpdate() {
-        if(timeTot.get()==null) return; // bugfix
+        if(timeTot.get()==null) return; // bug fix
         posLast = timeCur.get().toMillis()/timeTot.get().toMillis();
         posLastFrame = 0;   // when we seek dt must be 0
         posUpdateInterval = clip(0,timeTot.get().toMillis()/getWidth(),60);

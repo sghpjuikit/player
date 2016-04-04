@@ -83,7 +83,7 @@ public class GeneralPlayer {
                     // fire other events (may rely on the above)
                     PLAYBACK.playbackStartDistributor.run();
                     if(post_activating_1st || !post_activating)
-                        // bugfix, unupdated playlist items can get here, but shouldnt!
+                        // bug fix, not updated playlist items can get here, but should not!
                         if(item.getTimeMs()>0)
                             PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
                     post_activating = false;

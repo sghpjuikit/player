@@ -3205,7 +3205,7 @@
  */
 .embedded-icon {}
 .embedded-icon:disabled {
-   -fx-opacity: 1;  /* this is a bugfix to apply disabled state properly */
+   -fx-opacity: 1;  /* this is a bug fix to apply disabled state properly */
 }
 
 /** 

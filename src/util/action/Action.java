@@ -240,7 +240,7 @@ public final class Action extends Config<Action> implements Runnable {
 
         // In the past, there was a bug, I'm leaving this here in case of regression:
         //
-        // runlater is bugfix, we delay local shortcut registering
+        // runlater is bug fix, we delay local shortcut registering
         // probably a javafx bug, as this was not always a problem
         //
         // for some unknown reason some shortcuts (F3,F4,

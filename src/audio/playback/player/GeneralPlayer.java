@@ -13,11 +13,11 @@ import audio.Item;
 import audio.Player;
 import audio.playback.PLAYBACK;
 import audio.playback.RealTimeProperty;
+import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
 import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
 import util.async.Async;
 
 import static audio.playback.PLAYBACK.*;
@@ -31,7 +31,7 @@ import static util.dev.Util.log;
  * Audio player which abstracts away from the implementation. It 'uses' actual players and provides
  * some of the higher level features they may lack.
  *
- * @author yoss
+ * @author Martin Polakovic
  */
 public class GeneralPlayer {
 
@@ -54,7 +54,7 @@ public class GeneralPlayer {
 
     @SuppressWarnings("deprecation")
     synchronized public void play(PlaylistItem item) {
-        // Dont recreate player if same song plays again
+        // Do not recreate player if same song plays again
         // 1) improves performance
         // 2) avoids firing some playback events
         if(p!=null && item.same(i)) {
@@ -89,18 +89,15 @@ public class GeneralPlayer {
                     post_activating = false;
                     post_activating_1st = false;
                 },
-                () -> {
-                    runFX(() -> {
-                        log(GeneralPlayer.class).info("Player {} can not play item {}", p,item);
-                        item.playbackerror = true;
-                        PlaylistManager.use(p -> p.playNextItem()); // handle within playlist
-                    });
-                }
-            );
+                () -> runFX(() -> {
+                    log(GeneralPlayer.class).info("Player {} can not play item {}", p,item);
+                    item.playbackerror = true;
+                    PlaylistManager.use(Playlist::playNextItem); // handle within playlist
+                }));
         } catch(NoPlayerException e) {
             log(GeneralPlayer.class).info("Player {} can not play item {}", p,item);
             item.playbackerror = true;
-            PlaylistManager.use(p -> p.playNextItem()); // handle within playlist
+            PlaylistManager.use(Playlist::playNextItem); // handle within playlist
         }
     }
 
@@ -130,7 +127,7 @@ public class GeneralPlayer {
             Player.playingtem.itemChanged(Metadata.EMPTY);
             realTime.synchroRealTime_onStopped();
             PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
-            PlaylistManager.playlists.forEach(p ->p.playingI.set(-1));
+            PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
             PlaylistManager.active = null;
         });
     }

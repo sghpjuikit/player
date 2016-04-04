@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- component name in center rather then top_center ?
 - ConfigSearch should open Settings and look up the property
 - function nodes should support custom name/icon for function parameters. This is probably best done
   by ParameterToNodeStrategy, where
@@ -135,9 +136,9 @@
 
 GENERAL
 - cant hide index column, shows artifacts                                                           (medium)
-- transparent stage causing massive performance degradation for larger stages                        (major, javaFX bug)
+- transparent stage causing massive performance degradation for larger stages                       (major, javaFX bug)
   problem: transparent skins, window shadows & screen mouse effects unsupported 
-- de-activator position | size a bit off when loading first time & into small                        (minor)
+- de-activator position | size a bit off when loading first time & into small                       (minor)
   area. It requires area resize call to initialize correct height/y-ccord 
   use black bgr on the buttons pane to see the issue 
 - playlist item moving change order when moving fast even for jsut 1 block                          (minor)
@@ -171,9 +172,10 @@ GENERAL
   Not an issue since we are using scale factor when loading images, but 
   investigate. When displaying image very close to its loaded size (+-10%) 
   aliasing appears 
-- javafx player MediaException: system cant find media file when weird character                   (JavaFX bug)
+- javafx player MediaException: system cant find media file when weird character                    (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
   Its patched so playback continues with next item, but that isnt a solution. Fill a bug.
+- IntelliJ on 64-bit JRE !work. 64-bit dll problem?                                                 (major)
 - database throws exception when transaction begins and library is importing files
 com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
 	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]

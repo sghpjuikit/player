@@ -171,9 +171,9 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	protected void layoutChildren() {
 		super.layoutChildren();
 		double w = getWidth(), h = getHeight();
-		double hgap = (w-node.getBoundsInParent().getWidth())/2;
-		double vgap = (h-node.getBoundsInParent().getHeight())/2;
-		node.relocate(hgap,vgap);
+		double gapH = (w-node.getBoundsInParent().getWidth())/2;
+		double gapV = (h-node.getBoundsInParent().getHeight())/2;
+		node.relocate(gapH,gapV);
 	}
 
 	/******************************************************************************/
@@ -272,7 +272,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
         return (I)this;
     }
 
-    /** Sets styleclass. Returns this icon (fluent API). */
+    /** Sets css style class. Returns this icon (fluent API). */
     @SuppressWarnings("unchecked")
     public final I styleclass(String s) {
         getStyleClass().add(s);
@@ -433,7 +433,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
         setGlyphName(i==null ? "null" : i.name());
     }
 
-    public FontAwesomeIcon getDefaultGlyph(){ return ADJUST; };
+    public FontAwesomeIcon getDefaultGlyph(){ return ADJUST; }
 
     private void updateSize() {
 	    double size = getGlyphSize().doubleValue();
@@ -562,7 +562,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 //      into account. If we do not do this, icons close by (but not intersecting) will cover each other with
 //      effects and cause usability issues (broken mouse picking). Im not sure how to tell the node we needs its
 //      layoutsInParent for layout calculations
-//    - icon alignment. Weird issues I didnt even have time to take proper notice of. But sometimes various icons
+//    - icon alignment. Weird issues I did not even have time to take proper notice of. But sometimes various icons
 //      simply fail to align properly, which is a major issue when using multiple icons in a line
 //		package gui.objects.icon;
 //

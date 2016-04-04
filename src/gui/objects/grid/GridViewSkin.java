@@ -276,7 +276,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
 /********************************************* FILTER *********************************************/
 
-
     /** Filter pane in the top of the table. */
     public final Filter filter;
 
@@ -285,8 +284,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
      * Filter is displayed in the top of the table.
      * <p/>
      * Setting filter visible will
-     * also make it focused (to allow writing filter query immediatelly). If you
-     * wish for the filter to gain focus set this proeprty to true (focus will
+     * also make it focused (to allow writing filter query immediately). If you
+     * wish for the filter to gain focus set this property to true (focus will
      * be set even if filter already was visible).
      * <p/>
      * Setting filter invisible will also clear any search query and effectively
@@ -486,14 +485,15 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
         // find row & cell to select
         GridRow<T,F> r = f.getCell(row);
+        if(r==null) return;
         GridCell<T,F> c = r.getSkinn().getCellAtIndex(col);
-        if(r==null || c==null) return;
+        if(c==null) return;
 
         selectedI = i;
-        if(c!=null) c.pseudoClassStateChanged(SELECTED_PC, true);
-        if(r!=null) r.pseudoClassStateChanged(SELECTED_PC, true);
         selectedR = r;
         selectedC = c;
+        selectedR.pseudoClassStateChanged(SELECTED_PC, true);
+        selectedC.pseudoClassStateChanged(SELECTED_PC, true);
         selectedC.requestFocus();
         selectedR.updateSelected(true);
         selectedC.updateSelected(true);

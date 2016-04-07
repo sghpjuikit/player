@@ -41,7 +41,7 @@ public class Configuration {
     private static final Ƒ1<String,String> mapper = s -> s.replaceAll(" ", "_").toLowerCase();
 
     private final Map<String,String> properties = new ConcurrentHashMap<>();
-    private final MapSet<String,Config> configs = new MapSet<>(mapper.compose(c -> c.getGroup() + "." + c.getName()));
+    private final MapSet<String,Config> configs = new MapSet<>(new ConcurrentHashMap<>(), mapper.compose(c -> c.getGroup() + "." + c.getName()));
 
     /**
      * Returns raw key-value ({@link java.lang.String}) pairs representing the serialized configs.

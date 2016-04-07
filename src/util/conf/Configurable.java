@@ -179,7 +179,7 @@ public interface Configurable<T> {
 
 
     static <E extends ObservableValue & WritableValue> Collection<Config<?>> configsFromFieldsOf(Object o) {
-        return configsOf(o.getClass(), o, false, true);
+        return (Collection) configsOf(o.getClass(), o, false, true);
     }
 
     static Configurable<?> configsFromFxPropertiesOf(Object o) {

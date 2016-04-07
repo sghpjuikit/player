@@ -656,12 +656,14 @@ public class App extends Application implements Configurable {
             services.addService(new ClickEffect());
 
             // gather configs
+            configuration.rawAdd(FILE_SETTINGS);
             configuration.collectStatic();
+            configuration.collect(Action.getActions());
             services.forEach(configuration::collect);
             configuration.collect(this, windowManager, guide, actionPane);
-            configuration.collectComplete();
+            
             // deserialize values (some configs need to apply it, will do when ready)
-            configuration.load(FILE_SETTINGS);
+            configuration.rawSet();
 
             // initializing, the order is important
             Player.initialize();

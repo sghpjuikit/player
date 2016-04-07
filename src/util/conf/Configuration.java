@@ -8,9 +8,8 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -26,6 +25,7 @@ import util.conf.Config.*;
 import util.file.Util;
 import util.functional.Functors.Ƒ1;
 
+import static util.file.Util.readFileKeyValues;
 import static util.type.Util.getAllFields;
 import static util.type.Util.getGenericPropertyType;
 import static util.dev.Util.noFinal;
@@ -40,18 +40,51 @@ public class Configuration {
     private static final Lookup methodLookup = MethodHandles.lookup();
     private static final Ƒ1<String,String> mapper = s -> s.replaceAll(" ", "_").toLowerCase();
 
+    private final Map<String,String> properties = new ConcurrentHashMap<>();
     private final MapSet<String,Config> configs = new MapSet<>(mapper.compose(c -> c.getGroup() + "." + c.getName()));
 
-    public void collect(Configurable<?> c) {
-        configs.addAll(c.getFields());
+    /**
+     * Returns raw key-value ({@link java.lang.String}) pairs representing the serialized configs.
+     * @return modifiable thread safe map of key-value property pairs
+     */
+    public Map<String,String> rawGet() {
+        return properties;
     }
 
-    public void collect(Configurable<?>... cs) {
-        for(Configurable<?> c : cs) collect(c);
+    public void rawAddProperty(String name, String value) {
+        properties.put(name,value);
     }
 
-    public void collect(Collection<Config<?>> c) {
-        configs.addAll(c);
+    public void rawAddProperties(Map<String,String> _properties) {
+        properties.putAll(_properties);
+    }
+
+    public void rawAdd(File file) {
+        readFileKeyValues(file).forEach(this::rawAddProperty);
+    }
+
+    public void rawRemProperty(String key) {
+        properties.remove(key);
+    }
+
+    public void rawRemProperties(Map<String,String> properties) {
+        properties.forEach((name,value) -> rawRemProperty(name));
+    }
+
+    public void rawRem(File file) {
+        readFileKeyValues(file).forEach((name,value) -> rawRemProperty(name));
+    }
+
+    public <C> void collect(Configurable<C> c) {
+        collectConfigs(c.getFields());
+    }
+
+    public <C> void collect(Collection<? extends Config<C>> c) {
+	    collectConfigs(c);
+    }
+
+    public <C> void collect(Configurable<C>... cs) {
+        for(Configurable<C> c : cs) collect(c);
     }
 
     public void collectStatic() {
@@ -62,20 +95,26 @@ public class Configuration {
         });
     }
 
-    @SuppressWarnings("unchecked")
-    public void collectComplete() {
-        configs.stream().filter(Config::isEditable)
-                        .filter(c -> c.getType().equals(Boolean.class))
-                        .map(c -> (Config<Boolean>) c)
-                        .forEach(c -> {
-                            String name = c.getGroup() + " " + c.getName() + " - toggle";
-                            Runnable r = c::setNextNapplyValue;
-                            Action.getActions().add(new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false));
-                        });
-
-        // add actions
-        configs.addAll(Action.getActions());
+    private <C> void collectConfigs(Collection<? extends Config<C>> _configs) {
+        configs.addAll(_configs);
+        _configs.stream()
+                .filter(Config::isEditable)
+                .filter(c -> c.getType().equals(Boolean.class))
+                // .map(c -> (Config<Boolean>) c) // unnecessary, but safe
+                .forEach(c -> {
+                    String name = c.getGroup() + " " + c.getName() + " - toggle";
+                    Runnable r = c::setNextNapplyValue;
+                    Action a = new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false);
+                    Action.getActions().add(a);
+                    configs.add(a);
+                });
     }
+
+	public <T> void drop(Config<T> config) {
+		configs.remove(config);
+	}
+
+	// TODO: add more drop implementations for convenience
 
     public List<Config> getFields() {
         return new ArrayList<>(configs);
@@ -132,8 +171,8 @@ public class Configuration {
      * <p/>
      * If field of given name does not exist it will be ignored as well.
      */
-    public void load(File file) {
-        Util.readFileKeyValues(file).forEach((key, value) -> {
+    public void rawSet() {
+	    properties.forEach((key, value) -> {
             Config<?> c = configs.get(mapper.apply(key));
             if (c!=null) c.setValueS(value);
         });
@@ -147,7 +186,7 @@ public class Configuration {
     }
 
     private void discoverConfigFieldsOf(Class<?> c) {
-        configs.addAll(configsOf(c, null, true, false));
+        collectConfigs(configsOf(c, null, true, false));
     }
 
     private void discoverMethodsOf(Class<?> c) {
@@ -176,16 +215,16 @@ public class Configuration {
         }
     }
 
-    static List<Config<?>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
+    static List<Config<Object>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
         if(include_instance && instance==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
-        List<Config<?>> out = new ArrayList<>();
+        List<Config<Object>> out = new ArrayList<>();
 
         for(Field f : getAllFields(clazz)) {
-            Config<?> c = createConfig(clazz, f, instance, include_static, include_instance);
+            Config c = createConfig(clazz, f, instance, include_static, include_instance);
             if(c!=null) out.add(c);
-        }
+    }
         return out;
     }
 

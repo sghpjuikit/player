@@ -328,7 +328,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
 
     public static Collection<Config<?>> configs(Object o) {
-        return configsOf(o.getClass(), o, false, true);
+        return (Collection) configsOf(o.getClass(), o, false, true);
     }
 
 /******************************* IMPLEMENTATIONS ******************************/

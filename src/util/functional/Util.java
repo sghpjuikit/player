@@ -69,6 +69,48 @@ public interface Util {
         return a == b || (a!=null && a.equals(b));
     }
 
+    static boolean isAnyØ(Object o) {
+        return o==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b) {
+        return a==null || b==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b, Object c) {
+        return a==null || b==null || c==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b, Object c, Object d) {
+        return a==null || b==null || c==null || d==null;
+    }
+
+    static boolean isAnyØ(Object... objects) {
+        for(Object o : objects) if(o==null) return true;
+        return false;
+    }
+
+    static boolean isNonØ(Object o) {
+        return o!=null;
+    }
+
+    static boolean isNonØ(Object a, Object b) {
+        return a!=null && b!=null;
+    }
+
+    static boolean isNonØ(Object a, Object b, Object c) {
+        return a!=null && b!=null && c!=null;
+    }
+
+    static boolean isNonØ(Object a, Object b, Object c, Object d) {
+        return a!=null && b!=null && c!=null && d!=null;
+    }
+
+    static boolean isNonØ(Object... objects) {
+        for(Object o : objects) if(o!=null) return false;
+        return true;
+    }
+    
     @SafeVarargs
     static <E> boolean isIn(E o, E... es) {
         for(E e : es)

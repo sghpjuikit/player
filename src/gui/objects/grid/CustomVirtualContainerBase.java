@@ -40,27 +40,9 @@ import static util.type.Util.invokeMethodP1;
  */
 public abstract class CustomVirtualContainerBase<C extends Control, I extends IndexedCell> extends SkinBase<C> {
 
-    /***************************************************************************
-     *                                                                         *
-     * Private fields                                                          *
-     *                                                                         *
-     **************************************************************************/
-
+    /** The virtualized container which handles the layout and scrolling of all the cells. */
+    final VirtualFlow<I> flow;
     boolean rowCountDirty;
-
-    /**
-     * The virtualized container which handles the layout and scrolling of
-     * all the cells.
-     */
-    private final VirtualFlow<I> flow;
-
-
-
-    /***************************************************************************
-     *                                                                         *
-     * Constructors                                                            *
-     *                                                                         *
-     **************************************************************************/
 
     /**
      *
@@ -82,14 +64,6 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
         });
     }
 
-
-
-    /***************************************************************************
-     *                                                                         *
-     * Abstract API                                                            *
-     *                                                                         *
-     **************************************************************************/
-
     /**
      * Returns the total number of items in this container, including those
      * that are currently hidden because they are out of view.
@@ -98,37 +72,17 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
 
     abstract void updateRowCount();
 
-
-
-    /***************************************************************************
-     *                                                                         *
-     * Public API                                                              *
-     *                                                                         *
-     **************************************************************************/
-
     /** {@inheritDoc} */
     @Override protected void layoutChildren(double x, double y, double w, double h) {
         checkState();
     }
 
-
-
-    /***************************************************************************
-     *                                                                         *
-     * Private methods                                                         *
-     *                                                                         *
-     **************************************************************************/
-
     /**
-     * This enables skin subclasses to provide a custom VirtualFlow implementation,
+     * Enables skin subclasses to provide a custom VirtualFlow implementation,
      * rather than have VirtualContainerBase instantiate the default instance.
      */
-    VirtualFlow<I> createVirtualFlow() {
+    protected VirtualFlow<I> createVirtualFlow() {
         return new VirtualFlow<>();
-    }
-
-    final VirtualFlow<I> getVirtualFlow() {
-        return flow;
     }
 
     double getMaxCellWidth(int rowsToCount) {

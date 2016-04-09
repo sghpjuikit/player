@@ -1,10 +1,14 @@
 package main;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.function.Consumer;
 
+import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 
 import javafx.application.Application;
@@ -19,6 +23,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import AppLauncher.AppLauncher;
+import sun.awt.shell.ShellFolder;
 import util.LazyR;
 import util.R;
 import util.file.Util;
@@ -26,6 +32,7 @@ import util.file.WindowsShortcut;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static javafx.collections.FXCollections.observableArrayList;
+import static util.async.Async.runFX;
 
 /**
  * Extracts an icon for a file type of specific file.
@@ -135,5 +142,92 @@ public class IconExtractor extends Application {
         jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
         return SwingFXUtils.toFXImage(image, null);
     }
+
+
+
+/************************* EXPERIMENTAL IMPLEMENTATION */
+
+	private static final FileSystemView fs = FileSystemView.getFileSystemView();
+	private static final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+
+	private static final Image getIcon(File file) {
+		javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+		return i==null ? null : imageSwingToFx(i);
+
+		//        ImageIcon i = getLargeIcon(file);
+		//        return i==null ? null : imageAwtToFx(i.getImage());
+	}
+
+	private static final void getIcon(File file, Consumer<Image> action) {
+		//        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+		//        return i==null ? null : imageSwingToFx(i);
+
+		javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
+		if(i==null) action.accept(null);
+		else imageSwingToFx(i, action);
+
+
+		//        ImageIcon i = getLargeIcon(file);
+		//        return i==null ? null : imageAwtToFx(i.getImage());
+	}
+
+	private static ImageIcon getLargeIcon(File file) {
+		try {
+			if(file==null) throw new FileNotFoundException("File is null");
+			ShellFolder sf = ShellFolder.getShellFolder(file);
+			return new ImageIcon(sf.getIcon(true), sf.getFolderType());
+		} catch (FileNotFoundException e) {
+			util.dev.Util.log(AppLauncher.class).warn("Could not load icon for {}", file);
+			return null;
+		}
+	}
+
+	private static Image imageAwtToFx(java.awt.Image awtImage) {
+		if(awtImage==null) return null;
+		BufferedImage bimg;
+		if (awtImage instanceof BufferedImage) {
+			bimg = (BufferedImage) awtImage ;
+		} else {
+			bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D graphics = bimg.createGraphics();
+			graphics.drawImage(awtImage, 0, 0, null);
+			graphics.dispose();
+		}
+		return SwingFXUtils.toFXImage(bimg, null);
+	}
+
+	private static void imageAwtToFx(java.awt.Image awtImage, Consumer<Image> then) {
+		if(awtImage==null) {
+			then.accept(null);
+			return;
+		}
+		BufferedImage bimg;
+		if (awtImage instanceof BufferedImage) {
+			bimg = (BufferedImage) awtImage ;
+		} else {
+			bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D graphics = bimg.createGraphics();
+			graphics.drawImage(awtImage, 0, 0, null);
+			graphics.dispose();
+		}
+		runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
+	}
+
+	private static Image imageSwingToFx(javax.swing.Icon swingIcon) {
+		if(swingIcon==null) return null;
+		BufferedImage bimg = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(),BufferedImage.TYPE_INT_ARGB);
+		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
+		return SwingFXUtils.toFXImage(bimg, null);
+	}
+
+	private static void imageSwingToFx(javax.swing.Icon swingIcon, Consumer<Image> then) {
+		if(swingIcon==null) {
+			then.accept(null);
+			return;
+		}
+		BufferedImage bimg = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
+		runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
+	}
 
 }

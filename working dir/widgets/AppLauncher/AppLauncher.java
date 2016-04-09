@@ -1,18 +1,12 @@
 package AppLauncher;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.Comparator;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,20 +15,19 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
+import layout.widget.Widget;
+import layout.widget.controller.ClassController;
 import main.IconExtractor;
-import sun.awt.shell.ShellFolder;
 import unused.TriConsumer;
 import util.Sort;
 import util.SwitchException;
-import util.access.fieldvalue.FileField;
 import util.access.V;
+import util.access.fieldvalue.FileField;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -42,7 +35,6 @@ import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
-import util.dev.Util;
 import util.file.Environment;
 import util.file.FileSort;
 import util.file.FileType;
@@ -51,11 +43,11 @@ import util.graphics.drag.Placeholder;
 
 import static AppLauncher.AppLauncher.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static AppLauncher.AppLauncher.CellSize.NORMAL;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.access.fieldvalue.FileField.NAME;
@@ -165,7 +157,7 @@ public class AppLauncher extends ClassController {
         visitId++;
         if(item==null) {
             grid.getItemsRaw().clear();
-            grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
+	        grid.requestFocus(); // fixes focus problem
         } if(item!=null) {
             Fut.fut(item)
                     .map(Item::children,executorIO)
@@ -174,7 +166,10 @@ public class AppLauncher extends ClassController {
                         grid.getItemsRaw().setAll(newcells);
                         if(item.last_gridposition>=0)
                             grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
-                        grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
+
+                        run(250, () -> {    // temp fix for app launer in popup not focusing
+                             grid.requestFocus();   // fixes focus problem
+	                    });
                     },FX)
                     .run();
         }
@@ -196,102 +191,11 @@ public class AppLauncher extends ClassController {
 
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
-                sortHomo = sort.get(); // sorts each group separately
+             sortHomo = sort.get(); // sorts each group separately
         FileField field = sortBy.get(); // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
-    }
-
-    private static final FileSystemView fs = FileSystemView.getFileSystemView();
-    private static final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-
-    private static final Image getIcon(File file) {
-        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
-        return i==null ? null : imageSwingToFx(i);
-
-//        ImageIcon i = getLargeIcon(file);
-//        return i==null ? null : imageAwtToFx(i.getImage());
-    }
-
-    private static final void getIcon(File file, Consumer<Image> action) {
-//        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
-//        return i==null ? null : imageSwingToFx(i);
-
-        javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
-        if(i==null) action.accept(null);
-        else imageSwingToFx(i, action);
-
-
-//        ImageIcon i = getLargeIcon(file);
-//        return i==null ? null : imageAwtToFx(i.getImage());
-    }
-
-    private static ImageIcon getLargeIcon(File file) {
-        try {
-            if(file==null) throw new FileNotFoundException("File is null");
-            ShellFolder sf = ShellFolder.getShellFolder(file);
-            return new ImageIcon(sf.getIcon(true), sf.getFolderType());
-        } catch (FileNotFoundException e) {
-            Util.log(AppLauncher.class).warn("Couldnt load icon for {}", file);
-            return null;
-        }
-    }
-
-    private static Image imageAwtToFx(java.awt.Image awtImage) {
-        if(awtImage==null) return null;
-        BufferedImage bimg;
-        if (awtImage instanceof BufferedImage) {
-            bimg = (BufferedImage) awtImage ;
-        } else {
-            bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = bimg.createGraphics();
-            graphics.drawImage(awtImage, 0, 0, null);
-            graphics.dispose();
-        }
-        return SwingFXUtils.toFXImage(bimg, null);
-    }
-
-    private static void imageAwtToFx(java.awt.Image awtImage, Consumer<Image> then) {
-        if(awtImage==null) {
-            then.accept(null);
-            return;
-        }
-        BufferedImage bimg;
-        if (awtImage instanceof BufferedImage) {
-            bimg = (BufferedImage) awtImage ;
-        } else {
-            bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = bimg.createGraphics();
-            graphics.drawImage(awtImage, 0, 0, null);
-            graphics.dispose();
-        }
-        runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
-    }
-
-    private static Image imageSwingToFx(javax.swing.Icon swingIcon) {
-        if(swingIcon==null) return null;
-        BufferedImage bimg = new BufferedImage(
-                swingIcon.getIconWidth(),
-                swingIcon.getIconHeight(),
-                BufferedImage.TYPE_INT_ARGB
-        );
-        swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
-        return SwingFXUtils.toFXImage(bimg, null);
-    }
-
-    private static void imageSwingToFx(javax.swing.Icon swingIcon, Consumer<Image> then) {
-        if(swingIcon==null) {
-            then.accept(null);
-            return;
-        }
-        BufferedImage bimg = new BufferedImage(
-                swingIcon.getIconWidth(),
-                swingIcon.getIconHeight(),
-                BufferedImage.TYPE_INT_ARGB
-        );
-        swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
-        runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
     }
 
     /**
@@ -431,7 +335,6 @@ public class AppLauncher extends ClassController {
             if(!cover_loadedFull) {
                 cover_loadedFull = true;
                 cover_loadedThumb = true;
-//                cover = getIcon(val);
                 cover = IconExtractor.getFileIcon(val);
                 action.accept(false, null, cover);
             }

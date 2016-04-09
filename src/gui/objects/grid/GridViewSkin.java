@@ -41,6 +41,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Skin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -57,6 +58,8 @@ import util.functional.Functors;
 import util.functional.Functors.Ƒ0;
 import util.type.Util;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static javafx.application.Platform.runLater;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -73,21 +76,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private final SkinDelegate skin;
     private final VBox root;
     private final StackPane filterPane = new StackPane();
-    private final VirtualFlow<GridRow<T,F>> f; // accesses superclass' flow field, do not name "flow"!
 
     @SuppressWarnings("unchecked")
     public GridViewSkin(GridView<T,F> control) {
         skin = new SkinDelegate(control);
 
-        f = Util.getFieldValue(skin,VirtualFlow.class,"flow"); // make flow field accessible
-        f.setId("virtual-flow");
-        f.setPannable(false);
-        f.setVertical(true);
-        f.setFocusTraversable(getSkinnable().isFocusTraversable());
-        f.setCellFactory(f -> GridViewSkin.this.createCell());
+        skin.flow.setId("virtual-flow");
+        skin.flow.setPannable(false);
+        skin.flow.setVertical(true);
+        skin.flow.setFocusTraversable(getSkinnable().isFocusTraversable());
+        skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
 
 
-        root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, f);
+        root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
         filter = new Filter(control.type, control.itemsFiltered);
 
         control.parentProperty().addListener((o,ov,nv) -> {
@@ -97,17 +98,23 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         updateGridViewItems();
         updateRowCount();
 
+        control.focusedProperty().addListener((o,ov,nv) -> {
+            if(nv) skin.flow.requestFocus();
+        });
+
+        root.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> runLater(skin.flow::requestFocus));
+
         // selection
-        f.addEventHandler(KEY_PRESSED, e -> {
+        skin.flow.addEventHandler(KEY_PRESSED, e -> {
             KeyCode c = e.getCode();
             if(c.isNavigationKey()) {
                 if(control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
-                    if(c==KeyCode.UP || c==KeyCode.KP_UP) selectUp();
-                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectDown();
-                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectLeft();
-                    if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectRight();
-                    if(c==KeyCode.PAGE_DOWN) selectDown();
-                    if(c==KeyCode.PAGE_UP) selectUp();
+                    if(c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst,this::selectUp);
+                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst,this::selectDown);
+                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst,this::selectLeft);
+                    if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst,this::selectRight);
+                    if(c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst,this::selectPageUp);
+                    if(c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst,this::selectPageDown);
                     if(c==KeyCode.HOME) selectFirst();
                     if(c==KeyCode.END) selectLast();
                     e.consume();
@@ -119,7 +126,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     public VirtualFlow<GridRow<T,F>> getFlow() {
-        return f;
+        return skin.flow;
     }
 
     @Override
@@ -153,14 +160,14 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void updateRowCount() {
-        if (f == null)
+        if (skin.flow == null)
             return;
 
-        int oldCount = f.getCellCount();
+        int oldCount = skin.flow.getCellCount();
         int newCount = getItemCount();
 
         if (newCount != oldCount) {
-            f.setCellCount(newCount);
+            skin.flow.setCellCount(newCount);
             flowRebuildCells();
         } else {
             flowReconfigureCells();
@@ -175,7 +182,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     /**
-     *  Returns the number of row needed to display the whole set of cells
+     *  Returns the number of rows needed to display the whole set of cells
      *  @return GridView row count
      */
     public int getItemCount() {
@@ -189,7 +196,12 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
      */
     public int computeMaxCellsInRow() {
         double gap = getSkinnable().horizontalCellSpacingProperty().doubleValue();
-        return Math.max((int) Math.floor((computeRowWidth()+gap) / computeCellWidth()), 1);
+        return max((int) Math.floor((computeRowWidth()+gap) / computeCellWidth()), 1);
+    }
+
+    public int computeMaxRowsInGrid() {
+        double gap = getSkinnable().verticalCellSpacingProperty().doubleValue();
+        return max((int) Math.floor((getSkinnable().getHeight()+gap) / computeRowHeight()), 1);
     }
 
     /**
@@ -201,17 +213,21 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         return getSkinnable().getWidth() - getVScrollbarWidth();
     }
 
+    protected double computeRowHeight() {
+        return getSkinnable().getCellHeight() + getSkinnable().verticalCellSpacingProperty().doubleValue();
+    }
+
     /**
      *  Returns the width of a cell
      *  @return Computed width of a cell
      */
     protected double computeCellWidth() {
-        return getSkinnable().cellWidthProperty().doubleValue() + (getSkinnable().horizontalCellSpacingProperty().doubleValue() * 2);
+        return getSkinnable().cellWidthProperty().doubleValue() + getSkinnable().horizontalCellSpacingProperty().doubleValue();
     }
 
     protected double getVScrollbarWidth() {
-        if(f!=null) {
-            VirtualScrollBar vsb = Util.getFieldValue(f, VirtualScrollBar.class, "vbar");
+        if(skin.flow!=null) {
+            VirtualScrollBar vsb = Util.getFieldValue(skin.flow, VirtualScrollBar.class, "vbar");
             return vsb!=null && vsb.isVisible() ? vsb.getWidth() : 0;
         }
         return 0;
@@ -219,7 +235,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     protected void updateRows(int rowCount) {
         for (int i = 0; i < rowCount; i++) {
-            GridRow<T,F> row = f.getVisibleCell(i);
+            GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
                 // FIXME hacky - need to better understand what this is about
                 // looks like its to force index change update, Q is: is it necessary?
@@ -230,19 +246,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     protected boolean areRowsVisible() {
-        return f!=null && f.getFirstVisibleCell()!=null && f.getLastVisibleCell()!=null;
+        return skin.flow!=null && skin.flow.getFirstVisibleCell()!=null && skin.flow.getLastVisibleCell()!=null;
     }
 
     private void flowRecreateCells() {
-        Util.invokeMethodP0(VirtualFlow.class,f,"recreateCells");
+        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"recreateCells");
     }
 
     private void flowRebuildCells() {
-        Util.invokeMethodP0(VirtualFlow.class,f,"rebuildCells");
+        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"rebuildCells");
     }
 
     private void flowReconfigureCells() {
-        Util.invokeMethodP0(VirtualFlow.class,f,"reconfigureCells");
+        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"reconfigureCells");
     }
 
     private class SkinDelegate extends CustomVirtualContainerBase<GridView<T,F>,GridRow<T,F>> {
@@ -369,7 +385,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             });
 
             // addEventFilter would cause ignoring first key stroke when setting filter visible
-            GridViewSkin.this.f.addEventHandler(KEY_PRESSED, e -> {
+            GridViewSkin.this.skin.flow.addEventHandler(KEY_PRESSED, e -> {
                 KeyCode k = e.getCode();
                 // CTRL+F -> toggle filter
                 if(k==F && e.isShortcutDown()) {
@@ -409,6 +425,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private GridRow<T,F> selectedR = null;
     private GridCell<T,F> selectedC = null;
 
+    void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
+        if(selectedI<0) ifEmpty.run();
+        else otherwise.run();
+    }
+
     void selectRight() {
         select(selectedI+1);
     }
@@ -418,14 +439,24 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void selectUp() {
-        select(selectedI-computeMaxCellsInRow());
+        int sel = selectedI-computeMaxCellsInRow();
+         select(max(0,sel));
     }
 
     void selectDown() {
         int sel = selectedI+computeMaxCellsInRow();
+        select(min(getSkinnable().getItemsShown().size()-1,sel));
+    }
+
+    void selectPageUp() {
+        int sel = selectedI-computeMaxRowsInGrid()*computeMaxCellsInRow();
+        select(max(0,sel));
+    }
+
+    void selectPageDown() {
+        int sel = selectedI+computeMaxRowsInGrid()*computeMaxCellsInRow();
         int max = getSkinnable().getItemsShown().size()-1;
-        if(sel>max) selectLast();
-        else select(sel);
+        select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
 
     void selectFirst() {
@@ -455,7 +486,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     /** Select cell (and row it is in) at index. No-op if out of range. */
     void select(int i) {
-        if(f==null) return;
+        if(skin.flow==null) return;
         if(i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
 
         int itemCount = getSkinnable().getItemsShown().size();
@@ -474,17 +505,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         if(row<0 || row>rows) return;
 
         // show row & cell to select
-        GridRow<T,F> fsc = f.getFirstVisibleCell();
-        GridRow<T,F> lsc = f.getLastVisibleCell();
+        GridRow<T,F> fsc = skin.flow.getFirstVisibleCell();
+        GridRow<T,F> lsc = skin.flow.getLastVisibleCell();
         boolean isUp   = row<=fsc.getIndex();
         boolean isDown = row>=lsc.getIndex();
         if(fsc.getIndex() >= row || row >= lsc.getIndex()) {
-            if(isUp) f.scrollToTop(row);
-            else f.scrollTo(row); // TODO: fix weird behavior
+            if(isUp) skin.flow.scrollToTop(row);
+            else skin.flow.scrollTo(row); // TODO: fix weird behavior
         }
 
         // find row & cell to select
-        GridRow<T,F> r = f.getCell(row);
+        GridRow<T,F> r = skin.flow.getCell(row);
         if(r==null) return;
         GridCell<T,F> c = r.getSkinn().getCellAtIndex(col);
         if(c==null) return;

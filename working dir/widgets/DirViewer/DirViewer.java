@@ -194,7 +194,7 @@ public class DirViewer extends ClassController {
         lastVisited = dir.val;
         if (item == null) {
             grid.getItemsRaw().clear();
-            grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
+	        grid.requestFocus();    // fixes focus problem
         } else {
             Fut.fut(item)
                     .map(Item::children, executorIO)
@@ -203,7 +203,8 @@ public class DirViewer extends ClassController {
                         grid.getItemsRaw().setAll(newcells);
                         if (item.last_gridposition >= 0)
                             grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
-                        grid.implGetSkin().getFlow().requestFocus(); // fixes focus problem
+
+				        grid.requestFocus();    // fixes focus problem
                     }, FX)
                     .showProgress(getWidget().getWindow().taskAdd())
                     .run();

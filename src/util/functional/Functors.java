@@ -590,8 +590,8 @@ public class Functors {
         add("Split",        String.class,SplitData.class, (t,splitter) ->
                 splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(toCollection(SplitData::new))
             , StringSplitParser.class,new StringSplitParser("%all%"));
-        add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
-                Map<String,String> splits = spliter.applyM(t);
+        add("Split-join",   String.class,String.class, (t,splitter,joiner) -> {
+                Map<String,String> splits = splitter.applyM(t);
                 List<String> keys = joiner.parse_keys;
                 List<String> seps = joiner.key_separators;
                 StringBuilder o = new StringBuilder("");
@@ -605,7 +605,7 @@ public class Functors {
                 return o.toString();
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
         add("Is",           String.class,Boolean.class, util.Util::equalsNoCase, String.class,Boolean.class,"",true);
-        add("Contains",     String.class,Boolean.class, util.Util::containsNoCase, String.class,Boolean.class,"",true);
+        add("Contains",     String.class,Boolean.class, util.Util::containsNoCase, String.class,Boolean.class,"",true, false,false,true);
         add("Ends with",    String.class,Boolean.class, util.Util::endsWithNoCase, String.class,Boolean.class,"",true);
         add("Starts with",  String.class,Boolean.class, util.Util::startsWithNoCase, String.class,Boolean.class,"",true);
         add("Matches regex",String.class,Boolean.class, (text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
@@ -766,7 +766,8 @@ public class Functors {
 
     private static <T> void addSelfFunctor(PrefList l, Class<T> c) {
         Object p = l.getPrefered();
-        l.addPreferred(new PƑ0("As self", c, c, IDENTITY), p==null);
+        // l.addPreferred(new PƑ0("As self", c, c, IDENTITY), p==null); // !working as it should?
+        l.add(0,new PƑ0("As self", c, c, IDENTITY));
     }
 
     /** Returns all functions taking input I. */

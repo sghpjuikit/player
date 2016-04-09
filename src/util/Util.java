@@ -156,32 +156,32 @@ public interface Util {
         return text.equalsIgnoreCase(phrase);
     }
 
-    static boolean equalsNoCase(String text, String phrase, boolean ignore) {
-        return ignore ? text.equals(phrase) : equalsNoCase(text, phrase);
+    static boolean equalsNoCase(String text, String phrase, boolean ignoreCase) {
+        return ignoreCase ? equalsNoCase(text, phrase) : text.equals(phrase);
     }
 
     static boolean startsWithNoCase(String text, String phrase) {
         return text.toLowerCase().startsWith(phrase.toLowerCase());
     }
 
-    static boolean startsWithNoCase(String text, String phrase, boolean ignore) {
-        return ignore ? text.startsWith(phrase) : startsWithNoCase(text, phrase);
+    static boolean startsWithNoCase(String text, String phrase, boolean ignoreCase) {
+        return ignoreCase ? startsWithNoCase(text, phrase) : text.startsWith(phrase);
     }
 
     static boolean endsWithNoCase(String text, String phrase) {
         return text.toLowerCase().startsWith(phrase.toLowerCase());
     }
 
-    static boolean endsWithNoCase(String text, String phrase, boolean ignore) {
-        return ignore ? text.endsWith(phrase) : endsWithNoCase(text, phrase);
+    static boolean endsWithNoCase(String text, String phrase, boolean ignoreCase) {
+        return ignoreCase ? endsWithNoCase(text, phrase) : text.endsWith(phrase);
     }
 
     static boolean containsNoCase(String text, String phrase) {
         return text.toLowerCase().contains(phrase.toLowerCase());
     }
 
-    static boolean containsNoCase(String text, String phrase, boolean ignore) {
-        return ignore ? text.contains(phrase) : containsNoCase(text, phrase);
+    static boolean containsNoCase(String text, String phrase, boolean ignoreCase) {
+        return ignoreCase ? containsNoCase(text, phrase) : text.contains(phrase);
     }
 
     /**

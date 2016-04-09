@@ -28,7 +28,7 @@ import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
-import main.ImageThumbIconTest;
+import main.IconExtractor;
 import sun.awt.shell.ShellFolder;
 import unused.TriConsumer;
 import util.Sort;
@@ -432,7 +432,7 @@ public class AppLauncher extends ClassController {
                 cover_loadedFull = true;
                 cover_loadedThumb = true;
 //                cover = getIcon(val);
-                cover = ImageThumbIconTest.getFileIcon(val);
+                cover = IconExtractor.getFileIcon(val);
                 action.accept(false, null, cover);
             }
         }

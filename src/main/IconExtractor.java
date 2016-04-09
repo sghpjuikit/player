@@ -19,16 +19,26 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import util.LazyR;
+import util.R;
 import util.file.Util;
+import util.file.WindowsShortcut;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static javafx.collections.FXCollections.observableArrayList;
 
-// http://stackoverflow.com/questions/15629069/extract-application-icons-from-desktop-folder-to-application
-// http://stackoverflow.com/questions/15149565/how-does-jtree-display-file-name/15150756#15150756
-// http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
-// http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
-public class ImageThumbIconTest extends Application {
+/**
+ * Extracts an icon for a file type of specific file.
+ * <p/>
+ * http://stackoverflow.com/questions/15629069/extract-application-icons-from-desktop-folder-to-application
+ * <br/>
+ * http://stackoverflow.com/questions/15149565/how-does-jtree-display-file-name/15150756#15150756
+ * <br/>
+ * http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
+ * <br/>
+ * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
+ */
+public class IconExtractor extends Application {
 
     ListView<String> list = new ListView<>();
     ObservableList<String> data = observableArrayList(
@@ -75,27 +85,30 @@ public class ImageThumbIconTest extends Application {
     }
 
 
-    static HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
+	private static R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
+    private static HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
 
     private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
 
-        // Windows {
-        FileSystemView view = FileSystemView.getFileSystemView();
+        // Windows
+        FileSystemView view = helperFileSystemView.get();
         javax.swing.Icon icon = view.getSystemIcon(file);
-        // }
 
-        // OS X {
+        // OS X
         //final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
         //javax.swing.Icon icon = fc.getUI().getFileView(fc).getIcon(file);
-        // }
 
         return icon;
     }
 
     public static Image getFileIcon(File file) {
-        // FIXME: !work for windows shortcuts
         String ext = Util.getSuffix(file.getPath()).toLowerCase();
-//        file.i
+
+	    // Handle windows shortcut files (we need to resolve the target file)
+        if("lnk".equals(ext))
+            return WindowsShortcut.targetedFile(file).map(IconExtractor::getFileIcon).orElse(null);
+
+	    // Handle windows executable files (we need to handle each individually)
         String key = "exe".equals(ext) ? Util.getName(file) : ext;
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {

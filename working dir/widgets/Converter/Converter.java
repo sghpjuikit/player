@@ -85,7 +85,7 @@ import static util.graphics.drag.DragUtil.installDrag;
     howto = ""
         + "\tUser can put text in an edit area and apply transformations on it "
         + "using available functions. The transformations are applied on each "
-        + "line separately. It is possible to manually edit the text to finetune "
+        + "line separately. It is possible to manually edit the text to fine-tune "
         + "the result.\n"
         + "\tThis is useful to edit multiple texts in the same way, e.g., to "
         + "edit filenames or song names. This is done using an 'applier' that "
@@ -324,15 +324,13 @@ public class Converter extends ClassController implements SongWriter {
         }
 
         @Override
-        public void setData(List<?> input) {System.out.println("setting data");
+        public void setData(List<?> input) {
             super.setData(input);
             fillActionData();
         }
 
         public void fillActionData(){
-            System.out.println("filling");
             if(isMain && applier!=null) {
-            System.out.println("filling really");
                 applier.fillActs(transforms.getTypeIn());
             }
         }

@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- make services lazy, requires better lifecycle handling, service subscriptions/observers/consumers,
+  improved config loading, extracting, applying values, widget service dependency reporting, etc
+  The most difficult part is to figure out how automatic and manual service start/stop should interplay
 - component name in center rather then top_center ?
 - ConfigSearch should open Settings and look up the property
 - function nodes should support custom name/icon for function parameters. This is probably best done
@@ -94,14 +97,6 @@
 - make generic rater control, use in FileInfo
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
-- decide what exactly is plugin and service. Stuff available in app from the
-  being a service doesnt sit well with me. Basically the only thing i did it
-  like that was to be able to control lifecycle. 
-  1: plugins may me implementation of functionalitties that will be 'exposed'
-     as pluggable (@IsPluggable). These may be services too.
-  2: service is anything requiring a lifecycle and with no ui
-  3: core services should be exposed as APP components in addition to being
-     registered as services. for sanity.
 - guide -> core service, finish guide hints to cover all the basics
 - LastFM -> service, implement properly
 - popover position jumps on app drag start

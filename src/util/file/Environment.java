@@ -109,7 +109,7 @@ public class Environment {
                 if (f.exists()) {
                     if(Platform.getCurrent()==WINDOWS && (openDir && !isDir)) {
                         // select file or directory
-                        Runtime.getRuntime().exec("explorer.exe /select," + f.getPath());
+                        Runtime.getRuntime().exec("explorer.exe /select," + "\"" + f.getPath() + "\"");
                     } else {
                         // open directory
                         open(isDir ? f.getParentFile() : f);

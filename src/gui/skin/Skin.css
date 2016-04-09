@@ -4097,6 +4097,6 @@ check-icon-disabling:selected {
  * Cell displaying icon. Used in icon browser.
  */
 .icon-grid-cell,
-.grid-cell:selected {
+.icon-grid-cell:selected {
     -fx-background-color: null;
 }

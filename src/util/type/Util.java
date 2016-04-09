@@ -12,6 +12,8 @@ import javafx.beans.value.ObservableValue;
 
 import unused.TriConsumer;
 
+import static util.dev.Util.log;
+import static util.functional.Util.isNonØ;
 import static util.functional.Util.list;
 
 /**
@@ -37,7 +39,7 @@ public interface Util {
             // the implNameProperty methods and can be public due to reasons...
             //
             // In other words anyting non-public is not safe.
-            if (methodname.endsWith("Property") && !methodname.startsWith("impl") && Modifier.isPublic(method.getModifiers())) {
+            if (methodname.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodname.startsWith("impl")) {
                 try {
                     Class<?> returnType = method.getReturnType();
                     if (ObservableValue.class.isAssignableFrom(returnType)) {
@@ -45,10 +47,11 @@ public interface Util {
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-                        action.accept(property, propertyName, propertyType);
+                        if(isNonØ(property, propertyName, propertyType))
+                            action.accept(property, propertyName, propertyType);
                     }
                 } catch(IllegalAccessException | InvocationTargetException e) {
-                    util.dev.Util.log(Util.class).error("Couldnt obtain property from object",e);
+                    log(Util.class).error("Could not obtain property from object",e);
                 }
             }
         }
@@ -200,7 +203,8 @@ public interface Util {
 
     /**
      * Intended use case: discovering the generic type of a javafx property in the runtime
-     * using reflection on parent object's {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method} return type (javafx property specification).
+     * using reflection on parent object's {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method} return
+     * type (javafx property specification).
      * <p/>
      * This works around java's type erasure and makes it possible to determine exact property type
      * even when property value is null or when the value is subtype of the property's generic type.
@@ -214,16 +218,18 @@ public interface Util {
      * parameter type is available it is returned. Otherwise the inspection continues. In case of no
      * success, null is returned
      *
-     * @return class of the 1st generic parameter of the specified type of some of its supertype or
-     * null if none.
+     * @return class of the 1st generic parameter of the specified type or of some of its supertype or
+     * null if none found.
      */
     static Class getGenericPropertyType(Type t) {
+        // TODO: fix this returning null for EventHandlerProperty
+
         // debug, reveals the class inspection order
         // System.out.println("inspecting " + t.getTypeName());
 
         // Workaround for all number properties returning Number.class instead of their respective
         // class, due to all implementing something along the lines Property<Number>. As per
-        // javadock review, the affected are the four classses : Double, Float, Long, Integer.
+        // javadoc review, the affected are the four classes : Double, Float, Long, Integer.
         String typename = t.getTypeName(); // classname
         if(typename.contains("Double")) return Double.class;
         if(typename.contains("Integer")) return Integer.class;

@@ -12,10 +12,12 @@ import javafx.scene.image.Image;
 import gui.objects.image.Thumbnail;
 import unused.TriConsumer;
 import util.file.FileType;
-import util.file.Util;
 import util.file.ImageFileFormat;
 
+import static util.Util.loadImageFull;
+import static util.Util.loadImageThumb;
 import static util.file.FileType.DIRECTORY;
+import static util.file.Util.getName;
 import static util.file.Util.listFiles;
 import static util.functional.Util.list;
 
@@ -109,7 +111,7 @@ public abstract class Item {
         if(full) {
             boolean was_loaded = cover_loadedFull;
             if(!cover_loadedFull) {
-                Image img = util.Util.loadImageFull(file, width, height);
+                Image img = loadImageFull(file, width, height);
                 if(img!=null) {
                     cover = img;
                     action.accept(was_loaded,file,cover);
@@ -120,7 +122,7 @@ public abstract class Item {
             boolean was_loaded = cover_loadedThumb;
             if(!cover_loadedThumb) {
                 Image imgc = Thumbnail.getCached(file, width, height);
-                cover = imgc!=null ? imgc : util.Util.loadImageThumb(file, width, height);
+                cover = imgc!=null ? imgc : loadImageThumb(file, width, height);
                 cover_loadedThumb = true;
             }
             action.accept(was_loaded,file,cover);
@@ -142,7 +144,7 @@ public abstract class Item {
                 cover_file = val;
                 return cover_file;
             } else {
-                File i = getImage(val.getParentFile(), Util.getName(val));
+                File i = getImage(val.getParentFile(), getName(val));
                 if(i==null && parent!=null) return parent.getCoverFile(); // return the parent image if available, needs some work
                 cover_file = i;
                 return cover_file;

@@ -130,8 +130,6 @@ public class DirViewer extends ClassController {
         placeholder.showFor(this);
 
         Input<File> input_Dir = inputs.create("Root directory", File.class, null, dir -> {
-//            if(dir instanceof File && ((File)dir).isDirectory() && ((File)dir).exists())
-//                files.setItems((File)dir);
             if (dir != null && dir.isDirectory() && dir.exists())
                 files.setItems(dir);
         });

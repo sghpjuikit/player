@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- implement loading images properly using the twelvemonkeys
 - make services lazy, requires better lifecycle handling, service subscriptions/observers/consumers,
   improved config loading, extracting, applying values, widget service dependency reporting, etc
   The most difficult part is to figure out how automatic and manual service start/stop should interplay

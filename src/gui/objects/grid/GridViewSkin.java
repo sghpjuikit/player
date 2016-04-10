@@ -41,7 +41,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Skin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -65,7 +64,7 @@ import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static util.Util.*;
+import static util.Util.isInRangeInc;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
@@ -97,12 +96,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
         updateGridViewItems();
         updateRowCount();
-
-        control.focusedProperty().addListener((o,ov,nv) -> {
-            if(nv) skin.flow.requestFocus();
-        });
-
-        root.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> runLater(skin.flow::requestFocus));
 
         // selection
         skin.flow.addEventHandler(KEY_PRESSED, e -> {

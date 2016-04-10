@@ -229,7 +229,7 @@ public class App extends Application implements Configurable {
      * File mime type map.
      * Initialized with the built-in mime types definitions.
      */
-    public final MimeTypes mimeTypes = new MimeTypes();
+    public final MimeTypes mimeTypes = MimeTypes.standard();
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -972,7 +972,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+SHIFT+P")
     public static void openLauncher() {
-        File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");;
+        File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
         Component c = UiContext.instantiateComponent(f);
         if(c!=null) {
             OverlayPane op = new OverlayPane() {

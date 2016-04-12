@@ -167,7 +167,7 @@ public class AppLauncher extends ClassController {
                         if(item.last_gridposition>=0)
                             grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
-                        run(250, () -> {    // temp fix for app launer in popup not focusing
+                        run(400, () -> {    // temp fix for app launer in popup not focusing
                              grid.requestFocus();   // fixes focus problem
 	                    });
                     },FX)

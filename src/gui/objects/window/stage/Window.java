@@ -195,8 +195,35 @@ public class Window extends WindowBase {
         header.addEventHandler(MOUSE_DRAGGED, this::moveDo);
         header.addEventHandler(MOUSE_RELEASED, this::moveEnd);
 
+	    // app dragging (anywhere on ALT)
+        root.addEventFilter(MOUSE_PRESSED, e -> {
+            if(e.getButton()==PRIMARY && e.isAltDown()) {
+                isMovingAlt = true;
+	            subroot.setMouseTransparent(true);
+                moveStart(e);
+	            e.consume();
+            }
+        });
+        root.addEventFilter(MOUSE_DRAGGED, e -> {
+            if(isMovingAlt) {
+                moveDo(e);
+                e.consume();
+            }
+        });
+        root.addEventFilter(MOUSE_RELEASED, e -> {
+            if(e.getButton()==PRIMARY && isMovingAlt) {
+                isMovingAlt = false;
+	            subroot.setMouseTransparent(false);
+                moveEnd(e);
+                e.consume();
+            }
+        });
+	    root.addEventFilter(MouseEvent.ANY, e -> {
+		    if(isMovingAlt) e.consume();
+	    });
+
         // header double click maximize, show header on/off
-            header.setMouseTransparent(false);
+        header.setMouseTransparent(false);
         header.setOnMouseClicked(e -> {
             if (e.getButton() == PRIMARY)
             if (e.getClickCount() == 2)
@@ -564,7 +591,7 @@ public class Window extends WindowBase {
 
     @Override
     public void setFullscreen(boolean v) {
-	super.setFullscreen(v);                         // fullscreen
+		super.setFullscreen(v);                         // fullscreen
         applyBorderless(v ? true : borderless);         // borderless
 	    applyHeaderVisible(v ? false : headerVisible);  // headerless
     }
@@ -596,6 +623,7 @@ public class Window extends WindowBase {
     private double appY;
     private Subscription mouseMonitor = null;
     private double mouseSpeed = 0;
+    private boolean isMovingAlt = false;
 
     private void moveStart(MouseEvent e) {
         // disable when being resized, resize starts at mouse pressed so
@@ -611,7 +639,11 @@ public class Window extends WindowBase {
     }
 
     private void moveDo(MouseEvent e) {
-        if (!isMoving.get() || e.getButton() != PRIMARY) return;
+	    // We dont want to check button onMove. Right click could interfere (possibly stop)
+	    // the movement, but we want to simply ignore that. The movement begins and ends only
+	    // with PRIMARY button, which is satisfactory condition to begin with.
+        // if (!isMoving.get() || e.getButton() != PRIMARY) return;
+        if (!isMoving.get()) return;
 
         double X = e.getScreenX();
         double Y = e.getScreenY();
@@ -665,13 +697,12 @@ public class Window extends WindowBase {
 
     @FXML
     private void border_onDragStart(MouseEvent e) {
-        // start resize if allowed
         if(resizable.get()) {
             double X = e.getSceneX();
             double Y = e.getSceneY();
             double WW = getWidth();
             double WH = getHeight();
-            double L = 18; // corner treshold
+            double L = 18; // corner threshold
 
             Resize r = NONE;
             if ((X > WW - L) && (Y > WH - L))   r = Resize.SE;
@@ -689,7 +720,6 @@ public class Window extends WindowBase {
 
     @FXML
     private void border_onDragEnd(MouseEvent e) {
-        // end resizing if active
         if(isResizing.get()!=NONE) isResizing.set(NONE);
         e.consume();
     }

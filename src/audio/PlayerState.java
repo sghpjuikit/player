@@ -19,9 +19,8 @@ import audio.playback.PLAYBACK;
 import audio.playback.PlaybackState;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistManager;
-import main.App;
-import main.AppSerializator;
-import main.AppSerializator.SeriallizationException;
+import main.AppSerializer;
+import main.AppSerializer.SerializationException;
 
 import static main.App.APP;
 import static util.functional.Util.stream;
@@ -35,7 +34,7 @@ import static util.functional.Util.stream;
  */
 public final class PlayerState {
 
-    private static final AppSerializator X = APP.serializators;
+    private static final AppSerializer X = APP.serializators;
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerState.class);
 
     @XStreamOmitField
@@ -53,7 +52,7 @@ public final class PlayerState {
         File f = new File(APP.DIR_USERDATA, "playerstate.cfg");
         try {
             return X.fromXML(PlayerState.class, f);
-        } catch (SeriallizationException ex) {
+        } catch (SerializationException ex) {
             LOGGER.error("Unable to load player state from the file {}. "
                     + "Loading default state.", f);
             return new PlayerState();
@@ -64,7 +63,7 @@ public final class PlayerState {
         File f = new File(APP.DIR_USERDATA, "playerstate.cfg");
         try {
             X.toXML(this, f);
-        } catch (SeriallizationException ex) {
+        } catch (SerializationException ex) {
             LOGGER.error("Unable to save player state into the file {}", f);
         }
     }

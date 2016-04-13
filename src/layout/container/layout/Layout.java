@@ -15,8 +15,8 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import layout.container.uncontainer.UniContainer;
 import main.App;
-import main.AppSerializator;
-import main.AppSerializator.SeriallizationException;
+import main.AppSerializer;
+import main.AppSerializer.SerializationException;
 import util.file.Util;
 
 import static main.App.APP;
@@ -26,7 +26,7 @@ import static main.App.APP;
  */
 public final class Layout extends UniContainer {
 
-    private static final AppSerializator X = App.APP.serializators;
+    private static final AppSerializer X = App.APP.serializators;
     private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
 
     @XStreamOmitField
@@ -144,7 +144,7 @@ public final class Layout extends UniContainer {
 
         try {
             X.toXML(this,f);
-        } catch (SeriallizationException e) {
+        } catch (SerializationException e) {
             LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
         }
     }
@@ -162,7 +162,7 @@ public final class Layout extends UniContainer {
         try {
             l = X.fromXML(Layout.class,f);
             l.setName(Util.getName(f)); // hmm
-        } catch (SeriallizationException e) {
+        } catch (SerializationException e) {
             LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
             l = new Layout(Util.getName(f));
         }

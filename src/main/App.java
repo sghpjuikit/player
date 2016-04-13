@@ -161,8 +161,6 @@ import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
 
-import gui.objects.window.stage.Window;
-
 /**
  * Application. Represents the program.
  * <p/>
@@ -246,7 +244,7 @@ public class App extends Application implements Configurable {
     public final EventSource<String> actionStream = new EventSource<>();
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-    public final AppSerializator serializators = new AppSerializator(encoding);
+    public final AppSerializer serializators = new AppSerializer(encoding);
     public final Configuration configuration = new Configuration();
     public final MouseCapture mouseCapture = new MouseCapture();
     /** {@link System#out} provider. Allows multiple parties to listen to it and stop anytime. */

@@ -25,11 +25,8 @@ import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.io.StreamException;
-
 import audio.playback.PLAYBACK;
-import main.AppSerializator;
-import main.AppSerializator.SeriallizationException;
+import main.AppSerializer.SerializationException;
 import services.lasfm.LastFM;
 import layout.Component;
 import layout.container.layout.Layout;
@@ -766,7 +763,7 @@ public class Window extends WindowBase {
     public void serialize(File f) {
         try {
             App.APP.serializators.toXML(this, f);
-        } catch (SeriallizationException e) {
+        } catch (SerializationException e) {
             LOGGER.error("Window serialization failed into file {}", f,e);
         }
     }
@@ -774,7 +771,7 @@ public class Window extends WindowBase {
     public static Window deserialize(File f) {
         try {
             return App.APP.serializators.fromXML(Window.class, f);
-        } catch (SeriallizationException e) {
+        } catch (SerializationException e) {
             LOGGER.error("Unable to load window from the file {}",e);
             return null;
         }

@@ -20,7 +20,7 @@ import layout.widget.Widget.LoadType;
 import gui.Gui;
 import gui.objects.window.stage.Window;
 import main.App;
-import main.AppSerializator.SeriallizationException;
+import main.AppSerializer.SerializationException;
 import util.access.V;
 import util.collections.map.PropertyMap;
 import util.conf.IsConfig;
@@ -159,7 +159,7 @@ public abstract class Component {
         File f = new File(dir,name + ".fxwl");
         try {
             App.APP.serializators.toXML(this, f);
-        } catch (SeriallizationException ex) {
+        } catch (SerializationException ex) {
             log(Component.class).error("Failed to export component {} to {}", getName(),f);
         }
     }

@@ -34,6 +34,7 @@ import util.collections.map.PrefListMap;
 import util.conf.AccessorConfig;
 import util.conf.Config;
 import util.conf.Configurable;
+import util.file.WindowsShortcut;
 import util.file.mimetype.MimeType;
 import util.units.Bitrate;
 import util.units.FileSize;
@@ -628,6 +629,7 @@ public class Functors {
         add("Suffix",     File.class,String.class, Util::getSuffix);
         add("MimeType",   File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
         add("MimeGroup",  File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
+        add("Shortcut target",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
 
         add("Group",      MimeType.class,String.class, MimeType::getGroup);
         add("Extensions", MimeType.class,String.class, m -> toS(", ", m.getExtensions()));

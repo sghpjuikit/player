@@ -138,6 +138,7 @@ public class IconExtractor extends Application {
     }
 
     private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
+	    if(jswingIcon==null) return null;
         BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
         jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
         return SwingFXUtils.toFXImage(image, null);

@@ -20,6 +20,9 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
+import com.sun.scenario.effect.PhongLighting;
+import com.sun.scenario.effect.light.Light;
+
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
@@ -294,7 +297,6 @@ public class DirViewer extends ClassController {
         Pane root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
                 if (item == getItem())

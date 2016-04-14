@@ -1002,15 +1002,15 @@
     -fx-background-insets: 2, 3, 4;
     -fx-background-radius: 3, 2, 1;*/
     -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 7, 3, 4;
-    -fx-background-radius: 3, 2, 1;
+    -fx-background-insets: 5;
+    -fx-background-radius: 3;
 }
 .scroll-bar:vertical > .thumb {
     -fx-background-color: -fx-def-font-color;
 }
-.scroll-bar > .increment-button, 
+.scroll-bar > .increment-button,
 .scroll-bar > .decrement-button {
-    -fx-background-color: null;     
+    -fx-background-color: null;
     -fx-color: -fx-def-font-color;
     -fx-padding: 0.25em; /* 3px */
 }

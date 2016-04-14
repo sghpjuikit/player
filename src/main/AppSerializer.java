@@ -31,7 +31,7 @@ public final class AppSerializer {
         try (
             FileOutputStream fos = new FileOutputStream(file);
             OutputStreamWriter ow = new OutputStreamWriter(fos,encoding);
-            BufferedWriter w = new BufferedWriter(ow);
+            BufferedWriter w = new BufferedWriter(ow)
         ) {
             x.toXML(o, w);
         // We need to be absolutely sure we catch everything

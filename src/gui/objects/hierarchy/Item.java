@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 
 import gui.objects.image.Thumbnail;
+import main.IconExtractor;
 import unused.TriConsumer;
 import util.file.FileType;
 import util.file.ImageFileFormat;
@@ -51,9 +52,9 @@ public abstract class Item {
 
     public void dispose() {
         if(children!=null) children.forEach(Item::dispose);
-        cover = null;
         if(children!=null) children.clear();
         if(all_children!=null) all_children.clear();
+        cover = null;
     }
 
     private void buildChildren() {
@@ -88,7 +89,18 @@ public abstract class Item {
         for(ImageFileFormat format: ImageFileFormat.values()) {
             if (format.isSupported()) {
                 File f = new File(dir,name + "." + format.toString());
-                if(dir==val ? file_exists(this,f) : file_exists(parent,f)) return f;
+
+	            if(dir==val) {
+		            return file_exists(this,f) ? f : null;
+	            } else {
+		            if(parent!=null && parent.val!=null && parent.val.equals(f.getParentFile())) {
+			            if(file_exists(parent,f))
+				            return f;
+		            } else {
+			            if(f.exists())
+				            return f;
+		            }
+	            }
             }
         }
         return null;
@@ -107,26 +119,35 @@ public abstract class Item {
     }
 
     public void loadCover(boolean full, double width, double height, TriConsumer<Boolean,File,Image> action) {
-        File file = getCoverFile();
-        if(full) {
-            boolean was_loaded = cover_loadedFull;
-            if(!cover_loadedFull) {
-                Image img = loadImageFull(file, width, height);
-                if(img!=null) {
-                    cover = img;
-                    action.accept(was_loaded,file,cover);
-                }
-                cover_loadedFull = true;
-            }
-        } else {
-            boolean was_loaded = cover_loadedThumb;
-            if(!cover_loadedThumb) {
-                Image imgc = Thumbnail.getCached(file, width, height);
-                cover = imgc!=null ? imgc : loadImageThumb(file, width, height);
-                cover_loadedThumb = true;
-            }
-            action.accept(was_loaded,file,cover);
-        }
+        boolean wascoverFile_loaded = coverFile_loaded;
+	    File file = getCoverFile();
+	    if(file==null) {
+		    if(!wascoverFile_loaded && cover_file==null && (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk"))) {
+			    cover = IconExtractor.getFileIcon(val);
+			    cover_loadedFull = cover_loadedThumb = true;
+			    action.accept(false,null,cover);
+		    }
+	    } else {
+	        if(full) {
+	            boolean was_loaded = cover_loadedFull;
+	            if(!cover_loadedFull) {
+	                Image img = loadImageFull(file, width, height);
+	                if(img!=null) {
+	                    cover = img;
+	                    action.accept(was_loaded,file,cover);
+	                }
+	                cover_loadedFull = true;
+	            }
+	        } else {
+	            boolean was_loaded = cover_loadedThumb;
+	            if(!cover_loadedThumb) {
+	                Image imgc = Thumbnail.getCached(file, width, height);
+	                cover = imgc!=null ? imgc : loadImageThumb(file, width, height);
+	                cover_loadedThumb = true;
+	            }
+	            action.accept(was_loaded,file,cover);
+	        }
+	    }
     }
 
     // guaranteed to execute only once
@@ -135,21 +156,23 @@ public abstract class Item {
         coverFile_loaded = true;
 
         if(all_children==null) buildChildren();
-        if(valtype== DIRECTORY) {
+        if(valtype==DIRECTORY) {
             cover_file = getImageT(val,"cover");
-            return cover_file;
         } else {
             // image files are their own thumbnail
             if(ImageFileFormat.isSupported(val)) {
                 cover_file = val;
-                return cover_file;
             } else {
                 File i = getImage(val.getParentFile(), getName(val));
-                if(i==null && parent!=null) return parent.getCoverFile(); // return the parent image if available, needs some work
-                cover_file = i;
-                return cover_file;
+                if(i==null && parent!=null) cover_file = parent.getCoverFile(); // needs optimize?
+                else cover_file = i;
             }
         }
+
+//	    if(cover_file==null)
+//		    use icons if still no cover
+
+        return cover_file;
     }
 
 

@@ -81,7 +81,6 @@ public class AppLauncher extends ClassController {
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width,NORMAL.height,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
     private volatile boolean isResizing = false;
     private volatile long visitId = 0;
@@ -183,7 +182,7 @@ public class AppLauncher extends ClassController {
             Environment.open(i.val);
         }
     }
-    private static FileSystemView fileUtils = FileSystemView.getFileSystemView();
+
     /** Resorts grid's items according to current sort criteria. */
     private void resort() {
         grid.getItemsRaw().sort(buildSortComparator());
@@ -207,7 +206,7 @@ public class AppLauncher extends ClassController {
         Pane root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(500, item -> executorThumbs.execute(task(() -> {
+        EventReducer<Item> setCoverLater = EventReducer.toLast(200, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
                 if(item==getItem())
@@ -319,6 +318,7 @@ public class AppLauncher extends ClassController {
             });
         }
     }
+
     private class FItem extends Item {
 
         public FItem(Item parent, File value, FileType type) {
@@ -330,15 +330,6 @@ public class AppLauncher extends ClassController {
             return new FItem(parent, value, type);
         }
 
-        @Override
-        public void loadCover(boolean full, double width, double height, TriConsumer<Boolean, File, Image> action) {
-            if(!cover_loadedFull) {
-                cover_loadedFull = true;
-                cover_loadedThumb = true;
-                cover = IconExtractor.getFileIcon(val);
-                action.accept(false, null, cover);
-            }
-        }
     }
     private class TopItem extends FItem {
 
@@ -356,7 +347,6 @@ public class AppLauncher extends ClassController {
             return null;
         }
     }
-
 
     private Runnable task(Runnable r) {
         final long id = visitId;

@@ -381,7 +381,7 @@ public final class PLAYBACK implements Configurable {
     public static void openPlayedLocation() {
         if (PlaylistManager.active==null) return;
         Item i = PlaylistManager.use(p -> p.getPlaying(),null);
-        Environment.browse(i==null ? null : i.getURI());
+        if(i!=null) Environment.browse(i.getURI());
     }
 
 //********************************** ON START *********************************/

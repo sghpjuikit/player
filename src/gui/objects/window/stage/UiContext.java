@@ -19,7 +19,7 @@ import com.thoughtworks.xstream.io.StreamException;
 
 import util.conf.Configurable;
 import util.conf.IsConfigurable;
-import Configurator.Configurator;
+import configurator.Configurator;
 import layout.Component;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;

@@ -41,6 +41,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.toList;
 import static main.App.APP;
+import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.getName;
@@ -86,13 +87,13 @@ public final class WidgetManager {
         }
 
         for(File widget_dir : dir.listFiles(File::isDirectory)) {
-            String name = getName(widget_dir);
+            String name = capitalize(getName(widget_dir));
             monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
                     .registerExternalFactory();
         }
 
         FileMonitor.monitorDirsFiles(dir, File::isDirectory, (type,widget_dir) -> {
-            String name = getName(widget_dir);
+            String name = capitalize(getName(widget_dir));
             if(type==ENTRY_CREATE) {
                 LOGGER.info("Discovered widget type: {}", name);
                 monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
@@ -227,7 +228,7 @@ public final class WidgetManager {
 
             // If class file is available, we just create factory for it.
             if(classfile_available) {
-                Class<?> controller_class = loadClass(widgetname, classfile);
+                Class<?> controller_class = loadClass(getName(widgetdir), classfile);
                 constructFactory(controller_class, widgetdir);
             }
 

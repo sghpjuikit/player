@@ -26,7 +26,7 @@ import javafx.scene.layout.*;
 
 import org.reactfx.EventSource;
 
-import Configurator.Configurator;
+import configurator.Configurator;
 import layout.container.bicontainer.BiContainer;
 import layout.widget.Widget;
 import gui.Gui;

@@ -23,7 +23,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import AppLauncher.AppLauncher;
+import appLauncher.AppLauncher;
 import sun.awt.shell.ShellFolder;
 import util.LazyR;
 import util.R;

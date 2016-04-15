@@ -204,7 +204,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
                 .forEach(sortM.getItems()::add);
         table.menuOrder.getItems().add(0, sortM);
 
-        // prevent scrol event to propagate up
+        // prevent scroll event to propagate up
         root.setOnScroll(Event::consume);
 
         // maintain outputs

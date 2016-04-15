@@ -16,7 +16,7 @@ import layout.widget.controller.FXMLController;
 @Widget.Info(
     name = "WebReader"
 )
-public final class WebReader extends FXMLController {
+public class WebReader extends FXMLController {
 
     @FXML
     private TextField addressBar;

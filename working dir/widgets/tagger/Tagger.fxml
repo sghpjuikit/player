@@ -152,17 +152,17 @@
                                     <Insets right="10.0" />
                                  </GridPane.margin>
                               </Label>
-                      <DecoratedTextField fx:id="TitleF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
-                      <DecoratedTextField id="AlbumField" fx:id="AlbumF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
-                      <DecoratedTextField fx:id="ArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
-                      <DecoratedTextField fx:id="AlbumArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
-                      <DecoratedTextField fx:id="ComposerF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
-                      <DecoratedTextField fx:id="PublisherF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
+                      <DecoratedTextField fx:id="titleF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
+                      <DecoratedTextField id="AlbumField" fx:id="albumF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+                      <DecoratedTextField fx:id="artistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
+                      <DecoratedTextField fx:id="albumArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
+                      <DecoratedTextField fx:id="composerF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
+                      <DecoratedTextField fx:id="publisherF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
                               <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
       <children>
-                      <DecoratedTextField fx:id="TrackF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" />
+                      <DecoratedTextField fx:id="trackF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" />
       <Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                      <DecoratedTextField fx:id="TracksTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.halignment="LEFT" />
+                      <DecoratedTextField fx:id="tracksTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.halignment="LEFT" />
       </children>
       <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" />
@@ -183,33 +183,33 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
       <children>
-                      <DecoratedTextField fx:id="DiscF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" />
+                      <DecoratedTextField fx:id="discF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" />
                                     <Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                      <DecoratedTextField fx:id="DiscsTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" />
+                      <DecoratedTextField fx:id="discsTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" />
       </children>
       </GridPane>
-                      <DecoratedTextField fx:id="GenreF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="8" />
-                      <DecoratedTextField fx:id="CategoryF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="9" />
-                      <DecoratedTextField fx:id="YearF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10" />
-                      <DecoratedTextField fx:id="RatingF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefColumnCount="0" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="11" />
-                      <DecoratedTextField fx:id="RatingPF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="11" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
-                      <DecoratedTextField fx:id="PlaycountF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12" />
-                      <DecoratedTextField fx:id="CommentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" />
+                      <DecoratedTextField fx:id="genreF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="8" />
+                      <DecoratedTextField fx:id="categoryF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="9" />
+                      <DecoratedTextField fx:id="yearF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10" />
+                      <DecoratedTextField fx:id="ratingF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefColumnCount="0" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="11" />
+                      <DecoratedTextField fx:id="ratingPF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="11" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+                      <DecoratedTextField fx:id="playcountF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12" />
+                      <DecoratedTextField fx:id="commentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" />
                               <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
       <children>
-      <DecoratedTextField fx:id="ColorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
-                                    <ColorPicker fx:id="ColorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+      <DecoratedTextField fx:id="colorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                                    <ColorPicker fx:id="colorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
       </children>
                               </AnchorPane>
-                              <DecoratedTextField fx:id="Custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
-                              <DecoratedTextField fx:id="Custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
-                              <DecoratedTextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
-                              <DecoratedTextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
-                              <DecoratedTextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
-                              <DecoratedTextField fx:id="PlayedFirstF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="21" />
-                              <DecoratedTextField fx:id="PlayedLastF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="22" />
-                              <DecoratedTextField fx:id="AddedToLibF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="23" />
-                              <DecoratedTextField fx:id="TagsF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="24" />
+                              <DecoratedTextField fx:id="custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                              <DecoratedTextField fx:id="custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
+                              <DecoratedTextField fx:id="custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
+                              <DecoratedTextField fx:id="custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
+                              <DecoratedTextField fx:id="custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
+                              <DecoratedTextField fx:id="playedFirstF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="21" />
+                              <DecoratedTextField fx:id="playedLastF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="22" />
+                              <DecoratedTextField fx:id="addedToLibF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="23" />
+                              <DecoratedTextField fx:id="tagsF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="24" />
                     </children>
                     <columnConstraints>
                       <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />

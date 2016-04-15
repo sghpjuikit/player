@@ -27,6 +27,7 @@ import javafx.scene.text.Text;
 import org.controlsfx.control.textfield.CustomTextField;
 
 import audio.Item;
+import gui.objects.spinner.Spinner;
 import services.database.Db;
 import services.notif.Notifier;
 import audio.tagging.Metadata;
@@ -105,7 +106,7 @@ import static util.functional.Util.*;
           + "    Loaded items label click : Opens editable source list of items",
     description = "Tag editor for audio files. Supports reading and writing to "
          + "tag. Taggable items can be unselected in selective list mode.",
-    notes = "To do: improve tagging performance. Support for ogg and flac.",
+    notes = "To do: improve tagging performance. Support for .ogg and .flac.",
     version = "0.8",
     year = "2015",
     group = Widget.Group.TAGGER)
@@ -116,28 +117,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
-    @FXML DecoratedTextField TitleF;
-    @FXML DecoratedTextField AlbumF;
-    @FXML DecoratedTextField ArtistF;
-    @FXML DecoratedTextField AlbumArtistF;
-    @FXML DecoratedTextField ComposerF;
-    @FXML DecoratedTextField PublisherF;
-    @FXML DecoratedTextField TrackF;
-    @FXML DecoratedTextField TracksTotalF;
-    @FXML DecoratedTextField DiscF;
-    @FXML DecoratedTextField DiscsTotalF;
-    @FXML DecoratedTextField GenreF;
-    @FXML DecoratedTextField CategoryF;
-    @FXML DecoratedTextField YearF;
-    @FXML DecoratedTextField RatingF;
-    @FXML DecoratedTextField RatingPF;
-    @FXML DecoratedTextField PlaycountF;
-    @FXML DecoratedTextField CommentF;
-          MoodItemNode MoodF = new MoodItemNode();
-    @FXML ColorPicker ColorFPicker;
-    @FXML DecoratedTextField ColorF;
-    @FXML DecoratedTextField Custom1F,Custom2F,Custom3F,Custom4F,Custom5F;
-    @FXML DecoratedTextField PlayedFirstF,PlayedLastF,AddedToLibF,TagsF;
+    @FXML DecoratedTextField titleF, albumF, artistF, albumArtistF, composerF, publisherF, trackF, tracksTotalF,
+			         discF, discsTotalF, genreF, categoryF, yearF, ratingF, ratingPF, playcountF, commentF,
+			         colorF, custom1F, custom2F, custom3F, custom4F, custom5F, playedFirstF, playedLastF, addedToLibF, tagsF;
+          MoodItemNode moodF = new MoodItemNode();
+    @FXML ColorPicker colorFPicker;
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
     @FXML StackPane coverSuperContainer;
@@ -151,18 +135,18 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @FXML StackPane fieldDescPane;
     Text fieldDesc;
 
-    //global variables
-    ObservableList<Item> allitems = FXCollections.observableArrayList();
-    List<Metadata> metas = new ArrayList();   // currently in gui active
+    // global variables
+    ObservableList<Item> allItems = FXCollections.observableArrayList();
+    List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
     final List<TagField> fields = new ArrayList<>();
-    boolean writing = false;    // prevents external data chagnge during writing
-    private final List<Validation> validators = new ArrayList();
+    boolean writing = false;    // prevents external data change during writing
+    private final List<Validation> validators = new ArrayList<>();
 
     // properties
-    @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
+    @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
     public final V<Pos> field_text_alignment = new V<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final V<NodePos> popupPos = new V<>(DownCenter, MoodF::setPos);
+    public final V<NodePos> popupPos = new V<>(DownCenter, moodF::setPos);
 
     @Override
     public void init() {
@@ -173,7 +157,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
 
-        progressI = new gui.objects.spinner.Spinner();
+        progressI = new Spinner();
         progressI.setVisible(false);
         header.setRight(progressI);
 
@@ -182,7 +166,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         StackPane.setAlignment(fieldDesc, Pos.CENTER);
 
         // add specialized mood text field
-        grid.add(MoodF, 1, 14, 2, 1);
+        grid.add(moodF, 1, 14, 2, 1);
 
         // validators
         Predicate<String> IsBetween0And1 = noEx(false,(String t) -> {
@@ -200,39 +184,39 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         },NumberFormatException.class)::apply;
 
         // initialize fields
-        fields.add(new TagField(TitleF,TITLE));
-        fields.add(new TagField(AlbumF,ALBUM));
-        fields.add(new TagField(ArtistF,ARTIST));
-        fields.add(new TagField(AlbumArtistF,ALBUM_ARTIST));
-        fields.add(new TagField(ComposerF,COMPOSER));
-        fields.add(new TagField(PublisherF,PUBLISHER));
-        fields.add(new TagField(TrackF,TRACK,isIntS));
-        fields.add(new TagField(TracksTotalF,TRACKS_TOTAL,isIntS));
-        fields.add(new TagField(DiscF,DISC,isIntS));
-        fields.add(new TagField(DiscsTotalF,DISCS_TOTAL,isIntS));
-        fields.add(new TagField(GenreF,GENRE));
-        fields.add(new TagField(CategoryF,CATEGORY));
-        fields.add(new TagField(YearF,YEAR,isPastYearS));
-        fields.add(new TagField(RatingF,RATING_RAW));
-        fields.add(new TagField(RatingPF,RATING,IsBetween0And1));
-        fields.add(new TagField(PlaycountF,PLAYCOUNT));
-        fields.add(new TagField(CommentF,Metadata.Field.COMMENT));
-        fields.add(new TagField(MoodF,MOOD));
-        fields.add(new TagField(ColorF,CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
-        fields.add(new TagField(Custom1F,CUSTOM1));
-        fields.add(new TagField(Custom2F,CUSTOM2));
-        fields.add(new TagField(Custom3F,CUSTOM3));
-        fields.add(new TagField(Custom4F,CUSTOM4));
-        fields.add(new TagField(Custom5F,CUSTOM5));
-        fields.add(new TagField(PlayedFirstF,FIRST_PLAYED));
-        fields.add(new TagField(PlayedLastF,LAST_PLAYED));
-        fields.add(new TagField(AddedToLibF,ADDED_TO_LIBRARY));
-        fields.add(new TagField(TagsF,Metadata.Field.TAGS));
+        fields.add(new TagField(titleF,TITLE));
+        fields.add(new TagField(albumF,ALBUM));
+        fields.add(new TagField(artistF,ARTIST));
+        fields.add(new TagField(albumArtistF,ALBUM_ARTIST));
+        fields.add(new TagField(composerF,COMPOSER));
+        fields.add(new TagField(publisherF,PUBLISHER));
+        fields.add(new TagField(trackF,TRACK,isIntS));
+        fields.add(new TagField(tracksTotalF,TRACKS_TOTAL,isIntS));
+        fields.add(new TagField(discF,DISC,isIntS));
+        fields.add(new TagField(discsTotalF,DISCS_TOTAL,isIntS));
+        fields.add(new TagField(genreF,GENRE));
+        fields.add(new TagField(categoryF,CATEGORY));
+        fields.add(new TagField(yearF,YEAR,isPastYearS));
+        fields.add(new TagField(ratingF,RATING_RAW));
+        fields.add(new TagField(ratingPF,RATING,IsBetween0And1));
+        fields.add(new TagField(playcountF,PLAYCOUNT));
+        fields.add(new TagField(commentF,Metadata.Field.COMMENT));
+        fields.add(new TagField(moodF,MOOD));
+        fields.add(new TagField(colorF,CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
+        fields.add(new TagField(custom1F,CUSTOM1));
+        fields.add(new TagField(custom2F,CUSTOM2));
+        fields.add(new TagField(custom3F,CUSTOM3));
+        fields.add(new TagField(custom4F,CUSTOM4));
+        fields.add(new TagField(custom5F,CUSTOM5));
+        fields.add(new TagField(playedFirstF,FIRST_PLAYED));
+        fields.add(new TagField(playedLastF,LAST_PLAYED));
+        fields.add(new TagField(addedToLibF,ADDED_TO_LIBRARY));
+        fields.add(new TagField(tagsF,Metadata.Field.TAGS));
         fields.add(new TagField(LyricsA,LYRICS));
         // associate color picker with custom1 field
-        ColorFPicker.disableProperty().bind(ColorF.disabledProperty());
-        ColorFPicker.valueProperty().addListener((o,ov,nv) ->
-            ColorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.DEFAULT.toS(nv))
+        colorFPicker.disableProperty().bind(colorF.disabledProperty());
+        colorFPicker.valueProperty().addListener((o,ov,nv) ->
+            colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.DEFAULT.toS(nv))
         );
 
 
@@ -263,10 +247,10 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         });
 
         // bind Rating values absolute<->relative when writing
-        RatingF.setOnKeyReleased(e -> setPR());
-        RatingF.setOnMousePressed(e -> setPR());
-        RatingPF.setOnKeyReleased(e -> setR());
-        RatingPF.setOnMousePressed(e -> setR());
+        ratingF.setOnKeyReleased(e -> setPR());
+        ratingF.setOnMousePressed(e -> setPR());
+        ratingPF.setOnKeyReleased(e -> setR());
+        ratingPF.setOnMousePressed(e -> setR());
 
         // show metadata list
         infoL.setOnMouseClicked(e -> showItemsPopup());
@@ -281,35 +265,35 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
 
     private void setR() {
-        if (RatingPF.getText()==null || RatingPF.getText().isEmpty()) {
-            RatingF.setPromptText("");
-            RatingF.setText("");
-            RatingF.setUserData(true);
+        if (ratingPF.getText()==null || ratingPF.getText().isEmpty()) {
+            ratingF.setPromptText("");
+            ratingF.setText("");
+            ratingF.setUserData(true);
             return;
         }
         try {
-            RatingF.setText("");
-            double rat = Double.parseDouble(RatingPF.getText());
-            RatingF.setPromptText(String.valueOf(rat*255));
-            RatingF.setText(String.valueOf(rat*255));
+            ratingF.setText("");
+            double rat = Double.parseDouble(ratingPF.getText());
+            ratingF.setPromptText(String.valueOf(rat*255));
+            ratingF.setText(String.valueOf(rat*255));
         } catch (NumberFormatException | NullPointerException e) {
-            RatingF.setPromptText(RatingF.getId());
+            ratingF.setPromptText(ratingF.getId());
         }
     }
     private void setPR() {
-        if (RatingF.getText()==null || RatingF.getText().isEmpty()) {
-            RatingPF.setPromptText("");
-            RatingPF.setText("");
-            RatingPF.setUserData(true);
+        if (ratingF.getText()==null || ratingF.getText().isEmpty()) {
+            ratingPF.setPromptText("");
+            ratingPF.setText("");
+            ratingPF.setUserData(true);
             return;
         }
         try {
-            RatingPF.setText("");
-            double rat = Double.parseDouble(RatingF.getText());
-            RatingPF.setPromptText(String.valueOf(rat/255));
-            RatingPF.setText(String.valueOf(rat/255));
+            ratingPF.setText("");
+            double rat = Double.parseDouble(ratingF.getText());
+            ratingPF.setPromptText(String.valueOf(rat/255));
+            ratingPF.setText(String.valueOf(rat/255));
         } catch (NumberFormatException | NullPointerException ex) {
-            RatingPF.setPromptText(RatingPF.getId());
+            ratingPF.setPromptText(ratingPF.getId());
         }
     }
 
@@ -319,13 +303,10 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         popupPos.applyValue();
     }
 
-    /**
-     * This widget is empty if it has no data.
-     * @return
-     */
+    /** This widget is empty if it has no data. */
     @Override
     public boolean isEmpty() {
-        return allitems.isEmpty();
+        return allItems.isEmpty();
     }
 
 
@@ -346,15 +327,15 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         // remove duplicates
         MapSet<URI,? extends Item> unique = new MapSet<>(Item::getURI, items);
 
-        this.allitems.setAll(unique);
+        this.allItems.setAll(unique);
         if(add_not_set.get()) add(unique, false); else set(unique);
     }
 
     private void set(Collection<? extends Item> set) {
-        metas.clear();
+        metadatas.clear();
         if(set.isEmpty()) {
             showProgressReading();
-            populate(metas);
+            populate(metadatas);
         }
         else add(set, true);
     }
@@ -364,8 +345,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         // show progress, hide when populate ends - in populate()
         showProgressReading();
         // get added
-        List<Metadata> ready = new ArrayList();
-        List<Item> needs_read = new ArrayList();
+        List<Metadata> ready = new ArrayList<>();
+        List<Item> needs_read = new ArrayList<>();
         added.stream()
             // filter out untaggable
             .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
@@ -379,13 +360,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if(ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
-                                      unique.addAll(metas);
+                                      unique.addAll(metadatas);
                                       unique.addAll(ready);
                                       unique.addAll(result);
 
-                metas.clear();
-                metas.addAll(unique);
-                populate(metas);
+                metadatas.clear();
+                metadatas.addAll(unique);
+                populate(metadatas);
             }
         });
     }
@@ -393,14 +374,15 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         if(rem.isEmpty()) return;
         // show progress, hide when populate ends - in populate()
         showProgressReading();
-        metas.removeIf( m -> rem.stream().anyMatch(i -> i.same(m)));
-        populate(metas);
+        metadatas.removeIf(m -> rem.stream().anyMatch(i -> i.same(m)));
+        populate(metadatas);
     }
 
     /**
      * Writes edited data to tag and reloads the data and refreshes gui. The
      * result is new data from tag shown, allowing to confirm the changes really
      * happened.
+     * <br/>
      * If no items are loaded then this method is a no-op.
      */
     @FXML
@@ -408,7 +390,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if(v!=null) {
-            PopOver p = new PopOver(new Text(v.text));
+            PopOver p = new PopOver<>(new Text(v.text));
             p.show(PopOver.ScreenPos.App_Center);
             return;
         }
@@ -418,42 +400,42 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         showProgressWriting();
 
         // writing
-        MetadataWriter.use(metas, w -> {
+        MetadataWriter.use(metadatas, w -> {
             // write to tag if field commitable
-            if ((boolean)TitleF.getUserData())        w.setTitle(TitleF.getText());
-            if ((boolean)AlbumF.getUserData())        w.setAlbum(AlbumF.getText());
-            if ((boolean)ArtistF.getUserData())       w.setArtist(ArtistF.getText());
-            if ((boolean)AlbumArtistF.getUserData())  w.setAlbum_artist(AlbumArtistF.getText());
-            if ((boolean)ComposerF.getUserData())     w.setComposer(ComposerF.getText());
-            if ((boolean)PublisherF.getUserData())    w.setPublisher(PublisherF.getText());
-            if ((boolean)TrackF.getUserData())        w.setTrack(TrackF.getText());
-            if ((boolean)TracksTotalF.getUserData())  w.setTracks_total(TracksTotalF.getText());
-            if ((boolean)DiscF.getUserData())         w.setDisc(DiscF.getText());
-            if ((boolean)DiscsTotalF.getUserData())   w.setDiscs_total(DiscF.getText());
-            if ((boolean)GenreF.getUserData())        w.setGenre(GenreF.getText());
-            if ((boolean)CategoryF.getUserData())     w.setCategory(CategoryF.getText());
-            if ((boolean)YearF.getUserData())         w.setYear(YearF.getText());
-            if ((boolean)RatingF.getUserData())       w.setRatingPercent(RatingPF.getText());
-            if ((boolean)PlaycountF.getUserData())    w.setPlaycount(PlaycountF.getText());
-            if ((boolean)CommentF.getUserData())      w.setComment(CommentF.getText());
-            if ((boolean)MoodF.getUserData())         w.setMood(MoodF.getText());
-            ColorFPicker.setUserData(true);
-            if ((boolean)ColorFPicker.getUserData()&&ColorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(ColorFPicker.getValue());
-            if ((boolean)ColorF.getUserData())        w.setCustom1(ColorF.getText());
-            if ((boolean)TagsF.getUserData())         w.setTags(noDups(split(TagsF.getText().replace(", ",","),",")));
-//            if ((boolean)PlayedFirstF.getUserData())  w.setPla(PlayedFirstF.getText());
-//            if ((boolean)PlayedLastF.getUserData())   w.setCustom1(PlayedLastF.getText());
-//            if ((boolean)AddedToLibF.getUserData())   w.setCustom1(AddedToLibF.getText());
+            if ((boolean) titleF.getUserData())        w.setTitle(titleF.getText());
+            if ((boolean) albumF.getUserData())        w.setAlbum(albumF.getText());
+            if ((boolean) artistF.getUserData())       w.setArtist(artistF.getText());
+            if ((boolean) albumArtistF.getUserData())  w.setAlbum_artist(albumArtistF.getText());
+            if ((boolean) composerF.getUserData())     w.setComposer(composerF.getText());
+            if ((boolean) publisherF.getUserData())    w.setPublisher(publisherF.getText());
+            if ((boolean) trackF.getUserData())        w.setTrack(trackF.getText());
+            if ((boolean) tracksTotalF.getUserData())  w.setTracks_total(tracksTotalF.getText());
+            if ((boolean) discF.getUserData())         w.setDisc(discF.getText());
+            if ((boolean) discsTotalF.getUserData())   w.setDiscs_total(discF.getText());
+            if ((boolean) genreF.getUserData())        w.setGenre(genreF.getText());
+            if ((boolean) categoryF.getUserData())     w.setCategory(categoryF.getText());
+            if ((boolean) yearF.getUserData())         w.setYear(yearF.getText());
+            if ((boolean) ratingF.getUserData())       w.setRatingPercent(ratingPF.getText());
+            if ((boolean) playcountF.getUserData())    w.setPlaycount(playcountF.getText());
+            if ((boolean) commentF.getUserData())      w.setComment(commentF.getText());
+            if ((boolean) moodF.getUserData())         w.setMood(moodF.getText());
+            colorFPicker.setUserData(true);
+            if ((boolean)colorFPicker.getUserData()&&colorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(colorFPicker.getValue());
+            if ((boolean) colorF.getUserData())        w.setCustom1(colorF.getText());
+            if ((boolean) tagsF.getUserData())         w.setTags(noDups(split(tagsF.getText().replace(", ",","),",")));
+//            if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
+//            if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
+//            if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
-            if ((boolean)Custom1F.getUserData())      w.setCustom2(Custom1F.getText());
-            if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
+            if ((boolean) custom1F.getUserData())      w.setCustom2(custom1F.getText());
+            if ((boolean) custom4F.getUserData())      w.setCustom4(custom4F.getText());
             // enabling the following these has no effect as they are not
             // editable and graphics are disabled, thus will always be empty
             // we comment it out to prevent needless checking
-            // if ((boolean)Custom2F.getUserData())      w.setCustom2(Custom2F.getText());
-            // if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
-            // if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
+            // if ((boolean)custom2F.getUserData())      w.setCustom2(custom2F.getText());
+            // if ((boolean)custom3F.getUserData())      w.setCustom3(custom3F.getText());
+            // if ((boolean)custom5F.getUserData())      w.setCustom5(custom5F.getText());
         }, items -> {
             // post (make sure its on FX)
             runFX(() -> {
@@ -465,8 +447,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     }
 
-/******************************************************************************/
-
     /** use null to clear gui empty. */
     private void populate(List<Metadata> items) {
         // return if writing active
@@ -474,7 +454,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             hideProgress(); return; }
 
         // totally empty
-        boolean totally_empty = allitems.isEmpty();
+        boolean totally_empty = allItems.isEmpty();
         content.setVisible(!totally_empty);
         placeholder.setVisible(totally_empty);
         if(totally_empty) return;
@@ -496,7 +476,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             infoL.setText("No items loaded");
             infoL.setGraphic(null);
             hideProgress();
-            return;
         } else {
             // set info
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");
@@ -513,7 +492,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     int coverI = 0;
                     String covDesS = "";
                     Cover CovS = null;
-                    Set<AudioFileFormat> formats = new HashSet();
+                    Set<AudioFileFormat> formats = new HashSet<>();
 
                     // histogram do
                     for(Metadata m: items) {
@@ -546,13 +525,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                         else                CoverV.loadImage((Image)null);
 
                         // enable/disable fields
-                        RatingF.setDisable(true);
-                        Custom2F.setDisable(true);
-                        Custom3F.setDisable(true);
-                        Custom5F.setDisable(true);
-                        PlayedFirstF.setDisable(true);
-                        PlayedLastF.setDisable(true);
-                        AddedToLibF.setDisable(true);
+                        ratingF.setDisable(true);
+                        custom2F.setDisable(true);
+                        custom3F.setDisable(true);
+                        custom5F.setDisable(true);
+                        playedFirstF.setDisable(true);
+                        playedLastF.setDisable(true);
+                        addedToLibF.setDisable(true);
 
                         hideProgress();
                     });
@@ -567,7 +546,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         // make inaccessible during sensitive operation
         scrollContent.setMouseTransparent(true);
         // apply blur to content to hint inaccessibility
-        // note: dont apply on root it would also blur the progres indicator!
+        // note: don't apply on root it would also blur the progress indicator!
         scrollContent.setEffect(new BoxBlur(1, 1, 1));
         scrollContent.setOpacity(0.8);
     }
@@ -625,7 +604,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c.setPrefSize(-1, -1);
 
             if(valCond!=null && c instanceof CustomTextField) {
-                Validation v = new Validation(c, valCond , field + " field doeas not contain valid text.");
+                Validation v = new Validation(c, valCond , field + " field does not contain valid text.");
                 validators.add(v);
                 Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
                 CustomTextField cf = (CustomTextField)c;
@@ -662,7 +641,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             // autocompletion
             if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String n = f.name();
-               Comparator<? super String> cmp = String::compareTo;
+               Comparator<String> cmp = String::compareTo;
                new AutoCompletion<>(
                    (TextField)c,
                    p -> Db.string_pool.getStrings(n).stream()
@@ -683,7 +662,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         void emptyContent() {
             c.setText("");              // set empty
             c.setPromptText("");        // set empty
-            c.setUserData(false);       // set uncommitable
+            c.setUserData(false);       // set not commitable
             c.setDisable(true);         // set disabled
             c.setId("");                // set empty prompt text backup
         }
@@ -710,13 +689,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setPromptText(c.getId());
                 c.setUserData(false);
                 root.requestFocus();
-                if (c.equals(RatingF)) {  // link this action between related fields
-                    RatingPF.setPromptText(RatingPF.getId());
-                    RatingPF.setUserData(false);
+                if (c.equals(ratingF)) {  // link this action between related fields
+                    ratingPF.setPromptText(ratingPF.getId());
+                    ratingPF.setUserData(false);
                 }
-                if (c.equals(RatingPF)) {  // link this action between related fields
-                    RatingF.setPromptText(RatingF.getId());
-                    RatingF.setUserData(false);
+                if (c.equals(ratingPF)) {  // link this action between related fields
+                    ratingF.setPromptText(ratingF.getId());
+                    ratingF.setUserData(false);
                 }
             }
         }
@@ -761,8 +740,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if(f==CUSTOM1) {
                 Color c = Parser.DEFAULT.fromS(Color.class,histogramS);
-                ColorFPicker.setValue(c==null ? EMPTY_COLOR : c);
-                ColorF.setText("");
+                colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
+                colorF.setText("");
             }
 
             if      (histogramI == 0)   c.setPromptText(APP.TAG_NO_VALUE);
@@ -771,11 +750,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
             // remember prompt text
             c.setId(c.getPromptText());
-            // disable if unsuported
+            // disable if unsupported
             setSupported(formats);
         }
     }
-    private final class Validation {
+    private static final class Validation {
         public final TextInputControl field;
         public final Predicate<String> condition;
         public final String text;
@@ -795,16 +774,15 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
     }
 
-/**************************** active items popup ******************************/
 
     private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
     PopOver helpP;
 
     private PopOver showItemsPopup() {
         // build popup
-        ListView<Item> list = new ListView();
+        ListView<Item> list = new ListView<>();
                        // factory is set dynamically
-                       list.setCellFactory(listView -> new ListCell<Item>() {
+                       list.setCellFactory(listView -> new ListCell<>() {
                             CheckIcon cb = new CheckIcon();
                             {
                                 // allow user to de/activate item
@@ -836,8 +814,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                                 }
                             }
                         });
-                       // list will atomatically update now
-                       list.setItems(allitems);
+                       // list will automatically update now
+                       list.setItems(allItems);
                        // support same drag & drop as tagger
                        list.setOnDragOver(DragUtil.audioDragAccepthandler);
                        list.setOnDragDropped(drag_dropped_handler);
@@ -848,14 +826,14 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
               "List of all items in the tagger. Highlights untaggable items. Taggable items "
             + "can be unselected filtered.\n\n"
             + "Available actions:\n"
-            + "    Drop items : Clears tagget and adds to tagger.\n"
+            + "    Drop items : Clears tagger and adds to tagger.\n"
             + "    Drop items + CTRL : Adds to tagger."
         ).size(11);
         // build popup
-        PopOver p = new PopOver(list);
-                p.title.set("Active Items");
-                p.getHeaderIcons().addAll(helpB);
-                p.show(infoL);
+        PopOver<?> p = new PopOver<>(list);
+                   p.title.set("Active Items");
+                   p.getHeaderIcons().addAll(helpB);
+                   p.show(infoL);
         return p;
     }
 

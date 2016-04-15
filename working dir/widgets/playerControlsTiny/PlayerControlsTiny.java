@@ -71,7 +71,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     @FXML Label currTime, titleL, artistL;
     private Seeker seeker = new Seeker();
     private Icon prevB, playB, stopB, nextB, loopB, volB;
-    private final double ICON_SIZE = 14;
+    private static final double ICON_SIZE = 14;
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);

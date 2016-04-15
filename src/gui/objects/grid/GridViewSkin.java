@@ -76,7 +76,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private final VBox root;
     private final StackPane filterPane = new StackPane();
 
-    @SuppressWarnings("unchecked")
     public GridViewSkin(GridView<T,F> control) {
         skin = new SkinDelegate(control);
 
@@ -86,13 +85,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.setFocusTraversable(getSkinnable().isFocusTraversable());
         skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
 
-
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
         filter = new Filter(control.type, control.itemsFiltered);
-
-        control.parentProperty().addListener((o,ov,nv) -> {
-            root.requestLayout();
-        });
 
         updateGridViewItems();
         updateRowCount();
@@ -102,18 +96,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             KeyCode c = e.getCode();
             if(c.isNavigationKey()) {
                 if(control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
-                    if(c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst,this::selectUp);
-                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst,this::selectDown);
-                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst,this::selectLeft);
+                    if(c==KeyCode.UP || c==KeyCode.KP_UP)       selectIfNoneOr(this::selectFirst,this::selectUp);
+                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN)   selectIfNoneOr(this::selectFirst,this::selectDown);
+                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT)   selectIfNoneOr(this::selectFirst,this::selectLeft);
                     if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst,this::selectRight);
-                    if(c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst,this::selectPageUp);
-                    if(c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst,this::selectPageDown);
-                    if(c==KeyCode.HOME) selectFirst();
-                    if(c==KeyCode.END) selectLast();
-                    e.consume();
+                    if(c==KeyCode.PAGE_UP)      selectIfNoneOr(this::selectFirst,this::selectPageUp);
+                    if(c==KeyCode.PAGE_DOWN)    selectIfNoneOr(this::selectFirst,this::selectPageDown);
+                    if(c==KeyCode.HOME)         selectFirst();
+                    if(c==KeyCode.END)          selectLast();
                 }
+	            e.consume();
             } else if(c==ESCAPE && !e.isConsumed()) {
                 selectNone();
+	            e.consume();
             }
         });
     }

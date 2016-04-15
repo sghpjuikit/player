@@ -281,10 +281,6 @@ public class DirViewer extends ClassController {
         return !f.isHidden() && f.canRead() && filterPredicate.get().apply(f);
     }
 
-    private static boolean file_exists(Item c, File f) {
-        return c != null && f != null && c.all_children.contains(f.getPath().toLowerCase());
-    }
-
     /**
      * Graphics representing the file. Cells are virtualized just like ListView or TableView does
      * it, but both vertically & horizontally. This avoids loading all files at once and allows
@@ -312,7 +308,7 @@ public class DirViewer extends ClassController {
                 setGraphic(null);
             } else {
                 if (root == null) {
-                    // we create graphics only once and only when frst requested
+                    // we create graphics only once and only when first requested
                     createGraphics();
                     // we set graphics only once (when creating it)
                     setGraphic(root);
@@ -389,13 +385,13 @@ public class DirViewer extends ClassController {
         private void setCover(Item item) {
             // load thumbnail
             double width = cellSize.get().width,
-                    height = cellSize.get().height - CELL_TEXT_HEIGHT;
+                   height = cellSize.get().height - CELL_TEXT_HEIGHT;
             executorThumbs.execute(task(() ->
-                    item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+                item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
             ));
             // load high quality thumbnail
             executorImage.execute(task(() ->
-                    item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+                item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
             ));
         }
 
@@ -472,7 +468,7 @@ public class DirViewer extends ClassController {
         String type = filter.getValue();
         return stream(filters)
                 .findAny(f -> type.equals(f.name))
-                .orElseGet(() -> stream(filters).findAny(f -> "All".equals(f.name)).get());
+                .orElseGet(() -> stream(filters).findAny(f -> "File - all".equals(f.name)).get());
     }
 
     private Runnable task(Runnable r) {

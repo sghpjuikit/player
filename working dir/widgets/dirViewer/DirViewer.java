@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
@@ -96,8 +97,8 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
-    private volatile boolean isResizing = false;
-    private volatile long visitId = 0;
+    private boolean isResizing = false;
+    private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to view directory", () -> {
         File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowOwner.getStage());
         if (dir != null) files.list.setAll(dir);
@@ -185,7 +186,7 @@ public class DirViewer extends ClassController {
         if (!initialized) return;
         if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
-        visitId++;
+        visitId.incrementAndGet();
 
         item = dir;
         lastVisited = dir.val;
@@ -475,9 +476,9 @@ public class DirViewer extends ClassController {
     }
 
     private Runnable task(Runnable r) {
-        final long id = visitId;
+        final long id = visitId.get();
         return () -> {
-            if (id == visitId)
+            if (id == visitId.get())
                 r.run();
         };
     }

@@ -4,6 +4,7 @@ package appLauncher;
 import java.io.File;
 import java.util.Comparator;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import javax.swing.filechooser.FileSystemView;
@@ -84,7 +85,7 @@ public class AppLauncher extends ClassController {
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     boolean initialized = false;
     private volatile boolean isResizing = false;
-    private volatile long visitId = 0;
+	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
         () -> {
@@ -154,7 +155,7 @@ public class AppLauncher extends ClassController {
         if(!initialized) return;
         Item item = new TopItem();
 //        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause nullpointer here
-        visitId++;
+	    visitId.incrementAndGet();
         if(item==null) {
             grid.getItemsRaw().clear();
 	        grid.requestFocus(); // fixes focus problem
@@ -350,9 +351,9 @@ public class AppLauncher extends ClassController {
     }
 
     private Runnable task(Runnable r) {
-        final long id = visitId;
+        final long id = visitId.get();
         return () -> {
-            if(id==visitId)
+            if(id==visitId.get())
                 r.run();
         };
     }

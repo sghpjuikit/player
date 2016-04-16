@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
+import util.SwitchException;
 import util.collections.Tuple2;
 import util.functional.Functors.*;
 
@@ -309,6 +310,33 @@ public interface Util {
     static <NN> Ƒ1<? extends Object,NN> mapNulls(NN non_null) {
         noØ(non_null);
         return (Ƒ1) in -> in==null ? non_null : in;
+    }
+
+
+    static <I,O> O mapRef(I value, I i1, O o1) {
+        if(value==i1) return o1;
+        throw new SwitchException(value);
+    }
+
+    static <I,O> O mapRef(I value, I i1, I i2, O o1, O o2) {
+        if(value==i1) return o1;
+        if(value==i2) return o2;
+        throw new SwitchException(value);
+    }
+
+    static <I,O> O mapRef(I value, I i1, I i2, I i3, O o1, O o2, O o3) {
+        if(value==i1) return o1;
+        if(value==i2) return o2;
+        if(value==i3) return o3;
+        throw new SwitchException(value);
+    }
+
+    static <I,O> O mapRef(I value, I i1, I i2, I i3, I i4, O o1, O o2, O o3, O o4) {
+        if(value==i1) return o1;
+        if(value==i2) return o2;
+        if(value==i3) return o3;
+        if(value==i4) return o4;
+        throw new SwitchException(value);
     }
 
 /***************************** function -> function ***************************/

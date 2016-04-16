@@ -23,26 +23,28 @@ import audio.playback.PlaybackState;
 import audio.playlist.PlaylistManager;
 import audio.playlist.sequence.PlayingSequence.LoopMode;
 import audio.tagging.Metadata;
-import util.conf.IsConfig;
-import layout.widget.Widget;
-import layout.widget.controller.FXMLController;
-import layout.widget.feature.PlaybackFeature;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.Gui;
 import gui.objects.balancer.Balancer;
-import gui.objects.seeker.Seeker;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
+import gui.objects.seeker.Seeker;
+import layout.widget.Widget;
+import layout.widget.controller.FXMLController;
+import layout.widget.feature.PlaybackFeature;
 import util.Util;
 import util.access.V;
+import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
 import static audio.tagging.Metadata.Field.BITRATE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
-import static util.Util.formatDuration;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FAST_FORWARD;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAUSE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -114,7 +116,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     public void init() {
         PlaybackState ps = PLAYBACK.state;
 
-        // create balancer
+        // balancer
         balance = new Balancer();
         soundGrid.add(balance, 1, 1);
         balance.setPrefSize(50,20);
@@ -158,7 +160,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setTopAnchor(addB, 5d);
         AnchorPane.setLeftAnchor(addB, 5d);
 
-        // loopmode
+        // loop mode
         loopB.setOnMouseClicked(PLAYBACK::toggleLoopMode);
         infoBox.getChildren().add(1, loopB);
 
@@ -169,7 +171,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         // set gui updating
         d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingtem.get());              // init value
-        d(maintain(ps.duration, t -> formatDuration(t), totTime.textProperty()));
+        d(maintain(ps.duration, Util::formatDuration, totTime.textProperty()));
         d(maintain(ps.currentTime, t -> timeChanged()));
         d(maintain(ps.status, this::statusChanged));
         d(maintain(ps.loopMode, this::loopModeChanged));
@@ -193,14 +195,13 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     @Override
     public void refresh() { }
 
-/******************************************************************************/
-
     private void playFile(File file) {
          PlaylistManager.use(p -> {
              p.addUri(file.toURI());
              p.playLastItem();
          });
     }
+
     @FXML private void play_pause() {
          PLAYBACK.pause_resume();
     }
@@ -230,8 +231,6 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         timeChanged();
     }
 
-
-    // for example to prevent dragging application on some areas
     @FXML private void consumeMouseEvent(MouseEvent event) {
         event.consume();
     }
@@ -280,11 +279,11 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         }
     }
 
-    private void muteChanged(boolean mute, double valume) {
+    private void muteChanged(boolean mute, double volume) {
         if (mute) {
             muteB.setIcon(VOLUME_OFF);
         } else {
-            muteB.setIcon(valume>0.5 ? VOLUME_UP : VOLUME_DOWN);
+            muteB.setIcon(volume>0.5 ? VOLUME_UP : VOLUME_DOWN);
         }
     }
 

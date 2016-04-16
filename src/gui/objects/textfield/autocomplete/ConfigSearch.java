@@ -26,20 +26,22 @@ import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
- * Created by Plutonium_ on 3/6/2016.
+ *
+ *
+ * @author Martin Polakovic
  */
 public class ConfigSearch extends AutoCompletion<Entry> {
 
     private final TextField textField;
     private final History history;
-    private boolean ignoreevent = false;
+    private boolean ignoreEvent = false;
 
     public ConfigSearch(TextField textField, Callback<ISuggestionRequest, Collection<Config>> suggestionProvider) {
         this(textField, new History(), suggestionProvider);
     }
 
     public ConfigSearch(TextField textField, History history, Callback<ISuggestionRequest, Collection<Config>> suggestionProvider) {
-        super(textField, sr -> map(suggestionProvider.call(sr), Entry::new));
+        super(textField, sr -> map(suggestionProvider.call(sr), Entry::new), AutoCompletion.defaultStringConverter());
         this.history = history;
 
         this.textField = textField;
@@ -68,7 +70,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                     {
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                            if(!ignoreevent)
+                            if(!ignoreEvent)
                                 if(e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
 //                                    switch (e.getCode()) {
 //                                        case UP   : up(); break;
@@ -82,14 +84,14 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                     // We refire event on text field so we can type even though it
                                     // does not have focus. This causes event stack overflow, so we
                                     // defend against it with a boolean flag.
-                                    ignoreevent = true;
+                                    ignoreEvent = true;
                                     completionTarget.fireEvent(e);
                                 }
-                            ignoreevent = false;
+                            ignoreEvent = false;
                             // e.consume(); // may brake functionality
                         });
                         getNode().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                            if(!ignoreevent)
+                            if(!ignoreEvent)
                                 if(e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
                                     switch (e.getCode()) {
                                         case UP   : history.up(ConfigSearch.this); break;
@@ -122,7 +124,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                 } else if(!e.getCode().isNavigationKey()) {
 
                                 }
-                            ignoreevent = false;
+                            ignoreEvent = false;
                             // e.consume(); // may brake functionality
                         });
                     }

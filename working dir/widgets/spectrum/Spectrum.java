@@ -13,6 +13,7 @@ import layout.widget.controller.ClassController;
 import util.animation.Loop;
 
 /**
+ * Shows audio frequency bars. Animated at 60 fps.
  *
  * @author Martin Polakovic
  */
@@ -64,7 +65,7 @@ public class Spectrum extends ClassController  {
         }
 
         void draw() {
-            // this cause bars go to 0 when paused, instead of remaining frozen
+            // causes bars to go to 0 when paused, instead of standing still
             // cool effect(makes it feel more alive) + more natural
             if(System.currentTimeMillis()- lastUpdate > SPECTRUM_INTERVAL)
                 Arrays.fill(heights_target,0);

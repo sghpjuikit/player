@@ -22,14 +22,14 @@ import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
 
+import gui.Gui;
+import gui.objects.Text;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
+import gui.objects.window.stage.Window;
 import layout.container.bicontainer.BiContainer;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.widget.Widget;
-import gui.Gui;
-import gui.objects.popover.PopOver;
-import gui.objects.Text;
-import gui.objects.window.stage.Window;
-import gui.objects.icon.Icon;
 import util.access.V;
 import util.action.Action;
 import util.animation.Anim;
@@ -38,16 +38,9 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
-import static layout.container.Container.testControlContainer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DEBUG_STEP_OVER;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_2;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_3;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PALETTE_ADVANCED;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TROPHY;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.util.Collections.singletonMap;
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -57,6 +50,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
+import static layout.container.Container.testControlContainer;
 import static main.App.APP;
 import static util.async.Async.run;
 import static util.async.Async.runFX;
@@ -73,9 +67,9 @@ public final class Guide implements Configurable {
     @IsConfig(name = "Show guide on app start", info = "Show guide when application "
             + "starts. Default true, but when guide is shown, it is set to false "
             + "so the guide will never appear again on its own.")
-    public final V<Boolean> first_time = new V<>(true,v -> System.out.println(v));
+    public final V<Boolean> first_time = new V<>(true);
+    private static final String STYLECLASS_TEXT = "guide-text";
     private final double ICON_SIZE = 40; // use css style instead
-    private final String STYLECLASS_TEXT = "guide-text";
 
     private final List<Hint> hints = new ArrayList<>();
     private int prev_at = -1;
@@ -249,7 +243,7 @@ public final class Guide implements Configurable {
            + "There is a widget called 'Empty' which contains no content. Select it.");
         hint("Widget control", "Widget controls are located in the widget header. It is displayed "
            + "automatically when mouse cursor enters right top corner of the widget."
-           + "\nThis is known as layout mode. It is an overlay UI for manupilating the content. "
+           + "\nThis is known as layout mode. It is an overlay UI for manipulating the content. "
            + "There is an info button in the widget controls, so use it to learn more about what "
            + "the controls can do."
            + "\n\nMove the mouse cursor to the top right corner of the widget to display the controls.");
@@ -331,7 +325,7 @@ public final class Guide implements Configurable {
            + "\n\t• All selected items will be unselected."
         );
         hint("Drag & drop", "Many widgets support drag & drop for various content: files, text, etc. "
-           + "When you drag some content, any drag suporting area will signal that it can accept the "
+           + "When you drag some content, any drag supporting area will signal that it can accept the "
            + "content when you drag over it and show the type of action that will execute."
            + "\n\nIn regards to drag & drop, are can:\n"
            + "\n\t• Ignore drag (if area does not accept drags)"
@@ -364,7 +358,7 @@ public final class Guide implements Configurable {
                     installDrag(
                         root.getRoot(),
                         DICE_2,
-                        "Aaccepts text containing digit '2' or '3' and does nothing"
+                        "Accepts text containing digit '2' or '3' and does nothing"
                       + "\n\t• Release mouse to drop drag and execute action"
                       + "\n\t• Continue moving to try elsewhere",
                         e -> DragUtil.hasText(e) && (DragUtil.getText(e).contains("2") || DragUtil.getText(e).contains("3")),
@@ -394,12 +388,12 @@ public final class Guide implements Configurable {
            + "\n\t• Drag the component."
            + "\n\t• Drop the container on different component."
            + "\n\nThis allows fast content switching and layout customization. To make it faster, "
-           + "components can be dragged by their header - you dont have to enter layout mode. "
+           + "components can be dragged by their header - you do not have to enter layout mode. "
            + "Simply enter right top corner of the component and drag the component by its header."
         );
     }
 
-    private final EventHandler consumer = Event::consume;
+    private final EventHandler<Event> consumer = Event::consume;
     private final Anim proceed_anim = new Anim(millis(400),x -> p.getContentNode().setOpacity(-(x*x-1)));
 
     private void proceed() {
@@ -422,8 +416,8 @@ public final class Guide implements Configurable {
         if(h.onEnter!=null) h.onEnter.run();
 
         // the condition has 2 reasons
-        // - avoids unneded show() call
-        // - avoids relocating thepopupas a result of alignment with different popup size
+        // - avoids unneeded show() call
+        // - avoids relocating the popups a result of alignment with different popup size
         // - the popup size depends on the text
         if (!p.isShowing()) p.show(PopOver.ScreenPos.App_Center);
         // progress
@@ -508,7 +502,7 @@ public final class Guide implements Configurable {
     }
 
 
-    class Hint {
+    static class Hint {
         public final String text;
         public final String action;
         public final Node graphics;

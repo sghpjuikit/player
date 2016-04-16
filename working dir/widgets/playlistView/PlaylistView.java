@@ -48,9 +48,7 @@ import static layout.widget.Widget.Group.PLAYLIST;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static util.functional.Util.ISNTØ;
-import static util.functional.Util.list;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -246,12 +244,12 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         if(l.isEmpty()) return;
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        ValueConfig mc = new ValueConfig<>(String.class, "Name", initialName);
-        SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
+        ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", initialName);
+        SimpleConfigurator sc = new SimpleConfigurator<>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
-                  p.setAll(l);
-                  p.serializeToFile(new File(APP.DIR_PLAYLISTS,n + ".xml"));
+                     p.setAll(l);
+                     p.serializeToFile(new File(APP.DIR_PLAYLISTS, n + ".xml"));
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save playlist as...");
@@ -266,8 +264,8 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         SimpleConfigurator sc = new SimpleConfigurator<>(mc, c -> {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
-                  p.setAll(l);
-                  p.serializeToFile(new File(APP.DIR_PLAYLISTS,n + ".xml"));
+                     p.setAll(l);
+                     p.serializeToFile(new File(APP.DIR_PLAYLISTS, n + ".xml"));
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save selected items as...");
@@ -276,8 +274,6 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     private void setUseFilterForPlayback(boolean v) {
         playlist.setTransformation(v
-//            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList())
-//            : orig -> orig
             ? orig -> list(table.getItems())
             : orig -> orig.stream().sorted(table.itemsComparator.get()).collect(toList())
         );

@@ -18,23 +18,25 @@ import audio.playback.PlaybackState;
 import audio.playlist.PlaylistManager;
 import audio.playlist.sequence.PlayingSequence.LoopMode;
 import audio.tagging.Metadata;
-import util.conf.IsConfig;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import gui.Gui;
+import gui.objects.icon.Icon;
+import gui.objects.seeker.Seeker;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.HorizontalDock;
 import layout.widget.feature.PlaybackFeature;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import gui.Gui;
-import gui.objects.seeker.Seeker;
-import gui.objects.icon.Icon;
 import util.Util;
 import util.access.V;
+import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAUSE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
@@ -88,25 +90,24 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
 
-
     @Override
     public void init() {
         PlaybackState ps = PLAYBACK.state;
 
-        // make volume
+        // volume
         volume.setMin(ps.volume.getMin());
         volume.setMax(ps.volume.getMax());
         volume.setValue(ps.volume.get());
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);
 
-        // make seeker
+        // seeker
         d(seeker.bindTime(ps.duration, ps.currentTime));
-        d(maintain(Gui.snapDistance, d->d, seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, seeker.chapSnapDist));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
 
-        // make icons
+        // icons
         prevB = new Icon(STEP_BACKWARD, ICON_SIZE, null, PlaylistManager::playPreviousItem);
         playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume);
         stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop);
@@ -116,7 +117,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         volB = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
         volBox.getChildren().add(0,volB);
 
-        // monitor properties and update graphics + initialize
+        // monitor properties and update graphics
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
         d(maintain(ps.status, this::statusChanged));
@@ -142,8 +143,6 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
     @Override
     public void refresh() { }
-
-/******************************************************************************/
 
     @FXML
     private void cycleElapsed() {
@@ -175,7 +174,6 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void currentTimeChanged() {
-        // update label
         if (elapsedTime) {
             Duration elapsed = PLAYBACK.getCurrentTime();
             currTime.setText(Util.formatDuration(elapsed));

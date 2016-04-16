@@ -13,16 +13,16 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
 
-import util.conf.Config;
-import util.conf.Configurable;
-import util.conf.IsConfig;
+import gui.itemnode.ConfigField;
+import gui.objects.icon.Icon;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.feature.ConfiguringFeature;
-import util.action.Action;
-import gui.itemnode.ConfigField;
-import gui.objects.icon.Icon;
 import util.access.V;
+import util.action.Action;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.conf.IsConfig;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -52,17 +52,14 @@ import static util.graphics.Util.setAnchors;
 )
 public final class Configurator extends ClassController implements ConfiguringFeature {
 
-    // gui & state
     @FXML Pane controls;
     @FXML Accordion accordion;
     private final Map<String, ConfigGroup> groups = new HashMap<>();
     private final List<ConfigField> configFields = new ArrayList<>();
     private final boolean isSimple;
-//    private final Input configurableIn = inputs.create("To configure", Configurable.class, this::configure);
 
-    // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final V<HPos> alignemnt = new V<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
+    public final V<HPos> alignment = new V<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
     public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(CENTER);
     @IsConfig(editable = false)
@@ -74,26 +71,24 @@ public final class Configurator extends ClassController implements ConfiguringFe
     private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
-
-
     public Configurator() {
-        // creating widget loads controller's no-arg construstor - this one,
-        // and we need widget to be in non-simple mode, hence param==false
+        // creating widget loads controller's no-arg constructor - this one,
+        // and we need widget to be in non-simple mode, hence we need param==false
         this(false);
     }
 
     /**
-     * @param simple simple mode==true hides home button and categories
+     * @param isSimpleMode simple hides home button and categories
      */
-    public Configurator(boolean simple) {
+    public Configurator(boolean isSimpleMode) {
         inputs.create("To configure", Configurable.class, this::configure);
-        isSimple = simple;
+        isSimple = isSimpleMode;
 
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
 
         controls.getChildren().addAll(appI,new Region(),reI,defI);
-        if(simple) controls.getChildren().remove(appI);
+        if(isSimpleMode) controls.getChildren().remove(appI);
 
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
@@ -113,7 +108,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
     @Override
     public void refresh() {
-        alignemnt.applyValue();
+        alignment.applyValue();
         expanded.applyValue();
         refreshConfigs();
     }
@@ -129,15 +124,15 @@ public final class Configurator extends ClassController implements ConfiguringFe
         groups.clear();
 
         // sort & populate fields
-        ConfigGroup singlegroup = isSimple ? groups.computeIfAbsent("",ConfigGroup::new) : null;
-        c.stream().sorted(byNC(o -> o.getGuiName())).forEach(f -> {
+        ConfigGroup singleGroup = isSimple ? groups.computeIfAbsent("",ConfigGroup::new) : null;
+        c.stream().sorted(byNC(Config::getGuiName)).forEach(f -> {
             // create graphics
             ConfigField cf = ConfigField.create(f);
             configFields.add(cf);
 
             // get group
             String group = f instanceof Action ? "Shortcuts" : f.getGroup();
-            ConfigGroup g = isSimple ? singlegroup : groups.computeIfAbsent(group,ConfigGroup::new);
+            ConfigGroup g = isSimple ? singleGroup : groups.computeIfAbsent(group,ConfigGroup::new);
 
             // add to grid
             g.grid.getRowConstraints().add(new RowConstraints());
@@ -145,7 +140,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
             g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size()-1);
         });
 
-        // autoexpand
+        // auto-expand
         boolean single = groups.size()==1;
         accordion.setVisible(!single);
         ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
@@ -159,15 +154,13 @@ public final class Configurator extends ClassController implements ConfiguringFe
                 .forEach(g -> accordion.getPanes().add(g.pane));
         }
 
-        alignemnt.applyValue();
+        alignment.applyValue();
 
     }
 
     public void refreshConfigs() {
         configFields.forEach(ConfigField::refreshItem);
     }
-
-/******************************************************************************/
 
     class ConfigGroup {
 
@@ -185,7 +178,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
             grid.setVgap(3);
             grid.setHgap(5);
 
-            ColumnConstraints c1 = new ColumnConstraints(120,-1,-1,ALWAYS,alignemnt.get(),true);
+            ColumnConstraints c1 = new ColumnConstraints(120,-1,-1,ALWAYS, alignment.get(),true);
             ColumnConstraints gap = new ColumnConstraints(0);
             ColumnConstraints c2 = new ColumnConstraints(50,-1,-1,ALWAYS,LEFT,true);
             grid.getColumnConstraints().addAll(c1, gap, c2);
@@ -199,7 +192,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
             pane.alignmentProperty().unbind();
         }
 
-//        void autosize() {
+//        void autoSize() {
 //            grid.getColumnConstraints().stream().mapToDouble(c->c.g)
 //        }
     }

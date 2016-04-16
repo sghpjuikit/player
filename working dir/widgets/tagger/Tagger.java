@@ -19,7 +19,8 @@ import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
-import javafx.scene.input.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -27,36 +28,35 @@ import javafx.scene.text.Text;
 import org.controlsfx.control.textfield.CustomTextField;
 
 import audio.Item;
-import gui.objects.spinner.Spinner;
-import services.database.Db;
-import services.notif.Notifier;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
-import gui.objects.textfield.autocomplete.AutoCompletion;
-import util.conf.IsConfig;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.textfield.MoodItemNode;
+import gui.itemnode.textfield.TextFieldItemNode;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
+import gui.objects.image.ThumbnailWithAdd;
+import gui.objects.image.cover.Cover;
+import gui.objects.popover.PopOver;
+import gui.objects.popover.PopOver.NodePos;
+import gui.objects.spinner.Spinner;
+import gui.objects.textfield.DecoratedTextField;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.textfield.MoodItemNode;
-import gui.itemnode.textfield.TextFieldItemNode;
-import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.NodePos;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
-import gui.objects.image.ThumbnailWithAdd;
-import gui.objects.image.cover.Cover;
-import gui.objects.textfield.DecoratedTextField;
-import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
-import util.file.ImageFileFormat;
+import services.database.Db;
+import services.notif.Notifier;
 import util.InputConstraints;
 import util.access.V;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
+import util.conf.IsConfig;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
+import util.file.ImageFileFormat;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -64,9 +64,10 @@ import util.parsing.Parser;
 import static audio.tagging.Metadata.Field.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
-import static gui.objects.popover.PopOver.NodePos.DownCenter;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
+import static gui.objects.popover.PopOver.NodePos.DownCenter;
+import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
@@ -79,9 +80,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
-import static util.file.Util.EMPTY_COLOR;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
+import static util.file.Util.EMPTY_COLOR;
 import static util.functional.Util.*;
 
 /**
@@ -109,7 +110,8 @@ import static util.functional.Util.*;
     notes = "To do: improve tagging performance. Support for .ogg and .flac.",
     version = "0.8",
     year = "2015",
-    group = Widget.Group.TAGGER)
+    group = Widget.Group.TAGGER
+)
 public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @FXML AnchorPane root;
@@ -515,14 +517,10 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     Cover co = CovS;
                     runLater(() -> {
                         fields.forEach(f -> f.histogramEnd(formats));
-                            // handle cover separately
-                            // set image info
-                             if (c == 0)    CoverL.setText(APP.TAG_NO_VALUE);
-                        else if (c == 1)    CoverL.setText(s);
-                        else if (c == 2)    CoverL.setText(APP.TAG_MULTIPLE_VALUE);
-                            // set image
-                        if (c == 1)         CoverV.loadImage(co.getImage());
-                        else                CoverV.loadImage((Image)null);
+
+                        // handle cover separately
+                        CoverL.setText(mapRef(c, 0,1,2, APP.TAG_NO_VALUE,s,APP.TAG_MULTIPLE_VALUE)); // set image info
+                        CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
 
                         // enable/disable fields
                         ratingF.setDisable(true);
@@ -642,7 +640,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String n = f.name();
                Comparator<String> cmp = String::compareTo;
-               new AutoCompletion<>(
+               autoComplete(
                    (TextField)c,
                    p -> Db.string_pool.getStrings(n).stream()
                           .filter(a -> a.startsWith(p.getUserText()))

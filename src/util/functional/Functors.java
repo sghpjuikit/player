@@ -391,7 +391,7 @@ public class Functors {
      * Consumer version of {@link Ƒ1E}, so lambda expression does not need to return void (null)
      * at the end
      */
-    // this class is ~pointless, although now lambda doenst have to return null like in case of F1E,
+    // this class is ~pointless, although now lambda does not have to return null like in case of F1E,
     // but now the some method takes parameter of this class. Which will prevent
     // other F1E from being used!
     public interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
@@ -518,7 +518,7 @@ public class Functors {
         // and we need its proper type X -> X (otherwise it erases type in function chains). Single
         // instance per class is required for Identity function.
         // Unfortunately:
-        //     - we cant put it to functor pool, as we dont need which classes will need it
+        //     - we cant put it to functor pool, as we do not need which classes will need it
         //     - we cant put it to functor pool on requests, as the returned functors for class X
         //       return functors for X and all superclasses of X, which causes IDENTITY function
         //       to be inserted multiple times, even worse, only one of them has proper signature!
@@ -554,12 +554,12 @@ public class Functors {
             if(s.endsWith("]") && s.lastIndexOf('[')==s.length()-10)
                 s = s.substring(0,s.length()-10);
 
-            // remove fangroups
-            String fangroup = null;
+            // remove fansub group
+            String group = null;
             if(s.startsWith("[")) {
                 int i = s.indexOf(']');
                 if(i!=-1) {
-                    fangroup = s.substring(0,i+1);
+                    group = s.substring(0,i+1);
                     s = s.substring(i+1);
                 }
             }
@@ -567,9 +567,9 @@ public class Functors {
             // remove leading and trailing shit
             s = s.trim();
 
-            // add fangroup at the end
-            if(fangroup!=null)
-                s = s+"." + fangroup;
+            // add fansub groups at the end
+            if(group!=null)
+                s = s + "." + group;
 
             return s;
         });
@@ -802,8 +802,8 @@ public class Functors {
                 pl.addAll(ll);
             }
         }
-        Object prefcpy = pref;
-        pl.removeIf(e -> e==prefcpy || e==null);
+        Object prefCopy = pref;
+        pl.removeIf(e -> e==prefCopy || e==null);
         if(pref!=null) pl.addPreferred(pref);
         if(pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
             Object e = pl.get(pl.size()-1);
@@ -898,7 +898,7 @@ public class Functors {
     }
     // solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
     // detail - we do not want it to pollute external code, in fact this parameter exists solely
-    // so PƑ can access its underlaying function, while not breaking typesafety for subclasses
+    // so PƑ can access its underlying function, while not breaking type safety for subclasses
     public static abstract class PƑB<I,O,F extends IO<I,O>> extends PƑ<I,O> {
 
         public final F f;
@@ -1001,7 +1001,7 @@ public class Functors {
 
     public enum StringDirection {
         FROM_START,
-        FROM_END;
+        FROM_END
     }
 
     public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {

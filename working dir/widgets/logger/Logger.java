@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package logger;
 
@@ -20,7 +15,8 @@ import static util.graphics.Util.setAnchors;
 import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
- * Logger widget conroller.
+ * Logger widget controller.
+ *
  * @author Martin Polakovic
  */
 @Widget.Info(
@@ -41,13 +37,14 @@ public class Logger extends ClassController {
     private final Consumer<String> writer = area::appendText;
 
     @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
-    public final BooleanProperty wrap_text = area.wrapTextProperty(); // default == false
+    public final BooleanProperty wrap_text = area.wrapTextProperty();
 
     public Logger() {
         area.setEditable(false);
+	    area.setWrapText(false);
+        area.appendText("# This is redirected System.out stream of this application.\n");
         setMinPrefMaxSize(area, USE_COMPUTED_SIZE);
         setMinPrefMaxSize(this, USE_COMPUTED_SIZE);
-        area.appendText("# This is redirected System.out stream of this application.\n");
         getChildren().add(area);
         setAnchors(area, 0d);
 

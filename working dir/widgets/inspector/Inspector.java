@@ -45,10 +45,9 @@ import static util.graphics.Util.setAnchor;
 )
 public class Inspector extends ClassController implements FileExplorerFeature {
 
-    private static final PseudoClass csPC = getPseudoClass("configselected");
+    private static final PseudoClass selectedPC = getPseudoClass("selected");
     private Node sel_node = null;
     private TreeView<Object> tree = new TreeView<>();
-
     private Output<Object> out_sel;
 
     public Inspector() {
@@ -66,14 +65,14 @@ public class Inspector extends ClassController implements FileExplorerFeature {
 
             // selected node highlighting
             if(sel_node!=null) {
-                sel_node.pseudoClassStateChanged(csPC, false);
+                sel_node.pseudoClassStateChanged(selectedPC, false);
                 sel_node.setStyle("");
                 sel_node = null;
             }
             if(ni instanceof Node) {
                 Node n = (Node)ni;
                 sel_node = n;
-                n.pseudoClassStateChanged(csPC, true);
+                n.pseudoClassStateChanged(selectedPC, true);
                 n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
             }
         });
@@ -102,11 +101,10 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         Path p = f.toPath().getRoot();
         Optional<TreeItem<File>> item = root.getChildren().stream().filter(i -> i.getValue().toString().contains(f.toPath().getRoot().toString())).findFirst();
         item.ifPresent(e -> e.setExpanded(true));
-        ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty(item.orElse(null));
+        ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty<>(item.orElse(null));
 
         f.getAbsoluteFile().toPath().forEach(pth -> {
-            if(it.get()==null) return;
-            else {
+            if(it.get()!=null) {
                 it.get().setExpanded(true);
                 it.set(it.get().getChildren().stream().filter(i -> i.getValue().toString().contains(pth.toString())).findFirst().orElse(null));
             }
@@ -125,11 +123,11 @@ public class Inspector extends ClassController implements FileExplorerFeature {
 
 
     private static void highlightNode(Node n) {
-        n.pseudoClassStateChanged(csPC, true);
+        n.pseudoClassStateChanged(selectedPC, true);
         n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
     }
     private static void unhighlightNode(Node n) {
-        n.pseudoClassStateChanged(csPC, false);
+        n.pseudoClassStateChanged(selectedPC, false);
         n.setStyle("");
     }
 }

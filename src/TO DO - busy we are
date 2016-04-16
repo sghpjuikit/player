@@ -220,13 +220,6 @@ SOLVED (but the underlying cause still deserves attention)
   but the window does not cover whole screen - maybe its too soon 
   and the window is not really fully initialized 
   solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
-- app not closing propery on ALT+F4                                                                 (medium-major)
-  cause: ALT+F4 and closing app from taskbar calling window.closeRequst 
-  closes focused window not application. It somehow closes windows 
-  without closing them (close() does not get invoked). Because of this closing 
-  main window this way doesnt execute the necessary actions. Also, with the 
-  hidden owner window app wont close as one window remains open 
-  solution: have onCloseRequest event execute close() 
 - some local shortucts (F3,F4,F5,...) not registering as app shortcuts                              (major)
   cause: unknown, so far affects only some F keys (some F keys are fine) 
   solution: delay registering in runLater()                                                         (great)

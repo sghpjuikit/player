@@ -7,8 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import javax.swing.filechooser.FileSystemView;
-
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,8 +22,6 @@ import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import main.IconExtractor;
-import unused.TriConsumer;
 import util.Sort;
 import util.SwitchException;
 import util.access.V;
@@ -154,26 +150,20 @@ public class AppLauncher extends ClassController {
     private void visit() {
         if(!initialized) return;
         Item item = new TopItem();
-//        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause nullpointer here
+//        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        if(item==null) {
-            grid.getItemsRaw().clear();
-	        grid.requestFocus(); // fixes focus problem
-        } if(item!=null) {
-            Fut.fut(item)
-                    .map(Item::children,executorIO)
-                    .use(newcells -> newcells.sort(buildSortComparator()),executorIO)
-                    .use(newcells -> {
-                        grid.getItemsRaw().setAll(newcells);
-                        if(item.last_gridposition>=0)
-                            grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+        Fut.fut(item)
+                .map(Item::children,executorIO)
+                .use(cells -> cells.sort(buildSortComparator()),executorIO)
+                .use(cells -> {
+                    grid.getItemsRaw().setAll(cells);
+                    if(item.last_gridposition>=0)
+                        grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
-                        run(400, () -> {    // temp fix for app launer in popup not focusing
-                             grid.requestFocus();   // fixes focus problem
-	                    });
-                    },FX)
-                    .run();
-        }
+                    // temp fix for app launcher in popup not focusing
+                    run(400, grid::requestFocus); // fixes focus problem
+                },FX)
+                .run();
     }
 
     private void doubleClickItem(Item i) {
@@ -226,7 +216,7 @@ public class AppLauncher extends ClassController {
                 setGraphic(null);
             } else {
                 if(root==null) {
-                    // we create graphics only once and only when frst requested
+                    // we create graphics only once and only when first requested
                     createGraphics();
                     // we set graphics only once (when creating it)
                     setGraphic(root);
@@ -277,7 +267,7 @@ public class AppLauncher extends ClassController {
             });
             thumb.getPane().hoverProperty().addListener((o,ov,nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0,0,0.2,0) : null));
             root = new Pane(thumb.getPane(),name) {
-                // Cell layouting should be fast - gets called multiple times when grid resizes.
+                // Cell layout should be fast - gets called multiple times on grid resize.
                 // Why not use custom pane for more speed if we can.
                 @Override
                 protected void layoutChildren() {
@@ -321,7 +311,7 @@ public class AppLauncher extends ClassController {
         }
     }
 
-    private class FItem extends Item {
+    private static class FItem extends Item {
 
         public FItem(Item parent, File value, FileType type) {
             super(parent, value, type);

@@ -1,4 +1,4 @@
-/**
+/*
  * Impl based on ControlsF:
  *
  * Copyright (c) 2014, 2015, ControlsFX
@@ -37,6 +37,8 @@ import javafx.scene.control.TextField;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
+import org.reactfx.Subscription;
+
 
 /**
  * Represents a binding between a text field and a auto-completion popup
@@ -45,8 +47,8 @@ import javafx.util.StringConverter;
  */
 public class AutoCompletion<T> extends AutoCompletionBinding<T> {
 
-    private static <T> StringConverter<T> defaultStringConverter() {
-        return new StringConverter<T>() {
+    static <T> StringConverter<T> defaultStringConverter() {
+        return new StringConverter<>() {
             @Override public String toString(T t) {
                 return t == null ? null : t.toString();
             }
@@ -57,53 +59,48 @@ public class AutoCompletion<T> extends AutoCompletionBinding<T> {
         };
     }
 
+	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter) {
+		AutoCompletion<T> a = new AutoCompletion<>(textField, suggestionProvider, converter);
+		return a::dispose;
+	}
 
-    /** String converter to be used to convert suggestions to strings. */
-    StringConverter<T> converter;
-    private final ChangeListener<String> textChangeListener = (o,ov,nv) -> {
-        if (getCompletionTarget().isFocused())
-            setUserInput(nv);
-    };
-    private final ChangeListener<Boolean> focusChangedListener = (o,ov,nv) -> {
-        if(nv == false)
-            hidePopup();
-    };
+	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider) {
+		AutoCompletion<T> a = new AutoCompletion<>(textField, suggestionProvider, defaultStringConverter());
+		return a::dispose;
+	}
 
+	public static <T> Subscription autoComplete(TextField textField, Collection<T> possibleSuggestions) {
+		return autoComplete(textField, SuggestionProvider.create(possibleSuggestions));
+	}
+
+	@SafeVarargs
+	public static <T> Subscription autoComplete(TextField textField, T... possibleSuggestions) {
+		return autoComplete(textField, Arrays.asList(possibleSuggestions));
+	}
+
+
+	/** String converter to be used to convert suggestions to strings. */
+	StringConverter<T> converter;
+	private final ChangeListener<String> textChangeListener = (o,ov,nv) -> {
+		if (getCompletionTarget().isFocused())
+			setUserInput(nv);
+	};
+	private final ChangeListener<Boolean> focusChangedListener = (o,ov,nv) -> {
+		if(!nv)
+			hidePopup();
+	};
 
     /**
      * Creates a new auto-completion binding between the given textField
      * and the given suggestion provider.
-     *
-     * @param textField
-     * @param suggestionProvider
      */
-    public AutoCompletion(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter) {
+    AutoCompletion(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter) {
         super(textField, suggestionProvider, converter);
         this.converter = converter;
 
         getCompletionTarget().textProperty().addListener(textChangeListener);
         getCompletionTarget().focusedProperty().addListener(focusChangedListener);
     }
-
-    /**
-     * Creates a new auto-completion binding between the given textField
-     * and the given suggestion provider.
-     *
-     * @param textField
-     * @param suggestionProvider
-     */
-    public AutoCompletion(final TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider) {
-        this(textField, suggestionProvider, defaultStringConverter());
-    }
-
-    public AutoCompletion(TextField textField, Collection<T> possibleSuggestions) {
-        this(textField, SuggestionProvider.create(possibleSuggestions));
-    }
-
-    public AutoCompletion(TextField textField, T... possibleSuggestions) {
-        this(textField, Arrays.asList(possibleSuggestions));
-    }
-
 
     @Override
     public TextField getCompletionTarget(){

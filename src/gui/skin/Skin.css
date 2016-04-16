@@ -1002,8 +1002,8 @@
     -fx-background-insets: 2, 3, 4;
     -fx-background-radius: 3, 2, 1;*/
     -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 5;
-    -fx-background-radius: 3;
+    -fx-background-insets: 0.4em; /* 5px */
+    -fx-background-radius: 0.25em; /* 3px */
 }
 .scroll-bar:vertical > .thumb {
     -fx-background-color: -fx-def-font-color;
@@ -4006,7 +4006,7 @@ check-icon-disabling:selected {
 
 /********************************************************
  */
-.node:configselected {
+.node:selected {
     -fx-background-color: rgba(90,200,200,0.2); 
 }
 

@@ -17,9 +17,6 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-import com.sun.scenario.effect.PhongLighting;
-import com.sun.scenario.effect.light.Light;
-
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
@@ -190,23 +187,18 @@ public class DirViewer extends ClassController {
 
         item = dir;
         lastVisited = dir.val;
-        if (item == null) {
-            grid.getItemsRaw().clear();
-	        grid.requestFocus();    // fixes focus problem
-        } else {
-            Fut.fut(item)
-                    .map(Item::children, executorIO)
-                    .use(newcells -> newcells.sort(buildSortComparator()), executorIO)
-                    .use(newcells -> {
-                        grid.getItemsRaw().setAll(newcells);
-                        if (item.last_gridposition >= 0)
-                            grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+        Fut.fut(item)
+                .map(Item::children, executorIO)
+                .use(cells -> cells.sort(buildSortComparator()), executorIO)
+                .use(cells -> {
+                    grid.getItemsRaw().setAll(cells);
+                    if (item.last_gridposition >= 0)
+                        grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
-				        grid.requestFocus();    // fixes focus problem
-                    }, FX)
-                    .showProgress(getWidget().getWindow().taskAdd())
-                    .run();
-        }
+                    grid.requestFocus();    // fixes focus problem
+                }, FX)
+                .showProgress(getWidget().getWindow().taskAdd())
+                .run();
     }
 
     /**
@@ -222,9 +214,9 @@ public class DirViewer extends ClassController {
      */
     private void revisitCurrent() {
         disposeItems();
-        Item topitem = new TopItem();
+        Item topItem = new TopItem();
         if (lastVisited == null) {
-            visit(topitem);
+            visit(topItem);
         } else {
             Stack<File> path = new Stack<>(); // nested items we need to rebuild to get to last visited
             File f = lastVisited;
@@ -235,7 +227,7 @@ public class DirViewer extends ClassController {
             boolean success = files.list.contains(f);
             if (success) {
                 executorIO.execute(() -> {
-                    Item item = topitem;
+                    Item item = topItem;
                     while (!path.isEmpty()) {
                         File tmp = path.pop();
                         item = stream(item.children()).findAny(child -> child.val.equals(tmp)).orElse(null);
@@ -244,7 +236,7 @@ public class DirViewer extends ClassController {
                     runFX(() -> visit(i));
                 });
             } else {
-                visit(topitem);
+                visit(topItem);
             }
         }
     }
@@ -359,7 +351,7 @@ public class DirViewer extends ClassController {
             });
             thumb.getPane().hoverProperty().addListener((o, ov, nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0, 0, 0.2, 0) : null));
             root = new Pane(thumb.getPane(), name) {
-                // Cell layouting should be fast - gets called multiple times when grid resizes.
+                // Cell layout should be fast - gets called multiple times on grid resize.
                 // Why not use custom pane for more speed if we can.
                 @Override
                 protected void layoutChildren() {

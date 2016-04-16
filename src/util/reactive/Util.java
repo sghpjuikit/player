@@ -19,7 +19,9 @@ import org.reactfx.Subscription;
 import static org.reactfx.EventStreams.valuesOf;
 import static util.dev.Util.noØ;
 
-/***/
+/**
+ * Utility methods for reactive behavior.
+ */
 public interface Util {
 
     /**  */
@@ -102,13 +104,7 @@ public interface Util {
         noØ(onAdded, onRemoved);
         return change -> {
             while(change.next()) {
-                if (change.wasPermutated()) {
-                    for (int i = change.getFrom(); i < change.getTo(); ++i) {
-                        //permutate
-                    }
-                } else if (change.wasUpdated()) {
-                    //update item
-                } else {
+                if (!change.wasPermutated() && !change.wasUpdated()) {
                     if(change.wasAdded()) onAdded.onChanged(change);
                     if(change.wasAdded()) onRemoved.onChanged(change);
                 }
@@ -121,18 +117,9 @@ public interface Util {
         noØ(addedHandler, removedHandler);
         return change -> {
             while(change.next()) {
-                if (change.wasPermutated()) {
-                    for (int i = change.getFrom(); i < change.getTo(); ++i) {
-                        //permutate
-                    }
-                } else if (change.wasUpdated()) {
-                    //update item
-                } else {
-                    for (T o : change.getRemoved())
-                        removedHandler.accept(o);
-
-                    for (T o : change.getAddedSubList())
-                        addedHandler.accept(o);
+                if (!change.wasPermutated() && !change.wasUpdated()) {
+                    if(change.wasAdded()) change.getRemoved().forEach(removedHandler);
+                    if(change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
                 }
             }
         };

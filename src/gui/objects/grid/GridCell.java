@@ -59,6 +59,7 @@ public class GridCell<T,F> extends IndexedCell<T> {
         } else {
             T item1 = gridView1.getItemsShown().get(i);
             updateItem(item1, item1==null);
+            updateSelected(getIndex()==getGridView().implGetSkin().selectedCI);
         }
     }
 

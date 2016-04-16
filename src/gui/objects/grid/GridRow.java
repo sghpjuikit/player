@@ -23,6 +23,7 @@ class GridRow<T,F> extends IndexedCell<T>{
     public void updateIndex(int i) {
         super.updateIndex(i);
         updateItem(null, i<0);
+        updateSelected(getIndex()==getGridView().implGetSkin().selectedRI);
     }
 
     @Override

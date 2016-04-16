@@ -1,5 +1,5 @@
 
-/**
+/*
  * Copyright (c) 2013, 2015 ControlsFX
  * All rights reserved.
  *
@@ -35,7 +35,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
-import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Skin;
@@ -60,7 +59,6 @@ import util.type.Util;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static javafx.application.Platform.runLater;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -278,7 +276,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         }
     }
 
-/********************************************* FILTER *********************************************/
+/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
 
     /** Filter pane in the top of the table. */
     public final Filter filter;
@@ -405,44 +403,44 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 .toList();
     }
 
-/******************************************** SELECTION *******************************************/
+/* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 
     private static final int NO_SELECT = Integer.MIN_VALUE;
-    private static final PseudoClass SELECTED_PC = getPseudoClass("selected");
-    private int selectedI = -1;
+    int selectedCI = -1;
+    int selectedRI = -1;
     private GridRow<T,F> selectedR = null;
     private GridCell<T,F> selectedC = null;
 
     void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
-        if(selectedI<0) ifEmpty.run();
+        if(selectedCI <0) ifEmpty.run();
         else otherwise.run();
     }
 
     void selectRight() {
-        select(selectedI+1);
+        select(selectedCI +1);
     }
 
     void selectLeft() {
-        select(selectedI-1);
+        select(selectedCI -1);
     }
 
     void selectUp() {
-        int sel = selectedI-computeMaxCellsInRow();
+        int sel = selectedCI -computeMaxCellsInRow();
          select(max(0,sel));
     }
 
     void selectDown() {
-        int sel = selectedI+computeMaxCellsInRow();
+        int sel = selectedCI +computeMaxCellsInRow();
         select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
 
     void selectPageUp() {
-        int sel = selectedI-computeMaxRowsInGrid()*computeMaxCellsInRow();
+        int sel = selectedCI -computeMaxRowsInGrid()*computeMaxCellsInRow();
         select(max(0,sel));
     }
 
     void selectPageDown() {
-        int sel = selectedI+computeMaxRowsInGrid()*computeMaxCellsInRow();
+        int sel = selectedCI +computeMaxRowsInGrid()*computeMaxCellsInRow();
         int max = getSkinnable().getItemsShown().size()-1;
         select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
@@ -456,15 +454,14 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void selectNone() {
-        if(selectedC!=null) selectedC.pseudoClassStateChanged(SELECTED_PC, false);
-        if(selectedR!=null) selectedR.pseudoClassStateChanged(SELECTED_PC, false);
         if(selectedC!=null) selectedC.updateSelected(false);
         if(selectedR!=null) selectedR.updateSelected(false);
         getSkinnable().selectedRow.set(null);
         getSkinnable().selectedItem.set(null);
         selectedR = null;
         selectedC = null;
-        selectedI = NO_SELECT;
+        selectedRI = NO_SELECT;
+        selectedCI = NO_SELECT;
     }
 
     void select(GridCell<T,F> c) {
@@ -480,7 +477,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         int itemCount = getSkinnable().getItemsShown().size();
         int iMin = 0;
         int iMax = itemCount-1;
-        if(itemCount==0 || i==selectedI || !isInRangeInc(i,iMin,iMax)) return;
+        if(itemCount==0 || i== selectedCI || !isInRangeInc(i,iMin,iMax)) return;
 
         selectNone();
 
@@ -508,11 +505,10 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         GridCell<T,F> c = r.getSkinn().getCellAtIndex(col);
         if(c==null) return;
 
-        selectedI = i;
+        selectedCI = i;
+        selectedRI = row;
         selectedR = r;
         selectedC = c;
-        selectedR.pseudoClassStateChanged(SELECTED_PC, true);
-        selectedC.pseudoClassStateChanged(SELECTED_PC, true);
         selectedC.requestFocus();
         selectedR.updateSelected(true);
         selectedC.updateSelected(true);

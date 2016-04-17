@@ -298,7 +298,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * Loads the graphical element this container wraps. Furthermore all the children
      * get loaded too.
      * Use for as the first load of the controller to assign the parent_pane.
-     * Here, the term parent isnt parent Container, but instead the very AnchorPane
+     * Here, the term parent is not parent Container, but instead the very AnchorPane
      * this container will be loaded into.
      * @param _parent
      * @return

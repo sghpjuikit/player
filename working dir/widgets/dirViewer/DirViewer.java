@@ -6,9 +6,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -95,7 +95,7 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
     private boolean isResizing = false;
-    private final AtomicLong visitId = new AtomicLong(0);
+    private volatile long visitId = 0;
     private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to view directory", () -> {
         File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowOwner.getStage());
         if (dir != null) files.list.setAll(dir);
@@ -183,7 +183,7 @@ public class DirViewer extends ClassController {
         if (!initialized) return;
         if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
-        visitId.incrementAndGet();
+        visitId++;
 
         item = dir;
         lastVisited = dir.val;
@@ -261,11 +261,11 @@ public class DirViewer extends ClassController {
     }
 
     private Comparator<Item> buildSortComparator() {
-        Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
-                sortHomo = sort.get(); // sorts each group separately
-        FileField field = sortBy.get(); // precompute once for consistency and performance
+        Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
+	         sortHomo = sort.get();                 // sorts each group separately
+        FileField field = sortBy.get();             // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 
@@ -282,11 +282,11 @@ public class DirViewer extends ClassController {
         Pane root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(200, item -> executorThumbs.execute(task(() -> {
+        EventReducer<Item> setCoverLater = EventReducer.toLast(100, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
                 if (item == getItem())
-                    setCover(item);
+                    setCoverNow(item);
             });
         })));
 
@@ -316,15 +316,11 @@ public class DirViewer extends ClassController {
                 // This method can be called very frequently and:
                 //     - block ui thread when scrolling
                 //     - reduce ui performance when resizing
-                // We solve this by delaying the image loading & drawing. We reduce subsequent
+                // Solved by delaying the image loading & drawing, which reduces subsequent
                 // invokes into single update (last).
-                if (item.cover_loadedFull && !isResizing)
-                    setCover(item);
-                else {
-                    thumb.loadImage((File) null); // prevent displaying old content before cover loads
-                    // this should call setCoverPost() to allow animations
-                    setCoverLater.push(item);
-                }
+	            boolean loadLater = item.cover_loadedFull; // && !isResizing;
+                if (loadLater) setCoverNow(item);
+                else setCoverLater(item);
             }
         }
 
@@ -373,20 +369,36 @@ public class DirViewer extends ClassController {
          * <p/>
          * Thumbnail quality may be decreased to achieve good performance, while loading high
          * quality thumbnail in the bgr. Each phase uses its own executor.
+         * <p/>
+         * Must be called on FX thread.
          */
-        private void setCover(Item item) {
-            // load thumbnail
-            double width = cellSize.get().width,
-                   height = cellSize.get().height - CELL_TEXT_HEIGHT;
-            executorThumbs.execute(task(() ->
-                item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-            ));
-            // load high quality thumbnail
-            executorImage.execute(task(() ->
-                item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-            ));
+        private void setCoverNow(Item item) {
+	        if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+
+	        if(item.cover_loadedFull) {
+		        setCoverPost(item, true, item.cover_file, item.cover);
+	        } else {
+	            double width = cellSize.get().width,
+	                   height = cellSize.get().height - CELL_TEXT_HEIGHT;
+	            // load thumbnail
+	            executorThumbs.execute(task(() ->
+	                item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	            ));
+	            // load high quality thumbnail
+	            executorImage.execute(task(() ->
+	                item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	            ));
+	        }
         }
 
+	    private void setCoverLater(Item item) {
+		    if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+
+		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
+		    setCoverLater.push(item);
+	    }
+
+	    /** Finished loading of the cover. */
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
                 if (item == getItem()) { // prevents content inconsistency
@@ -464,9 +476,9 @@ public class DirViewer extends ClassController {
     }
 
     private Runnable task(Runnable r) {
-        final long id = visitId.get();
+        final long id = visitId;
         return () -> {
-            if (id == visitId.get())
+            if (id == visitId)
                 r.run();
         };
     }

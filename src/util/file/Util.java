@@ -85,7 +85,7 @@ public interface Util {
     }
 
     /**
-     * Checks whether directory is valid and if it isnt, attempts
+     * Checks whether directory is valid and if it is not, attempts
      * to make it valid by setting appropriate permissions or creating it.
      * Returns true if for provided File all conditions are met:
      * - exists
@@ -348,12 +348,12 @@ public interface Util {
      * Returns name of the file without suffix denoted by this URI. This is just
      * the last name in the pathname's name sequence.
      * <p/>
-     * If the URI denotes a directory its name will be returned. If the uri doesnt denote
+     * If the URI denotes a directory its name will be returned. If the uri does not denote
      * a file its path will still be parsed and last name in the pathname's
      * sequence will be attempted to be returned. Therefore if the URI denotes
      * file accessed by http protocol the returned string will be the name of
      * the file without suffix - consistent with file based URIs.
-     * However that doesnt have to be true for all schemes and URIs.
+     * However that does not have to be true for all schemes and URIs.
      * <p/>
      * For file based URIs, this method is equivalent to
      * {@link #getName(java.io.File)}.
@@ -364,7 +364,7 @@ public interface Util {
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
      * @throws IllegalArgumentException if uri param scheme not file - if uri
-     * doesnt represent a file
+     * does not represent a file
      */
     static String getName(URI u) {
         String p = u.getPath();
@@ -717,7 +717,7 @@ public interface Util {
     /**
      * Renames file (with extension suffix).
      *
-     * @param f file to rename, if doesnt exist nothing happens
+     * @param f file to rename, if does not exist nothing happens
      * @param name new file name without suffix
      */
     static void renameFile(File f, String name) {
@@ -728,7 +728,7 @@ public interface Util {
     /**
      * Renames file (extension suffix remains the same).
      *
-     * @param f file to rename, if doesnt exist nothing happens
+     * @param f file to rename, if does not exist nothing happens
      * @param name new file name without suffix
      */
     static void renameFileNoSuffix(File f, String name) {

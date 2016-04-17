@@ -394,7 +394,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private GeneralField(Config c) {
             super(c);
 
-            // doesnt work because of CustomTextField instead f TextField
+            // does not work because of CustomTextField instead f TextField
             // restrict input
 //            if(c.isTypeNumber())
 //                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
@@ -549,7 +549,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // the slider track instead and keeps dragging. valueChanging doesn
             // activate
             slider.valueProperty().addListener((o,ov,nv) -> {
-                // also bug with snap to tick, which doesnt work on mouse drag
+                // also bug with snap to tick, which does not work on mouse drag
                 // so we use get() which returns correct value
                 cur.setText(get().toString());
                 if(!slider.isValueChanging())

@@ -8,17 +8,17 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import util.conf.Config;
-import util.conf.Config.VarList;
-import util.conf.IsConfig;
-import util.conf.ListConfigurable;
+import gui.objects.icon.Icon;
 import layout.widget.Widget;
 import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.HorizontalDock;
-import gui.objects.icon.Icon;
 import util.access.FunctAccessor;
 import util.access.VarAction;
+import util.conf.Config;
+import util.conf.Config.VarList;
+import util.conf.IsConfig;
+import util.conf.ListConfigurable;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static util.reactive.Util.maintain;
@@ -42,7 +42,7 @@ public class IconBox extends FXMLController implements HorizontalDock {
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final VarList<Icon> icons = new VarList<>(() -> {
             Icon i = new Icon(BUS);
-            maintain(icon_size,v -> i.size(v.doubleValue()));
+            maintain(icon_size, v -> i.size(v.doubleValue()));
             return i;
         }, i ->
         new ListConfigurable(

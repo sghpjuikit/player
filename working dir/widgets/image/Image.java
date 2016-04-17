@@ -57,11 +57,11 @@ public class Image extends FXMLController implements ImageDisplayFeature {
         // drag&drop
         installDrag(
             root, DETAILS,"Display",
-            e -> DragUtil.hasImage(e),
+            DragUtil::hasImage,
             e -> img!=null && img.equals(DragUtil.getImageNoUrl(e)),
             e -> {
                 Fut<File> future = DragUtil.getImage(e);
-                future.use(img -> showImage(img),FX)
+                future.use(this::showImage,FX)
                       .showProgress(!future.isDone(),getWidget().getWindow()::taskAdd)
                       .run();
             }

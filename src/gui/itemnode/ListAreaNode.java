@@ -66,7 +66,7 @@ import static util.functional.Util.*;
         + "  which simply returns the edited text. There could be some trouble with syncing the output"
         + "  and getValue(), but its doable"
         + "- this will lock all preceding transformations as our edit function can not react on changes"
-        + "  in previous transformations, thats the cost of using it. User's fault.")
+        + "  in previous transformations, that is the cost of using it. User's fault.")
 public class ListAreaNode extends ValueNode<List<String>> {
 
     protected final TextArea textarea = new TextArea();
@@ -118,7 +118,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
             changeValue(newval);
             // Capture manual changes. Only String can do this, but it only makes sense for String
             // too. For other types editing the text can't be reflected in the output, because
-            // the text doesnt represent the output of the transformations in the first place - it
+            // the text does not represent the output of the transformations in the first place - it
             // is only its representation (which user can freely change and use as he wants).
             //
             // Hovewer if the type is string, the manual edit must be considered part of the

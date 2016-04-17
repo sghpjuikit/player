@@ -118,7 +118,7 @@ public class FileMonitor {
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
                 // The check requires I/O so lets do that on bgr thread as well
-//                if(!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or doesnt exist.");
+//                if(!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
                 boolean valid;
                 WatchKey watchKey;
@@ -178,7 +178,7 @@ public class FileMonitor {
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
                 // The check requires I/O so lets do that on bgr thread as well
-//                if(!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or doesnt exist.");
+//                if(!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
                 boolean valid = true;
                 WatchKey watchKey;

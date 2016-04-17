@@ -19,7 +19,7 @@ public interface FromStringConverter<T> {
     
     /** 
      * Converts String into object or supplied value if not parsable.
-     * Use this version if source isnt guaranteed to be parsable.
+     * Use this version if source is not guaranteed to be parsable.
      */
     default T fromS(String source, T def) {
         T t = fromS(source);

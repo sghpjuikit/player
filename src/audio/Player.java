@@ -297,7 +297,7 @@ public class Player {
          * Do not use when only the identity (defined by its URI) of the played
          * item is required. For example lastFM scrobbling service would not want
          * to update played item status when the metadata of the item change as it
-         * isnt a change in played item - it is still the same item.
+         * is not a change in played item - it is still the same item.
          * <p/>
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
@@ -335,7 +335,7 @@ public class Player {
                 log(Player.class).info("Current item metadata copied from next item metadata cache.");
             // else load
             } else {
-                log(Player.class).info("Next item metadata cache copy failed - content doesnt correspond to correct item. Loading now...");
+                log(Player.class).info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
                 load(true, item);
             }
 

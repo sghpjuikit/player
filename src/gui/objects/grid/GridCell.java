@@ -28,16 +28,11 @@ package gui.objects.grid;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
-import javafx.scene.control.TableView;
 
 /**
- * A GridCell is created to represent items in the {@link GridView}
- * {@link GridView#getItems() items list}. As with other JavaFX UI controls
- * (like {@link ListView}, {@link TableView}, etc), the {@link GridView} control
- * is virtualised, meaning it is exceedingly memory and CPU efficient. Refer to
- * the {@link GridView} class documentation for more details.
+ * A GridCell is created to represent items in the {@link GridView} {@link gui.objects.grid.GridView#getItemsShown()}
+ * items list.
  *
  * @see GridView
  */
@@ -49,17 +44,15 @@ public class GridCell<T,F> extends IndexedCell<T> {
 
     @Override
     public void updateIndex(int i) {
-        super.updateIndex(i);
+        if(getIndex()!=i && i>=0) {
+            super.updateIndex(i);
 
-        GridView<T,F> gridView1 = getGridView();
-        if (gridView1 == null) return;
+            GridView<T,F> grid = getGridView();
+            if (grid == null) return;
 
-        if(i<0) {
-            updateItem(null, true);
-        } else {
-            T item1 = gridView1.getItemsShown().get(i);
-            updateItem(item1, item1==null);
-            updateSelected(getIndex()==getGridView().implGetSkin().selectedCI);
+            T item = grid.getItemsShown().get(i);
+            updateItem(item, item == null);
+            updateSelected(i == grid.implGetSkin().selectedCI);
         }
     }
 

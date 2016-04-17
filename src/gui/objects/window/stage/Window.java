@@ -152,7 +152,7 @@ public class Window extends WindowBase {
         s.setOnCloseRequest(e -> close());
 
             // disable default exit fullscreen on ESC key
-        // it doesnt exit fullscreen properly for this class, because it calls
+        // it does not exit fullscreen properly for this class, because it calls
         // stage.setFullscreen() directly
         s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
         // implement the functionality properly

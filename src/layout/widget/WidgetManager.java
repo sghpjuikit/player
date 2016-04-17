@@ -270,7 +270,7 @@ public final class WidgetManager {
     private static void compile(File... srcfiles) {
         File[] files = srcfiles;
         // Compiler defaults to system encoding, we:
-        // - consistent encoding that doesnt depend on system
+        // - consistent encoding that does not depend on system
         // - need UTF-8
         Stream<String> options = stream("-encoding",APP.encoding.name());
         Stream<String> paths = stream(files).map(File::getPath);

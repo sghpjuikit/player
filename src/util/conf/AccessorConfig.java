@@ -14,7 +14,7 @@ import util.access.FunctAccessibleValue;
 import util.access.FunctAccessor;
 
 /**
- * Functional implementation of {@link Config} that doesnt store nor wrap the
+ * Functional implementation of {@link Config} that does not store nor wrap the
  * value, instead contains the getter and setter which call the code that
  * provides the actual value. This can be thought of some kind of intermediary.
  * See {@link FunctAccessor} which this config implements.

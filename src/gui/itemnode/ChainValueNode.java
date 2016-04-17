@@ -252,7 +252,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             }
             return homogeneous || hi || i>=chain.size()-1;
 
-            // optimization, but doesnt work?
+            // optimization, but does not work?
 //            int i = getIndex();
 //
 //            if(i==0) return false;

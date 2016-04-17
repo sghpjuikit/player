@@ -8,7 +8,6 @@ package gui.objects.grid;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
 
-
 class GridRow<T,F> extends IndexedCell<T>{
 
     /** {@link GridView} that this GridRow exists within */
@@ -21,10 +20,13 @@ class GridRow<T,F> extends IndexedCell<T>{
 
     @Override
     public void updateIndex(int i) {
-        super.updateIndex(i);
-        updateItem(null, i<0);
-        updateSelected(getIndex()==getGridView().implGetSkin().selectedRI);
+        if(getIndex()!=i) {
+            super.updateIndex(i);
+            updateItem(null, i<0);
+            updateSelected(i==getGridView().implGetSkin().selectedRI);
+        }
     }
+
 
     @Override
     protected GridRowSkin<T,F> createDefaultSkin() {

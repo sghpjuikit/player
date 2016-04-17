@@ -162,7 +162,7 @@ public final class Action extends Config<Action> implements Runnable {
 
     /**
      * Change and apply key combination.
-     * @param key_combination Case doesnt matter. <pre>
+     * @param key_combination Case does not matter. <pre>
      * For example: "CTRL+A", "F6", "D", "ALT+SHIFT+\"
      * </pre>
      * Incorrect keys will be substituted with "", which is equivalent to
@@ -224,7 +224,7 @@ public final class Action extends Config<Action> implements Runnable {
      * <p/>
      * For local action this method will succeed only after {@link Scene} is
      * already initialized.
-     * For global, platform support is required. If it isnt, shortcut will
+     * For global, platform support is required. If it is not, shortcut will
      * be registered locally, although the action will remain global.
      * <p/>
      * Note that shortcut can be registered globally multiple times even with
@@ -247,7 +247,7 @@ public final class Action extends Config<Action> implements Runnable {
         // F5,F6,F8,F12 confirmed) not getting registered when app starts, but
         // other shortcuts register fine, even F9, F10 or F11...
         //
-        // (1) The order in which shortcuts register doesnt seem to play a role.
+        // (1) The order in which shortcuts register does not seem to play a role.
         // (2) The problem is certainly not shortcuts being consumed by gui.
         // (3) This method always executes on fx thread, threading
         // is not the problem, you can make sure by uncommenting:

@@ -226,7 +226,7 @@ public class PopOverSkin implements Skin<PopOver> {
         // bug fix
         // When owning window is not focused, interacting with the popover is impossible (its focus
         // seems to be tied in with its owner window's focus). Unfortunately clicking on the popover
-        // when its owner doesnt have focus does not focus it, which is really annoying.
+        // when its owner does not have focus does not focus it, which is really annoying.
         // Whether intended default behavior or javafx/popover bug, the below fixes it.
         //
         // We use filter to always execute the behavior & do not consume to not break any either.

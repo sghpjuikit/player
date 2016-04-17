@@ -15,13 +15,13 @@ public final class PropertyMap<K> extends HashMap<K, Object>{
     /**
      * Initializes and returns the property.
      * Effectively the same as all other get() methods, but it performs a type
-     * check and throws an exception if initialization value doesnt conform to the
+     * check and throws an exception if initialization value does not conform to the
      * specified type. Type check is not needed more than once.
      * This method is not necessity, but it conveniently points to wrong code.
      * This method guarantees that after it is invoked, the specified property
-     * will exist and have correct type. It doesnt guarantee the initialized value
+     * will exist and have correct type. It does not guarantee the initialized value
      * however. If the property already existed and was valid it is returned as is.
-     * Therefore, this method doesnt overwrite any persisted values from previous
+     * Therefore, this method does not overwrite any persisted values from previous
      * session.
      * It is recommended to use this method to initialize the properties. Especially
      * use this method in scenarios where values are serialized or persisted.
@@ -29,7 +29,7 @@ public final class PropertyMap<K> extends HashMap<K, Object>{
      * sorts of exceptions. A way to counter this is to use get() methods that
      * specify default return value, but they pollute the code and most
      * importantly silently swallow the error and always return def value.
-     * @param type doesnt allow primitive types. Use their wrapper class type instead.
+     * @param type does not allow primitive types. Use their wrapper class type instead.
      * @param key of the property
      * @param val of the property to be initialized to, primitive types supported
      * @return newly initialized property or old one with old value if already exists.
@@ -40,7 +40,7 @@ public final class PropertyMap<K> extends HashMap<K, Object>{
         if (type.isPrimitive())
             throw new ClassFormatError("Type of property must not be primitive. (Value of course can)");
         if (type != val.getClass())
-            throw new ClassCastException("The value doesnt match the type of property");
+            throw new ClassCastException("The value does not match the type of property");
 
         Object v = get(key);
         if(v==null || (v!=null && v.getClass()!=type)) put(key,val);

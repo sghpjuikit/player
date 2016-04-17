@@ -155,7 +155,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
     @Override
     public void show() {
-        // Interesting idea, but turns out it isnt intuitive. Most of the time, user
+        // Interesting idea, but turns out it is not intuitive. Most of the time, user
         // simply wants to add child, so this gets in the way.
         // go to container if children empty
         // if(container.getChildren().isEmpty())

@@ -187,7 +187,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 double Σcw = cs.stream().mapToDouble(c->c.getWidth()).sum();
                 mc.setPrefWidth(tw-Σcw-sw-g);
             }
-            return true; // false/true, doesnt matter
+            return true; // false/true, does not matter
         });
 
         // prevent selection change on right click
@@ -330,7 +330,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
      * Moves/shifts all selected items by specified distance.
      * Selected items retain their relative positions. Items stop moving when
      * any of them hits end/start of the playlist - tems wont rotate in the playlist.
-     * Selection doesnt change.
+     * Selection does not change.
      * @param by distance to move items by. Negative moves back. Zero does nothing.
      */
     public void moveSelectedItems(int by) {

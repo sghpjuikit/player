@@ -166,7 +166,7 @@ public class Thumbnail extends ImageNode {
     // Probably problem with drawing at non-integer coordinates. See:
     // http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
     // workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
-    //             isnt of the same width on all sizes and now it even sticks out of the image area.
+    //             is not of the same width on all sizes and now it even sticks out of the image area.
     //             But at least its not so hideous
     private void resizeRelocateBorder(double x, double y, double w, double h) {
         img_border.resizeRelocate(x-1,y-1,w+2,h+2);
@@ -448,7 +448,7 @@ public class Thumbnail extends ImageNode {
 
     /**
      * Whether border envelops thumbnail or image specifically.
-     * This is important for when the picture doesnt have the same aspect ratio
+     * This is important for when the picture does not have the same aspect ratio
      * as the thumbnail. Setting the border for thumbnail (false) will frame
      * the thumbnail without respect for image size. Conversely, setting the border
      * to image (true) will frame image itself, but the thumbnail itself will not

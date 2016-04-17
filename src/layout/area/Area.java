@@ -29,7 +29,7 @@ import static util.graphics.Util.setAnchor;
  * <p/>
  * The lifecycle of the graphics entirely depends on the lifecycle of the
  * container. Instances of this class can not live outside of container's
- * life cycle. Note that the opposite doesnt necessarily hold true.
+ * life cycle. Note that the opposite does not necessarily hold true.
  * <p/>
  * @author Martin Polakovic
  */

@@ -58,7 +58,7 @@ public class TaskBar {
 
         // The below is not working for some reason, even though I have successfully used this
         // approach elsewhere. Moving the stage to are of the new screen will reposition the
-        // taskbar icon. I mean should. In this case, the taskbar "update" doesnt happen without
+        // taskbar icon. I mean should. In this case, the taskbar "update" does not happen without
         // refreshing the stage's in some unspecified way (clicking manually on the taskbar to
         // minimize the stage repositiones the tasbar correctly, but im not going to try emulating
         // that)
@@ -80,7 +80,7 @@ public class TaskBar {
         };
             // this is the only way of detecting minimization events - by using focus
             // when stage is de/minimized by user clicking on the taskbar, the iconified property
-            // somehow isnt updated (you can try attaching listener to s.iconifiedProperty() and
+            // somehow is not updated (you can try attaching listener to s.iconifiedProperty() and
             // see for yourself.
             // What does happen though, is focus change. Minimizing window makes it lose focus and
             // vice versa. Thus if we do not cause focus change in any other way, we have a reliable
@@ -143,7 +143,7 @@ public class TaskBar {
                     // and Im not exactly sure what it is. It has something to do with the window
                     // the action deminimizes steals focus, which affects focus of this stage.
                     //
-                    // Point is, if this handler is called once, as per javaFX, minimization doesnt
+                    // Point is, if this handler is called once, as per javaFX, minimization does not
                     // work, only deminimization. However, due to this listener being called twice
                     // and the interference with focus, SOMEHOW, no idea how, minimization works too.
                     //

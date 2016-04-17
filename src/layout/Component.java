@@ -135,7 +135,7 @@ public abstract class Component {
 
 //    /** @return whether this component is currently open*/
 //    public boolean isOpen() {
-//        // check if this isnt standalone widget (not in a layout)
+//        // check if this is not standalone widget (not in a layout)
 //        if(APP.widgetManager.standaloneWidgets.contains(this)) return true;
 //
 //        Component c = this;

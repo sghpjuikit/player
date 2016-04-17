@@ -44,7 +44,7 @@ public class FieldedPredicateChainItemNode<T,F extends ObjectField<T>> extends C
         data.clear(); // causes serious problems, unknown
         data.addAll(classes);
         chain.forEach(g -> g.chained.setData(classes));
-        clear(); // bug fix, not sure if it doesnt cause problems
+        clear(); // bug fix, not sure if it does not cause problems
     }
 
     public void setPrefTypeSupplier(Supplier<Tuple3<String,Class,F>> supplier) {

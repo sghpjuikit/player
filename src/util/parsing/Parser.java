@@ -207,7 +207,7 @@ public abstract class Parser {
         DEFAULT.addParserFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         DEFAULT.addParserToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
         DEFAULT.addParser(Effect.class, FX::toS, text -> FX.fromS(Effect.class, text));
-//        DEFAULT.addParser(Class.class, c -> c.getName(), noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler doesnt like this!?
+//        DEFAULT.addParser(Class.class, c -> c.getName(), noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler does not like this!?
         DEFAULT.addParser(Class.class, c -> c.getName(), noEx(text -> {
             try {
                 return Class.forName(text);
@@ -584,7 +584,7 @@ public abstract class Parser {
     }
 
     // these noEx methods must absolutely remain private, since it uses DEFAULT parser instance
-    // this isnt quite well figured out with the error...
+    // this is not quite well figured out with the error...
 
     private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
         return i -> {

@@ -300,7 +300,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
             c.close();
         }
 
-        // Not the best handling, but at least dev doesnt have to do this manually and concern
+        // Not the best handling, but at least dev does not have to do this manually and concern
         // himself
         APP.widgetManager.standaloneWidgets.remove(this);
     }
@@ -501,7 +501,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     // we need to create i/o nodes and i/o connections
     private void updateIO() {
         // because widget inputs can be bound to other widget outputs, and because widgets can be
-        // loaded passively (then its i/o doesnt exists yet), we need to update all widget i/os
+        // loaded passively (then its i/o does not exists yet), we need to update all widget i/os
         // because we dont know which bind to this widget
         IOLayer.all_inputs.addAll(controller.getInputs().getInputs());
         IOLayer.all_outputs.addAll(controller.getOutputs().getOutputs());

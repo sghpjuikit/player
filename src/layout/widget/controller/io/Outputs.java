@@ -56,7 +56,7 @@ public class Outputs {
 
     public boolean contains(Output i) {
          return m.containsValue(i); // slow impl./ w can rely on the below:
-//        return m.containsKey(i.id.name); // doesnt guarantee correctness
+//        return m.containsKey(i.id.name); // does not guarantee correctness
     }
 
     public Collection<Output<?>> getOutputs() {

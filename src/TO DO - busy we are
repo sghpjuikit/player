@@ -1,9 +1,9 @@
 
---------------------------------------------------------------------------------
---------------------- IMMEDIATE  - what is being worked on ---------------------
---------------------------------------------------------------------------------
+/* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- implement loading images properly using the twelvemonkeys
+- figure out better wat to inject widget to controller
+- support widget main class lookup, remove name convention, make all widget packages' names lowercase
+- implement loading images properly using the twelve monkeys
 - make services lazy, requires better lifecycle handling, service subscriptions/observers/consumers,
   improved config loading, extracting, applying values, widget service dependency reporting, etc
   The most difficult part is to figure out how automatic and manual service start/stop should interplay
@@ -16,35 +16,31 @@
 - try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
-- GridView selection
-    - selectDown bug due to cells not being ready sometimes (so they pseudoclasses wont get applied)
-    - scrolling may cause selected cell to lose its selected pseudoclass
+- GridView selectDown scroll bug due to cells not ready
 - logback could monitor its configuration file
-- Configuration config mapset should error out when config is added twice to same key + add keymap function for lower case
+- Configuration config MapSet should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
-- break File into FileFile and DirFile and AnyFile(?) for typesafe Configs, theres no way to tell which user wants...
+- break File into FileFile and DirFile and AnyFile(?) for type safe Configs, there is no way to tell which user wants...
   alternatively make File<FileType>
 - widget i/o
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
       This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
-      there have to be default values as well, preferrably settable per i/o in widget controller
-- Logger log text jambled up sometimes + doesnt write jaudiotagger log output sometimes
+      there have to be default values as well, preferably settable per i/o in widget controller
+- Logger log text jumbled up sometimes + does not write jaudiotagger log output sometimes
 - impl filter in Settings
 - DirViewer
-    - optimize the annoying image loading delay that helps scrolling performance, its too much
     - conf gui header
     - impl searching (as opposed to filtering), filtering really makes inability to search evident, follow Table impl
-    - cache everything in Item, not Cell as Cells get recreated frequently
-    - implement smart image cache, we must not cache all images, gifs can kill app instantly then
-    - thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?
-    - reload thumbnails when thumb size increasese
+    - implement smart image cache, we must not cache all images, gifs can kill app instantly
+    - thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?        still an issue?
+    - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1
 - FileDownloader widget
   - display progress
   - overwrite file if exist option
-  - support image tag writing on download to tag images immediatelly and conveniently
-- all ConfigFields must support observable Configs, im awed they dont!!
+  - support image tag writing on download to tag images immediately and conveniently
+- all ConfigFields must support observable Configs, im awed they do not!!
 - when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
 - implement 'use embedded thumbnail' for all image formats, not just psd
 - impl layout refresh() pass so Widget.refresh() can run properly
@@ -55,41 +51,39 @@
 - save playlists into db instead of xml to improve big playlist startup
 - saving multiple playlists is bugged
 - I think spectrum suffers from logarithmic band intensity distribution
-- custom control skins not working for new windows
 - display window snap preview & snap only on mouse release
-- widget compilation failure causes recompilation ad infinitum
+- widget compilation failure causes recompilation ad infinitum                                                          still an issue?
 - toggle action annotation
-- remove appliers from all configs, its bad design. use maintain() and subscribtions
+- remove appliers from all configs, its bad design. use maintain() and subscriptions
   instead. This marvellously increases structural code cohesion.
 - rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
 - figure out image animation autoplay def behavior & indicative play/pause mechanism
-- widget compilation - report errors back to user through gui (popup? notfication? else?)
+- widget compilation - report errors back to user through gui (popup? notifications? else?)
 - widget manager monitor .fxml files too
-- libraryview placeholder doesnt detect empty table correctly
+- LibraryView placeholder does not detect empty table correctly
 - explicit config for song enqueue order (Comparator)
 - make Configurator config field button single instance, use vertical animation
 - Configurator implement drag & drop of Configurables, support any object by turning it into
   Configurable (but using which convention?)
 - remove artwork caching?
 - improve table performance
-- impl Void config which doesnt serialize and has Runnable action executing when
+- impl Void config which does not serialize and has Runnable action executing when
   gui is clicked, the action may open some kind of manager for the section
   config belongs to
-  I think this actually solves the Q of Action being Config<Action>. Shouldnt it be Config<Void> ? I not, what
-  difference would be between the two and why shouldnt runnable Config<Void> have keys and become Action instead?
-  do not show up in filter combobox
+  I think this actually solves the Q of Action being Config<Action>. Should not it be Config<Void> ? I not, what
+  difference would be between the two and why should not runnable Config<Void> have keys and become Action instead?
+  do not show up in filter ComboBox
 - reimplement playcount, chapters tags as custom tags
-- FieldedValue hasField predicates This will become part of ObjectField decoupling from Table filters,
-  generifying them, etc.
+- FieldedValue hasField predicates
 - layout manager + mock widgets
 - impl main window switching
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
-- MapSet is breaking Set equals contract! Java's IdentityHashmap is doing it too, so... fck it?
+- MapSet is breaking Set equals contract! Java's IdentityHashMap is doing it too, so... fck it?
 - Metadata cover caching causes outdated data if cover is set to tag
 - layout mode zoom animation use loop to increase smoothness
-- filesize use unsigned long to support even larger units
+- FileSize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo
 - implement smooth volume on seek
 - volume add linear vs logarithmic option
@@ -102,11 +96,11 @@
 - LastFM -> service, implement properly
 - popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
-  order in random playorder
+  order in random play order
 - unify table column resizing, namely getMain column and autoresize with
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
-  menu item for on/off autoresize columns option
+  menu item for on/off auto-resize columns option
 - refactor
     - DirViewer's GridView Cell implementation
     - GridView constructors
@@ -118,43 +112,38 @@
 - annoying java "bugs" (problem scope == entire application)
     - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 
---------------------------------------------------------------------------------
---------------------------------- TESTING  -------------------------------------
---------------------------------------------------------------------------------
+/* ---------- TEST -------------------------------------------------------------------------------------------------- */
 
 - make sure all components close properly
 - ensure parsing works as expected, particularly catching parsing exceptions
 - application instance counting
 
--------------------------------------------------------------------------------- 
------------------------- BUGS - what i dont want to hear about -----------------
---------------------------------------------------------------------------------
+/* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
-GENERAL
 - cant hide index column, shows artifacts                                                           (medium)
 - transparent stage causing massive performance degradation for larger stages                       (major, javaFX bug)
   problem: transparent skins, window shadows & screen mouse effects unsupported 
 - de-activator position | size a bit off when loading first time & into small                       (minor)
-  area. It requires area resize call to initialize correct height/y-ccord 
+  area. It requires area resize call to initialize correct height/y-cord 
   use black bgr on the buttons pane to see the issue 
-- playlist item moving change order when moving fast even for jsut 1 block                          (minor)
+- playlist item moving change order when moving fast even for just 1 block                          (minor)
 - backslash (\) shortcut not working for left backslash key (left from Z)                           (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind 
-  problem: jintellitype '\' works only for right '\' not left one (yes there are 
+  problem: jIntellitype '\' works only for right '\' not left one (yes there are 
   two '\' keys on the keyboard). 
 - starting paused playback plays the song for an instant                                            (medium)
 - local shortcuts for complex characters (BACK_SLASH, etc) not working 
   solution: solved for some characters by manually rewriting them upon 
-  shortcut registering, but thats only partial and incomplete workaround  
-- popup window fullcreen or maximizing(any) breaks popup position                                   (minor, but should be fixed if possible)
+  shortcut registering, but that is only partial and incomplete workaround
+- popup window fullscreen or maximizing(any) breaks popup position                                   (minor, but should be fixed if possible)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings                     (javaFX bug ?)
   this happens when something has null skin, investigate & fix 
-- Configurator group title alignment doesnt get applied immediately                                 (minor)
+- Configurator group title alignment does not get applied immediately                                 (minor)
   its partially fixed now 
 - some songs (happens to be album specific, but specific cause unknown) read                        (jaudiotagger bug?)
-  length as twice of the real (note: SmilePrecure OST) 
+  length as twice of the real (note: Smile Precure OST)
 - sometimes not even suspending playback allows jaudiotagger renaming songs 
-  and thus prevents successful tagging. see unabletorename in audio test files 
+  and thus prevents successful tagging. see unable to rename in audio test files
 - when app starts with paused song, playing some other songs starts from that 
   point rather than the beginning 
 - some images with very long names 'can not be found' - it is probably windows 
@@ -170,7 +159,7 @@ GENERAL
   aliasing appears 
 - javafx player MediaException: system cant find media file when weird character                    (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
-  Its patched so playback continues with next item, but that isnt a solution. Fill a bug.
+  Its patched so playback continues with next item, but that is not a solution. Fill a bug.
 - IntelliJ on 64-bit JRE !work. 64-bit dll problem?                                                 (major)
 - database throws exception when transaction begins and library is importing files
 com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
@@ -191,19 +180,20 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
 
-SOLVED (but the underlying cause still deserves attention) 
+/* ---------- WORKAROUNDS ------------------------------------------------------------------------------------------- */
+
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment                           (medium)
   nonempty. 
   solution: custom comment reading method filters out CUSTOM fields                                 (great)
 - split container divider position not applied properly (vertical only).                            (medium)
   note: how does orientation come into this: unknown 
   solution: have each splitter wait 2 seconds and apply the position again 
-  problem: arbitrary waiting value might not work in all cases + puttin the 
+  problem: arbitrary waiting value might not work in all cases + putting the
   divider near edge (1 or 0 value) by resizing the Pane will deform the value 
-  and it doesn retain correct position. Re-applying it doesnt work because of 
+  and it does not retain correct position. Re-applying it does not work because of
   this bug. Platform.runLater is the only workaround and it can not be used here 
   See the Splitter class for more information 
-- javafx.scene.text.Text doesnt have css style class and as such doesn allow 
+- javafx.scene.text.Text does not have css style class and as such does not allow
   default values and skinning 
   solution: Text class extending javafx.scene.text.Text and adding custom  
   styleclass. Use instead of the original if default behavior (skin) is expected 
@@ -220,7 +210,7 @@ SOLVED (but the underlying cause still deserves attention)
   but the window does not cover whole screen - maybe its too soon 
   and the window is not really fully initialized 
   solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
-- some local shortucts (F3,F4,F5,...) not registering as app shortcuts                              (major)
+- some local shortcuts (F3,F4,F5,...) not registering as app shortcuts                              (major)
   cause: unknown, so far affects only some F keys (some F keys are fine) 
   solution: delay registering in runLater()                                                         (great)
   details: see Action.class register() 
@@ -237,12 +227,10 @@ SOLVED (but the underlying cause still deserves attention)
   workaround: when intended to be used as graphics, call embedded() method
   on the icon. it will set different styleclass disabling the disable style
 - Thumbnail border has inconsistent border width/size and is not crisp. See Thumbnail.java file     // medium
-- tables consuming SHIFT key and local shortcuts like SHIFT+ARROWs !work after any
+- tables consuming SHIFT key and local shortcuts like SHIFT+ARROW !work after any
   table receives focus for the 1st time -> useless...
 
--------------------------------------------------------------------------------- 
-------------------------------------- NOTES ------------------------------------
---------------------------------------------------------------------------------
+/* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
 - util.dev.TODO annotates also bugged code, CTRL+F it throughout the project
 - heap: Use -Xmx1g, possibly more
@@ -264,5 +252,5 @@ SOLVED (but the underlying cause still deserves attention)
   a mouse. Maybe parent graphics shows an effect or monitors mouse coordinates,
   but if the event gets consumed it wont be able to.
   Hence, it is important to think about whether the behavior is one-and-only or can play along
-  with different behaviors. Dont assume and consume. If the parent's behavior needs to run no matter 
+  with different behaviors. does not assume and consume. If the parent's behavior needs to run no matter 
   what its children do, then it should use event filters to bypass the consumption.

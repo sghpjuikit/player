@@ -57,7 +57,7 @@ public class OverlayPane extends StackPane {
     public OverlayPane() {
         setVisible(false);
 
-        // setEffect(blurfront); // performance ptimization, see impl. of animStart()
+        // setEffect(blurfront); // performance optimization, see impl. of animStart()
         getStyleClass().add(ROOT_STYLECLASS);
         setOnMouseClicked(e -> {
             if(e.getButton()==SECONDARY && isShown()) {
@@ -161,7 +161,7 @@ public class OverlayPane extends StackPane {
                 // smaller.
                 // More tweaking:
                 // It is possible with the overlay blur to:
-                // - disable (doesnt look the best)
+                // - disable (does not look the best)
                 // - decrease blur iteration count (we dont need super blur quality here)
                 // - decrease blur amount
                 //
@@ -194,7 +194,7 @@ public class OverlayPane extends StackPane {
                         op.toFront();
                     }
                     op.setVisible(true);
-                    op.requestFocus();  // just in case, see above
+                    op.requestFocus();     // 'bug fix' - we need focus or key events wont work
 
                     // apply effects (will be updated in animation)
                     op.opacityNode = contentImg;
@@ -204,7 +204,8 @@ public class OverlayPane extends StackPane {
                     op.blurfrontNode.setEffect(op.blurfront);
 
                     op.animation.affector.accept(0d);
-                    op.stg.show(); // show when graphcis ready
+                    op.stg.show();
+                    op.stg.requestFocus();
 
                     // start showing
                     op.animation.playOpenDo(null);

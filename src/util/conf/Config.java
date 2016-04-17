@@ -890,9 +890,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public static class VarList<T> extends V<ObservableList<T>> {
         public final ObservableList<T> list;
         public final Supplier<T> factory;
-        public final Ƒ1<T,Configurable<?>> toConfigurable;
+        public final Ƒ1<T,Configurable<? extends Object>> toConfigurable;
 
-        public VarList(Supplier<T> factory, Ƒ1<T,Configurable<?>> toConfigurable) {
+        public VarList(Supplier<T> factory, Ƒ1<T,Configurable<? extends Object>> toConfigurable) {
             // construct the list and inject it as value (by calling setValue)
             super(observableArrayList());
             // remember the reference

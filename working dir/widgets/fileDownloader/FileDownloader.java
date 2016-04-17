@@ -9,12 +9,12 @@ import java.util.concurrent.ExecutorService;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.Pane;
 
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
+import layout.widget.Widget;
+import layout.widget.controller.ClassController;
 import main.App;
 import util.access.V;
 import util.conf.Config;
@@ -27,9 +27,7 @@ import static javafx.geometry.Pos.CENTER;
 import static main.App.APP;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.future.Fut.fut;
-import static util.graphics.Util.layHeaderTop;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.setAnchor;
+import static util.graphics.Util.*;
 
 /**
  *
@@ -106,6 +104,5 @@ public class FileDownloader extends ClassController  {
             .showProgress(progress);
         }
     }
-
 
 }

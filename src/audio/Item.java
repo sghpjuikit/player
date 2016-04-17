@@ -69,7 +69,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * <p/>
      * Uses getUri().getPath() and removes leading '/' character.
      * <p/>
-     * The path doesnt guarantee the possibility to backward-reconstruct the
+     * The path does not guarantee the possibility to backward-reconstruct the
      * original URI resource, and must not be used this way.
      * @return string portion of the URI of this item or "" if not available
      */
@@ -122,7 +122,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     /**
      * Returns suffix of the filename. For example: "mp3, flac"
      * <p/>
-     * It doesnt necessarily reflect real type of the file. Dont use this method
+     * It does not necessarily reflect real type of the file. Dont use this method
      * to find out type of the file. Use {@link #getFormat()}.
      * @return the suffix of the file of this item or empty string if none.
      */
@@ -176,7 +176,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * <pre>
      * Item is labeled corrupt if it fulfills at least one of the conditions
      * for file based items:
-     * - file doesnt exist
+     * - file does not exist
      * - file is not a file (is a directory)
      * - is not supported audio file
      * - file can not be read
@@ -242,7 +242,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 /******************************************************************************/
 
     /**
-     * Converts this item to metadata. This method doesnt read metadata on this
+     * Converts this item to metadata. This method does not read metadata on this
      * item, rather it converts this item into a Metadata object filling all
      * fields that are derivable from this item. Use when
      * Metadata is expected instead of Item and additional information is not

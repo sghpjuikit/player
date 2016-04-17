@@ -25,6 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.grid;
 
 import java.util.List;
@@ -105,8 +106,10 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 }
 	            e.consume();
             } else if(c==ESCAPE && !e.isConsumed()) {
-                selectNone();
-	            e.consume();
+                if(selectedCI>=0) {
+                    selectNone();
+                    e.consume();
+                }
             }
         });
     }
@@ -223,8 +226,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         for (int i = 0; i < rowCount; i++) {
             GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
-                // FIXME hacky - need to better understand what this is about
-                // looks like its to force index change update, Q is: is it necessary?
                 row.updateIndex(-1);
                 row.updateIndex(i);
             }

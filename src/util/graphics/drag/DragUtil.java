@@ -298,8 +298,8 @@ public final class DragUtil {
             // watch out for non audio urls, we must filter those out, or
             // we could cause subtle bugs
             if(AudioFileFormat.isSupported(url,Use.APP))
-                Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
-                        .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?
+                Optional.of(new SimpleItem(URI.create(url)))  // is not this dangerous?
+                        .filter(i->!i.isCorrupt(Use.APP)) // is not this pointless?
                         .ifPresent(o::add);
         }
         return o;
@@ -453,7 +453,7 @@ public final class DragUtil {
         return fut(() -> {
             try {
                 // this can all fail when the certificate is not trusted
-                // security is fine, but user doesnt care if a site he uses wont work due to this...
+                // security is fine, but user does not care if a site he uses wont work due to this...
                 // e.g. anime-pictures.net
                 //
                 // https://code.google.com/p/jsslutils/wiki/SSLContextFactory

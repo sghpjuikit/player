@@ -644,7 +644,7 @@ public class PopOver<N extends Node> extends PopupControl {
         //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
         // but the binding doesn seem to allow binding to itself or simply 'not
         // do' anything in the 'otherwise' part - there we need to maintain the
-        // current value but it doesnt seem possible - it would really clean
+        // current value but it does not seem possible - it would really clean
         // this up a bit (way too many listeners for my taste)
 
         // maintain lock to prevent illegal position monitoring

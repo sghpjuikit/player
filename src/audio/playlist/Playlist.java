@@ -193,7 +193,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     }
 
     /**
-     * Duplicates the item if it is in playlist. If it isnt, does nothing.
+     * Duplicates the item if it is in playlist. If it is not, does nothing.
      * Duplicate will appear on the next index following the original.
      * @param item
      */
@@ -417,7 +417,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
                 // until we check it again (thus checking all items)
                 if (unplayable) {
                     if (unplayable1st==item) {
-                        // unplayable1st isnt reliable indicator (since items can
+                        // unplayable1st is not reliable indicator (since items can
                         // be selected randomly), so if we check same item twice
                         // check whole playlist
                         boolean noneplayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking

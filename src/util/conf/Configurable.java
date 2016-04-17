@@ -136,7 +136,7 @@ public interface Configurable<T> {
      * Sets value of config with given name if it exists.
      * Non null equivalent to: return getField(name).setValue(value);
      * <p/>
-     * Use when input isnt guaranteed to be valid, e.g. contents of a file.
+     * Use when input is not guaranteed to be valid, e.g. contents of a file.
 
      * @param name unique name of the field
      * @param v value

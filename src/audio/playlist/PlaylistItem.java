@@ -255,11 +255,11 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     /**
      * Returns true if the item was marked updated. Once item is updated it will
      * stay in that state. Updated item guarantees that all its values are
-     * valid, but doesnt guarantee that they are up to date. For manipulation
+     * valid, but does not guarantee that they are up to date. For manipulation
      * within the application there should be no need to update the item again.
      * If the item changes, the change should be handled by the application.
      *
-     * This method doesnt solve is as it marks items with invalid data. Because
+     * This method does not solve is as it marks items with invalid data. Because
      * there is no guarantee that every item is valid, when it is required for
      * item to be, update() can be called after this method returns false.
      *

@@ -852,7 +852,7 @@ public final class Metadata extends MetaItem<Metadata> {
      * avoid this method, or even better use getCoverFromAnySource()
      * @return
      */
-    @TODO(note = "ensure null doesnt cause any problems")
+    @TODO(note = "ensure null does not cause any problems")
     private File getCoverFromDirAsFile() {
         if(!isFileBased()) return null;
 

@@ -55,7 +55,7 @@ public final class Layout extends UniContainer {
      * is implemented. For example creating layout with a name that of a different
      * layout which is currently active will result both of them being equal.
      * Because of that, application could think the new layout is active and loaded
-     * while in fact, it isnt connected to any scene graph and has no children at
+     * while in fact, it is not connected to any scene graph and has no children at
      * all.
      *
      * @see #setName(java.lang.String)

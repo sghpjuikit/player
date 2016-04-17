@@ -7,20 +7,23 @@ import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
-import util.conf.Config;
+import gui.itemnode.ConfigField;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import gui.itemnode.ConfigField;
 import util.access.V;
+import util.conf.Config;
 import util.functional.StrExF;
 
-import static layout.widget.Widget.Group.DEVELOPMENT;
 import static java.lang.Math.max;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static layout.widget.Widget.Group.DEVELOPMENT;
 import static util.graphics.Util.setAnchors;
 
 @Widget.Info(
@@ -65,7 +68,7 @@ public class FunctionViewer extends ClassController  {
     }
 
 
-    private class Axes extends Pane {
+    private static class Axes extends Pane {
         private NumberAxis xAxis;
         private NumberAxis yAxis;
 
@@ -102,18 +105,18 @@ public class FunctionViewer extends ClassController  {
             return yAxis;
         }
     }
-    private class Plot extends Pane {
-        private double xmin;
-        private double xmax;
-        private Axes a;
+    private static class Plot extends Pane {
+        private double xMin;
+        private double xMax;
+        private Axes axe;
 
         public Plot(double xMin, double xMax, Axes axes) {
-            xmin = xMin;
-            xmax = xMax;
-            a = axes;
+            this.xMin = xMin;
+            this.xMax = xMax;
+            axe = axes;
 
             setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-            setPrefSize(a.getPrefWidth(), a.getPrefHeight());
+            setPrefSize(axe.getPrefWidth(), axe.getPrefHeight());
             setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
         }
 
@@ -121,35 +124,36 @@ public class FunctionViewer extends ClassController  {
             Path path = new Path();
             path.setStroke(Color.ORANGE);
             path.setStrokeWidth(2);
-            path.setClip(new Rectangle(0, 0,a.getPrefWidth(),a.getPrefHeight()));
-            double inc = (xmax-xmin)/max(1,getWidth()); // inc by 1 px
+            path.setClip(new Rectangle(0, 0, axe.getPrefWidth(), axe.getPrefHeight()));
+            double inc = (xMax - xMin)/max(1,getWidth()); // inc by 1 px in 2D
 
-            PathElement pe=null;
-            double x = xmin+inc;
-            while (x < xmax) {
-                try {
-                    double y = ƒ.apply(x);
-                    pe = pe==null ? new MoveTo(mapX(x),mapY(y)) : new LineTo(mapX(x),mapY(y));
-                    path.getElements().add(pe);
-                    x += inc;
-                } catch(ArithmeticException e){}
+            PathElement pe = null;
+            double x = xMin +inc;
+            while (x < xMax) try {
+                double y = ƒ.apply(x);
+                pe = pe == null ? new MoveTo(mapX(x), mapY(y)) : new LineTo(mapX(x), mapY(y));
+                path.getElements().add(pe);
+                x += inc;
+            } catch (ArithmeticException e) {
+                // When function is not continuous in point x
+                continue;
             }
 
-            getChildren().setAll(a, path);
+            getChildren().setAll(axe, path);
         }
 
         private double mapX(double x) {
-            double tx = a.getPrefWidth() / 2;
-            double sx = a.getPrefWidth() /
-               (a.getXAxis().getUpperBound() - a.getXAxis().getLowerBound());
+            double tx = axe.getPrefWidth() / 2;
+            double sx = axe.getPrefWidth() /
+               (axe.getXAxis().getUpperBound() - axe.getXAxis().getLowerBound());
 
             return x * sx + tx;
         }
 
         private double mapY(double y) {
-            double ty = a.getPrefHeight() / 2;
-            double sy = a.getPrefHeight() /
-                (a.getYAxis().getUpperBound() - a.getYAxis().getLowerBound());
+            double ty = axe.getPrefHeight() / 2;
+            double sy = axe.getPrefHeight() /
+                (axe.getYAxis().getUpperBound() - axe.getYAxis().getLowerBound());
 
             return -y * sy + ty;
         }

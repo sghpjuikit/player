@@ -47,7 +47,7 @@ public class Inputs {
 
     public boolean contains(Input i) {
          return m.containsValue(i); // slow impl./ w can rely on the below:
-//        return m.containsKey(i.name); // doesnt guarantee correctness
+//        return m.containsKey(i.name); // does not guarantee correctness
     }
 
     public Collection<Input<?>> getInputs() {

@@ -515,10 +515,10 @@ public class App extends Application implements Configurable {
                 FontAwesomeIcon.FOLDER_OPEN_ALT,
                 Environment::browse),
             new FastColAction<>("Add to new playlist",
-                "Add items to existing playlist widget if possible or to a new one if not.",
+                "Add items to new playlist widget.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))
+                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))
             ),
             new SlowColAction<>("Add to library",
                 "Add items to library if not yet contained.",
@@ -538,10 +538,10 @@ public class App extends Application implements Configurable {
                         }, false).run()
             ),
             new FastColAction<>("Add to existing playlist",
-                "Add items to new playlist widget.",
+                "Add items to existing playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))
+                f -> widgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(f))
             ),
             new FastAction<>("Apply skin", "Apply skin on the application.",
                 BRUSH,
@@ -991,6 +991,7 @@ public class App extends Application implements Configurable {
                         };
                     }
                     super.show();
+
                 }
             };
             op.display.set(SCREEN_OF_MOUSE);

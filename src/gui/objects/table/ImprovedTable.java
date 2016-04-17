@@ -194,7 +194,7 @@ public class ImprovedTable<T> extends TableView<T> {
     /** Returns ideal width for index column derived from current max index.
         Mostly used during table/column resizing. */
     public double calculateIndexColumnWidth() {
-        // need this weird method to get 9s as their are wide chars (font isnt
+        // need this weird method to get 9s as their are wide chars (font is not
         // always proportional)
         int s = getMaxIndex();
         int i = Util.decMin1(s);

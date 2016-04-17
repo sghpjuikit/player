@@ -1002,7 +1002,7 @@
     -fx-background-insets: 2, 3, 4;
     -fx-background-radius: 3, 2, 1;*/
     -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 0.4em; /* 5px */
+    -fx-background-insets: 0.525em;
     -fx-background-radius: 0.25em; /* 3px */
 }
 .scroll-bar:vertical > .thumb {
@@ -3296,7 +3296,7 @@ check-icon-disabling:selected {
 .bgr-image {
     -fx-opacity:1;
     /*-fx-background-image: url("bgr.jpg");*/
-    /* This causes unexpected bug, the image isnt resized properly.
+    /* This causes unexpected bug, the image is not resized properly.
      * Solution: simply define the image in the skin, just like here. I dont know why
      * inheriting this causes resize bugs...
      */
@@ -3689,7 +3689,7 @@ check-icon-disabling:selected {
 .volume .track {}
 
 /*********************************** TEXT ******************************************************************************
- * javafx.scene.text.Text doesnt actually have a style class so this is a custom
+ * javafx.scene.text.Text does not actually have a style class so this is a custom
  * implementation of that used by a sublass
  */
 .text-shape {
@@ -3849,7 +3849,7 @@ check-icon-disabling:selected {
  * inherits: check-icon
  */
 .checkicon-menu-item-icon {
-    /* -fx-padding: 0 5 1 0;*/ /* i think padding doesnt work here*/
+    /* -fx-padding: 0 5 1 0;*/ /* i think padding does not work here*/
     -fx-translate-x: -2;
 }
 .checkicon-menu-item-icon:selected {
@@ -3923,7 +3923,7 @@ check-icon-disabling:selected {
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
 }
-/* .path doesnt seem to have disabled pseudoclass defined so we do it here */
+/* .path does not seem to have disabled pseudoclass defined so we do it here */
 .ioline:disabled {
     -fx-opacity: 0.4;
 }
@@ -3943,7 +3943,7 @@ check-icon-disabling:selected {
 }
 
 /* 
- * Pane for content, doesnt cover all space, sort of inner box.
+ * Pane for content, does not cover all space, sort of inner box.
  * inherits: .stack-pane
  */
 .overlay-pane-content {

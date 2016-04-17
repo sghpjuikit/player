@@ -2,48 +2,44 @@
 package fileInfo;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 
 import audio.Item;
 import audio.Player;
-import services.database.Db;
 import audio.tagging.Metadata;
 import audio.tagging.Metadata.Field;
 import audio.tagging.MetadataWriter;
-import util.conf.Config;
-import util.conf.Config.PropertyConfig;
-import util.conf.IsConfig;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import gui.objects.image.ThumbnailWithAdd;
+import gui.objects.image.cover.Cover.CoverSource;
+import gui.objects.rating.Rating;
+import gui.pane.ActionPane.SlowAction;
+import gui.pane.ImageFlowPane;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import gui.objects.rating.Rating;
-import gui.objects.image.ThumbnailWithAdd;
-import gui.objects.image.cover.Cover.CoverSource;
-import gui.pane.ActionPane.SlowAction;
-import gui.pane.ImageFlowPane;
 import main.App;
+import services.database.Db;
 import util.access.V;
 import util.async.executor.EventReducer;
+import util.conf.Config;
+import util.conf.Config.PropertyConfig;
+import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
 import static audio.tagging.Metadata.EMPTY;
 import static audio.tagging.Metadata.Field.*;
-import static layout.widget.Widget.Group.OTHER;
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
@@ -56,12 +52,13 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
+import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
-import static util.file.Util.copyFileSafe;
-import static util.file.Util.copyFiles;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
 import static util.async.executor.EventReducer.toLast;
+import static util.file.Util.copyFileSafe;
+import static util.file.Util.copyFiles;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchor;
@@ -101,30 +98,30 @@ public class FileInfo extends FXMLController implements SongReader {
                         gap2 = new Label(" "),
                         gap3 = new Label(" ");
     private final List<Label> labels = new ArrayList<>();
-    private final List<Lfield> fields = list(
-        new Lfield(TITLE,0),
-        new Lfield(TRACK_INFO,1),
-        new Lfield(DISCS_INFO,2),
-        new Lfield(LENGTH,3),
-        new Lfield(ARTIST,4),
-        new Lfield(ALBUM,5),
-        new Lfield(ALBUM_ARTIST,6),
-        new Lfield(YEAR,7),
-        new Lfield(GENRE,8),
-        new Lfield(COMPOSER,9),
-        new Lfield(PUBLISHER,10),
-        new Lfield(CATEGORY,11),
-        new Lfield(RATING,12),
-        new Lfield(PLAYCOUNT,13),
-        new Lfield(COMMENT,14),
-        new Lfield(FILESIZE,15),
-        new Lfield(FILENAME,16),
-        new Lfield(FORMAT,17),
-        new Lfield(BITRATE,18),
-        new Lfield(ENCODING,19),
-        new Lfield(PATH,20)
+    private final List<LField> fields = list(
+        new LField(TITLE,0),
+        new LField(TRACK_INFO,1),
+        new LField(DISCS_INFO,2),
+        new LField(LENGTH,3),
+        new LField(ARTIST,4),
+        new LField(ALBUM,5),
+        new LField(ALBUM_ARTIST,6),
+        new LField(YEAR,7),
+        new LField(GENRE,8),
+        new LField(COMPOSER,9),
+        new LField(PUBLISHER,10),
+        new LField(CATEGORY,11),
+        new LField(RATING,12),
+        new LField(PLAYCOUNT,13),
+        new LField(COMMENT,14),
+        new LField(FILESIZE,15),
+        new LField(FILENAME,16),
+        new LField(FORMAT,17),
+        new LField(BITRATE,18),
+        new LField(ENCODING,19),
+        new LField(PATH,20)
     );
-    private final Lfield rating = fields.get(12);
+    private final LField rating = fields.get(12);
 
     private Output<Metadata> data_out;
     private Metadata data = EMPTY;
@@ -147,7 +144,7 @@ public class FileInfo extends FXMLController implements SongReader {
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     // generate show {field} configs
-    private final Map<String,Config> fieldconfigs = fields.stream()
+    private final Map<String,Config> fieldConfigs = fields.stream()
             .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig,
                     "FileInfo","Show this field",true,NaN,NaN))
             .collect(toMap(c -> c.getName(), c -> c));
@@ -159,7 +156,7 @@ public class FileInfo extends FXMLController implements SongReader {
         // keep updated contents, we do this directly instead of looking up the Input, same effect
         d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
 
-        cover.getPane().setDisable(true); // shoud be handled differently, either init all or none
+        cover.getPane().setDisable(true); // TODO: should be handled differently, either init all or none
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = fut_file ->
@@ -234,16 +231,18 @@ public class FileInfo extends FXMLController implements SongReader {
         return data==null || data == EMPTY;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Collection<Config<Object>> getFields() {
         Collection<Config<Object>> c = list(super.getFields());
-        c.addAll((Collection)fieldconfigs.values());
+        c.addAll((Collection) fieldConfigs.values());
         return c;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Config<Object> getField(String n) {
-        return Optional.ofNullable((Config)fieldconfigs.get(n))
+        return Optional.ofNullable(fieldConfigs.get(n))
                        .orElseGet(() -> super.getField(n));
     }
 
@@ -308,7 +307,7 @@ public class FileInfo extends FXMLController implements SongReader {
         }
 
         // show visible
-        fields.forEach(Lfield::setHide);
+        fields.forEach(LField::setHide);
         tiles.getChildren().setAll(labels);
         tiles.layout();
     }
@@ -352,17 +351,17 @@ public class FileInfo extends FXMLController implements SongReader {
 
 /**************************************************************************************************/
 
-    private static enum Sort {
+    private enum Sort {
         SEMANTIC,
-        ALPHANUMERIC;
+        ALPHANUMERIC
     }
-    private class Lfield extends Label {
+    private class LField extends Label {
         final Field field;
         final V<Boolean> visibleConfig;
         final String name;
         final int semantic_index;
 
-        public Lfield(Field field, int i) {
+        public LField(Field field, int i) {
             this.field = field;
             this.visibleConfig = new V<>(true,FileInfo.this::update);
             this.semantic_index = i;
@@ -408,11 +407,11 @@ public class FileInfo extends FXMLController implements SongReader {
             if(rows==0) rows=1;
             int columns = 1+(int) ceil(labels.size()/rows);
             double cellW = columns==1 || columns==0
-                // dont allow 0 columns & set whole width if 1 column
+                // do not allow 0 columns & set whole width if 1 column
                 // handle 1 column manually - the below caused some problems
                 ? width
                 // for n elements there is n-1 gaps so we need to add 1 gap width
-                // above cell width includes 1 gap width per element so substract it
+                // above cell width includes 1 gap width per element so subtract it
                 : (width + tiles.getHgap())/columns - tiles.getHgap();
 
             // adhere to requested minimum size

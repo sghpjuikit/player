@@ -156,7 +156,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
     public final V<Boolean> theater_mode = new V<>(false, this::applyTheaterMode);
 
-    @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
+    @IsConfig(name = "Forbid no content", info = "Ignores empty directories and does not change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
     @IsConfig(name = "File search depth", info = "Depth to searcho for files in folders. 1 for current folder only.")
     public int folderTreeDepth = 2;
@@ -218,7 +218,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
         thumb_root.toFront();
 
-        // thumbnails & make sure it doesnt cover whole area
+        // thumbnails & make sure it does not cover whole area
         setAnchors(thumb_root, 0d);
         root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         root.setOnMouseClicked( e -> {
@@ -446,7 +446,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         images.add(t.getFile());
         thumb_pane.getChildren().add(t.getPane());
         // if this is first thumbnail display it immediatelly
-        // but only if the displayed image isnt one of the thumbnails - isnt located
+        // but only if the displayed image is not one of the thumbnails - is not located
         // in folder.get() directory
         // avoids image loading + necessary to display custom image, which fires
         // thumbnail refresh and subsequently would change the displayed image

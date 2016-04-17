@@ -340,7 +340,7 @@ public interface Util {
     /**
      * Sets minimal, preferred and maximal width and height of the node to provided value.
      * Any bound property will be ignored. Null value will be ignored.
-     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxSize(Node n, Double widthheight) {
         setMinPrefMaxSize(n, widthheight, widthheight);
@@ -350,7 +350,7 @@ public interface Util {
      * Sets minimal, preferred and maximal width and height of the node to provided values.
      * Any bound property will be ignored. Null value will be ignored.
      *
-     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxSize(Node n, Double width, Double height) {
         if(n instanceof Region) {
@@ -379,7 +379,7 @@ public interface Util {
     /**
      * Sets minimal, preferred and maximal width of the node to provided value.
      * Any bound property will be ignored. Null value will be ignored.
-     * If node isnt a {@link javafx.scene.layout.Region}, this method is a no op.
+     * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxWidth(Node n, Double width) {
         if(width!=null && n instanceof Region) {
@@ -656,7 +656,7 @@ public interface Util {
      * Easy way to get popup like behavior that:
      * <ul>
      * <li> is always fullscreen
-     * <li> is modal - doesnt lose focus and is always on top of other application windows
+     * <li> is modal - does not lose focus and is always on top of other application windows
      * <li> has no taskbar icon (for your information, javafx normally disallows this, but it is
      * doable using owner stage with UTILITY style).
      * </ul>
@@ -673,7 +673,7 @@ public interface Util {
         Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
         s.initOwner(owner);
         s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
-        s.setX(screen.getVisualBounds().getMinX()); // screen doesnt necessarily start at [0,0] !!
+        s.setX(screen.getVisualBounds().getMinX()); // screen does not necessarily start at [0,0] !!
         s.setY(screen.getVisualBounds().getMinY());
         s.setWidth(screen.getVisualBounds().getWidth()); // fullscreen...
         s.setHeight(screen.getVisualBounds().getHeight());

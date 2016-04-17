@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -160,8 +161,8 @@ public class AppLauncher extends ClassController {
                     if(item.last_gridposition>=0)
                         grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
-                    // temp fix for app launcher in popup not focusing
-                    run(400, grid::requestFocus); // fixes focus problem
+	                grid.implGetSkin().getFlow().requestFocus();    // fixes focus problem
+                    run(400, grid::requestFocus); // temp fix for app launcher in popup not focusing
                 },FX)
                 .run();
     }
@@ -198,11 +199,11 @@ public class AppLauncher extends ClassController {
         Pane root;
         Label name;
         Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(200, item -> executorThumbs.execute(task(() -> {
+        EventReducer<Item> setCoverLater = EventReducer.toLast(100, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
                 if(item==getItem())
-                    setCover(item);
+                    setCoverNow(item);
             });
         })));
 
@@ -234,13 +235,9 @@ public class AppLauncher extends ClassController {
                 //     - reduce ui performance when resizing
                 // We solve this by delaying the image loading & drawing. We reduce subsequent
                 // invokes into single update (last).
-                if(item.cover_loadedFull && !isResizing)
-                    setCover(item);
-                else {
-                    thumb.loadImage((File)null); // prevent displaying old content before cover loads
-                    // this should call setCoverPost() to allow animations
-                    setCoverLater.push(item);
-                }
+	            boolean loadLater = item.cover_loadedFull; // && !isResizing;
+	            if (loadLater) setCoverNow(item);
+	            else setCoverLater(item);
             }
         }
 
@@ -290,14 +287,26 @@ public class AppLauncher extends ClassController {
          * Thumbnail quality may be decreased to achieve good performance, while loading high
          * quality thumbnail in the bgr. Each phase uses its own executor.
          */
-        private void setCover(Item item) {
-            // load thumbnail
-            double width = cellSize.get().width,
-                   height = cellSize.get().height-CELL_TEXT_HEIGHT;
-//            executorThumbs.execute(task(() ->
-                    item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img));
-//            ));
+        private void setCoverNow(Item item) {
+	        if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+
+	        if(item.cover_loadedFull) {
+		        setCoverPost(item, true, item.cover_file, item.cover);
+	        } else {
+		        double width  = cellSize.get().width,
+			           height = cellSize.get().height-CELL_TEXT_HEIGHT;
+		        //            executorThumbs.execute(task(() ->
+		        item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img));
+		        //            ));
+	        }
         }
+
+	    private void setCoverLater(Item item) {
+		    if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+
+		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
+		    setCoverLater.push(item);
+	    }
 
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {

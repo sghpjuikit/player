@@ -406,7 +406,7 @@ public class Gui {
      * @return true if the skin has been applied.
      * False return value signifies that gui has not been initialized or that
      * skin file could be accessed.
-     * True return value doesnt imply successful skin loading, but guarantees
+     * True return value does not imply successful skin loading, but guarantees
      * that the new skin has been applied regardless of the success. There can
      * still be parsing errors resulting in imperfect skin application.
      */

@@ -330,8 +330,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         private Filter(Class<F> filterType, FilteredList<T> filterList, Ƒ0<List<Tuple3<String,Class,ObjectField<F>>>> attributes) {
             super(() -> {
                 FieldedPredicateItemNode<F,ObjectField<F>> g = new FieldedPredicateItemNode<>(
-                    in -> Functors.getIO(in, Boolean.class),
-                    in -> Functors.getPrefIO(in, Boolean.class)
+                    in -> Functors.pool.getIO(in, Boolean.class),
+                    in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
                 @SuppressWarnings("unchecked")
                 ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;

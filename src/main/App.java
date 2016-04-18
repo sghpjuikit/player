@@ -247,7 +247,7 @@ public class App extends Application implements Configurable {
     public final AppSerializer serializators = new AppSerializer(encoding);
     public final Configuration configuration = new Configuration();
     public final MouseCapture mouseCapture = new MouseCapture();
-    /** {@link System#out} provider. Allows multiple parties to listen to it and stop anytime. */
+    /** {@link System#out} provider. Allows multiple parties to observe it.. */
     public final SystemOutListener systemout = new SystemOutListener();
 
     public Window window;
@@ -1085,7 +1085,7 @@ public class App extends Application implements Configurable {
                                 fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
                                 fc.setTitle("Open audio...");
                     List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
-                    // Action pane may autoclose when this action finishes, so we make sure to call
+                    // Action pane may auto-close when this action finishes, so we make sure to call
                     // show() after that happens by delaying using runLater
                     if(fs!=null) runLater(() -> APP.actionPane.show(fs));
                 }
@@ -1189,16 +1189,16 @@ public class App extends Application implements Configurable {
      * execute on fx thread.
      */
     public static  class SystemOutListener extends PrintStream {
-        private final SystemOutDuplicateOutputStream clonedstream;
+        private final SystemOutDuplicateStream stream;
 
         public SystemOutListener() {
-            this(new SystemOutDuplicateOutputStream());
+            this(new SystemOutDuplicateStream());
             System.setOut(this);
         }
 
-        private SystemOutListener(SystemOutDuplicateOutputStream cloned) {
+        private SystemOutListener(SystemOutDuplicateStream cloned) {
             super(cloned);
-            this.clonedstream = cloned;
+            this.stream = cloned;
         }
 
         /**
@@ -1206,47 +1206,47 @@ public class App extends Application implements Configurable {
          * @return action that removes the listener
          */
         public Subscription addListener(Consumer<String> listener) {
-            clonedstream.listeners.add(listener);
-            return () -> clonedstream.listeners.remove(listener);
+            stream.listeners.add(listener);
+            return () -> stream.listeners.remove(listener);
         }
 
         public void removeListener(Consumer<String> listener) {
-            clonedstream.listeners.remove(listener);
+            stream.listeners.remove(listener);
         }
 
-    }
+        /** Helper class for {@link SystemOutListener}. */
+        private static class SystemOutDuplicateStream extends OutputStream {
+            private final PrintStream sout = System.out;
+            private final List<Consumer<String>> listeners = new ArrayList<>();
 
-    /** *  Helper class for {@link SystemOutListener}. */
-    private static class SystemOutDuplicateOutputStream extends OutputStream {
-        private final PrintStream sout = System.out;
-        private final List<Consumer<String>> listeners = new ArrayList<>();
-
-        @Override
-        public void write(int b) throws IOException {
-            // Less efficient, we wont use it.
-            // sout.write(b);
-            // if(!listeners.isEmpty())
-            //     runFX(() -> listeners.forEach(l -> l.accept(b)));
-            throw new AssertionError();
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            // copied from super.write(...) implementation
-            if (b == null) {
-                throw new NullPointerException();
-            } else if ((off<0) || (off>b.length) || (len<0) || (off+len >b.length) || (off+len <0)) {
-                throw new IndexOutOfBoundsException();
-            } else if (len == 0) {
-                return;
+            @Override
+            public void write(int b) throws IOException {
+                // Less efficient, we wont use it.
+                // sout.write(b);
+                // if(!listeners.isEmpty())
+                //     runFX(() -> listeners.forEach(l -> l.accept(b)));
+                throw new AssertionError();
             }
 
-            // for (int i=0 ; i<len ; i++) write(b[off + i]);
-            sout.write(b, off, len);
-            if(!listeners.isEmpty()) {
-                String s = new String(b); // encoding!?
-                runFX(() -> listeners.forEach(l -> l.accept(s)));
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                // copied from super.write(...) implementation
+                if (b == null) {
+                    throw new NullPointerException();
+                } else if ((off<0) || (off>b.length) || (len<0) || (off+len >b.length) || (off+len <0)) {
+                    throw new IndexOutOfBoundsException();
+                } else if (len == 0) {
+                    return;
+                }
+
+                // for (int i=0 ; i<len ; i++) write(b[off + i]);
+                sout.write(b, off, len);
+                if(!listeners.isEmpty()) {
+                    String s = new String(b); // encoding!?
+                    runFX(() -> listeners.forEach(l -> l.accept(s)));
+                }
             }
         }
     }
+
 }

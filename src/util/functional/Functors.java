@@ -4,13 +4,10 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.*;
 import java.util.regex.Pattern;
 
 import javafx.util.Callback;
@@ -22,55 +19,45 @@ import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import gui.itemnode.StringSplitParser;
-import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;
 import main.App;
-import util.file.AudioFileFormat;
-import util.file.Util;
-import util.file.ImageFileFormat;
 import util.access.V;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
 import util.conf.AccessorConfig;
 import util.conf.Config;
 import util.conf.Configurable;
+import util.file.AudioFileFormat;
+import util.file.ImageFileFormat;
+import util.file.Util;
 import util.file.WindowsShortcut;
 import util.file.mimetype.MimeType;
-import util.units.Bitrate;
-import util.units.FileSize;
-import util.units.FormattedDuration;
-import util.units.NofX;
-import util.units.RangeYear;
+import util.units.*;
 
-import static java.lang.Integer.min;
-import static java.lang.Math.max;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toCollection;
+import static util.Util.StringDirection;
+import static util.Util.StringDirection.FROM_START;
+import static util.dev.Util.noØ;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.file.AudioFileFormat.Use.PLAYBACK;
-import static util.Util.*;
-import static util.dev.Util.noØ;
-import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.*;
-import static util.functional.Util.toS;
 import static util.type.Util.unPrimitivize;
 
 @SuppressWarnings("unchecked")
-public class Functors {
+public interface Functors {
 
     /** Marker interface for lambda. */
-    public interface Λ {}
+    interface Λ {}
     /** Marker interface for lambda denoting its first input and output. */
-    public interface IO<I,O> extends Λ {
+    interface IO<I,O> extends Λ {
         // not sure if good idea
         // for default impl i want to use reflection to inspect generic type in runtime
         // subclasses may want to override, like PF or TypeAwareF
         // default Class<? super I> getTypeInput() {}
         // default Class<? super I> getTypeOutput() {}
     }
-    public interface Ƒ extends Λ, IO<Void,Void>, Runnable {
+    interface Ƒ extends Λ, IO<Void,Void>, Runnable {
         void apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
@@ -78,7 +65,7 @@ public class Functors {
             apply();
         }
     }
-    public interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
+    interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
         O apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
@@ -106,7 +93,7 @@ public class Functors {
      * method) or consumer (same and in addition ignores output - this is not pointless due to side
      * effects - consumer by nature relies on side effects.)
      */
-    public interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
+    interface Ƒ1<I,O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
 
         static Ƒ1<Void,Void> f1(Runnable r) {
             return i -> {
@@ -328,7 +315,7 @@ public class Functors {
      * This class also preserves predicate identity during predicate combination operations.
      */
     @SuppressWarnings("unchecked")
-    public interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
+    interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
         /** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Predicate}. */
         @Override
@@ -371,7 +358,7 @@ public class Functors {
      * <p/>
      * Due to the signature, it is impossible to extend {@link Consumer}
      */
-    public interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
+    interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
         O apply(I i) throws E;
 
         default Ƒ1E<I,O,E> onEx(O or, Class<?>... ecs) {
@@ -394,7 +381,7 @@ public class Functors {
     // this class is ~pointless, although now lambda does not have to return null like in case of F1E,
     // but now the some method takes parameter of this class. Which will prevent
     // other F1E from being used!
-    public interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
+    interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
 
         @Override
         default Void apply(I i) throws E{
@@ -404,7 +391,7 @@ public class Functors {
 
         void accept(I i) throws E;
     }
-    public interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
+    interface Ƒ2<I,I2,O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
         @Override
         O apply(I i, I2 i2);
 
@@ -423,7 +410,7 @@ public class Functors {
             };
         }
     }
-    public interface Ƒ3<I,I2,I3,O> extends Λ, IO<I,O> {
+    interface Ƒ3<I,I2,I3,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3);
 
         default Ƒ2<I,I2,O> toƑ2(I3 i3) {
@@ -441,7 +428,7 @@ public class Functors {
             };
         }
     }
-    public interface Ƒ4<I,I2,I3,I4,O> extends Λ, IO<I,O> {
+    interface Ƒ4<I,I2,I3,I4,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4);
 
         default Ƒ3<I,I2,I3,O> toƑ3(I4 i4) {
@@ -459,7 +446,7 @@ public class Functors {
             };
         }
     }
-    public interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ, IO<I,O> {
+    interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
 
         default Ƒ4<I,I2,I3,I4,O> toƑ4(I5 i5) {
@@ -477,7 +464,7 @@ public class Functors {
             };
         }
     }
-    public interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ, IO<I,O> {
+    interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ, IO<I,O> {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
 
         default Ƒ5<I,I2,I3,I4,I5,O> toƑ5(I6 i6) {
@@ -496,377 +483,375 @@ public class Functors {
         }
     }
 
-    public enum NullIn {
+    enum NullIn {
         NULL,
         APPLY
     }
-    public enum NullOut {
+    enum NullOut {
         NULL,
         INPUT
     }
 
-    // functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-    private static final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
-    private static final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
-    private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+    FunctorPool pool = new FunctorPool();
 
-    static {
-        // (1) Negated predicates are disabled, user interface should provide negation ability
-        // or simply generate all the negations when needed (and reuse functors while at it).
-        //
-        // (2) Adding identity function here is impossible as its type is erased to Object -> Object
-        // and we need its proper type X -> X (otherwise it erases type in function chains). Single
-        // instance per class is required for Identity function.
-        // Unfortunately:
-        //     - we cant put it to functor pool, as we do not need which classes will need it
-        //     - we cant put it to functor pool on requests, as the returned functors for class X
-        //       return functors for X and all superclasses of X, which causes IDENTITY function
-        //       to be inserted multiple times, even worse, only one of them has proper signature!
-        //     - hence we cant even return Set to prevent duplicates, as the order of class
-        //       is undefined. In addition, functors are actually wrapped.
-        // Solution is to insert the proper IDENTITY functor into results, after they were
-        // collected. This guarantees single instance and correct signature. The downside is that
-        // the functor pool does not contain IDENTITY functor at all, meaning the pool must never
-        // be accessed directly. Additionally, question arises, whether IDENTITY functor should be
-        // inserted when no functors are returned.
-        //
-        // add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
+    class FunctorPool {
+     
+        // functor pools must not be accessed directly, as accessor must insert IDENTITY functor
+        private final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
+        private final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
+        private final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+    
+        {
+            /*
+             * (1) Negated predicates are disabled, user interface should provide negation ability
+             * or simply generate all the negations when needed (and reuse functors while at it).
+             *
+             * (2) Adding identity function here is impossible as its type is erased to Object -> Object
+             * and we need its proper type X -> X (otherwise it erases type in function chains). Single
+             * instance per class is required for Identity function.
+             * Unfortunately:
+             *     - we cant put it to functor pool, as we do not need which classes will need it
+             *     - we cant put it to functor pool on requests, as the returned functors for class X
+             *       return functors for X and all superclasses of X, which causes IDENTITY function
+             *       to be inserted multiple times, even worse, only one of them has proper signature!
+             *     - hence we cant even return Set to prevent duplicates, as the order of class
+             *       is undefined. In addition, functors are actually wrapped.
+             * Solution is to insert the proper IDENTITY functor into results, after they were
+             * collected. This guarantees single instance and correct signature. The downside is that
+             * the functor pool does not contain IDENTITY functor at all, meaning the pool must never
+             * be accessed directly. Additionally, question arises, whether IDENTITY functor should be
+             * inserted when no functors are returned.
+             *
+             * add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
+             */
 
-        add("Is null",      Object.class, Boolean.class, ISØ);
-        // add("Is not null",  Object.class, Boolean.class, ISNTØ);
-        add("As String",    Object.class, String.class, Objects::toString);
-        add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
+            Class<Boolean> BOOL = Boolean.class;
+            
+            
+            add("Is null",      Object.class, BOOL, ISØ);
+        //  add("Isn't null", Object.class, BOOL, ISNTØ);
+            add("As String",    Object.class, String.class, Objects::toString);
+            add("As Boolean",   String.class, BOOL, Boolean::parseBoolean);
+        
+            add("Is true",  BOOL, BOOL, IS);
+        //  add("Is false", BOOL, BOOL, ISNT);
+            add("Negate",   BOOL, BOOL, b -> !b);
+            add("And",      BOOL, BOOL, Boolean::logicalAnd, BOOL, true);
+            add("Or",       BOOL, BOOL, Boolean::logicalOr, BOOL, true);
+            add("Xor",      BOOL, BOOL, Boolean::logicalXor, BOOL, true);
+            
+            add("'_' -> ' '",   String.class, String.class, s -> s.replace("_", " "));
+            add("-> file name", String.class, String.class, util.Util::filenamizeString);
+            add("Anime",        String.class, String.class, s -> {
+                // remove the super annoying '_'
+                s = s.replaceAll("_", " ");
 
-        add("Is true",      Boolean.class, Boolean.class, IS);
-        // add("Is false",     Boolean.class, Boolean.class, ISNT);
-        add("Negate",       Boolean.class, Boolean.class, b -> !b);
-        add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
-        add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr,  Boolean.class,true);
-        add("Xor",          Boolean.class, Boolean.class, Boolean::logicalXor, Boolean.class,true);
+                // remove hash
+                if (s.endsWith("]") && s.lastIndexOf('[') == s.length() - 10) s = s.substring(0, s.length() - 10);
 
-        add("'_' -> ' '", String.class,String.class, s -> s.replace("_", " "));
-        add("-> file name", String.class,String.class, util.Util::filenamizeString);
-        add("Anime", String.class,String.class, s -> {
-            // remove the super annoying '_'
-            s = s.replaceAll("_", " ");
+                // remove fansub group
+                String group = null;
+                if (s.startsWith("[")) {
+                    int i = s.indexOf(']');
+                    if (i != -1) {
+                        group = s.substring(0, i + 1);
+                        s = s.substring(i + 1);
+                    }
+                }
 
-            // remove hash
-            if(s.endsWith("]") && s.lastIndexOf('[')==s.length()-10)
-                s = s.substring(0,s.length()-10);
+                // remove leading and trailing shit
+                s = s.trim();
 
-            // remove fansub group
-            String group = null;
-            if(s.startsWith("[")) {
-                int i = s.indexOf(']');
-                if(i!=-1) {
-                    group = s.substring(0,i+1);
-                    s = s.substring(i+1);
+                // add fansub groups at the end
+                if (group != null) s = s + "." + group;
+
+                return s;
+            });
+            add("To upper case",       String.class, String.class, String::toUpperCase);
+            add("To lower case",       String.class, String.class, String::toLowerCase);
+            add("Plural",              String.class, String.class, English::plural);
+            add("Replace 1st (regex)", String.class, String.class, util.Util::replace1st, Pattern.class, String.class, Pattern.compile(""), "");
+            add("Remove 1st (regex)",  String.class, String.class, util.Util::remove1st, Pattern.class, Pattern.compile(""));
+            add("Replace all",         String.class, String.class, util.Util::replaceAll, String.class, String.class, "", "");
+            add("Replace all (regex)", String.class, String.class, util.Util::replaceAllRegex, Pattern.class, String.class, Pattern.compile(""), "");
+            add("Remove all",          String.class, String.class, util.Util::removeAll, String.class, "");
+            add("Remove all (regex)",  String.class, String.class, util.Util::removeAllRegex, Pattern.class, Pattern.compile(""));
+            add("Text",                String.class, String.class, (s, r) -> r, String.class, "");
+            add("Text",                String.class, String.class, (s, c1, c2) -> new String(s.getBytes(c1), c2), Charset.class, Charset.class, UTF_8, UTF_8);
+            add("Add text",            String.class, String.class, util.Util::addText, String.class, StringDirection.class, "", FROM_START);
+            add("Remove chars",        String.class, String.class, util.Util::removeChars, Integer.class, StringDirection.class, 0, FROM_START);
+            add("Retain chars",        String.class, String.class, util.Util::retainChars, Integer.class, StringDirection.class, 0, FROM_START);
+            add("Trim",                String.class, String.class, String::trim);
+            add("Split",               String.class, SplitData.class, util.Util::split, StringSplitParser.class, new StringSplitParser("%all%"));
+            add("Split-join",          String.class, String.class, util.Util::splitJoin, StringSplitParser.class, StringSplitParser.class, new StringSplitParser("%all%"), new StringSplitParser("%all%"));
+            add("Is",            String.class, BOOL, util.Util::equalsNoCase, String.class, BOOL, "", true);
+            add("Contains",      String.class, BOOL, util.Util::containsNoCase, String.class, BOOL, "", true, false, false, true);
+            add("Ends with",     String.class, BOOL, util.Util::endsWithNoCase, String.class, BOOL, "", true);
+            add("Starts with",   String.class, BOOL, util.Util::startsWithNoCase, String.class, BOOL, "", true);
+            add("Matches regex", String.class, BOOL, (text, r) -> r.matcher(text).matches(), Pattern.class, Pattern.compile(""));
+            add("More",          String.class, BOOL, (x, y) -> x.compareTo(y) > 0, String.class, "");
+            add("Less",          String.class, BOOL, (x, y) -> x.compareTo(y) < 0, String.class, "");
+            add("Char at",       String.class, Character.class, util.Util::charAt, Integer.class, StringDirection.class, 0, FROM_START);
+            add("Length",        String.class, Integer.class, String::length);
+            add("Length >",      String.class, BOOL, (x, l) -> x.length() > l, Integer.class, 0);
+            add("Length <",      String.class, BOOL, (x, l) -> x.length() < l, Integer.class, 0);
+            add("Length =",      String.class, BOOL, (x, l) -> x.length() == l, Integer.class, 0);
+            add("Is empty",      String.class, BOOL, String::isEmpty);
+            add("Is palindrome", String.class, BOOL, util.Util::isNonEmptyPalindrome);
+            
+            add("to ASCII", Character.class, Integer.class, x -> (int) x);
+            
+            add("Path",       File.class,String.class, File::getAbsolutePath);
+            add("Size",       File.class,FileSize.class, FileSize::new);
+            add("Name",       File.class,String.class, Util::getName, true,true,true);
+            add("Name.Suffix",File.class,String.class, File::getName);
+            add("Suffix",     File.class,String.class, Util::getSuffix);
+            add("MimeType",   File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
+            add("MimeGroup",  File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
+            add("Shortcut target",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
+    
+            add("Group",      MimeType.class,String.class, MimeType::getGroup);
+            add("Extensions", MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
+    
+            add("Less",      Bitrate.class,BOOL,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
+            add("Is",        Bitrate.class,BOOL,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
+            add("More",      Bitrate.class,BOOL,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
+            add("Is good",   Bitrate.class,BOOL, x -> x.getValue()>=320);
+            add("Is bad",    Bitrate.class,BOOL, x -> x.getValue()<=128);
+            add("Is unknown",Bitrate.class,BOOL, x -> x.getValue()==-1);
+            add("Is known",  Bitrate.class,BOOL, x -> x.getValue()>-1);
+    
+            add("Less",      FormattedDuration.class,BOOL,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
+            add("Is",        FormattedDuration.class,BOOL,(x,y) -> x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
+            add("More",      FormattedDuration.class,BOOL,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
+    
+            add("<  Less",      NofX.class,BOOL, (x,y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
+            add("=  Is",        NofX.class,BOOL, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
+            add(">  More",      NofX.class,BOOL, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
+            add(">= Not less",  NofX.class,BOOL, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
+            add("<> Is not",    NofX.class,BOOL, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
+            add("<= Not more",  NofX.class,BOOL, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
+    
+            add("<  Less",      FileSize.class,BOOL, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
+            add("=  Is",        FileSize.class,BOOL, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
+            add(">  More",      FileSize.class,BOOL, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
+            add("Is unknown",   FileSize.class,BOOL, x -> x.inBytes()==-1);
+            add("Is known",     FileSize.class,BOOL, x -> x.inBytes()>-1);
+    
+            add("Is after",     Year.class,BOOL, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
+            add("Is",           Year.class,BOOL, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
+            add("Is before",    Year.class,BOOL, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
+            add("Is in the future",  Year.class,BOOL, x -> x.compareTo(Year.now())> 0);
+            add("Is now",            Year.class,BOOL, x -> x.compareTo(Year.now())==0);
+            add("Is in the past",    Year.class,BOOL, x -> x.compareTo(Year.now())< 0);
+            add("Is leap",      Year.class,BOOL, Year::isLeap);
+    
+            add("Contains year",RangeYear.class,BOOL, RangeYear::contains, Year.class,Year.now());
+            add("Is after",     RangeYear.class,BOOL, RangeYear::isAfter,  Year.class,Year.now());
+            add("Is before",    RangeYear.class,BOOL, RangeYear::isBefore, Year.class,Year.now());
+            add("Is in the future",  RangeYear.class,BOOL, x -> x.contains(Year.now()));
+            add("Is now",            RangeYear.class,BOOL, x -> x.isAfter(Year.now()));
+            add("Is in the past",    RangeYear.class,BOOL, x -> x.isBefore(Year.now()));
+    
+            add("After",   LocalDateTime.class,BOOL, LocalDateTime::isAfter,  LocalDateTime.class,LocalDateTime.now());
+            add("Before",  LocalDateTime.class,BOOL, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
+            add("Is",      LocalDateTime.class,BOOL, LocalDateTime::isEqual,  LocalDateTime.class,LocalDateTime.now());
+    
+            add("File",    Item.class,File.class, Item::getFile);
+    
+            add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
+            add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));
+            addPredicatesOf(AudioFileFormat.class);
+            addPredicatesOf(ImageFileFormat.class);
+    
+            addPredicatesComparable(Short.class, new Short("0"));
+            addPredicatesComparable(Integer.class, 0);
+            addPredicatesComparable(Long.class, 0L);
+            addPredicatesComparable(Double.class, 0d);
+            addPredicatesComparable(Float.class, 0f);
+    
+            // fielded values
+            for(Metadata.Field f : Metadata.Field.values())
+                add(f.name(), Metadata.class, f.getType(), f::getOf);
+            for(PlaylistItem.Field f : PlaylistItem.Field.values())
+                add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
+            for(MetadataGroup.Field f : MetadataGroup.Field.values())
+                add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
+        }
+    
+        public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
+            addF(new PƑ0(name,i,o,f));
+        }
+    
+        public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
+            addF(new PƑ1(name,i,o,f,new Parameter<>(p1, p1def)));
+        }
+    
+        public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
+            addF(new PƑ2(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def)));
+        }
+    
+        public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
+            addF(new PƑ3(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def),new Parameter<>(p3, p3def)));
+        }
+    
+        public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
+            addF(new PƑ0(name,i,o,f),pi,po,pio);
+        }
+    
+        public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
+            addF(new PƑ1(name,i,o,f,new Parameter<>(p1,p1def)),pi,po,pio);
+        }
+    
+        public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
+            addF(new PƑ2(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def)),pi,po,pio);
+        }
+    
+        public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
+            addF(new PƑ3(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
+        }
+    
+        public <E extends Enum> void addPredicatesOf(Class<E> c) {
+            add("Is", c,Boolean.class, (a,b) -> a==b, c, c.getEnumConstants()[0], false,false,true);
+        }
+    
+        public <C extends Comparable> void addPredicatesComparable(Class<C> c, C def_val) {
+            add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
+            add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
+            add("Is more",     c,Boolean.class, (x,y) -> x.compareTo(y)>0,  c,def_val);
+            // add("Is not less", c,Boolean.class, (x,y) -> x.compareTo(y)>=0, c,def_val);
+            // add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
+            // add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
+        }
+    
+        /** Add function to the pool. */
+        public void addF(PƑ f) {
+            fsI.accumulate(f);
+            fsO.accumulate(f);
+            fsIO.accumulate(f);
+        }
+    
+        /** Add function to the pool and sets as preferred according to parameters. */
+        public void addF(PƑ f, boolean i, boolean o, boolean io) {
+            fsI.accumulate(f, i);
+            fsO.accumulate(f, o);
+            fsIO.accumulate(f, io);
+        }
+    
+        /** Remove function from the pool. */
+        public void remF(PƑ f) {
+            fsI.deaccumulate(f);
+            fsO.deaccumulate(f);
+            fsIO.deaccumulate(f);
+        }
+    
+        private <T> void addSelfFunctor(PrefList l, Class<T> c) {
+            Object p = l.getPrefered();
+            // l.addPreferred(new PƑ0("As self", c, c, IDENTITY), p==null); // !working as it should?
+            l.add(0,new PƑ0("As self", c, c, IDENTITY));
+        }
+    
+        /** Returns all functions taking input I. */
+        public <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
+            PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(unPrimitivize(i)));
+            addSelfFunctor(l,i);
+            return l;
+        }
+    
+        /** Returns all functions producing output O. */
+        public <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
+            List ll = fsO.get(unPrimitivize(o));
+            PrefList l =  ll==null ? new PrefList() : (PrefList) ll;
+            addSelfFunctor(l,o);
+            return l;
+        }
+    
+        /** Returns all functions taking input I and producing output O. */
+        public <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
+            // this is rather messy, but works
+            // we accumulate result for all superclasses & retain first found preferred element, while
+            // keeping duplicate elements in check
+            PrefList pl = new PrefList();
+            Object pref = null;
+            for(Class c : util.type.Util.getSuperClassesInc(unPrimitivize(i))) {
+                List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
+                PrefList ll = l==null ? null : (PrefList) l;
+                if(ll!=null) {
+                    if(pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
+                    pl.addAll(ll);
                 }
             }
-
-            // remove leading and trailing shit
-            s = s.trim();
-
-            // add fansub groups at the end
-            if(group!=null)
-                s = s + "." + group;
-
-            return s;
-        });
-        add("To upper case",        String.class,String.class, String::toUpperCase);
-        add("To lower case",        String.class,String.class, String::toLowerCase);
-        add("Plural",               String.class,String.class, English::plural);
-        add("Replace 1st (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceFirst(n), Pattern.class,String.class ,Pattern.compile(""),"");
-        add("Remove first (regex)", String.class,String.class, (s,r) -> r.matcher(s).replaceFirst(""), Pattern.class, Pattern.compile(""));
-        add("Replace all",          String.class,String.class, String::replace, String.class,String.class, "","");
-        add("Replace all (regex)",  String.class,String.class, (s,r,n) -> r.matcher(s).replaceAll(n), Pattern.class,String.class, Pattern.compile(""),"");
-        add("Remove all",           String.class,String.class, (s,r) -> s.replace(r,""), String.class, "");
-        add("Remove all (regex)",   String.class,String.class, (s,r) -> r.matcher(s).replaceAll(""), Pattern.class, Pattern.compile(""));
-        add("Text",         String.class,String.class, (s,r) -> r, String.class,"");
-        add("Text",         String.class,String.class, (s,c1,c2) -> new String(s.getBytes(c1),c2), Charset.class,Charset.class,UTF_8,UTF_8);
-        add("Add text",     String.class,String.class, (s,a,d) -> d==FROM_START ? a+s : s+a, String.class, StringDirection.class,"",FROM_START);
-        add("Remove chars", String.class,String.class, (s,i,d) -> d==FROM_START ? s.substring(clip(0,i,s.length()-1)) : s.substring(0, max(s.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
-        add("Retain chars", String.class,String.class, (s,i,d) -> d==FROM_START ? s.substring(0,min(i,s.length()-1)) : s.substring(clip(0,s.length()-i,s.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
-        add("Trim",         String.class,String.class, String::trim);
-        add("Split",        String.class,SplitData.class, (t,splitter) ->
-                splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(toCollection(SplitData::new))
-            , StringSplitParser.class,new StringSplitParser("%all%"));
-        add("Split-join",   String.class,String.class, (t,splitter,joiner) -> {
-                Map<String,String> splits = splitter.applyM(t);
-                List<String> keys = joiner.parse_keys;
-                List<String> seps = joiner.key_separators;
-                StringBuilder o = new StringBuilder("");
-                for(int i=0; i<keys.size()-1; i++) {
-                    if(!splits.containsKey(keys.get(i))) return null;
-                    o.append(splits.get(keys.get(i)));
-                    o.append(seps.get(i));
-                }
-                    if(!splits.containsKey(keys.get(keys.size()-1))) return null;
-                    o.append(splits.get(keys.get(keys.size()-1)));
-                return o.toString();
-        }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
-        add("Is",           String.class,Boolean.class, util.Util::equalsNoCase, String.class,Boolean.class,"",true);
-        add("Contains",     String.class,Boolean.class, util.Util::containsNoCase, String.class,Boolean.class,"",true, false,false,true);
-        add("Ends with",    String.class,Boolean.class, util.Util::endsWithNoCase, String.class,Boolean.class,"",true);
-        add("Starts with",  String.class,Boolean.class, util.Util::startsWithNoCase, String.class,Boolean.class,"",true);
-        add("Matches regex",String.class,Boolean.class, (text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
-        add("More",         String.class,Boolean.class, (x,y) -> x.compareTo(y)>0, String.class,"");
-        add("Less",         String.class,Boolean.class, (x,y) -> x.compareTo(y)<0, String.class,"");
-        add("Char at",      String.class,Character.class,(x,i,dir) -> i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length()-1-i), Integer.class,StringDirection.class,0,FROM_START);
-        add("Length",       String.class,Integer.class, String::length);
-        add("Length >",     String.class,Boolean.class, (x,l) -> x.length()>l, Integer.class,0);
-        add("Length <",     String.class,Boolean.class, (x,l) -> x.length()<l, Integer.class,0);
-        add("Length =",     String.class,Boolean.class, (x,l) -> x.length()==l, Integer.class,0);
-        add("Is empty",     String.class,Boolean.class, String::isEmpty);
-        add("Is palindrome",String.class,Boolean.class, util.Util::isNonEmptyPalindrome);
-
-        add("to ASCII",    Character.class,Integer.class, x -> (int)x);
-
-        add("Path",       File.class,String.class, File::getAbsolutePath);
-        add("Size",       File.class,FileSize.class, FileSize::new);
-        add("Name",       File.class,String.class, Util::getName, true,true,true);
-        add("Name.Suffix",File.class,String.class, File::getName);
-        add("Suffix",     File.class,String.class, Util::getSuffix);
-        add("MimeType",   File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
-        add("MimeGroup",  File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
-        add("Shortcut target",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
-
-        add("Group",      MimeType.class,String.class, MimeType::getGroup);
-        add("Extensions", MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
-
-        add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
-        add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
-        add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
-        add("Is good",   Bitrate.class,Boolean.class, x -> x.getValue()>=320);
-        add("Is bad",    Bitrate.class,Boolean.class, x -> x.getValue()<=128);
-        add("Is unknown",Bitrate.class,Boolean.class, x -> x.getValue()==-1);
-        add("Is known",  Bitrate.class,Boolean.class, x -> x.getValue()>-1);
-
-        add("Less",      FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
-        add("Is",        FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
-        add("More",      FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
-
-        add("<  Less",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
-        add("=  Is",        NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
-        add(">  More",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
-        add(">= Not less",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
-        add("<> Is not",    NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
-        add("<= Not more",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
-
-        add("<  Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
-        add("=  Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
-        add(">  More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
-        add("Is unknown",   FileSize.class,Boolean.class, x -> x.inBytes()==-1);
-        add("Is known",     FileSize.class,Boolean.class, x -> x.inBytes()>-1);
-
-        add("Is after",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
-        add("Is",           Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
-        add("Is before",    Year.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
-        add("Is in the future",  Year.class,Boolean.class, x -> x.compareTo(Year.now())> 0);
-        add("Is now",            Year.class,Boolean.class, x -> x.compareTo(Year.now())==0);
-        add("Is in the past",    Year.class,Boolean.class, x -> x.compareTo(Year.now())< 0);
-        add("Is leap",      Year.class,Boolean.class, Year::isLeap);
-
-        add("Contains year",RangeYear.class,Boolean.class, RangeYear::contains, Year.class,Year.now());
-        add("Is after",     RangeYear.class,Boolean.class, RangeYear::isAfter, Year.class,Year.now());
-        add("Is before",    RangeYear.class,Boolean.class, RangeYear::isBefore, Year.class,Year.now());
-        add("Is in the future",  RangeYear.class,Boolean.class, x -> x.contains(Year.now()));
-        add("Is now",            RangeYear.class,Boolean.class, x -> x.isAfter(Year.now()));
-        add("Is in the past",    RangeYear.class,Boolean.class, x -> x.isBefore(Year.now()));
-
-        add("After",   LocalDateTime.class,Boolean.class, LocalDateTime::isAfter, LocalDateTime.class,LocalDateTime.now());
-        add("Before",  LocalDateTime.class,Boolean.class, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
-        add("Is",      LocalDateTime.class,Boolean.class, LocalDateTime::isEqual, LocalDateTime.class,LocalDateTime.now());
-
-        add("File",    Item.class,File.class, Item::getFile);
-
-        add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
-        add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));
-        addPredicatesOf(AudioFileFormat.class);
-        addPredicatesOf(ImageFileFormat.class);
-
-        addPredicatesComparable(Short.class, new Short("0"));
-        addPredicatesComparable(Integer.class, 0);
-        addPredicatesComparable(Long.class, 0L);
-        addPredicatesComparable(Double.class, 0d);
-        addPredicatesComparable(Float.class, 0f);
-
-        // fielded values
-        for(Metadata.Field f : Metadata.Field.values())
-            add(f.name(), Metadata.class, f.getType(), f::getOf);
-        for(PlaylistItem.Field f : PlaylistItem.Field.values())
-            add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
-        for(MetadataGroup.Field f : MetadataGroup.Field.values())
-            add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
-    }
-
-    public static <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I,O> f) {
-        addF(new PƑ0(name,i,o,f));
-    }
-
-    public static <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
-        addF(new PƑ1(name,i,o,p1,p1def,f));
-    }
-
-    public static <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
-        addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f));
-    }
-
-    public static <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
-        addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
-    }
-
-    public static <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
-        addF(new PƑ0(name,i,o,f),pi,po,pio);
-    }
-
-    public static <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
-        addF(new PƑ1(name,i,o,p1,p1def,f),pi,po,pio);
-    }
-
-    public static <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
-        addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f),pi,po,pio);
-    }
-
-    public static <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
-        addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f),pi,po,pio);
-    }
-
-    public static <E extends Enum> void addPredicatesOf(Class<E> c) {
-        add("Is", c,Boolean.class, (a,b) -> a==b, c, c.getEnumConstants()[0], false,false,true);
-    }
-
-    public static <C extends Comparable> void addPredicatesComparable(Class<C> c, C def_val) {
-        add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
-        add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
-        add("Is more",     c,Boolean.class, (x,y) -> x.compareTo(y)>0,  c,def_val);
-        // add("Is not less", c,Boolean.class, (x,y) -> x.compareTo(y)>=0, c,def_val);
-        // add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
-        // add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
-    }
-
-    /** Add function to the pool. */
-    public static void addF(PƑ f) {
-        fsI.accumulate(f);
-        fsO.accumulate(f);
-        fsIO.accumulate(f);
-    }
-
-    /** Add function to the pool and sets as preferred according to parameters. */
-    public static void addF(PƑ f, boolean i, boolean o, boolean io) {
-        fsI.accumulate(f, i);
-        fsO.accumulate(f, o);
-        fsIO.accumulate(f, io);
-    }
-
-    /** Remove function from the pool. */
-    public static void remF(PƑ f) {
-        fsI.deaccumulate(f);
-        fsO.deaccumulate(f);
-        fsIO.deaccumulate(f);
-    }
-
-    private static <T> void addSelfFunctor(PrefList l, Class<T> c) {
-        Object p = l.getPrefered();
-        // l.addPreferred(new PƑ0("As self", c, c, IDENTITY), p==null); // !working as it should?
-        l.add(0,new PƑ0("As self", c, c, IDENTITY));
-    }
-
-    /** Returns all functions taking input I. */
-    public static <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
-        PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(unPrimitivize(i)));
-        addSelfFunctor(l,i);
-        return l;
-    }
-
-    /** Returns all functions producing output O. */
-    public static <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
-        List ll = fsO.get(unPrimitivize(o));
-        PrefList l =  ll==null ? new PrefList() : (PrefList) ll;
-        addSelfFunctor(l,o);
-        return l;
-    }
-
-    /** Returns all functions taking input I and producing output O. */
-    public static <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
-        // this is rather messy, but works
-        // we accumulate result for all superclasses & retain first found preferred element, while
-        // keeping duplicate elements in check
-        PrefList pl = new PrefList();
-        Object pref = null;
-        for(Class c : util.type.Util.getSuperClassesInc(unPrimitivize(i))) {
-            List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
-            PrefList ll = l==null ? null : (PrefList) l;
-            if(ll!=null) {
-                if(pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
-                pl.addAll(ll);
+            Object prefCopy = pref;
+            pl.removeIf(e -> e==prefCopy || e==null);
+            if(pref!=null) pl.addPreferred(pref);
+            if(pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
+                Object e = pl.get(pl.size()-1);
+                pl.remove(pl.size()-1);
+                pl.addPreferred(e);
             }
+    
+            if(i.equals(o)) addSelfFunctor(pl,o);
+            return pl;
+    
+            // old impl, ignores super classes
+    //        PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
+    //        return l==null ? new PrefList() : l;
         }
-        Object prefCopy = pref;
-        pl.removeIf(e -> e==prefCopy || e==null);
-        if(pref!=null) pl.addPreferred(pref);
-        if(pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
-            Object e = pl.get(pl.size()-1);
-            pl.remove(pl.size()-1);
-            pl.addPreferred(e);
+    
+        /** Returns all functions taking input IO and producing output IO. */
+        public <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
+            return getIO(io, io);
+        }
+    
+        public <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
+            @SuppressWarnings("unchecked")
+            List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
+            return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
+        }
+    
+        public <I> PƑ<I,?> getPrefI(Class<I> i) {
+            PrefList<PƑ<I,?>> pl = getI(i);
+            return pl==null ? null : pl.getPreferedOrFirst();
+        }
+    
+        public <O> PƑ<?,O> getPrefO(Class<O> o) {
+            PrefList<PƑ<?,O>> l = getO(o);
+            return l==null ? null : l.getPreferedOrFirst();
+        }
+    
+        public <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
+            PrefList<PƑ<I,O>> l = getIO(i,o);
+            return l==null ? null : l.getPreferedOrFirst();
+        }
+    
+        public <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {
+            return getPrefIO(io,io);
         }
 
-        if(i.equals(o)) addSelfFunctor(pl,o);
-        return pl;
-
-        // old impl, ignores super classes
-//        PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
-//        return l==null ? new PrefList() : l;
     }
 
-    /** Returns all functions taking input IO and producing output IO. */
-    public static <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
-        return getIO(io, io);
-    }
-
-    public static <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
-        @SuppressWarnings("unchecked")
-        List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
-        return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
-    }
-
-    public static <I> PƑ<I,?> getPrefI(Class<I> i) {
-        PrefList<PƑ<I,?>> pl = getI(i);
-        return pl==null ? null : pl.getPreferedOrFirst();
-    }
-
-    public static <O> PƑ<?,O> getPrefO(Class<O> o) {
-        PrefList<PƑ<?,O>> l = getO(o);
-        return l==null ? null : l.getPreferedOrFirst();
-    }
-
-    public static <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
-        PrefList<PƑ<I,O>> l = getIO(i,o);
-        return l==null ? null : l.getPreferedOrFirst();
-    }
-
-    public static <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {
-        return getPrefIO(io,io);
-    }
-
-
-
-    public static class Parameter<P> {
+    class Parameter<P> {
         public final Class<P> type;
         public final P defaultValue;
-//        public final String name;
-//        public final String description;
+        public final String name;
+        public final String description;
 
         public Parameter(Class<P> type, P defaultValue) {
-            this.type = type;
+            this("", "", type, defaultValue);
+        }
+
+        public Parameter(String name, String description, Class<P> type, P defaultValue) {
+            this.name = name;
+            this.description = description;
+            this.type = unPrimitivize(type);
             this.defaultValue = defaultValue;
         }
     }
-    public interface Parameterized<P> {
-        List<Parameter<P>> getParameters();
+    interface Parameterized<P> {
+        List<Parameter<? extends P>> getParameters();
     }
     // parameterized function - variadic I -> O function factory with parameters
-    public static abstract class PƑ<I,O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
+    abstract class PƑ<I,O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
         public final String name;
         public final Class<I> in;
         public final Class<O> out;
@@ -899,7 +884,7 @@ public class Functors {
     // solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
     // detail - we do not want it to pollute external code, in fact this parameter exists solely
     // so PƑ can access its underlying function, while not breaking type safety for subclasses
-    public static abstract class PƑB<I,O,F extends IO<I,O>> extends PƑ<I,O> {
+    abstract class PƑB<I,O,F extends IO<I,O>> extends PƑ<I,O> {
 
         public final F f;
 
@@ -909,14 +894,23 @@ public class Functors {
         }
 
     }
-    public static class PƑ0<I,O> extends PƑB<I,O,Ƒ1<I,O>> {
+    /**
+     * Parametric function, {@code In -> Out} function defined as {@code (In, P1, P2, ..., Pn) -> Out} variadic
+     * function with parameters. Formally, the signature is {@code (In, Param...) -> Out}, but the parameters are
+     * degrees of freedom, fixing of which collapses the signature to {@code In -> Out} (as in partial application),
+     * which can be applied on the input. While the parameters themselves are technically inputs, they are transparent
+     * for the function user, (which should only see the collapsed signature) and serve as a variadic generalisation
+     * of a function - to express function of any number of parameters equally. This is useful for example for ui
+     * function builders.
+     */
+    class PƑ0<I,O> extends PƑB<I,O,Ƒ1<I,O>> {
 
         public PƑ0(String _name, Class<I> i, Class<O> o, Ƒ1<I,O> f) {
             super(_name,i,o,f);
         }
 
         @Override
-        public List<Parameter<Object>> getParameters() {
+        public List<Parameter<? extends Object>> getParameters() {
             return EMPTY_LIST;
         }
 
@@ -926,19 +920,18 @@ public class Functors {
         }
 
     }
-    public static class PƑ1<I,P1,O> extends PƑB<I,O,Ƒ2<I,P1,O>> {
-        private Class<P1> p1;
-        private P1 p1def;
+    /** Unary parametric function. */
+    class PƑ1<I,P1,O> extends PƑB<I,O,Ƒ2<I,P1,O>> {
+        private Parameter<P1> p1;
 
-        public PƑ1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, Ƒ2<I,P1,O> f) {
+        public PƑ1(String _name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Parameter<P1> p1) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
-            this.p1def = p1def;
+            this.p1 = p1;
         }
 
         @Override
-        public List<Parameter<Object>> getParameters() {
-            return singletonList(new Parameter(p1,p1def));
+        public List<Parameter<? extends Object>> getParameters() {
+            return list(p1);
         }
 
         @Override
@@ -946,23 +939,20 @@ public class Functors {
              return f.apply(t, (P1)ps[0]);
         }
     }
-    public static class PƑ2<I,P1,P2,O> extends PƑB<I,O,Ƒ3<I,P1,P2,O>> {
-        private Class<P1> p1;
-        private Class<P2> p2;
-        private P1 p1def;
-        private P2 p2def;
+    /** Binary parametric function. */
+    class PƑ2<I,P1,P2,O> extends PƑB<I,O,Ƒ3<I,P1,P2,O>> {
+        private Parameter<P1> p1;
+        private Parameter<P2> p2;
 
-        public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
+        public PƑ2(String _name, Class<I> i, Class<O> o, Ƒ3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
-            this.p2 = unPrimitivize(p2type);
-            this.p1def = p1def;
-            this.p2def = p2def;
+            this.p1 = p1;
+            this.p2 = p2;
         }
 
         @Override
-        public List<Parameter<Object>> getParameters() {
-            return list(new Parameter(p1,p1def),new Parameter(p2,p2def));
+        public List<Parameter<? extends Object>> getParameters() {
+            return list(p1, p2);
         }
 
         @Override
@@ -970,27 +960,22 @@ public class Functors {
              return f.apply(t, (P1)ps[0], (P2)ps[1]);
         }
     }
-    public static class PƑ3<I,P1,P2,P3,O> extends PƑB<I,O,Ƒ4<I,P1,P2,P3,O>> {
-        private Class<P1> p1;
-        private Class<P2> p2;
-        private Class<P3> p3;
-        private P1 p1def;
-        private P2 p2def;
-        private P3 p3def;
+    /** Tertiary  parametric function. */
+    class PƑ3<I,P1,P2,P3,O> extends PƑB<I,O,Ƒ4<I,P1,P2,P3,O>> {
+        private Parameter<P1> p1;
+        private Parameter<P2> p2;
+        private Parameter<P3> p3;
 
-        public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
+        public PƑ3(String _name, Class<I> i, Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
             super(_name,i,o,f);
-            this.p1 = unPrimitivize(p1type);
-            this.p2 = unPrimitivize(p2type);
-            this.p3 = unPrimitivize(p3type);
-            this.p1def = p1def;
-            this.p2def = p2def;
-            this.p3def = p3def;
+            this.p1 = p1;
+            this.p2 = p2;
+            this.p3 = p3;
         }
 
         @Override
-        public List<Parameter<Object>> getParameters() {
-            return list(new Parameter(p1,p1def),new Parameter(p2,p2def),new Parameter(p3,p3def));
+        public List<Parameter<? extends Object>> getParameters() {
+            return list(p1, p2, p3);
         }
 
         @Override
@@ -998,13 +983,27 @@ public class Functors {
              return f.apply(t, (P1)ps[0], (P2)ps[1], (P3)ps[2]);
         }
     }
+    /** N-ary parametric function. */
+    class PƑn<I,O> extends PƑB<I,O,Ƒ2<I,Object[],O>> {
+        private Parameter<Object>[] ps;
 
-    public enum StringDirection {
-        FROM_START,
-        FROM_END
+        public PƑn(String _name, Class<I> i, Class<O> o, Ƒ2<I,Object[],O> f, Parameter<Object>[] ps) {
+            super(_name,i,o,f);
+            this.ps = ps;
+        }
+
+        @Override
+        public List<Parameter<? extends Object>> getParameters() {
+            return list(ps);
+        }
+
+        @Override
+        public O apply(I t, Object... ps) {
+             return f.apply(t,ps);
+        }
     }
 
-    public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
+    class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
 
         final PƑ<I,O> pf;
         private final List<Config<Object>> cs = new ArrayList();
@@ -1013,7 +1012,7 @@ public class Functors {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(), p -> {
                 V<Object> a = new V<>(p.defaultValue);
-                return new AccessorConfig<>(p.type,"",a::setValue,a::getValue);
+                return new AccessorConfig<>(p.type,"",a::setValue,(Supplier)a::getValue);
             }));
         }
 
@@ -1023,7 +1022,7 @@ public class Functors {
         }
 
     }
-    public static class TypeAwareƑ<I,O> implements Ƒ1<I,O> {
+    class TypeAwareƑ<I,O> implements Ƒ1<I,O> {
         public final Class<I> in;
         public final Class<O> out;
         public final Ƒ1<I,O> f;

@@ -194,7 +194,7 @@ public class Window extends WindowBase {
 
 	    // app dragging (anywhere on ALT)
         root.addEventFilter(MOUSE_PRESSED, e -> {
-            if(e.getButton()==PRIMARY && e.isAltDown()) {
+            if(e.getButton()==PRIMARY && e.isAltDown() && !e.isShiftDown()) {
                 isMovingAlt = true;
 	            subroot.setMouseTransparent(true);
                 moveStart(e);

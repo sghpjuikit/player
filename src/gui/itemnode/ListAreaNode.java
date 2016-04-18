@@ -72,7 +72,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     protected final TextArea textarea = new TextArea();
     private final VBox root = new VBox();
     private final List<Object> input = new ArrayList<>();
-    public final FChainItemNode transforms = new FChainItemNode(Functors::getI);
+    public final FChainItemNode transforms = new FChainItemNode(Functors.pool::getI);
     /**
      * Output list, i.e., input list after transformation of each element.
      * The text of this area shows string representation of this list.
@@ -169,7 +169,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * @param text
      */
     public void setData(String text) {
-        setData(split(text, "\n", c->c));
+        setData(split(text, "\n", c -> c));
     }
 
     /**

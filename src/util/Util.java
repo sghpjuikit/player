@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
@@ -24,12 +25,18 @@ import javafx.util.Duration;
 
 import org.jaudiotagger.tag.images.Artwork;
 
+import gui.itemnode.StringSplitParser;
+import gui.itemnode.StringSplitParser.Split;
+import gui.itemnode.StringSplitParser.SplitData;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import util.dev.TODO;
 
+import static com.objectdb.o.MSS.s;
 import static java.lang.Math.*;
+import static java.util.stream.Collectors.toCollection;
 import static org.slf4j.LoggerFactory.getLogger;
+import static util.Util.StringDirection.FROM_START;
 import static util.dev.TODO.Purpose.BUG;
 
 /**
@@ -182,6 +189,98 @@ public interface Util {
 
     static boolean containsNoCase(String text, String phrase, boolean ignore) {
         return !ignore ? text.contains(phrase) : containsNoCase(text, phrase);
+    }
+
+
+    static String renameAnime(String s) {
+        // remove the super annoying '_'
+        s = s.replaceAll("_", " ");
+
+        // remove hash
+        if (s.endsWith("]") && s.lastIndexOf('[') == s.length() - 10) s = s.substring(0, s.length() - 10);
+
+        // remove fansub group
+        String group = null;
+        if (s.startsWith("[")) {
+            int i = s.indexOf(']');
+            if (i != -1) {
+                group = s.substring(0, i + 1);
+                s = s.substring(i + 1);
+            }
+        }
+
+        // remove leading and trailing shit
+        s = s.trim();
+
+        // add fansub groups at the end
+        if (group != null) s = s + "." + group;
+
+        return s;
+    }
+
+    static String replace1st(String s, Pattern regex, String n) {
+        return regex.matcher(s).replaceFirst(n);
+    }
+
+    static String replaceAll(String text, String phrase, String with) {
+        return text.replace(phrase, with);
+    }
+
+    static String replaceAllRegex(String text, Pattern regex, String with) {
+        return regex.matcher(text).replaceAll(with);
+    }
+
+    static String remove1st(String text, Pattern regex) {
+        return regex.matcher(text).replaceFirst("");
+    }
+
+    static String removeAll(String text, String phrase) {
+        return text.replace(phrase, "");
+    }
+
+    static String removeAllRegex(String text, Pattern regex) {
+        return regex.matcher(text).replaceAll("");
+    }
+
+    static String addText(String text, String added, StringDirection from) {
+        return from == FROM_START ? added + s : s + added;
+    }
+
+    static String removeChars(String text, int amount, StringDirection from) {
+        return from == FROM_START
+                   ? text.substring(clip(0, amount, text.length() - 1))
+                   : text.substring(0, max(text.length() - amount, 0));
+    }
+
+    static String retainChars(String text, int amount, StringDirection from) {
+        return  from == FROM_START
+                    ? text.substring(0, min(amount, text.length() - 1))
+                    : text.substring(clip(0, text.length() - amount, text.length() - 1));
+    }
+
+    static SplitData split(String text, StringSplitParser splitter) {
+        return splitter.applyM(text).entrySet().stream()
+                       .map(e -> new Split(e.getKey(), e.getValue()))
+                       .collect(toCollection(SplitData::new));
+    }
+
+    static String splitJoin(String t, StringSplitParser splitter, StringSplitParser joiner) {
+        Map<String, String> splits = splitter.applyM(t);
+        List<String> keys = joiner.parse_keys;
+        List<String> seps = joiner.key_separators;
+        StringBuilder o = new StringBuilder("");
+        for (int i = 0; i < keys.size() - 1; i++) {
+            if (!splits.containsKey(keys.get(i))) return null;
+            o.append(splits.get(keys.get(i)));
+            o.append(seps.get(i));
+        }
+        if (!splits.containsKey(keys.get(keys.size() - 1))) return null;
+        o.append(splits.get(keys.get(keys.size() - 1)));
+        return o.toString();
+    }
+
+    static Character charAt(String x, int i, StringDirection dir) {
+        return i < 0 || i >= x.length() ? null : x.charAt(dir == FROM_START ? i : x.length() - 1 - i);
     }
 
     /**
@@ -678,4 +777,8 @@ public interface Util {
         }
     }
 
+    enum StringDirection {
+        FROM_START,
+        FROM_END
+    }
 }

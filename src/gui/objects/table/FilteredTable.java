@@ -333,8 +333,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         public Filter(FilteredList<T> table_list, F prefFilterType) {
             super(() -> {
                 FieldedPredicateItemNode<T,F> g = new FieldedPredicateItemNode<>(
-                    in -> Functors.getIO(in, Boolean.class),
-                    in -> Functors.getPrefIO(in, Boolean.class)
+                    in -> Functors.pool.getIO(in, Boolean.class),
+                    in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
                 g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
                 g.setData(d(prefFilterType));

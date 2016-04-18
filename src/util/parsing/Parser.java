@@ -222,7 +222,7 @@ public abstract class Parser {
             Class<?> in = DEFAULT.fromS(Class.class, data.get(1));
             Class<?> out = DEFAULT.fromS(Class.class, data.get(2));
             if(name==null || in==null || out==null) return null;
-            return Functors.getPF(name,in,out);
+            return Functors.pool.getPF(name,in,out);
         });
     }
 

@@ -22,7 +22,7 @@
                         <children>
                             <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
                             <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
-                        <Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
+                            <Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
                         </children>
                     </AnchorPane>
                       <BorderPane fx:id="header" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

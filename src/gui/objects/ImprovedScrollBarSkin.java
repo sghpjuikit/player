@@ -12,8 +12,7 @@ import javafx.scene.layout.StackPane;
 import util.animation.Anim;
 
 import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
 import static util.type.Util.getFieldValue;
 
@@ -23,6 +22,7 @@ import static util.type.Util.getFieldValue;
  * @author Martin Polakovic
  */
 public class ImprovedScrollBarSkin extends ScrollBarSkin {
+    private boolean isDragged = false;
 
     public ImprovedScrollBarSkin(ScrollBar scrollbar) {
         super(scrollbar);
@@ -36,8 +36,18 @@ public class ImprovedScrollBarSkin extends ScrollBarSkin {
             else h.playOpen();
         });
         scrollbar.addEventHandler(MOUSE_EXITED, e -> {
-            if(scrollbar.getOrientation()==VERTICAL) v.playClose();
-            else h.playClose();
+            if(!isDragged) {
+                if(scrollbar.getOrientation()==VERTICAL) v.playClose();
+                else h.playClose();
+            }
+        });
+        scrollbar.addEventHandler(DRAG_DETECTED, e -> isDragged = true);
+        scrollbar.addEventHandler(MOUSE_RELEASED, e -> {
+            if(isDragged) {
+                isDragged = false;
+                if(scrollbar.getOrientation()==VERTICAL) v.playClose();
+                else h.playClose();
+            }
         });
     }
 }

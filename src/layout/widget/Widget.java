@@ -373,7 +373,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     @Override
     public String toString() {
-        return getClass() + name;
+        return getClass() + " " + name;
     }
 
 

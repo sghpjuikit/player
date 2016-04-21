@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="80.0" prefWidth="600.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="100.0" prefWidth="600.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <AnchorPane id="AnchorPane" pickOnBounds="false" prefHeight="-1.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <AnchorPane id="AnchorPane" pickOnBounds="false" prefHeight="-1.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
         <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <left>
             <BorderPane fx:id="controlPanel" onMouseDragged="#consumeMouseEvent" BorderPane.alignment="CENTER">
-<center><HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER" />
-</center>
-<right><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
-<center>
+            <center><HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER" />
+            </center>
+            <right><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+            <center>
         <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#consumeMouseEvent" pickOnBounds="true" prefHeight="58.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER_LEFT">
           <children>
             <Label id="" fx:id="currTime" onMouseClicked="#cycleElapsed" pickOnBounds="true" text="00:00" GridPane.columnIndex="1" GridPane.rowIndex="1" />

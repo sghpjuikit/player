@@ -3,11 +3,13 @@ package playerControlsTiny;
 import java.util.List;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
@@ -28,6 +30,7 @@ import layout.widget.feature.HorizontalDock;
 import layout.widget.feature.PlaybackFeature;
 import util.Util;
 import util.access.V;
+import util.animation.Anim;
 import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
@@ -37,13 +40,19 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static javafx.animation.Animation.INDEFINITE;
+import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
+import static javafx.util.Duration.seconds;
+import static util.Util.clip;
+import static util.functional.Util.mapRef;
+import static util.graphics.Util.layStack;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
-/** FXMLController for widget. */
+/** Controller for mini playback controls widget. */
 @Widget.Info(
     name = "Playback Mini",
     author = "Martin Polakovic",
@@ -67,13 +76,16 @@ import static util.reactive.Util.maintain;
 )
 public class PlayerControlsTiny extends FXMLController implements PlaybackFeature, HorizontalDock {
 
-    @FXML AnchorPane root;
-    @FXML HBox layout, controlBox, volBox;
-    @FXML Slider volume;
-    @FXML Label currTime, titleL, artistL;
+    private static final double ICON_SIZE = 14;
+
+    private @FXML AnchorPane root;
+    private @FXML HBox layout, controlBox, volBox;
+    private @FXML Slider volume;
+    private @FXML Label currTime;
+    private Label scrollLabel = new Label("");
     private Seeker seeker = new Seeker();
     private Icon prevB, playB, stopB, nextB, loopB, volB;
-    private static final double ICON_SIZE = 14;
+    private Anim scroller;
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -117,6 +129,20 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         volB = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
         volBox.getChildren().add(0,volB);
 
+        ScrollPane scrollerPane = new ScrollPane(layStack(scrollLabel, Pos.CENTER));
+        scrollerPane.setPrefWidth(200);
+        scrollerPane.setPannable(false);
+        scrollerPane.setFitToHeight(true);
+        scrollerPane.setVbarPolicy(NEVER);
+        scrollerPane.setHbarPolicy(NEVER);
+        ((Pane)currTime.getParent()).getChildren().add(((Pane) currTime.getParent()).getChildren().indexOf(currTime)+1, scrollerPane);
+        scroller = new Anim(seconds(5), scrollerPane::setHvalue)
+           .intpl(x -> clip(0,x*1.5-0.25,1)); // linear, but waits a bit at 0 and 1
+        scroller.setAutoReverse(true);
+        scroller.setCycleCount(INDEFINITE);
+        scroller.play();
+        d(scroller::stop);
+
         // monitor properties and update graphics
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
@@ -151,9 +177,8 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void playbackItemChanged(Metadata m) {
-        titleL.setText(m.getTitle());
-        artistL.setText(m.getArtist());
         seeker.reloadChapters(m);
+        scrollLabel.setText(m.getArtist() + " - " + m.getTitle());
     }
 
     private void statusChanged(Status status) {
@@ -185,20 +210,14 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void loopModeChanged(LoopMode looping) {
-        loopB.size(looping==LoopMode.RANDOM ? ICON_SIZE : ICON_SIZE+3); // bug fix
-        switch (looping) {
-            case OFF:       loopB.setIcon(REPEAT_OFF);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: off"));
-                            break;
-            case PLAYLIST:  loopB.setIcon(MaterialDesignIcon.REPEAT);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
-                            break;
-            case SONG:      loopB.setIcon(REPEAT_ONCE);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
-                            break;
-            case RANDOM:    loopB.setIcon(RANDOM);
-                            Tooltip.install(loopB, new Tooltip("Play mode: random"));
-                            break;
-        }
+        if(loopB.getTooltip()==null) loopB.tooltip("ignoredText"); // lazy init
+        loopB.getTooltip().setText(mapRef(looping,
+            LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
+            "Loop mode: off", "Loop mode: loop playlist", "Loop mode: loop song", "Play mode: random")
+        );
+        loopB.setIcon(mapRef(looping,
+            LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
+            REPEAT_OFF, MaterialDesignIcon.REPEAT, REPEAT_ONCE, RANDOM)
+        );
     }
 }

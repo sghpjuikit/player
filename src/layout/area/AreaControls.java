@@ -277,11 +277,8 @@ public final class AreaControls {
 	area.toggleLocked();
     }
 
-
-
-
     void settings() {
-	if (area.getActiveWidgets().isEmpty()) return;
+		if (area.getActiveWidgets().isEmpty()) return;
         Widget w = area.getActiveWidgets().get(0);
 
         if(Gui.open_strategy==POPUP) {
@@ -391,10 +388,10 @@ public final class AreaControls {
     }
 
     private void toggleAbsSize() {
-	if (area.container instanceof BiContainer) {
-	    Splitter s = BiContainer.class.cast(area.container).ui;
-	    s.toggleAbsoluteSizeFor(area.index);
-	}
+		if (area.container instanceof BiContainer) {
+		    Splitter s = BiContainer.class.cast(area.container).ui;
+		    s.toggleAbsoluteSizeFor(area.index);
+		}
     }
 
     void updateAbsB() {

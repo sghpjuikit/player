@@ -42,6 +42,7 @@ import static util.dev.Util.noØ;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.file.AudioFileFormat.Use.PLAYBACK;
 import static util.functional.Util.*;
+import static util.type.Util.getSuperClassesInc;
 import static util.type.Util.unPrimitivize;
 
 @SuppressWarnings("unchecked")
@@ -753,7 +754,7 @@ public interface Functors {
     
         /** Returns all functions taking input I. */
         public <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
-            PrefList l = (PrefList) fsI.getElementsOf(util.type.Util.getSuperClassesInc(unPrimitivize(i)));
+            PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
             addSelfFunctor(l,i);
             return l;
         }
@@ -773,7 +774,7 @@ public interface Functors {
             // keeping duplicate elements in check
             PrefList pl = new PrefList();
             Object pref = null;
-            for(Class c : util.type.Util.getSuperClassesInc(unPrimitivize(i))) {
+            for(Class c : getSuperClassesInc(unPrimitivize(i))) {
                 List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
                 PrefList ll = l==null ? null : (PrefList) l;
                 if(ll!=null) {

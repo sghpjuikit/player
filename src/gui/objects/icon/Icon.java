@@ -28,6 +28,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 
 import org.slf4j.LoggerFactory;
@@ -146,9 +147,10 @@ public class Icon<I extends Icon<?>> extends StackPane {
         tooltip(tooltip);
         onClick(onClick);
 	    node.setCache(true);
+	    node.setSmooth(true);
+	    node.setFontSmoothingType(FontSmoothingType.GRAY);
 		node.setMouseTransparent(true);
 	    node.setFocusTraversable(false);
-
 	    node.setManaged(false);
 	    getChildren().add(node);
 
@@ -228,6 +230,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
     /**
      * JavaFX API deficiency fix.
+     *
      * @return installed tooltip or null.
      */
     public Tooltip getTooltip() {

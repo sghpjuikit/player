@@ -659,7 +659,7 @@ public class App extends Application implements Configurable {
             configuration.collect(Action.getActions());
             services.forEach(configuration::collect);
             configuration.collect(this, windowManager, guide, actionPane);
-            
+
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.rawSet();
 
@@ -970,7 +970,7 @@ public class App extends Application implements Configurable {
                 o.show(App_Center);
     }
 
-    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+SHIFT+P")
+    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
     public static void openLauncher() {
         File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
         Component c = UiContext.instantiateComponent(f);

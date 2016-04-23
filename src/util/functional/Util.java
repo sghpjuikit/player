@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import one.util.streamex.EntryStream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import util.SwitchException;
@@ -1059,6 +1060,10 @@ public interface Util {
     @SafeVarargs
     static <T> StreamEx<T> stream(T... t) {
         return t.length==0 ? StreamEx.empty() : StreamEx.of(t);
+    }
+
+    static <K,V> EntryStream<K,V> stream(Map<K,V> map) {
+        return EntryStream.of(map);
     }
 
     static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {

@@ -207,7 +207,7 @@
 
 
 // BUGFIX, doesnt get applied
-.congfig-field-warn-button {
+.config-field-warn-button {
     -fx-fill: -fx-focus-color;
 }
 

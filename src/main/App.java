@@ -4,8 +4,6 @@ package main;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +37,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
-import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,6 +127,7 @@ import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
+import util.system.SystemOutListener;
 import util.type.ClassName;
 import util.type.InstanceInfo;
 import util.type.InstanceName;
@@ -160,6 +158,8 @@ import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
+
+import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -1179,74 +1179,6 @@ public class App extends Application implements Configurable {
         p.title.set("Search for an action or option");
         p.setAutoHide(true);
         p.show(PopOver.ScreenPos.App_Center);
-    }
-
-    /**
-     * Stream that self-inserts as {@link System#out}, but instead of redirecting it, it continues
-     * to provide to it, functioning effectively as a listener. Designed as a distributor to
-     * end-listeners that actually process the data. These can be added or removed anytime and in
-     * any count easily and without interfering with each other or the original stream. In addition,
-     * execute on fx thread.
-     */
-    public static  class SystemOutListener extends PrintStream {
-        private final SystemOutDuplicateStream stream;
-
-        public SystemOutListener() {
-            this(new SystemOutDuplicateStream());
-            System.setOut(this);
-        }
-
-        private SystemOutListener(SystemOutDuplicateStream cloned) {
-            super(cloned);
-            this.stream = cloned;
-        }
-
-        /**
-         * Add listener that will receive the stream data (always on fx thread).
-         * @return action that removes the listener
-         */
-        public Subscription addListener(Consumer<String> listener) {
-            stream.listeners.add(listener);
-            return () -> stream.listeners.remove(listener);
-        }
-
-        public void removeListener(Consumer<String> listener) {
-            stream.listeners.remove(listener);
-        }
-
-        /** Helper class for {@link SystemOutListener}. */
-        private static class SystemOutDuplicateStream extends OutputStream {
-            private final PrintStream sout = System.out;
-            private final List<Consumer<String>> listeners = new ArrayList<>();
-
-            @Override
-            public void write(int b) throws IOException {
-                // Less efficient, we wont use it.
-                // sout.write(b);
-                // if(!listeners.isEmpty())
-                //     runFX(() -> listeners.forEach(l -> l.accept(b)));
-                throw new AssertionError();
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) throws IOException {
-                // copied from super.write(...) implementation
-                if (b == null) {
-                    throw new NullPointerException();
-                } else if ((off<0) || (off>b.length) || (len<0) || (off+len >b.length) || (off+len <0)) {
-                    throw new IndexOutOfBoundsException();
-                } else if (len == 0) {
-                    return;
-                }
-
-                // for (int i=0 ; i<len ; i++) write(b[off + i]);
-                sout.write(b, off, len);
-                if(!listeners.isEmpty()) {
-                    String s = new String(b); // encoding!?
-                    runFX(() -> listeners.forEach(l -> l.accept(s)));
-                }
-            }
-        }
     }
 
 }

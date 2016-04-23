@@ -8,7 +8,10 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -25,12 +28,12 @@ import util.conf.Config.*;
 import util.file.Util;
 import util.functional.Functors.Ƒ1;
 
-import static util.file.Util.readFileKeyValues;
-import static util.type.Util.getAllFields;
-import static util.type.Util.getGenericPropertyType;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
+import static util.file.Util.readFileKeyValues;
 import static util.functional.Util.byNC;
+import static util.type.Util.getAllFields;
+import static util.type.Util.getGenericPropertyType;
 
 /**
  * Provides methods to access configs.

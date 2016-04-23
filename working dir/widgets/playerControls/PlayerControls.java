@@ -45,6 +45,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static util.functional.Util.mapRef;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -84,20 +85,19 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     @FXML GridPane soundGrid;
     @FXML Slider volume;
     @FXML Balancer balance;
-    Seeker seeker = new Seeker();
     @FXML Label currTime, totTime, realTime, status;
     @FXML Label titleL, artistL, bitrateL, sampleRateL, channelsL;
-    @FXML HBox infoBox;
-    @FXML HBox playButtons;
-    Icon p1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25);
-    Icon f2    = new GlowIcon(FAST_BACKWARD,25);
-    Icon f3    = new GlowIcon(PLAY,25);
-    Icon f4    = new GlowIcon(FAST_FORWARD,25);
-    Icon f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);
-    Icon f6    = new GlowIcon(STOP,25);
-    Icon muteB = new GlowIcon(VOLUME_UP,15);
-    Icon addB  = new GlowIcon(PLUS_SQUARE_ALT,10);
-    Icon loopB = new GlowIcon(RANDOM,15);
+    @FXML HBox infoBox, playButtons;
+    Seeker seeker = new Seeker();
+    Icon p1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25),
+         f2    = new GlowIcon(FAST_BACKWARD,25),
+         f3    = new GlowIcon(PLAY,25),
+         f4    = new GlowIcon(FAST_FORWARD,25),
+         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25),
+         f6    = new GlowIcon(STOP,25),
+         muteB = new GlowIcon(VOLUME_UP,15),
+         addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
+         loopB = new GlowIcon(RANDOM,15);
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -141,16 +141,16 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         d(maintain(Gui.snapDistance, d -> d ,seeker.chapSnapDist));
 
         // create play buttons
-        p1.setOnMouseClicked(e->rewind());
-        f2.setOnMouseClicked(e->previous());
-        f3.setOnMouseClicked(e->play_pause());
-        f4.setOnMouseClicked(e->next());
-        f5.setOnMouseClicked(e->forward());
-        f6.setOnMouseClicked(e->stop());
+        p1.setOnMouseClicked(e -> PLAYBACK.seekBackward());
+        f2.setOnMouseClicked(e -> PlaylistManager.playPreviousItem());
+        f3.setOnMouseClicked(e -> PLAYBACK.pause_resume());
+        f4.setOnMouseClicked(e -> PlaylistManager.playNextItem());
+        f5.setOnMouseClicked(e -> PLAYBACK.seekForward());
+        f6.setOnMouseClicked(e -> PLAYBACK.stop());
         playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
 
         // addButton
-        Tooltip.install(addB, new Tooltip("Add files or folder\n\nUse left for files and right click for directory."));
+        addB.tooltip("Add files or folder\n\nUse left for files and right click for directory.");
         addB.setOnMouseClicked(e-> {
             if(e.getButton()==MouseButton.PRIMARY)
                 PlaylistManager.chooseFilesToPlay();
@@ -203,30 +203,6 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
          });
     }
 
-    @FXML private void play_pause() {
-         PLAYBACK.pause_resume();
-    }
-
-    @FXML private void stop() {
-         PLAYBACK.stop();
-    }
-
-    @FXML private void next() {
-        PlaylistManager.playNextItem();
-    }
-
-    @FXML private void previous() {
-        PlaylistManager.playPreviousItem();
-    }
-
-    @FXML private void forward() {
-        PLAYBACK.seekForward();
-    }
-
-    @FXML private void rewind() {
-        PLAYBACK.seekBackward();
-    }
-
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         timeChanged();
@@ -264,20 +240,15 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     }
 
     private void loopModeChanged(LoopMode looping) {
-        switch (looping) {
-            case OFF:       loopB.setIcon(REPEAT_OFF);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: off"));
-                            break;
-            case PLAYLIST:  loopB.setIcon(MaterialDesignIcon.REPEAT);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
-                            break;
-            case SONG:      loopB.setIcon(REPEAT_ONCE);
-                            Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
-                            break;
-            case RANDOM:    loopB.setIcon(RANDOM);
-                            Tooltip.install(loopB, new Tooltip("Play mode: random"));
-                            break;
-        }
+        if(loopB.getTooltip()==null) loopB.tooltip("ignoredText"); // lazy init
+        loopB.getTooltip().setText(mapRef(looping,
+            LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
+            "Loop mode: off", "Loop mode: loop playlist", "Loop mode: loop song", "Play mode: random")
+        );
+        loopB.setIcon(mapRef(looping,
+            LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
+            REPEAT_OFF, MaterialDesignIcon.REPEAT, REPEAT_ONCE, RANDOM)
+        );
     }
 
     private void muteChanged(boolean mute, double volume) {

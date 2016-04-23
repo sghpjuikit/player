@@ -40,14 +40,13 @@ import static util.functional.Util.list;
  */
 public class Player {
 
-
 /********************************************* STATE **********************************************/
 
     public static final PlayerState state = PlayerState.deserialize();
 
     public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(1, 3, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
             Thread t = new Thread(r);
-                   t.setDaemon(true); // dont prevent application closing
+                   t.setDaemon(true); // do not prevent application closing
                    t.setName("tagging-thread");
             return t;
         });

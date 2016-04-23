@@ -270,9 +270,9 @@ public interface Util {
         // Unfortunately the pane resizes with the text so we cant bind
         // t.wrappingWidthProperty().bind(sa.widthProperty());
         // The only (to me) known solution is to make the text t not manageable, but that
-        // causes the height caculation of the pane sa fail and consequently breaks the
+        // causes the height calculation of the pane sa fail and consequently breaks the
         // scrolling behavior
-        // I dont know what to do anymore, believe me I have tried...
+        // I do not know what to do anymore, believe me I have tried...
 //        Pane sa = new StackPane(t);
 //        ScrollPane s = new ScrollPane(sa);
 //                   s.setPannable(false);
@@ -327,12 +327,12 @@ public interface Util {
         n.setScaleY(y);
     }
 
-    static <E extends Event> void add1timeEventHandler(Stage etarget, EventType<E> etype, Consumer<E> ehandler) {
-        etarget.addEventHandler(etype, new EventHandler<>() {
+    static <E extends Event> void add1timeEventHandler(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
+        eTarget.addEventHandler(eType, new EventHandler<>() {
             @Override
             public void handle(E event) {
-                ehandler.accept(event);
-                etarget.removeEventHandler(etype, this);
+                eHandler.accept(event);
+                eTarget.removeEventHandler(eType, this);
             }
         });
     }
@@ -342,8 +342,8 @@ public interface Util {
      * Any bound property will be ignored. Null value will be ignored.
      * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
-    static void setMinPrefMaxSize(Node n, Double widthheight) {
-        setMinPrefMaxSize(n, widthheight, widthheight);
+    static void setMinPrefMaxSize(Node n, Double widthHeight) {
+        setMinPrefMaxSize(n, widthHeight, widthHeight);
     }
 
     /**

@@ -51,12 +51,7 @@ import util.parsing.Parser;
 import util.type.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.nio.charset.StandardCharsets.UTF_16;
-import static java.nio.charset.StandardCharsets.UTF_16BE;
-import static java.nio.charset.StandardCharsets.UTF_16LE;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.StandardCharsets.*;
 import static java.util.stream.Collectors.toList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -65,10 +60,9 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static util.Util.*;
+import static util.Util.enumToHuman;
 import static util.async.Async.run;
 import static util.functional.Util.*;
-import static util.graphics.Util.layAnchor;
 import static util.reactive.Util.maintain;
 
 /**
@@ -87,7 +81,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
     private static final Tooltip defTooltip = new Tooltip("Default value");
     private static final Tooltip globTooltip = new Tooltip("Global shortcut"
-            + "\n\nGlobal shortcut can be used even when applicatin doesn't have focus. Note, that "
+            + "\n\nGlobal shortcut can be used even when application doesn't have focus. Note, that "
             + "only one application can use this shortcut. If multiple applications use the same "
             + "shortcut, the one started later will have it disabled.");
     private static final Tooltip overTooltip = new Tooltip("Override value"
@@ -95,13 +89,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected final HBox root = new HBox();
     public boolean applyOnChange = true;
-    protected boolean insonsistent_state = false;
+    protected boolean inconsistentState = false;
     private Icon defB;
 
     private ConfigField(Config<T> c) {
         super(c);
 
-        root.setMinSize(0,20);   // miheight actually required to get consistent look
+        root.setMinSize(0,20);   // min height actually required to get consistent look
         root.setPrefSize(-1,-1); // support variable content height
         root.setMaxSize(-1,-1);  // support variable content height
         root.setSpacing(5);
@@ -116,11 +110,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // no need to do anything if hover ended
                 if(root.isHover()) {
                     // lazily build the button when requested
-                    // we dont want hundreds of buttons we will never use anyway
+                    // we do not want hundreds of buttons we will never use anyway
                     if(defB==null) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
-                        defB.styleclass("congfig-field-default-button");
+                        defB.styleclass("config-field-default-button");
                         defB.setOpacity(0);
                         root.getChildren().add(defB);
                         root.setPadding(Insets.EMPTY);
@@ -241,19 +235,19 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
     protected void apply(boolean user) {
-        if(insonsistent_state) return;
+        if(inconsistentState) return;
         T t = get();
         boolean erroneous = t==null;
         if(erroneous) return;
         boolean needsapply = !Objects.equals(t, config.getValue());
         if(!needsapply) return;
 
-        insonsistent_state = true;
+        inconsistentState = true;
         if(applyOnChange || user) config.setNapplyValue(t);
         else config.setValue(t);
         refreshItem();
         if(onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
-        insonsistent_state = false;
+        inconsistentState = false;
     }
 
 /******************************************************************************/
@@ -380,7 +374,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override public void refreshItem() {
-            if(insonsistent_state) return;
+            if(inconsistentState) return;
             n.setText(config.getValueS());
         }
 
@@ -402,11 +396,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
-            okI.styleclass("congfig-field-ok-button");
+            okI.styleclass("config-field-ok-button");
             okI.size(11);
             okI.tooltip(okTooltip);
             warnB.size(11);
-            warnB.styleclass("congfig-field-warn-button");
+            warnB.styleclass("config-field-warn-button");
             warnB.tooltip(warnTooltip);
 
             n.getStyleClass().setAll("text-field","text-input");
@@ -469,7 +463,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         @Override
         protected void apply(boolean user) {
-            if(insonsistent_state) return;
+            if(inconsistentState) return;
             Object t = get();
 
             boolean erroneous = t==null;
@@ -477,10 +471,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             boolean applicable = !config.getValue().equals(t);
             if(!applicable) return;
 
-            insonsistent_state = true;
+            inconsistentState = true;
             if(applyOnChange || user) config.setNapplyValue(t);
             else config.setValue(t);
-            insonsistent_state = false;
+            inconsistentState = false;
         }
         private void showOkButton(boolean val) {
             n.setLeft(val ? okI : null);

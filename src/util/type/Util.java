@@ -6,7 +6,9 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javafx.beans.value.ObservableValue;
 
@@ -22,6 +24,17 @@ import static util.functional.Util.list;
  * @author Martin Polakovic
  */
 public interface Util {
+
+    static <T> T build(T t, Consumer<? super T> postAction) {
+        postAction.accept(t);
+        return t;
+    }
+
+    static <T> T build(Supplier<? extends T> constructor, Consumer<? super T> postAction) {
+        T t  = constructor.get();
+        postAction.accept(t);
+        return t;
+    }
 
     /**
      * Execute action for each observable value representing a javafx property of an object o.
@@ -125,7 +138,7 @@ public interface Util {
     /**
      * Returns all superclasses and interfaces.
      * @return list containing all superclasses
-     * @see #getSuperClassesInc(java.lang.Class)
+     * @see #getSuperClassesInc(Class)
      */
     static List<Class> getSuperClasses(Class<?> c) {
         return getSuperClasses(c, list());
@@ -134,7 +147,7 @@ public interface Util {
     /**
      * Returns all superclasses and interfaces and the class.
      * @return list containing the class and all its superclasses
-     * @see #getSuperClasses(java.lang.Class)
+     * @see #getSuperClasses(Class)
      */
     static List<Class> getSuperClassesInc(Class<?> c) {
         return getSuperClasses(c, list(c));
@@ -269,7 +282,7 @@ public interface Util {
     }
 
     /**
-     * Same as {@link #getGenericClass(java.lang.Class, int)} but for interfaces.
+     * Same as {@link #getGenericClass(Class, int)} but for interfaces.
      * Returns p-th generic parameter of the i-th interface of c class starting from 0.
      *
      * @param type
@@ -414,7 +427,7 @@ public interface Util {
      * enums with class method bodies (where Class.isEnum) does not work.
      *
      * @return true if class is enum or false otherwise
-     * @see #getEnumConstants(java.lang.Class)
+     * @see #getEnumConstants(Class)
      */
     static boolean isEnum(Class<?> c) {
         return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
@@ -424,7 +437,7 @@ public interface Util {
      * Returns enum constants of an enum class in declared order. Works for
      * enums with class method bodies (where Enum.getEnumConstants) does not work.
      * <p/>
-     * Always use {@link #isEnum(java.lang.Class)} before this method.
+     * Always use {@link #isEnum(Class)} before this method.
      *
      * @param c
      * @return array of enum constants, never null

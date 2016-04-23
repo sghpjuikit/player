@@ -36,7 +36,7 @@
 
     Content: 
 
-        JAVA OFICIAL ELEMENTS:          line 50
+        JAVA OFFICIAL ELEMENTS:          line 50
         APPLICATION SPECIFIC CONTROLS:  line 3200
 
     Complete JavaFX CSS Reference Guide at : 
@@ -1088,7 +1088,7 @@
     -fx-background-color: rgb(76,81,86), rgb(195,199,203);
     -fx-background-insets: 0, 1 1 1 1;
 }
-/* new styleclass for edge to edge scrollpanes that don't want to draw a border */
+/* new styleclass for edge to edge scroll-panes that don't want to draw a border */
 .scroll-pane.edge-to-edge,
 .tab-pane > * > .scroll-pane {
     -fx-background-color: -fx-background;
@@ -1354,7 +1354,7 @@
                           rgba(255, 255, 255, 0.92);
 }
 
-/* editable combobox*/
+/* editable combobox */
 .combo-box-base:editable > .arrow-button,
 .combo-box-base:editable > .text-field,
 .combo-box-base:editable:contains-focus,
@@ -1762,7 +1762,7 @@
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
     /*   
     -fx-mark-color; << this color (original Modena)
-     produces runtime parsing erors (string cant be parsed into color)
+     produces runtime parsing errors (string cant be parsed into color)
      grey is good enough
     */
     -fx-background-color: grey;
@@ -1791,7 +1791,7 @@
     -fx-background-radius: 10;
 }
 .tab-pane:bottom > .tab-header-area > .control-buttons-tab > .container > .tab-down-button {
-    -fx-padding: -5 4 4 4; /* TODO convert to ems */
+    -fx-padding: -0.5em 0.25em 0.25em 0.25em;
 }
 /* FLOATING TABS CUSTOMISATION */
 .tab-pane.floating > .tab-header-area > .tab-header-background {
@@ -1833,7 +1833,7 @@
 }
 .titled-pane > .title > .arrow-button > .arrow {
     -fx-background-color: -fx-def-font-color;
-    /* use thid to get nice not filled arrow */
+    /* use to get nice not filled arrow */
     /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
@@ -2354,7 +2354,7 @@
 
 .table-view,
 .tree-table-view {
-    /* Constants used throughout the tableview. */
+    /* Constants used throughout the table-view. */
     -fx-table-header-border-color: -fx-box-border;
     -fx-table-cell-border-color: derive(-fx-color,5%);
 }
@@ -2402,7 +2402,7 @@
 }
 /* The column header row is made up of a number of column-header, one for each
    TableColumn, and a 'filler' area that extends from the right-most column
-   to the edge of the tableview, or up to the 'column control' button. */
+   to the edge of the table-view, or up to the 'column control' button. */
 .table-view .column-header,
 .tree-table-view .column-header,
 .table-view .filler,
@@ -3211,7 +3211,7 @@
 /** 
  * Toggle icon - checkbox
  * inherits: .icon
- * pseudoclases: selected
+ * pseudoclasses: selected
  */
 .check-icon {
    -glyph-name: TOGGLE_OFF;
@@ -3243,15 +3243,15 @@ check-icon-disabling:selected {
    -glyph-name: CIRCLE_ALT;
 }
 
-/***********************************************************************
+/***********************************************************************************************************************
 
 /* Default 'block'. Several elements subclass block but some can use it directly
-   too. Use to set default properties for allblocks and block derived classes.
+   too. Use to set default properties for all blocks and block derived classes.
    One can for example make several GUI layout elements appear the same.
 
    Subclasses: window > .header, area, area-controls, layouter-element,
                .item-picker-element
-   Pseudocalsees: dragged (all subclasses inherit those)
+   Pseudoclasses: dragged (all subclasses inherit those)
    Dev note: assigning a subclass styleclass to a javaFX object does not automatically
             assign it area too. Must be done manually.
     */
@@ -3264,11 +3264,11 @@ check-icon-disabling:selected {
 /* Default headers style. Unrelated headers might use this class. Each of them
   should also have its own class defined in addition to this one. */
 .header {
-    /* bug causing artefacts on bgr color of nodes in header may appear, in such
-       case emulate rgba(x,x,x,a) color manualy using rgb(x,x,x) and opacity */
+    /* bug causing artifacts on bgr color of nodes in header may appear, in such
+       case emulate rgba(x,x,x,a) color manually using rgb(x,x,x) and opacity */
 }
 
-/************************************ WINDOW ***********************************
+/************************************ WINDOW ***************************************************************************
  * Window. More specifically its root pane. 
  * inherits: .root
  * pseudoclasses: focused, hover, resized, moved, fullscreen
@@ -3297,7 +3297,7 @@ check-icon-disabling:selected {
     -fx-opacity:1;
     /*-fx-background-image: url("bgr.jpg");*/
     /* This causes unexpected bug, the image is not resized properly.
-     * Solution: simply define the image in the skin, just like here. I dont know why
+     * Solution: simply define the image in the skin, just like here. I do not know why
      * inheriting this causes resize bugs...
      */
     -fx-background-size: stretch;
@@ -3319,7 +3319,7 @@ check-icon-disabling:selected {
     -fx-background-color: -fx-pane-color;
 }
 
-/****************************************************************************************/
+/**********************************************************************************************************************/
 
 /** 
  * Pane border created with path.
@@ -3354,7 +3354,7 @@ check-icon-disabling:selected {
     -fx-background-color: -fx-pane-color;
     /*
     default padding for all widgets
-    note: widgets shouldnt have their own padding to remain consistent
+    note: widgets should not have their own padding to remain consistent
     */
     -fx-padding: 4 ;
     -fx-background-insets: 2; /* margin, by default set to area-path-border width */
@@ -3367,7 +3367,7 @@ check-icon-disabling:selected {
     -fx-background-color: null;
 }
 /**
- * Container area in layout mode. Inherits .block styleclas.
+ * Container area in layout mode. Inherits .block styleclass.
  */
 .container-control {
     -fx-background-color: -fx-pane-color;
@@ -3405,7 +3405,7 @@ check-icon-disabling:selected {
 .dialog-button {
     /* arrow css used for other components like combo-box */
     -fx-background-color: -fx-def-font-color;
-    /* use thid to get nice not filled arrow */
+    /* use this to get nice not filled arrow */
     /* -fx-background-color: -fx-mark-highlight-color, -fx-mark-color; */
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
@@ -3429,7 +3429,7 @@ check-icon-disabling:selected {
  * (e.g. shadow) will apply it twice
  */
 
-/* Denotes a currently playd record in the playlist or other table. */
+/* Denotes a currently played record in the playlist or other table. */
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
@@ -3469,7 +3469,7 @@ check-icon-disabling:selected {
     -fx-opacity: 1;
 }
 
-/******************************** ITEM PICKER *********************************
+/******************************** ITEM PICKER **************************************************************************
  * Picker displays elements to choose from as a scrollable tile grid.
  * inherits: ScrollPane, .block
  * Used in layouts (should mirror the style of widget area), but also popups.
@@ -3513,7 +3513,7 @@ check-icon-disabling:selected {
     /*
     null: would let mouse events pass through the popover bgr, as if pickOnBounds
           is set to false - only the content would receive the events
-    transparent: mouse events dont pass through == normal
+    transparent: mouse events do not pass through == normal
     */
     -fx-background-color: transparent;
 }
@@ -3529,11 +3529,11 @@ check-icon-disabling:selected {
     -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
                 /* -fx-def-font-color; */
     -fx-stroke-width: 1;
-    /* radius is not stylable for now and is fixed to programmatic value */
+    /* radius is not styleable for now and is fixed to programmatic value */
 }
 
 /*
- * Content root - ranctangular area for the actual content of the popup.
+ * Content root - rectangular area for the actual content of the popup.
  * Includes header, but not the arrow.
  * inherits: BorderPane
  */
@@ -3561,12 +3561,12 @@ check-icon-disabling:selected {
 .header-buttons {}*/
 
 /* Close button in the header*/
-.popover-closebutton {
+.popover-close-button {
     /* separate the close button from the rest a bit visually*/
     /*-fx-padding: 0 0 0 5;*/ 
 }
 
-/* Ssome usage examples... */
+/* Some usage examples... */
 .popover:detached > .popover-root > .bgr {}
 .popover:focused > .popover-root > .bgr,
 .popover:detached:focused > .popover-root > .bgr {}
@@ -3637,8 +3637,8 @@ check-icon-disabling:selected {
 .balancer-bgr {
     -fx-image: url("balancer-bgr.png");
 }
-.balancer-foregr {
-    -fx-image: url("balancer-foregr.png");
+.balancer-fgr {
+    -fx-image: url("balancer-fgr.png");
 }
 
 /********************************** SEEKER *****************************************************************************
@@ -3690,7 +3690,7 @@ check-icon-disabling:selected {
 
 /*********************************** TEXT ******************************************************************************
  * javafx.scene.text.Text does not actually have a style class so this is a custom
- * implementation of that used by a sublass
+ * implementation of that used by a subclass
  */
 .text-shape {
     -fx-fill: -fx-def-font-color;
@@ -3717,7 +3717,7 @@ check-icon-disabling:selected {
  * Ok icon used in config fields to apply change.
  * inherits: .icon
  */
-.congfig-field-ok-button {
+.config-field-ok-button {
     -glyph-name: CHECK;
 }
 
@@ -3741,28 +3741,28 @@ check-icon-disabling:selected {
  * Warn icon used in config fields to signal erroneous input.
  * inherits: .icon
  */
-.congfig-field-warn-button {
+.config-field-warn-button {
     -glyph-name: EXCLAMATION_TRIANGLE;
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
-.congfig-field-warn-button:hover {
+.config-field-warn-button:hover {
     -fx-fill: -fx-focus-color;
     -fx-scale-x: 1;
     -fx-scale-y: 1;
 }
 
-.congfig-field-default-button {
+.config-field-default-button {
     -fx-font-size: 0.9em;
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
     -fx-text-fill: -fx-def-font-color;
     -fx-padding: 2 0 0 0; /* fix vertical alignment*/
 }
-.congfig-field-default-button:pressed:hover {
+.config-field-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
-.congfig-field-default-button:hover {
+.config-field-default-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
@@ -3790,7 +3790,7 @@ check-icon-disabling:selected {
 /*
  * .rating-button
  * the stars (although not necessarily stars (not settable in css))), all of the
- * icons are one object due to performance optimizations, so so separete effects
+ * icons are one object due to performance optimizations, so so separate effects
  * on individual icons are impossible
  * should inherit .glyph, but does not due to possible problems
  * 
@@ -3916,7 +3916,7 @@ check-icon-disabling:selected {
     -fx-opacity: 0.8;
     -fx-stroke: -fx-def-font-color;
     -fx-stroke-width: 2;
-    -fx-fill: null; /* bgr of the shape the path makes - we dont want any*/ 
+    -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
 .ioline:hover {
     -fx-opacity: 1;
@@ -3934,8 +3934,8 @@ check-icon-disabling:selected {
 
 
 /***************************** OVERLAY PANE *****************************
- * Pane laying 'above' some content creating 'overlay' bgr above it. Used for vaiour things, mostly
- * by sublassing.
+ * Pane laying 'above' some content creating 'overlay' bgr above it. Used for various things, mostly
+ * by subclassing.
  * inherits: .stack-pane
  */
 .overlay-pane {
@@ -3975,7 +3975,7 @@ check-icon-disabling:selected {
 }
 
 /*************************** SHORTCUT PANE *******************************
- * Overlay panedisplaying shortcuts and their keys
+ * Overlay pane displaying shortcuts and their keys
  * inherits: .overlay-pane
  */
 .shortcut-pane{}
@@ -4031,7 +4031,7 @@ check-icon-disabling:selected {
 }
 
 /******************** DRAG PANE *********************
- * Drag hihglighting pane, visible when drag enters node and hidden when it exists.
+ * Drag highlighting pane, visible when drag enters node and hidden when it exists.
  * Normally it is always highlighted, but only visible on drag over.
  *
  * inherits: .placeholder-pane

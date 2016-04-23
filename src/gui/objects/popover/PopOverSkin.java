@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, ControlsFX
  * All rights reserved.
  *
@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.popover;
 
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
         String closeBt = "Close\n\nClose this popup and its content.";
         Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong)
-                            .styleclass("popover-closebutton");
+                            .styleclass("popover-close-button");
 
         String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse "
                 + "click outside of this popup.";
@@ -158,7 +159,7 @@ public class PopOverSkin implements Skin<PopOver> {
         // header visibility
         maintain(p.headerVisible, b->b ? header : null, content.topProperty());
 
-        // the delay in the execution is essencial for updatePath to work - unknown reason
+        // the delay in the execution is essential for updatePath to work - unknown reason
         InvalidationListener uPLd = o -> run(25,this::updatePath);
         InvalidationListener uPL = o -> updatePath();
 
@@ -251,7 +252,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     /**
      * Sets padding of content within popover. Overrides and defaults to css.
-     * @param i
+     * @param i padding
      */
     @Deprecated // use css
     public void setContentPadding(Insets i) {
@@ -268,8 +269,7 @@ public class PopOverSkin implements Skin<PopOver> {
     }
 
     /**
-     * Returns padding of content within popover. Default is css value.
-     * @return
+     * @return padding of content within popover. Default is css value.
      */
     public Insets getContentPadding() {
         return content.getPadding();

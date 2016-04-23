@@ -75,22 +75,20 @@ import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
 /**
- Window for application.
- <p/>
- Window with basic functionality.
- <p/>
- Below is a code example creating and configuring custom window instance:
- <pre>
-     Window w = Window.create();
-            w.setIsPopup(true);
-            w.getStage().initOwner(App.getWindow().getStage());
-            w.setTitle(title);
-            w.setContent(content);
-            w.show();
-            w.setLocationCenter();
- </pre>
- <p/>
- @author plutonium
+ * Window for application.
+ * <p/>
+ * Use example:
+ * <pre>{@code
+ *     Window w = Window.create();
+ *            w.setIsPopup(true);
+ *            w.getStage().initOwner(App.getWindow().getStage());
+ *            w.setTitle(title);
+ *            w.setContent(content);
+ *            w.show();
+ *            w.setLocationCenter();
+ * }</pre>
+ *
+ * @author plutonium
  */
 @IsConfigurable
 public class Window extends WindowBase {
@@ -98,18 +96,15 @@ public class Window extends WindowBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
     static final ObservableList<Window> WINDOWS = observableArrayList(); // accessed from WindowManager.class
 
-    /** Psududoclass active when this window is focused. Applied on root as '.window'. */
+    /** Pseudoclass active when this window is focused. Applied on root as '.window'. */
     public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
-    /** Psududoclass active when this window is resized. Applied on root as '.window'. */
+    /** Pseudoclass active when this window is resized. Applied on root as '.window'. */
     public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
-    /** Psududoclass active when this window is moved. Applied on root as '.window'. */
+    /** Pseudoclass active when this window is moved. Applied on root as '.window'. */
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
-    /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
+    /** Pseudoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
 
-/**************************************************************************************************/
-
-    boolean main = false;
 
     /** Scene root. Assigned '.window' styleclass. */
     @FXML public AnchorPane root = new AnchorPane();
@@ -122,6 +117,13 @@ public class Window extends WindowBase {
 
     /** Disposables ran when window closes. For example you may put here listeners. */
     public final List<Subscription> disposables = new ArrayList<>();
+    /**
+     * Main window has altered behavior.
+     * <ul>
+     * <li> Closing main window causes application to close as well
+     * </ul>
+     */
+    boolean main = false;
 
     Window() {
         this(null,UNDECORATED);
@@ -194,7 +196,7 @@ public class Window extends WindowBase {
 
 	    // app dragging (anywhere on ALT)
         root.addEventFilter(MOUSE_PRESSED, e -> {
-            if(e.getButton()==PRIMARY && e.isAltDown() && !e.isShiftDown()) {
+            if(e.getButton()==PRIMARY && e.isAltDown() && e.isShiftDown()) {
                 isMovingAlt = true;
 	            subroot.setMouseTransparent(true);
                 moveStart(e);
@@ -250,7 +252,7 @@ public class Window extends WindowBase {
             else if (e.getDeltaY() < 0) PLAYBACK.volumeDec();
         });
 
-        List<Maximized> maximizeds = list(Maximized.LEFT,Maximized.NONE,Maximized.RIGHT);
+        List<Maximized> maximizedValues = list(Maximized.LEFT,Maximized.NONE,Maximized.RIGHT);
         List<Screen> screens = Screen.getScreens();
         KeyCombination cycleSMLeft = keyCombination("Alt+Left");
         KeyCombination cycleSMRight = keyCombination("Alt+Right");
@@ -270,11 +272,11 @@ public class Window extends WindowBase {
             if(e.getEventType().equals(KEY_PRESSED)) {
                 if(cycleSMLeft.match(e)) {
                     if(maximized.get()==Maximized.LEFT) screen = previous(screens,screen);
-                    setMaximized(previous(maximizeds,maximized.get()));
+                    setMaximized(previous(maximizedValues,maximized.get()));
                 }
                 if(cycleSMRight.match(e)) {
                     if(maximized.get()==Maximized.RIGHT) screen = next(screens,screen);
-                    setMaximized(next(maximizeds,maximized.get()));
+                    setMaximized(next(maximizedValues,maximized.get()));
                 }
                 if(maximize.match(e)) {
                     setMaximized(Maximized.ALL);
@@ -285,7 +287,6 @@ public class Window extends WindowBase {
                 }
             }
         });
-
 
         Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
         Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
@@ -300,9 +301,9 @@ public class Window extends WindowBase {
                             if (LastFM.isLoginSuccess())
                                 LastFM.toggleScrobbling();
                             else
-                                new PopOver("LastFM login", LastFM.getLastFMconfig()).show(b);
+                                new PopOver<>("LastFM login", LastFM.getLastFMconfig()).show(b);
                     else if (e.getButton() == SECONDARY)
-                        new PopOver("LastFM login", LastFM.getLastFMconfig()).show(b);
+                        new PopOver<>("LastFM login", LastFM.getLastFMconfig()).show(b);
         });
         maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB::icon);
         lastFMB.setDisable(true);
@@ -311,19 +312,17 @@ public class Window extends WindowBase {
                 + "layouts can also be locked individually.", Gui::toggleLayoutLocked);
         maintain(Gui.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
         Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
-        Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout",
-                () -> ((SwitchPane)getSwitchPane()).alignLeftTab());
-        Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout",
-                () -> ((SwitchPane)getSwitchPane()).alignRightTab());
+        Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout", () -> getSwitchPane().alignLeftTab());
+        Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout",  () -> getSwitchPane().alignRightTab());
         maintain(Gui.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
         Icon guideB = new Icon(GRADUATION_CAP, 13, Action.get("Open guide"));
         Icon helpB = createInfoIcon("Available actions:\n"
             + "\tHeader icons : Providing custom functionalities. See tooltips.\n"
-            + "\tHeader buttons : Providing window contorl. See tooltips.\n"
+            + "\tHeader buttons : Providing window control. See tooltips.\n"
             + "\tMouse drag : Move window. Windows snap to screen or to other windows.\n"
             + "\tMouse drag to screen edge : Activates one of 7 maximized modes.\n"
-            + "\tMouse drag edge : Resizes window.\n"
-            + "\tDouble left click : Toggle meximized mode on/off.\n"
+            + "\tMouse drag edge : Resize window.\n"
+            + "\tDouble left click : Toggle maximized mode on/off.\n"
             + "\tDouble right click : Toggle hide header on/off.\n"
             + "\tPress ALT : Show hidden header temporarily.\n"
             + "\tPress ALT : Activate layout mode.\n"
@@ -331,20 +330,19 @@ public class Window extends WindowBase {
 
         // left header
 	    leftHeaderBox.getChildren().addAll(
-//            gitB, cssB, dirB, iconsB, new Label(" "),
-            new Label(" "),
             layB, propB, runB, lastFMB, new Label(" "),
-            ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB
+            ltB, lockB, lmB, rtB, new Label(" "),
+            guideB, helpB
         );
 
 	Icon miniB = new Icon(null, 13, Action.get("Mini mode"));
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
-        Icon ontopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
+        Icon onTopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
                 + "application windows", this::toggleAlwaysOnTOp);
-        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB::icon);
-        Icon fullscrB = new Icon(null, 17, "Fullscreen\n\nExpand window to span whole screen and "
+        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), onTopB::icon);
+        Icon fullsB = new Icon(null, 17, "Fullscreen\n\nExpand window to span whole screen and "
                 + "put it on top", this::toggleFullscreen);
-        maintain(fullscreen, mapB(FULLSCREEN_EXIT,FULLSCREEN), fullscrB::icon);
+        maintain(fullscreen, mapB(FULLSCREEN_EXIT,FULLSCREEN), fullsB::icon);
         Icon minimB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
 //        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
         Icon maximB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
@@ -355,12 +353,10 @@ public class Window extends WindowBase {
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
 
         // right header
-	    rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);
+	    rightHeaderBox.getChildren().addAll(miniB, onTopB, fullsB, minimB, maximB, closeB);
     }
 
-
-
-/******************************* CONTENT **************************************/
+/* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
 
     private Layout layout;
     private SwitchContainer topContainer;
@@ -412,15 +408,15 @@ public class Window extends WindowBase {
         // scroll bgr along with the tabs
         // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
         // try at: http://www.mathe-fa.de
-        topContainer.ui.translateProperty().addListener((o, oldx, newV) -> {
-            double x = newV.doubleValue();
+        topContainer.ui.translateProperty().addListener((o,ov,nv) -> {
+            double x = nv.doubleValue();
             double space = backimage.getWidth() * ((scaleFactor - 1) / 2d);
             double dir = signum(x);
             x = abs(x);
             backimage.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
         });
-        topContainer.ui.zoomProperty().addListener((o, oldx, newV) -> {
-            double x = newV.doubleValue();
+        topContainer.ui.zoomProperty().addListener((o,ov,nv) -> {
+            double x = nv.doubleValue();
             x = 1 - (1 - x) / 5;
             backimage.setScaleX(scaleFactor * pow(x, 0.25));
             backimage.setScaleY(scaleFactor * pow(x, 0.25));
@@ -428,9 +424,9 @@ public class Window extends WindowBase {
     }
 
     /**
-     Returns layout aggregator of this window.
-     <p/>
-     @return layout aggregator, never null.
+     * Returns layout aggregator of this window.
+     *
+     * @return layout aggregator, never null.
      */
     public SwitchPane getSwitchPane() {
 	return topContainer==null ? null : topContainer.ui;
@@ -441,21 +437,21 @@ public class Window extends WindowBase {
     }
 
     /**
-     Blocks input to content, but not to root.
-     <p/>
-     Use when any input to content is not desirable, for example during
-     window manipulation like animations.
-     <p/>
-     Sometimes content could consume or interfere with the input directed
-     towards the window (root), in such situations this method will help.
-     <p/>
-     @param val
+     * Blocks mouse input to content, but not to root.
+     * <p/>
+     * Use when any input to content is not desirable, for example during
+     * window manipulation like animations.
+     * <p/>
+     * Sometimes content could consume or interfere with the input directed
+     * towards the window (root), in such situations this method will help.
+     *
+     * @param val true to block mouse input
      */
     public void setContentMouseTransparent(boolean val) {
 	content.setMouseTransparent(val);
     }
 
-/****************************** HEADER & BORDER **********************************/
+/* ---------- HEADER & BORDER --------------------------------------------------------------------------------------- */
 
     @FXML public BorderPane header;
     @FXML private Pane header_activator;
@@ -564,7 +560,7 @@ public class Window extends WindowBase {
         );
     }
 
-/**************************** WINDOW MECHANICS ********************************/
+/* ---------- WINDOW MECHANICS -------------------------------------------------------------------------------------- */
 
     @Override
     public void close() {
@@ -575,7 +571,7 @@ public class Window extends WindowBase {
             // new list avoids ConcurrentModificationError
             list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
             // closing app takes a little while, so we close the windows instantly and let it finish
-            // in the bacground. This removes disturbing "lag" effect.
+            // in the background. This removes disturbing "lag" effect.
             WINDOWS.forEach(w -> w.s.hide());
             APP.close();
 	    } else {
@@ -588,9 +584,9 @@ public class Window extends WindowBase {
 
     @Override
     public void setFullscreen(boolean v) {
-		super.setFullscreen(v);                         // fullscreen
-        applyBorderless(v ? true : borderless);         // borderless
-	    applyHeaderVisible(v ? false : headerVisible);  // headerless
+		super.setFullscreen(v);
+        applyBorderless(v || borderless);
+	    applyHeaderVisible(!v && headerVisible);
     }
 
     public boolean isBorderless() {
@@ -614,7 +610,7 @@ public class Window extends WindowBase {
 	return AnchorPane.getBottomAnchor(content) == 0;
     }
 
- /*********************************   MOVING   ********************************/
+/* ---------- MOVING ------------------------------------------------------------------------------------------------ */
 
     private double appX;
     private double appY;
@@ -636,7 +632,7 @@ public class Window extends WindowBase {
     }
 
     private void moveDo(MouseEvent e) {
-	    // We dont want to check button onMove. Right click could interfere (possibly stop)
+	    // We do not want to check button onMove. Right click could interfere (possibly stop)
 	    // the movement, but we want to simply ignore that. The movement begins and ends only
 	    // with PRIMARY button, which is satisfactory condition to begin with.
         // if (!isMoving.get() || e.getButton() != PRIMARY) return;
@@ -646,10 +642,10 @@ public class Window extends WindowBase {
         double Y = e.getScreenY();
         Screen screen = Util.getScreen(X, Y);
 
-        double SWm = screen.getBounds().getMinX(); //screen_wbegin
-        double SHm = screen.getBounds().getMinY(); //screen_wbegin
-        double SW = screen.getBounds().getMaxX(); //screen_width
-        double SH = screen.getBounds().getMaxY(); //screen_height
+        double SWm = screen.getBounds().getMinX();
+        double SHm = screen.getBounds().getMinY();
+        double SW = screen.getBounds().getMaxX();
+        double SH = screen.getBounds().getMaxY();
         double SW5 = screen.getBounds().getWidth() / 5;
         double SH5 = screen.getBounds().getHeight() / 5;
 

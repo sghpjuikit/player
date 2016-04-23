@@ -110,17 +110,17 @@ public class Balancer extends Control {
 
 
 
-    public class BalancerSkin extends SkinBase<Balancer> {
+    public static class BalancerSkin extends SkinBase<Balancer> {
 
         // the container for the traditional rating control. If updateOnHover and
         // partialClipping are disabled, this will show a combination of strong
         // and non-strong graphics, depending on the current rating value
-        private ImageView backgroundContainer;
+        private ImageView bgrContainer;
 
         // the container for the strong graphics which may be partially clipped.
         // Note that this only exists if updateOnHover or partialClipping is enabled.
-        private ImageView foregroundContainer;
-        private Rectangle forgroundClipRect;
+        private ImageView fgrContainer;
+        private Rectangle fgrClipRect;
         private double balance;
 
         public BalancerSkin(Balancer b) {
@@ -131,41 +131,41 @@ public class Balancer extends Control {
             registerChangeListener(b.minProperty(), e -> updateClip());
 
             // create graphics
-            backgroundContainer = new ImageView();
-            backgroundContainer.setPreserveRatio(false);
-            backgroundContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
-            backgroundContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
-            backgroundContainer.getStyleClass().add("balancer-bgr");
-            getChildren().setAll(backgroundContainer);
+            bgrContainer = new ImageView();
+            bgrContainer.setPreserveRatio(false);
+            bgrContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
+            bgrContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
+            bgrContainer.getStyleClass().add("balancer-bgr");
+            getChildren().setAll(bgrContainer);
 
-            foregroundContainer = new ImageView();
-            foregroundContainer.setPreserveRatio(false);
-            foregroundContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
-            foregroundContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
+            fgrContainer = new ImageView();
+            fgrContainer.setPreserveRatio(false);
+            fgrContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
+            fgrContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
 
 
-            foregroundContainer.getStyleClass().add("balancer-foregr");
-            foregroundContainer.setMouseTransparent(true);
-            getChildren().add(foregroundContainer);
+            fgrContainer.getStyleClass().add("balancer-fgr");
+            fgrContainer.setMouseTransparent(true);
+            getChildren().add(fgrContainer);
 
-            forgroundClipRect = new Rectangle();
-            foregroundContainer.setClip(forgroundClipRect);
+            fgrClipRect = new Rectangle();
+            fgrContainer.setClip(fgrClipRect);
 
             // install behavior
-            // note: use container instead of stylable component. When putting the
-            // stylable within a gridPane (for example) its PrefWidth is not what
-            // one would expect. As such the balancig with mouse didnt work properly.
+            // note: use container instead of styleable component. When putting the
+            // styleable within a gridPane (for example) its PrefWidth is not what
+            // one would expect. As such the balancing with mouse did not work properly.
             getSkinnable().addEventHandler(MOUSE_DRAGGED, e -> {
-                double x = e.getX() - foregroundContainer.getLayoutX();
+                double x = e.getX() - fgrContainer.getLayoutX();
                 if (getSkinnable().contains(x, e.getY())) {
-                    double bal = (x/foregroundContainer.getFitWidth()-0.5)*2;
+                    double bal = (x/ fgrContainer.getFitWidth()-0.5)*2;
                     getSkinnable().setBalance(bal);
                 }
             });
             getSkinnable().addEventHandler(MOUSE_PRESSED, e -> {
-                double x = e.getX() - foregroundContainer.getLayoutX();
+                double x = e.getX() - fgrContainer.getLayoutX();
                 if (getSkinnable().contains(x, e.getY())) {
-                    double bal = (x/foregroundContainer.getFitWidth()-0.5)*2;
+                    double bal = (x/ fgrContainer.getFitWidth()-0.5)*2;
                     getSkinnable().setBalance(bal);
                 }
             });
@@ -187,9 +187,9 @@ public class Balancer extends Control {
             double start = balance<0 ? 0 : balance*w/2;
             double end =  balance>0 ? w : w/2+(balance+1)*w/2;
 
-            forgroundClipRect.relocate(start,0);
-            forgroundClipRect.setWidth(end-start);
-            forgroundClipRect.setHeight(h);
+            fgrClipRect.relocate(start,0);
+            fgrClipRect.setWidth(end-start);
+            fgrClipRect.setHeight(h);
         }
     }
 

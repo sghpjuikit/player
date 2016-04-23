@@ -74,6 +74,7 @@ import static util.dev.Util.no;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
+import static util.type.Util.build;
 import static util.type.Util.getEnumConstants;
 
 /**
@@ -84,12 +85,12 @@ import static util.type.Util.getEnumConstants;
 @IsConfigurable("Action Chooser")
 public class ActionPane extends OverlayPane implements Configurable<Object> {
 
-    static final ClassMap<Class<?>> fieldmap = new ClassMap<>();
+    static final ClassMap<Class<?>> fieldMap = new ClassMap<>();
     static {
-        fieldmap.put(PlaylistItem.class, PlaylistItem.Field.class);
-        fieldmap.put(Metadata.class, Metadata.Field.class);
-        fieldmap.put(MetadataGroup.class, MetadataGroup.Field.class);
-        fieldmap.put(File.class, FileField.class);
+        fieldMap.put(PlaylistItem.class, PlaylistItem.Field.class);
+        fieldMap.put(Metadata.class, Metadata.Field.class);
+        fieldMap.put(MetadataGroup.class, MetadataGroup.Field.class);
+        fieldMap.put(File.class, FileField.class);
     }
 
     private static final String ROOT_STYLECLASS = "action-pane";
@@ -97,7 +98,6 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     private static final String COD_TITLE = "Close when action ends";
     private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
-/**************************************************************************************************/
 
     @IsConfig(name = COD_TITLE, info = COD_INFO)
     public final V<Boolean> closeOnDone = new V<>(false);
@@ -106,35 +106,35 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         getStyleClass().add(ROOT_STYLECLASS);
 
         // icons and descriptions
-        ScrollPane descfullScroll = layScrollVTextCenter(descfull);
+        ScrollPane descriptionFullPane = layScrollVTextCenter(descFull);
         StackPane infoPane = layStack(dataInfo,TOP_LEFT);
-        VBox descPane = layVertically(8, BOTTOM_CENTER, desctitl,descfullScroll);
+        VBox descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
         HBox iconBox = layHorizontally(15,CENTER);
         icons = iconBox.getChildren();
 
-        // content for icons and desciptions
-        StackPane icontent = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
+        // content for icons and descriptions
+        StackPane iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
         // Minimal and maximal height of the 3 layout components. The heights should add
-        // up to full length (including the spacing of course). Sounds familiar? No, couldnt use
+        // up to full length (including the spacing of course). Sounds familiar? No, could not use
         // VBox or stackpane as we need the icons to be always in the center.
         // Basically we want the individual components to resize individually, but still respect
         // each other's presence (so to not cover each other).
-        // We dont want any component to be very small (hence the min height) but the text shouldnt
-        // be too spacy - the icons are important - hence the max size. The icon's max size is simply
+        // We do not want any component to be very small (hence the min height) but the text should not
+        // be too spacey - the icons are important - hence the max size. The icon's max size is simply
         // totalHeight - height_of_others - 2*spacing.
         infoPane.setMinHeight(100);
-        infoPane.maxHeightProperty().bind(min(icontent.heightProperty().multiply(0.3), 400));
+        infoPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
         descPane.setMinHeight(100);
-        descPane.maxHeightProperty().bind(min(icontent.heightProperty().multiply(0.3), 400));
-        iconBox.maxHeightProperty().bind(icontent.heightProperty().multiply(0.4).subtract(2*25));
+        descPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
+        iconBox.maxHeightProperty().bind(iconPane.heightProperty().multiply(0.4).subtract(2*25));
 
         // content
-        HBox content = layHorizontally(0, CENTER, tablePane,icontent); // table is an optional left complement to icontent
+        HBox content = layHorizontally(0, CENTER, tablePane,iconPane); // table is an optional left complement to iconPane
              content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
         tableContentGap = content.spacingProperty();
-        // icontent and table complement each other horizontally, though icontent is more
+        // iconPane and table complement each other horizontally, though iconPane is more
         // important and should be wider & closer to center
-        icontent.minWidthProperty().bind(content.widthProperty().multiply(0.6));
+        iconPane.minWidthProperty().bind(content.widthProperty().multiply(0.6));
 
         Pane controlsMirror = new Pane();
              controlsMirror.prefHeightProperty().bind(controls.heightProperty()); // see below
@@ -152,12 +152,12 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
         descPane.setMouseTransparent(true); // just in case
         infoPane.setMouseTransparent(true); // same here
-        desctitl.setTextAlignment(TextAlignment.CENTER);
-        descfull.setTextAlignment(TextAlignment.JUSTIFY);
-        descfullScroll.maxWidthProperty().bind(min(400, icontent.widthProperty()));
+        descTitle.setTextAlignment(TextAlignment.CENTER);
+        descFull.setTextAlignment(TextAlignment.JUSTIFY);
+        descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
     }
 
-/***************************** PRECONFIGURED ACTIONS ******************************/
+/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
 
     public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
 
@@ -170,37 +170,33 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         actions.accumulate(c, listRO(action));
     }
 
-/************************************ CONTROLS ************************************/
+/* ---------- CONTROLS ---------------------------------------------------------------------------------------------- */
 
     private final Icon helpI = createInfoIcon(
         "Action chooser"
       + "\n"
-      + "\nChoose an action. It may use some input data. Data not immediatelly ready will "
+      + "\nChoose an action. It may use some input data. Data not immediately ready will "
       + "display progress indicator."
     );
     private final Icon hideI = new CheckIcon(closeOnDone)
                                     .tooltip(COD_TITLE+"\n\n"+COD_INFO)
                                     .icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE);
-    private final ProgressIndicator dataObtainingProgress = new Spinner(1){{
-        maintain(progressProperty(),p -> p.doubleValue()<1, visibleProperty());
-    }};
-    private final ProgressIndicator actionProgress = new Spinner(1){{
-        maintain(progressProperty(),p -> p.doubleValue()<1, visibleProperty());
-    }};
-    private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress,dataObtainingProgress,hideI,helpI);
+    private final ProgressIndicator dataProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
+    private final ProgressIndicator actionProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
+    private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);
 
-/************************************ DATA ************************************/
+/* ---------- DATA -------------------------------------------------------------------------------------------------- */
 
     private boolean use_registered_actions = true;
     private Object data;
-    private List<ActionData> iactions;
-    private final List<ActionData> dactions = new ArrayList<>();
+    private List<ActionData> actionsIcons;
+    private final List<ActionData> actionsData = new ArrayList<>();
 
     @Override
     public void show() {
         setData(data);
 
-        // Bugfix. We need to initialize the layout before it is visible or it may visually
+        // Bug fix. We need to initialize the layout before it is visible or it may visually
         // jump around as it does on its own.
         // Cause: unknown, probably the many bindings we use...
         getContent().layout();
@@ -210,6 +206,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         super.show();
     }
 
+    @SuppressWarnings("unchecked")
     public final void show(Object value) {
         value = collectionUnwrap(value);
         Class c = value==null ? Void.class : value.getClass();
@@ -223,7 +220,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?>... actions) {
         data = value;
-        iactions = list(actions);
+        actionsIcons = list(actions);
         use_registered_actions = !exclusive;
         show();
     }
@@ -231,7 +228,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     @SafeVarargs
     public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T,?>... actions) {
         data = value;
-        iactions = list(actions);
+        actionsIcons = list(actions);
         use_registered_actions = !exclusive;
         show();
     }
@@ -240,17 +237,17 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         if(closeOnDone.get()) hide();
     }
 
-/********************************** GRAPHICS **********************************/
+/* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
 
     private final Label dataInfo = new Label();
-    private final Label desctitl = new Label();
-    private final Text descfull = new Text();
+    private final Label descTitle = new Label();
+    private final Text descFull = new Text();
     private final ObservableList<Node> icons;
     private final DoubleProperty tableContentGap;
     private StackPane tablePane = new StackPane();
     private FilteredTable<?,?> table;
 
-/*********************************** HELPER ***********************************/
+/* ---------- HELPER ------------------------------------------------------------------------------------------------ */
 
     // retrieve set data
     private Object getData() {
@@ -265,8 +262,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
         // set content
         data = collectionUnwrap(d);
-        boolean dataready = !(data instanceof Fut && !((Fut)data).isDone());
-        if(dataready) {
+        boolean isDataReady = !(data instanceof Fut && !((Fut)data).isDone());
+        if(isDataReady) {
             data = futureUnwrap(data);
             setDataInfo(data, true);
             showIcons(data);
@@ -275,15 +272,15 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             // obtain data & invoke again
             Fut<Object> f = ((Fut)data)
                     .use(this::setData,FX)
-                    .showProgress(dataObtainingProgress);
+                    .showProgress(dataProgress);
             f.run();
             data = f;
         }
     }
 
     private void setActionInfo(ActionData<?,?> a) {
-        desctitl.setText(a==null ? "" : a.name);
-        descfull.setText(a==null ? "" : a.description);
+        descTitle.setText(a==null ? "" : a.name);
+        descFull.setText(a==null ? "" : a.description);
     }
 
     private void setDataInfo(Object data, boolean computed) {
@@ -294,8 +291,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             Collection<?> collection = (Collection) data;
             // TODO: improve collection element type recognition
             Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
-            if(fieldmap.containsKey(coltype)) {
-                FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldmap.get(coltype))[0]);
+            if(fieldMap.containsKey(coltype)) {
+                FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldMap.get(coltype))[0]);
                 t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {
@@ -321,22 +318,22 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         if(Void.class.equals(type)) return "";
 
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
-        String dname = computed ? APP.instanceName.get(d) : "n/a";
-        String dkind = computed ? APP.className.get(type) : "n/a";
-        String dinfo = APP.instanceInfo.get(d).entrySet().stream()
-                          .map(e -> e.getKey() + ": " + e.getValue()).sorted().collect(joining("\n"));
-        if(!dinfo.isEmpty()) dinfo = "\n" + dinfo;
+        String dName = computed ? APP.instanceName.get(d) : "n/a";
+        String dKind = computed ? APP.className.get(type) : "n/a";
+        String dInfo = stream(APP.instanceInfo.get(d)).mapKeyValue((key,val) -> key + ": " + val).sorted().collect(joining("\n"));
+        if(!dInfo.isEmpty()) dInfo = "\n" + dInfo;
 
-        return "Data: " + dname + "\nType: " + dkind + dinfo ;
+        return "Data: " + dName + "\nType: " + dKind + dInfo ;
     }
 
+    @SuppressWarnings("unchecked")
     private void showIcons(Object d) {
         Class<?> dt = d==null ? Void.class : d instanceof Collection ? ((Collection)d).stream().findFirst().orElse(null).getClass() : d.getClass();
         // get suitable actions
-        dactions.clear();
-        dactions.addAll(iactions);
-        if(use_registered_actions) dactions.addAll(actions.getElementsOfSuperV(dt));
-        dactions.removeIf(a -> {
+        actionsData.clear();
+        actionsData.addAll(actionsIcons);
+        if(use_registered_actions) actionsData.addAll(actions.getElementsOfSuperV(dt));
+        actionsData.removeIf(a -> {
             if(a.groupApply==FOR_ALL) {
                 return a.condition.test(collectionWrap(d));
             }
@@ -346,13 +343,13 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             }
             if(a.groupApply==NONE) {
                 Object o = collectionUnwrap(d);
-                return o instanceof Collection ? true : !a.condition.test(o);
+                return o instanceof Collection || !a.condition.test(o);
             }
             throw new RuntimeException("Illegal switch case");
         });
 
-        icons.setAll(dactions.stream().sorted(by(a -> a.name)).map(action -> {
-            Icon i = new Icon<Icon<?>>()
+        icons.setAll(actionsData.stream().sorted(by(a -> a.name)).map(action -> {
+            Icon i = new Icon<>()
                   .icon(action.icon)
                   .styleclass(ICON_STYLECLASS)
                   .onClick(e -> {
@@ -379,20 +376,19 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                  // scrollbar. A bit unintuitive, but works like a charm and description remains
                  // fully readable.
                  i.addEventHandler(ScrollEvent.ANY, e -> {
-                     descfull.getParent().getParent().fireEvent(e);
+                     descFull.getParent().getParent().fireEvent(e);
                      e.consume();
                  });
             return i.withText(action.name);
         }).collect(toList()));
 
         // Animate - pop icons in parallel, but with increasing delay
-        // We dont want the total animation length be dependent on number of icons (by using
+        // We do not want the total animation length be dependent on number of icons (by using
         // absolute icon delay), rather we calculate the delay so total length remains the same.
         Duration total = seconds(1);
-        double idelay_abs = total.divide(icons.size()).toMillis(); // use for consistent total length
-        double idelay_rel = 200; // use for consistent frequency
-        double idelay = idelay_abs;
-        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*idelay))
+        double delay_abs = total.divide(icons.size()).toMillis(); // use for consistent total length
+        double delay_rel = 200; // use for consistent frequency
+        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*delay_abs))
             .play();
     }
 
@@ -426,16 +422,17 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         private final Ƒ1<T,?> action;
         public final boolean isLong;
 
-        private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean ISLONG, Ƒ1<T,?> action) {
+        private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Ƒ1<T,?> action) {
             this.name = name;
             this.description = description;
             this.icon = icon;
             this.condition = constriction;
             this.groupApply = group;
-            this.isLong = ISLONG;
+            this.isLong = isLong;
             this.action = action;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Object apply(Object data) {
             boolean isCollection = data instanceof Collection;
@@ -444,8 +441,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             } else
             if(groupApply==FOR_EACH) {
                 if(isCollection) {
-                    for(T t : (Collection<T>)data)
-                        action.apply(t);
+                    ((Collection<T>) data).forEach(action::apply);
                     return null;
                 } else {
                     return action.apply((T)data);
@@ -506,8 +502,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     /** Action that executes asynchronously - receives a future, processes the data and returns it. */
     private static class SlowActionBase<C,T,R> extends ActionData<C,T> {
 
-        public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupally, Predicate<? super T> constriction, Ƒ1<T,R> act) {
-            super(name, description, icon, groupally, constriction, true, in -> { act.accept(in); return in; });
+        public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Ƒ1<T,R> act) {
+            super(name, description, icon, groupApply, constriction, true, in -> { act.accept(in); return in; });
         }
 
     }
@@ -518,8 +514,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             super(name, description, icon, NONE, IS, in -> { act.accept(in); return null; });
         }
 
-        public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupally, Consumer<T> act) {
-            super(name, description, icon, groupally, IS, in -> { act.accept(in); return null; });
+        public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupApply, Consumer<T> act) {
+            super(name, description, icon, groupApply, IS, in -> { act.accept(in); return null; });
         }
 
     }
@@ -536,9 +532,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     }
 
-    public static enum GroupApply {
+    public  enum GroupApply {
         FOR_EACH,
         FOR_ALL,
-        NONE;
+        NONE
     }
 }

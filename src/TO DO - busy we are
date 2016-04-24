@@ -27,7 +27,6 @@
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
       This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
       there have to be default values as well, preferably settable per i/o in widget controller
-- Logger log text jumbled up sometimes + does not write jaudiotagger log output sometimes
 - impl filter in Settings
 - DirViewer
     - conf gui header
@@ -52,7 +51,6 @@
 - saving multiple playlists is bugged
 - I think spectrum suffers from logarithmic band intensity distribution
 - display window snap preview & snap only on mouse release
-- widget compilation failure causes recompilation ad infinitum                                                          still an issue?
 - toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
   instead. This marvellously increases structural code cohesion.

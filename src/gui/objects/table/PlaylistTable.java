@@ -16,7 +16,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.util.Callback;
 
 import org.reactfx.Subscription;
@@ -136,7 +135,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     if(!isSelected())
                         getSelectionModel().clearAndSelect(getIndex());
                     // show context menu
-                    contxt_menu.show(PlaylistTable.this, e);
+                    contextMenu.show(PlaylistTable.this, e);
                 });
                 // handle drag transfer
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
@@ -212,14 +211,14 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             // items out of natural order
             // note this is only called the 1st time (or not at all), not repeatedly
             if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
-                movingitems = true;
+                movingItems = true;
                 List l = list(getItems());
                 List sl = list(getSelectionModel().getSelectedIndices());
                 setItemsRaw(EMPTY_LIST);    // clear items
                 getSortOrder().clear();     // clear sort order
                 setItemsRaw(l);             // set items back, now any sort is part of their order
                 selectRows(sl,getSelectionModel()); // set selection back
-                movingitems = false;
+                movingItems = false;
             }
 
             double h = getFixedCellSize();
@@ -313,13 +312,13 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
 /********************************** SELECTION *********************************/
 
-    public boolean movingitems = false;
+    public boolean movingItems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
-        if(movingitems) return;
+        if(movingItems) return;
         PlaylistManager.selectedItemES.push(nv);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
-        if(movingitems) return;
+        if(movingItems) return;
         while(c.next()) {
             PlaylistManager.selectedItemsES.push(getSelectionModel().getSelectedItems());
         }
@@ -328,12 +327,14 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     /**
      * Moves/shifts all selected items by specified distance.
      * Selected items retain their relative positions. Items stop moving when
-     * any of them hits end/start of the playlist - tems wont rotate in the playlist.
+     * any of them hits end/start of the playlist - items will not rotate in the playlist.
+     * <br/>
      * Selection does not change.
+     *
      * @param by distance to move items by. Negative moves back. Zero does nothing.
      */
     public void moveSelectedItems(int by) {
-        movingitems =  true;    // lock to avoid firing selectedChange event (important)
+        movingItems =  true;    // lock to avoid firing selectedChange event (important)
 
         // get selected
         // construct new list (oldS), must not be observable (like indices)
@@ -344,7 +345,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // select back
         selectRows(newS, getSelectionModel());
 
-        movingitems = false;    // release lock
+        movingItems = false;    // release lock
     }
 
 /****************************** DRAG AND DROP *********************************/
@@ -355,12 +356,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             getPlaylist().addItems(items, index);
             e.setDropCompleted(true);
             e.consume();
-        }
+        }Thread.currentThread().ge
     }
 
 /****************************** CONTEXT MENU **********************************/
 
-    private static final TableContextMenuR<PlaylistItem> contxt_menu = new TableContextMenuR<> (
+    private static final TableContextMenuR<PlaylistItem> contextMenu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e -> {

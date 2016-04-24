@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -78,14 +79,19 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
     private static final double ICON_SIZE = 14;
 
-    private @FXML AnchorPane root;
-    private @FXML HBox layout, controlBox, volBox;
-    private @FXML Slider volume;
-    private @FXML Label currTime;
-    private Label scrollLabel = new Label("");
-    private Seeker seeker = new Seeker();
-    private Icon prevB, playB, stopB, nextB, loopB, volB;
-    private Anim scroller;
+    @FXML AnchorPane root;
+    @FXML HBox layout, controlBox, volBox;
+    @FXML Slider volume;
+    @FXML Label currTime;
+    Label scrollLabel = new Label("");
+    Seeker seeker = new Seeker();
+    Icon prevB = new Icon(STEP_BACKWARD, ICON_SIZE, null, PlaylistManager::playPreviousItem),
+         playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume),
+         stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop),
+         nextB = new Icon(STEP_FORWARD, ICON_SIZE, null, PlaylistManager::playNextItem),
+         loopB = new Icon<>(null, ICON_SIZE, null, (MouseEvent e) -> PLAYBACK.toggleLoopMode(e)),
+         volB  = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
+    Anim scroller;
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -120,13 +126,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         HBox.setHgrow(seeker, ALWAYS);
 
         // icons
-        prevB = new Icon(STEP_BACKWARD, ICON_SIZE, null, PlaylistManager::playPreviousItem);
-        playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume);
-        stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop);
-        nextB = new Icon(STEP_FORWARD, ICON_SIZE, null, PlaylistManager::playNextItem);
-        loopB = new Icon<>(null, ICON_SIZE, null, e -> PLAYBACK.toggleLoopMode(e));
         controlBox.getChildren().addAll(prevB,playB,stopB,nextB,new Label(),loopB);
-        volB = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
         volBox.getChildren().add(0,volB);
 
         ScrollPane scrollerPane = new ScrollPane(layStack(scrollLabel, Pos.CENTER));
@@ -137,7 +137,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         scrollerPane.setHbarPolicy(NEVER);
         ((Pane)currTime.getParent()).getChildren().add(((Pane) currTime.getParent()).getChildren().indexOf(currTime)+1, scrollerPane);
         scroller = new Anim(seconds(5), scrollerPane::setHvalue)
-           .intpl(x -> clip(0,x*1.5-0.25,1)); // linear, but waits a bit at 0 and 1
+                .intpl(x -> clip(0,x*1.5-0.25,1)); // linear, but waits a bit at 0 and 1
         scroller.setAutoReverse(true);
         scroller.setCycleCount(INDEFINITE);
         scroller.play();
@@ -158,11 +158,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
             DragUtil::hasAudio,
             e -> {
                 List<Item> items = DragUtil.getAudioItems(e);
-                if(playDropped) {
-                    PlaylistManager.use(p -> p.setNplay(items));
-                } else {
-                    PlaylistManager.use(p -> p.addItems(items));
-                }
+                PlaylistManager.use(playDropped ? p -> p.setNplay(items) : p -> p.addItems(items));
             }
         );
     }

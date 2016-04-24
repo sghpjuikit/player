@@ -1,3 +1,4 @@
+
 package util.type;
 
 import java.util.Collection;

@@ -6,7 +6,6 @@ import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -49,11 +48,8 @@ import static util.functional.Util.mapRef;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
-
 /**
  * Playback Controller class
- * <p/>
- * @author Martin Polakovic
  */
 @Widget.Info(
     name = "Playback",
@@ -89,15 +85,15 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     @FXML Label titleL, artistL, bitrateL, sampleRateL, channelsL;
     @FXML HBox infoBox, playButtons;
     Seeker seeker = new Seeker();
-    Icon p1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25),
-         f2    = new GlowIcon(FAST_BACKWARD,25),
-         f3    = new GlowIcon(PLAY,25),
-         f4    = new GlowIcon(FAST_FORWARD,25),
-         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25),
-         f6    = new GlowIcon(STOP,25),
-         muteB = new GlowIcon(VOLUME_UP,15),
+    Icon f1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(PLAYBACK::seekBackward),
+         f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
+         f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
+         f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
+         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(PLAYBACK::seekForward),
+         f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
+         muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
          addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
-         loopB = new GlowIcon(RANDOM,15);
+         loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -120,7 +116,6 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         balance = new Balancer();
         soundGrid.add(balance, 1, 1);
         balance.setPrefSize(50,20);
-
         balance.setMin(ps.balance.getMin());
         balance.setMax(ps.balance.getMax());
         balance.balanceProperty().bindBidirectional(ps.balance);
@@ -138,18 +133,12 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        d(maintain(Gui.snapDistance, d -> d ,seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, seeker.chapSnapDist));
 
-        // create play buttons
-        p1.setOnMouseClicked(e -> PLAYBACK.seekBackward());
-        f2.setOnMouseClicked(e -> PlaylistManager.playPreviousItem());
-        f3.setOnMouseClicked(e -> PLAYBACK.pause_resume());
-        f4.setOnMouseClicked(e -> PlaylistManager.playNextItem());
-        f5.setOnMouseClicked(e -> PLAYBACK.seekForward());
-        f6.setOnMouseClicked(e -> PLAYBACK.stop());
-        playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
-
-        // addButton
+        // icons
+        playButtons.getChildren().setAll(f1,f2,f3,f4,f5,f6);
+        infoBox.getChildren().add(1, loopB);
+        soundGrid.add(muteB, 0, 0);
         addB.tooltip("Add files or folder\n\nUse left for files and right click for directory.");
         addB.setOnMouseClicked(e-> {
             if(e.getButton()==MouseButton.PRIMARY)
@@ -161,23 +150,15 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setTopAnchor(addB, 5d);
         AnchorPane.setLeftAnchor(addB, 5d);
 
-        // loop mode
-        loopB.setOnMouseClicked(PLAYBACK::toggleLoopMode);
-        infoBox.getChildren().add(1, loopB);
-
-        // volume button
-        muteB.setOnMouseClicked(e -> PLAYBACK.toggleMute());
-        soundGrid.add(muteB, 0, 0);
-
         // set gui updating
+        d(maintain(ps.duration,     Util::formatDuration, totTime.textProperty()));
+        d(maintain(ps.currentTime,  t -> timeChanged()));
+        d(maintain(ps.status,       this::statusChanged));
+        d(maintain(ps.loopMode,     this::loopModeChanged));
+        d(maintain(ps.mute,         v -> muteChanged(v, ps.volume.get())));
+        d(maintain(ps.volume,       v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingtem.get());              // init value
-        d(maintain(ps.duration, Util::formatDuration, totTime.textProperty()));
-        d(maintain(ps.currentTime, t -> timeChanged()));
-        d(maintain(ps.status, this::statusChanged));
-        d(maintain(ps.loopMode, this::loopModeChanged));
-        d(maintain(ps.mute, v -> muteChanged(v, ps.volume.get())));
-        d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
 
         // drag & drop
         installDrag(
@@ -185,10 +166,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
             DragUtil::hasAudio,
             e -> {
                 List<Item> items = DragUtil.getAudioItems(e);
-                PlaylistManager.use(p -> {
-                    if(!playDropped) p.addItems(items);
-                    else p.setNplay(items);
-                });
+                PlaylistManager.use(playDropped ? p -> p.setNplay(items) : p -> p.addItems(items));
             }
         );
     }
@@ -203,12 +181,14 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
          });
     }
 
-    @FXML private void cycleElapsed() {
+    @FXML
+    private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         timeChanged();
     }
 
-    @FXML private void consumeMouseEvent(MouseEvent event) {
+    @FXML
+    private void consumeMouseEvent(MouseEvent event) {
         event.consume();
     }
 

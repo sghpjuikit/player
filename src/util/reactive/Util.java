@@ -40,7 +40,9 @@ public interface Util {
 
     static <O,V> Subscription maintain(ObservableValue<O> o, Function<? super O, ? extends V> m, WritableValue<? super V> w) {
         w.setValue(m.apply(o.getValue()));
-        return valuesOf(o).map(m).subscribe(w::setValue);
+        ChangeListener<O> l = (x,ov,nv) -> w.setValue(m.apply(nv));
+        o.addListener(l);
+        return () -> o.removeListener(l);
     }
 
     static <O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {

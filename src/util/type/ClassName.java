@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package util.type;
 
 import util.collections.map.ClassMap;
@@ -17,7 +13,7 @@ public class ClassName {
     private final ClassMap<String> cache = new ClassMap<>();
 
     /**
-     * Registers name for specified class and all its subclasses that dont
+     * Registers name for specified class and all its subclasses that do not
      * have any name registered.
      */
     public void add(Class<?> c, String name) {

@@ -72,6 +72,7 @@ import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
+import static util.type.Util.mapEnumConstantName;
 
 /**
  *
@@ -495,7 +496,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         final BiPredicate<String,String> predicate;
 
         Search(BiPredicate<String,String> p) {
-            util.type.Util.mapEnumConstantName(this, Util::enumToHuman);
+            mapEnumConstantName(this, Util::enumToHuman);
             predicate = p;
         }
     }

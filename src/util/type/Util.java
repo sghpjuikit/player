@@ -39,11 +39,11 @@ public interface Util {
     /**
      * Execute action for each observable value representing a javafx property of an object o.
      * Additional provided arguments are name of the property and its non-erased generic type.
-     * Javafx properties are obtained from public propertynameProperty() methods using reflection.
+     * Javafx properties are obtained from public nameProperty() methods using reflection.
      */
     static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
         for (Method method : getAllMethods(o.getClass())) {
-            String methodname = method.getName();
+            String methodName = method.getName();
             // We are looking for javafx property bean methods
             // We must filter out nonpublic and impl (can be public) ones. Why? Real life example:
             // Serialization serializes all javafx property bean values of an graphical object -
@@ -51,12 +51,12 @@ public interface Util {
             // which prevents the effect from updating values upon change. Such flags are usually
             // the implNameProperty methods and can be public due to reasons...
             //
-            // In other words anyting non-public is not safe.
-            if (methodname.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodname.startsWith("impl")) {
+            // In other words anything non-public is not safe.
+            if (methodName.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodName.startsWith("impl")) {
                 try {
                     Class<?> returnType = method.getReturnType();
                     if (ObservableValue.class.isAssignableFrom(returnType)) {
-                        String propertyName = methodname.substring(0, methodname.lastIndexOf("Property"));
+                        String propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
@@ -70,14 +70,15 @@ public interface Util {
         }
     }
 
-    /***************************** REFLECTION - FIELD *************************************/
+/* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
 
+    @SuppressWarnings("unchecked")
     static <T> T getValueFromFieldMethodHandle(MethodHandle mh, Object instance) {
         try {
             if(instance==null) return (T) mh.invoke();
             else return (T) mh.invokeWithArguments(instance);
         } catch (Throwable e) {
-            throw new RuntimeException("Error during getting value from a config field. ",e);
+            throw new RuntimeException("Error during getting value from a config field. ", e);
         }
     }
 
@@ -115,7 +116,7 @@ public interface Util {
         return methods;
     }
 
-    /***************************** REFLECTION - ANNOTATION *************************************/
+/* ---------- REFLECTION - ANNOTATION ------------------------------------------------------------------------------- */
 
     /** Finds all declared methods in the class that are annotated by annotation of specified type. */
     static <A extends Annotation> Method getMethodAnnotated(Class<?> type, Class<A> ca) {
@@ -127,10 +128,11 @@ public interface Util {
     }
 
     /** Finds all declared constructors in the class that are annotated by annotation of specified type. */
+    @SuppressWarnings("unchecked")
     static <A extends Annotation, T> Constructor<T> getConstructorAnnotated(Class<T> type, Class<A> ca) {
         for(Constructor<?> m: type.getDeclaredConstructors()) {
             A a = m.getAnnotation(ca);
-            if(a!=null) return (Constructor) m; // safe right? what else can the constructor return than T ?
+            if(a!=null) return (Constructor<T>) m; // safe right? what else can the constructor return than T ?
         }
         return null;
     }
@@ -191,6 +193,7 @@ public interface Util {
     /**
      * Returns i-th generic parameter of the field starting from 0.
      * For example {@code Integer for List<Integer>}
+     *
      * @param f
      * @return
      */

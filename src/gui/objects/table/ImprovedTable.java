@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package gui.objects.table;
 
 import java.util.ArrayList;
@@ -32,7 +28,6 @@ import com.sun.javafx.scene.control.VirtualScrollBar;
 
 import gui.Gui;
 import gui.objects.tablerow.ImprovedTableRow;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
 import static java.lang.Math.floor;
@@ -47,7 +42,6 @@ import static util.type.Util.getFieldValue;
  */
 public class ImprovedTable<T> extends TableView<T> {
 
-
     /** Will add zeros to index numbers to maintain length consistency. Default true. */
     public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true){
         @Override public void set(boolean v) {
@@ -60,7 +54,7 @@ public class ImprovedTable<T> extends TableView<T> {
         @Override public boolean get() {
             // return super.get();
             Pane header = (Pane)lookup("TableHeaderRow");
-            return header==null ? true : header.isVisible();
+            return header == null || header.isVisible();
         }
         @Override public void set(boolean v) {
             super.set(v);
@@ -69,7 +63,7 @@ public class ImprovedTable<T> extends TableView<T> {
         }
     };
 
-    final TableColumn<T,Void> columnIndex = new TableColumn("#");
+    final TableColumn<T,Void> columnIndex = new TableColumn<>("#");
     private final Callback<TableColumn<T,Void>, TableCell<T,Void>> indexCellFactory;
 
 
@@ -283,13 +277,12 @@ public class ImprovedTable<T> extends TableView<T> {
 
     @Deprecated
     final void resizeIndexColumn() {
-        getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d));
+        getColumnResizePolicy().call(new ResizeFeatures<>(this, columnIndex, 0d));
     }
 
 /***************************** UTIL + HELPER *******************************/
 
     /** Minimalistic value wrapper for POJO table view cell value factories. */
-    @Immutable
     public static class PojoV<T> implements ObservableValue<T> {
         private final T v;
 

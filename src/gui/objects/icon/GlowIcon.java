@@ -6,17 +6,18 @@
 
 package gui.objects.icon;
 
-import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+
+import de.jensd.fx.glyphs.GlyphIcons;
 import util.animation.Anim;
 
 /**
  *
  * @author Martin Polakovic
  */
-public class GlowIcon extends Icon {
+public class GlowIcon extends Icon<GlowIcon> {
     
     public static final String STYLECLASS = "glow-icon";
     

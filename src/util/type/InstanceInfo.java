@@ -1,9 +1,4 @@
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.type;
 
 import java.util.HashMap;
@@ -22,19 +17,17 @@ import static java.util.Collections.EMPTY_MAP;
  */
 public class InstanceInfo {
 
-    private static final Ƒ1<? extends Object,Map<String,String>> DEF = o -> EMPTY_MAP;
+    private static final Ƒ1<?,Map<String,String>> DEF = o -> EMPTY_MAP;
     private final ClassMap<Ƒ1<?,Map<String,String>>> names = new ClassMap<>();
 
 
     /**
-     * Registers name function for specified class and all its subclasses that 
-     * dont have any name registered.
-     * <p/>
-     * Use {@link Void} class to handle null (since only null can be an 'instance' of Void).
+     * Registers info function for specified class..
      *
-     * @param <T>
-     * @param c
-     * @param extractor
+     * @param c type to add info extractor to. Use {@link Void} class to handle null (since only null can be an
+     *          'instance' of Void).
+     * @param extractor function that transforms instance to map of key value pairs representing information about
+     *                  the instance
      */
     public <T> void add(Class<T> c, Ƒ1<? super T,Map<String,String>> extractor) {
         names.put(c, extractor);
@@ -44,9 +37,10 @@ public class InstanceInfo {
      * Convenience method. Alternative to {@link #add(Class, util.functional.Functors.Ƒ1)} which passes already
      * created map to the extractor.
      *
-     * @param c
-     * @param extractor
-     * @param <T>
+     * @param c type to add info extractor to. Use {@link Void} class to handle null (since only null can be an
+     *          'instance' of Void).
+     * @param extractor function that puts a key value pairs representing information about the instance into
+     *                  the provided map
      */
     public <T> void add(Class<T> c, BiConsumer<? super T,Map<String,String>> extractor) {
         names.put(c, (T o) -> {
@@ -64,6 +58,7 @@ public class InstanceInfo {
      * treated as of type {@link Void}.
      * @return computed name of the object instance. Never null.
      */
+    @SuppressWarnings("unchecked")
     public Map<String,String> get(Object instance) {
         // we handle null as void so user can register his own function
         Class c = instance==null ? Void.class : instance.getClass();

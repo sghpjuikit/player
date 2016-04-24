@@ -207,7 +207,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-            if(!table.movingitems)
+            if(!table.movingItems)
                 outSelected.setValue(nv);
         });
 

@@ -24,10 +24,10 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.control.*;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.*;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -50,9 +50,7 @@ import util.functional.Functors.Ƒ1;
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
@@ -689,20 +687,20 @@ public interface Util {
         s.setHeight(screen.getVisualBounds().getHeight());
         s.setAlwaysOnTop(true); // maybe not needed, but just in case
         // Going fullscreen actually breaks things.
-        // We dont need fullscreen, we use UNECORATED stage of maximum size. Fullscreen
+        // We do not need fullscreen, we use UNDECORATED stage of maximum size. Fullscreen
         // was supposed to be more of a final nail to prevent possible focus stealing.
         //
         // In reality, using fullscreen actually causes this issue! - focus stealing
         // and the consequent disappearance of the window (nearly impossible to bring it
-        // back). This is even when using modality on the window or even its owneer stage.
+        // back). This is even when using modality on the window or even its owner stage.
         //
         // Fortunately things work as they should using things like we do. Pray the moment
-        // they dont wont occur though.
+        // they do not wont occur though.
         //
         // s.setFullScreen(true); // just in case
         // s.setFullScreenExitHint(""); // completely annoying, remove
-        // // not always desired! and if we dont use fullscreen it wont work or we could just
-        // // introduce nconsistent behavior. Let the dev implement his own hide if he needs.
+        // // not always desired! and if we do not use fullscreen it wont work or we could just
+        // // introduce inconsistent behavior. Let the dev implement his own hide if he needs.
         // s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 
         // The owner must not escape garbage collection or remain visible forever
@@ -764,7 +762,7 @@ public interface Util {
      * action on non fx thread.
      * <p/>
      * Based on:
-     * <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafxdev-screen-capture-tool</a>
+     * <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafx-dev-screen-capture-tool</a>
      */
     static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
         EventQueue.invokeLater(() -> {

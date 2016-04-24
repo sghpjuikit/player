@@ -644,8 +644,18 @@ public interface Util {
                 .map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
                 .toArray(MenuItem[]::new);
     }    
-    
-/**************************************************************************************************/
+
+/* ---------- FONT -------------------------------------------------------------------------------------------------- */
+
+    static double computeFontWidth(javafx.scene.text.Font font, String text) {
+        return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().computeStringWidth(text, font);
+    }
+
+    static double computeFontHeight(javafx.scene.text.Font font) {
+        return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font).getLineHeight();
+    }
+
+/* ---------- WINDOW ------------------------------------------------------------------------------------------------ */
 
     /**
      * Create fullscreen modal no taskbar stage on given screen. The stage will have its owner,
@@ -701,7 +711,7 @@ public interface Util {
         return s;
     }
 
-/**************************************************************************************************/
+/* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
     /** Returns screen containing the given coordinates. Never null. */
     static Screen getScreen(Point2D p) {

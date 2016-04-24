@@ -26,7 +26,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Text;
 import javafx.util.Callback;
 
 import com.sun.javafx.scene.control.VirtualScrollBar;
@@ -37,8 +36,10 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
 import static java.lang.Math.floor;
-import static util.type.Util.getFieldValue;
+import static util.Util.zeroPad;
+import static util.graphics.Util.computeFontWidth;
 import static util.graphics.Util.selectRows;
+import static util.type.Util.getFieldValue;
 
 /**
  *
@@ -138,7 +139,7 @@ public class ImprovedTable<T> extends TableView<T> {
     /** @return unchanging copy of selected items.
         @see #getSelectedItems() */
     public List<T> getSelectedItemsCopy() {
-        return new ArrayList(getSelectionModel().getSelectedItems());
+        return new ArrayList<>(getSelectionModel().getSelectedItems());
     }
     /** @return selected items or all if none selected. The list will continue
     to reflect change in selection or table list (depending on which was returned). */
@@ -148,7 +149,7 @@ public class ImprovedTable<T> extends TableView<T> {
     /** @return unchanging copy of selected or all items.
         @see #getSelectedOrAllItems() */
     public List<T> getSelectedOrAllItemsCopy() {
-        return new ArrayList(getSelectedOrAllItems());
+        return new ArrayList<>(getSelectedOrAllItems());
     }
 
     /** Max index. Normally equal to number of items. */
@@ -160,13 +161,13 @@ public class ImprovedTable<T> extends TableView<T> {
     public void refreshColumn(TableColumn c) {
         // c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
         Callback cf = c.getCellFactory();               // use this
-        c.setCellFactory(column->new TableCell());
+        c.setCellFactory(column -> new TableCell<>());
         c.setCellFactory(cf);
     }
 
     /** Builds index column. */
     public TableColumn<T,Void> buildIndexColumn() {
-        TableColumn<T,Void> c = new TableColumn("#");
+        TableColumn<T,Void> c = new TableColumn<>("#");
                             c.setCellFactory(buildIndexColumnCellFactory());
                             c.setSortable(false);
                             c.setResizable(false);
@@ -175,7 +176,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
     /** Builds index column cell factory. Called only once. */
     protected Callback<TableColumn<T,Void>, TableCell<T,Void>> buildIndexColumnCellFactory() {
-        return (column -> new TableCell<T,Void>() {
+        return (column -> new TableCell<>() {
             {
                 setAlignment(Pos.CENTER_RIGHT);
             }
@@ -184,8 +185,8 @@ public class ImprovedTable<T> extends TableView<T> {
                 if (empty) {
                     setText(null);
                 } else {
-                    int i = 1+getIndex();
-                    setText((zeropadIndex.get() ? Util.zeroPad(i, getItems().size(),'0') : i) + ".");
+                    int i = 1 + getIndex();
+                    setText((zeropadIndex.get() ? zeroPad(i, getItems().size(),'0') : i) + ".");
                 }
             }
         });
@@ -194,22 +195,14 @@ public class ImprovedTable<T> extends TableView<T> {
     /** Returns ideal width for index column derived from current max index.
         Mostly used during table/column resizing. */
     public double calculateIndexColumnWidth() {
-        // need this weird method to get 9s as their are wide chars (font is not
-        // always proportional)
+        // need this weird method to get 9s as 9 is a wide char (font is not always proportional)
         int s = getMaxIndex();
         int i = Util.decMin1(s);
-        Text text = new Text();
-             text.setFont(Gui.font.getValue());
-             text.setText(i + ".");
-             text.autosize();
-             text.applyCss();
-        double w = text.getLayoutBounds().getWidth() + 5;
-        return w;
+        return computeFontWidth(Gui.font.get(), i + ".") + 5;
     }
 
     /** Returns vertical scrollbar width or 0 if not visible. */
     public double getVScrollbarWidth() {
-        // (VirtualFlow<?>) ( (TableViewSkin<?>) table.getSkin() ).getChildren().get( 1 );
         VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
         if(f!=null) {
             VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
@@ -221,7 +214,6 @@ public class ImprovedTable<T> extends TableView<T> {
     }
 
 /********************************** SELECTION *********************************/
-
 
     /** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); }*/
     public void selectAll() {

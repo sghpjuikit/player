@@ -103,10 +103,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 //            );
             c.setCellValueFactory(f==NAME || f==LENGTH
                     ? new PropertyValueFactory<>(f.name().toLowerCase())
-                    : new Callback<CellDataFeatures<PlaylistItem,Object>, ObservableValue<Object>>() {
+                    : new Callback<>() {
                         @Override
-                        public ObservableValue<Object> call(CellDataFeatures<PlaylistItem,Object> cf) {
-                            return cf.getValue()== null ? null : new PojoV<>(cf.getValue().getField(f));
+                        public ObservableValue<Object> call(CellDataFeatures<PlaylistItem, Object> cf) {
+                            return cf.getValue() == null ? null : new PojoV<>(cf.getValue().getField(f));
                         }
                     }
             );
@@ -157,25 +157,24 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
                 resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
 
-                // dont return - after resizing the resized column, we go resize
+                // do not return - after resizing the resized column, we go resize
                 // the rest to always fill the table width
                 // true means the delta is reset and wont accumulate
                 // return true;
             }
+
             // handle table resize or index column
 
             double tw = resize.getTable().getWidth();
             double sw = getVScrollbarWidth();
-            double g = 3;               // gap to prevent horizontal slider to appear
+            double gap = 3;               // prevents horizontal slider from appearing
 
             // column index
             double W1 = calculateIndexColumnWidth();
 
             // column time
             double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
-            Text t2 = new Text(new FormattedDuration(mt).toString());
-                 t2.setFont(Gui.font.getValue());
-            double W3 = t2.getLayoutBounds().getWidth() + 5;
+            double W3 = computeFontWidth(Gui.font.getValue(), new FormattedDuration(mt).toString()) + 5;
 
             columnIndex.setPrefWidth(W1);
             columnTime.setPrefWidth(W3);
@@ -184,8 +183,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if(mc!=null) {
                 cs.remove(mc);
-                double Σcw = cs.stream().mapToDouble(c->c.getWidth()).sum();
-                mc.setPrefWidth(tw-Σcw-sw-g);
+                double Σcw = cs.stream().mapToDouble(c -> c.getWidth()).sum();
+                mc.setPrefWidth(tw-Σcw-sw-gap);
             }
             return true; // false/true, does not matter
         });

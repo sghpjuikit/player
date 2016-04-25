@@ -1,5 +1,6 @@
 package libraryView;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -287,10 +288,12 @@ public class LibraryView extends FXMLController {
 /******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
+    @SuppressWarnings("unchecked")
     private void applyData(Object o) {
         Metadata.Field f = fieldFilter.getValue();
 
         // rebuild value column
+        // TODO: this should be fully type safe
         table.getColumn(VALUE).ifPresent(c -> {
             TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
             c.setText(t.getText());
@@ -328,15 +331,7 @@ public class LibraryView extends FXMLController {
     }
 
     private List<Metadata> filterList(List<Metadata> list, boolean orAll, boolean orEmpty) {
-        if(list==null || list.isEmpty()) return EMPTY_LIST;
-
-        // bug fix, without this line, which does exactly nothing,
-        // selected mgs list contains nulls sometimes (no idea why)
-        //
-        // how to reproduce bug:
-        // select two records in a table
-        // then select only one of them -> bam! null!
-        table.getSelectedItems().stream().limit(3).map(m->null).collect(() -> null, (a,b) -> {},(a,b) -> {});
+        if(list==null || list.isEmpty()) return listRO();
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 

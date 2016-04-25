@@ -212,12 +212,6 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   cause: unknown, so far affects only some F keys (some F keys are fine) 
   solution: delay registering in runLater()                                                         (great)
   details: see Action.class register() 
-- when table selection changes from 2 selected items, the selectedItems()                           (medium, javaFX bug?)
-  list will contain null instead of the newly selected element (the one added,  
-  or the one remaining) 
-  cause: unknown 
-  solution: iterate over the list with stream().limit(3) 
-  affected: LibraryView filterList(), InfoTable 
 - Icon does not support disabled style (opacity 0.4). Thus it was added in css.                     (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
   style gets applied twice! javafx apparently applies the disabled state on the

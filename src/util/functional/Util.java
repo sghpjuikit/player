@@ -1002,13 +1002,15 @@ public interface Util {
     }
 
     /**
-     * Returns unmodifiable list containing specified elements. Optimized:
+     * Returns unmodifiable list containing specified elements.
+     * Optimized:
      * <ul>
      * <li> if zero parameters - {@link Collections#EMPTY_LIST}
      * <li> if 1 parameters - {@link Collections#singletonList(java.lang.Object)}
      * <li> else parameters - {@link Arrays#asList(java.lang.Object...)}
      * </ul>
      */
+    @SuppressWarnings("unchecked")
     static <T> List<T> listRO(T... ts) {
         int l = ts.length;
         if(l==0) return EMPTY_LIST;

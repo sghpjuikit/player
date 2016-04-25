@@ -356,7 +356,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             getPlaylist().addItems(items, index);
             e.setDropCompleted(true);
             e.consume();
-        }Thread.currentThread().ge
+        }
     }
 
 /****************************** CONTEXT MENU **********************************/

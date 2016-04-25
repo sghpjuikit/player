@@ -4,7 +4,10 @@ package util.graphics.drag;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -19,28 +22,28 @@ import javafx.scene.input.Dragboard;
 
 import audio.Item;
 import audio.SimpleItem;
+import de.jensd.fx.glyphs.GlyphIcons;
 import layout.Component;
 import layout.widget.controller.io.Output;
-import de.jensd.fx.glyphs.GlyphIcons;
+import util.async.future.Fut;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.file.Util;
 import util.file.ImageFileFormat;
-import util.async.future.Fut;
+import util.file.Util;
 import util.functional.Functors.Ƒ1;
 
 import static java.lang.Integer.MAX_VALUE;
-import static java.util.Collections.*;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static main.App.APP;
-import static util.file.Util.getFilesAudio;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
-import static util.functional.Util.IS;
-import static util.functional.Util.filterMap;
+import static util.file.Util.getFilesAudio;
+import static util.functional.Util.*;
 
 /**
  *
@@ -177,12 +180,13 @@ public final class DragUtil {
     };
 
     /**
-     * Returns filed from dragboard.
+     * Returns list filed from dragboard.
+     *
      * @return list of files in dragboard. Never null.
      */
     public static List<File> getFiles(DragEvent e) {
         List<File> o = e.getDragboard().getFiles();
-        return o==null ? EMPTY_LIST : o;
+        return o==null ? list() : o;
     }
 
     /** Returns whether dragboard contains files. */
@@ -407,11 +411,11 @@ public final class DragUtil {
                          f.deleteOnExit();
                     return singletonList(f);
                 } catch(IOException ex) {
-                    return EMPTY_LIST;
+                    return listRO();
                 }
             });
         }
-        return fut(EMPTY_LIST);
+        return fut(listRO());
     }
 
     /**
@@ -461,7 +465,7 @@ public final class DragUtil {
                      f.deleteOnExit();
                 return f;
             } catch(IOException e) {
-                log(DragUtil.class).error("Couldnt download from url",e);
+                log(DragUtil.class).error("Could not download from url",e);
                 return null;
             }
         });

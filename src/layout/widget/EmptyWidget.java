@@ -6,19 +6,18 @@ package layout.widget;
 
 import java.io.ObjectStreamException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
-import util.conf.Config;
 import layout.widget.controller.Controller;
 import layout.widget.controller.io.Inputs;
 import layout.widget.controller.io.Outputs;
+import util.conf.Config;
 
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_MAP;
+import static util.functional.Util.listRO;
 
 /**
  * Empty widget.
@@ -48,7 +47,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
     public Collection<Config<Object>> getFields() {
         // cant use default implementation. it calls getFields on the controller
         // since this=this.controller -> StackOverflow
-        return EMPTY_LIST;
+        return listRO();
     }
 
     @Override

@@ -35,7 +35,6 @@ import util.file.mimetype.MimeType;
 import util.units.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.EMPTY_LIST;
 import static util.Util.StringDirection;
 import static util.Util.StringDirection.FROM_START;
 import static util.dev.Util.noØ;
@@ -912,7 +911,7 @@ public interface Functors {
 
         @Override
         public List<Parameter<? extends Object>> getParameters() {
-            return EMPTY_LIST;
+            return listRO();
         }
 
         @Override

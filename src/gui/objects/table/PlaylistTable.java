@@ -44,7 +44,6 @@ import web.SearchUriBuilder;
 
 import static audio.playlist.PlaylistItem.Field.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
@@ -203,7 +202,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // addEventFilter(MOUSE_DRAGGED, e -> { // same here
         addEventFilter(MOUSE_DRAGGED, e -> {
             if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
-            // we cant move ites when fiter on & we cant cancel filter, user would freak out
+            // we cant move items when filter on & we cant cancel filter, user would freak out
             //  if(itemsPredicate.get()!=null) return; // unreliable as non null predicates may have no effect
             if(getItems().size()!=getItemsRaw().size()) return;
 
@@ -212,9 +211,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             // note this is only called the 1st time (or not at all), not repeatedly
             if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
                 movingItems = true;
-                List l = list(getItems());
-                List sl = list(getSelectionModel().getSelectedIndices());
-                setItemsRaw(EMPTY_LIST);    // clear items
+                List<PlaylistItem> l = list(getItems());
+                List<Integer> sl = list(getSelectionModel().getSelectedIndices());
+                setItemsRaw(listRO());      // clear items
                 getSortOrder().clear();     // clear sort order
                 setItemsRaw(l);             // set items back, now any sort is part of their order
                 selectRows(sl,getSelectionModel()); // set selection back

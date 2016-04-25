@@ -16,8 +16,8 @@ import util.conf.IsConfigurable;
 import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;
 
-import static java.util.Collections.EMPTY_LIST;
 import static main.App.APP;
+import static util.functional.Util.listRO;
 
 /**
  * Provides unified handling to everything playlist related in the application
@@ -33,7 +33,7 @@ public class PlaylistManager implements Configurable {
     /** Last selected item on playlist or null if none. */
     public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
     /** Selected items on playlist or empty list if none. */
-    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(EMPTY_LIST);
+    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(listRO());
 
     public static void use(Consumer<Playlist> action) {
         Playlist p = null;
@@ -80,17 +80,17 @@ public class PlaylistManager implements Configurable {
 
     /** Open chooser and add new to end of playlist. */
     @IsAction(name = "Choose and Add Files", desc = "Open file chooser to add files to playlist.")
-    public static void chooseFilestoAdd() {
+    public static void chooseFilesToAdd() {
         use(p -> p.addOrEnqueueFiles(true));
     }
     /** Open chooser and add new to end of playlist. */
     @IsAction(name = "Choose and Add Directory", desc = "Open file chooser to add files from directory to playlist.")
-    public static void chooseFoldertoAdd() {
+    public static void chooseFolderToAdd() {
         use(p -> p.addOrEnqueueFolder(true));
     }
     /** Open chooser and add new to end of playlist. */
     @IsAction(name = "Choose and Add Url", desc = "Open file chooser to add url to playlist.")
-    public static void chooseUrltoAdd() {
+    public static void chooseUrlToAdd() {
         use(p -> p.addOrEnqueueUrl(true));
     }
     /** Open chooser and play new items. Clears previous playlist */

@@ -68,7 +68,6 @@ import util.units.NofX;
 import static audio.tagging.Metadata.Field.COVER_INFO;
 import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
 import static util.file.Util.EMPTY_URI;
 import static util.Util.emptyOr;
@@ -1043,7 +1042,7 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     public List<Chapter> getChapters() {
         String chapterString = getCustom2();
-        if(chapterString.isEmpty()) return EMPTY_LIST;
+        if(chapterString.isEmpty()) return list();
 
         List<Chapter> cs = new ArrayList<>();
         for(String c: getCustom2().split("\\|", 0)) {

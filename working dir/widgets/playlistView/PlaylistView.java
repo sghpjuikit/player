@@ -171,9 +171,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         };
         // add more menu items
         table.menuAdd.getItems().addAll(
-            menuItem("Add files",PlaylistManager::chooseFilestoAdd),
-            menuItem("Add directory",PlaylistManager::chooseFoldertoAdd),
-            menuItem("Add URL",PlaylistManager::chooseUrltoAdd),
+            menuItem("Add files",PlaylistManager::chooseFilesToAdd),
+            menuItem("Add directory",PlaylistManager::chooseFolderToAdd),
+            menuItem("Add URL",PlaylistManager::chooseUrlToAdd),
             menuItem("Play files",PlaylistManager::chooseFilesToPlay),
             menuItem("Play directory",PlaylistManager::chooseFolderToPlay),
             menuItem("Play URL",PlaylistManager::chooseUrlToPlay),

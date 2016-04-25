@@ -11,7 +11,10 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,12 +27,12 @@ import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ2;
 
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.UUID.fromString;
 import static main.App.APP;
-import static util.file.Util.readFileLines;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
+import static util.file.Util.readFileLines;
+import static util.functional.Util.listRO;
 import static util.functional.Util.stream;
 
 /**
@@ -44,8 +47,8 @@ public class Db {
     public static EntityManager em;
 
     public static void start() {
-        File dbfile = new File(APP.DIR_LIBRARY, "library_database.odb");
-        emf = Persistence.createEntityManagerFactory(dbfile.getPath());
+        File dbFile = new File(APP.DIR_LIBRARY, "library_database.odb");
+        emf = Persistence.createEntityManagerFactory(dbFile.getPath());
         em = emf.createEntityManager();
 
         new Fut<>()
@@ -131,7 +134,7 @@ public class Db {
     }
 
     public static List<Metadata> getAllItems() {
-        return em==null ? EMPTY_LIST : em.createQuery("SELECT p FROM MetadataItem p", Metadata.class).getResultList();
+        return em==null ? listRO() : em.createQuery("SELECT p FROM MetadataItem p", Metadata.class).getResultList();
     }
 
     public static void addItems(Collection<? extends Metadata> items) {

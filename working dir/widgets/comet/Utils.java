@@ -51,7 +51,6 @@ import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.lang.Math.*;
-import static java.util.Collections.EMPTY_SET;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
@@ -537,7 +536,7 @@ class Utils {
 
         @SuppressWarnings("unchecked")
         <T extends O> Set<T> get(Class<T> c) {
-            return (Set<T>) m.getOrDefault(c,EMPTY_SET);
+            return (Set<T>) m.getOrDefault(c,setRO());
         }
 
         void clear() {

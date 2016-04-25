@@ -1,6 +1,5 @@
 package libraryView;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +51,6 @@ import static audio.tagging.MetadataGroup.Field.*;
 import static audio.tagging.MetadataGroup.degroup;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -130,8 +128,8 @@ public class LibraryView extends FXMLController {
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
-        out_sel_met = outputs.create(widget.id,"Selected", List.class, EMPTY_LIST);
-        in_items = inputs.create("To display", List.class, EMPTY_LIST, this::setItems);
+        out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
+        in_items = inputs.create("To display", List.class, listRO(), this::setItems);
 
 
 //        out_sel_met = outputs.create(widget.id,"Selected Songs", new TypeToken<List<Metadata>>(){}, listRO());
@@ -346,6 +344,7 @@ public class LibraryView extends FXMLController {
                        l.sort(Db.library_sorter.get());
         return l;
     }
+
     private void playSelected() {
         play(filterList(in_items.getValue(),false,true));
     }

@@ -5,18 +5,21 @@
  */
 package unused;
 
-import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
-import static java.util.Objects.requireNonNull;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
+
 import util.dev.TODO;
 import util.reactive.ValueEventSource;
+
+import static java.util.Objects.requireNonNull;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.CRITICAL;
+import static util.functional.Util.listRO;
 
 /**
  *
@@ -24,9 +27,9 @@ import static util.dev.TODO.Severity.CRITICAL;
  */
 public class CascadingStream<E> {
     
-    public static final Supplier<EventStream<?>> DEFAULT_EVENT_STREAM_FACTORY = () -> new ValueEventSource(EMPTY_LIST);
+    public static final Supplier<EventStream<?>> DEFAULT_EVENT_STREAM_FACTORY = () -> new ValueEventSource<>(listRO());
     
-    HashMap<Integer,ValueEventSource<E>> map = new HashMap();
+    HashMap<Integer,ValueEventSource<E>> map = new HashMap<>();
     public Supplier<ValueEventSource<E>> eventStreamFactory = (Supplier)DEFAULT_EVENT_STREAM_FACTORY;
     
     public CascadingStream() {

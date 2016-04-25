@@ -20,8 +20,7 @@ import util.SwitchException;
 import util.collections.Tuple2;
 import util.functional.Functors.*;
 
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
@@ -980,17 +979,38 @@ public interface Util {
         return b.build();
     }
 
+    /** Creates an array filled with provided elements. The array's length will equal element count. */
+    @SafeVarargs
+    static <T> T[] array(T... elements) {
+        return elements;
+    }
+
+    /**
+     * Returns unmodifiable set containing specified elements.
+     * Optimized:
+     * <ul>
+     * <li> if zero parameters - {@link Collections#EMPTY_SET}
+     * <li> if 1 parameters - {@link Collections#singleton(java.lang.Object)}
+     * <li> else parameters - {@link Collections#unmodifiableSet(java.util.Set)} using a new {@link java.util.HashSet}
+     * </ul>
+     */
+    @SuppressWarnings("unchecked")
+    static <T> Set<T> setRO(T... ts) {
+        int size = ts.length;
+        if(size==0) return EMPTY_SET;
+        if(size==1) return singleton(ts[0]);
+        else {
+            Set<T> s = unmodifiableSet(new HashSet<>(size));
+            for(T t : ts) s.add(t);
+            return s;
+        }
+    }
+
     @SafeVarargs
     static <T> Set<T> set(T... ts) {
         Set<T> l = new HashSet<>(ts.length);
         for(T t : ts) l.add(t);
         return l;
-    }
-
-    /** Creates an array filled with provided elements. The array's length will equal element count. */
-    @SafeVarargs
-    static <T> T[] array(T... elements) {
-        return elements;
     }
 
     /** Returns modifiable list containing specified elements. */
@@ -1007,14 +1027,15 @@ public interface Util {
      * <ul>
      * <li> if zero parameters - {@link Collections#EMPTY_LIST}
      * <li> if 1 parameters - {@link Collections#singletonList(java.lang.Object)}
-     * <li> else parameters - {@link Arrays#asList(java.lang.Object...)}
+     * <li> else parameters - {@link java.util.Arrays#asList(Object[])}
      * </ul>
      */
+    @SafeVarargs
     @SuppressWarnings("unchecked")
     static <T> List<T> listRO(T... ts) {
-        int l = ts.length;
-        if(l==0) return EMPTY_LIST;
-        if(l==1) return singletonList(ts[0]);
+        int size = ts.length;
+        if(size==0) return EMPTY_LIST;
+        if(size==1) return singletonList(ts[0]);
         else return Arrays.asList(ts);
     }
 

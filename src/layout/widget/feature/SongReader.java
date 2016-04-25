@@ -5,14 +5,13 @@
  */
 package layout.widget.feature;
 
-import audio.Item;
-
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
-
 import java.util.List;
 
+import audio.Item;
+
+import static java.util.Collections.singletonList;
 import static util.dev.Util.noØ;
+import static util.functional.Util.listRO;
 
 /**
  * Capable of reading data to song tags
@@ -32,17 +31,17 @@ public interface SongReader {
      * @param item or null to display no data if supported
      * @see #read(java.util.List)  
      */    
-    public default void read(Item item) {
+    default void read(Item item) {
         noØ(item);
-        read(item==null ? EMPTY_LIST : singletonList(item));
-    };
+        read(item==null ? listRO() : singletonList(item));
+    }
     
     /**
      * Passes items into this reader.
-     * Dispays metadata on items and displays them.
+     * Displays metadata on items and displays them.
      * 
      * @param items list pf items or empty list to display no data if supported.
      * Non null.
      */    
-    public void read(List<? extends Item> items);
+    void read(List<? extends Item> items);
 }

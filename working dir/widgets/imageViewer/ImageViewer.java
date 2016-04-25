@@ -24,46 +24,45 @@ import javafx.util.Duration;
 import audio.Item;
 import audio.Player;
 import audio.tagging.Metadata;
-import util.conf.IsConfig;
+import gui.infonode.ItemInfo;
+import gui.objects.icon.Icon;
+import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
-import gui.infonode.ItemInfo;
-import gui.objects.icon.Icon;
-import gui.objects.image.Thumbnail;
 import main.App;
 import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
+import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
-import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static util.file.Util.getCommonRoot;
-import static util.file.Util.getFilesImage;
+import static layout.widget.Widget.Group.OTHER;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
+import static util.file.Util.getCommonRoot;
+import static util.file.Util.getFilesImage;
 import static util.functional.Util.forEachWithI;
-import static util.graphics.Util.*;
+import static util.functional.Util.listRO;
+import static util.graphics.Util.setAnchor;
+import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
@@ -400,7 +399,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             int ai = active_image;
             // discover files
             List<File> files = folder.get()==null
-                ? EMPTY_LIST
+                ? listRO()
                 : getFilesImage(folder.get(),folderTreeDepth).limit(thumbsLimit).collect(toList());
             if(files.isEmpty()) {
                 Platform.runLater(() -> setImage(-1));

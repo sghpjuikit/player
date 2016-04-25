@@ -51,7 +51,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.lang.Integer.MAX_VALUE;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -310,7 +309,7 @@ public class Converter extends ClassController implements SongWriter {
                 }
             });
 
-            setData(name, EMPTY_LIST);
+            setData(name, list());
         }
 
         // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.

@@ -4,11 +4,7 @@ package gui;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.file.WatchService;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -31,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.css.StyleManager;
 
-import layout.container.layout.Layout;
 import gui.objects.window.stage.Window;
+import layout.container.layout.Layout;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -46,8 +42,6 @@ import util.file.Util;
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.io.File.separator;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.EMPTY_SET;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
@@ -62,6 +56,8 @@ import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
+import static util.functional.Util.listRO;
+import static util.functional.Util.set;
 
 /**
  *
@@ -348,7 +344,7 @@ public class Gui {
         File dir = APP.DIR_SKINS;
         if (!Util.isValidatedDirectory(dir)) {
             LOGGER.error("Search for skins failed." + dir.getPath() + " could not be accessed.");
-            return EMPTY_SET;
+            return set();
         }
 
         // find skins
@@ -465,7 +461,7 @@ public class Gui {
             return Util.getFilesImage(location, 1).collect(toList());
         } else {
             LOGGER.warn("Can not access skin directory: " + location.getPath());
-            return EMPTY_LIST;
+            return listRO();
         }
     }
 

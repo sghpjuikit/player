@@ -8,6 +8,7 @@ package layout.area;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javafx.animation.PathTransition;
@@ -373,6 +374,7 @@ public class IOLayer extends StackPane {
         double cx = 80 + random()*20;
         boolean selected = false;
 
+        @SuppressWarnings("unchecked")
         XNode(X xput) {
             this.xput = xput;
 
@@ -395,7 +397,7 @@ public class IOLayer extends StackPane {
             }
 
             i.addEventHandler(MOUSE_CLICKED, e -> {
-                selectNode(this);
+                selectNode(e.getButton()==SECONDARY ? null : this);
                 e.consume();
             });
 
@@ -411,12 +413,12 @@ public class IOLayer extends StackPane {
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
+                output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
                 output.monitor(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
-                        connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
+                        connections.getOpt(new Key<>(input,output)).ifPresent(IOLine::send)
                     )
                 );
-                output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
             }
         }
 
@@ -517,8 +519,6 @@ public class IOLayer extends StackPane {
         }
     }
     class IOLine<T> extends Path {
-        static final double GAP = 20;
-
         Output<T> output;
         Input<T> input;
 
@@ -590,7 +590,10 @@ public class IOLayer extends StackPane {
         }
 
         public void send() {
-//            double length = sqrt(getWidth()*getWidth()+getHeight()*getHeight());
+            // TODO: figure out speed = f(length) or speed = constant
+            // Do not know how to obtain path length anyway...
+            // naive attempt below
+            // double length = sqrt(getWidth()*getWidth()+getHeight()*getHeight());
             Circle n = new Circle(3);
                    n.getStyleClass().add(IOLINE_RUNNER_STYLECLASS);
             IOLayer.this.getChildren().add(n);

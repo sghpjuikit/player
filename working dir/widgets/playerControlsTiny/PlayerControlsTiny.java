@@ -41,6 +41,8 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static java.lang.Double.max;
+import static java.lang.Double.min;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -130,17 +132,20 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         volBox.getChildren().add(0,volB);
 
         ScrollPane scrollerPane = new ScrollPane(layStack(scrollLabel, Pos.CENTER));
-        scrollerPane.setPrefWidth(200);
+        double scrollWidth = 200;
+        scrollerPane.setPrefWidth(scrollWidth);
         scrollerPane.setPannable(false);
         scrollerPane.setFitToHeight(true);
         scrollerPane.setVbarPolicy(NEVER);
         scrollerPane.setHbarPolicy(NEVER);
         ((Pane)currTime.getParent()).getChildren().add(((Pane) currTime.getParent()).getChildren().indexOf(currTime)+1, scrollerPane);
         scroller = new Anim(seconds(5), scrollerPane::setHvalue)
-                .intpl(x -> clip(0,x*1.5-0.25,1)); // linear, but waits a bit at 0 and 1
+                .intpl(x -> clip(0,x*1.5-0.25,1)); // linear, but waits a bit around 0 and 1
         scroller.setAutoReverse(true);
         scroller.setCycleCount(INDEFINITE);
         scroller.play();
+        d(maintain(scrollLabel.widthProperty(), // maintain constant speed
+                w -> scroller.setRate(50/max(50,w.doubleValue()-scrollWidth))));
         d(scroller::stop);
 
         // monitor properties and update graphics

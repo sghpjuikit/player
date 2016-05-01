@@ -14,7 +14,7 @@
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgb(165, 165, 165);
     
-    -fx-pane-color: rgba(0,10,30,0.5);
+    -fx-pane-color: rgba(100,130,180,0.1);
     -fx-popup-def-bgr-color: rgba(15,30,55,0.8);
 
     -fx-focus-color: #ffcc66;
@@ -33,9 +33,9 @@
     -fx-background-size: stretch;
 }
 
-.header {
-    -fx-background-color: rgb(0,0,20);  // emulate -fx-pane-color - bugfix
-    -fx-opacity: 0.4;                   // emulate -fx-pane-color - bugfix
+.window .header {
+    -fx-background-color: rgb(100,130,180); // bugfix
+    -fx-opacity: 0.1;
 }
 
 

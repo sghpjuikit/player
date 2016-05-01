@@ -3260,14 +3260,6 @@ check-icon-disabling:selected {
 }
 
 
-
-/* Default headers style. Unrelated headers might use this class. Each of them
-  should also have its own class defined in addition to this one. */
-.header {
-    /* bug causing artifacts on bgr color of nodes in header may appear, in such
-       case emulate rgba(x,x,x,a) color manually using rgb(x,x,x) and opacity */
-}
-
 /************************************ WINDOW ***************************************************************************
  * Window. More specifically its root pane. 
  * inherits: .root
@@ -3294,7 +3286,6 @@ check-icon-disabling:selected {
  * an example would be a slight image overlay over background
  */
 .bgr-image {
-    -fx-opacity:1;
     /*-fx-background-image: url("bgr.jpg");*/
     /* This causes unexpected bug, the image is not resized properly.
      * Solution: simply define the image in the skin, just like here. I do not know why
@@ -3307,13 +3298,16 @@ check-icon-disabling:selected {
  * Window header
  * inherits: .header
  */
-.window > .header {
+.window .header {
+    /* bug causing artifacts on bgr color of nodes in header may appear, in such
+       case emulate rgba(x,x,x,a) color manually using rgb(x,x,x) and opacity */
+    -fx-background-color: -fx-pane-color;
 }
 
 /*
  * Left, right, bottom borders of the window. There is no top border as there is
  * a header instead. When header collapses it turns into top border.
- * Thus, skinning both header and border similarly is recommended
+ * Skinning both header and border similarly is recommended
  */
 .w-border {
     -fx-background-color: -fx-pane-color;

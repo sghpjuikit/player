@@ -10,9 +10,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
@@ -41,6 +39,9 @@ import static java.util.Collections.singletonMap;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER;
+import static javafx.scene.input.KeyCode.LEFT;
+import static javafx.scene.input.KeyCode.RIGHT;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -100,8 +101,15 @@ public final class Guide implements Configurable {
             new Label()
         );
         p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
-            if(e.getButton()==PRIMARY) goToNext();
+            if(e.getButton()==PRIMARY)   goToNext();
             if(e.getButton()==SECONDARY) goToPrevious();
+            e.consume();
+        });
+        p.getContentNode().addEventHandler(KEY_PRESSED, e -> {
+            System.out.println(e);
+            if(e.getCode()==RIGHT) goToNext();
+            if(e.getCode()==LEFT)  goToPrevious();
+            e.consume();
         });
 
         hint("Intro", "Hi, this is guide for this application. It will show you around. " +
@@ -428,6 +436,7 @@ public final class Guide implements Configurable {
             p.getContentNode().getChildren().add(h.graphics);
             VBox.setMargin(h.graphics, new Insets(10,0,0,0));
         }
+        p.getContentNode().requestFocus();
     }
 
     private void handleAction(String action) {

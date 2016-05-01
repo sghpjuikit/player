@@ -118,12 +118,12 @@ public class Window extends WindowBase {
     /** Disposables ran when window closes. For example you may put here listeners. */
     public final List<Subscription> disposables = new ArrayList<>();
     /**
-     * Main window has altered behavior.
+     * Denotes whether this window is main window. Main window has altered behavior:
      * <ul>
-     * <li> Closing main window causes application to close as well
+     * <li> Closing it causes application to close as well
      * </ul>
      */
-    boolean main = false;
+    boolean isMain = false;
 
     Window() {
         this(null,UNDECORATED);
@@ -348,7 +348,7 @@ public class Window extends WindowBase {
         Icon maximB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
                 this::toggleMaximize);
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
-        Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is main, "
+        Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is is main, "
                 + "application closes as well.", this::close);
 //        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
 
@@ -565,8 +565,8 @@ public class Window extends WindowBase {
     @Override
     public void close() {
         LOGGER.info("Closing window. {} windows currently open.", WINDOWS.size());
-	    if (main) {
-            LOGGER.info("Window is main. App will be closed.", WINDOWS.size());
+	    if (isMain) {
+            LOGGER.info("Window is is main window. App will be closed.", WINDOWS.size());
             // javaFX bug fix - close all pop overs first
             // new list avoids ConcurrentModificationError
             list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);

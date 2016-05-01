@@ -19,7 +19,15 @@ import static util.dev.TODO.Severity.SEVERE;
 
 /**
  * {@link Set} backed by {@link Map} using provided key mapper function for
- * identity check instead of equals() and hashCode().
+ * identity check instead of {@link Object#equals(Object)} {@link Object#hashCode()}.
+ * <p/>
+ * <b>This class is <i>not</i> a general-purpose {@code Set}
+ * implementation!  While this class implements the {@code Set} interface, it
+ * intentionally violates {@code Set's} general contract, which mandates the
+ * use of the {@code equals} method when comparing objects. This class is
+ * designed for use only in cases wherein reference-equality
+ * semantics are required. Developer should be careful to not pass it as such (e.g. by returning
+ * it from a method with a {@link Set} only signature.</b>
  * <p/>
  * The underlying map hashing the elements by key is {@link HashMap} by default,
  * but this is not forced. If desired, pass an arbitrary map into a constructor.
@@ -34,8 +42,6 @@ import static util.dev.TODO.Severity.SEVERE;
  */
 public class MapSet<K,E> implements Set<E> {
 
-/****************************************** FACTORIES *********************************************/
-
     public static <E> MapSet<Integer,E> mapHashSet() {
         return new MapSet<>(Object::hashCode);
     }
@@ -48,11 +54,11 @@ public class MapSet<K,E> implements Set<E> {
         return new MapSet<>(backing_map, Object::hashCode, c);
     }
 
+    @SafeVarargs
     public static <E> MapSet<Integer,E> mapHashSet(Map<Integer,E> backing_map, E... c) {
         return new MapSet<>(backing_map, Object::hashCode, c);
     }
 
-/**************************************************************************************************/
 
     /**
      * Function transforming element to its key. Used for all collection
@@ -74,6 +80,7 @@ public class MapSet<K,E> implements Set<E> {
         this(new HashMap<>(),keyMapper,c);
     }
 
+    @SafeVarargs
     public MapSet(Function<E,K> keyMapper, E... c) {
         this(new HashMap<>(),keyMapper,c);
     }
@@ -89,6 +96,7 @@ public class MapSet<K,E> implements Set<E> {
         addAll(c);
     }
 
+    @SafeVarargs
     public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper, E... c) {
         this.m = backing_map;
         this.keyMapper = keyMapper;
@@ -105,6 +113,7 @@ public class MapSet<K,E> implements Set<E> {
         return m.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean contains(Object o) {
         return m.containsKey(keyMapper.apply((E)o));
@@ -126,7 +135,8 @@ public class MapSet<K,E> implements Set<E> {
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return m.values().toArray(a);   // not sure...
+        // TODO: make sure this wors fine
+        return m.values().toArray(a);
     }
 
     /** Adds item to this keymap if not yet contained in this mapset.
@@ -155,6 +165,7 @@ public class MapSet<K,E> implements Set<E> {
         return m.containsKey(key) ? m.get(key) : supplier.get();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object o) {
         return removeKey(keyMapper.apply((E)o));
@@ -190,8 +201,9 @@ public class MapSet<K,E> implements Set<E> {
         return modified;
     }
 
-    /** Array version of {@link #addAll(java.util.Collection)}*/
-    public boolean addAll(E... c) {
+    /** Array version of {@link #addAll(java.util.Collection)} */
+    @SafeVarargs
+    public final boolean addAll(E... c) {
         boolean modified = false;
         for (E e : c)
             if (add(e))

@@ -230,8 +230,7 @@ public class WindowBase {
     }
 
     /**
-     * Minimize/deminimize main application window. Switches between ALL and
-     * NONE maximize states.
+     * Minimize/deminimize this window. Switches between ALL and NONE maximize states.
      */
     public void toggleMinimize() {
         setMinimized(!isMinimized());
@@ -360,8 +359,7 @@ public class WindowBase {
         );
     }
    /**
-    * Maximize/demaximize main application window. Switches between ALL and
-    * NONE maximize states.
+    * Maximize/demaximize this window. Switches between ALL and NONE maximize states.
     */
     public void toggleMaximize() {
         setMaximized(isMaximized()==ALL ? NONE : ALL);

@@ -78,7 +78,6 @@
 - impl main window switching
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
-- MapSet is breaking Set equals contract! Java's IdentityHashMap is doing it too, so... fck it?
 - Metadata cover caching causes outdated data if cover is set to tag
 - layout mode zoom animation use loop to increase smoothness
 - FileSize use unsigned long to support even larger units

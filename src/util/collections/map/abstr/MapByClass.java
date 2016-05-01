@@ -21,12 +21,11 @@ public interface MapByClass<E> {
      * Multi key get returning the aggregation of results for each key.
      * @return list of all values mapped to any of the keys (in that order).
      */
-    public List<E> getElementsOf(Collection<Class> keys);
+    List<E> getElementsOf(Collection<Class> keys);
     
     /** @see #getElementsOf(java.util.Collection) */
-    public List<E> getElementsOf(Class... keys);
-    
-    
+    List<E> getElementsOf(Class... keys);
+
     /** 
      * Returns elements mapped to one of (in that order):
      * <ul>
@@ -36,7 +35,7 @@ public interface MapByClass<E> {
      * </ul>
      * or empty list if no such mapping exists.
      */
-    public default List<E> getElementsOfSuper(Class key) {
+    default List<E> getElementsOfSuper(Class key) {
         List<Class> keys = getSuperClassesInc(key);
         List<E> o = getElementsOf(keys);
         return o;
@@ -55,7 +54,7 @@ public interface MapByClass<E> {
      * Note: Void.class is useful for mapping objects based on their generic
      * type.
      */
-    public default List<E> getElementsOfSuperV(Class key) {
+    default List<E> getElementsOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
                     if(!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
@@ -63,8 +62,7 @@ public interface MapByClass<E> {
         return o;
     }
 
-    
-    /** 
+    /**
      * Returns first element mapped to one of (in that order):
      * <ul>
      * <li>specified class
@@ -73,7 +71,7 @@ public interface MapByClass<E> {
      * </ul>
      * or null if no such mapping exists.
      */
-    public default E getElementOfSuper(Class key) {
+    default E getElementOfSuper(Class key) {
         List<Class> keys = getSuperClassesInc(key);
         for(Class c : keys) {
             List<E> es = getElementsOf(c);
@@ -93,7 +91,7 @@ public interface MapByClass<E> {
      * </ul>
      * or null if no such mapping exists.
      */
-    public default E getElementOfSuperV(Class key) {
+    default E getElementOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
                     if(!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);

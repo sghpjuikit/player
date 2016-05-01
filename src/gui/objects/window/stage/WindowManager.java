@@ -77,6 +77,7 @@ import static util.dev.Util.no;
 import static util.functional.Util.mapB;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
+import static util.graphics.Util.getScreen;
 import static util.reactive.Util.maintain;
 
 /**
@@ -115,7 +116,7 @@ public class WindowManager implements Configurable<Object> {
     public final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
-    public final V<Boolean> show_windows =  new V<>(true, v -> {
+    public final V<Boolean> show_windows = new V<>(true, v -> {
         if(!App.APP.normalLoad) return;
         if(v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
@@ -151,7 +152,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
     /**
-     * Same as {@link #getFocused()} but when none focused returns main window
+     * Same as {@link #getFocused()} but when none focused returns is main window
      * instead of null.
      * <p/>
      * Both methods are equivalent except for when the application itself has no
@@ -160,6 +161,7 @@ public class WindowManager implements Configurable<Object> {
      * Use when null must absolutely be avoided and the main window substitute
      * for focused window will not break expected behavior and when this method
      * can get called when app has no focus (such as through global shortcut).
+     *
      * @return focused window or main window if none. Never null.
      */
     public Window getActive() {
@@ -212,11 +214,10 @@ public class WindowManager implements Configurable<Object> {
     }
 
     private void setAsMain(Window w) {
-        no(APP.window!=null, "Only one window can be main");
+        no(APP.window!=null, "Only one window can be main window");
 
-	APP.window = w;
-	w.main = true;
-
+		APP.window = w;
+		w.isMain = true;
         w.setIcon(null);
         w.setTitle(null);
 
@@ -224,16 +225,15 @@ public class WindowManager implements Configurable<Object> {
         // moves taskbar icon to respective screen's taskbar
         w.moving.addListener((o,ov,nv) -> {
             if(ov && !nv)
-                APP.taskbarIcon.setScreen(util.graphics.Util.getScreen(w.getCenterXY()));
+                APP.taskbarIcon.setScreen(getScreen(w.getCenterXY()));
         });
-        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(util.graphics.Util.getScreen(w.getCenterXY())));
+        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(getScreen(w.getCenterXY())));
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
 //            if(nv) APP.taskbarIcon.iconify(nv);
 //        });
 
         Icon i = new Icon(FontAwesomeIcon.CIRCLE,5)
-                .tooltip("Main window\n\nThis window is main app window\nClosing it will "
-                       + "close application.");
+                .tooltip("Main window\n\nThis window is main app window\nClosing it will close application.");
         w.rightHeaderBox.getChildren().add(0, new Label(""));
         w.rightHeaderBox.getChildren().add(0, i);
     }

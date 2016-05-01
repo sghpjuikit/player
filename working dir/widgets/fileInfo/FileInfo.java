@@ -1,4 +1,3 @@
-
 package fileInfo;
 
 import java.io.File;

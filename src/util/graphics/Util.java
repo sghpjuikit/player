@@ -460,29 +460,21 @@ public interface Util {
                     break;
                 }
             }
-            if (TTBehaviourClass == null) {
-                // abort
-                return;
-            }
-            @SuppressWarnings("unchecked") Constructor constructor = TTBehaviourClass.getDeclaredConstructor(
-                    Duration.class, Duration.class, Duration.class, boolean.class);
-            if (constructor == null) {
-                // abort
-                return;
-            }
+            if (TTBehaviourClass == null) return; // abort;
+
+            @SuppressWarnings("unchecked")
+            Constructor constructor = TTBehaviourClass.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
+            if (constructor == null) return; // abort;
+
             constructor.setAccessible(true);
             Object behaviour = constructor.newInstance(
                     new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
                     new Duration(closeDelayInMillis), false);
             Field behaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
-            if (behaviourField == null) {
-                // abort
-                return;
-            }
-            behaviourField.setAccessible(true);
+            if (behaviourField == null) return; // abort;
 
-            // Cache the default behavior if needed.
-            Object defaultTTBehavior = behaviourField.get(Tooltip.class);
+            behaviourField.setAccessible(true);
+            // Object defaultBehavior = behaviourField.get(Tooltip.class); // store default behavior
             behaviourField.set(Tooltip.class, behaviour);
 
         } catch (Exception e) {
@@ -771,7 +763,7 @@ public interface Util {
                 BufferedImage img = robot.createScreenCapture(new Rectangle(x,y,w,h));
                 action.accept(img);
             } catch (Exception ex) {
-                util.dev.Util.log(Util.class).error("Failed to screenshot the screen {}");
+                log(Util.class).error("Failed to screenshot the screen {}");
                 action.accept(null);
             }
         });

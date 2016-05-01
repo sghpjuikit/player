@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import javafx.scene.Scene;
@@ -23,16 +18,16 @@ import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.util.Duration.seconds;
 
 /**
- * Simple Preloader Using the ProgressBar Control
- * <p/>
+ * Simple Preloader Using the ProgressBar Control.
+ *
  * @author Martin Polakovic
  */
 public class AppPreloader {
-    Stage stage;
-    Loop loop;
-    double fps = 60;
-    double angle = 0;
-    double rotation = 2*PI/seconds(1).toSeconds()/fps;
+    private Stage stage;
+    private Loop loop;
+    private double fps = 60;
+    private double angle = 0;
+    private double rotation = 2*PI/seconds(1).toSeconds()/fps;
 
     public void start() {
 

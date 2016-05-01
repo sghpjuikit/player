@@ -1,4 +1,3 @@
-
 package configurator;
 
 import java.util.*;
@@ -67,9 +66,6 @@ public final class Configurator extends ClassController implements ConfiguringFe
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });
-    private final Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields()));
-    private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
-    private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
     public Configurator() {
         // creating widget loads controller's no-arg constructor - this one,
@@ -86,6 +82,11 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
+
+        // header icons
+        Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields())),
+             reI  = new Icon(REFRESH,13,"Refresh all",this::refresh),
+             defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
         controls.getChildren().addAll(appI,new Region(),reI,defI);
         if(isSimpleMode) controls.getChildren().remove(appI);

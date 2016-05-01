@@ -1,4 +1,3 @@
-
 package spectrum;
 
 import java.util.Arrays;

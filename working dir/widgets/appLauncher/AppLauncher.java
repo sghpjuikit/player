@@ -1,4 +1,3 @@
-
 package appLauncher;
 
 import java.io.File;

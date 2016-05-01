@@ -1,4 +1,3 @@
-
 package image;
 
 import java.io.File;

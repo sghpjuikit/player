@@ -1,4 +1,3 @@
-
 package iconBox;
 
 import javafx.beans.property.DoubleProperty;
@@ -37,8 +36,14 @@ import static util.reactive.Util.maintain;
 )
 public class IconBox extends FXMLController implements HorizontalDock {
 
+    @FXML
+    private StackPane root;
+    private final FlowPane box = new FlowPane(5,5);
+
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
+
+    @SuppressWarnings("unchecked")
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final VarList<Icon> icons = new VarList<>(() -> {
             Icon i = new Icon(BUS);
@@ -50,9 +55,6 @@ public class IconBox extends FXMLController implements HorizontalDock {
             Config.forProperty(String.class, "Action",new VarAction(i.getOnClickAction(),i::onClick))
         )
     );
-    @FXML private StackPane root;
-    private final FlowPane box = new FlowPane(5,5);
-
 
     @Override
     public void init() {

@@ -1,4 +1,3 @@
-
 package comet;
 
 import java.util.*;

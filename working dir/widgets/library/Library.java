@@ -91,7 +91,6 @@ import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
-
 @Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

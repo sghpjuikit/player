@@ -1,4 +1,3 @@
-
 package inspector;
 
 import java.io.File;

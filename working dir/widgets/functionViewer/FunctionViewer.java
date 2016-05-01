@@ -1,4 +1,3 @@
-
 package functionViewer;
 
 import java.util.function.Function;

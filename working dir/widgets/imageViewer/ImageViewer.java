@@ -1,4 +1,3 @@
-
 package imageViewer;
 
 import java.io.File;

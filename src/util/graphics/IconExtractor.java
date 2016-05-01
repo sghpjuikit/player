@@ -1,38 +1,21 @@
-package main;
+package util.graphics;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.function.Consumer;
 
-import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 
-import javafx.application.Application;
-import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Scene;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
-import appLauncher.AppLauncher;
-import sun.awt.shell.ShellFolder;
 import util.LazyR;
 import util.R;
 import util.file.Util;
 import util.file.WindowsShortcut;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
-import static javafx.collections.FXCollections.observableArrayList;
-import static util.async.Async.runFX;
 
 /**
  * Extracts an icon for a file type of specific file.
@@ -45,67 +28,19 @@ import static util.async.Async.runFX;
  * <br/>
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
-public class IconExtractor extends Application {
+public class IconExtractor {
 
-    ListView<String> list = new ListView<>();
-    ObservableList<String> data = observableArrayList(
-            "C:\\software\\CCleaner\\CCleaner.exe",
-            "C:\\software\\Sublime Text 2.0.2 (P)\\sublime_text.exe",
-            "a.msg", "a1.msg", "b.txt", "c.pdf",
-            "d.html", "e.png", "f.zip",
-            "g.docx", "h.xlsx", "i.pptx");
-
-    @Override
-    public void start(Stage stage) {
-        VBox box = new VBox();
-        Scene scene = new Scene(box, 200, 200);
-        stage.setScene(scene);
-        stage.setTitle("ListViewSample");
-        box.getChildren().addAll(list);
-        VBox.setVgrow(list, Priority.ALWAYS);
-
-        list.setItems(data);
-
-        list.setCellFactory(list1 -> new AttachmentListCell());
-
-        stage.show();
-    }
-
-    private static class AttachmentListCell extends ListCell<String> {
-        @Override
-        public void updateItem(String item, boolean empty) {
-            super.updateItem(item, empty);
-            if (empty) {
-                setGraphic(null);
-                setText(null);
-            } else {
-                Image fxImage = getFileIcon(new File(item));
-                ImageView imageView = new ImageView(fxImage);
-                setGraphic(imageView);
-                setText(item);
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
-
-
-	private static R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
-    private static HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
+	private static final R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
+    private static final HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
 
     private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
 
         // Windows
-        FileSystemView view = helperFileSystemView.get();
-        javax.swing.Icon icon = view.getSystemIcon(file);
+        return helperFileSystemView.get().getSystemIcon(file);
 
         // OS X
         //final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-        //javax.swing.Icon icon = fc.getUI().getFileView(fc).getIcon(file);
-
-        return icon;
+        //return icon = fc.getUI().getFileView(fc).getIcon(file);
     }
 
     public static Image getFileIcon(File file) {
@@ -119,21 +54,21 @@ public class IconExtractor extends Application {
         String key = "exe".equals(ext) ? Util.getName(file) : ext;
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
-            javax.swing.Icon jswingIcon = null;
+            javax.swing.Icon swingIcon = null;
             if (file.exists()) {
-                jswingIcon = getJSwingIconFromFileSystem(file);
+                swingIcon = getJSwingIconFromFileSystem(file);
             } else {
                 File tempFile = null;
                 try {
                     tempFile = File.createTempFile("icon", ext);
-                    jswingIcon = getJSwingIconFromFileSystem(tempFile);
+                    swingIcon = getJSwingIconFromFileSystem(tempFile);
                 } catch (IOException ignored) {
                     // Cannot create temporary file.
                 } finally {
                     if (tempFile != null) tempFile.delete();
                 }
             }
-            return jswingIconToImage(jswingIcon);
+            return jswingIconToImage(swingIcon);
         });
     }
 
@@ -144,9 +79,7 @@ public class IconExtractor extends Application {
         return SwingFXUtils.toFXImage(image, null);
     }
 
-
-
-/************************* EXPERIMENTAL IMPLEMENTATION */
+/*  EXPERIMENTAL IMPLEMENTATION
 
 	private static final FileSystemView fs = FileSystemView.getFileSystemView();
 	private static final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
@@ -230,5 +163,6 @@ public class IconExtractor extends Application {
 		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
 		runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
 	}
+*/
 
 }

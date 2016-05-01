@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 
 import gui.objects.image.Thumbnail;
-import main.IconExtractor;
+import util.graphics.IconExtractor;
 import unused.TriConsumer;
 import util.file.FileType;
 import util.file.ImageFileFormat;

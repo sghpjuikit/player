@@ -413,9 +413,13 @@ public class Gui {
                 String url = cssFile.toURI().toURL().toExternalForm();
                 // remove old skin
                 StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
+                StyleManager.getInstance().removeUserAgentStylesheet(DEF_SKIN);
+
+                Application.setUserAgentStylesheet(STYLESHEET_MODENA);
                 // set core skin
-                StyleManager.getInstance().setDefaultUserAgentStylesheet(DEF_SKIN);
+//                StyleManager.getInstance().setDefaultUserAgentStylesheet(DEF_SKIN);
                 // add new skin
+                StyleManager.getInstance().addUserAgentStylesheet(DEF_SKIN);
                 StyleManager.getInstance().addUserAgentStylesheet(url);
                 // set current skin
                 skin.setValue(Util.getName(cssFile));

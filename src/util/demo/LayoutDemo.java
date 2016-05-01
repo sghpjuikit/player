@@ -1,31 +1,27 @@
 package util.demo;
 
 import javafx.application.Application;
-	import javafx.beans.property.DoubleProperty;
-	import javafx.beans.property.ObjectProperty;
-	import javafx.beans.property.ReadOnlyObjectProperty;
-	import javafx.beans.property.SimpleObjectProperty;
-	import javafx.beans.value.ChangeListener;
-	import javafx.beans.value.ObservableValue;
-	import javafx.collections.FXCollections;
-	import javafx.collections.ObservableList;
-	import javafx.event.EventHandler;
-	import javafx.geometry.Bounds;
-	import javafx.scene.Cursor;
-	import javafx.scene.Group;
-	import javafx.scene.Node;
-	import javafx.scene.Scene;
-	import javafx.scene.control.*;
-	import javafx.scene.effect.DropShadow;
-	import javafx.scene.input.MouseEvent;
-	import javafx.scene.layout.StackPane;
-	import javafx.scene.layout.VBox;
-	import javafx.scene.paint.Color;
-	import javafx.scene.shape.*;
-	import javafx.scene.web.WebView;
-	import javafx.stage.Stage;
-	import javafx.stage.StageStyle;
-	import javafx.stage.WindowEvent;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
+import javafx.scene.Cursor;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * Demo for understanding JavaFX Layout Bounds
@@ -33,13 +29,16 @@ import javafx.application.Application;
  * @author https://gist.github.com/jewelsea/1441960
  */
 public class LayoutDemo extends Application {
-	final ObservableList<Shape>     shapes        = FXCollections.observableArrayList();
-	final ObservableList<ShapePair> intersections = FXCollections.observableArrayList();
+	private final ObservableList<Shape>     shapes        = FXCollections.observableArrayList();
+	private final ObservableList<ShapePair> intersections = FXCollections.observableArrayList();
+	private final ObjectProperty<BoundsType> selectedBoundsType = new SimpleObjectProperty<>(BoundsType.LAYOUT_BOUNDS);
 
-	ObjectProperty<BoundsType> selectedBoundsType = new SimpleObjectProperty<BoundsType>(BoundsType.LAYOUT_BOUNDS);
+	public static void main(String[] args) {
+		launch(args);
+	}
 
-	public static void main(String[] args) { launch(args); }
-	@Override public void start(Stage stage) {
+	@Override
+	public void start(Stage stage) {
 		stage.setTitle("Bounds Playground");
 
 		// define some objects to manipulate on the scene.
@@ -68,16 +67,8 @@ public class LayoutDemo extends Application {
 		Circle[] circles = { greenCircle, redCircle, anchor1, anchor2 };
 		for (Circle circle : circles) {
 			enableDrag(circle);
-			circle.centerXProperty().addListener(new ChangeListener<Number>() {
-				@Override public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, Number newValue) {
-					testIntersections();
-				}
-			});
-			circle.centerYProperty().addListener(new ChangeListener<Number>() {
-				@Override public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, Number newValue) {
-					testIntersections();
-				}
-			});
+			circle.centerXProperty().addListener((o,ov,nv) -> testIntersections());
+			circle.centerYProperty().addListener((o,ov,nv) -> testIntersections());
 		}
 
 		// define an overlay to show the layout bounds of the scene's shapes.
@@ -121,48 +112,36 @@ public class LayoutDemo extends Application {
 	// make a node movable by dragging it around with the mouse.
 	private void enableDrag(final Circle circle) {
 		final Delta dragDelta = new Delta();
-		circle.setOnMousePressed(new EventHandler<MouseEvent>() {
-			@Override public void handle(MouseEvent mouseEvent) {
-				// record a delta distance for the drag and drop operation.
-				dragDelta.x = circle.getCenterX() - mouseEvent.getX();
-				dragDelta.y = circle.getCenterY() - mouseEvent.getY();
-				circle.getScene().setCursor(Cursor.MOVE);
-			}
+		circle.setOnMousePressed(e -> {
+			// record a delta distance for the drag and drop operation.
+			dragDelta.x = circle.getCenterX() - e.getX();
+			dragDelta.y = circle.getCenterY() - e.getY();
+			circle.getScene().setCursor(Cursor.MOVE);
 		});
-		circle.setOnMouseReleased(new EventHandler<MouseEvent>() {
-			@Override public void handle(MouseEvent mouseEvent) {
+		circle.setOnMouseReleased(e -> circle.getScene().setCursor(Cursor.HAND));
+		circle.setOnMouseDragged(e -> {
+			circle.setCenterX(e.getX() + dragDelta.x);
+			circle.setCenterY(e.getY() + dragDelta.y);
+		});
+		circle.setOnMouseEntered(e -> {
+			if (!e.isPrimaryButtonDown()) {
 				circle.getScene().setCursor(Cursor.HAND);
 			}
 		});
-		circle.setOnMouseDragged(new EventHandler<MouseEvent>() {
-			@Override public void handle(MouseEvent mouseEvent) {
-				circle.setCenterX(mouseEvent.getX() + dragDelta.x);
-				circle.setCenterY(mouseEvent.getY() + dragDelta.y);
-			}
-		});
-		circle.setOnMouseEntered(new EventHandler<MouseEvent>() {
-			@Override public void handle(MouseEvent mouseEvent) {
-				if (!mouseEvent.isPrimaryButtonDown()) {
-					circle.getScene().setCursor(Cursor.HAND);
-				}
-			}
-		});
-		circle.setOnMouseExited(new EventHandler<MouseEvent>() {
-			@Override public void handle(MouseEvent mouseEvent) {
-				if (!mouseEvent.isPrimaryButtonDown()) {
-					circle.getScene().setCursor(Cursor.DEFAULT);
-				}
+		circle.setOnMouseExited(e -> {
+			if (!e.isPrimaryButtonDown()) {
+				circle.getScene().setCursor(Cursor.DEFAULT);
 			}
 		});
 	}
 
-	// a helper enumeration of the various types of bounds we can work with.
-	enum BoundsType { LAYOUT_BOUNDS, BOUNDS_IN_LOCAL, BOUNDS_IN_PARENT }
+	/** A helper enumeration of the various types of bounds we can work with. */
+	private enum BoundsType { LAYOUT_BOUNDS, BOUNDS_IN_LOCAL, BOUNDS_IN_PARENT }
 
-	// a translucent overlay display rectangle to show the bounds of a Shape.
-	class BoundsDisplay extends Rectangle {
-		// the shape to which the bounds display has been type.
-		final Shape monitoredShape;
+	/** A translucent overlay display rectangle to show the bounds of a Shape. */
+	private class BoundsDisplay extends Rectangle {
+
+		final Shape monitoredShape;     // the shape to which the bounds display has been type.
 		private ChangeListener<Bounds> boundsChangeListener;
 
 		BoundsDisplay(final Shape shape) {
@@ -205,11 +184,7 @@ public class LayoutDemo extends Application {
 			updateBoundsDisplay(bounds.get());
 
 			// keep the visual bounds display based upon the new bounds and keep it in sync.
-			boundsChangeListener = new ChangeListener<Bounds>() {
-				@Override public void changed(ObservableValue<? extends Bounds> observableValue, Bounds oldBounds, Bounds newBounds) {
-					updateBoundsDisplay(newBounds);
-				}
-			};
+			boundsChangeListener = (o,ov,nv) -> updateBoundsDisplay(nv);
 			bounds.addListener(boundsChangeListener);
 		}
 
@@ -222,8 +197,8 @@ public class LayoutDemo extends Application {
 		}
 	}
 
-	// an anchor displayed around a point.
-	class Anchor extends Circle {
+	/** An anchor displayed around a point. */
+	private class Anchor extends Circle {
 		Anchor(String id, DoubleProperty x, DoubleProperty y) {
 			super(x.get(), y.get(), 10);
 			setId(id);
@@ -237,17 +212,18 @@ public class LayoutDemo extends Application {
 		}
 	}
 
-	// records relative x and y co-ordinates.
-	class Delta { double x, y; }
+	/** Records relative x and y co-ordinates. */
+	private class Delta { double x, y; }
 
-	// records a pair of (possibly) intersecting shapes.
-	class ShapePair {
+	 /** Records a pair of (possibly) intersecting shapes. */
+	private class ShapePair {
 		private Shape a, b;
-		public ShapePair(Shape src, Shape dest) {
+
+		ShapePair(Shape src, Shape dest) {
 			this.a = src; this.b = dest;
 		}
 
-		public boolean intersects(BoundsType boundsType) {
+		boolean intersects(BoundsType boundsType) {
 			if (a == b) return false;
 
 			a.intersects(b.getBoundsInLocal());
@@ -259,14 +235,17 @@ public class LayoutDemo extends Application {
 			}
 		}
 
-		@Override public String toString() {
+		@Override
+		public String toString() {
 			return a.getId() + " : " + b.getId();
 		}
 
 		@Override
 		public boolean equals(Object other) {
+			if(this==other) return true;
+			if(!(other instanceof ShapePair)) return false;
 			ShapePair o = (ShapePair) other;
-			return o != null && ((a == o.a && b == o.b) || (a == o.b) &&  (b == o.a));
+			return (a == o.a && b == o.b) || (a == o.b) &&  (b == o.a);
 		}
 
 		@Override
@@ -277,7 +256,7 @@ public class LayoutDemo extends Application {
 		}
 	}
 
-	// define a utility stage for reporting intersections.
+	// define a utility stage for reporting intersections. */
 	private void createUtilityWindow(Stage stage, final Group boundsOverlay, final Shape[] transformableShapes) {
 		final Stage reportingStage = new Stage();
 		reportingStage.setTitle("Control Panel");
@@ -286,7 +265,7 @@ public class LayoutDemo extends Application {
 		reportingStage.setY(stage.getY());
 
 		// define content for the intersections utility panel.
-		final ListView<ShapePair> intersectionView = new ListView<ShapePair>(intersections);
+		final ListView<ShapePair> intersectionView = new ListView<>(intersections);
 		final Label instructions = new Label(
 			                                    "Click on any circle in the scene to the left to drag it around."
 		);
@@ -300,18 +279,16 @@ public class LayoutDemo extends Application {
 
 		// add the ability to set a translate value for the circles.
 		final CheckBox translateNodes = new CheckBox("Translate circles");
-		translateNodes.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean oldValue, Boolean doTranslate) {
-				if (doTranslate) {
-					for (Shape shape : transformableShapes) {
-						shape.setTranslateY(100);
-						testIntersections();
-					}
-				} else {
-					for (Shape shape : transformableShapes) {
-						shape.setTranslateY(0);
-						testIntersections();
-					}
+		translateNodes.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Shape shape : transformableShapes) {
+					shape.setTranslateY(100);
+					testIntersections();
+				}
+			} else {
+				for (Shape shape : transformableShapes) {
+					shape.setTranslateY(0);
+					testIntersections();
 				}
 			}
 		});
@@ -324,18 +301,16 @@ public class LayoutDemo extends Application {
 		modifyInstructions.setStyle("-fx-font-weight: bold;");
 		modifyInstructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 		final CheckBox effectNodes = new CheckBox("Add an effect to circles");
-		effectNodes.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean oldValue, Boolean doTranslate) {
-				if (doTranslate) {
-					for (Shape shape : transformableShapes) {
-						shape.setEffect(new DropShadow());
-						testIntersections();
-					}
-				} else {
-					for (Shape shape : transformableShapes) {
-						shape.setEffect(null);
-						testIntersections();
-					}
+		effectNodes.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Shape shape : transformableShapes) {
+					shape.setEffect(new DropShadow());
+					testIntersections();
+				}
+			} else {
+				for (Shape shape : transformableShapes) {
+					shape.setEffect(null);
+					testIntersections();
 				}
 			}
 		});
@@ -343,28 +318,24 @@ public class LayoutDemo extends Application {
 
 		// add the ability to add a stroke to the circles.
 		final CheckBox strokeNodes = new CheckBox("Add outside strokes to circles");
-		strokeNodes.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean oldValue, Boolean doTranslate) {
-				if (doTranslate) {
-					for (Shape shape : transformableShapes) {
-						shape.setStroke(Color.LIGHTSEAGREEN);
-						shape.setStrokeWidth(10);
-						testIntersections();
-					}
-				} else {
-					for (Shape shape : transformableShapes) {
-						shape.setStrokeWidth(0);
-						testIntersections();
-					}
+		strokeNodes.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Shape shape : transformableShapes) {
+					shape.setStroke(Color.LIGHTSEAGREEN);
+					shape.setStrokeWidth(10);
+					testIntersections();
+				}
+			} else {
+				for (Shape shape : transformableShapes) {
+					shape.setStrokeWidth(0);
+					testIntersections();
 				}
 			}
 		});
 		strokeNodes.selectedProperty().set(true);
 
 		// add the ability to show or hide the layout bounds overlay.
-		final Label showBoundsInstructions = new Label(
-			                                              "The gray squares represent layout bounds."
-		);
+		final Label showBoundsInstructions = new Label("The gray squares represent layout bounds.");
 		showBoundsInstructions.setStyle("-fx-font-weight: bold;");
 		showBoundsInstructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 		final CheckBox showBounds = new CheckBox("Show Bounds");
@@ -387,37 +358,31 @@ public class LayoutDemo extends Application {
 		boundsToggles.getChildren().addAll(useLayoutBounds, useBoundsInLocal, useBoundsInParent);
 
 		// change the layout bounds display depending on which bounds type has been selected.
-		useLayoutBounds.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean isSelected) {
-				if (isSelected) {
-					for (Node overlay : boundsOverlay.getChildren()) {
-						((BoundsDisplay) overlay).monitorBounds(BoundsType.LAYOUT_BOUNDS);
-					}
-					selectedBoundsType.set(BoundsType.LAYOUT_BOUNDS);
-					testIntersections();
+		useLayoutBounds.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Node overlay : boundsOverlay.getChildren()) {
+					((BoundsDisplay) overlay).monitorBounds(BoundsType.LAYOUT_BOUNDS);
 				}
+				selectedBoundsType.set(BoundsType.LAYOUT_BOUNDS);
+				testIntersections();
 			}
 		});
-		useBoundsInLocal.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean isSelected) {
-				if (isSelected) {
-					for (Node overlay : boundsOverlay.getChildren()) {
-						((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_LOCAL);
-					}
-					selectedBoundsType.set(BoundsType.BOUNDS_IN_LOCAL);
-					testIntersections();
+		useBoundsInLocal.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Node overlay : boundsOverlay.getChildren()) {
+					((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_LOCAL);
 				}
+				selectedBoundsType.set(BoundsType.BOUNDS_IN_LOCAL);
+				testIntersections();
 			}
 		});
-		useBoundsInParent.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean isSelected) {
-				if (isSelected) {
-					for (Node overlay : boundsOverlay.getChildren()) {
-						((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_PARENT);
-					}
-					selectedBoundsType.set(BoundsType.BOUNDS_IN_PARENT);
-					testIntersections();
+		useBoundsInParent.selectedProperty().addListener((o,ov,nv) -> {
+			if (nv) {
+				for (Node overlay : boundsOverlay.getChildren()) {
+					((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_PARENT);
 				}
+				selectedBoundsType.set(BoundsType.BOUNDS_IN_PARENT);
+				testIntersections();
 			}
 		});
 		useLayoutBounds.selectedProperty().set(true);
@@ -444,10 +409,6 @@ public class LayoutDemo extends Application {
 		reportingStage.show();
 
 		// ensure the utility window closes when the main app window closes.
-		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override public void handle(WindowEvent windowEvent) {
-				reportingStage.close();
-			}
-		});
+		stage.setOnCloseRequest(e -> reportingStage.close());
 	}
 }

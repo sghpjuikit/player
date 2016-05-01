@@ -603,7 +603,7 @@ public final class Action extends Config<Action> implements Runnable {
     @Dependency("must use the same implementation as Action.getId()")
     public static Action get(String name) {
         Action a = actions.get(name.hashCode());
-        if(a==null) throw new IllegalArgumentException("No such action: " + name);
+        if(a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
         return a;
     }
 
@@ -621,7 +621,7 @@ public final class Action extends Config<Action> implements Runnable {
     private static MapSet<Integer,Action> gatherActions() {
         List<Class<?>> cs = new ArrayList<>();
 
-        // autodiscover all classes that can contain actions
+        // auto-discover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
 
         // discover all actions

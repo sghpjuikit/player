@@ -604,6 +604,7 @@ public final class Action extends Config<Action> implements Runnable {
     public static Action get(String name) {
         Action a = actions.get(name.hashCode());
         if(a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
+                                               "declared and annotation processing is enabled and functioning properly.");
         return a;
     }
 

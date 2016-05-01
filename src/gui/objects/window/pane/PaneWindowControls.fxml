@@ -46,7 +46,6 @@
                   </HBox>
                </children>
                <styleClass>
-                  <String fx:value="block" />
                   <String fx:value="header" />
                </styleClass>
             </StackPane>

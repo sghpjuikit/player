@@ -700,9 +700,11 @@ public class App extends Application implements Configurable {
         if(guide.first_time.get()) run(3000, guide::start);
 
         // get rid of this, load from skins
-        Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  // pass in the image path
-        ImageCursor c = new ImageCursor(image,3,3);
-        window.getStage().getScene().setCursor(c);
+        runNew(() -> {
+            Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  // pass in the image path
+            ImageCursor c = new ImageCursor(image,3,3);
+            runLater(() -> window.getStage().getScene().setCursor(c));
+        });
 
         // process app parameters passed when app started
         parameterProcessor.process(fetchParameters());

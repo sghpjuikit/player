@@ -1,13 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package main;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -76,9 +71,9 @@ public final class Guide implements Configurable {
     @IsConfig(name = "Position")
     private int at = -1;
     private final Text text = new Text();
-    private final PopOver<VBox> p = new PopOver(new VBox(15,text));
+    private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));
     private Subscription action_monitoring;
-    final Label infoL = new Label();
+    private final Label infoL = new Label();
 
     public Guide() {
         text.setWrappingWidth(350);
@@ -190,7 +185,7 @@ public final class Guide implements Configurable {
         );
         Runnable hider = this::close;
         Runnable shower = () -> { open(); runFX(1000, this::goToNext); };
-        hint("Shortcuts", "Shortcuts are keys and key combinations that invoke some action."
+        hint("Shortcuts", () -> "Shortcuts are keys and key combinations that invoke some action."
            + "\n\nTo configure shortcuts, visit Settings > Shortcuts. Shortcuts can be global "
            + "or local. Global shortcuts will work even if the application has no focus."
            + "\n\nTo see all the available shortcuts, simply press '"
@@ -204,7 +199,7 @@ public final class Guide implements Configurable {
                 APP.shortcutPane.onHidden.remove(shower);
             }
         );
-        hint("New widget", "The aplication consists of:\n"
+        hint("New widget", "The application consists of:\n"
            + "\n\t• Core"
            + "\n\t• Behavior"
            + "\n\t\t• Widgets"
@@ -252,7 +247,7 @@ public final class Guide implements Configurable {
              "\nThe orientation determines how the layout gets split by the divider and can be changed later. " +
              "The divider can be dragged by mouse to change the sizes of the sub containers." +
              "\n\nClick anywhere within empty space and choose one of the 'Split' choices.");
-        hint("Layout mode", "When widget header is visible, the widget is in layout mode. Layout mode is used " +
+        hint("Layout mode", () -> "When widget header is visible, the widget is in layout mode. Layout mode is used " +
              "for advanced manipulation with the widget. In order to quickly make changes to the layout, layout " +
              "mode can be activated by shortcut." +
              "\n\nPress '" + Action.get("Manage Layout").getKeys() + "' to enter/leave layout mode");
@@ -273,7 +268,7 @@ public final class Guide implements Configurable {
                  );
              }).withText("Test")
         );
-        hint("Layout lock", "Because automatic layout mode can be intrusive, the layout can be "
+        hint("Layout lock", () -> "Because automatic layout mode can be intrusive, the layout can be "
            + "locked. Locked layout will enter layout mode only with shortcut."
            + "\nYou may want to lock the layout after configuring it to your needs." +
              "\n\nClick on the lock button in the window header or press '" + Action.get("Toggle layout lock.").getKeys() +
@@ -424,7 +419,7 @@ public final class Guide implements Configurable {
         infoL.setText((at+1) + "/" + hints.size());
         // title + text
         p.title.set(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
-        text.setText(h.text);
+        text.setText(h.text.get());
         // graphics
         p.getContentNode().getChildren().retainAll(text);
         if(h.graphics!=null) {
@@ -477,12 +472,14 @@ public final class Guide implements Configurable {
         at = 0;
         proceed();
     }
+
     public void goToPrevious() {
         if(at==0) return;
         prev_at = at;
         at--;
         proceed();
     }
+
     public void goToNext() {
         prev_at = at;
         at++;
@@ -493,30 +490,31 @@ public final class Guide implements Configurable {
         hints.add(new Hint(action, text));
     }
 
-    public void hint(String action, String text, Node... graphics) {
-        hints.add(new Hint(action, text, layHorizontally(10,CENTER,graphics)));
+    public void hint(String action, Supplier<String> text) {
+        hints.add(new Hint(action, text, null, null, null));
     }
 
-    public void hint(String action, String text, Runnable onEnter, Runnable onExit, Node... graphics) {
+    public void hint(String action, String text, Node... graphics) {
+        hints.add(new Hint(action, () -> text, layHorizontally(10,CENTER,graphics), null, null));
+    }
+
+    public void hint(String action, Supplier<String> text, Runnable onEnter, Runnable onExit, Node... graphics) {
         hints.add(new Hint(action, text, layHorizontally(10,CENTER,graphics), onEnter, onExit));
     }
 
 
-    static class Hint {
-        public final String text;
+    private static class Hint {
+        public final Supplier<String> text;
         public final String action;
         public final Node graphics;
         public final Runnable onEnter;
         public final Runnable onExit;
 
         public Hint(String action, String text) {
-            this(action, text, null);
+            this(action, () -> text, null, null, null);
         }
 
-        public Hint(String action, String text, Node graphics) {
-            this(action, text, graphics, null, null);
-        }
-        public Hint(String action, String text, Node graphics, Runnable onEnter, Runnable onExit) {
+        public Hint(String action, Supplier<String> text, Node graphics, Runnable onEnter, Runnable onExit) {
             this.action = action;
             this.text = text;
             this.graphics = graphics;

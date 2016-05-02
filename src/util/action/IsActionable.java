@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package util.action;
 
 import java.lang.annotation.Documented;
@@ -15,10 +9,11 @@ import java.lang.annotation.Target;
 import org.atteo.classindex.IndexAnnotated;
 
 /**
- * Marks class containing {@link IsAction} annotated method. If such class is not
- * annotated by this annotation, the action will not be discovered.
- * <p/>
- * For that purpose, this annotation itself is annotated by {@link IndexAnnotated}.
+ * Marks class containing {@link IsAction} annotated methods and enables discovery of the actions.
+ * {@implSpec}
+ * It is necessary to use this annotation, as it marks class to be processed by the annotation processor during
+ * compilation. There is no runtime performance lookup overhead. See {@link IndexAnnotated}.
+ *
  * @author Martin Polakovic
  */
 @Documented
@@ -26,5 +21,9 @@ import org.atteo.classindex.IndexAnnotated;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface IsActionable {
+    /**
+     *  Provides an optional category name for the actions in the annotated class.
+     *  Otherwise {@link Class#getSimpleName()} will be used instead.
+     */
     String value() default "";
 }

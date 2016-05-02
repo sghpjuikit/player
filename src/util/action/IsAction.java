@@ -1,12 +1,6 @@
-
 package util.action;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Denotes method that can be turned into an {@link Action}.
@@ -15,14 +9,14 @@ import java.lang.annotation.Target;
  * to the access modifier and private method will work the same as public or one
  * with any other access modifier one.
  * <p/>
- * Uses {@link Repeatable} and can be used multiple times for the same method.
+ * Can be used multiple times, see {@link Repeatable}
  * Therefore multiple actions with different parameters of this annotation can
  * be derived from the method.
  * <p/>
  * In order for the method to be discovered the class the method resides within
- * must itself be annotated by {@link IsActionable} which autodiscovers the
+ * must itself be annotated by {@link IsActionable} which auto-discovers the
  * class in order to scan it for action candidate methods.
- * <p/>
+ *
  * @author Martin Polakovic
  */
 @Documented
@@ -33,6 +27,7 @@ public @interface IsAction {
     
     /**
      * Name of the action. An identifier. Should be unique within the application.
+     *
      * @return action name
      */
     String name() default "";
@@ -40,7 +35,8 @@ public @interface IsAction {
     /**
      * Description of the action. Can be used to provide information about what
      * does the action do. useful for filling in graphical user interface like
-     * toolips.
+     * tooltips.
+     *
      * @return description of the action
      */
     String desc() default "";
@@ -48,7 +44,9 @@ public @interface IsAction {
     /** 
      * Key combination for shortcut of the action. Default is "".
      * For example: CTRL+SHIFT+A, A, F7, 9, ALT+T
-     * @return shortcut */
+     *
+     * @return shortcut
+     */
     String keys() default "";
     
     /**
@@ -62,6 +60,7 @@ public @interface IsAction {
     
     /** 
      * Denotes attribute of action for its activation process.
+     *
      * @return whether this action is called once or constantly on stimulus such
      * as key press. Default false.
      */

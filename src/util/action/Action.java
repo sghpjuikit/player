@@ -1,4 +1,3 @@
-
 package util.action;
 
 import java.lang.invoke.MethodHandle;
@@ -6,7 +5,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 
 import javafx.application.Platform;
@@ -26,15 +28,14 @@ import com.melloware.jintellitype.JIntellitype;
 
 import audio.playback.PLAYBACK;
 import audio.playlist.PlaylistManager;
-import util.conf.Config;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import main.App;
 import util.access.V;
 import util.async.Async;
 import util.async.executor.FxTimer;
 import util.collections.mapset.MapSet;
-import util.dev.Dependency;
+import util.conf.Config;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -45,13 +46,11 @@ import static util.reactive.Util.executeWhenNonNull;
 import static util.reactive.Util.listChangeHandler;
 
 /**
- * Encapsulates application behavior.
+ * Behavior with a name and possible shortcut.
  * <p/>
  * An action can wrap any {@link Runnable}. The aim however is to allow a
- * framework make convenient externalization of application behavior possible.
- * With the help of {@link IsAction} annotation methods can be annotated and
- * invoked directly as actions anytime. Example of use for action is generating
- * shortcuts for the application.
+ * framework make convenient externalization of application behavior possible, like using {@link IsAction} on methods
+ * to obtain an action that invokes them. Example of use for action is generating shortcuts for the application.
  * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
@@ -77,11 +76,11 @@ public final class Action extends Config<Action> implements Runnable {
 
     /**
      * Creates new action.
+     *
      * @param name action name. Must be be unique for each action. Also human readable.
      * @param action Code that gets executed on {@link #run()}
      * @param info value for the final info property
-     * @param keys Key combination for activating this action as a hotkey. See
-     * {@link #setKeys(java.lang.String)}
+     * @param keys Key combination for activating this action as a hotkey. See {@link #setKeys(java.lang.String)}
      * @param global value for the global property
      * @param continuous value for the final continuous property
      */
@@ -101,7 +100,8 @@ public final class Action extends Config<Action> implements Runnable {
      * Global action has broader activation limit. For example global shortcut
      * doesn't require application to be focused. This value denotes the global
      * attribute for the resulting action
-     * Default false;
+     * Default false.
+     *
      * @return whether the action is global
      */
     public boolean isGlobal() {
@@ -109,9 +109,8 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     /**
-     * Whether the action should be run constantly while the hotkey is pressed
+     * @return whether the action should be run repeatedly while the hotkey is pressed
      * or once.
-     * @return
      */
     public boolean isContinuous() {
         return continuous;
@@ -122,6 +121,7 @@ public final class Action extends Config<Action> implements Runnable {
      * The output of this method is always valid parsable string for method
      * {@link #setKeys(java.lang.String)}. Use to assign keys of this action to
      * another action or to get the keys as human readable String.
+     *
      * @return the key combination for shortcut of this action or "" if no
      * valid value.
      */
@@ -132,10 +132,12 @@ public final class Action extends Config<Action> implements Runnable {
         s = s.replaceAll(Matcher.quoteReplacement("\\"), "Back_Slash");
         return s;
     }
+
     /**
      * Returns the key combination for activating this action as a hotkey.
      * Alternative to {@link #getKeys()} with more friendly output. Use when
      * the alternative is not satisfactory.
+     *
      * @return the keys or KeyCombination.NO_MATCH if no valid value
      */
     public KeyCombination getKeyCombination() {
@@ -234,7 +236,7 @@ public final class Action extends Config<Action> implements Runnable {
     public void register() {
         if(!hasKeysAssigned()) return;
 
-        boolean can_be_global = global && global_shortcuts.getValue() && isGlobalShortcutsSupported();
+        boolean can_be_global = global && globalShortcuts.getValue() && isGlobalShortcutsSupported();
         if (can_be_global) registerGlobal();
         else registerLocal();
 
@@ -318,7 +320,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 
     private int getID() {
-        return name.hashCode();
+        return idOf(name);
     }
 
     private KeyCombination getKeysForLocalRegistering() {
@@ -333,7 +335,7 @@ public final class Action extends Config<Action> implements Runnable {
             return keys;
     }
 
-/********************************** AS CONFIG *********************************/
+/* ---------- AS CONFIG --------------------------------------------------------------------------------------------- */
 
     @Override
     public Action getValue() {
@@ -400,7 +402,7 @@ public final class Action extends Config<Action> implements Runnable {
         return Double.NaN;
     }
 
-/********************************** AS OBJECT *********************************/
+/* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
 
     @Override
     public boolean equals(Object o) {
@@ -423,8 +425,6 @@ public final class Action extends Config<Action> implements Runnable {
             hash = 41 * hash + Objects.hashCode(this.keys);
         return hash;
     }
-
-
 
     @Deprecated // internal use only
     private Action(boolean isGlobal, KeyCombination keys) {
@@ -465,10 +465,7 @@ public final class Action extends Config<Action> implements Runnable {
         return global + "," + getKeys();
     }
 
-
-
-
-/*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
+/* ---------- SHORTCUT HANDLING ON APP LEVEL ------------------------------------------------------------------------ */
 
     private static boolean isIntelliJSupported = JIntellitype.isJIntellitypeSupported();
     @IsConfig(name = "Is global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this systme")
@@ -509,7 +506,7 @@ public final class Action extends Config<Action> implements Runnable {
         return isRunning;
     }
 
-    //***************************** helper methods ******************************//
+/* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
 
     private static final ListChangeListener<Window> local_listener_registrator = listChangeHandler(
         window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
@@ -530,7 +527,7 @@ public final class Action extends Config<Action> implements Runnable {
         Stage.getWindows().addListener(local_listener_registrator);
 
         // Normally, we should also observe Actions and register/unregister on add/remove or we effectively
-        // support only precreated actions.
+        // support only pre-created actions.
         // But its handled when applying the action as a Config.
     }
 
@@ -562,7 +559,7 @@ public final class Action extends Config<Action> implements Runnable {
     /**
      * Deactivates listening process for global hotkeys. Frees resources. This
      * method should should always be ran at the end of application's life cycle
-     * if {@link #stopGlobalListening()} was invoked at least once.
+     * if {@link #startGlobalListening()} ()} was invoked at least once.
      * Not doing so might prevent from the application to close successfully,
      * because bgr listening thread will not close.
      */
@@ -582,11 +579,12 @@ public final class Action extends Config<Action> implements Runnable {
         return isIntelliJSupported;
     }
 
-/**************************************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
 
     /**
      * Returns modifiable collection of all actions mapped by their name. Actions
-     * can be added and removed, which modifiea the underlying collection.
+     * can be added and removed, which modifies the underlying collection.
+     *
      * @return all actions.
      */
     public static Collection<Action> getActions() {
@@ -594,27 +592,24 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     /**
-     * Returns the action with specified name.
+     * Returns the action with specified name or throws an exception. It is a programmatic error if an action does
+     * not exist.
      *
-     * @param name
+     * @param name name of the action
      * @return action. Never null.
      * @throws IllegalArgumentException if no such action
      */
-    @Dependency("must use the same implementation as Action.getId()")
     public static Action get(String name) {
-        Action a = actions.get(name.hashCode());
+        Action a = actions.get(idOf(name));
         if(a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
                                                "declared and annotation processing is enabled and functioning properly.");
         return a;
     }
 
-    /** Do not use. Private API. Subject to change. */
-    @Deprecated
-    public static Action getOrNull(String name) {
-        return actions.get(name.hashCode());
+    // Guarantees consistency
+    private static int idOf(String actionName) {
+        return actionName.hashCode();
     }
-
-/************************ helper methods *******************************/
 
     private static final MapSet<Integer,Action> actions = gatherActions();
 
@@ -626,7 +621,7 @@ public final class Action extends Config<Action> implements Runnable {
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
 
         // discover all actions
-        MapSet<Integer,Action> out = new MapSet<>(Action::getID);
+        MapSet<Integer,Action> out = new MapSet<>(Action::getID); // must use getID
                                out.add(EMPTY);
         Lookup method_lookup = MethodHandles.lookup();
         for (Class<?> c : cs) {
@@ -671,7 +666,7 @@ public final class Action extends Config<Action> implements Runnable {
         return aa==null || aa.value().isEmpty() ? c.getSimpleName() : aa.value();
     }
 
-/************************ shortcut helper methods *****************************/
+/* ---------- shortcut helper methods ------------------------------------------------------------------------------- */
 
     // locking helps run continuously executed shortcuts vs. on-press shortcuts
     private static int lock = -1;
@@ -699,25 +694,25 @@ public final class Action extends Config<Action> implements Runnable {
         });
     };
 
-/****************************** CONFIGURATION *********************************/
+/* ---------- CONFIGURATION ----------------------------------------------------------------------------------------- */
 
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
             + " application is not focused. Not all platforms supported.", group = "Shortcuts")
-    public static final V<Boolean> global_shortcuts = new V<>(true, v -> {
+    public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v){
-                // make sure we dont add the listener twice
+                // make sure we do not add the listener twice
                 JIntellitype.getInstance().removeHotKeyListener(global_listener);
                 JIntellitype.getInstance().addHotKeyListener(global_listener);
-                // reregister shortcuts to switch from local
-                getActions().forEach( a -> {
+                // re-register shortcuts to switch from local
+                getActions().forEach(a -> {
                     a.unregister();
                     a.register();
                 });
             } else {
                 JIntellitype.getInstance().removeHotKeyListener(global_listener);
-                // reregister shortcuts to switch to local
-                getActions().forEach( a -> {
+                // re-register shortcuts to switch to local
+                getActions().forEach(a -> {
                     a.unregister();
                     a.register();
                 });
@@ -727,7 +722,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
-    public static final V<Boolean> global_media_shortcuts = new V<>(true, v -> {
+    public static final V<Boolean> globalMediaShortcuts = new V<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v) {
                 // make sure we dont add the listener twice

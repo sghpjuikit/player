@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.animation;
 
 import java.util.List;
@@ -64,33 +59,33 @@ import static util.functional.Util.forEachIStream;
  * <p/>
  * See {@link #playClose()} and {@link #playOpen() }.
  * </ul>
- * <p/>
+ *
  * @author Martin Polakovic
  */
 public class Anim extends Transition {
 
-    public final Consumer<Double> affector;
+    public final Consumer<Double> applier;
     public final DoubleProperty position = new SimpleDoubleProperty(0);
 
     /** Creates animation with specified frame rate and sideffect called at every frame. */
-    public Anim(double targetFPS, Consumer<Double> sideffect) {
+    public Anim(double targetFPS, Consumer<Double> sideEffect) {
         super(targetFPS);
-        noØ(sideffect);
-        this.affector = sideffect;
+        noØ(sideEffect);
+        this.applier = sideEffect;
     }
 
     /** Creates animation with default framerate and specified sideffect called at every frame. */
-    public Anim(Consumer<Double> sideffect) {
-        noØ(sideffect);
-        this.affector = sideffect;
+    public Anim(Consumer<Double> sideEffect) {
+        noØ(sideEffect);
+        this.applier = sideEffect;
     }
 
     /**
      * Convenience constructor.
      * Creates animation with default framerate and specified duration and sideffect called at every frame.
      */
-    public Anim(Duration length, Consumer<Double> sideffect) {
-        this(sideffect);
+    public Anim(Duration length, Consumer<Double> sideEffect) {
+        this(sideEffect);
         setCycleDuration(length);
     }
 
@@ -98,8 +93,8 @@ public class Anim extends Transition {
      * Convenience constructor.
      * Creates animation with default framerate and specified duration, interpolator and sideffect called at every frame.
      */
-    public Anim(Duration length, Interpolator i, Consumer<Double> sideffect) {
-        this(length,sideffect);
+    public Anim(Duration length, Interpolator i, Consumer<Double> sideEffect) {
+        this(length, sideEffect);
         setInterpolator(i);
     }
 
@@ -145,9 +140,9 @@ public class Anim extends Transition {
 
 
     @Override
-    protected void interpolate(double frac) {
-        position.set(frac);
-        affector.accept(frac);
+    protected void interpolate(double at) {
+        position.set(at);
+        applier.accept(at);
     }
 
 
@@ -249,7 +244,6 @@ public class Anim extends Transition {
         });
     }
 
-
 /********************************** UTILITIES *********************************/
 
     public static Transition seq(Transition... ts) {
@@ -305,8 +299,6 @@ public class Anim extends Transition {
         return par(forEachIStream(animated,animFactory));
     }
 
-
-
     public static double mapTo01(double x, double from, double to) {
         if(x<=from) return 0;
         if(x>=to) return 1;
@@ -323,21 +315,22 @@ public class Anim extends Transition {
      * Consumers of animation position value - double of range 0-1, applying it
      * in some arbitrary way.
      */
-    public static interface Affectors {
+    public interface Applier {
 
-        /** Affector that scales node's x and y. */
-        public static Consumer<Double> scaleXY(Node n) {
+        /** Applier that scales node's x and y. */
+        static Consumer<Double> scaleXY(Node n) {
             return x -> util.graphics.Util.setScaleXY(n,x);
         }
 
         /**
          * Text interpolator for 'text typing effect'. Creates function returning string substrings
          * of all lengths from 0 to string length. Linear and uses rounding (Math.floor).
+         *
          * @param text
          * @return function transforming {@code <0,1>} double input into substrings of the provided
          * string, from beginning to character at the position best reflected by the input.
          */
-        public static Ƒ1<Double,String> typeText(String text) {
+        static Ƒ1<Double,String> typeText(String text) {
             int length = text.length();
             return x -> text.substring(0, (int) Math.floor(length * x));
         }
@@ -347,7 +340,7 @@ public class Anim extends Transition {
      * Animation position transformers. Transform linear 0-1 animation position
      * function into different 0-1 function to produce nonlinear animation.
      */
-    public static interface Interpolators {
+    public interface Interpolators {
 
         /**
          * Returns interpolator as sequential combination of interpolators. Use
@@ -365,7 +358,8 @@ public class Anim extends Transition {
          *
          * @throws IllegalArgumentException if ranges dont give sum of 1
          */
-        public static Function<Double,Double> of(Tuple2<Double,Function<Double,Double>>... interpolators) {
+        @SafeVarargs
+        static Function<Double,Double> of(Tuple2<Double,Function<Double,Double>>... interpolators) {
             if(Stream.of(interpolators).mapToDouble(i->i._1).sum()!=1)
                 throw new IllegalArgumentException("sum of interpolator fractions must be 1");
 
@@ -381,16 +375,16 @@ public class Anim extends Transition {
         }
 
         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-        public static Function<Double,Double> reverse(Function<Double,Double> i) {
+        static Function<Double,Double> reverse(Function<Double,Double> i) {
             return x -> 1-i.apply(x);
         }
 
         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-        public static Function<Double,Double> reverse(Interpolator i) {
+        static Function<Double,Double> reverse(Interpolator i) {
             return x -> 1-i.interpolate(0d,1d,(double)x);
         }
 
-        public static Function<Double,Double> isAround(double point_span, double... points) {
+        static Function<Double,Double> isAround(double point_span, double... points) {
             return at -> {
                 for(double p : points)
                     if(at>p-point_span && at<p+point_span)
@@ -399,7 +393,7 @@ public class Anim extends Transition {
             };
         }
 
-        public static Function<Double,Double> isAroundMin1(double point_span, double... points) {
+        static Function<Double,Double> isAroundMin1(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -408,7 +402,7 @@ public class Anim extends Transition {
                 return 1d;
             };
         }
-        public static Function<Double,Double> isAroundMin2(double point_span, double... points) {
+        static Function<Double,Double> isAroundMin2(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -417,7 +411,7 @@ public class Anim extends Transition {
                 return 1d;
             };
         }
-        public static Function<Double,Double> isAroundMin3(double point_span, double... points) {
+        static Function<Double,Double> isAroundMin3(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -427,6 +421,6 @@ public class Anim extends Transition {
             };
         }
 
-        public static final Function<Double,Double> reverse = at -> 1-at;
+        Function<Double,Double> reverse = at -> 1-at;
     }
 }

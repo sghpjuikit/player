@@ -56,7 +56,7 @@ import static javafx.util.Duration.millis;
 import static util.file.Util.listFiles;
 import static util.file.Util.readFileKeyValues;
 import static util.file.Util.readFileLines;
-import static util.animation.Anim.Affectors.typeText;
+import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.async.Async.runFX;

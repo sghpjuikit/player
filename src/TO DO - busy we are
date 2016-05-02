@@ -1,7 +1,11 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- figure out better wat to inject widget to controller
+- Fix incorrect layout of area controls
+- add properties to Config
+- implement smooth volume on seek
+- implement gui selection on click/hover for inspector
+- figure out better what to inject widget to controller
 - support widget main class lookup, remove name convention, make all widget packages' names lowercase
 - implement loading images properly using the twelve monkeys
 - make services lazy, requires better lifecycle handling, service subscriptions/observers/consumers,
@@ -20,8 +24,7 @@
 - logback could monitor its configuration file
 - Configuration config MapSet should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
-- break File into FileFile and DirFile and AnyFile(?) for type safe Configs, there is no way to tell which user wants...
-  alternatively make File<FileType>
+- typesafe File (FileFile, DirFile and AnyFile?) for type safe Configs, alternatively make File<FileType>
 - widget i/o
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
@@ -49,7 +52,8 @@
 - image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
 - saving multiple playlists is bugged
-- I think spectrum suffers from logarithmic band intensity distribution
+- I think spectrum suffers from logarithmic band intensity distribution, maybe just needs its
+  higher frequencies cut off
 - display window snap preview & snap only on mouse release
 - toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
@@ -82,7 +86,6 @@
 - layout mode zoom animation use loop to increase smoothness
 - FileSize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo
-- implement smooth volume on seek
 - volume add linear vs logarithmic option
 - Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
@@ -194,8 +197,7 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   default values and skinning 
   solution: Text class extending javafx.scene.text.Text and adding custom  
   styleclass. Use instead of the original if default behavior (skin) is expected 
-  Also got a nice additional method. 
-  note: there actually is a styleclass for the Text: .Text   
+  note: there actually is a styleclass for the Text: .Text
   investigate, test, reimplement 
 - open PopOvers prevent app to close normally.                                                      (medium-major)
   cause: javaFX bug 

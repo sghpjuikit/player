@@ -203,7 +203,7 @@ public class OverlayPane extends StackPane {
                     op.blurbackNode.setEffect(op.blurback);
                     op.blurfrontNode.setEffect(op.blurfront);
 
-                    op.animation.affector.accept(0d);
+                    op.animation.applier.accept(0d);
                     op.stg.show();
                     op.stg.requestFocus();
 

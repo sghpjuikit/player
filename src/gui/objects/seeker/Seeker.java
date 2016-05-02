@@ -447,8 +447,8 @@ public final class Seeker extends AnchorPane {
             i.tooltip("Create chapter.\n\nCreates a new empty comment at this "
                     + "position and opens the editor.");
 
-            fade.affector.accept(0d);
-            select.affector.accept(0d);
+            fade.applier.accept(0d);
+            select.applier.accept(0d);
         }
 
         void show() {

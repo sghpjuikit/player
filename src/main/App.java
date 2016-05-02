@@ -1,4 +1,3 @@
-
 package main;
 
 import java.awt.*;
@@ -158,8 +157,6 @@ import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
-
-import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -1115,7 +1112,7 @@ public class App extends Application implements Configurable {
         static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
             Spinner p = new Spinner();
             Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
-                 a.affector.accept(0d);
+                 a.applier.accept(0d);
             p.progressProperty().addListener((o,ov,nv) -> {
                 if(nv.doubleValue()==-1) {
                     if(onStart!=null) onStart.accept(p);

@@ -1,18 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.animation;
 
-import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 import com.sun.javafx.tk.Toolkit;
 import com.sun.scenario.animation.AbstractMasterTimer;
 import com.sun.scenario.animation.shared.TimerReceiver;
 
 /**
- * Timer, that executes behavior in each frame while it is active.
+ * Timer, that executes behavior in each frame while it is running.
  * <p/>
  * The methods {@link #start()} and {@link #stop()} allow to start and stop the timer.
  *
@@ -31,7 +26,7 @@ public final class Loop {
      * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called
      * during one frame.
      */
-    public Loop(Consumer<Long> behavior) {
+    public Loop(LongConsumer behavior) {
         this.timerReceiver = behavior::accept;
     }
 
@@ -40,7 +35,7 @@ public final class Loop {
         this.timerReceiver = now -> behavior.run();
     }
 
-    /** Starts this loop. Once it is started, the behavior will be called in every frame. */
+    /** Starts this loop. Once started, the behavior will be called in every frame. */
     public void start() {
         if (!active) {
             timer.addAnimationTimer(timerReceiver);

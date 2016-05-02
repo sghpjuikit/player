@@ -127,7 +127,7 @@ public class Picker<E> {
                 content.setOpacity(1-x);
                 setScaleXY(sp, 0.5 + 0.5*x);
             });
-            anim.affector.accept(0d);
+            anim.applier.accept(0d);
             cell.hoverProperty().addListener((o,ov,nv) -> anim.playFromDir(nv));
         }
 

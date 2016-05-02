@@ -198,7 +198,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             prevB.setTranslateX(+40*(p-1));
             nextB.setTranslateX(-40*(p-1));
         });
-        navigAnim.affector.accept(0d);
+        navigAnim.applier.accept(0d);
 
         EventReducer inactive = toLast(1000, () -> { if(!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
         EventReducer active = toFirstDelayed(400, navigAnim::playOpen);

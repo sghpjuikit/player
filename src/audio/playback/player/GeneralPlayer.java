@@ -12,17 +12,21 @@ import javafx.util.Duration;
 import audio.Item;
 import audio.Player;
 import audio.playback.PLAYBACK;
+import audio.playback.PlayTimeHandler;
 import audio.playback.RealTimeProperty;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
+import util.animation.Anim;
 import util.file.AudioFileFormat;
 import util.async.Async;
 
 import static audio.playback.PLAYBACK.*;
+import static java.lang.Math.pow;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+import static javafx.util.Duration.millis;
 import static util.file.AudioFileFormat.*;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
@@ -126,7 +130,7 @@ public class GeneralPlayer {
         Async.runFX(() -> {
             Player.playingtem.itemChanged(Metadata.EMPTY);
             realTime.synchroRealTime_onStopped();
-            PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
+            PLAYBACK.onTimeHandlers.forEach(PlayTimeHandler::stop);
             PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
             PlaylistManager.active = null;
         });
@@ -141,10 +145,27 @@ public class GeneralPlayer {
             pause();
         }
 
+        final double currentVolume = state.volume.get();
+        if(seekDone) lastValidVolume = currentVolume;
+        else { if(volumeAnim!=null) volumeAnim.pause(); }
+        seekDone = false;
+        new Anim(millis(150), x -> state.volume.set(currentVolume*pow(1-x,2))).then(() -> {
+            doSeek(duration);
+            volumeAnim = new Anim(millis(150), x -> state.volume.set(lastValidVolume*pow(x,2)))
+                    .then(() -> seekDone=true);
+            volumeAnim.playOpen();
+        }).playOpen();
+    }
+
+    private void doSeek(Duration duration) {
         realTime.synchroRealTime_onPreSeeked();
         p.seek(duration);
         realTime.synchroRealTime_onPostSeeked(duration);
     }
+
+    private boolean seekDone = true;
+    private double lastValidVolume = -1;
+    private Anim volumeAnim;
 
     /**
      * Closes player.

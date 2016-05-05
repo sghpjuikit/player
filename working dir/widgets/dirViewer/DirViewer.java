@@ -505,11 +505,14 @@ public class DirViewer extends ClassController {
         IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
 
         public boolean needsAnimation(Cell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
-            if (this == IMAGE_CHANGE) return cell.thumb.image.get() != img;
+            if (this == IMAGE_CHANGE)
+                return cell.thumb.image.get() != img;
             else if (this == IMAGE_CHANGE_FROM_EMPTY)
                 return cell.thumb.image.get() == null && img != null;
-            else if (this == IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img != null;
-            else throw new SwitchException(this);
+            else if (this == IMAGE_CHANGE_1ST_TIME)
+                return !imgAlreadyLoaded && img != null;
+            else
+                throw new SwitchException(this);
         }
     }
 }

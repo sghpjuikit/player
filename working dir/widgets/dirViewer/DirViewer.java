@@ -458,8 +458,8 @@ public class DirViewer extends ClassController {
         filters.add(new PƑ0<>("File - all", File.class, Boolean.class, file -> true));
         filters.add(new PƑ0<>("File - none", File.class, Boolean.class, file -> false));
         APP.mimeTypes.setOfGroups().forEach(group -> {
-            filters.add(new PƑ0<>("Mime - is " + capitalize(group), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file).isOfType(group)));
-            filters.add(new PƑ0<>("Mime - no " + capitalize(group), File.class, Boolean.class, file -> !APP.mimeTypes.ofFile(file).isOfType(group)));
+            filters.add(new PƑ0<>("Mime - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(APP.mimeTypes.ofFile(file).getGroup())));
+            filters.add(new PƑ0<>("Mime - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(APP.mimeTypes.ofFile(file).getGroup())));
         });
         APP.mimeTypes.setOfExtensions().forEach(extension -> {
             filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file).isOfType(extension)));

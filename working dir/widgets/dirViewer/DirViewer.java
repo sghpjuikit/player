@@ -163,15 +163,17 @@ public class DirViewer extends ClassController {
         runLater(this::revisitCurrent);
     }
 
-    // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
-    // the user source - collection of directories // implement
     void visitUp() {
-//        if(item!=null) {
-//            if(item.parent!=null) visitDir(item.parent);
-//            else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
-//        }
-        if (item != null && item.parent != null)
+        // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
+        // the user source - collection of directories << TODO
+        // if(item!=null) {
+        //     if(item.parent!=null) visitDir(item.parent);
+        //     else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
+        // }
+        if (item != null && item.parent != null) {
             visit(item.parent);
+            item.parent.disposeChildren();
+        }
     }
 
     private void visit(Item dir) {
@@ -182,6 +184,7 @@ public class DirViewer extends ClassController {
         if (!initialized) return;
         if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
+        if (item != null && item.isHChildOf(dir)) item.dispose();
         visitId++;
 
         item = dir;
@@ -241,9 +244,7 @@ public class DirViewer extends ClassController {
     }
 
     private void disposeItems() {
-        Item i = item;
-        while (i != null && i.parent != null)
-            i = i.parent;
+        Item i = item==null ? null : item.getHRoot();
         if (i != null) i.dispose();
     }
 

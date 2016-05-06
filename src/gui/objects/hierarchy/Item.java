@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 
 import gui.objects.image.Thumbnail;
+import util.Hierarchical;
 import util.graphics.IconExtractor;
 import unused.TriConsumer;
 import util.file.FileType;
@@ -26,23 +27,25 @@ import static util.functional.Util.list;
  * File wrapper, content of Cell.
  * We cache various stuff in here, including the cover Image and children files.
  */
-public abstract class Item {
+public abstract class Item implements Hierarchical<Item> {
+
     public final File val;
     public final FileType valtype;
     public final Item parent;
-    public Set<Item> children = null;        // filtered files
-    public Set<String> all_children = null;  // all files, cache, use instead File.exists to reduce I/O
-    public Image cover = null;               // cover cache
-    public File cover_file = null;           // cover file cache
-    public boolean coverFile_loaded = false;
-    public boolean cover_loadedThumb = false;
-    public volatile boolean cover_loadedFull = false;
-    public double last_gridposition = -1;
+    public Set<Item> children;              // filtered files
+    public Set<String> all_children;        // all files, cache, use instead File.exists to reduce I/O
+    public Image cover;                     // cover cache
+    public File cover_file;                 // cover file cache
+    public boolean coverFile_loaded;
+    public boolean cover_loadedThumb;
+    public volatile boolean cover_loadedFull;
+    public double last_gridposition;
 
     public Item(Item parent, File value, FileType valtype) {
         this.val = value;
         this.valtype = valtype;
         this.parent = parent;
+	    init();
     }
 
     public List<Item> children() {
@@ -50,11 +53,31 @@ public abstract class Item {
         return list(children);
     }
 
+	private void init() {
+		children = null;
+		all_children = null;
+		cover = null;
+		cover_file = null;
+		coverFile_loaded = false;
+		cover_loadedThumb = false;
+		cover_loadedFull = false;
+		last_gridposition = -1;
+	}
+
     public void dispose() {
         if(children!=null) children.forEach(Item::dispose);
         if(children!=null) children.clear();
         if(all_children!=null) all_children.clear();
+	    children = null;
+	    all_children = null;
         cover = null;
+    }
+
+    public void disposeChildren() {
+        if(children!=null) children.forEach(Item::dispose);
+        if(children!=null) children.clear();
+        if(all_children!=null) all_children.clear();
+	    init();
     }
 
     private void buildChildren() {
@@ -177,8 +200,17 @@ public abstract class Item {
         return cover_file;
     }
 
+	@Override
+	public Item getHParent() {
+		return parent;
+	}
 
-    private static boolean file_exists(Item c, File f) {
+	@Override
+	public List<Item> getHChildren() {
+		return children();
+	}
+
+	private static boolean file_exists(Item c, File f) {
         return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
     }
 }

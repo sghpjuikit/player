@@ -1103,6 +1103,11 @@ public class App extends Application implements Configurable {
         APP.infoPane.show();
     }
 
+    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
+    private static void runGarbageCollector() {
+        System.gc();
+    }
+
     public interface Build {
 
         static ProgressIndicator appProgressIndicator() {

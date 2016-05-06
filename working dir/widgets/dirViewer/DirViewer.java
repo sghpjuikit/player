@@ -292,6 +292,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected void updateItem(Item item, boolean empty) {
+            if(getItem() == item) return;
             super.updateItem(item, empty);
 
             if (item == null) {

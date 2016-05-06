@@ -6,6 +6,10 @@
 package util.access.fieldvalue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 
 import util.file.Util;
@@ -23,10 +27,26 @@ public enum FileField implements ObjectField<File> {
 
     PATH("Path",File::getPath, String.class),
     NAME("Name", Util::getName, String.class),
-    NAME_FULL("Gilename", Util::getNameFull, String.class),
+    NAME_FULL("Filename", Util::getNameFull, String.class),
     EXTENSION("Extension", Util::getSuffix, String.class),
     SIZE("Size",FileSize::new, FileSize.class),
     TIME_MODIFIED("Time Modified",f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class),
+    TIME_CREATED("Time Created",f -> {
+        try {
+            BasicFileAttributes attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
+            return attr.creationTime();
+        } catch (IOException e) {
+            return null;
+        }
+    }, FileTime.class),
+    TIME_ACCESSED("Time Accessed",f -> {
+        try {
+            BasicFileAttributes attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
+            return attr.lastAccessTime();
+        } catch (IOException e) {
+            return null;
+        }
+    }, FileTime.class),
     TYPE("Type",f -> f.isDirectory() ? "Directory" : Util.getSuffix(f), String.class);
 
     private final String description;

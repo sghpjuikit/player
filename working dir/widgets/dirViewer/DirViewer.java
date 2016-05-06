@@ -172,7 +172,7 @@ public class DirViewer extends ClassController {
         // }
         if (item != null && item.parent != null) {
             visit(item.parent);
-            item.parent.disposeChildren();
+            item.disposeChildren(); // item.parent has become item
         }
     }
 

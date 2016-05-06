@@ -73,16 +73,17 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
             int endCellIndex = startCellIndex + maxCellsInRow - 1;
             int cacheIndex = 0;
 
-            for (int cellIndex = startCellIndex; cellIndex <= endCellIndex; cellIndex++, cacheIndex++) {
-                if (cellIndex < totalCellsInGrid) {
+            for (int i = startCellIndex; i <= endCellIndex; i++, cacheIndex++) {
+                if (i < totalCellsInGrid) {
                     // Check if we can re-use a cell at this index or create a new one
                     GridCell<T,F> cell = getCellAtIndex(cacheIndex);
                     if(cell == null) {
                         cell = createCell();
                         getChildren().add(cell);
                     }
-                    cell.updateIndex(-1);
-                    cell.updateIndex(cellIndex);
+//                    cell.updateIndex(-1);
+//                    cell.updateIndex(cellIndex);
+                    cell.forceUpdateIndex(i);
                 }
                 // we are going out of bounds -> exist the loop
                 else break;

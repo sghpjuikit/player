@@ -141,7 +141,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         };
         WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
         getSkinnable().getItemsShown().addListener(itemsListener);
-        getSkinnable().getItemsRaw().addListener(itemsListener);
+//        getSkinnable().getItemsRaw().addListener(itemsListener);
 
         updateRowCount();
         flowRecreateCells();
@@ -226,8 +226,9 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         for (int i = 0; i < rowCount; i++) {
             GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
-                row.updateIndex(-1);
-                row.updateIndex(i);
+//                row.updateIndex(-1);
+//                row.updateIndex(i);
+                row.forceUpdateIndex(i);
             }
         }
     }

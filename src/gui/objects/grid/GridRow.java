@@ -20,11 +20,13 @@ class GridRow<T,F> extends IndexedCell<T>{
 
     @Override
     public void updateIndex(int i) {
-        if(getIndex()!=i) {
-            super.updateIndex(i);
-            updateItem(null, i<0);
-            updateSelected(i==getGridView().implGetSkin().selectedRI);
-        }
+        if(getIndex()!=i) forceUpdateIndex(i);
+    }
+
+    public void forceUpdateIndex(int i) {
+        super.updateIndex(i);
+        updateItem(null, i<0);
+        updateSelected(i==getGridView().implGetSkin().selectedRI);
     }
 
 
@@ -33,6 +35,7 @@ class GridRow<T,F> extends IndexedCell<T>{
         return new GridRowSkin<>(this);
     }
 
+    @SuppressWarnings("unchecked")
     public GridRowSkin<T,F> getSkinn() {
         return (GridRowSkin<T,F>)getSkin();
     }

@@ -22,7 +22,6 @@ import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import layout.widget.controller.io.Input;
 import util.SingleR;
 import util.Sort;
 import util.SwitchException;
@@ -31,7 +30,6 @@ import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
-import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
@@ -93,7 +91,6 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
-    private boolean isResizing = false;
     private volatile long visitId = 0;
     private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to view directory", () -> {
         File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowOwner.getStage());
@@ -125,18 +122,10 @@ public class DirViewer extends ClassController {
         setAnchor(this, grid, 0d);
         placeholder.showFor(this);
 
-        Input<File> input_Dir = inputs.create("Root directory", File.class, null, dir -> {
+        inputs.create("Root directory", File.class, null, dir -> {
             if (dir != null && dir.isDirectory() && dir.exists())
                 files.setItems(dir);
         });
-
-        // delay cell loading when content is being resized (increases resize performance)
-        double delay = 200; // ms
-        FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
-        grid.widthProperty().addListener((o, ov, nv) -> isResizing = true);
-        grid.heightProperty().addListener((o, ov, nv) -> isResizing = true);
-        grid.widthProperty().addListener((o, ov, nv) -> resizeTimer.start(300));
-        grid.heightProperty().addListener((o, ov, nv) -> resizeTimer.start(300));
 
         grid.setOnKeyPressed(e -> {
             if (e.getCode() == ENTER) {

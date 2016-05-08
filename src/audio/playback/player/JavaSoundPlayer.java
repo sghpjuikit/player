@@ -24,7 +24,7 @@ import static util.async.Async.runLater;
  *
  * @author Martin Polakovic
  */
-public class JavaSoundPlayer implements Play {
+public class JavaSoundPlayer implements GeneralPlayer.Play {
 
     private final AudioPlayer p = new AudioPlayer();
     private double seeked = 0;
@@ -43,7 +43,7 @@ public class JavaSoundPlayer implements Play {
 
             @Override public void playbackEndOfMedia(PlaybackEvent pe) {
                 runLater(()->{
-                    PLAYBACK.playbackEndDistributor.run();
+                    PLAYBACK.onPlaybackEnd.run();
                 });
             }
             long l = 0;

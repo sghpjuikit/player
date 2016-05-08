@@ -2,11 +2,7 @@ package gameLib;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,11 +15,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-import util.conf.Config;
-import util.conf.Config.VarList;
-import util.conf.IsConfig;
-import layout.widget.Widget;
-import layout.widget.controller.FXMLController;
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
@@ -31,17 +22,20 @@ import gui.objects.image.cover.Cover;
 import gui.objects.image.cover.FileCover;
 import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
-import util.file.Environment;
-import util.file.Util;
-import util.file.ImageFileFormat;
+import layout.widget.Widget;
+import layout.widget.controller.FXMLController;
 import util.SwitchException;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.Async;
 import util.async.executor.FxTimer;
+import util.conf.Config;
+import util.conf.Config.VarList;
+import util.conf.IsConfig;
+import util.file.Environment;
+import util.file.ImageFileFormat;
 import util.functional.Functors.Ƒ1;
 
-import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;
@@ -53,13 +47,12 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import static util.file.Util.listFiles;
-import static util.file.Util.readFileKeyValues;
-import static util.file.Util.readFileLines;
+import static layout.widget.Widget.Group.OTHER;
 import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.async.Async.runFX;
+import static util.file.Util.*;
 import static util.functional.Util.by;
 
 /**
@@ -159,7 +152,7 @@ public class GameLib extends FXMLController {
         fh.setShowRoot(false);
         file_tree_root.getChildren().setAll(fh);
 
-        game_list.setCellFactory(listview -> new ListCell<GameItem>(){
+        game_list.setCellFactory(listview -> new ListCell<>(){
             @Override
             protected void updateItem(GameItem item, boolean empty) {
                 super.updateItem(item, empty);
@@ -218,7 +211,7 @@ public class GameLib extends FXMLController {
                 File f = new File(nv.getValue(),"readme.txt");
                 if(f.exists()) {
                     String s = readFileLines(f).collect(joining("\n"));
-                    info_text.setText(Util.getName(f) + "\n\n" + s);
+                    info_text.setText(getName(f) + "\n\n" + s);
                 }
             }
         });
@@ -260,9 +253,9 @@ public class GameLib extends FXMLController {
         at = to;
     }
 
-    public static enum InfoType {
+    public enum InfoType {
         PLAY,
-        EXPLORER;
+        EXPLORER
     }
 
     public static class GameItem {
@@ -281,9 +274,6 @@ public class GameLib extends FXMLController {
             return name;
         }
 
-        /**
-         * @return the location
-         */
         public File getLocation() {
             return location;
         }
@@ -321,7 +311,7 @@ public class GameLib extends FXMLController {
 
         public Map<String,String> loadMetadata() {
             if(settings==null) {
-                File f = new File(location,"settings.cfg");
+                File f = new File(location,"game.properties");
                 settings = f.exists() ? readFileKeyValues(f) : new HashMap<>();
             }
             return settings;
@@ -329,7 +319,7 @@ public class GameLib extends FXMLController {
 
         public String play() {
             loadMetadata();
-            List<String> command = new ArrayList();
+            List<String> command = new ArrayList<>();
 
             try {
                 File exe =null ;
@@ -376,9 +366,7 @@ public class GameLib extends FXMLController {
 
         @Override
         public boolean equals(Object obj) {
-            if(this==obj) return true;
-            if(obj instanceof GameItem) return name.equals(((GameItem)obj).name);
-            else return false;
+            return this == obj || (obj instanceof GameItem && name.equals(((GameItem) obj).name));
         }
 
         @Override

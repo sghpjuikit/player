@@ -31,7 +31,7 @@ import static util.reactive.Util.maintain;
  *
  * @author Martin Polakovic
  */
-public class JavaFxPlayer implements Play {
+public class JavaFxPlayer implements GeneralPlayer.Play {
 
     private MediaPlayer player;
     private Subscription d1,d2,d3,d4,d5,d6,d7;
@@ -92,7 +92,7 @@ public class JavaFxPlayer implements Play {
                 d2 = maintain(state.mute,player.muteProperty());
                 d3 = maintain(state.balance,player.balanceProperty());
                 d4 = maintain(state.rate,player.rateProperty());
-                player.setOnEndOfMedia(PLAYBACK.playbackEndDistributor);
+                player.setOnEndOfMedia(PLAYBACK.onPlaybackEnd);
 
                 // handle binding of state to player
                 // handle seeking when player in invalid statuses (seek when status becomes valid)

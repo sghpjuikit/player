@@ -3,7 +3,9 @@
 
 - Fix incorrect layout of area controls
 - add properties to Config
-- implement smooth volume on seek
+- fix GridView filter
+- implement configurable DirView cell size and shape
+- implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller
 - support widget main class lookup, remove name convention, make all widget packages' names lowercase
@@ -35,7 +37,6 @@
     - conf gui header
     - impl searching (as opposed to filtering), filtering really makes inability to search evident, follow Table impl
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
-    - thumbnails do not load sometimes. This bug definitely exists, but its seemingly random. Threading problem?        still an issue?
     - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1
 - FileDownloader widget

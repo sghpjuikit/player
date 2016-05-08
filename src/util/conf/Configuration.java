@@ -1,4 +1,3 @@
-
 package util.conf;
 
 import java.io.File;
@@ -25,12 +24,12 @@ import util.access.Vo;
 import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
-import util.file.Util;
 import util.functional.Functors.Ƒ1;
 
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
 import static util.file.Util.readFileKeyValues;
+import static util.file.Util.writeFile;
 import static util.functional.Util.byNC;
 import static util.type.Util.getAllFields;
 import static util.type.Util.getGenericPropertyType;
@@ -147,21 +146,22 @@ public class Configuration {
             .append("# Properties are in the format: {property path}.{property.name}{separator}{property value}\n")
             .append("# \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n")
             .append("# \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n")
-            .append("# \t{separator}      must be ' - ' sequence\n")
+            .append("# \t{separator}      must be ' = ' string\n")
             .append("# \t{property value} can be any string (even empty)\n")
             .append("# Properties must be separated by combination of '\\n', '\\r' characters\n")
             .append("#\n")
             .append("# Ignored lines:\n")
             .append("# \tcomment lines (start with '#')\n")
+            .append("# \tcomment lines (start with '!')\n")
             .append("# \tempty lines\n")
             .append("\n");
 
         Function<Config,String> converter = configs.keyMapper;
         getFields().stream()
                    .sorted(byNC(converter))
-                   .forEach(c -> content.append("\n" + converter.apply(c) + " : " + c.getValueS()));
+                   .forEach(c -> content.append("\n" + converter.apply(c) + " = " + c.getValueS()));
 
-        Util.writeFile(file, content.toString());
+        writeFile(file, content.toString());
     }
 
     /**

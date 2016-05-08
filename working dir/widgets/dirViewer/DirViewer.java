@@ -173,7 +173,7 @@ public class DirViewer extends ClassController {
         if (!initialized) return;
         if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
-        if (item != null && item.isHChildOf(dir)) item.dispose();
+        if (item != null && item.isHChildOf(dir)) item.disposeChildren();
         visitId++;
 
         item = dir;

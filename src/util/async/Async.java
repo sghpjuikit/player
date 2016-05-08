@@ -102,8 +102,10 @@ public interface Async {
      * @param action action. Takes the timer as a parameter. Use it to stop the
      * periodic execution. Otherwise it will never stop !
      */
-    static void runPeriodic(Duration period, Consumer<FxTimer> action) {
-        new FxTimer(period, INDEFINITE, action).start();
+    static FxTimer runPeriodic(Duration period, Consumer<FxTimer> action) {
+        FxTimer t = new FxTimer(period, INDEFINITE, action);
+        t.start();
+        return t;
     }
 
     /**

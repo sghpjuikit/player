@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.itemnode;
 
 import java.util.ArrayList;
@@ -104,7 +99,6 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * and may not reflect it exactly when edited.
      */
     public final StringProperty output_string = textarea.textProperty();
-
 
     public ListAreaNode() {
         transforms.onItemChange = f -> {

@@ -442,12 +442,12 @@ public final class Action extends Config<Action> implements Runnable {
     @Deprecated // internal use only
     public static Action fromString(String str) {
         int i = str.lastIndexOf(",");
-        if(i==-1)return null;
+        if(i==-1) return null;
         String s1 = str.substring(0,i);
         String s2 = str.substring(i+1, str.length());
-        boolean g = Boolean.parseBoolean(s1);
-        KeyCombination k = s2.isEmpty() ? KeyCombination.NO_MATCH : KeyCodeCombination.valueOf(s2);
-        return new Action(g, k);
+        boolean isGlobal = Boolean.parseBoolean(s1);
+        KeyCombination keys = s2.isEmpty() ? KeyCombination.NO_MATCH : KeyCodeCombination.valueOf(s2);
+        return new Action(isGlobal, keys);
     }
 
     @Deprecated // internal use only

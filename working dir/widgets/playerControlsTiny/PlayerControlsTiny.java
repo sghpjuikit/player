@@ -29,7 +29,6 @@ import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.HorizontalDock;
 import layout.widget.feature.PlaybackFeature;
-import util.Util;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
@@ -42,7 +41,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static java.lang.Double.max;
-import static java.lang.Double.min;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -50,6 +48,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import static javafx.util.Duration.seconds;
 import static util.Util.clip;
+import static util.Util.formatDuration;
 import static util.functional.Util.mapRef;
 import static util.graphics.Util.layStack;
 import static util.graphics.drag.DragUtil.installDrag;
@@ -94,6 +93,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
          loopB = new Icon<>(null, ICON_SIZE, null, (MouseEvent e) -> PLAYBACK.toggleLoopMode(e)),
          volB  = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
     Anim scroller;
+    double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -152,8 +152,9 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
         d(maintain(ps.status, this::statusChanged));
-        d(maintain(ps.currentTime,t -> currentTimeChanged()));
+        d(maintain(ps.currentTime, t -> currentTimeChanged()));
         d(maintain(ps.loopMode,this::loopModeChanged));
+        d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
         d(Player.playingtem.onUpdate(this::playbackItemChanged));
         playbackItemChanged(Player.playingtem.get());
 
@@ -178,6 +179,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void playbackItemChanged(Metadata m) {
+        lastUpdatedTime = Double.MIN_VALUE;
         seeker.reloadChapters(m);
         scrollLabel.setText(m.getArtist() + " - " + m.getTitle());
     }
@@ -200,13 +202,17 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void currentTimeChanged() {
-        if (elapsedTime) {
-            Duration elapsed = PLAYBACK.getCurrentTime();
-            currTime.setText(Util.formatDuration(elapsed));
-        } else {
-            if (PLAYBACK.getTotalTime() == null) return;
-            Duration remaining = PLAYBACK.getRemainingTime();
-            currTime.setText("- " + Util.formatDuration(remaining));
+        double millis = PLAYBACK.getCurrentTime().toMillis();
+        if(lastUpdatedTime+1000 <= millis) {
+            lastUpdatedTime = millis;
+            if (elapsedTime) {
+                Duration elapsed = PLAYBACK.getCurrentTime();
+                currTime.setText(formatDuration(elapsed));
+            } else {
+                if (PLAYBACK.getTotalTime() == null) return;
+                Duration remaining = PLAYBACK.getRemainingTime();
+                currTime.setText("- " + formatDuration(remaining));
+            }
         }
     }
 

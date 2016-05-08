@@ -89,16 +89,24 @@ public interface Util {
         if(property.getValue()!=null)
             action.accept(property.getValue());
         else {
-            property.addListener(new ChangeListener<>() {
-                @Override
-                public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
-                    if(nv!=null) {
-                        action.accept(nv);
-                        property.removeListener(this);
-                    }
-                }
-            });
+            property.addListener(singletonListener(property, action));
         }
+    }
+
+    static <T> ChangeListener<T> singletonListener(ObservableValue<T> property, Consumer<T> action) {
+        return new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
+                if(nv!=null) {
+                    action.accept(nv);
+                    property.removeListener(this);
+                }
+            }
+        };
+    }
+
+    static <T> void installSingletonListener(ObservableValue<T> property, Consumer<T> action) {
+        property.addListener(singletonListener(property, action));
     }
 
     /** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */

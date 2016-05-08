@@ -1,4 +1,3 @@
-
 package services.playcount;
 
 import java.util.ArrayList;
@@ -78,8 +77,8 @@ public class PlaycountIncrementer extends ServiceBase {
         // again, all queued playcounts will never get written to tag
         // we could just write them all to tag right here, but that may cause problems such as
         // unwanted application close delay.
-        // This shouldnt be a big problem, unless user listened to single song lot of the times
-        // in a loop and then disabled this service and closed the app. We really dont care about
+        // This should not be a big problem, unless user listened to single song lot of the times
+        // in a loop and then disabled this service and closed the app. We really do not care about
         // such scenario. Plus, few lost playcounts are no big deal.
         //
         // fix below:
@@ -106,18 +105,18 @@ public class PlaycountIncrementer extends ServiceBase {
             if(delay.get()) {
                 queue.add(m);
                 if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
-                if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted scheduled", INFO));
+                if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented scheduled", INFO));
             } else {
                 int pc = 1 + m.getPlaycount();
                 MetadataWriter.use(m, w -> w.setPlaycount(pc), ok -> {
                     if(ok) {
                         if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
-                        if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted to: " + pc, INFO));
+                        if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented to: " + pc, INFO));
                     }
                 });
             }
         }
-    };
+    }
 
     private void apply() {
         removeOld();
@@ -125,29 +124,28 @@ public class PlaycountIncrementer extends ServiceBase {
 
         if (when.get() == ON_PERCENT) {
             incrHand = new PlayTimeHandler(total -> total.multiply(when_percent.get()),incr);
-            PLAYBACK.addOnPlaybackAt(incrHand);
+            PLAYBACK.onPlaybackAt.add(incrHand);
         } else if (when.get() == ON_TIME) {
             incrHand = new PlayTimeHandler(total -> when_time.get(), incr);
-            PLAYBACK.addOnPlaybackAt(incrHand);
+            PLAYBACK.onPlaybackAt.add(incrHand);
         } else if (when.get() == ON_TIME_AND_PERCENT) {
             incrHand = new PlayTimeHandler(total -> min(when_time.get(),total.multiply(when_percent.get())),incr);
-            PLAYBACK.addOnPlaybackAt(incrHand);
+            PLAYBACK.onPlaybackAt.add(incrHand);
         } else if (when.get() == ON_TIME_OR_PERCENT) {
             incrHand = new PlayTimeHandler(total -> max(when_time.get(),total.multiply(when_percent.get())),incr);
-            PLAYBACK.addOnPlaybackAt(incrHand);
+            PLAYBACK.onPlaybackAt.add(incrHand);
         } else if (when.get() == ON_START) {
-            PLAYBACK.addOnPlaybackStart(incr);
+            PLAYBACK.onPlaybackStart.add(incr);
         } else if (when.get() == ON_END) {
-            PLAYBACK.addOnPlaybackEnd(incr);
+            PLAYBACK.onPlaybackEnd.add(incr);
         } else if (when.get() == NEVER) {}
     }
 
     private void removeOld() {
-        if(incrHand!=null) PLAYBACK.removeOnPlaybackAt(incrHand);
-        PLAYBACK.removeOnPlaybackStart(incr);
-        PLAYBACK.removeOnPlaybackEnd(incr);
+        PLAYBACK.onPlaybackAt.remove(incrHand);
+        PLAYBACK.onPlaybackEnd.remove(incr);
+        PLAYBACK.onPlaybackStart.remove(incr);
     }
-
 
     private final List<Metadata> queue = new ArrayList<>();
 
@@ -164,7 +162,7 @@ public class PlaycountIncrementer extends ServiceBase {
     }
 
     /** Strategy for incrementing playcount. */
-    public static enum PlaycountIncrStrategy {
+    public enum PlaycountIncrStrategy {
         /** Increment when song starts playing. */
         ON_START,
         /** Increment when song stops playing naturally. */
@@ -178,6 +176,6 @@ public class PlaycountIncrementer extends ServiceBase {
         /** Increment when song is playing for specified time and portion of its time. */
         ON_TIME_AND_PERCENT,
         /** Never increment. */
-        NEVER;
+        NEVER
    }
 }

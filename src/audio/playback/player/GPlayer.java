@@ -16,7 +16,7 @@ import static util.reactive.Util.maintain;
  *
  * @author Martin Polakovic
  */
-public class GPlayer implements Play {
+public class GPlayer implements GeneralPlayer.Play {
     // TODO: figure out how to deploy gstreamer native files with the app
     PlayBin2 p;
     Subscription s1, s2, s3, s4, s5;

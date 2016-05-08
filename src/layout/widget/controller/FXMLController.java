@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package layout.widget.controller;
 
 import java.io.File;
@@ -26,7 +21,7 @@ import util.conf.Config;
 import util.dev.Dependency;
 
 /**
- * Controller for {@link FXMLWidget}
+ * Controller for widgets built around fxml files. See {@link javafx.fxml.FXMLLoader}.
  *
  * @author Martin Polakovic
  */
@@ -38,7 +33,6 @@ abstract public class FXMLController implements Controller<Widget<?>> {
     public final Inputs inputs = new Inputs();
     private final HashMap<String,Config<Object>> configs = new HashMap<>();
     private final List<Subscription> disposables = new ArrayList<>();
-
 
     @Override
     public Widget<?> getWidget() {

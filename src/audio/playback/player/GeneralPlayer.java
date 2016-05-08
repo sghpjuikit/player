@@ -1,10 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package audio.playback.player;
-
 
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
@@ -13,23 +7,26 @@ import audio.Item;
 import audio.Player;
 import audio.playback.PLAYBACK;
 import audio.playback.PlayTimeHandler;
+import audio.playback.PlaybackState;
 import audio.playback.RealTimeProperty;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
 import util.animation.Anim;
-import util.file.AudioFileFormat;
 import util.async.Async;
+import util.file.AudioFileFormat;
 
 import static audio.playback.PLAYBACK.*;
 import static java.lang.Math.pow;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
-import static util.file.AudioFileFormat.*;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
+import static util.file.AudioFileFormat.*;
+import static util.reactive.Util.installSingletonListener;
 
 /**
  * Audio player which abstracts away from the implementation. It 'uses' actual players and provides
@@ -55,14 +52,13 @@ public class GeneralPlayer {
     Item i;
     public final RealTimeProperty realTime = new RealTimeProperty(state.duration, state.currentTime);
 
-
     @SuppressWarnings("deprecation")
     synchronized public void play(PlaylistItem item) {
         // Do not recreate player if same song plays again
         // 1) improves performance
         // 2) avoids firing some playback events
         if(p!=null && item.same(i)) {
-            seek(Duration.ZERO);
+            seek(ZERO);
             return;
         }
 
@@ -70,14 +66,12 @@ public class GeneralPlayer {
         if(p!=null) p.dispose();
         p = getPlayer(item);
 
-        // play
         try {
-
             if(p==null) throw new NoPlayerException();
             p.createPlayback(item, state,
                 () -> {
                     realTime.real_seek = state.realTime.get();
-                    realTime.curr_sek = Duration.ZERO;
+                    realTime.curr_sek = ZERO;
                     p.play();
 
                     realTime.synchroRealTime_onPlayed();
@@ -85,11 +79,11 @@ public class GeneralPlayer {
                     Player.playingtem.itemChanged(item);
                     suspension_flag = false;
                     // fire other events (may rely on the above)
-                    PLAYBACK.playbackStartDistributor.run();
+                    PLAYBACK.onPlaybackStart.run();
                     if(post_activating_1st || !post_activating)
                         // bug fix, not updated playlist items can get here, but should not!
                         if(item.getTimeMs()>0)
-                            PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
+                            PLAYBACK.onPlaybackAt.forEach(t -> t.restart(item.getTime()));
                     post_activating = false;
                     post_activating_1st = false;
                 },
@@ -108,13 +102,13 @@ public class GeneralPlayer {
     public void resume() {
         if(p==null) return;
         p.resume();
-        PLAYBACK.onTimeHandlers.forEach(t -> t.unpause());
+        PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::unpause);
     }
 
     public void pause() {
         if(p==null) return;
         p.pause();
-        PLAYBACK.onTimeHandlers.forEach(t -> t.pause());
+        PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::pause);
     }
 
     public void pause_resume() {
@@ -130,7 +124,7 @@ public class GeneralPlayer {
         Async.runFX(() -> {
             Player.playingtem.itemChanged(Metadata.EMPTY);
             realTime.synchroRealTime_onStopped();
-            PLAYBACK.onTimeHandlers.forEach(PlayTimeHandler::stop);
+            PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::stop);
             PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
             PlaylistManager.active = null;
         });
@@ -159,6 +153,7 @@ public class GeneralPlayer {
 
     private void doSeek(Duration duration) {
         realTime.synchroRealTime_onPreSeeked();
+        installSingletonListener(state.currentTime, v -> PLAYBACK.onSeekDone.run());
         p.seek(duration);
         realTime.synchroRealTime_onPostSeeked(duration);
     }
@@ -168,8 +163,7 @@ public class GeneralPlayer {
     private Anim volumeAnim;
 
     /**
-     * Closes player.
-     * Prevents 'double player'.
+     * Closes player. Releases resources. Prevents double playback.
      */
     public void dispose() {
         if(p==null) return;
@@ -177,5 +171,17 @@ public class GeneralPlayer {
         p=null;
     }
 
+    public interface Play {
+        void play();
+        void pause();
+        void resume();
+        void seek(Duration duration);
+        void stop();
+        void createPlayback(Item item, PlaybackState state, Runnable onOK, Runnable onFail);
+        /**
+         * Stops playback if any and disposes of the player resources.
+         */
+        void dispose();
+    }
     private static class NoPlayerException extends Exception {}
 }

@@ -432,11 +432,11 @@ public interface Util {
     }
 
     /**
-     * Reads files as key-value storage. Empty lines or lines starting with '#'
+     * Reads files as key-value storage. Empty lines or lines starting with '#' or '!'
      * (comment) will be ignored.
      * <pre>{@code
      * File format per line (input):
-     *     "key : value"
+     *     "key = value"
      * Map of lines (output):
      *     <String key, String value>
      * }</pre>
@@ -448,26 +448,25 @@ public interface Util {
         Map<String, String> m = new HashMap<>();
         readFileLines(file.getAbsolutePath()).forEach(line -> {
             String l = emptyOr(line);
-            if (!l.isEmpty() && !l.startsWith("#")) {
-                String key = l.substring(0, l.indexOf(" : "));
-                String value = l.substring(l.indexOf(" : ") + 3);
+            if (!l.isEmpty() && !l.startsWith("#") && !l.startsWith("!")) {
+                String key = l.substring(0, l.indexOf(" = "));
+                String value = l.substring(l.indexOf(" = ") + 3);
                 m.put(key, value);
             }
         });
         return m;
     }
 
-
     static void deleteFile(File f) {
         if (!f.exists()) return;
         try {
             boolean success = f.delete();
             if (!success) {
-                log(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown.", f);
+                log(Util.class).error("Could not delete file {}. Will attempt to delete on app shutdown.", f);
                 f.deleteOnExit();
             }
         } catch (SecurityException e) {
-            log(util.Util.class).error("Coud not delete file {}", f, e);
+            log(util.Util.class).error("Could not delete file {}", f, e);
         }
     }
 
@@ -475,9 +474,10 @@ public interface Util {
      * Saves image as a file, both being provided as parameters. If
      * the file is of type that is not supported by the application, the operation
      * will not take place.
+     *
      * @see ImageFileFormat for specifications
-     * @param img
-     * @param f
+     * @param img source image to save
+     * @param f destination file
      * @throws NullPointerException if any of the parameters null
      */
     static void writeImage(Image img, File f) {

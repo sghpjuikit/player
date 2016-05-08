@@ -3,7 +3,10 @@ package converter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -17,41 +20,40 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import audio.Item;
 import audio.Player;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
-import layout.widget.Widget;
-import layout.widget.Widget.Group;
-import layout.widget.controller.ClassController;
-import layout.widget.feature.SongWriter;
 import de.jensd.fx.glyphs.octicons.OctIcon;
-import gui.itemnode.*;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
+import gui.itemnode.ConfigField;
 import gui.itemnode.ItemNode.ValueNode;
+import gui.itemnode.ListAreaNode;
 import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
-import util.file.Util;
+import layout.widget.Widget;
+import layout.widget.Widget.Group;
+import layout.widget.controller.ClassController;
+import layout.widget.controller.io.Output;
+import layout.widget.feature.SongWriter;
 import util.access.V;
 import util.access.VarEnum;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.conf.Config;
+import util.file.Util;
 import util.graphics.drag.DragUtil;
 
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.lang.Integer.MAX_VALUE;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -59,14 +61,12 @@ import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
-import static util.file.Util.writeFile;
-import static util.Util.*;
+import static util.Util.capitalizeStrong;
+import static util.Util.filenamizeString;
 import static util.dev.Util.log;
+import static util.file.Util.writeFile;
 import static util.functional.Util.*;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.layVertically;
-import static util.graphics.Util.setAnchor;
+import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
 
 @Widget.Info(
@@ -200,6 +200,12 @@ public class Converter extends ClassController implements SongWriter {
 
         // set empty content
         applier.fillActs(Void.class);
+    }
+
+    @Override
+    public void init() {
+        Output<String> output = outputs.create(widget.id, "Text", String.class, "");
+        ta_in.output_string.addListener((o,ov,nv) -> output.setValue(nv));
     }
 
     public void setData(Object o) {

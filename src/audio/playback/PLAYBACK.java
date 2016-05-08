@@ -20,18 +20,20 @@ import org.slf4j.LoggerFactory;
 import audio.Item;
 import audio.Player;
 import audio.playback.player.GeneralPlayer;
+import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
 import audio.playlist.sequence.PlayingSequence;
 import audio.playlist.sequence.PlayingSequence.LoopMode;
-import services.playcount.PlaycountIncrementer;
 import audio.tagging.MetadataWriter;
-import util.file.Environment;
+import services.playcount.PlaycountIncrementer;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
+import util.file.Environment;
+import util.reactive.SetƑ;
 
 import static audio.playback.PlayTimeHandler.at;
 import static java.lang.Double.max;
@@ -70,10 +72,10 @@ public final class PLAYBACK implements Configurable {
     /** Initializes the Playback. */
     public static void initialize() {
         player.realTime.initialize();
-        addOnPlaybackAt(at(1, () -> onTimeHandlers.forEach(h->h.restart(Player.playingtem.get().getLength()))));
+        onPlaybackAt.add(at(1, () -> onPlaybackAt.forEach(h->h.restart(Player.playingtem.get().getLength()))));
 
         // add end of player behavior
-        addOnPlaybackEnd(() -> {
+        onPlaybackEnd.add(() -> {
             switch (state.loopMode.get()) {
                 case OFF:       stop();
                                 break;
@@ -89,7 +91,7 @@ public final class PLAYBACK implements Configurable {
     /** Initialize state from last session */
     public static void loadLastState() {
         if(!continuePlaybackOnStart) return;
-        if (PlaylistManager.use(p -> p.getPlaying(),null)==null) return;
+        if (PlaylistManager.use(Playlist::getPlaying, null)==null) return;
 
         if (continuePlaybackPaused)
             state.status.set(Status.PAUSED);
@@ -113,11 +115,11 @@ public final class PLAYBACK implements Configurable {
             startTime = state.currentTime.get();
         if (s == PAUSED) {
             // THIS NEEDS TO GET FIXED
-            player.play(PlaylistManager.use(p -> p.getPlaying(),null));
+            player.play(PlaylistManager.use(Playlist::getPlaying, null));
             util.async.Async.runFX(1000, player::pause);
         }
         if (s == PLAYING) {
-            player.play(PlaylistManager.use(p -> p.getPlaying(),null));
+            player.play(PlaylistManager.use(Playlist::getPlaying, null));
             // suspension_flag = false; // set inside player.play();
             runFX(200, () -> suspension_flag = false); // just in case som condition prevents resetting flag
         } else {
@@ -126,7 +128,7 @@ public final class PLAYBACK implements Configurable {
     }
 
     public static Duration startTime = null;
-    // this prevents onTima handlers to reset after playbac activation
+    // this prevents onTime handlers to reset after playback activation
     // the suspension-activation should undergo as if it never happen
     public static boolean post_activating = false;
     // this negates the above when app starts and playback is activated 1st time
@@ -380,70 +382,38 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Explore current item directory", desc = "Explore current item directory.", keys = "ALT+V", global = true)
     public static void openPlayedLocation() {
         if (PlaylistManager.active==null) return;
-        Item i = PlaylistManager.use(p -> p.getPlaying(),null);
+        Item i = PlaylistManager.use(Playlist::getPlaying, null);
         if(i!=null) Environment.browse(i.getURI());
     }
 
-//********************************** ON START *********************************/
+    //********************************** EVENTS ***********************************/
 
-    private static final List<Runnable> onStartHandlers = new ArrayList<>();
-
-    public static final Runnable playbackStartDistributor = () -> onStartHandlers.forEach(Runnable::run);
-    /**
-     * Add behavior to behave every time song starts playing. Seeking to
-     * time 0 doesn't activate this event.
+	/**
+     * Set of actions that execute when song starts playing. Seeking to song start doesn't activate this event.
+     * <p/>
      * It is not safe to assume that application's information on currently played
      * item will be updated before this event. Therefore using cached information
-     * like can result in misbehavior due to outdated information.
-     * @param b
+     * can result in misbehavior due to outdated information.
      */
-    public static void addOnPlaybackStart(Runnable b) {
-        onStartHandlers.add(b);
-    }
+    public static final SetƑ onPlaybackStart = new SetƑ();
+
+	/**
+     * Set of actions that will execute when song playback seek completes.
+     */
+    public static final SetƑ onSeekDone = new SetƑ();
 
     /**
-     * Remove behavior that executes when item starts playing.
-     * @param b
-     */
-    public static void removeOnPlaybackStart(Runnable b) {
-        onStartHandlers.remove(b);
-    }
-
-//********************************** ON END ***********************************/
-
-    private static final List<Runnable> onEndHandlers = new ArrayList<>();
-
-    public static final Runnable playbackEndDistributor = () -> onEndHandlers.forEach(Runnable::run);
-    /**
-     * Add behavior that will execute when item player ends.
+     * Set of actions that will execute when song playback ends.
+     * <p/>
      * It is safe to use in-app cache of currently played item inside
-     * the behavior parameter. Application's information will still apply during
-     * playbackEnd event;
-     * @param b
+     * the behavior parameter.
      */
-    public static void addOnPlaybackEnd(Runnable b) {
-        onEndHandlers.add(b);
-    }
+    public static final SetƑ onPlaybackEnd = new SetƑ();
 
-    /** Remove... */
-    public static void removeOnPlaybackEnd(Runnable b) {
-        onEndHandlers.remove(b);
-    }
-
-//********************************** ON TIME **********************************/
-
-    public static final List<PlayTimeHandler> onTimeHandlers = new ArrayList<>();
-
-    /** Add behavior that executes when playback is at certain time. */
-    public static void addOnPlaybackAt(PlayTimeHandler b) {
-        onTimeHandlers.add(b);
-    }
-
-    /** Remove behavior that executes when playback is at certain time. */
-    public static void removeOnPlaybackAt(PlayTimeHandler b) {
-        onTimeHandlers.remove(b);
-        b.stop();
-    }
+	/**
+     * Set of time-specific actions that individually execute when song playback reaches point of handler's interest.
+     */
+    public static final List<PlayTimeHandler> onPlaybackAt = new ArrayList<>();
 
 //******************************* SPECTRUM ************************************/
 

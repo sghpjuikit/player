@@ -44,6 +44,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static util.Util.formatDuration;
 import static util.functional.Util.mapRef;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
@@ -94,6 +95,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
          muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
          addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
          loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
+    double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
@@ -157,6 +159,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         d(maintain(ps.loopMode,     this::loopModeChanged));
         d(maintain(ps.mute,         v -> muteChanged(v, ps.volume.get())));
         d(maintain(ps.volume,       v -> muteChanged(ps.mute.get(), v.doubleValue())));
+        d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
         d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingtem.get());              // init value
 
@@ -193,6 +196,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     }
 
     private void playingItemChanged(Metadata nv) {
+        lastUpdatedTime = Double.MIN_VALUE;
         titleL.setText(nv.getTitle());
         artistL.setText(nv.getArtist());
         bitrateL.setText(nv.getFieldS(BITRATE, ""));
@@ -202,6 +206,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     }
 
     private void statusChanged(Status newStatus) {
+        lastUpdatedTime = Double.MIN_VALUE;
         if (newStatus == null || newStatus == Status.UNKNOWN ) {
             controlPanel.setDisable(true);
             status.setText("Buffering");
@@ -240,14 +245,18 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     }
 
     private void timeChanged() {
-        if (elapsedTime) {
-            Duration elapsed = PLAYBACK.getCurrentTime();
-            currTime.setText(Util.formatDuration(elapsed));
-        } else {
-            Duration remaining = PLAYBACK.getRemainingTime();
-            currTime.setText("- " + Util.formatDuration(remaining));
+        double millis = PLAYBACK.getCurrentTime().toMillis();
+        if(lastUpdatedTime+1000 <= millis) {
+            lastUpdatedTime = millis;
+            if (elapsedTime) {
+                Duration elapsed = PLAYBACK.getCurrentTime();
+                currTime.setText(formatDuration(elapsed));
+            } else {
+                Duration remaining = PLAYBACK.getRemainingTime();
+                currTime.setText("- " + formatDuration(remaining));
+            }
+            realTime.setText(formatDuration(PLAYBACK.getRealTime()));
         }
-        realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     }
 
 }

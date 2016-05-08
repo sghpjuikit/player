@@ -15,9 +15,8 @@ public final class RealTimeProperty {
     
     final ObjectProperty<Duration> totalTime;
     final ObjectProperty<Duration> currentTime;
-    final ObjectProperty<Duration> realTime = new SimpleObjectProperty(ZERO);
+    final ObjectProperty<Duration> realTime = new SimpleObjectProperty<>(ZERO);
     
-    // temp
     public Duration curr_sek = ZERO;
     public Duration real_seek = ZERO;
     
@@ -40,8 +39,8 @@ public final class RealTimeProperty {
     }
     
     public void synchroRealTime_onStopped() {
-        real_seek = Duration.ZERO;
-        curr_sek = Duration.ZERO;
+        real_seek = ZERO;
+        curr_sek = ZERO;
     }
     
     public void synchroRealTime_onPreSeeked() {
@@ -54,9 +53,6 @@ public final class RealTimeProperty {
     
 /******************************************************************************/
     
-    /**
-     * @return value of this property
-     */
     public Duration get() {
         return realTime.get();
     }

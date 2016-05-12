@@ -155,6 +155,7 @@ import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.*;
+import static util.functional.Util.stream;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
 
@@ -979,6 +980,10 @@ public class App extends Application implements Configurable {
                 public void show() {
                     OverlayPane root = this;
                     getChildren().add(c.load());
+                    // TODO: remove
+                    run(millis(500), () -> {
+                        stream(((Pane)((Widget<?>)c).load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus());
+                    });
                     if(c instanceof Widget) {
                         ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
                         ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);

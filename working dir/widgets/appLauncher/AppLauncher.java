@@ -161,7 +161,6 @@ public class AppLauncher extends ClassController {
                         grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
 	                grid.implGetSkin().getFlow().requestFocus();    // fixes focus problem
-                    run(400, grid::requestFocus); // temp fix for app launcher in popup not focusing
                 },FX)
                 .run();
     }

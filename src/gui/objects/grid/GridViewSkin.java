@@ -82,6 +82,9 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.setVertical(true);
         skin.flow.setFocusTraversable(getSkinnable().isFocusTraversable());
         skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
+        control.focusedProperty().addListener((o,ov,nv) -> {
+            if(nv) getFlow().requestFocus();
+        });
 
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
         filter = new Filter(control.type, control.itemsFiltered);

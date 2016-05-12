@@ -47,6 +47,7 @@ import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.util.Duration.millis;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
@@ -188,6 +189,7 @@ public class DirViewer extends ClassController {
                         grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
                     grid.requestFocus();    // fixes focus problem
+                    run(millis(500), () -> grid.requestFocus());
                 }, FX)
                 .showProgress(getWidget().getWindow().taskAdd())
                 .run();

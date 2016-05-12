@@ -160,8 +160,9 @@ public class DirViewer extends ClassController {
         //     else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
         // }
         if (item != null && item.parent != null) {
+            Item toDispose = item;
             visit(item.parent);
-            item.disposeChildren(); // item.parent has become item
+            toDispose.disposeChildren(); // item.parent has become item
         }
     }
 

@@ -44,15 +44,14 @@ public class GridCell<T,F> extends IndexedCell<T> {
 
     @Override
     public void updateIndex(int i) {
-        if(getIndex()!=i && i>=0) forceUpdateIndex(i);
+        if(getIndex()!=i && i>=0)
+            forceUpdateIndex(i);
     }
 
     public void forceUpdateIndex(int i) {
         super.updateIndex(i);
 
         GridView<T,F> grid = getGridView();
-        if (grid == null) return;
-
         T item = grid.getItemsShown().get(i);
         updateItem(item, item == null);
         updateSelected(i == grid.implGetSkin().selectedCI);

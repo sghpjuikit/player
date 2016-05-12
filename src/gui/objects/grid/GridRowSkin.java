@@ -81,9 +81,9 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
                         cell = createCell();
                         getChildren().add(cell);
                     }
-//                    cell.updateIndex(-1);
-//                    cell.updateIndex(cellIndex);
-                    cell.forceUpdateIndex(i);
+                    cell.updateIndex(-1);
+                    cell.updateIndex(i);
+//                    cell.forceUpdateIndex(i);
                 }
                 // we are going out of bounds -> exist the loop
                 else break;

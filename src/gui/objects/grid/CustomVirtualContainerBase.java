@@ -31,8 +31,6 @@ import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.skin.VirtualFlow;
 
-import static util.type.Util.invokeMethodP1;
-
 /**
  * Parent class to control skins whose contents are virtualized and scrollable.
  * This class handles the interaction with the VirtualFlow class, which is the
@@ -83,23 +81,6 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
      */
     protected VirtualFlow<I> createVirtualFlow() {
         return new VirtualFlow<>();
-    }
-
-    double getMaxCellWidth(int rowsToCount) {
-        return snappedLeftInset()
-                + ((double)invokeMethodP1(VirtualFlow.class,flow,"getMaxCellWidth",int.class,rowsToCount))
-                + snappedRightInset();
-//        return snappedLeftInset() + flow.getMaxCellWidth(rowsToCount) + snappedRightInset();
-    }
-
-    double getVirtualFlowPreferredHeight(int rows) {
-        double height = 1.0;
-
-        for (int i = 0; i < rows && i < getItemCount(); i++) {
-            height += ((double)invokeMethodP1(VirtualFlow.class,flow,"getCellLength",int.class,i));
-        }
-
-        return height + snappedTopInset() + snappedBottomInset();
     }
 
     void checkState() {

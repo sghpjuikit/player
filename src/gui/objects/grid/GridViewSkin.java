@@ -34,7 +34,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -135,13 +134,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     private void updateGridViewItems() {
         ListChangeListener<T> itemsListener = change -> {
-            updateRowCount();
-            getSkinnable().requestLayout();
-            selectNone();
+            if(change.next()) {
+                updateRowCount();
+                flowRecreateCells(); // TODO: remove
+                getSkinnable().requestLayout();
+                selectNone();
+            }
         };
-        WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
+//        WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
         getSkinnable().getItemsShown().addListener(itemsListener);
 //        getSkinnable().getItemsRaw().addListener(itemsListener);
+//        getSkinnable().itemsFiltered.predicateProperty().addListener(p -> weakGridViewItemsListener.onChanged(null));
 
         updateRowCount();
         flowRecreateCells();
@@ -226,8 +229,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         for (int i = 0; i < rowCount; i++) {
             GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
-//                row.updateIndex(-1);
-//                row.updateIndex(i);
+                row.updateIndex(-1);
+                row.updateIndex(i);
                 row.forceUpdateIndex(i);
             }
         }

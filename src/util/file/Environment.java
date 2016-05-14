@@ -86,8 +86,9 @@ public class Environment {
      */
     @TODO(purpose = {UNIMPLEMENTED, UNTESTED}, note = "Non-windows platform impl. naively & untested")
     public static void browse(URI uri) {
-        browse(uri, true);
+        browse(uri, false);
     }
+
     private static void browse(URI uri, boolean openDir) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(BROWSE)) {
             log(Environment.class).warn("Unsupported operation : " + BROWSE + " uri");
@@ -95,10 +96,10 @@ public class Environment {
         }
         try {
             // If uri denotes a file, file explorer should be open, highlighting the file
-            // However Desktop.browse does nothing (a bug?). We have 2 alterntives: open the parent
-            // directory of the file (and sacrifice the file highlighting functionality) or open
-            // the file with Desktop.open() which opens the file in the associated program. Both
-            // are out of the question.
+            // However Desktop.browse does nothing (a bug?). We have 2 alternatives:
+            // 1: open the parent directory of the file (and sacrifice the file highlighting functionality)
+            // 2: open the file with Desktop.open() which opens the file in the associated program.
+            // Both have problems.
             //
             // Ultimately, for Windows we run explorer.exe manually and select the file. For
             // other systems we browse the parent directory instead. Non Windows platforms
@@ -107,11 +108,9 @@ public class Environment {
                 File f = new File(uri);
                     boolean isDir = f.isDirectory();
                 if (f.exists()) {
-                    if(Platform.getCurrent()==WINDOWS && (openDir && !isDir)) {
-                        // select file or directory
-                        Runtime.getRuntime().exec("explorer.exe /select," + "\"" + f.getPath() + "\"");
+                    if(Platform.getCurrent()==WINDOWS && (!isDir || !openDir)) {
+                        openWindowsExplorerAndSelect(f);
                     } else {
-                        // open directory
                         open(isDir ? f.getParentFile() : f);
                     }
                 }
@@ -277,6 +276,17 @@ public class Environment {
         c.setInitialFileName(title);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         c.showSaveDialog(w);
+    }
+
+    private static void openWindowsExplorerAndSelect(File f) throws IOException {
+        // TODO: make sure the path does not have to be quoted in " like:  "path". Although quoting the path
+        // does cause FileNotFoundException, the explorer.exe does open and select the file. I added the
+        // quoting after I noticed files with ',' do not work properly, but I have removed the quiting
+        // since its working now. Not sure what is going on.
+        // Anyway, here are some alternatives to play with, in case the problem reappears:
+        // new ProcessBuilder("explorer.exe /select," + f.getPath()).start();
+         Runtime.getRuntime().exec(new String[] { "explorer.exe", "/select,", "\"" + f.getPath() + "\""});
+//        Runtime.getRuntime().exec("explorer.exe /select," + f.getPath());
     }
 
 }

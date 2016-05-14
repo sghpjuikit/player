@@ -187,6 +187,9 @@ public interface Util {
         return !ignore ? text.contains(phrase) : containsNoCase(text, phrase);
     }
 
+    static String removeLastChar(String text) {
+        return text.isEmpty() ? text : text.substring(0, text.length()-1);
+    }
 
     static String renameAnime(String s) {
         // remove the super annoying '_'

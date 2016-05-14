@@ -56,8 +56,7 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.F;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
@@ -165,12 +164,12 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             }
 
             // typing -> scroll to
-            if (k.isDigitKey() || k.isLetterKey()){
-                String st = e.getText().toLowerCase();
+            if (k.isDigitKey() || k.isLetterKey() || k==SPACE || k==BACK_SPACE){
+                String letter = e.getText().toLowerCase();
                 // update scroll text
                 long now = System.currentTimeMillis();
                 boolean append = searchTime==-1 || now-searchTime<searchTimeMax.toMillis();
-                searchQuery.set(append ? searchQuery.get()+st : st);
+                searchQuery.set(k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get()+letter : letter);
                 searchTime = now;
                 search(searchQuery.get());
             }
@@ -444,7 +443,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         // scroll to first found item
         TableColumn c = getColumn(searchField).orElse(null);
         if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
-            for(int i=0;i<getItems().size();i++) {
+            for(int i=0; i<getItems().size(); i++) {
                 String item = (String)searchField.getOf(getItems().get(i));
                 if(matches(item,searchQuery.get())) {
                     scrollToCenter(i);

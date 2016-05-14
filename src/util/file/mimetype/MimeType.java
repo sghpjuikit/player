@@ -18,6 +18,8 @@ import java.util.Objects;
  */
 public class MimeType {
 
+	public static final MimeType UNKNOWN = new MimeType("Unknown");
+
 	private String mimeType;
 	private String[] extensions;
 

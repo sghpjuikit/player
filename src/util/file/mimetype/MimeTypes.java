@@ -13,6 +13,7 @@ import one.util.streamex.StreamEx;
 
 import static util.dev.Util.log;
 import static util.file.Util.getSuffix;
+import static util.file.mimetype.MimeType.UNKNOWN;
 
 /**
  * A utility registry of mime types, with lookups by mime type and by file
@@ -46,12 +47,12 @@ public class MimeTypes {
 			try(
 				   InputStream file = MimeTypes.class.getResourceAsStream("mime.types");
 				   InputStreamReader ir = new InputStreamReader(file, "UTF-8");
-				   BufferedReader br = new BufferedReader(ir);
+				   BufferedReader br = new BufferedReader(ir)
 			){
 				String line;
-				while ((line = br.readLine()) != null) {
-					loadOne(line);
-				}
+				while ((line = br.readLine()) != null)
+					if(!line.isEmpty())
+						loadOne(line);
 			} catch(Exception e) {
 				log(MimeTypes.class).error("Failed to load default mime types", e);
 			}
@@ -98,7 +99,7 @@ public class MimeTypes {
 	 * if none was found
 	 */
 	public MimeType ofType(String type) {
-		return types.get(type);
+		return types.getOrDefault(type, UNKNOWN);
 	}
 
 	/**
@@ -109,15 +110,15 @@ public class MimeTypes {
 	 * @return Instance of MimeType for the given ext or null if none was found
 	 */
 	public MimeType ofExtension(String extension) {
-		return extensions.get(extension.toLowerCase());
+		return extensions.getOrDefault(extension.toLowerCase(), UNKNOWN);
 	}
 
 	public MimeType ofFile(File file) {
-		return extensions.get(getSuffix(file).toLowerCase());
+		return extensions.getOrDefault(getSuffix(file).toLowerCase(), UNKNOWN);
 	}
 
 	public MimeType ofURI(URI url) {
-		return extensions.get(getSuffix(url).toLowerCase());
+		return extensions.getOrDefault(getSuffix(url).toLowerCase(), UNKNOWN);
 	}
 
 	public Set<String> setOfGroups() {

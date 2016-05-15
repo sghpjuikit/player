@@ -527,7 +527,6 @@ public interface Functors {
 
             Class<Boolean> BOOL = Boolean.class;
             
-            
             add("Is null",      Object.class, BOOL, ISØ);
         //  add("Isn't null", Object.class, BOOL, ISNTØ);
             add("As String",    Object.class, String.class, Objects::toString);
@@ -537,36 +536,12 @@ public interface Functors {
         //  add("Is false", BOOL, BOOL, ISNT);
             add("Negate",   BOOL, BOOL, b -> !b);
             add("And",      BOOL, BOOL, Boolean::logicalAnd, BOOL, true);
-            add("Or",       BOOL, BOOL, Boolean::logicalOr, BOOL, true);
+            add("Or",       BOOL, BOOL, Boolean::logicalOr,  BOOL, true);
             add("Xor",      BOOL, BOOL, Boolean::logicalXor, BOOL, true);
             
             add("'_' -> ' '",   String.class, String.class, s -> s.replace("_", " "));
             add("-> file name", String.class, String.class, util.Util::filenamizeString);
-            add("Anime",        String.class, String.class, s -> {
-                // remove the super annoying '_'
-                s = s.replaceAll("_", " ");
-
-                // remove hash
-                if (s.endsWith("]") && s.lastIndexOf('[') == s.length() - 10) s = s.substring(0, s.length() - 10);
-
-                // remove fansub group
-                String group = null;
-                if (s.startsWith("[")) {
-                    int i = s.indexOf(']');
-                    if (i != -1) {
-                        group = s.substring(0, i + 1);
-                        s = s.substring(i + 1);
-                    }
-                }
-
-                // remove leading and trailing shit
-                s = s.trim();
-
-                // add fansub groups at the end
-                if (group != null) s = s + "." + group;
-
-                return s;
-            });
+            add("Anime",        String.class, String.class, util.Util::renameAnime);
             add("To upper case",       String.class, String.class, String::toUpperCase);
             add("To lower case",       String.class, String.class, String::toLowerCase);
             add("Plural",              String.class, String.class, English::plural);

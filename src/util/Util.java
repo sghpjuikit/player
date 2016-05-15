@@ -28,7 +28,6 @@ import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import util.dev.TODO;
 
-import static com.objectdb.o.MSS.s;
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toCollection;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -43,7 +42,7 @@ import static util.dev.TODO.Purpose.BUG;
 public interface Util {
 
     /** Golden ratio - {@code 1.6180339887}. */
-    double GR = 1.6180339887;
+    double GOLDEN_RATIO = 1.6180339887;
 
     /**
      * Method equivalent to object's equal method, but if both objects are null
@@ -242,7 +241,7 @@ public interface Util {
     }
 
     static String addText(String text, String added, StringDirection from) {
-        return from == FROM_START ? added + s : s + added;
+        return from == FROM_START ? added + text : text + added;
     }
 
     static String removeChars(String text, int amount, StringDirection from) {
@@ -252,9 +251,9 @@ public interface Util {
     }
 
     static String retainChars(String text, int amount, StringDirection from) {
-        return  from == FROM_START
-                    ? text.substring(0, min(amount, text.length() - 1))
-                    : text.substring(clip(0, text.length() - amount, text.length() - 1));
+        return from == FROM_START
+                   ? text.substring(0, min(amount, text.length() - 1))
+                   : text.substring(clip(0, text.length() - amount, text.length() - 1));
     }
 
     static SplitData split(String text, StringSplitParser splitter) {

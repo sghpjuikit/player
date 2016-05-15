@@ -620,7 +620,7 @@ public class Thumbnail extends ImageNode {
         () -> new ImprovedContextMenu<ContextMenuData>(){{
             getItems().setAll(
                 menuItem("Browse location", e -> Environment.browse(getValue().file)),
-                menuItem("Open (in asociated program)", e -> Environment.open(getValue().file)),
+                menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
                 menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
                 menuItem("Fullscreen", e -> {
                     File f = getValue().fsImageFile;

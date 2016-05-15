@@ -20,12 +20,14 @@ class GridRow<T,F> extends IndexedCell<T>{
 
     @Override
     public void updateIndex(int i) {
-        if(getIndex()!=i) forceUpdateIndex(i);
+        if(i>=0)
+            forceUpdateIndex(i);
     }
 
     public void forceUpdateIndex(int i) {
         super.updateIndex(i);
-        updateItem(null, i<0);
+//        if(i<0) return;
+        updateItem(null, false);
         updateSelected(i==getGridView().implGetSkin().selectedRI);
     }
 

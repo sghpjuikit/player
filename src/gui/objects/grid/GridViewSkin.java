@@ -89,8 +89,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
         filter = new Filter(control.type, control.itemsFiltered);
 
+
+        ListChangeListener<T> itemsListener = change -> {
+            if(change.next())
+                updateGridViewItems();
+        };
+        //        WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
+        getSkinnable().getItemsShown().addListener(itemsListener);
+        //        getSkinnable().getItemsRaw().addListener(itemsListener);
+        //        getSkinnable().itemsFiltered.predicateProperty().addListener(p -> weakGridViewItemsListener.onChanged(null));
+
         updateGridViewItems();
-        updateRowCount();
 
         // selection
         skin.flow.addEventHandler(KEY_PRESSED, e -> {
@@ -136,22 +145,10 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     private void updateGridViewItems() {
-        ListChangeListener<T> itemsListener = change -> {
-            if(change.next()) {
-                updateRowCount();
-                flowRecreateCells(); // TODO: remove
-                getSkinnable().requestLayout();
-                selectNone();
-            }
-        };
-//        WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
-        getSkinnable().getItemsShown().addListener(itemsListener);
-//        getSkinnable().getItemsRaw().addListener(itemsListener);
-//        getSkinnable().itemsFiltered.predicateProperty().addListener(p -> weakGridViewItemsListener.onChanged(null));
-
-        updateRowCount();
         flowRecreateCells();
+        updateRowCount();
         getSkinnable().requestLayout();
+        selectNone();
     }
 
     void updateRowCount() {
@@ -234,7 +231,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             if (row != null) {
                 row.updateIndex(-1);
                 row.updateIndex(i);
-                row.forceUpdateIndex(i);
+//                row.forceUpdateIndex(i);
             }
         }
     }
@@ -498,11 +495,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         if(row<0 || row>rows) return;
 
         // show row & cell to select
-        GridRow<T,F> fsc = skin.flow.getFirstVisibleCell();
-        GridRow<T,F> lsc = skin.flow.getLastVisibleCell();
-        boolean isUp   = row<=fsc.getIndex();
-        boolean isDown = row>=lsc.getIndex();
-        if(fsc.getIndex() >= row || row >= lsc.getIndex()) {
+        GridRow<T,F> fvc = skin.flow.getFirstVisibleCell();
+        GridRow<T,F> lvc = skin.flow.getLastVisibleCell();
+        boolean isUp   = row<=fvc.getIndex();
+        boolean isDown = row>=lvc.getIndex();
+        if(fvc.getIndex() >= row || row >= lvc.getIndex()) {
             if(isUp) skin.flow.scrollToTop(row);
             else skin.flow.scrollTo(row); // TODO: fix weird behavior
         }

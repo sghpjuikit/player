@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, 2015, ControlsFX
  * All rights reserved.
  *
@@ -44,12 +44,13 @@ public class GridCell<T,F> extends IndexedCell<T> {
 
     @Override
     public void updateIndex(int i) {
-        if(getIndex()!=i && i>=0)
+        if(i>=0)
             forceUpdateIndex(i);
     }
 
     public void forceUpdateIndex(int i) {
         super.updateIndex(i);
+//        if(i<0) return;
 
         GridView<T,F> grid = getGridView();
         T item = grid.getItemsShown().get(i);

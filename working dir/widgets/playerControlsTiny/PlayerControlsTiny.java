@@ -144,8 +144,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         scroller.setAutoReverse(true);
         scroller.setCycleCount(INDEFINITE);
         scroller.play();
-        d(maintain(scrollLabel.widthProperty(), // maintain constant speed
-                w -> scroller.setRate(50/max(50,w.doubleValue()-scrollWidth))));
+        d(maintain(scrollLabel.widthProperty(), w -> scroller.setRate(50/max(50,w.doubleValue()-scrollWidth))));    // maintain constant speed
         d(scroller::stop);
 
         // monitor properties and update graphics

@@ -284,7 +284,7 @@ class Utils {
         T t;
         do {
            t = randOf(c);
-        } while(isInR(t,excluded));
+        } while(isAny(t,excluded));
         return t;
     }
 

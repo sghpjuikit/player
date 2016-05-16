@@ -632,12 +632,12 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
             // disable commitable if empty and backspace key pressed
             c.setOnKeyPressed(e -> {
-                if (isIn(e.getCode(),BACK_SPACE,ESCAPE))
+                if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE))
                     OnBackspacePressed();
             });
 
             // autocompletion
-            if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
+            if(c instanceof TextField && !isContainedIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String n = f.name();
                Comparator<String> cmp = String::compareTo;
                autoComplete(
@@ -676,7 +676,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(isIn(c.getPromptText(), APP.TAG_NO_VALUE, APP.TAG_MULTIPLE_VALUE)
+                c.setText(isContainedIn(c.getPromptText(), APP.TAG_NO_VALUE, APP.TAG_MULTIPLE_VALUE)
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();

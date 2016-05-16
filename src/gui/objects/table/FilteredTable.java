@@ -556,7 +556,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             columnVisibleMenu.getItems().add(
                 buildSingleSelectionMenu(
                     "Search column",
-                    filter(getFields(),f -> isIn(f.getType(),String.class,Object.class)), // objects too, they can be strings
+                    filter(getFields(),f -> isContainedIn(f.getType(),String.class,Object.class)), // objects too, they can be strings
                     searchField,
                     field -> field.name(),
                     field -> searchField=field

@@ -348,7 +348,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 }
             });
             n.addEventHandler(KEY_RELEASED, e -> {
-                if (isInR(e.getCode(), BACK_SPACE,DELETE)) {
+                if (isAny(e.getCode(), BACK_SPACE,DELETE)) {
                     boolean firsttime = !n.getPromptText().isEmpty();
                     n.setPromptText(firsttime ? "" : config.getName());
                 }
@@ -563,7 +563,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             box.setSpacing(5);
 
             Class type = config.getType();
-            if(isIn(type, Integer.class,Short.class,Long.class)) {
+            if(isContainedIn(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
                 slider.setMajorTickUnit(1);
                 slider.setSnapToTicks(true);

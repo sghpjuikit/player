@@ -15,7 +15,6 @@ import javafx.beans.value.ObservableValue;
 import unused.TriConsumer;
 
 import static util.dev.Util.log;
-import static util.functional.Util.isNonØ;
 import static util.functional.Util.list;
 
 /**
@@ -60,7 +59,7 @@ public interface Util {
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-                        if(isNonØ(property, propertyName, propertyType))
+                        if(util.functional.Util.isNoneØ(property, propertyName, propertyType))
                             action.accept(property, propertyName, propertyType);
                     }
                 } catch(IllegalAccessException | InvocationTargetException e) {

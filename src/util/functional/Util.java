@@ -31,6 +31,7 @@ import static util.dev.Util.yes;
  *
  * @author Martin Polakovic
  */
+@SuppressWarnings("unused")
 public interface Util {
 
     /** Function returning the inputs. */
@@ -70,81 +71,69 @@ public interface Util {
         return a == b || (a!=null && a.equals(b));
     }
 
-    static boolean isAnyØ(Object o) {
-        return o==null;
+    static <E> boolean is(E o, E a) {
+        return o==a;
     }
 
-    static boolean isAnyØ(Object a, Object b) {
-        return a==null || b==null;
+    static <E> boolean isAny(E o, E a) {
+        return o==a;
     }
 
-    static boolean isAnyØ(Object a, Object b, Object c) {
-        return a==null || b==null || c==null;
+    static <E> boolean isAny(E o, E a, E b) {
+        return o==a || o==b;
     }
 
-    static boolean isAnyØ(Object a, Object b, Object c, Object d) {
-        return a==null || b==null || c==null || d==null;
+    static <E> boolean isAny(E o, E a, E b, E c) {
+        return o==a || o==b || o==c;
     }
 
-    static boolean isAnyØ(Object... objects) {
-        for(Object o : objects) if(o==null) return true;
-        return false;
-    }
-
-    static boolean isNonØ(Object o) {
-        return o!=null;
-    }
-
-    static boolean isNonØ(Object a, Object b) {
-        return a!=null && b!=null;
-    }
-
-    static boolean isNonØ(Object a, Object b, Object c) {
-        return a!=null && b!=null && c!=null;
-    }
-
-    static boolean isNonØ(Object a, Object b, Object c, Object d) {
-        return a!=null && b!=null && c!=null && d!=null;
-    }
-
-    static boolean isNonØ(Object... objects) {
-        for(Object o : objects) if(o!=null) return false;
-        return true;
-    }
-    
-    @SafeVarargs
-    static <E> boolean isIn(E o, E... es) {
-        for(E e : es)
-            if(o.equals(e))
-                return true;
-        return false;
-    }
-
-    static <E> boolean isIn(E o, Collection<E> es) {
-        for(E e : es)
-            if(o.equals(e))
-                return true;
-        return false;
+    static <E> boolean isAny(E o, E a, E b, E c, E d) {
+        return o==a || o==b || o==c || o==d;
     }
 
     @SafeVarargs
-    static <E> boolean isInR(E o, E... es) {
+    static <E> boolean isAny(E o, E... es) {
         for(E e : es)
             if(o == e)
                 return true;
         return false;
     }
 
-    static <E> boolean isInR(E o, Collection<E> es) {
+    static <E> boolean isAny(E o, Collection<E> es) {
         for(E e : es)
             if(o == e)
                 return true;
         return false;
     }
 
+    static <E> boolean isContainedIn(E o, E a) {
+        return o.equals(a);
+    }
+
+    static <E> boolean isContainedIn(E o, E a, E b) {
+        return o.equals(a) || o.equals(b);
+    }
+
+    static <E> boolean isContainedIn(E o, E a, E b, E c) {
+        return o.equals(a) || o.equals(b) || o.equals(c);
+    }
+
+    static <E> boolean isContainedIn(E o, E a, E b, E c, E d) {
+        return o.equals(a) || o.equals(b) || o.equals(c) || o.equals(d);
+    }
+
     @SafeVarargs
-    static <E> boolean isInR(E o, Collection<E> es, E... ess) {
-        return isInR(o, es) || isInR(o, ess);
+    static <E> boolean isContainedIn(E o, E... es) {
+        for(E e : es)
+            if(o.equals(e))
+                return true;
+        return false;
+    }
+
+    static <E> boolean isContainedIn(E o, Collection<E> es) {
+        for (E e : es)
+            if (o.equals(e)) return true;
+        return false;
     }
 
     @SafeVarargs
@@ -163,9 +152,52 @@ public interface Util {
         return b;
     }
 
-    @SafeVarargs
-    static <E> boolean isNone(E o, Predicate<E>... ps) {
-        return !isAll(o, ps);
+
+    static boolean isØ(Object o) {
+        return o==null;
+    }
+
+    static boolean isAnyØ(Object o) {
+        return o==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b) {
+        return a==null || b==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b, Object c) {
+        return a==null || b==null || c==null;
+    }
+
+    static boolean isAnyØ(Object a, Object b, Object c, Object d) {
+        return a==null || b==null || c==null || d==null;
+    }
+
+    static boolean isAnyØ(Object... objects) {
+        if(objects==null) throw new IllegalArgumentException("Array must ot be null.");
+        for(Object o : objects) if(o==null) return true;
+        return false;
+    }
+
+    static boolean isNoneØ(Object o) {
+        return o!=null;
+    }
+
+    static boolean isNoneØ(Object a, Object b) {
+        return a!=null && b!=null;
+    }
+
+    static boolean isNoneØ(Object a, Object b, Object c) {
+        return a!=null && b!=null && c!=null;
+    }
+
+    static boolean isNoneØ(Object a, Object b, Object c, Object d) {
+        return a!=null && b!=null && c!=null && d!=null;
+    }
+
+    static boolean isNoneØ(Object... objects) {
+        for(Object o : objects) if(o!=null) return false;
+        return true;
     }
 
     /** Repeat action n times. */
@@ -217,6 +249,7 @@ public interface Util {
 /******************************************** COMPARATORS *****************************************/
 
     /** Comparator utilizing Comparable.compareTo() of the Comparables. */
+    @SuppressWarnings("unchecked")
     Comparator<Comparable> COMPARATOR_DEF = Comparable::compareTo;
 
     /** String comparator utilizing String.compareTo() of the Strings */
@@ -304,10 +337,13 @@ public interface Util {
     static <IN,OUT> Ƒ1<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
         return in -> cond.test(in) ? y : n;
     }
+
     static <OUT> Ƒ1<Boolean,OUT> mapB(OUT y, OUT n) {
         return in -> in ? y : n;
     }
-    static <NN> Ƒ1<? extends Object,NN> mapNulls(NN non_null) {
+
+    @SuppressWarnings("unchecked")
+    static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
         noØ(non_null);
         return (Ƒ1) in -> in==null ? non_null : in;
     }
@@ -371,6 +407,7 @@ public interface Util {
     }
 
     /** Returns the first non null object or null if all null. */
+    @SafeVarargs
     static <O> O noNull(O... objects) {
         for(O o : objects)
             if(o!=null) return o;
@@ -441,7 +478,7 @@ public interface Util {
         return noEx(or, f, list(ecs));
     }
 
-    /** Equivalent to {@link #noEx(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
+    /** Equivalent to {@link #noEx(Object, java.util.function.Function, Class[])}. */
     static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
@@ -480,7 +517,7 @@ public interface Util {
         return noExE(or, f, list(ecs));
     }
 
-    /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
+    /** Equivalent to {@link #noExE(Object, util.functional.Functors.Ƒ1E, Class[])}. */
     static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
@@ -538,8 +575,9 @@ public interface Util {
      * @param a array
      * @return comma separated string representation of the array
      */
+    @SafeVarargs
     static <T> String toS(String s, T... a) {
-        return Stream.of(a).map(Object::toString).collect(joining(s));
+        return stream(a).map(Object::toString).collect(joining(s));
     }
 
     /**
@@ -704,6 +742,7 @@ public interface Util {
      * Returns maximal element from the array using given comparator.
      * Returns supplied value if it is the smallest, or array is empty.
      */
+    @SafeVarargs
     static <V> V max(V max, Comparator<V> cmp, V... c) {
         return max(Stream.of(c), max, cmp);
     }
@@ -755,7 +794,7 @@ public interface Util {
      * @return i-th slice of the map m
      */
     static <K,T> Map<K,T> mapSlice(Map<K,List<T>> m, int i) {
-        Map<K,T> o = new HashMap();
+        Map<K,T> o = new HashMap<>();
         m.entrySet().forEach(e -> o.put(e.getKey(), e.getValue().get(i)));
         return o;
     }
@@ -766,7 +805,7 @@ public interface Util {
      * @return new map containing all elements mapped to transformed keys
      */
     static <K1,K2,V> Map<K2,V> mapKeys(Map<K1,V> m, Function<K1,K2>f) {
-        Map<K2,V> o = new HashMap();
+        Map<K2,V> o = new HashMap<>();
         m.forEach((key,val) -> o.put(f.apply(key), val));
         return o;
     }
@@ -917,9 +956,9 @@ public interface Util {
      *
      * @param <T> element type
      * @param <R> result type
-     * @param c
-     * @param mapper
-     * @return
+     * @param c collection to iterate
+     * @param mapper mapper of the element (zipped with its index as 1st parameter) to a transformed one
+     * @return stream of mapped elements
      */
     static <T,R> Stream<R> forEachIStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
         int i=0;
@@ -930,6 +969,7 @@ public interface Util {
         }
         return b.build();
     }
+
     /**
      * Equivalent to {@link #forEachIStream(java.util.Collection, java.util.function.BiFunction)}
      * but iterates backwards (the index values are also reversed so last item
@@ -950,7 +990,7 @@ public interface Util {
      * @param <I> key type
      * @param <T> element type
      * @param <R> result type
-     * @param c
+     * @param c collection to iterate
      * @param initial_val  for example: 0
      * @param operation for example: number -> number++
      * @param mapper maps the key-object pair into another object
@@ -999,26 +1039,18 @@ public interface Util {
         int size = ts.length;
         if(size==0) return EMPTY_SET;
         if(size==1) return singleton(ts[0]);
-        else {
-            Set<T> s = unmodifiableSet(new HashSet<>(size));
-            for(T t : ts) s.add(t);
-            return s;
-        }
+        else return stream(ts).toSetAndThen(Collections::unmodifiableSet);
     }
 
     @SafeVarargs
     static <T> Set<T> set(T... ts) {
-        Set<T> l = new HashSet<>(ts.length);
-        for(T t : ts) l.add(t);
-        return l;
+        return stream(ts).toCollection(() -> new HashSet<>(ts.length));
     }
 
     /** Returns modifiable list containing specified elements. */
     @SafeVarargs
     static <T> List<T> list(T... ts) {
-        List<T> l = new ArrayList<>(ts.length);
-        for(T t : ts) l.add(t);
-        return l;
+        return stream(ts).toCollection(() -> new ArrayList<>(ts.length));
     }
 
     /**
@@ -1047,9 +1079,7 @@ public interface Util {
     /** Returns modifiable list containing elements in both specified collection and array. */
     @SafeVarargs
     static <T> List<T> list(Collection<T> a, T... ts) {
-        List<T> out = new ArrayList<>(a);
-        for(int i=0; i<ts.length; i++) out.add(ts[i]);
-        return out;
+        return stream(ts).append(ts).toCollection(() -> new ArrayList<>(ts.length));
     }
 
     /** Returns modifiable list containing specified element i times. */
@@ -1187,6 +1217,7 @@ public interface Util {
     }
 
     /** Convenience method. */
+    @SafeVarargs
     static <K,V,E> Map<K,E> toMap(Function<V,K> key_extractor, Function<V,E> val_extractor, V... c) {
         return Stream.of(c).collect(Collectors.toMap(key_extractor, val_extractor));
     }
@@ -1197,22 +1228,26 @@ public interface Util {
     }
 
 
+    @SuppressWarnings("unchecked")
     static <T> List<T> split(String txt, String regex, int i, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).map(m).collect(toList());
     }
 
+    @SuppressWarnings("unchecked")
     static <T> List<T> split(String txt, String regex, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
     }
 
+    @SuppressWarnings("unchecked")
     static List<String> split(String txt, String regex, int i) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).collect(toList());
     }
 
-    static List<String> splitToNonemptyOrnull(String txt, String regex, int i) {
+    @SuppressWarnings("unchecked")
+    static List<String> splitToNonemptyOrNull(String txt, String regex, int i) {
         if(txt.isEmpty()) return EMPTY_LIST;
         String[] a = txt.split(regex, i);
         if(a.length<i) return null;
@@ -1222,6 +1257,7 @@ public interface Util {
         return Stream.of(a).collect(toList());
     }
 
+    @SuppressWarnings("unchecked")
     static List<String> split(String txt, String regex) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).collect(toList());

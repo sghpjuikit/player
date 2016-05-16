@@ -1,6 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
 - add properties to Config
 - fix GridView filter

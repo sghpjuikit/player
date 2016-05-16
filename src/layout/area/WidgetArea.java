@@ -10,25 +10,23 @@ import javafx.scene.layout.StackPane;
 
 import org.reactfx.Subscription;
 
+import gui.Gui;
 import layout.Component;
 import layout.container.Container;
 import layout.widget.Widget;
-import gui.Gui;
 import util.SingleR;
 import util.SwitchException;
+import util.functional.Util;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.graphics.fxml.ConventionFxmlLoader;
 
-import static layout.widget.Widget.LoadType.AUTOMATIC;
-import static layout.widget.Widget.LoadType.MANUAL;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static gui.Gui.openAndDo;
+import static layout.widget.Widget.LoadType.AUTOMATIC;
+import static layout.widget.Widget.LoadType.MANUAL;
 import static util.dev.Util.noØ;
-import static util.functional.Util.isInR;
 import static util.functional.Util.listRO;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
@@ -78,7 +76,7 @@ public final class WidgetArea extends Area<Container> {
         DragUtil.installDrag(
             root, EXCHANGE, "Switch components",
             DragUtil::hasComponent,
-            e -> isInR(DragUtil.getComponent(e), container,widget),
+            e -> Util.isAny(DragUtil.getComponent(e), container,widget),
             e -> DragUtil.getComponent(e).swapWith(container,index)
         );
 

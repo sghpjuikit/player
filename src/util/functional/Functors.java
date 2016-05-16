@@ -850,7 +850,7 @@ public interface Functors {
         @Override
         public Ƒ1<I,O> toƑ1(Object...is) {
             // retain predicate identity
-            if(isInR(ff, IDENTITY,ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
+            if(isAny(ff, IDENTITY,ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
             return new TypeAwareƑ<>(i -> apply(i, is),in,out);
             // return i -> apply(i, is); // would not preserve I,O types
         }

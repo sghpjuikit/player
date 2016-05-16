@@ -21,19 +21,16 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import util.access.fieldvalue.ObjectField;
-import util.collections.list.PrefList;
 import util.collections.Tuple3;
+import util.collections.list.PrefList;
 import util.dev.TODO;
 import util.functional.Functors.PƑ;
+import util.functional.Util;
 
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.Util.IS;
-import static util.functional.Util.ISNT;
-import static util.functional.Util.ISNTØ;
-import static util.functional.Util.ISØ;
-import static util.functional.Util.isInR;
+import static util.functional.Util.*;
 
 /**
  * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
@@ -66,7 +63,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
             // if(field==Metadata.Field.FIRST_PLAYED) {
             //     System.out.println((filter==ISØ) + " " + (filter==ISNTØ) + " " + (filter==IS) + " " + (filter==ISNT));
             // }
-            return isInR(filter, ISØ,ISNTØ,IS,ISNT)
+            return Util.isAny(filter, ISØ,ISNTØ,IS,ISNT)
                     // the below could be made more OOP by adding predicate methods to FieldEnum
                     ? element -> filter.apply(field.getOf(element))
                     : element -> {

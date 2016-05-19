@@ -131,7 +131,7 @@ public class DirViewer extends ClassController {
         grid.setOnKeyPressed(e -> {
             if (e.getCode() == ENTER) {
                 Item si = grid.selectedItem.get();
-                if (si != null) doubleClickItem(si);
+                if (si != null) doubleClickItem(si, e.isShiftDown());
             }
             if (e.getCode() == BACK_SPACE)
                 visitUp();
@@ -240,9 +240,12 @@ public class DirViewer extends ClassController {
         if (i != null) i.dispose();
     }
 
-    private void doubleClickItem(Item i) {
+    private void doubleClickItem(Item i, boolean edit) {
         if (i.valtype == DIRECTORY) DirViewer.this.visit(i);
-        else Environment.open(i.val);
+        else {
+            if(edit) Environment.edit(i.val);
+            else     Environment.open(i.val);
+        }
     }
 
     /**
@@ -334,7 +337,7 @@ public class DirViewer extends ClassController {
             };
             thumb.getPane().setOnMouseClicked(e -> {
                 if (e.getButton() == PRIMARY && e.getClickCount() == 2) {
-                    doubleClickItem(getItem());
+                    doubleClickItem(getItem(), e.isShiftDown());
                     e.consume();
                 }
             });

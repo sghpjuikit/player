@@ -36,6 +36,7 @@ import util.action.IsActionable;
 import util.animation.interpolator.CircularInterpolator;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
+import util.dev.Dependency;
 import util.file.FileMonitor;
 import util.file.Util;
 
@@ -68,7 +69,6 @@ import static util.functional.Util.set;
 public class Gui {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
-    private static final String DEF_SKIN = Gui.class.getResource("skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
     public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 
@@ -338,34 +338,29 @@ public class Gui {
      * skins. Use on app start or to discover newly added layouts dynamically.
      */
     public static Set<String> getSkins() {
-        LOGGER.info("Looking for valid skins");
-
         // get + verify path
         File dir = APP.DIR_SKINS;
         if (!Util.isValidatedDirectory(dir)) {
-            LOGGER.error("Search for skins failed." + dir.getPath() + " could not be accessed.");
+            LOGGER.error("Skin lookup failed." + dir.getPath() + " could not be accessed.");
             return set();
         }
 
         // find skins
         Set<String> skins = new HashSet<>();
         File[] dirs = dir.listFiles(File::isDirectory);
-        skins.clear();
         for (File d: dirs) {
             String name = d.getName();
             File css = new File(d, name + ".css");
             if(Util.isValidFile(css)) {
                 skins.add(name);
-                LOGGER.info("\t" + name);
+                LOGGER.info("Registering skin: " + name);
             }
         }
 
-        LOGGER.info(skins.size() + " skins found.");
-        LOGGER.info("Registering internal skins.");
         skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
         skins.add(capitalizeStrong(STYLESHEET_MODENA));
-        LOGGER.info("\tModena");
-        LOGGER.info("\tCaspian");
+        LOGGER.info("Registering skin: Modena");
+        LOGGER.info("Registering skin: Caspian");
 
         return skins;
     }
@@ -397,6 +392,7 @@ public class Gui {
     }
     /**
      * Changes application's skin.
+     *
      * @param cssFile - css file of the skin to load. It is expected that the skin
      * file and resources are available.
      * @return true if the skin has been applied.
@@ -406,25 +402,27 @@ public class Gui {
      * that the new skin has been applied regardless of the success. There can
      * still be parsing errors resulting in imperfect skin application.
      */
+    // TODO: jigsaw
+    @Dependency("requires access to javafx.graphics/com.sun.javafx.tk.StyleManager")
     public static boolean setSkinExternal(File cssFile) {
         if (APP.windowOwner.isInitialized() && Util.isValidSkinFile(cssFile)) {
             try {
                 monitorSkinStart(cssFile);
                 String url = cssFile.toURI().toURL().toExternalForm();
-                // remove old skin
-                StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-                StyleManager.getInstance().removeUserAgentStylesheet(DEF_SKIN);
 
-                Application.setUserAgentStylesheet(STYLESHEET_MODENA);
-                // set core skin
-//                StyleManager.getInstance().setDefaultUserAgentStylesheet(DEF_SKIN);
-                // add new skin
-                StyleManager.getInstance().addUserAgentStylesheet(DEF_SKIN);
+	            // Id like to not rely on com.sun.javafx.css.StyleManager, but the below code causes some problems
+	            // like icons with incorrect glyph and size (see gui.objects.icon.Icon.class)
+//	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(skinOldUrl));
+////	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().setUserAgentStylesheet(STYLESHEET_MODENA));
+//	            App.setUserAgentStylesheet(STYLESHEET_MODENA);
+//	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(url));
+
+                // Application.setUserAgentStylesheet(STYLESHEET_MODENA); // unnecessary ?
+                StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
                 StyleManager.getInstance().addUserAgentStylesheet(url);
-                // set current skin
-                skin.setValue(Util.getName(cssFile));
-                // store its url so we can remove the skin later
-                skinOldUrl = url;
+
+                skin.setValue(Util.getName(cssFile));   // set current skin
+                skinOldUrl = url;   // store its url so we can remove the skin later
                 return true;
             } catch (MalformedURLException ex) {
                 LOGGER.error(ex.getMessage());
@@ -437,9 +435,7 @@ public class Gui {
     private static boolean setSkinModena() {
         monitorSkinStop();
         if (APP.windowOwner.isInitialized()) {
-            // remove old skin
-            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-            // set code skin
+            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
             Application.setUserAgentStylesheet(STYLESHEET_MODENA);
             skin.setValue("Modena");
             return true;
@@ -449,9 +445,7 @@ public class Gui {
     private static boolean setSkinCaspian() {
         monitorSkinStop();
         if (APP.windowOwner.isInitialized()) {
-            // remove old skin
-            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-            // set code skin
+            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
             Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
             skin.setValue("Caspian");
             return true;

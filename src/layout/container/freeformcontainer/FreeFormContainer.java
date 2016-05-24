@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package layout.container.freeformcontainer;
 
 import java.util.HashMap;
@@ -14,12 +9,10 @@ import layout.area.FreeFormArea;
 import layout.Component;
 import layout.container.Container;
 
-/**
- */
+/** */
 public class FreeFormContainer extends Container<FreeFormArea> {
 
-    private final Map<Integer,Component> children = new HashMap();
-
+    private final Map<Integer,Component> children = new HashMap<>();
 
     @Override
     public Map<Integer, Component> getChildren() {
@@ -40,9 +33,9 @@ public class FreeFormContainer extends Container<FreeFormArea> {
     @Override
     public void removeChild(Integer index) {
         ui.closeWindow(index);
+	    closeChild(getChildren().get(index));
         children.remove(index);
     }
-
 
     @Override
     public Integer getEmptySpot() {

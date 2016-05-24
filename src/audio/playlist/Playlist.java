@@ -1,61 +1,39 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package audio.playlist;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableListBase;
 import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.javafx.collections.ObservableListWrapper;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
 import audio.Item;
 import audio.Player;
 import audio.playback.PLAYBACK;
-import gui.objects.popover.PopOver;
 import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
 import unused.SimpleConfigurator;
 import util.collections.mapset.MapSet;
 import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
-import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.async.Async.runFX;
@@ -69,13 +47,11 @@ import static util.functional.Util.toS;
  *
  * @author Martin Polakovic
  */
-public class Playlist extends ObservableListWrapper<PlaylistItem> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
+public class Playlist extends SimpleListProperty<PlaylistItem> {
 
     public final UUID id;
-    public final IntegerProperty playingI = new SimpleIntegerProperty(-1);
-    @XStreamOmitField
+	private final ReadOnlyIntegerWrapper playingIWrapper = new ReadOnlyIntegerWrapper(-1);
+    public final ReadOnlyIntegerProperty playingI = playingIWrapper.getReadOnlyProperty();
     private PlaylistItem playing = null;
 
     public Playlist() {
@@ -83,13 +59,22 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     }
 
     public Playlist(UUID id) {
-        super(new ArrayList<>());
+        super(observableArrayList());
         this.id = id;
     }
 
-/******************************************************************************/
+	public void updatePlayingItem(int i) {
+		boolean exists = i>=0 && i<size();
+		updatePlayingItem(exists ? i : -1, exists ? get(i) : null);
+	}
 
-    @XStreamOmitField
+	private void updatePlayingItem(int i, PlaylistItem item) {
+		playingIWrapper.set(i);
+		playing = item;
+	}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
     private UnaryOperator<List<PlaylistItem>> transformer = x -> x;
 
     private List<PlaylistItem> transform() {
@@ -104,18 +89,17 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         this.transformer = transformer;
     }
 
-/******************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
 
     /** Returns total playlist duration - a sum of all playlist item lengths. */
     public Duration getLength() {
         double Σ = stream()
                 .map(PlaylistItem::getTime)
                 .filter(d->!d.isIndefinite()&&!d.isUnknown())
-                .mapToDouble(d->d.toMillis())
+                .mapToDouble(Duration::toMillis)
                 .reduce(0d, Double::sum);
         return millis(Σ);
     }
-
 
     /**
      * Returns true if specified item is playing item on the playlist. There can
@@ -134,7 +118,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      *
      * @param item
      * @return item index. -1 if not in playlist.
-     * @see Item#same(audio.playlist.Item)
+     * @see Item#same(audio.Item)
      */
     public int indexOfSame(Item item) {
         if(item==null) return -1;
@@ -176,7 +160,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
     /**
      * Removes all items such as no two items on the playlist are the same as
-     * in {@link Item#same(audio.playlist.Item)}.
+     * in {@link Item#same(audio.Item)}.
      */
     public void removeDuplicates() {
         MapSet<URI,Item> unique = new MapSet<>(Item::getURI);
@@ -237,6 +221,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     public void reverse() {
         FXCollections.reverse(this);
     }
+
     /** Randomizes order of the items. Operation can not be undone. */
     public void randomize() {
         FXCollections.shuffle(this);
@@ -255,7 +240,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public List<Integer> moveItemsBy(List<Integer> indexes, int by){
         List<List<Integer>> blocks = slice(indexes);
-        List<Integer> newSelected = new ArrayList();
+        List<Integer> newSelected = new ArrayList<>();
 
         try {
             if(by>0) {
@@ -272,6 +257,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         }
         return newSelected;
     }
+
     private List<Integer> moveItemsByBlock(List<Integer> indexes, int by) throws IndexOutOfBoundsException {
         List<Integer> newSelected = new ArrayList<>();
         try {
@@ -298,12 +284,13 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         }
         return newSelected;
     }
+
     // slice to monolithic blocks
     private List<List<Integer>> slice(List<Integer> indexes){
-        if(indexes.isEmpty()) return new ArrayList();
+        if(indexes.isEmpty()) return new ArrayList<>();
 
-        List<List<Integer>> blocks = new ArrayList();
-                            blocks.add(new ArrayList());
+        List<List<Integer>> blocks = new ArrayList<>();
+                            blocks.add(new ArrayList<>());
         int last = indexes.get(0);
         int list = 0;
         blocks.get(list).add(indexes.get(0));
@@ -316,7 +303,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
             else {
                 list++;
                 last = index;
-                List<Integer> newL = new ArrayList();
+                List<Integer> newL = new ArrayList<>();
                               newL.add(index);
                 blocks.add(newL);
             }
@@ -349,7 +336,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public void updateItems(Collection<PlaylistItem> items) {
         if (items.isEmpty()) return;
-        List<PlaylistItem> l = new ArrayList(items);
+        List<PlaylistItem> l = new ArrayList<>(items);
         Player.IO_THREAD.execute(() -> {
             for (PlaylistItem i: l) {
                 if (Thread.interrupted()) return;
@@ -392,7 +379,6 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         playItem(item, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
     }
 
-    @XStreamOmitField
     volatile private PlaylistItem unplayable1st = null;
 
     /***
@@ -401,13 +387,13 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * This method is asynchronous.
      *
      * @param item item to play
-     * @param alt_supplier supplier of next item to play if the item can not be
+     * @param altSupplier supplier of next item to play if the item can not be
      * played. It may for example return next item, or random item, depending
      * on the selection strategy. If the next item to play again can not be
      * played the process repeats until item to play is found or no item is
      * playable.
      */
-    public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> alt_supplier) {
+    public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> altSupplier) {
         if (item != null && transform().contains(item)) {
             Player.IO_THREAD.execute(() -> {
                 boolean unplayable = item.isNotPlayable(); // potentially blocking
@@ -420,8 +406,8 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
                         // unplayable1st is not reliable indicator (since items can
                         // be selected randomly), so if we check same item twice
                         // check whole playlist
-                        boolean noneplayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
-                        if(noneplayable) return;    // stop the loop
+                        boolean isNonePlayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
+                        if(isNonePlayable) return;    // stop the loop
 
                         runFX(() -> {
                             PLAYBACK.stop();            // stop playback
@@ -438,15 +424,14 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
                         // one selects random item - we could get into potentially infinite loop or
                         // check items multiple times or even skip playable items to check completely!
                         // playItem(alt_supplier.apply(item),alt_supplier);
-                        playItem(alt_supplier.apply(item));
+                        playItem(altSupplier.apply(item));
                     });
                 } else {
                     runFX(() -> {
                         unplayable1st = null;
                         PlaylistManager.active = this.id;
-                        PlaylistManager.playlists.forEach(p -> p.playing = p==this ? item : null);
-                        // each playlist fires 1 event and after all data is ready
-                        PlaylistManager.playlists.forEach(p -> p.playingI.set(p==this ? indexOf(item) : -1));
+	                    PlaylistManager.playlists.stream().filter(p -> p!=this).forEach(p -> p.updatePlayingItem(-1));
+	                    updatePlayingItem(indexOf(item), item);
                         PLAYBACK.play(item);
                     });
                 }
@@ -478,12 +463,13 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * Plays new playlist.
      * Clears active playlist completely and adds all items from new playlist.
      * Starts playing first file.
-     * @param p new playlist.
+     * @param items items to be onthe  playlist.
      * @throws NullPointerException if param null.
      */
     public void setNplay(Collection<? extends Item> items) {
         setNplay(items.stream());
     }
+
     /**
      * Plays new playlist.
      * Clears active playlist completely and adds all items from new playlist.
@@ -496,6 +482,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     public void setNplayFrom(Collection<? extends Item> items, int from) {
         setNplayFrom(items.stream(),from);
     }
+
     /**
      * Plays new playlist.
      * Clears active playlist completely and adds all items from new playlist.
@@ -509,12 +496,14 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         addItems(items.collect(toList()));
         playFirstItem();
     }
+
     /**
      * Plays new playlist.
      * Clears active playlist completely and adds all items from new playlist.
      * Starts playing item with the given index. If index is out of range for new
      * playlist, handles according to behavior in playItem(index int) method.
-     * @param p new playlist.
+     *
+     * @param items items to add.
      * @param from index of item to play from
      * @throws NullPointerException if param null.
      */
@@ -539,15 +528,6 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
 
 
-
-
-
-
-
-
-
-
-
     /**
      * Adds new item to end of this playlist, based on the url (String). Use this method
      * for  URL based Items.
@@ -557,6 +537,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     public void addUrl(String url) {
         addUrls(Collections.singletonList(url));
     }
+
     /**
      * Adds new items to end of this playlist, based on the urls (String). Use
      * this method for URL based Items.
@@ -684,10 +665,6 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
 
 
 
-
-
-
-
     /**
      * Open chooser and add or play new items.
      * @param add true to add items, false to clear playlist and play items
@@ -708,6 +685,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
             }
         }
     }
+
     /**
      * Open chooser and add or play new items.
      * @param add true to add items, false to clear playlist and play items
@@ -729,6 +707,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
             }
         }
     }
+
     /**
      * Open chooser and add or play new items.
      * @param add true to add items, false to clear playlist and play items
@@ -781,68 +760,9 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
                 p.detached.set(true);
     }
 
-
-
-
     @Override
     public String toString() {
         return "Playlist: " + id + " " + toS(this);
-    }
-
-
-    /** Serializes the playlist into file. */
-    public void serializeToFile(File f) {
-        try (
-            FileWriter fw = new FileWriter(f);
-            BufferedWriter bw = new BufferedWriter(fw);
-        ){
-            LOGGER.info("Saving playlist into file {}", f);
-            XStream x = new XStream(new DomDriver());
-                    x.registerConverter(new PlaylistItemConverter());
-                    x.omitField(ObservableListBase.class, "listenerHelper");
-                    x.omitField(ObservableListBase.class, "changeBuilder");
-                    x.omitField(ObservableListWrapper.class, "elementObserver");
-                    x.toXML(this, bw);
-        } catch (IOException ex) {
-            LOGGER.error("Save playlist failed");
-        }
-    }
-
-    /**
-     * Returns newly constructed playlist loaded from file.
-     *
-     * @param f
-     * @return Playlist or null if error.
-     */
-    public static Playlist deserialize(File f) {
-        try {
-            LOGGER.info("Loading playlist from file {}", f);
-            XStream x = new XStream(new DomDriver());
-                    x.registerConverter(new PlaylistItemConverter());
-                    x.omitField(ObservableListBase.class, "listenerHelper");
-                    x.omitField(ObservableListBase.class, "changeBuilder");
-                    x.omitField(ObservableListWrapper.class, "elementObserver");
-            return (Playlist) x.fromXML(f);
-        } catch (ClassCastException | StreamException ex) {
-            LOGGER.error("Loading playlist failed");
-            return null;
-        }
-    }
-
-    /**
-     * Invoked just after deserialization.
-     *
-     * @implSpec
-     * Resolve object by initializing non-deserializable fields or providing an
-     * alternative instance (e.g. to adhere to singleton pattern).
-     */
-    protected Object readResolve() throws ObjectStreamException {
-        Playlist p = new Playlist(this.id);
-        int i = this.playingI.get();
-        p.setAll(this);
-        p.playingI.set(i);
-        p.playing = i<0 ? null : p.get(i);
-        return p;
     }
 
 }

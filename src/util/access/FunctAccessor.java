@@ -8,13 +8,11 @@ package util.access;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
  *
  * @author Martin Polakovic
  */
-@Immutable
 public class FunctAccessor<T> implements FunctAccessibleValue<T> {
     
     private final Consumer<T> setter;

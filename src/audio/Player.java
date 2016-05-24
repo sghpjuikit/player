@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import org.reactfx.Subscription;
 
 import audio.playback.PLAYBACK;
+import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
 import services.database.Db;
@@ -32,6 +33,8 @@ import static java.util.concurrent.TimeUnit.DAYS;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
+import static util.functional.Util.forEachBoth;
+import static util.functional.Util.forEachPair;
 import static util.functional.Util.list;
 
 /**
@@ -202,7 +205,8 @@ public class Player {
 
             Async.runFX(() -> {
                 // update all playlist items referring to this updated metadata
-                PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
+                PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistItem p) -> mm.ifHasK(p.getURI(), p::update));
+//                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
                 // refresh playing item data
                 mm.ifHasE(playingtem.get(), playingtem::update);

@@ -2,14 +2,14 @@
 package main;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+
+import static util.dev.Util.log;
 
 /**
  * Composition of serializers for the application.
@@ -34,9 +34,13 @@ public final class AppSerializer {
             BufferedWriter w = new BufferedWriter(ow)
         ) {
             x.toXML(o, w);
-        // We need to be absolutely sure we catch everything
-        // Apparently XStreamException | IOException is not enough
+        } catch(XStreamException | IOException e) {
+	        log(AppSerializer.class).error("Couldn't serialize to file " + file, e);
+            throw new SerializationException("Couldn't serialize to file " + file, e);
         } catch(Throwable e) {
+	        // We need to be absolutely sure we catch everything
+	        // Apparently XStreamException | IOException is not enough
+	        log(AppSerializer.class).error("Couldn't serialize to file " + file, e);
             throw new SerializationException("Couldn't serialize to file " + file, e);
         }
     }
@@ -45,9 +49,13 @@ public final class AppSerializer {
     public <T> T fromXML(Class<T> type, File file) throws SerializationException {
         try {
             return (T) x.fromXML(file);
-        // We need to be absolutely sure we catch everything
-        // Apparently ClassCastException is not enough
+        } catch(ClassCastException e) {
+	        log(AppSerializer.class).error("Couldn't deserialize " + type + " from file " + file, e);
+            throw new SerializationException("Couldn't deserialize " + type + " from file " + file, e);
         } catch(Throwable e) {
+	        // We need to be absolutely sure we catch everything
+	        // Apparently ClassCastException is not enough
+	        log(AppSerializer.class).error("Couldn't deserialize " + type + " from file " + file, e);
             throw new SerializationException("Couldn't deserialize " + type + " from file " + file, e);
         }
     }

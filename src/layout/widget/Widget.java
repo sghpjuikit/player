@@ -1,4 +1,3 @@
-
 package layout.widget;
 
 import java.io.File;
@@ -286,7 +285,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
     public void close() {
         if(controller!=null) {
-            // We set controlelr null (before closing it). Makes sure that:
+            // We set controller null (before closing it). Makes sure that:
             // 1) widget is unusable
             // 2) calling this method again is no-op
             // Avoids:
@@ -513,7 +512,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     private void updateIOLayout() {
         // because we call this before the widget is part of scenegraph, we delay execution
         // suffering from badly designed (recursive) widget loading again...
-        runLater(() -> IOLayer.relayout());
+        runLater(IOLayer::relayout);
     }
 
 

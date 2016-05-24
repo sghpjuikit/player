@@ -19,12 +19,9 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-
-import com.sun.javafx.scene.control.VirtualScrollBar;
 
 import gui.Gui;
 import gui.objects.tablerow.ImprovedTableRow;
@@ -35,6 +32,7 @@ import static util.Util.zeroPad;
 import static util.graphics.Util.computeFontWidth;
 import static util.graphics.Util.selectRows;
 import static util.type.Util.getFieldValue;
+import static util.type.Util.invokeMethodP0;
 
 /**
  *
@@ -197,14 +195,25 @@ public class ImprovedTable<T> extends TableView<T> {
 
     /** Returns vertical scrollbar width or 0 if not visible. */
     public double getVScrollbarWidth() {
-        VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
-        if(f!=null) {
-            VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
-            if(vsb!=null) {
-                return vsb.isVisible() ? vsb.getWidth() : 0;
-            }
-        }
-        return 0;
+	    // TODO: jigsaw
+//        VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
+//        if(f!=null) {
+//            VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
+//            if(vsb!=null) {
+//                return vsb.isVisible() ? vsb.getWidth() : 0;
+//            }
+//        }
+//        return 0;
+
+
+	    Object virtualFlow = getFieldValue(getSkin(), "flow"); // VirtualFlow.class
+	    if(virtualFlow!=null) {
+		    Object virtualScrollBar = getFieldValue(virtualFlow, "vbar"); // VirtualScrollBar.class
+		    // return virtualScrollBar.isVisible() ? virtualScrollBar.getWidth() : 0;
+		    boolean isVisible = virtualScrollBar!=null && (boolean) invokeMethodP0(virtualScrollBar, "isVisible");
+		    return isVisible ?  (double) invokeMethodP0(virtualScrollBar, "getWidth") : 0;
+	    }
+	    return 0;
     }
 
 /********************************** SELECTION *********************************/

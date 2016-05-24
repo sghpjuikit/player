@@ -119,7 +119,7 @@ public class IOLayer extends StackPane {
         all_inputs.add(i);
         inputnodes.computeIfAbsent(i, k -> {
             InputNode<?> in = new InputNode<>(i);
-            i.getSources().forEach(o -> connections.computeIfAbsent(new Key<>(i,o), key -> new IOLine(i,o)));
+            i.getSources().forEach(o -> connections.computeIfAbsent(new Key(i,o), key -> new IOLine(i,o)));
             getChildren().add(in.graphics);
             return in;
         });
@@ -149,7 +149,7 @@ public class IOLayer extends StackPane {
             InOutputNode<?> ion = new InOutputNode<>(io);
             inputnodes.put(io.i, ion);
             outputnodes.put(io.o, ion);
-            io.i.getSources().forEach(o -> connections.computeIfAbsent(new Key<>(io.i,o), key -> new IOLine(io.i,o)));
+            io.i.getSources().forEach(o -> connections.computeIfAbsent(new Key(io.i,o), key -> new IOLine(io.i,o)));
             getChildren().add(ion.graphics);
             return ion;
         });
@@ -416,7 +416,7 @@ public class IOLayer extends StackPane {
                 output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
                 output.monitor(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
-                        connections.getOpt(new Key<>(input,output)).ifPresent(IOLine::send)
+                        connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
                     )
                 );
             }

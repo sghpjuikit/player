@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package audio.tagging;
 
 import java.util.ArrayList;
@@ -14,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import audio.Player;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
@@ -42,7 +35,6 @@ import static util.functional.Util.groupBy;
  *
  * @author Martin Polakovic
  */
-@Immutable
 public final class MetadataGroup {
     private final Metadata.Field field;
     private final Object val;

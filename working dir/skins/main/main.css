@@ -1889,10 +1889,11 @@
 * SplitPane                                                                    *
 *                                                                              *
 *******************************************************************************/
-
+/*
 .split-pane {
     -fx-skin: "gui.objects.ImprovedSplitPaneSkin";
 }
+*/
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
    -fx-background-color: transparent;
@@ -3425,7 +3426,7 @@ check-icon-disabling:selected {
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
-    -fx-underline: true
+    -fx-underline: true;
 }
 .table-row-cell:played,
 .table-row-cell:played:selected {

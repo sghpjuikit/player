@@ -5,7 +5,7 @@
  */
 package util.file;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -23,25 +23,21 @@ import javafx.stage.Window;
 import org.controlsfx.tools.Platform;
 
 import audio.playlist.PlaylistManager;
+import gui.Gui;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
-import gui.Gui;
 import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
 
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static org.controlsfx.tools.Platform.WINDOWS;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
-import static util.dev.TODO.Purpose.UNTESTED;
+import static util.dev.TODO.Purpose.*;
 import static util.dev.Util.log;
 import static util.file.FileType.DIRECTORY;
-import static util.functional.Util.filter;
-import static util.functional.Util.list;
-import static util.functional.Util.map;
+import static util.functional.Util.*;
 
 /**
  * Provides methods to handle external platform specific tasks. Browsing
@@ -236,9 +232,9 @@ public class Environment {
                     PlaylistManager.use(p -> p.addUris(map(audio,File::toURI)));
 
                 if(images.size()==1) {
-                    APP.widgetManager.use(ImageDisplayFeature.class,NO_LAYOUT, w->w.showImage(images.get(0)));
+                    APP.widgetManager.use(ImageDisplayFeature.class,NO_LAYOUT, w -> w.showImage(images.get(0)));
                 } else if (images.size()>1) {
-                    APP.widgetManager.use(ImagesDisplayFeature.class,NO_LAYOUT, w->w.showImages(images));
+                    APP.widgetManager.use(ImagesDisplayFeature.class,NO_LAYOUT, w -> w.showImages(images));
                 }
             } else {
                 browse(files.stream());

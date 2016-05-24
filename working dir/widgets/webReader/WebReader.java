@@ -1,20 +1,24 @@
 package webReader;
 
-import java.lang.reflect.Field;
+import java.io.File;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
-import org.w3c.dom.Document;
-
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import util.conf.IsConfig;
+import util.dev.Dependency;
+import util.file.Util;
+
+import static main.App.APP;
+import static util.dev.Util.log;
+import static util.reactive.Util.maintain;
+import static util.type.Util.getFieldValue;
+import static util.type.Util.invokeMethodP1;
 
 /**
  * Web browser component.
@@ -47,6 +51,10 @@ public class WebReader extends FXMLController {
     public void init() {
         engine = webView.getEngine();
 
+	    File userDir = new File(APP.DIR_USERDATA, "webdata");
+	    Util.isValidatedDirectory(userDir);
+		engine.setUserDataDirectory(userDir);
+
 //	    webView.setBlendMode(BlendMode.DIFFERENCE);
 //	    webView.setStyle("-fx-background-color: red;");
 
@@ -54,29 +62,33 @@ public class WebReader extends FXMLController {
             if (e.getCode().equals(KeyCode.ENTER))
                 refresh();
         });
-        engine.locationProperty().addListener( o -> {
+        engine.locationProperty().addListener(o -> {
             url = engine.getLocation();
             addressBar.setText(engine.getLocation());
         });
-	    engine.documentProperty().addListener(new DocListener());
-	    getInputs().create("Html", String.class, text -> {
-		    if(text!=null) {
-//			    String s = "<body text=white>" + text + "</body>";
-			    String s = text;
-			    engine.loadContent(s);
-		    }
-	    });
-	    engine.setUserStyleSheetLocation("skin/Flow/Flow.css");
+	    d(maintain(engine.documentProperty(), doc -> setTransparentBgrColor()));
+	    getInputs().create("Html", String.class, this::loadPage);
+
+//	    try {
+////		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), Gui.skin.get() + separator + Gui.skin.get() + ".css").toURI().toURL().toExternalForm());
+//		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), "Test" + separator + "Test.css").toURI().toURL().toExternalForm());
+//	    } catch (MalformedURLException e) {
+//		    log(WebReader.class).error("Could not apply app skin on the web reader");
+//	    }
+
     }
 
     @FXML
     @Override
     public void refresh() {
-        if(addressBar.getText().isEmpty()){
-            loadPage(url);
-            return;
+        if(addressBar.getText().isEmpty()) { // TODO: improve this
+            // For now we do not reload the page, just set up the address
+	        // loadPage(url);
+	        addressBar.setText(url);
         }
-        reloadPage();
+
+	    // setTransparentBgrColor(); // !work, probably due to some initialization
+        loadPage(" ");
     }
 
     public void reloadPage() {
@@ -84,37 +96,22 @@ public class WebReader extends FXMLController {
     }
 
     public void loadPage(String page) {
-        engine.load(page);
-
-//	    com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(engine);
-//	    webPage.setBackgroundColor((new java.awt.Color(0,0,0, 0)).getRGB());
-
-
-//	    try {
-//		    // Use reflection to retrieve the WebEngine's private 'page' field.
-//		    Field f = engine.getClass().getDeclaredField("page");
-//		    f.setAccessible(true);
-//		    com.sun.webkit.WebPage p = (com.sun.webkit.WebPage) f.get(engine);
-//		    				p.setBackgroundColor((new java.awt.Color(0,0,0, 0)).getRGB());
-//
-//	    } catch (Exception e) {
-//	    }
+	    if(page!=null) {
+		    //			    String s = "<body text=white>" + text + "</body>";
+		    String s = page;
+		    engine.loadContent(s);
+	    }
     }
 
-
-	class DocListener implements ChangeListener<Document> {
-		@Override
-		public void changed(ObservableValue<? extends Document> observable, Document oldValue, Document newValue) {
-			try {
-				// Use reflection to retrieve the WebEngine's private 'page' field.
-				Field f = engine.getClass().getDeclaredField("page");
-				f.setAccessible(true);
-				com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) f.get(engine);
-				page.setBackgroundColor((new java.awt.Color(255, 255, 255, 1)).getRGB());
-
-			} catch (Exception e) {
-			}
-
+	@Dependency("requires access to javafx.web/com.sun.webkit.WebPage")
+	private void setTransparentBgrColor() {
+		// TODO: jigsaw
+		try {
+			// Use reflection to retrieve the WebEngine's private 'page' field.
+			Object webPage = getFieldValue(engine, "page");
+			invokeMethodP1(webPage, "setBackgroundColor", int.class, new java.awt.Color(255, 255, 255, 1).getRGB());
+		} catch (Exception e) {
+			log(WebReader.class).error("Could not change background color to transparent", e);
 		}
 	}
 }

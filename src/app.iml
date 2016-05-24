@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$/../working dir/widgets">
+      <sourceFolder url="file://$MODULE_DIR$/../working dir/widgets" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="image" level="project" />
+    <orderEntry type="library" name="dev" level="project" />
+    <orderEntry type="library" name="audio" level="project" />
+    <orderEntry type="library" name="general" level="project" />
+  </component>
+</module>

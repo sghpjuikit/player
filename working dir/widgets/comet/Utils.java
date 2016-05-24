@@ -556,7 +556,7 @@ class Utils {
         @SuppressWarnings("unchecked")
         <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
             if(t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
-            else forEachCartesian(get(t),get(e), action);
+            else forEachPair(get(t),get(e), action);
         }
 
         void forEachSet(Consumer<? super Set<O>> action) {

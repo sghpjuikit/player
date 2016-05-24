@@ -19,11 +19,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
-import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
@@ -42,10 +44,11 @@ import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static util.type.Util.getEnumConstants;
-import static util.type.Util.invokeMethodP0;
+import static main.App.Build.appTooltip;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
+import static util.type.Util.getEnumConstants;
+import static util.type.Util.invokeMethodP0;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
@@ -221,7 +224,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
                         ObjectField<? super T> f =  nameToCF(c.name);
                         SelectionMenuItem m = new SelectionMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
                         String d = f.description();
-                        if(!d.isEmpty()) Tooltip.install(m.getGraphic(), new Tooltip(d));
+                        if(!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
                         return m;
                     })
                     .forEach(columnVisibleMenu.getItems()::add);
@@ -234,7 +237,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             // link table column button to our menu instead of an old one
             if(getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
             // TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow(); // java9 no longer supports this
-            TableHeaderRow h = (TableHeaderRow)invokeMethodP0(TableViewSkinBase.class,(TableViewSkinBase)getSkin(),"getTableHeaderRow");
+            TableHeaderRow h = (TableHeaderRow)invokeMethodP0(getSkin(), "getTableHeaderRow");
 
             try {
                 // cornerRegion is the context menu button, use reflection

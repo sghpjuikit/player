@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.*;
+import java.awt.desktop.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +20,6 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableListBase;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
@@ -27,6 +27,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -39,7 +40,6 @@ import org.reactfx.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.collections.ObservableListWrapper;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
@@ -146,6 +146,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
+import static javafx.util.Duration.seconds;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
@@ -155,9 +156,10 @@ import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.functional.Util.*;
-import static util.functional.Util.stream;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
+
+import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -332,6 +334,70 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void init() {
+
+	    Desktop.getDesktop().addAppEventListener(new AppReopenedListener() {
+		    @Override
+		    public void appReopened(AppReopenedEvent e) {
+			    System.out.println("app reopened " + e.getSource());
+		    }
+	    });
+	    Desktop.getDesktop().addAppEventListener(new UserSessionListener() {
+		    @Override
+		    public void userSessionDeactivated(UserSessionEvent e) {
+			    System.out.println("user session deactivated " + e.getSource() + " " + e.getReason());
+		    }
+
+		    @Override
+		    public void userSessionActivated(UserSessionEvent e) {
+			    System.out.println("user session activated " + e.getSource() + " " + e.getReason());
+		    }
+	    });
+	    Desktop.getDesktop().addAppEventListener(new AppHiddenListener() {
+		    @Override
+		    public void appHidden(AppHiddenEvent e) {
+			    System.out.println("app hidden " + e.getSource());
+		    }
+
+		    @Override
+		    public void appUnhidden(AppHiddenEvent e) {
+			    System.out.println("app unhidden " + e.getSource());
+		    }
+	    });
+	    Desktop.getDesktop().addAppEventListener(new AppForegroundListener() {
+		    @Override
+		    public void appRaisedToForeground(AppForegroundEvent e) {
+			    System.out.println("app raised to foreground " + e.getSource());
+		    }
+
+		    @Override
+		    public void appMovedToBackground(AppForegroundEvent e) {
+			    System.out.println("app moved to background " + e.getSource());
+		    }
+	    });
+	    Desktop.getDesktop().addAppEventListener(new ScreenSleepListener() {
+		    @Override
+		    public void screenAboutToSleep(ScreenSleepEvent e) {
+			    System.out.println("screen about to sleep " + e.getSource());
+		    }
+
+		    @Override
+		    public void screenAwoke(ScreenSleepEvent e) {
+			    System.out.println("screen awoke " + e.getSource());
+		    }
+	    });
+	    Desktop.getDesktop().addAppEventListener(new SystemSleepListener() {
+		    @Override
+		    public void systemAboutToSleep(SystemSleepEvent e) {
+			    System.out.println("system about to sleep " + e.getSource());
+		    }
+
+		    @Override
+		    public void systemAwoke(SystemSleepEvent e) {
+			    System.out.println("system awoke " + e.getSource());
+		    }
+	    });
+
+
         // configure logging
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
@@ -374,31 +440,24 @@ public class App extends Application implements Configurable {
         XStream x = serializators.x;
         Mapper xm = x.getMapper();
         x.autodetectAnnotations(true);
-            // javafx properties
-        x.registerConverter(new StringPropertyConverter(xm));
-        x.registerConverter(new BooleanPropertyConverter(xm));
-        x.registerConverter(new DoublePropertyConverter(xm));
-        x.registerConverter(new LongPropertyConverter(xm));
-        x.registerConverter(new IntegerPropertyConverter(xm));
-        x.registerConverter(new ObjectPropertyConverter(xm));
-            // javafx collections
-        // x.registerConverter(new ObservableListConverter(xm)); // interferes with Playlist.class
-            // custom properties
+        x.registerConverter(new StringPropertyConverter(xm));   // javafx properties
+        x.registerConverter(new BooleanPropertyConverter(xm));  // -||-
+        x.registerConverter(new DoublePropertyConverter(xm));   // -||-
+        x.registerConverter(new LongPropertyConverter(xm));     // -||-
+        x.registerConverter(new IntegerPropertyConverter(xm));  // -||-
+        x.registerConverter(new ObjectPropertyConverter(xm));   // -||-
+	    x.registerConverter(new ObservableListConverter(xm));   // -||-
+	    x.registerConverter(new PlaylistConverter(xm));
         x.registerConverter(new VConverter(xm));
-            // custom objects
         x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
-        x.omitField(ObservableListBase.class, "listenerHelper"); // removes bloat
-        x.omitField(ObservableListBase.class, "changeBuilder"); // removes bloat
-        x.omitField(ObservableListWrapper.class, "elementObserver"); // removes bloat
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
         x.alias("item", PlaylistItem.class);
         ClassIndex.getSubclasses(Component.class).forEach(c -> x.alias(c.getSimpleName(),c));
         x.useAttributeFor(Component.class, "id");
         x.useAttributeFor(Widget.class, "name");
-        x.useAttributeFor(Playlist.class, "id");
 
         // add optional object fields
         classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
@@ -594,9 +653,6 @@ public class App extends Application implements Configurable {
 
         // start global shortcuts
         Action.startActionListening();
-
-        // custom tooltip behavior
-        setupCustomTooltipBehavior(1000, 10000, 200);
     }
 
     /**
@@ -912,7 +968,7 @@ public class App extends Application implements Configurable {
 
     @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
     public static void openCssGuide() {
-        browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
+        browse(URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html"));
     }
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
@@ -1136,6 +1192,21 @@ public class App extends Application implements Configurable {
             });
             return p;
         }
+
+	    static Tooltip appTooltip() {
+	        return appTooltip("");
+	    }
+
+	    static Tooltip appTooltip(String text) {
+			Tooltip t = new Tooltip(text);
+		    t.setHideOnEscape(true);
+		    t.setConsumeAutoHidingEvents(true);
+		    // TODO: make configurable
+		    t.setShowDelay(seconds(1));
+		    t.setShowDuration(seconds(10));
+		    t.setHideDelay(millis(200));
+		    return t;
+	    }
 
     }
 

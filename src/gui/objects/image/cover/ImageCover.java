@@ -6,13 +6,12 @@
 
 package gui.objects.image.cover;
 
-import gui.objects.image.Thumbnail;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Objects;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
  * Denotes Cover represented by a {@link Image} or {@link BufferedImage}.
@@ -23,7 +22,6 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
  * 
  * @author Martin Polakovic
  */
-@Immutable
 public class ImageCover implements Cover {
     private final Image imageI;
     private final BufferedImage imageB;

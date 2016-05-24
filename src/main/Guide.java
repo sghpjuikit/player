@@ -9,8 +9,9 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.input.*;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 
 import org.reactfx.Subscription;
@@ -32,7 +33,6 @@ import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TROPHY;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.util.Collections.singletonMap;
@@ -173,18 +173,12 @@ public final class Guide implements Configurable {
               new Icon(WALK,ICON_SIZE).onClick(e -> ((Icon)e.getSource()).setDisable(true)),
               new Icon(RUN,ICON_SIZE).onClick(() -> runFX(1500,() -> APP.actionStream.push("Icons")))
         );
-        Icon hi = new Icon(TROPHY,ICON_SIZE)
-                .tooltip("Click to claim the trophy")
-                .onClick(() -> runFX(1000,() -> APP.actionStream.push("Tooltips")));
-             hi.setVisible(false);
         hint("Tooltips", "Tooltips will teach you the way if the icon is not enough. Use them well."
            + "\n\nThere can be a meaning where you don't see it. Hover above the icons to find out.",
-              new Icon(GAMEPAD_VARIANT,ICON_SIZE).tooltip(new Tooltip("Playing")),
-              new Icon(HAND_POINTING_RIGHT,ICON_SIZE).tooltip(new Tooltip("To")),
-              new Icon(GRADUATION_CAP,ICON_SIZE).tooltip(new Tooltip("Learn"){{
-                  setOnHidden(e -> runFX(1500, () -> hi.setVisible(true)));
-              }}),
-              hi
+              new Icon(GAMEPAD_VARIANT,ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
+              new Icon(HAND_POINTING_RIGHT,ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
+		      new Icon(GRADUATION_CAP,ICON_SIZE).tooltip("Click to claim the trophy")
+			      .onClick(() -> runFX(1000,() -> APP.actionStream.push("Tooltips")))
         );
         hint("Info popup", "There is more... Info buttons explain various app sections and how to "
            + "use them in more detail."

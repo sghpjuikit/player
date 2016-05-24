@@ -43,8 +43,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import com.sun.javafx.scene.control.VirtualScrollBar;
-
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.objects.grid.GridView.SelectionOn;
@@ -67,6 +65,7 @@ import static util.collections.Tuples.tuple;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderTop;
+import static util.type.Util.invokeMethodP0;
 
 public class GridViewSkin<T,F> implements Skin<GridView> {
 
@@ -219,8 +218,10 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     protected double getVScrollbarWidth() {
         if(skin.flow!=null) {
-            VirtualScrollBar vsb = Util.getFieldValue(skin.flow, VirtualScrollBar.class, "vbar");
-            return vsb!=null && vsb.isVisible() ? vsb.getWidth() : 0;
+            Object virtualScrollBar = Util.getFieldValue(skin.flow, "vbar"); // VirtualScrollBar.class
+            // return virtualScrollBar!=null && virtualScrollBar.isVisible() ? virtualScrollBar.getWidth() : 0;
+            boolean isVisible = virtualScrollBar!=null && (boolean) invokeMethodP0(virtualScrollBar, "isVisible");
+	        return isVisible ? (double)invokeMethodP0(virtualScrollBar, "getWidth")  : 0;
         }
         return 0;
     }
@@ -241,15 +242,15 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     private void flowRecreateCells() {
-        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"recreateCells");
+        invokeMethodP0(skin.flow,"recreateCells");
     }
 
     private void flowRebuildCells() {
-        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"rebuildCells");
+        invokeMethodP0(skin.flow,"rebuildCells");
     }
 
     private void flowReconfigureCells() {
-        Util.invokeMethodP0(VirtualFlow.class,skin.flow,"reconfigureCells");
+        invokeMethodP0(skin.flow,"reconfigureCells");
     }
 
     private class SkinDelegate extends CustomVirtualContainerBase<GridView<T,F>,GridRow<T,F>> {

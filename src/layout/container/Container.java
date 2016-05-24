@@ -1,4 +1,3 @@
-
 package layout.container;
 
 import java.util.ArrayList;
@@ -20,6 +19,7 @@ import layout.widget.Widget;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
+import util.type.ClassName;
 
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -118,16 +118,13 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         return root;
     }
 
-
-
     @XStreamOmitField protected AnchorPane root;
     @XStreamOmitField private Container parent;
     @XStreamOmitField public G ui;
 
-
     @Override
     public String getName() {
-        return this.getClass().getName();
+        return ClassName.of(getClass());
     }
 
     @Override
@@ -177,7 +174,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      */
     public void removeChild(Component c) {
         addChild(indexOf(c), null);
-        closeComponent(c);
+        closeChild(c);
     }
 
     /**
@@ -189,10 +186,10 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     public void removeChild(Integer index) {
         Component c = getChildren().get(index); // capture before reload
         addChild(index, null);  // reload
-        closeComponent(c);
+        closeChild(c);
     }
 
-    private static void closeComponent(Component c) {
+    protected void closeChild(Component c) {
         if(c instanceof Container) {
 //            ((Container)c).close();
         }

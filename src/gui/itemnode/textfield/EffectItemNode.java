@@ -8,30 +8,14 @@ package gui.itemnode.textfield;
 import java.util.List;
 
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.Blend;
-import javafx.scene.effect.Bloom;
-import javafx.scene.effect.BoxBlur;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.ColorInput;
-import javafx.scene.effect.DisplacementMap;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.Effect;
-import javafx.scene.effect.GaussianBlur;
-import javafx.scene.effect.Glow;
-import javafx.scene.effect.ImageInput;
-import javafx.scene.effect.InnerShadow;
-import javafx.scene.effect.Lighting;
-import javafx.scene.effect.MotionBlur;
-import javafx.scene.effect.PerspectiveTransform;
-import javafx.scene.effect.Reflection;
-import javafx.scene.effect.SepiaTone;
-import javafx.scene.effect.Shadow;
+import javafx.scene.effect.*;
 import javafx.scene.input.MouseEvent;
 
+import gui.objects.icon.Icon;
 import gui.objects.picker.Picker;
 import gui.objects.popover.PopOver;
 import gui.objects.window.stage.UiContext;
-import gui.objects.icon.Icon;
+import main.App;
 import util.type.ClassName;
 
 import static javafx.geometry.Pos.CENTER;
@@ -68,8 +52,8 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
             }
         }
     }
-    private static final Tooltip typeTooltip = new Tooltip("Choose type of effect");
-    private static final Tooltip propTooltip = new Tooltip("COnfigure effect");
+    private static final Tooltip typeTooltip = App.Build.appTooltip("Choose type of effect");
+    private static final Tooltip propTooltip = App.Build.appTooltip("COnfigure effect");
     public static final List<EffectType> EFFECT_TYPES = list(
         new EffectType(Blend.class),
         new EffectType(Bloom.class),

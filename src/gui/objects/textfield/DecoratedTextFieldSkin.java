@@ -33,6 +33,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.HitInfo;
 
 public abstract class DecoratedTextFieldSkin extends TextFieldSkin {
 
@@ -109,7 +110,7 @@ public abstract class DecoratedTextFieldSkin extends TextFieldSkin {
     }
 
     @Override
-    public TextPosInfo getIndex(double x, double y) {
+    public HitInfo getIndex(double x, double y) {
         /**
          * This resolves https://bitbucket.org/controlsfx/controlsfx/issue/476
          * when we have a left Node and the click point is badly returned

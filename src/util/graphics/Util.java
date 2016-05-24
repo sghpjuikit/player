@@ -44,6 +44,7 @@ import javafx.util.Duration;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 
+import util.dev.Dependency;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 
@@ -437,41 +438,43 @@ public interface Util {
         );
     }
 
-
-
-    //http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration
     /**
      * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
      * All Tooltips share the same TooltipBehavior instance via a static private member BEHAVIOR, which
      * has default values of 1sec for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
-     *
-     * The hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
+     * <p/>
+     * This hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
      * this custom instance.
+     * <p/>
+     * More on http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration}.
+     * @deprecated since java 9 b114. Use {@link javafx.scene.control.Tooltip#setHideDelay(javafx.util.Duration)},
+     * {@link javafx.scene.control.Tooltip#setShowDelay(javafx.util.Duration)} and
+     * {@link javafx.scene.control.Tooltip#setShowDuration(javafx.util.Duration)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "9 b114")
     static void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
         try {
-
+	        // The class is private, hence the overly complicated way of obtaining it
             Class TTBehaviourClass = null;
             Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
-            for (Class c:declaredClasses) {
+            for (Class c : declaredClasses) {
                 if (c.getCanonicalName().equals("javafx.scene.control.Tooltip.TooltipBehavior")) {
                     TTBehaviourClass = c;
                     break;
                 }
             }
-            if (TTBehaviourClass == null) return; // abort;
+            if (TTBehaviourClass == null) return;
 
             @SuppressWarnings("unchecked")
             Constructor constructor = TTBehaviourClass.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
-            if (constructor == null) return; // abort;
+            if (constructor == null) return;
 
             constructor.setAccessible(true);
             Object behaviour = constructor.newInstance(
                     new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
                     new Duration(closeDelayInMillis), false);
             Field behaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
-            if (behaviourField == null) return; // abort;
+            if (behaviourField == null) return;
 
             behaviourField.setAccessible(true);
             // Object defaultBehavior = behaviourField.get(Tooltip.class); // store default behavior
@@ -633,15 +636,22 @@ public interface Util {
         return from.stream()
                 .map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
                 .toArray(MenuItem[]::new);
-    }    
+    }
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
+	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
     static double computeFontWidth(javafx.scene.text.Font font, String text) {
-        return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().computeStringWidth(text, font);
+	    // TODO: jigsaw
+        // return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().computeStringWidth(text, font); // !work since java 9 b114
+	    com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font);
+	    return text==null || text.isEmpty() ? 0 : text.chars().mapToDouble(c -> fm.getCharWidth((char)c)).sum();
     }
 
+	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
     static double computeFontHeight(javafx.scene.text.Font font) {
+	    // TODO: jigsaw
+	    // requires -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
         return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font).getLineHeight();
     }
 
@@ -662,7 +672,7 @@ public interface Util {
      * </ul>
      */
     static Stage createFMNTStage(Screen screen) {
-        // Using owner stage of UTILITY style is the only way to get a 'top level'
+	    // Using owner stage of UTILITY style is the only way to get a 'top level'
         // window with no taskbar.
         Stage owner = new Stage(UTILITY);
               owner.setOpacity(0); // make sure it will never be visible
@@ -710,17 +720,14 @@ public interface Util {
 
     /** Returns screen containing the given coordinates. Never null. */
     static Screen getScreen(double x, double y) {
+	    // TODO: jigsaw
         // rely on official util (someone hid it..., good work genius)
-        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+        // return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 
-//        for (Screen scr : Screen.getScreens())
-//            if (scr.getBounds().intersects(x,y,1,1)) {
-//                return scr;
-//                // unknown whether this affects functionality
-////                break;
-//            }
-//        // avoid null
-//        return Screen.getPrimary();
+        for (Screen scr : Screen.getScreens())
+            if (scr.getBounds().intersects(x,y,1,1))
+                return scr;
+        return Screen.getPrimary();
     }
 
     /** Captures screenshot of the entire screen and runs custom action on fx thread. */

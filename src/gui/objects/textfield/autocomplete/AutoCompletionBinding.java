@@ -29,22 +29,21 @@
 
 package gui.objects.textfield.autocomplete;
 
-
 import java.util.Collection;
 
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
-import javafx.event.*;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-
-import com.sun.javafx.event.EventHandlerManager;
 
 import util.access.V;
 
@@ -59,7 +58,7 @@ import static util.graphics.Util.setMinPrefMaxWidth;
  * @param <T> Model-Type of the suggestions
  * @see org.controlsfx.control.textfield.TextFields
  */
-public abstract class AutoCompletionBinding<T> implements EventTarget {
+public abstract class AutoCompletionBinding<T> {
 
 
     private static final long AUTO_COMPLETE_DELAY = 250;
@@ -198,7 +197,8 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
     }
 
     protected void fireAutoCompletion(T completion){
-        Event.fireEvent(this, new AutoCompletionEvent<>(completion));
+	    if(completion != null && onAutoCompleted.get() != null)
+		    onAutoCompleted.get().handle(new AutoCompletionEvent<>(completion));
     }
 
 
@@ -296,7 +296,6 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
     }
 
     /** Represents an Event which is fired after an auto completion. */
-    @SuppressWarnings("serial")
     public static class AutoCompletionEvent<TE> extends Event {
 
         /**
@@ -328,79 +327,16 @@ public abstract class AutoCompletionBinding<T> implements EventTarget {
 
     /**
      * Set a event handler which is invoked after an auto completion.
+     *
      * @param value
      */
     public final void setOnAutoCompleted(EventHandler<AutoCompletionEvent<T>> value) {
-        onAutoCompletedProperty().set( value);
+	    if (onAutoCompleted == null) onAutoCompleted = new SimpleObjectProperty<>();
+	    onAutoCompleted.set(value);
     }
 
     public final EventHandler<AutoCompletionEvent<T>> getOnAutoCompleted() {
         return onAutoCompleted == null ? null : onAutoCompleted.get();
-    }
-
-    public final ObjectProperty<EventHandler<AutoCompletionEvent<T>>> onAutoCompletedProperty() {
-        if (onAutoCompleted == null) {
-            onAutoCompleted = new ObjectPropertyBase<>() {
-                @SuppressWarnings({"rawtypes", "unchecked"})
-                @Override
-                protected void invalidated() {
-                    eventHandlerManager.setEventHandler(AutoCompletionEvent.AUTO_COMPLETED, (EventHandler<AutoCompletionEvent>) (Object) get());
-                }
-
-                @Override
-                public Object getBean() {
-                    return AutoCompletionBinding.this;
-                }
-
-                @Override
-                public String getName() {
-                    return "onAutoCompleted"; //$NON-NLS-1$
-                }
-            };
-        }
-        return onAutoCompleted;
-    }
-
-
-    /***************************************************************************
-     *                                                                         *
-     * EventTarget Implementation                                              *
-     *                                                                         *
-     **************************************************************************/
-
-    final EventHandlerManager eventHandlerManager = new EventHandlerManager(this);
-
-    /**
-     * Registers an event handler to this EventTarget. The handler is called when the
-     * menu item receives an {@code Event} of the specified type during the bubbling
-     * phase of event delivery.
-     *
-     * @param <E> the specific event class of the handler
-     * @param eventType the type of the events to receive by the handler
-     * @param eventHandler the handler to register
-     * @throws NullPointerException if the event type or handler is null
-     */
-    public <E extends Event> void addEventHandler(EventType<E> eventType, EventHandler<E> eventHandler) {
-        eventHandlerManager.addEventHandler(eventType, eventHandler);
-    }
-
-    /**
-     * Unregisters a previously registered event handler from this EventTarget. One
-     * handler might have been registered for different event types, so the
-     * caller needs to specify the particular event type from which to
-     * unregister the handler.
-     *
-     * @param <E> the specific event class of the handler
-     * @param eventType the event type from which to unregister
-     * @param eventHandler the handler to unregister
-     * @throws NullPointerException if the event type or handler is null
-     */
-    public <E extends Event> void removeEventHandler(EventType<E> eventType, EventHandler<E> eventHandler) {
-        eventHandlerManager.removeEventHandler(eventType, eventHandler);
-    }
-
-    @Override public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return tail.prepend(eventHandlerManager);
     }
 
 }

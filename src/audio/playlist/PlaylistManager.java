@@ -26,7 +26,7 @@ import static util.functional.Util.listRO;
 @IsActionable
 public class PlaylistManager implements Configurable {
 
-    public static final MapSet<UUID,Playlist> playlists = new MapSet<>(p->p.id);
+    public static final MapSet<UUID,Playlist> playlists = new MapSet<>(p -> p.id);
     public static UUID active = null;
     public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
@@ -41,6 +41,7 @@ public class PlaylistManager implements Configurable {
         if(p==null) p = playlists.stream().findAny().orElse(null);
         if(p!=null) action.accept(p);
     }
+
     public static <T> T use(Ƒ1<Playlist,T> action, T or) {
         Playlist p = null;
         if(active!=null) p = playlists.get(active);

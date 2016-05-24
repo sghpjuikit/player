@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -21,9 +22,9 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Region;
 
-import services.Service;
+import gui.objects.contextmenu.ImprovedContextMenu;
+import gui.objects.window.stage.Window;
 import layout.Component;
 import layout.container.Container;
 import layout.container.layout.Layout;
@@ -32,21 +33,20 @@ import layout.widget.WidgetFactory;
 import layout.widget.WidgetManager.WidgetSource;
 import layout.widget.feature.ConfiguringFeature;
 import layout.widget.feature.Feature;
-import gui.objects.contextmenu.ImprovedContextMenu;
-import gui.objects.window.stage.Window;
-import util.type.ClassName;
+import services.Service;
 import util.access.V;
 import util.conf.Configurable;
 import util.file.Environment;
 import util.file.Util;
+import util.type.ClassName;
 
-import static layout.widget.WidgetManager.WidgetSource.*;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static layout.widget.WidgetManager.WidgetSource.*;
 import static main.App.APP;
-import static util.Util.*;
+import static util.Util.emptyOr;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
@@ -177,7 +177,7 @@ public class TreeItems {
 
     public static <T> void showMenu(T o, TreeView<T> t, Node n, MouseEvent e) {
         if(o instanceof File) {
-            List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c->c.getValue() instanceof File, c->(File)c.getValue());
+            List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c -> c.getValue() instanceof File, c -> (File)c.getValue());
             if(files.isEmpty()) {
                 m.getItems().forEach(i -> i.setDisable(true));
             } else if(files.size()==1) {
@@ -264,10 +264,10 @@ public class TreeItems {
             return false;
         }
     }
-    public static class WidgetItem extends STreeItem<Widget> {
+    public static class WidgetItem extends STreeItem<Object> {
 
         public WidgetItem(Widget v) {
-            super(v, () -> stream());
+            super(v, () -> stream(v.areaTemp.getRoot()));
         }
 
     }
@@ -355,8 +355,8 @@ public class TreeItems {
         private ObservableList<TreeItem<Node>> buildChildren(TreeItem<Node> i) {
             ObservableList<TreeItem<Node>> out = observableArrayList();
             Node value = i.getValue();
-            if(value instanceof Region)
-                ((Region)value).getChildrenUnmodifiable().forEach(n -> out.add(new NodeTreeItem(n)));
+	        if(value instanceof Parent)
+		        ((Parent)value).getChildrenUnmodifiable().forEach(n -> out.add(new NodeTreeItem(n)));
 
             return out;
         }

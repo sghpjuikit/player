@@ -15,6 +15,7 @@ import javafx.beans.value.ObservableValue;
 import unused.TriConsumer;
 
 import static util.dev.Util.log;
+import static util.functional.Util.isNoneØ;
 import static util.functional.Util.list;
 
 /**
@@ -52,18 +53,19 @@ public interface Util {
             //
             // In other words anything non-public is not safe.
             if (methodName.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodName.startsWith("impl")) {
-                try {
-                    Class<?> returnType = method.getReturnType();
-                    if (ObservableValue.class.isAssignableFrom(returnType)) {
-                        String propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
+                Class<?> returnType = method.getReturnType();
+	            String propertyName = null;
+	            if (ObservableValue.class.isAssignableFrom(returnType)) {
+	                try {
+                        propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-                        if(util.functional.Util.isNoneØ(property, propertyName, propertyType))
+                        if(isNoneØ(property, propertyName, propertyType))
                             action.accept(property, propertyName, propertyType);
-                    }
-                } catch(IllegalAccessException | InvocationTargetException e) {
-                    log(Util.class).error("Could not obtain property from object",e);
+	                } catch(IllegalAccessException | InvocationTargetException e) {
+	                    log(Util.class).error("Could not obtain property '{}' from object", propertyName);
+	                }
                 }
             }
         }
@@ -242,6 +244,7 @@ public interface Util {
         // debug, reveals the class inspection order
         // System.out.println("inspecting " + t.getTypeName());
 
+	    // TODO: handle better
         // Workaround for all number properties returning Number.class instead of their respective
         // class, due to all implementing something along the lines Property<Number>. As per
         // javadoc review, the affected are the four classes : Double, Float, Long, Integer.
@@ -297,9 +300,9 @@ public interface Util {
     }
 
     /**
-     * Returns field named n declared in class c.
+     * Returns field named n in class c.
      *
-     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * @implSpec the field can be declared in the class or any of its superclasses
      * as opposed to standard reflection behavior which checks only the specified class
      */
     static Field getField(Class c, String n) throws NoSuchFieldException {
@@ -319,22 +322,33 @@ public interface Util {
         else throw new NoSuchFieldException();
     }
 
-    /**
-     * Gets value of a field of an object using reflection or null on error. Consumes all
-     * exceptions.
-     * @return value of a field of given object or null if value null or not possible
-     */
-    static <T> T getFieldValue(Object o, Class<T> type, String fieldname) {
-        try {
-            Field f = getField(o.getClass(), fieldname);
-            f.setAccessible(true);
-            T t = (T) f.get(o);
-            f.setAccessible(false);
-            return t;
-        } catch(Exception e) {
-            return null;
-        }
-    }
+	/**
+	 * Gets value of a field of an object using reflection or null on error. Consumes all
+	 * exceptions.
+	 * @return value of a field of given object or null if value null or not possible
+	 */
+	static Object getFieldValue(Object o, String name) {
+		return getFieldValue(o, Object.class, name);
+	}
+
+	/**
+	 * Gets value of a field of an object using reflection or null on error. Consumes all
+	 * exceptions.
+	 * @return value of a field of given object or null if value null or not possible
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> T getFieldValue(Object o, Class<T> type, String name) {
+		Field f = null;
+		try {
+			f = getField(o.getClass(), name);
+			f.setAccessible(true);
+			return (T) f.get(o);
+		} catch(Exception e) {
+			return null;
+		} finally {
+			if(f!=null) f.setAccessible(false);
+		}
+	}
 
     /**
      * Set field named f of the object o to value v.
@@ -355,40 +369,67 @@ public interface Util {
      * as opposed to standard reflection behavior which checks only the specified class
      * @throws RuntimeException if reflection error occurs
      */
-    static void setField(Class c, Object o, String f, Object v) {
+    static void setField(Class c, Object o, String name, Object v) {
+	    Field f = null;
         try {
-            Field fl = getField(c,f);
-            fl.setAccessible(true);
-            fl.set(o,v);
-            fl.setAccessible(false);
+            f = getField(c,name);
+            f.setAccessible(true);
+            f.set(o,v);
         } catch (Exception x) {
             throw new RuntimeException(x);
+        } finally {
+	        if(f!=null) f.setAccessible(false);
+        }
+    }
+
+	/**
+	 * Returns method named m in class c.
+	 *
+	 * @implSpec the method can be declared in the class or any of its superclasses
+	 * as opposed to standard reflection behavior which checks only the specified class
+	 */
+	static Method getMethod(Class<?> c, String n, Class<?>... params) throws NoSuchMethodException {
+		// get all methods of the class (but not inherited methods)
+		Method m = null;
+		try {
+			m = c.getDeclaredMethod(n, params);
+		} catch (NoSuchMethodException | SecurityException ex) {
+			// ignore
+		}
+
+		if (m!=null) return m;
+
+		// get super class' methods recursively
+		Class<?> superClazz = c.getSuperclass();
+		if (superClazz != null) return getMethod(superClazz, n, params);
+		else throw new NoSuchMethodException();
+	}
+
+    /** Invokes method with no parameters on given object and returns the result. */
+    static <T> Object invokeMethodP0(T o, String name) {
+	    Method m = null;
+        try {
+            m = getMethod(o.getClass(), name);
+            m.setAccessible(true);
+	        return m.invoke(o);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new RuntimeException("Failed to invoke method: " + name, e);
+        } finally {
+	        if(m!=null) m.setAccessible(false);
         }
     }
 
     /** Invokes method with no parameters on given object and returns the result. */
-    static <T> Object invokeMethodP0(Class<T> exactclass, T o, String name) {
-        try {
-            Method m = exactclass.getDeclaredMethod(name);
+    static <T,P> Object invokeMethodP1(T o, String name, Class<P> paramType, P param) {
+	    Method m = null;
+	    try {
+            m = getMethod(o.getClass(), name, paramType);
             m.setAccessible(true);
-            Object r = m.invoke(o);
-            m.setAccessible(false);
-            return r;
+            return m.invoke(o, param);
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new RuntimeException("Failed to invoke method: " + name, e);
-        }
-    }
-
-    /** Invokes method with no parameters on given object and returns the result. */
-    static <T,P> Object invokeMethodP1(Class<T>  exactclass, T o, String name, Class<P> paramtype, P param) {
-        try {
-            Method m = exactclass.getDeclaredMethod(name,paramtype);
-            m.setAccessible(true);
-            Object r = m.invoke(o,param);
-            m.setAccessible(false);
-            return r;
-        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new RuntimeException("Failed to invoke method: " + name, e);
+            throw new RuntimeException("Failed to invoke method '" + name + "' for " + param.getClass(), e);
+        } finally {
+            if(m!=null) m.setAccessible(false);
         }
     }
 
@@ -445,6 +486,7 @@ public interface Util {
      * @return array of enum constants, never null
      * @throws IllegalArgumentException if class not an enum
      */
+    @SuppressWarnings("unchecked")
     static <T> T[] getEnumConstants(Class c) {
         // handle enums
         if(c.isEnum()) return (T[]) c.getEnumConstants();

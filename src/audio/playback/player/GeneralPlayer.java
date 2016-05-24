@@ -125,7 +125,7 @@ public class GeneralPlayer {
             Player.playingtem.itemChanged(Metadata.EMPTY);
             realTime.synchroRealTime_onStopped();
             PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::stop);
-            PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
+            PlaylistManager.playlists.forEach(p -> p.updatePlayingItem(-1));
             PlaylistManager.active = null;
         });
     }

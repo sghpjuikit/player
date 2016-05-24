@@ -1,5 +1,6 @@
 package util.graphics;
 
+import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -9,9 +10,6 @@ import javafx.geometry.Point2D;
 
 import org.reactfx.Subscription;
 
-import com.sun.glass.ui.Robot;
-
-import util.access.V;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 
@@ -23,35 +21,15 @@ import static util.dev.TODO.Purpose.UNTESTED;
  */
 @TODO(purpose = UNTESTED, note = "Make sure the class is thread safe")
 public class MouseCapture {
-    private Robot robot;
     private final Set<Consumer<Point2D>> positionSubscribers = new HashSet<>();
     private final Set<DoubleConsumer> velocitySubscribers = new HashSet<>();
     private FxTimer pulse;
     private Point2D lastPos = null;
     private boolean calcSpeed = false;
-    private Subscription lazy;
-    /**
-     * Denotes lazyness. Performance optimization.
-     * Use false when it is expected that mouse will not be observed and a
-     * lot of mouse position queries will be invoked.
-     * True by default.
-     * <p/>
-     * If true, the resources used will be initialized and destroyed on
-     * each mouse position query, unless mouse (speed or position) is observed.
-     * If false, the resources will will live even if the mouse is not observed and at least until value changes to
-     * true, possibly longer, depending on whether mouse is observed.
-     */
-    public V<Boolean> isLazy = new V<>(true, is -> {
-        if(is) lazy.unsubscribe();
-        else lazy = observeMousePosition(pos -> {});
-    });
 
     public Point2D getMousePosition() {
-        boolean dispose = robot==null;
-        Robot r = robot==null ? com.sun.glass.ui.Application.GetApplication().createRobot() : robot;
-        Point2D p = new Point2D(r.getMouseX(), r.getMouseY());
-        if(dispose) r.destroy();
-        return p;
+	    Point p = MouseInfo.getPointerInfo().getLocation();
+        return new Point2D(p.getX(), p.getY());
     }
 
     public Subscription observeMousePosition(Consumer<Point2D> action) {

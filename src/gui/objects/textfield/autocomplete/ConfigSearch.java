@@ -21,6 +21,7 @@ import gui.objects.textfield.autocomplete.ConfigSearch.Entry;
 import util.action.Action;
 import util.conf.Config;
 
+import static main.App.Build.appTooltip;
 import static util.functional.Util.map;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
@@ -210,7 +211,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         private final Label text = new Label();
         private final StackPane root = layStack(text,Pos.CENTER_LEFT, new StackPane(),Pos.CENTER_RIGHT);
         private final StackPane congigNodeRoot = (StackPane) root.getChildren().get(1);
-        private final Tooltip tooltip = new Tooltip();
+        private final Tooltip tooltip = appTooltip();
         private Config oldconfig = null; // cache
         private Node oldnode = null; // cache
 

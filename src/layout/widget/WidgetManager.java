@@ -45,6 +45,7 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.getName;
+import static util.file.Util.listFiles;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -53,7 +54,7 @@ import static util.functional.Util.stream;
  */
 public final class WidgetManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowManager.class);
 
     /**
      * Collection of valid widget factories by their name..
@@ -85,12 +86,11 @@ public final class WidgetManager {
             LOGGER.error("External widgets registration failed.");
             return;
         }
-
-        for(File widget_dir : dir.listFiles(File::isDirectory)) {
-            String name = capitalize(getName(widget_dir));
-            monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
+	    listFiles(dir).filter(File::isDirectory).forEach(widgetDir -> {
+            String name = capitalize(getName(widgetDir));
+            monitors.computeIfAbsent(name, n -> new WidgetDir(name, widgetDir))
                     .registerExternalFactory();
-        }
+	    });
 
         FileMonitor.monitorDirsFiles(dir, File::isDirectory, (type,widget_dir) -> {
             String name = capitalize(getName(widget_dir));
@@ -132,7 +132,7 @@ public final class WidgetManager {
             .forEach(w -> {
                 Widget<?> nw = wf.create();
                 nw.setStateFrom((Widget)w);
-                int i = w.indexInParent();
+                Integer i = w.indexInParent();
                 Container c = w.getParent();
                 c.removeChild(i);
                 c.addChild(i, nw);

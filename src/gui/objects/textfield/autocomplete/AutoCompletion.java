@@ -39,7 +39,6 @@ import javafx.util.StringConverter;
 
 import org.reactfx.Subscription;
 
-
 /**
  * Represents a binding between a text field and a auto-completion popup
  *
@@ -80,7 +79,7 @@ public class AutoCompletion<T> extends AutoCompletionBinding<T> {
 
 
 	/** String converter to be used to convert suggestions to strings. */
-	StringConverter<T> converter;
+	private StringConverter<T> converter;
 	private final ChangeListener<String> textChangeListener = (o,ov,nv) -> {
 		if (getCompletionTarget().isFocused())
 			setUserInput(nv);

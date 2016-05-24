@@ -2,9 +2,7 @@ package util.animation;
 
 import java.util.function.LongConsumer;
 
-import com.sun.javafx.tk.Toolkit;
-import com.sun.scenario.animation.AbstractMasterTimer;
-import com.sun.scenario.animation.shared.TimerReceiver;
+import javafx.animation.AnimationTimer;
 
 /**
  * Timer, that executes behavior in each frame while it is running.
@@ -14,40 +12,44 @@ import com.sun.scenario.animation.shared.TimerReceiver;
  * @author Martin Polakovic
  */
 public final class Loop {
+	private boolean active;
+	private final LongConsumer action;
+	private final AnimationTimer timer = new AnimationTimer () {
+		@Override
+		public void handle(long l) {
+			action.accept(l);
+		}
+	};
 
-    private final AbstractMasterTimer timer = Toolkit.getToolkit().getMasterTimer();
-    private final TimerReceiver timerReceiver;
-    private boolean active;
+	/**
+	 * Creates a new loop.
+	 *
+	 * @param action behavior to execute. Takes 1 parameter - The timestamp of the current frame
+	 * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called
+	 * during one frame.
+	 */
+	public Loop(LongConsumer action) {
+		this.action = action;
+	}
 
-    /**
-     * Creates a new loop.
-     *
-     * @param behavior behavior to execute. Takes 1 parameter - The timestamp of the current frame
-     * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called
-     * during one frame.
-     */
-    public Loop(LongConsumer behavior) {
-        this.timerReceiver = behavior::accept;
-    }
+	/** Creates a new loop. */
+	public Loop(Runnable action) {
+		this.action = now -> action.run();
+	}
 
-    /** Creates a new loop. */
-    public Loop(Runnable behavior) {
-        this.timerReceiver = now -> behavior.run();
-    }
+	/** Starts this loop. Once started, the behavior will be called in every frame. */
+	public void start() {
+		if (!active) {
+			active = true;
+			timer.start();
+		}
+	}
 
-    /** Starts this loop. Once started, the behavior will be called in every frame. */
-    public void start() {
-        if (!active) {
-            timer.addAnimationTimer(timerReceiver);
-            active = true;
-        }
-    }
-
-    /** Stops this loop. It can be activated again by calling {@link #start()}. */
-    public void stop() {
-        if (active) {
-            timer.removeAnimationTimer(timerReceiver);
-            active = false;
-        }
-    }
+	/** Stops this loop. It can be activated again by calling {@link #start()}. */
+	public void stop() {
+		if (active) {
+			timer.stop();
+			active = false;
+		}
+	}
 }

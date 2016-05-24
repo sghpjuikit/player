@@ -7,7 +7,6 @@ package util.units;
 
 import java.util.regex.PatternSyntaxException;
 
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.parsing.ParsesFromString;
 import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
@@ -17,7 +16,6 @@ import static java.util.Objects.hash;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /** Defines number within an amount. For example 15/20. */
-@Immutable
 @StringParseStrategy(
     from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,

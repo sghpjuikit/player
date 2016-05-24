@@ -46,6 +46,7 @@ import util.conf.Config.ListConfig;
 import util.conf.Config.OverridablePropertyConfig;
 import util.conf.Config.PropertyConfig;
 import util.conf.Config.ReadOnlyPropertyConfig;
+import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.type.Util;
@@ -60,6 +61,7 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static main.App.Build.appTooltip;
 import static util.Util.enumToHuman;
 import static util.async.Async.run;
 import static util.functional.Util.*;
@@ -77,14 +79,14 @@ import static util.reactive.Util.maintain;
 abstract public class ConfigField<T> extends ConfigNode<T> {
 
     private static final PseudoClass editedPC = getPseudoClass("edited");
-    private static final Tooltip okTooltip = new Tooltip("Apply value");
-    private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
-    private static final Tooltip defTooltip = new Tooltip("Default value");
-    private static final Tooltip globTooltip = new Tooltip("Global shortcut"
+    private static final Tooltip okTooltip = appTooltip("Apply value");
+    private static final Tooltip warnTooltip = appTooltip("Erroneous value");
+    private static final Tooltip defTooltip = appTooltip("Default value");
+    private static final Tooltip globTooltip = appTooltip("Global shortcut"
             + "\n\nGlobal shortcut can be used even when application doesn't have focus. Note, that "
             + "only one application can use this shortcut. If multiple applications use the same "
             + "shortcut, the one started later will have it disabled.");
-    private static final Tooltip overTooltip = new Tooltip("Override value"
+    private static final Tooltip overTooltip = appTooltip("Override value"
             + "\n\nUses local value if true and global value if false.");
 
     protected final HBox root = new HBox();
@@ -166,7 +168,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         String tooltip_text = getTooltipText();
         if(!tooltip_text.isEmpty()) {
-            Tooltip t = new Tooltip(tooltip_text);
+            Tooltip t = appTooltip(tooltip_text);
                     t.setWrapText(true);
                     t.setMaxWidth(300);
             l.setTooltip(t);
@@ -264,7 +266,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         m.put(Font.class, FontField::new);
         m.put(Effect.class, config -> new EffectField(config,Effect.class));
         m.put(Password.class, PasswordField::new);
-        m.put(Charset.class, charset -> new EnumerableField(charset,list(ISO_8859_1,US_ASCII,UTF_8,UTF_16,UTF_16BE,UTF_16LE)));
+        m.put(Charset.class, charset -> new EnumerableField<Charset>(charset,list(ISO_8859_1,US_ASCII,UTF_8,UTF_16,UTF_16BE,UTF_16LE)));
         m.put(String.class, StringField::new);
         m.put(KeyCode.class, KeyCodeField::new);
         m.put(ObservableList.class, ListField::new);
@@ -276,15 +278,16 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      * Creates ConfigFfield best suited for the specified Field.
      * @param config field for which the GUI will be created
      */
+    @SuppressWarnings("unchecked")
     public static <T> ConfigField<T> create(Config<T> config) {
-        Config f = (Config)config;
-        ConfigField cf = null;
-        if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
-        else if (f.isTypeEnumerable()) cf = f.getType()==KeyCode.class ? new KeyCodeField(f) : new EnumerableField(f);
-        else if(f.isMinMax()) cf = new SliderField(f);
-        else cf = m.getOrDefault(f.getType(), GeneralField::new).apply(f);
+        Config c = config;
+        ConfigField cf;
+        if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
+        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
+        else if(c.isMinMax()) cf = new SliderField(c);
+        else cf = m.getOrDefault(c.getType(), GeneralField::new).apply(c);
 
-        cf.setEditable(f.isEditable());
+        cf.setEditable(c.isEditable());
 
         return cf;
     }
@@ -587,19 +590,19 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-    private static class EnumerableField extends ConfigField<Object> {
-        ComboBox<Object> n;
+    private static class EnumerableField<T> extends ConfigField<T> {
+        ComboBox<T> n;
 
-        private EnumerableField(Config<Object> c) {
+        private EnumerableField(Config<T> c) {
             this(c, c.enumerateValues());
         }
 
-        private EnumerableField(Config<Object> c, Collection<Object> enumeration) {
+        private EnumerableField(Config<T> c, Collection<T> enumeration) {
             super(c);
             n = new ImprovedComboBox<>(item -> enumToHuman(c.toS(item)));
-            if(enumeration instanceof ObservableList) n.setItems((ObservableList<Object>)enumeration);
+            if(enumeration instanceof ObservableList) n.setItems((ObservableList<T>)enumeration);
             else n.getItems().setAll(enumeration);
-            n.getItems().sort(by(v->c.toS(v)));
+            n.getItems().sort(by(c::toS));
             n.setValue(c.getValue());
             n.valueProperty().addListener((o,ov,nv) -> apply(false));
             n.getStyleClass().add("combobox-field-config");
@@ -607,7 +610,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Object get() {
+        public T get() {
             return n.getValue();
         }
 
@@ -620,10 +623,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return n;
         }
     }
-    private static class KeyCodeField extends EnumerableField {
+    private static class KeyCodeField extends EnumerableField<KeyCode> {
 
-        public KeyCodeField(Config<KeyCode> c) {
-            super((Config)c);
+	    @Dependency("requires access to com.sun.javafx.scene.traversal.Direction")
+	    private KeyCodeField(Config<KeyCode> c) {
+            super(c);
 
             n.setOnKeyPressed(Event::consume);
             n.setOnKeyReleased(Event::consume);
@@ -632,16 +636,16 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // Note that in case of UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any
                 // which cause selection change) the KEY_PRESSED event will not get fired!
                 //
-                // Hence we set the value in case of keyevent of any type. This causes the value to
+                // Hence we set the value in case of key event of any type. This causes the value to
                 // be set twice, but should be all right since the value is the same anyway.
                 n.setValue(e.getCode());
 
+	            // TODO: jigsaw
                 if(e.getEventType()==KEY_RELEASED) {
                     // conveniently traverse focus by simulating TAB behavior
                     // currently only hacks allow this
                     //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
-                    n.impl_traverse(Direction.NEXT);
-                    // System.out.println("traversied");
+	                 n.impl_traverse(Direction.NEXT);
                 }
                 e.consume();
             });
@@ -687,7 +691,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 e.consume();
             });
             txtF.setEditable(false);
-            txtF.setTooltip(new Tooltip(a.getInfo()));
+            txtF.setTooltip(appTooltip(a.getInfo()));
             txtF.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
                     txtF.setText(txtF.getPromptText());

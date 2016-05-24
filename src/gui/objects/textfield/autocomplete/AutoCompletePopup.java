@@ -29,15 +29,9 @@
 
 package gui.objects.textfield.autocomplete;
 
-
-import com.sun.javafx.event.EventHandlerManager;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
-import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.scene.Node;
@@ -164,34 +158,18 @@ public class AutoCompletePopup<T> extends PopupControl{
         return new AutoCompletePopupSkin<>(this);
     }
 
+    public final ObjectProperty<EventHandler<SuggestionEvent<T>>> onSuggestion = new SimpleObjectProperty<>();
 
+	public final ObjectProperty<EventHandler<SuggestionEvent<T>>> onSuggestionProperty() {
+		return onSuggestion;
+	}
 
-    private final EventHandlerManager eventHandlerManager = new EventHandlerManager(this);
+	public final void setOnSuggestion(EventHandler<SuggestionEvent<T>> value) {
+		onSuggestionProperty().set(value);
+	}
 
-    public final ObjectProperty<EventHandler<SuggestionEvent<T>>> onSuggestionProperty() { return onSuggestion; }
-    public final void setOnSuggestion(EventHandler<SuggestionEvent<T>> value) { onSuggestionProperty().set(value); }
-    public final EventHandler<SuggestionEvent<T>> getOnSuggestion() { return onSuggestionProperty().get(); }
-    public final ObjectProperty<EventHandler<SuggestionEvent<T>>> onSuggestion = new ObjectPropertyBase<>() {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @Override
-        protected void invalidated() {
-            eventHandlerManager.setEventHandler(SuggestionEvent.SUGGESTION, (EventHandler<SuggestionEvent>) (Object) get());
-        }
-
-        @Override
-        public Object getBean() {
-            return AutoCompletePopup.this;
-        }
-
-        @Override
-        public String getName() {
-            return "onSuggestion"; //$NON-NLS-1$
-        }
-    };
-
-    /**{@inheritDoc}*/
-    @Override public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return super.buildEventDispatchChain(tail).append(eventHandlerManager);
-    }
+	public final EventHandler<SuggestionEvent<T>> getOnSuggestion() {
+		return onSuggestionProperty().get();
+	}
 
 }

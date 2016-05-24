@@ -12,7 +12,6 @@ import java.util.Objects;
 import javafx.scene.image.Image;
 
 import gui.objects.image.Thumbnail;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
 /**
@@ -24,7 +23,6 @@ import util.Util;
  *
  * @author Martin Polakovic
  */
-@Immutable
 public class FileCover implements Cover {
     private final File file;
     private final String info;

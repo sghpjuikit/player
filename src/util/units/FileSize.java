@@ -6,7 +6,6 @@ package util.units;
 
 import java.io.File;
 
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.dev.Dependency;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
@@ -22,7 +21,6 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  *
  * @author Martin Polakovic
  */
-@Immutable
 @StringParseStrategy(
     from = From.ANNOTATED_METHOD,
     to = TO_STRING_METHOD,

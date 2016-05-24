@@ -880,8 +880,8 @@ public interface Util {
     }
 
     /** Loops over cartesian product C x C of a collection C. */
-    static <E> void forEachCartesian(Collection<E> c, BiConsumer<? super E, ? super E> action) {
-        forEachCartesian(c, c, action);
+    static <E> void forEachPair(Collection<E> c, BiConsumer<? super E, ? super E> action) {
+        forEachPair(c, c, action);
     }
 
     /** Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j) (j;i). */
@@ -936,7 +936,7 @@ public interface Util {
     /** Loops over cartesian product C1 x C2 of collections C1, C2.
      * @param action 1st parameter is element from 1st collection, 2nd parameter is el. from 2nd
      */
-    static <E,T> void forEachCartesian(Collection<E> c1, Collection<T> c2, BiConsumer<? super E, ? super T> action) {
+    static <E,T> void forEachPair(Collection<E> c1, Collection<T> c2, BiConsumer<? super E, ? super T> action) {
         for(E e : c1) for(T t : c2) action.accept(e,t);
     }
 

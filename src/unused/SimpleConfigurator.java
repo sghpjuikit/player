@@ -1,12 +1,6 @@
 
 package unused;
 
-import util.conf.Config;
-import util.conf.Configurable;
-import gui.itemnode.ConfigField;
-
-import com.sun.glass.ui.Screen;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,10 +12,14 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Screen;
+
+import gui.itemnode.ConfigField;
+import util.conf.Config;
+import util.conf.Configurable;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 import static util.functional.Util.byNC;
-
-import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 
@@ -48,7 +46,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
     @FXML private ScrollPane fieldsPane;
     
     private final double anchor;
-    private final List<ConfigField<T>> configFields = new ArrayList();
+    private final List<ConfigField<T>> configFields = new ArrayList<>();
     private final Configurable<T> configurable;
     /**
      * Procedure executed when user finishes the configuring. 
@@ -72,8 +70,8 @@ public class SimpleConfigurator<T> extends AnchorPane {
         
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
-        
-        fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.7);
+
+        fieldsPane.setMaxHeight(Screen.getPrimary().getBounds().getHeight()*0.7);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
         setOkButtonVisible(on_OK!=null);
         
@@ -83,7 +81,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
         c.getFields().stream()
          .sorted(byNC(Config::getGuiName))
          .filter(Config::isEditable)
-         .forEach( f -> { 
+         .forEach(f -> {
             ConfigField cf = ConfigField.create(f);                 // create
             configFields.add(cf);                                   // add
             fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
@@ -98,8 +96,6 @@ public class SimpleConfigurator<T> extends AnchorPane {
         this(configurable, null);
     }
 
-/******************************** PUBLIC API **********************************/
-    
     @FXML
     public void ok() {
         // set and apply values and refresh if needed

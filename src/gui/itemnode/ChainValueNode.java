@@ -27,11 +27,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
-import layout.widget.feature.ConfiguringFeature;
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
+import layout.widget.feature.ConfiguringFeature;
 import util.conf.Config;
 import util.conf.Configurable;
 
@@ -39,6 +39,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static main.App.Build.appTooltip;
 import static util.dev.Util.yes;
 import static util.functional.Util.*;
 
@@ -55,9 +56,9 @@ import static util.functional.Util.*;
  */
 public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 
-    private static final Tooltip addTooltip = new Tooltip("Add");
-    private static final Tooltip remTooltip = new Tooltip("Remove");
-    private static final Tooltip onTooltip = new Tooltip("Enable. Disabled elements will not be in the list.");
+    private static final Tooltip addTooltip = appTooltip("Add");
+    private static final Tooltip remTooltip = appTooltip("Remove");
+    private static final Tooltip onTooltip = appTooltip("Enable. Disabled elements will not be in the list.");
 
     protected final VBox root = new VBox();
     protected final ObservableList<Link> chain = (ObservableList)root.getChildren();

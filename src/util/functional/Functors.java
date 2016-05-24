@@ -639,7 +639,7 @@ public interface Functors {
             addPredicatesOf(AudioFileFormat.class);
             addPredicatesOf(ImageFileFormat.class);
     
-            addPredicatesComparable(Short.class, new Short("0"));
+            addPredicatesComparable(Short.class, (short)0);
             addPredicatesComparable(Integer.class, 0);
             addPredicatesComparable(Long.class, 0L);
             addPredicatesComparable(Double.class, 0d);

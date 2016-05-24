@@ -653,8 +653,8 @@ public class Comet extends ClassController {
 
             // apply forces
             // recalculate gravity potentials
-            forEachCartesian(entities.forceFields, os, ForceField::apply);
-            forEachCartesian(filter(entities.forceFields,ff -> ff instanceof DisruptorField), oss.get(Particle.class), ForceField::apply);
+            forEachPair(entities.forceFields, os, ForceField::apply);
+            forEachPair(filter(entities.forceFields, ff -> ff instanceof DisruptorField), oss.get(Particle.class), ForceField::apply);
 
             // canvas clearing
             // we use optional "fade" effect. Filling canvas with transparent color repeatedly
@@ -687,7 +687,7 @@ public class Comet extends ClassController {
             });
 
             // collisions
-            forEachCartesian(oss.get(Bullet.class),filter(os,e -> !(e instanceof Bullet)), Bullet::checkCollision);
+            forEachPair(oss.get(Bullet.class),filter(os, e -> !(e instanceof Bullet)), Bullet::checkCollision);
 
             oss.forEach(Rocket.class,Rocket.class, (r1,r2) -> {
                 if(!r1.isin_hyperspace && !r2.isin_hyperspace && r1.isHitDistance(r2)) {

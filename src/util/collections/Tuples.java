@@ -16,7 +16,7 @@ public class Tuples {
     }
     /** Crates mutable tetra-tuple. */
     public static <A, B, C, D> TupleM4 tupleM(A a, B b, C c, D d) {
-        return new TupleM4(a, b, c, d);
+        return new TupleM4<>(a, b, c, d);
     }
 
     public static <A, B, C, D, E> Tuple5<A, B, C, D, E> tuple(A a, B b, C c, D d, E e) {

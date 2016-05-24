@@ -6,16 +6,8 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.time.DateTimeException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.time.*;
+import java.util.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -32,11 +24,7 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.flac.FlacTag;
-import org.jaudiotagger.tag.id3.AbstractID3Tag;
-import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
-import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
-import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
-import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.*;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
@@ -52,12 +40,12 @@ import gui.objects.image.cover.Cover;
 import gui.objects.image.cover.Cover.CoverSource;
 import gui.objects.image.cover.FileCover;
 import gui.objects.image.cover.ImageCover;
-import util.file.AudioFileFormat;
-import util.file.Util;
-import util.file.ImageFileFormat;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
+import util.file.AudioFileFormat;
+import util.file.ImageFileFormat;
+import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.units.Bitrate;
@@ -69,14 +57,11 @@ import static audio.tagging.Metadata.Field.COVER_INFO;
 import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.joining;
-import static util.file.Util.EMPTY_URI;
 import static util.Util.emptyOr;
-import static util.type.Util.mapEnumConstantName;
 import static util.dev.Util.log;
-import static util.functional.Util.equalNull;
-import static util.functional.Util.list;
-import static util.functional.Util.split;
-import static util.functional.Util.stream;
+import static util.file.Util.EMPTY_URI;
+import static util.functional.Util.*;
+import static util.type.Util.mapEnumConstantName;
 
 /**
  * Information about audio file.
@@ -1016,7 +1001,7 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     public String getPlaylistIndexInfo() {
         int i = getPlaylistIndex();
-        return i==-1 ? "" : i + "/" + PlaylistManager.use(List::size,0);
+        return i==-1 ? "" : i + "/" + PlaylistManager.use(playlist -> playlist.size(), 0);
     }
 
     /**

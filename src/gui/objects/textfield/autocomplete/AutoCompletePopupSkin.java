@@ -30,8 +30,6 @@
 package gui.objects.textfield.autocomplete;
 
 import javafx.beans.binding.Bindings;
-import javafx.event.Event;
-import javafx.scene.Node;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
@@ -101,8 +99,8 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     }
 
     private void onSuggestionChosen(T suggestion){
-        if(suggestion != null)
-            Event.fireEvent(control, new SuggestionEvent<>(suggestion));
+        if(suggestion != null && getSkinnable().onSuggestion.get() != null)
+		    getSkinnable().onSuggestion.get().handle(new SuggestionEvent<>(suggestion));
     }
 
     protected ListCell<T> buildListViewCellFactory(ListView<T> listview) {

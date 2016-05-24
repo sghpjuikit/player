@@ -1,6 +1,10 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- implement @import for skins
+- implement OS handlers // java 9
+- implement delete file to recycle bin // java 9
+- implement browse directory properly // java 9
 - refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
 - add properties to Config
@@ -27,7 +31,7 @@
 - logback could monitor its configuration file
 - Configuration config MapSet should error out when config is added twice to same key + add keymap function for lower case
 - standalone widgets  impl better launching, add OverlayPane display strategy
-- typesafe File (FileFile, DirFile and AnyFile?) for type safe Configs, alternatively make File<FileType>
+- type safe File (FileFile, DirFile and AnyFile?) for type safe Configs, alternatively make File<FileType>
 - widget i/o
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
@@ -227,6 +231,16 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
+- use the following VM parameters:
+    -Xmx1g -XaddExports:javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    -XaddExports:javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    -XaddExports:javafx.web/com.sun.webkit=ALL-UNNAMED
+- use the following javac parameters:
+    -XaddExports:javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    -XaddExports:javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    -XaddExports:javafx.web/com.sun.webkit=ALL-UNNAMED
 - util.dev.TODO annotates also bugged code, CTRL+F it throughout the project
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory

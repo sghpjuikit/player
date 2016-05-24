@@ -29,6 +29,7 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.PlaylistFeature;
 import layout.widget.feature.SongReader;
+import main.AppSerializer;
 import unused.SimpleConfigurator;
 import util.access.V;
 import util.access.Vo;
@@ -48,6 +49,7 @@ import static layout.widget.Widget.Group.PLAYLIST;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
+import static main.App.Build.appTooltip;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
@@ -112,7 +114,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
                   + "to play only displayed items.";
         String on = "Disable filter for playback. Causes the playback "
                   + "to ignore the filter.";
-        Tooltip t = new Tooltip(v ? on : of);
+        Tooltip t = appTooltip(v ? on : of);
                 t.setWrapText(true);
                 t.setMaxWidth(200);
         Icon i = table.filterPane.getButton();
@@ -140,7 +142,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         outSelected = outputs.create(widget.id,"Selected", Item.class, null);
         outPlaying = outputs.create(widget.id,"Playing", Item.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
-        d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
+	    d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
             if(outPlaying.getValue()!=null)
                 ms.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
@@ -249,7 +251,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
-                     p.serializeToFile(new File(APP.DIR_PLAYLISTS, n + ".xml"));
+	        try {
+		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, n + ".xml"));
+	        } catch (AppSerializer.SerializationException e) {}
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save playlist as...");
@@ -265,7 +269,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             String n = c.getField("Name").getValue();
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
-                     p.serializeToFile(new File(APP.DIR_PLAYLISTS, n + ".xml"));
+	        try {
+		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, n + ".xml"));
+	        } catch (AppSerializer.SerializationException e) {}
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save selected items as...");

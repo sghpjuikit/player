@@ -51,7 +51,6 @@ import gui.objects.Text;
 import gui.objects.window.stage.WindowBase;
 import util.SwitchException;
 
-import static com.sun.javafx.util.Utils.getScreenForPoint;
 import static gui.objects.popover.PopOver.ScreenPos.*;
 import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
 import static java.util.Objects.requireNonNull;
@@ -61,6 +60,7 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
 import static util.functional.Util.*;
+import static util.graphics.Util.getScreen;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
@@ -164,12 +164,11 @@ import static util.functional.Util.*;
  */
 public class PopOver<N extends Node> extends PopupControl {
 
+    public static final List<PopOver> active_popups = new ArrayList<>();
     private static final String STYLE_CLASS = "popover";
     private static final String STYLE_CLASS_HELP = "help-popover";
     private static final String STYLE_CLASS_HELP_TEXT = "help-popover-text";
-    public static List<PopOver> active_popups = new ArrayList();
 
-/******************************************************************************/
 
     /**
      * Creates simple help popover designed as a tooltip for help buttons.
@@ -366,7 +365,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     private void showThis(Node ownerNode, Window ownerWindow) {
         Objects.requireNonNull(ownerWindow);
-        Screen s = com.sun.javafx.util.Utils.getScreenForPoint(ownerWindow.getX()+ownerWindow.getWidth()/2, ownerWindow.getY()+ownerWindow.getHeight()/2);
+        Screen s = getScreen(ownerWindow.getX()+ownerWindow.getWidth()/2, ownerWindow.getY()+ownerWindow.getHeight()/2);
         setMaxWidth(s.getBounds().getWidth());
         setMaxHeight(s.getBounds().getHeight());
 
@@ -941,7 +940,7 @@ public class PopOver<N extends Node> extends PopupControl {
             if(this==MAIN) return ps.getBounds();
             if(this==APP_WINDOW)
                 // rely on official util (someone hid it..., good work genius)
-                return getScreenForPoint(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
+                return getScreen(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
             else {
                 List<Screen> ss = Screen.getScreens();
                 Rectangle2D left = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinX()).orElse(psb);

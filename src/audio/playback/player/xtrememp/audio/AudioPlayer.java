@@ -252,10 +252,10 @@ public class AudioPlayer implements Callable<Void> {
 
                 // Add JavaSound properties.
                 if (audioFileFormat.getByteLength() > 0) {
-                    properties.put("audio.length.bytes", new Integer(audioFileFormat.getByteLength()));
+                    properties.put("audio.length.bytes", audioFileFormat.getByteLength());
                 }
                 if (audioFileFormat.getFrameLength() > 0) {
-                    properties.put("audio.length.frames", new Integer(audioFileFormat.getFrameLength()));
+                    properties.put("audio.length.frames", audioFileFormat.getFrameLength());
                 }
                 if (audioFileFormat.getType() != null) {
                     properties.put("audio.type", audioFileFormat.getType().toString());
@@ -263,19 +263,19 @@ public class AudioPlayer implements Callable<Void> {
                 // Audio format.
                 AudioFormat audioFormat = audioFileFormat.getFormat();
                 if (audioFormat.getFrameRate() > 0) {
-                    properties.put("audio.framerate.fps", new Float(audioFormat.getFrameRate()));
+                    properties.put("audio.framerate.fps", audioFormat.getFrameRate());
                 }
                 if (audioFormat.getFrameSize() > 0) {
-                    properties.put("audio.framesize.bytes", new Integer(audioFormat.getFrameSize()));
+                    properties.put("audio.framesize.bytes", audioFormat.getFrameSize());
                 }
                 if (audioFormat.getSampleRate() > 0) {
-                    properties.put("audio.samplerate.hz", new Float(audioFormat.getSampleRate()));
+                    properties.put("audio.samplerate.hz", audioFormat.getSampleRate());
                 }
                 if (audioFormat.getSampleSizeInBits() > 0) {
-                    properties.put("audio.samplesize.bits", new Integer(audioFormat.getSampleSizeInBits()));
+                    properties.put("audio.samplesize.bits", audioFormat.getSampleSizeInBits());
                 }
                 if (audioFormat.getChannels() > 0) {
-                    properties.put("audio.channels", new Integer(audioFormat.getChannels()));
+                    properties.put("audio.channels", audioFormat.getChannels());
                 }
                 if (audioFormat instanceof TAudioFormat) {
                     // Tritonus SPI compliant audio format.
@@ -288,10 +288,7 @@ public class AudioPlayer implements Callable<Void> {
                 for (String key : properties.keySet()) {
                     LOGGER.info("Audio Format Properties: {} = {}", key, properties.get(key));
                 }
-            } catch (UnsupportedAudioFileException ex) {
-                closeStream();
-                throw new PlayerException(ex);
-            } catch (IOException ex) {
+            } catch (UnsupportedAudioFileException | IOException ex) {
                 closeStream();
                 throw new PlayerException(ex);
             }

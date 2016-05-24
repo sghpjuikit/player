@@ -4,6 +4,8 @@
     Description : skin
 */
 
+@import url("../main/main.css");
+
 .root {
 
     skin-main-color: rgb(19,15,22);

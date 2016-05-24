@@ -4,6 +4,8 @@
     Description : skin
 */
 
+@import url("../main/main.css");
+
 // TODO: table selected row border relocates text by 1px - fix
 
 .root {

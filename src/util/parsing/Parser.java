@@ -1,11 +1,7 @@
 package util.parsing;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -26,10 +22,6 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
-import com.google.common.reflect.Invokable;
-import com.google.common.reflect.Parameter;
-import com.google.common.reflect.TypeToken;
-
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
 import util.SwitchException;
@@ -47,10 +39,10 @@ import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
-import static util.type.Util.getConstructorAnnotated;
-import static util.type.Util.getMethodAnnotated;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
+import static util.type.Util.getConstructorAnnotated;
+import static util.type.Util.getMethodAnnotated;
 
 /**
  * Multi type bidirectional object-string converter.
@@ -208,7 +200,7 @@ public abstract class Parser {
         DEFAULT.addParserToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
         DEFAULT.addParser(Effect.class, FX::toS, text -> FX.fromS(Effect.class, text));
 //        DEFAULT.addParser(Class.class, c -> c.getName(), noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler does not like this!?
-        DEFAULT.addParser(Class.class, c -> c.getName(), noEx(text -> {
+        DEFAULT.addParser(Class.class, Class::getName, noEx(text -> {
             try {
                 return Class.forName(text);
             } catch (ClassNotFoundException | LinkageError ex) {
@@ -227,7 +219,6 @@ public abstract class Parser {
     }
 
 /******************************************************************************/
-
 
     /**
      * Default parser implementation storing individual type parsers in a map. This means:
@@ -355,37 +346,68 @@ public abstract class Parser {
 
 /******************************************************************************/
 
-    private static <T> Function<String,T> buildFromsParser(Class<T> t) {
+    private static <T> Function<String,T> buildFromsParser(Class<T> type) {
         Function<String,T> fromS = null;
-        StringParseStrategy a = t.getAnnotation(StringParseStrategy.class);
+        StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
 
         if(fromS==null && a!=null) {
             From strategy = a.from();
             if (strategy==From.NONE) {
-                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ t +"'s parsing strategy forbids parsing from string.");
+                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ type +"'s parsing strategy forbids parsing from string.");
             } else if (strategy==From.ANNOTATED_METHOD) {
-                Invokable<T,Object> invokableAny = null;  // in class T returns ?
+                Invokable<T> invokable = null;  // in class T returns ?
 
-                if(invokableAny==null) {
-                    Constructor<T> c = getConstructorAnnotated(t, ParsesFromString.class);
-                    if(c!=null) invokableAny = (Invokable) TypeToken.of(t).constructor(c);
+                if(invokable==null) {
+                    Constructor<T> c = getConstructorAnnotated(type, ParsesFromString.class);
+                    if(c!=null) invokable = new Invokable<>() {
+	                    @Override
+	                    public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
+		                    try {
+			                    return c.newInstance(params);
+		                    } catch (IllegalArgumentException | InstantiationException e) {
+			                    throw new InvocationTargetException(e);
+		                    }
+	                    }
+
+	                    @Override
+	                    public Collection<Parameter> getParameters() {
+		                    return listRO(c.getParameters());
+	                    }
+
+	                    @Override
+	                    public Collection<Class<? extends Throwable>> getExceptionTypes() {
+		                    return (List) listRO(c.getExceptionTypes());
+	                    }
+                    };
                 }
 
-                if(invokableAny==null) {
-                    Method m = getMethodAnnotated(t, ParsesFromString.class);
-                    if(m!=null) invokableAny = TypeToken.of(t).method(m);
-                    if(!invokableAny.isStatic()) invokableAny = null;
+                if(invokable==null) {
+                    Method m = getMethodAnnotated(type, ParsesFromString.class);
+                    if(m!=null && Modifier.isStatic(m.getModifiers()))
+	                    invokable = new Invokable<>() {
+		                    @Override
+		                    public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
+			                    return (T) m.invoke(null, params);
+		                    }
+
+		                    @Override
+		                    public Collection<Parameter> getParameters() {
+			                    return listRO(m.getParameters());
+		                    }
+
+		                    @Override
+		                    public Collection<Class<? extends Throwable>> getExceptionTypes() {
+			                    return (List) listRO(m.getExceptionTypes());
+		                    }
+	                    };
                 }
 
-                if(invokableAny==null)
+                if(invokable==null)
                     throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
-                if(!invokableAny.getReturnType().isSubtypeOf(t))
-                    throw new IllegalArgumentException("Failed to create from string converter. Responsible method returns bad type");
 
-                Invokable<T,T> invokable = invokableAny.returning(t); // in class T returns T
-                fromS = parserOfI(invokable, String.class, t, a, ParseDir.FROMS);
+                fromS = parserOfI(invokable, String.class, type, a, ParseDir.FROMS);
             } else if (strategy==From.FX) {
-                fromS = text -> FX.fromS(t, text);
+                fromS = text -> FX.fromS(type, text);
             } else {
                 throw new SwitchException(strategy);
             }
@@ -393,26 +415,24 @@ public abstract class Parser {
 
         // try to fall back to valueOf or fromString parsers
         if(fromS==null) {
-            Method m = getValueOfStatic(t);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, t, null, null), Exception.class);
+            Method m = getValueOfStatic(type);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
         }
         if(fromS==null) {
-            Method m = getMethodStatic("fromString",t);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, t, null, null), Exception.class);
+            Method m = getMethodStatic("fromString",type);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
         }
 
         return fromS;
     }
 
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
-        Function<T,String> toS = null;
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
-
-        if(toS==null && a!=null) {
+        if(a!=null) {
             To strategy = a.to();
             if(strategy==To.CONSTANT) {
                 String constant = a.constant();
-                toS = in -> constant;
+                return in -> constant;
             } else if (strategy==To.NONE) {
                 throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"'s parsing strategy forbids parsing to string.");
             } else if (strategy==To.ANNOTATED_METHOD) {
@@ -435,17 +455,16 @@ public abstract class Parser {
                             throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                         }
                     };
-                toS = noExWrap(m, a, ParseDir.TOS, f);
+	            return noExWrap(m, a, ParseDir.TOS, f);
             } else if (strategy==To.TO_STRING_METHOD) {
-                toS = (Function)DEFAULT_TOS;
+	            return (Function)DEFAULT_TOS;
             } else if (strategy==To.FX) {
-                toS = FX::toS;
+	            return FX::toS;
             } else {
                 throw new SwitchException(strategy);
             }
         }
-
-        return toS;
+        return null;
     }
 
     private static Method getValueOfStatic(Class type) {
@@ -476,7 +495,7 @@ public abstract class Parser {
         }
     }
 
-    private static <I,O> Function<I,O> parserOfI(Invokable<?,O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
+    private static <I,O> Function<I,O> parserOfI(Invokable<O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
         Collection<Parameter> params = m.getParameters();
         if(params.size()>1)
             throw new IllegalArgumentException("Parser method/constructor must take 0 or 1 parameter");
@@ -484,7 +503,7 @@ public abstract class Parser {
         // exceptions (we will make union of those annotated and those known to be thrown
         Set<Class<?>> ecs = new HashSet<>();
         if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
-        if(m!=null) ecs.addAll(map(m.getExceptionTypes(),tt -> tt.getRawType()));
+        if(m!=null) ecs.addAll(m.getExceptionTypes());
 
         boolean no_input = params.isEmpty();
         Function<I,O> f = no_input
@@ -641,7 +660,12 @@ public abstract class Parser {
         return noCEx(or, f, list(ecs));
     }
 
-    private static enum ParseDir {
+	private interface Invokable<I> {
+		I invoke(Object... params) throws IllegalAccessException, InvocationTargetException;
+		Collection<Parameter> getParameters();
+		Collection<Class<? extends Throwable>> getExceptionTypes();
+	}
+    private enum ParseDir {
         TOS, FROMS
     }
 }

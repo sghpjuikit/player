@@ -1,12 +1,8 @@
 package util.collections;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
 
 import static util.collections.Tuples.tuple;
-
-import util.functional.Functors.Ƒ2;
 
 public class Tuple2<A, B> {
     public final A _1;
@@ -23,18 +19,6 @@ public class Tuple2<A, B> {
 
     public Tuple2<A, B> update2(B b) {
         return tuple(_1, b);
-    }
-
-    public <T> T map(Ƒ2<? super A, ? super B, ? extends T> f) {
-        return f.apply(_1, _2);
-    }
-
-    public boolean test(BiPredicate<? super A, ? super B> f) {
-        return f.test(_1, _2);
-    }
-
-    public void exec(BiConsumer<? super A, ? super B> f) {
-        f.accept(_1, _2);
     }
 
     @Override

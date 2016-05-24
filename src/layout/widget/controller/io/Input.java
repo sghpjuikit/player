@@ -1,23 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package layout.widget.controller.io;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import org.reactfx.Subscription;
-import com.google.common.reflect.TypeToken;
+
 import layout.area.IOLayer;
+import util.type.typetoken.TypeToken;
 
 /**
  *
  * @author Martin Polakovic
  */
-public class Input<T> extends Put<T>{
+public class Input<T> extends Put<T> {
     final String name;
     final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
 

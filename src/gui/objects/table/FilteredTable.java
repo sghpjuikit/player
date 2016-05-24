@@ -34,12 +34,12 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.infonode.InfoTable;
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.icon.Icon;
 import util.Util;
 import util.access.V;
 import util.access.fieldvalue.ObjectField;
 import util.async.executor.FxTimer;
-import util.collections.Tuple3;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.TODO;
@@ -62,15 +62,16 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.Util.*;
+import static util.Util.removeLastChar;
+import static util.Util.zeroPad;
 import static util.async.Async.runLater;
-import static util.collections.Tuples.tuple;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
+import static util.type.Util.getEnumConstants;
 import static util.type.Util.mapEnumConstantName;
 
 /**
@@ -336,11 +337,11 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                     in -> Functors.pool.getIO(in, Boolean.class),
                     in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
-                g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+                g.setPrefTypeSupplier(() -> PredicateData.ofField(prefFilterType));
                 g.setData(d(prefFilterType));
                 return g;
             });
-            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+            setPrefTypeSupplier(() -> PredicateData.ofField(prefFilterType));
             onItemChange = filtereditems::setPredicate;
             if(prefFilterType instanceof Enum) {
                 setData(d(prefFilterType));
@@ -350,12 +351,12 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     }
 
-    private static <F extends ObjectField> List<Tuple3<String,Class,F>> d(F prefFilterType) {
-        F[] es = util.type.Util.getEnumConstants(prefFilterType.getClass());
+    private <F extends ObjectField<T>> List<PredicateData<F>> d(F prefFilterType) {
+        F[] es = getEnumConstants(prefFilterType.getClass());
         return stream(es)
                 .filter(ObjectField::isTypeStringRepresentable)
-                .map(mf -> tuple(mf.toString(),mf.getType(),mf))
-                .sorted(by(e -> e._1))
+                .map(mf -> PredicateData.ofField(mf))
+                .sorted(by(e -> e.name))
                 .collect(toList());
     }
 

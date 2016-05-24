@@ -1,14 +1,8 @@
 package util.collections;
 
-
 import java.util.Objects;
 
-import unused.TriConsumer;
-import unused.TriPredicate;
-
 import static util.collections.Tuples.tuple;
-
-import util.functional.Functors.Ƒ3;
 
 public class Tuple3<A, B, C> {
     public final A _1;
@@ -31,18 +25,6 @@ public class Tuple3<A, B, C> {
 
     public Tuple3<A, B, C> update3(C c) {
         return tuple(_1, _2, c);
-    }
-
-    public <T> T map(Ƒ3<? super A, ? super B, ? super C, ? extends T> f) {
-        return f.apply(_1, _2, _3);
-    }
-
-    public boolean test(TriPredicate<? super A, ? super B, ? super C> f) {
-        return f.test(_1, _2, _3);
-    }
-
-    public void exec(TriConsumer<? super A, ? super B, ? super C> f) {
-        f.accept(_1, _2, _3);
     }
 
     @Override

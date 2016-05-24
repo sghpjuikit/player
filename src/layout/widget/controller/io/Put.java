@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package layout.widget.controller.io;
 
 import java.util.HashSet;
@@ -15,7 +10,7 @@ import javafx.beans.value.WritableValue;
 
 import org.reactfx.Subscription;
 
-import com.google.common.reflect.TypeToken;
+import util.type.typetoken.TypeToken;
 
 /**
  *

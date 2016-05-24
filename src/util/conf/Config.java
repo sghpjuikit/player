@@ -362,7 +362,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.editable = editable;
             this.min = min;
             this.max = max;
-            if(val==null) log(ConfigBase.class).info("Config '{}' initial value is null. {}",name);
         }
 
         /**

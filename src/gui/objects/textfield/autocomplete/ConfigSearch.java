@@ -46,7 +46,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         this.history = history;
 
         this.textField = textField;
-        this.textField.setPrefWidth(350); // note this dictates the popup width
+        this.textField.setPrefWidth(400); // note this dictates the popup width
 
         hideOnSuggestion.set(false);
         popup.setOnSuggestion(e -> {
@@ -141,7 +141,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     @Override
     protected void acceptSuggestion(Entry suggestion) {
         if(Runnable.class.isAssignableFrom(suggestion.config.getType()))
-            ((Runnable)suggestion.config).run();;
+            ((Runnable)suggestion.config).run();
         history.add(this);
     }
 

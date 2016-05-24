@@ -45,11 +45,11 @@ import javafx.scene.layout.VBox;
 
 import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridView.SelectionOn;
 import main.App;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
-import util.collections.Tuple3;
 import util.functional.Functors;
 import util.functional.Functors.Ƒ0;
 import util.type.Util;
@@ -61,7 +61,6 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static util.Util.isInRangeInc;
-import static util.collections.Tuples.tuple;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderTop;
@@ -332,7 +331,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             this(filterType, filterList, () -> attributes(filterType));
         }
 
-        private Filter(Class<F> filterType, FilteredList<T> filterList, Ƒ0<List<Tuple3<String,Class,ObjectField<F>>>> attributes) {
+        private Filter(Class<F> filterType, FilteredList<T> filterList, Ƒ0<List<PredicateData<ObjectField<F>>>> attributes) {
             super(() -> {
                 FieldedPredicateItemNode<F,ObjectField<F>> g = new FieldedPredicateItemNode<>(
                     in -> Functors.pool.getIO(in, Boolean.class),
@@ -340,14 +339,14 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 );
                 @SuppressWarnings("unchecked")
                 ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
-                g.setPrefTypeSupplier(() -> tuple(prefField.toString(), prefField.getType(), prefField));
+                g.setPrefTypeSupplier(() -> PredicateData.ofField(prefField));
 //                g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
                 g.setData(attributes.get());
                 return g;
             });
             @SuppressWarnings("unchecked")
             ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
-            setPrefTypeSupplier(() -> tuple(prefField.toString(), prefField.getType(), prefField));
+            setPrefTypeSupplier(() -> PredicateData.ofField(prefField));
 //            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
 //            onItemChange = getSkinnable().itemsFiltered::setPredicate;
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
@@ -401,11 +400,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
     }
 
-    private static <R> List<Tuple3<String,Class,ObjectField<R>>> attributes(Class<R> filterType) {
+    private static <R> List<PredicateData<ObjectField<R>>> attributes(Class<R> filterType) {
         return stream(App.APP.classFields.get(filterType))
                 .filter(ObjectField::isTypeStringRepresentable)
-                .map(mf -> tuple(mf.toString(),mf.getType(),mf))
-                .sorted(by(e -> e._1))
+                .map(mf -> PredicateData.ofField(mf))
+                .sorted(by(e -> e.name))
                 .toList();
     }
 

@@ -2,12 +2,7 @@ package util.collections;
 
 import java.util.Objects;
 
-import unused.PentaConsumer;
-import unused.PentaPredicate;
-
 import static util.collections.Tuples.tuple;
-
-import util.functional.Functors.Ƒ5;
 
 public class Tuple5<A, B, C, D, E> {
     public final A _1;
@@ -42,18 +37,6 @@ public class Tuple5<A, B, C, D, E> {
 
     public Tuple5<A, B, C, D, E> update5(E e) {
         return tuple(_1, _2, _3, _4, e);
-    }
-
-    public <T> T map(Ƒ5<? super A, ? super B, ? super C, ? super D, ? super E, ? extends T> f) {
-        return f.apply(_1, _2, _3, _4, _5);
-    }
-
-    public boolean test(PentaPredicate<? super A, ? super B, ? super C, ? super D, ? super E> f) {
-        return f.test(_1, _2, _3, _4, _5);
-    }
-
-    public void exec(PentaConsumer<? super A, ? super B, ? super C, ? super D, ? super E> f) {
-        f.accept(_1, _2, _3, _4, _5);
     }
 
     @Override

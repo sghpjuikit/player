@@ -176,7 +176,7 @@ public abstract class AutoCompletionBinding<T> {
      */
     protected abstract void acceptSuggestion(T suggestion);
 
-    protected AutoCompletePopup buildPopup() {
+    protected AutoCompletePopup<T> buildPopup() {
         return new AutoCompletePopup<>();
     }
 
@@ -197,7 +197,7 @@ public abstract class AutoCompletionBinding<T> {
     }
 
     protected void fireAutoCompletion(T completion){
-	    if(completion != null && onAutoCompleted.get() != null)
+	    if(completion != null && onAutoCompleted!=null && onAutoCompleted.get() != null)
 		    onAutoCompleted.get().handle(new AutoCompletionEvent<>(completion));
     }
 

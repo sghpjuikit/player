@@ -1,7 +1,10 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- implement @import for skins
+- improve skinning support
+  - disable bgr blur (or make optional)
+  - implement apply/refresh skin properly
+- remove all remaining dependencies on internal APIs
 - implement OS handlers // java 9
 - implement delete file to recycle bin // java 9
 - implement browse directory properly // java 9
@@ -118,12 +121,6 @@
 - annoying java "bugs" (problem scope == entire application)
     - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 
-/* ---------- TEST -------------------------------------------------------------------------------------------------- */
-
-- make sure all components close properly
-- ensure parsing works as expected, particularly catching parsing exceptions
-- application instance counting
-
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
 - cant hide index column, shows artifacts                                                           (medium)
@@ -142,10 +139,6 @@
   solution: solved for some characters by manually rewriting them upon 
   shortcut registering, but that is only partial and incomplete workaround
 - popup window fullscreen or maximizing(any) breaks popup position                                   (minor, but should be fixed if possible)
-- blurry Configurator graphics in custom3 skin - 99% result of the css warnings                     (javaFX bug ?)
-  this happens when something has null skin, investigate & fix 
-- Configurator group title alignment does not get applied immediately                                 (minor)
-  its partially fixed now 
 - some songs (happens to be album specific, but specific cause unknown) read                        (jaudiotagger bug?)
   length as twice of the real (note: Smile Precure OST)
 - sometimes not even suspending playback allows jaudiotagger renaming songs 

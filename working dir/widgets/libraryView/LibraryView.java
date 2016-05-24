@@ -19,6 +19,7 @@ import audio.tagging.Metadata;
 import audio.tagging.Metadata.Field;
 import audio.tagging.MetadataGroup;
 import gui.Gui;
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.contextmenu.SelectionMenuItem;
 import gui.objects.contextmenu.TableContextMenuMR;
@@ -115,7 +116,7 @@ public class LibraryView extends FXMLController {
     public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<Metadata.Field>(CATEGORY,
@@ -180,7 +181,7 @@ public class LibraryView extends FXMLController {
                     if(!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
                     // show context menu
-                    contxt_menu.show(this, (TableView)table, e);
+                    contextMenu.show(this, (TableView)table, e);
                 })
         );
         // maintain playing item css by refreshing column
@@ -300,8 +301,8 @@ public class LibraryView extends FXMLController {
             table.refreshColumn(c);
         });
         // update filters
-        table.filterPane.setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
-        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf -> tuple(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
+        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
 
         setItems(in_items.getValue());
     }
@@ -407,7 +408,7 @@ public class LibraryView extends FXMLController {
 /******************************** CONTEXT MENU ********************************/
 
     private static Menu searchMenu;
-    private static final TableContextMenuMR<Metadata, LibraryView> contxt_menu = new TableContextMenuMR<>(
+    private static final TableContextMenuMR<Metadata, LibraryView> contextMenu = new TableContextMenuMR<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             MenuItem[] is = menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),

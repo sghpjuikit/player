@@ -1,8 +1,8 @@
 package util.animation;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Stream;
 
 import javafx.animation.Interpolator;
@@ -14,7 +14,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
-import util.collections.Tuple2;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ2;
 
@@ -29,7 +28,7 @@ import static util.functional.Util.forEachIStream;
  * Features:
  * <ul>
  * <li> Animation effect<p/>
- * Each animator has an 'applier' which is a double {@link Consumer} that takes
+ * Each animator has an 'applier' which is a double {@link java.util.function.DoubleConsumer} that takes
  * the animation value as parameter (after it is interpolated) and applies it.
  * <p/>
  * The applier can do anything from setting opacity or position
@@ -48,7 +47,7 @@ import static util.functional.Util.forEachIStream;
  * that runs forward (rate==1) is called 'opening' phase while the backward
  * phase is called 'closing'.
  * <li> Fluent API for frequently used methods. For example {@link #dur(double)}
- * or {@link #intpl(java.util.function.Function) }
+ * or {@link #intpl(java.util.function.DoubleUnaryOperator)} ) }
  * <p/>
  * For example animation used to show and hide button using opacity would
  * fade it from 0 to 1 during the opening phase. If the closing is invoked
@@ -64,18 +63,18 @@ import static util.functional.Util.forEachIStream;
  */
 public class Anim extends Transition {
 
-    public final Consumer<Double> applier;
+    public final DoubleConsumer applier;
     public final DoubleProperty position = new SimpleDoubleProperty(0);
 
     /** Creates animation with specified frame rate and sideffect called at every frame. */
-    public Anim(double targetFPS, Consumer<Double> sideEffect) {
+    public Anim(double targetFPS, DoubleConsumer sideEffect) {
         super(targetFPS);
         noØ(sideEffect);
         this.applier = sideEffect;
     }
 
     /** Creates animation with default framerate and specified sideffect called at every frame. */
-    public Anim(Consumer<Double> sideEffect) {
+    public Anim(DoubleConsumer sideEffect) {
         noØ(sideEffect);
         this.applier = sideEffect;
     }
@@ -84,7 +83,7 @@ public class Anim extends Transition {
      * Convenience constructor.
      * Creates animation with default framerate and specified duration and sideffect called at every frame.
      */
-    public Anim(Duration length, Consumer<Double> sideEffect) {
+    public Anim(Duration length, DoubleConsumer sideEffect) {
         this(sideEffect);
         setCycleDuration(length);
     }
@@ -93,7 +92,7 @@ public class Anim extends Transition {
      * Convenience constructor.
      * Creates animation with default framerate and specified duration, interpolator and sideffect called at every frame.
      */
-    public Anim(Duration length, Interpolator i, Consumer<Double> sideEffect) {
+    public Anim(Duration length, Interpolator i, DoubleConsumer sideEffect) {
         this(length, sideEffect);
         setInterpolator(i);
     }
@@ -124,11 +123,11 @@ public class Anim extends Transition {
         return this;
     }
 
-    public Anim intpl(Function<Double,Double> i) {
+    public Anim intpl(DoubleUnaryOperator i) {
         setInterpolator(new Interpolator() {
             @Override
             protected double curve(double t) {
-                return i.apply(t);
+                return i.applyAsDouble(t);
             }
         });
         return this;
@@ -144,8 +143,6 @@ public class Anim extends Transition {
         position.set(at);
         applier.accept(at);
     }
-
-
 
     public Anim then(Runnable r) {
         setOnFinished(r==null ? null : e -> r.run());
@@ -318,7 +315,7 @@ public class Anim extends Transition {
     public interface Applier {
 
         /** Applier that scales node's x and y. */
-        static Consumer<Double> scaleXY(Node n) {
+        static DoubleConsumer scaleXY(Node n) {
             return x -> util.graphics.Util.setScaleXY(n,x);
         }
 
@@ -341,7 +338,6 @@ public class Anim extends Transition {
      * function into different 0-1 function to produce nonlinear animation.
      */
     public interface Interpolators {
-
         /**
          * Returns interpolator as sequential combination of interpolators. Use
          * to achieve not continuous function by putting the interpolators
@@ -353,38 +349,38 @@ public class Anim extends Transition {
          * For example pseudocode: of(0.2,x->0.5, 0.8,x->0.1) will
          * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2
          *
-         * @param interpolators couples of range and interpolator. Ranges must
+         * @param subranges couples of range and interpolator. Ranges must
          * give sum 1 and must be in an increasing order
          *
-         * @throws IllegalArgumentException if ranges dont give sum of 1
+         * @throws IllegalArgumentException if ranges do not give sum of 1
          */
         @SafeVarargs
-        static Function<Double,Double> of(Tuple2<Double,Function<Double,Double>>... interpolators) {
-            if(Stream.of(interpolators).mapToDouble(i->i._1).sum()!=1)
+        static DoubleUnaryOperator of(Subrange... subranges) {
+            if(Stream.of(subranges).mapToDouble(i -> i.fraction).sum() != 1)
                 throw new IllegalArgumentException("sum of interpolator fractions must be 1");
 
             return x -> {
                 double p1=0;
-                for(Tuple2<Double,Function<Double,Double>> i : interpolators) {
-                    double p2=p1+i._1;
-                    if(x<=p2) return i._2.apply((x-p1)/(p2-p1));
-                    p1=p2;
+                for(Subrange subrange : subranges) {
+                    double p2 = p1+subrange.fraction;
+                    if(x<=p2) return subrange.interpolator.applyAsDouble((x-p1)/(p2-p1));
+                    p1 = p2;
                 }
                 throw new RuntimeException("Combined interpolator out of value at: " + x);
             };
         }
 
         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-        static Function<Double,Double> reverse(Function<Double,Double> i) {
-            return x -> 1-i.apply(x);
+        static DoubleUnaryOperator reverse(DoubleUnaryOperator i) {
+            return x -> 1-i.applyAsDouble(x);
         }
 
         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-        static Function<Double,Double> reverse(Interpolator i) {
+        static DoubleUnaryOperator reverse(Interpolator i) {
             return x -> 1-i.interpolate(0d,1d,(double)x);
         }
 
-        static Function<Double,Double> isAround(double point_span, double... points) {
+        static DoubleUnaryOperator isAround(double point_span, double... points) {
             return at -> {
                 for(double p : points)
                     if(at>p-point_span && at<p+point_span)
@@ -393,7 +389,7 @@ public class Anim extends Transition {
             };
         }
 
-        static Function<Double,Double> isAroundMin1(double point_span, double... points) {
+        static DoubleUnaryOperator isAroundMin1(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -402,7 +398,7 @@ public class Anim extends Transition {
                 return 1d;
             };
         }
-        static Function<Double,Double> isAroundMin2(double point_span, double... points) {
+        static DoubleUnaryOperator isAroundMin2(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -411,7 +407,7 @@ public class Anim extends Transition {
                 return 1d;
             };
         }
-        static Function<Double,Double> isAroundMin3(double point_span, double... points) {
+        static DoubleUnaryOperator isAroundMin3(double point_span, double... points) {
             return at -> {
                 if(at<points[0]-point_span) return 0d;
                 for(double p : points)
@@ -421,6 +417,17 @@ public class Anim extends Transition {
             };
         }
 
-        Function<Double,Double> reverse = at -> 1-at;
+	    DoubleUnaryOperator reverse = at -> 1-at;
+
+	    /** Denotes partial interpolator representing a part of a (probably) non-continuous interpolator. */
+	    class Subrange {
+		    public final double fraction;
+		    public final DoubleUnaryOperator interpolator;
+
+		    public Subrange(double from, DoubleUnaryOperator interpolator) {
+			    this.fraction = from;
+			    this.interpolator = interpolator;
+		    }
+	    }
     }
 }

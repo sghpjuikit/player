@@ -1,7 +1,6 @@
 package main;
 
 import java.awt.*;
-import java.awt.desktop.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -334,70 +333,6 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void init() {
-
-	    Desktop.getDesktop().addAppEventListener(new AppReopenedListener() {
-		    @Override
-		    public void appReopened(AppReopenedEvent e) {
-			    System.out.println("app reopened " + e.getSource());
-		    }
-	    });
-	    Desktop.getDesktop().addAppEventListener(new UserSessionListener() {
-		    @Override
-		    public void userSessionDeactivated(UserSessionEvent e) {
-			    System.out.println("user session deactivated " + e.getSource() + " " + e.getReason());
-		    }
-
-		    @Override
-		    public void userSessionActivated(UserSessionEvent e) {
-			    System.out.println("user session activated " + e.getSource() + " " + e.getReason());
-		    }
-	    });
-	    Desktop.getDesktop().addAppEventListener(new AppHiddenListener() {
-		    @Override
-		    public void appHidden(AppHiddenEvent e) {
-			    System.out.println("app hidden " + e.getSource());
-		    }
-
-		    @Override
-		    public void appUnhidden(AppHiddenEvent e) {
-			    System.out.println("app unhidden " + e.getSource());
-		    }
-	    });
-	    Desktop.getDesktop().addAppEventListener(new AppForegroundListener() {
-		    @Override
-		    public void appRaisedToForeground(AppForegroundEvent e) {
-			    System.out.println("app raised to foreground " + e.getSource());
-		    }
-
-		    @Override
-		    public void appMovedToBackground(AppForegroundEvent e) {
-			    System.out.println("app moved to background " + e.getSource());
-		    }
-	    });
-	    Desktop.getDesktop().addAppEventListener(new ScreenSleepListener() {
-		    @Override
-		    public void screenAboutToSleep(ScreenSleepEvent e) {
-			    System.out.println("screen about to sleep " + e.getSource());
-		    }
-
-		    @Override
-		    public void screenAwoke(ScreenSleepEvent e) {
-			    System.out.println("screen awoke " + e.getSource());
-		    }
-	    });
-	    Desktop.getDesktop().addAppEventListener(new SystemSleepListener() {
-		    @Override
-		    public void systemAboutToSleep(SystemSleepEvent e) {
-			    System.out.println("system about to sleep " + e.getSource());
-		    }
-
-		    @Override
-		    public void systemAwoke(SystemSleepEvent e) {
-			    System.out.println("system awoke " + e.getSource());
-		    }
-	    });
-
-
         // configure logging
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
@@ -1153,10 +1088,10 @@ public class App extends Application implements Configurable {
         );
     }
 
-    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
-    public static void showShortcuts() {
-        APP.shortcutPane.show();
-    }
+	@IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
+	public static void showShortcuts() {
+		APP.shortcutPane.show();
+	}
 
     @IsAction(name = "Show system info", desc = "Display system information.")
     public static void showSysInfo() {

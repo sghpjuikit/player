@@ -2,12 +2,7 @@ package util.collections;
 
 import java.util.Objects;
 
-import unused.TetraConsumer;
-import unused.TetraPredicate;
-
 import static util.collections.Tuples.tuple;
-
-import util.functional.Functors.Ƒ4;
 
 public class Tuple4<A, B, C, D> {
     public final A _1;
@@ -36,18 +31,6 @@ public class Tuple4<A, B, C, D> {
 
     public Tuple4<A, B, C, D> update4(D d) {
         return tuple(_1, _2, _3, d);
-    }
-
-    public <T> T map(Ƒ4<? super A, ? super B, ? super C, ? super D, ? extends T> f) {
-        return f.apply(_1, _2, _3, _4);
-    }
-
-    public boolean test(TetraPredicate<? super A, ? super B, ? super C, ? super D> f) {
-        return f.test(_1, _2, _3, _4);
-    }
-
-    public void exec(TetraConsumer<? super A, ? super B, ? super C, ? super D> f) {
-        f.accept(_1, _2, _3, _4);
     }
 
     @Override

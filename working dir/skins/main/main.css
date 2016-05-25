@@ -4093,3 +4093,10 @@ check-icon-disabling:selected {
 .icon-grid-cell:selected {
     -fx-background-color: null;
 }
+
+/***************************** FONT PICKER DIALOG *****************************
+ * Font picker dialog
+ * inherits: .dialog
+ */
+.font-selector-dialog {}
+.font-selector-dialog.dialog-pane {}

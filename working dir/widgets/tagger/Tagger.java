@@ -25,8 +25,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-import org.controlsfx.control.textfield.CustomTextField;
-
 import audio.Item;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
@@ -601,11 +599,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
 
-            if(valCond!=null && c instanceof CustomTextField) {
+            if(valCond!=null && c instanceof DecoratedTextField) {
                 Validation v = new Validation(c, valCond , field + " field does not contain valid text.");
                 validators.add(v);
                 Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
-                CustomTextField cf = (CustomTextField)c;
+	            DecoratedTextField cf = (DecoratedTextField)c;
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
                     l.setVisible(!b);

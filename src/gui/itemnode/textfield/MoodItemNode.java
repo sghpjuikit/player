@@ -1,17 +1,12 @@
-
 package gui.itemnode.textfield;
 
-import java.util.function.Consumer;
-
-import javafx.scene.layout.Region;
-
-import services.database.Db;
 import audio.tagging.Metadata;
 import gui.objects.picker.MoodPicker;
 import gui.objects.popover.PopOver;
+import services.database.Db;
 import util.parsing.Parser;
 
-import static org.controlsfx.control.textfield.TextFields.bindAutoCompletion;
+import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
 import static util.functional.Util.filter;
 
 /**
@@ -24,14 +19,12 @@ import static util.functional.Util.filter;
  */
 public class MoodItemNode extends TextFieldItemNode<String> {
 
-    private final Consumer<String> pickMood = this::setValue;
     private PopOver.NodePos pos = PopOver.NodePos.RightCenter;
 
     public MoodItemNode() {
         super(Parser.DEFAULT.toConverter(String.class));
         setEditable(true);
-        // set autocompletion
-        bindAutoCompletion(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocmplt_filter.apply(t,p.getUserText())));
+	    autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocmplt_filter.apply(t,p.getUserText())));
     }
 
     /** @return the position for the picker to show on */
@@ -46,7 +39,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
 
     @Override
     void onDialogAction() {
-        MoodPicker picker = getCM();
+        MoodPicker picker = new MoodPicker();
         PopOver p = new PopOver(picker.getNode());
         p.detachable.set(false);
         p.setArrowSize(0);
@@ -59,16 +52,8 @@ public class MoodItemNode extends TextFieldItemNode<String> {
             setValue(mood);
             p.hide();
         };
-        ((Region)picker.getNode()).setPrefSize(800,600);
+        picker.getNode().setPrefSize(800,600);
         p.show(this, pos);
     }
 
-/******************************* CONTEXT MENU *********************************/
-
-    private static MoodPicker cm;
-
-    private static MoodPicker getCM() {
-        if(cm==null) cm = new MoodPicker();
-        return cm;
-    }
 }

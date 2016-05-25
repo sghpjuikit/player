@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.file;
 
 import java.awt.*;
@@ -20,20 +15,18 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 
-import org.controlsfx.tools.Platform;
-
 import audio.playlist.PlaylistManager;
 import gui.Gui;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
+import util.system.Os;
 
 import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static org.controlsfx.tools.Platform.WINDOWS;
 import static util.dev.TODO.Purpose.*;
 import static util.dev.Util.log;
 import static util.file.FileType.DIRECTORY;
@@ -104,7 +97,7 @@ public class Environment {
                 File f = new File(uri);
                     boolean isDir = f.isDirectory();
                 if (f.exists()) {
-                    if(Platform.getCurrent()==WINDOWS && (!isDir || !openDir)) {
+                    if(Os.WINDOWS.isCurrent() && (!isDir || !openDir)) {
                         openWindowsExplorerAndSelect(f);
                     } else {
                         open(isDir ? f.getParentFile() : f);

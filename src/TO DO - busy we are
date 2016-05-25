@@ -1,6 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- Implement own FontPicker properly
 - improve skinning support
   - disable bgr blur (or make optional)
   - implement apply/refresh skin properly

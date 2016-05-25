@@ -640,6 +640,7 @@ public interface Util {
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
+	// internal com.sun.javafx.scene.control.skin.Utils class seems to be able to do this
 	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
     static double computeFontWidth(javafx.scene.text.Font font, String text) {
 	    // TODO: jigsaw

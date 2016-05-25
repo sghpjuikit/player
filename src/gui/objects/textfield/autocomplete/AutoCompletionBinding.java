@@ -1,4 +1,4 @@
-/**
+/*
  * Impl based on ControlsF:
  *
  * Copyright (c) 2014, 2015, ControlsFX
@@ -53,10 +53,11 @@ import static util.graphics.Util.setMinPrefMaxWidth;
  * The AutoCompletionBinding is the abstract base class of all auto-completion bindings.
  * This class is the core logic for the auto-completion feature but highly customizable.
  * <p/>
- * To use the autocompletion functionality, refer to the {@link org.controlsfx.control.textfield.TextFields} class.
+ * To use the autocompletion functionality, refer to the {@link gui.objects.textfield.autocomplete.AutoCompletion}
+ * class.
  *
  * @param <T> Model-Type of the suggestions
- * @see org.controlsfx.control.textfield.TextFields
+ * @see gui.objects.textfield.autocomplete.AutoCompletion
  */
 public abstract class AutoCompletionBinding<T> {
 
@@ -90,12 +91,12 @@ public abstract class AutoCompletionBinding<T> {
         this.popup.setConverter(converter);
 
         popup.setOnSuggestion(e -> {
-            try{
+            try {
                 ignoreInputChanges = true;
                 acceptSuggestion(e.getSuggestion());
                 fireAutoCompletion(e.getSuggestion());
                 if(hideOnSuggestion.get()) hidePopup();
-            }finally{
+            } finally{
                 // Ensure that ignore is always set back to false
                 ignoreInputChanges = false;
             }

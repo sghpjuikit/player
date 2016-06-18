@@ -21,22 +21,23 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-import util.conf.IsConfigurable;
 import gui.objects.icon.Icon;
+import one.util.streamex.EntryStream;
 import util.R;
+import util.Util;
+import util.conf.IsConfigurable;
+import util.units.FormattedDuration;
 
 import static gui.objects.icon.Icon.createInfoIcon;
-import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.*;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static util.file.Environment.copyToSysClipboard;
 import static util.functional.Util.by;
-import static util.graphics.Util.layHeaderTop;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.layVertically;
+import static util.functional.Util.byNC;
+import static util.graphics.Util.*;
 
 /**
  *
@@ -112,16 +113,30 @@ public class InfoPane extends OverlayPane {
         g.getColumnConstraints().add(new ColumnConstraints(10));
         g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
+	    @SuppressWarnings("unchecked")
         Map<String,List<Entry<String,String>>> props = (Map) System.getProperties()
                 .entrySet().stream()
                 .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
                 .collect(groupingBy(e -> getGroup((String)e.getKey())));
 
+	    ProcessHandle p = ProcessHandle.current();
+	    ProcessHandle.Info pInfo = p.info();
+        EntryStream.of(
+	    	"pid",          String.valueOf(p.getPid()),
+	    	"arguments",    pInfo.arguments().map(args -> String.join(", ", args)).orElse(""),
+	    	"command",      pInfo.command().orElse(""),
+	    	"commandline",  pInfo.commandLine().orElse(""),
+	    	"start time",   pInfo.startInstant().map(i -> Util.localDateTimeFromMillis(i).toString()).orElse(""),
+	    	"running time", pInfo.totalCpuDuration().map(d -> new FormattedDuration(d.toMillis()).toString()).orElse(""),
+	    	"user",         pInfo.user().orElse("")
+	        )
+			.collect(collectingAndThen(toList(), list -> props.put("process", list)));
+
         // build rows
         R<Integer> i = new R<>(-1);
         props.entrySet().stream()
              .sorted(by(Entry::getKey))
-             .peek(e -> e.getValue().sort(by(Entry::getKey)))
+             .peek(e -> e.getValue().sort(byNC(Entry::getKey)))
              .forEach(e -> {
                     // group title row
                     i.setOf(v -> v+1);
@@ -135,7 +150,7 @@ public class InfoPane extends OverlayPane {
                     // property rows
                     for(Entry<String,String> a : e.getValue()) {
                         i.setOf(v -> v+1);
-                        String name = a.getKey().substring(e.getKey().length()+1);
+                        String name = a.getKey().startsWith(e.getKey()) ? a.getKey().substring(e.getKey().length()+1) : a.getKey();
                         String val = fixASCII(a.getValue());
 
                         Label nameL = new Label(name);

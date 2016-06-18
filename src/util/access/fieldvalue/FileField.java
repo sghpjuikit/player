@@ -16,7 +16,7 @@ import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 
-import static audio.tagging.Metadata.localDateTimeFromMillis;
+import static util.Util.localDateTimeFromMillis;
 import static util.type.Util.mapEnumConstantName;
 
 /**

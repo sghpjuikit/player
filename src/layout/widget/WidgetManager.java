@@ -32,6 +32,7 @@ import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
 import util.SwitchException;
 import util.collections.mapset.MapSet;
+import util.dev.Idempotent;
 import util.file.FileMonitor;
 import util.file.Util;
 
@@ -46,6 +47,7 @@ import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.getName;
 import static util.file.Util.listFiles;
+import static util.file.Util.readFileLines;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -77,34 +79,58 @@ public final class WidgetManager {
         // internal factories
         // Factories for classes known at compile time and packaged along the application requesting
         // factory generation.
-        ClassIndex.getAnnotated(GenerageWidgetFactory.class).forEach(c -> constructFactory(c, null));
+        ClassIndex.getAnnotated(GenerateWidgetFactory.class).forEach(c -> constructFactory(c, null));
         factories.add(new WidgetFactory<>(EmptyWidget.class));
 
         // external factories
-        File dir = APP.DIR_WIDGETS;
-        if (!Util.isValidatedDirectory(dir)) {
+        File dirW = APP.DIR_WIDGETS;
+        if (!Util.isValidatedDirectory(dirW)) {
             LOGGER.error("External widgets registration failed.");
-            return;
-        }
-	    listFiles(dir).filter(File::isDirectory).forEach(widgetDir -> {
-            String name = capitalize(getName(widgetDir));
-            monitors.computeIfAbsent(name, n -> new WidgetDir(name, widgetDir))
-                    .registerExternalFactory();
-	    });
+        } else {
+	        listFiles(dirW).filter(File::isDirectory).forEach(widgetDir -> {
+		        String name = capitalize(getName(widgetDir));
+		        monitors.computeIfAbsent(name, n -> new WidgetDir(name, widgetDir)).registerExternalFactory();
+	        });
 
-        FileMonitor.monitorDirsFiles(dir, File::isDirectory, (type,widget_dir) -> {
-            String name = capitalize(getName(widget_dir));
-            if(type==ENTRY_CREATE) {
-                LOGGER.info("Discovered widget type: {}", name);
-                monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir))
-                        .registerExternalFactory();
-            }
-            if(type==ENTRY_DELETE) {
-                LOGGER.info("Disposing widget type: {}", name);
-                WidgetDir wd = monitors.get(name);
-                if(wd!=null) wd.dispose();
-            }
-        });
+	        FileMonitor.monitorDirsFiles(dirW, File::isDirectory, (type, widget_dir) -> {
+		        String name = capitalize(getName(widget_dir));
+		        if (type == ENTRY_CREATE) {
+			        LOGGER.info("Discovered widget type: {}", name);
+			        monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir)).registerExternalFactory();
+		        }
+		        if (type == ENTRY_DELETE) {
+			        LOGGER.info("Disposing widget type: {}", name);
+			        WidgetDir wd = monitors.get(name);
+			        if (wd != null) wd.dispose();
+		        }
+	        });
+        }
+
+	    // external factories for .fxwl widgets - serialized widgets
+	    File dirL = APP.DIR_LAYOUTS;
+	    if (!Util.isValidatedDirectory(dirL)) {
+		    LOGGER.error("External .fxwl widgets registration failed.");
+	    } else {
+		    listFiles(dirL).filter(f -> f.getPath().endsWith(".fxwl"))
+			               .filter(f ->  readFileLines(f).limit(1).filter(line -> line.startsWith("<Widget")).count() > 0)
+			               .forEach(fxwl -> {
+			    String name = capitalize(getName(fxwl));
+                factories.computeIfAbsent(name, key -> new WidgetFactory<>(fxwl));
+		    });
+
+		    FileMonitor.monitorDirsFiles(dirL, File::isFile, (type, fxwl) -> {
+			    String name = capitalize(getName(fxwl));
+			    if (type == ENTRY_CREATE && !factories.contains(name)) {
+				    LOGGER.info("Discovered widget type: {}", name);
+				    factories.computeIfAbsent(name, key -> new WidgetFactory<>(fxwl));
+			    }
+			    if (type == ENTRY_DELETE && factories.get(name)!=null && factories.get(name).isDelegated) {
+				    LOGGER.info("Disposing widget type: {}", name);
+				    factories.remove(name);
+			    }
+		    });
+	    }
+
         initialized = true;
     }
 
@@ -159,6 +185,7 @@ public final class WidgetManager {
             skinfile = new File(widgetdir,"skin.css");
         }
 
+        @Idempotent
         void monitorStart() {
             if(monitorOn) return;
             monitorOn = true;
@@ -202,6 +229,8 @@ public final class WidgetManager {
                 }
             });
         }
+
+        @Idempotent
         void monitorStop() {
             monitorOn = false;
             if(classMonitor!=null) classMonitor.stop();
@@ -209,6 +238,7 @@ public final class WidgetManager {
             if(classMonitor!=null) skinsMonitor.stop();
         }
 
+	    @Idempotent
         void dispose() {
             monitorStop();
             factories.removeKey(widgetname);
@@ -267,8 +297,8 @@ public final class WidgetManager {
      *
      * @param srcfile .java file to compile
      */
-    private static void compile(File... srcfiles) {
-        File[] files = srcfiles;
+    private static void compile(File... srcFiles) {
+        File[] files = srcFiles;
         // Compiler defaults to system encoding, we:
         // - consistent encoding that does not depend on system
         // - need UTF-8
@@ -356,7 +386,7 @@ public final class WidgetManager {
         //
         //    Lastly, this means only classes starting with the widgetname prefix can be reloaded.
         //    Hence widget should either be single file - single class (plus inner/annonymous
-        //    classes). I dont think it even makes sense for it to be more than 1 top level class.
+        //    classes). I do not think it even makes sense for it to be more than 1 top level class.
 
         return new ClassLoader(){
 

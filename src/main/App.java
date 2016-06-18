@@ -7,10 +7,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javafx.animation.FadeTransition;
@@ -99,6 +97,7 @@ import services.database.Db;
 import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
+import unused.SimpleConfigurator;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
@@ -157,8 +156,6 @@ import static util.file.Environment.browse;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
-
-import gui.objects.window.stage.Window;
 
 /**
  * Application. Represents the program.
@@ -888,222 +885,6 @@ public class App extends Application implements Configurable {
         else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
     }
 
-/************************************ actions *********************************/
-
-    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
-    public static void openAppGithubPage() {
-        browse(APP.GITHUB_URI);
-    }
-
-    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is "
-            + "running from.")
-    public static void openAppLocation() {
-        Environment.open(APP.DIR_APP);
-    }
-
-    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
-    public static void openCssGuide() {
-        browse(URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html"));
-    }
-
-    @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
-    public static void openIconViewer() {
-        double iconSize = 45;
-        GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
-                 grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESSED));
-                 grid.setCellFactory(view -> new GridCell<>() {
-                     Anim a;
-
-                     {
-                         getStyleClass().add("icon-grid-cell");
-                     }
-
-                     @Override
-                     protected void updateItem(GlyphIcons icon, boolean empty) {
-                         super.updateItem(icon, empty);
-                         IconInfo graphics;
-                         if(getGraphic() instanceof IconInfo)
-                             graphics = (IconInfo) getGraphic();
-                         else {
-                             graphics = new IconInfo(null,iconSize);
-                             setGraphic(graphics);
-                             a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
-                         }
-                         graphics.setGlyph(empty ? null : icon);
-
-                         // really cool when scrolling with scrollbar
-                         // but when using mouse wheel it is very ugly & distracting
-                         // a.play();
-                     }
-
-                     @Override
-                     public void updateSelected(boolean selected) {
-                         super.updateSelected(selected);
-                         IconInfo graphics = (IconInfo) getGraphic();
-                         if(graphics!=null) graphics.select(selected);
-                     }
-                 });
-        StackPane root = new StackPane(grid);
-                  root.setPrefSize(600, 720); // determines popup size
-        List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
-                                      MaterialDesignIcon.class,MaterialIcon.class)
-                .map(c -> {
-                    Button b = new Button(c.getSimpleName());
-                    b.setOnMouseClicked(e -> {
-                        if(e.getButton()==PRIMARY) {
-                            grid.getItemsRaw().setAll(getEnumConstants(c));
-                            e.consume();
-                        }
-                    });
-                    return b;
-                }).toList();
-        PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
-                o.show(App_Center);
-    }
-
-    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
-    public static void openLauncher() {
-        File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
-        Component c = UiContext.instantiateComponent(f);
-        if(c!=null) {
-            OverlayPane op = new OverlayPane() {
-                @Override
-                public void show() {
-                    OverlayPane root = this;
-                    getChildren().add(c.load());
-                    // TODO: remove
-                    run(millis(500), () -> {
-                        stream(((Pane)((Widget<?>)c).load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus());
-                    });
-                    if(c instanceof Widget) {
-                        ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
-                        ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
-                        ((Widget<?>)c).areaTemp = new ContainerNode() {
-                            @Override public Pane getRoot() { return root; }
-                            @Override public void show() {}
-                            @Override public void hide() {}
-                            @Override public void close() { root.hide(); }
-                        };
-                    }
-                    super.show();
-
-                }
-            };
-            op.display.set(SCREEN_OF_MOUSE);
-            op.show();
-            c.load().prefWidth(900);
-            c.load().prefHeight(700);
-        }
-    }
-
-    @IsAction(name = "Open settings", desc = "Opens application settings.")
-    public static void openSettings() {
-        APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
-    }
-
-    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
-    public static void openLayoutManager() {
-        APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
-    }
-
-    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
-    public static void openGuide() {
-        APP.guide.open();
-    }
-
-    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
-    public static void openActions() {
-        APP.actionPane.show(Void.class, null, false,
-            new FastAction<>(
-                "Export widgets",
-                "Creates launcher file in the destination directory for every widget.\n"
-                + "Launcher file is a file that when opened by this application opens the widget. "
-                + "If application was not running before, it will not load normally, but will only "
-                + "open the widget.\n"
-                + "Essentially, this exports the widgets as 'standalone' applications.",
-                EXPORT,
-                ignored -> {
-                    DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(APP.DIR_LAYOUTS);
-                                     dc.setTitle("Export to...");
-                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-                    if(dir!=null) {
-                        APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
-                    }
-                }
-            ),
-            new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
-            new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
-            new FastAction<>(GITHUB,Action.get("Open on Github")),
-            new FastAction<>(CSS3,Action.get("Open css guide")),
-            new FastAction<>(IMAGE,Action.get("Open icon viewer")),
-            new FastAction<>(FOLDER,Action.get("Open app directory"))
-        );
-    }
-
-    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
-    public static void openOpen() {
-        APP.actionPane.show(Void.class, null, false,
-            new FastAction<>(
-                "Open widget",
-                "Open file chooser to open an exported widget",
-                MaterialIcon.WIDGETS,
-                none -> {
-                    FileChooser fc = new FileChooser();
-                                fc.setInitialDirectory(APP.DIR_LAYOUTS);
-                                fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
-                                fc.setTitle("Open widget...");
-                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-                    if(f!=null) UiContext.launchComponent(f);
-                }
-            ),
-            new FastAction<>(
-                "Open skin",
-                "Open file chooser to find a skin",
-                MaterialIcon.BRUSH,
-                none -> {
-                    FileChooser fc = new FileChooser();
-                                fc.setInitialDirectory(APP.DIR_SKINS);
-                                fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
-                                fc.setTitle("Open skin...");
-                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-                    if(f!=null) Gui.setSkinExternal(f);
-                }
-            ),
-            new FastAction<>(
-                "Open audio files",
-                "Open file chooser to find a audio files",
-                MaterialDesignIcon.MUSIC_NOTE,
-                none -> {
-                    FileChooser fc = new FileChooser();
-                                fc.setInitialDirectory(APP.DIR_SKINS);
-                                fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
-                                fc.setTitle("Open audio...");
-                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
-                    // Action pane may auto-close when this action finishes, so we make sure to call
-                    // show() after that happens by delaying using runLater
-                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
-                }
-            )
-        );
-    }
-
-	@IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
-	public static void showShortcuts() {
-		APP.shortcutPane.show();
-	}
-
-    @IsAction(name = "Show system info", desc = "Display system information.")
-    public static void showSysInfo() {
-        APP.actionPane.hide();
-        APP.infoPane.show();
-    }
-
-    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
-    private static void runGarbageCollector() {
-        System.gc();
-    }
-
     public interface Build {
 
         static ProgressIndicator appProgressIndicator() {
@@ -1145,55 +926,294 @@ public class App extends Application implements Configurable {
 
     }
 
-    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+I ")
-    public static void showSearch() {
-        DecoratedTextField tf = new DecoratedTextField();
+    @IsActionable
+    public interface Actions {
 
-        Region clearButton = new Region();
-        clearButton.getStyleClass().addAll("graphic");
-        StackPane clearB = new StackPane(clearButton);
-        clearB.getStyleClass().addAll("clear-button");
-        clearB.setOpacity(0.0);
-        clearB.setCursor(Cursor.DEFAULT);
-        clearB.setOnMouseReleased(e -> tf.clear());
-        clearB.managedProperty().bind(tf.editableProperty());
-        clearB.visibleProperty().bind(tf.editableProperty());
-        tf.right.set(clearB);
-        FadeTransition fade = new FadeTransition(millis(250), clearB);
-        tf.textProperty().addListener(new InvalidationListener() {
-            @Override public void invalidated(Observable arg0) {
-                String text = tf.getText();
-                boolean isTextEmpty = text == null || text.isEmpty();
-                boolean isButtonVisible = fade.getNode().getOpacity() > 0;
+	    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
+	    static void openAppGithubPage() {
+		    browse(APP.GITHUB_URI);
+	    }
 
-                if (isTextEmpty && isButtonVisible) {
-                    setButtonVisible(false);
-                } else if (!isTextEmpty && !isButtonVisible) {
-                    setButtonVisible(true);
-                }
-            }
+	    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
+	    static void openAppLocation() {
+		    Environment.open(APP.DIR_APP);
+	    }
 
-            private void setButtonVisible( boolean visible ) {
-                fade.setFromValue(visible? 0.0: 1.0);
-                fade.setToValue(visible? 1.0: 0.0);
-                fade.play();
-            }
-        });
+	    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
+	    static void openCssGuide() {
+		    browse(URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html"));
+	    }
+
+	    @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
+	    static void openIconViewer() {
+		    double iconSize = 45;
+		    GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
+		    grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESSED));
+		    grid.setCellFactory(view -> new GridCell<>() {
+			    Anim a;
+
+			    {
+				    getStyleClass().add("icon-grid-cell");
+			    }
+
+			    @Override
+			    protected void updateItem(GlyphIcons icon, boolean empty) {
+				    super.updateItem(icon, empty);
+				    IconInfo graphics;
+				    if(getGraphic() instanceof IconInfo)
+					    graphics = (IconInfo) getGraphic();
+				    else {
+					    graphics = new IconInfo(null,iconSize);
+					    setGraphic(graphics);
+					    a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
+				    }
+				    graphics.setGlyph(empty ? null : icon);
+
+				    // really cool when scrolling with scrollbar
+				    // but when using mouse wheel it is very ugly & distracting
+				    // a.play();
+			    }
+
+			    @Override
+			    public void updateSelected(boolean selected) {
+				    super.updateSelected(selected);
+				    IconInfo graphics = (IconInfo) getGraphic();
+				    if(graphics!=null) graphics.select(selected);
+			    }
+		    });
+		    StackPane root = new StackPane(grid);
+		    root.setPrefSize(600, 720); // determines popup size
+		    List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
+			    MaterialDesignIcon.class,MaterialIcon.class)
+			                          .map(c -> {
+				                          Button b = new Button(c.getSimpleName());
+				                          b.setOnMouseClicked(e -> {
+					                          if(e.getButton()==PRIMARY) {
+						                          grid.getItemsRaw().setAll(getEnumConstants(c));
+						                          e.consume();
+					                          }
+				                          });
+				                          return b;
+			                          }).toList();
+		    PopOver o = new PopOver<>(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
+		    o.show(App_Center);
+	    }
+
+	    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
+	    static void openLauncher() {
+		    File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
+		    Component c = UiContext.instantiateComponent(f);
+		    if(c!=null) {
+			    OverlayPane op = new OverlayPane() {
+				    @Override
+				    public void show() {
+					    OverlayPane root = this;
+					    getChildren().add(c.load());
+					    // TODO: remove
+					    run(millis(500), () -> {
+						    stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus());
+					    });
+					    if(c instanceof Widget) {
+						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
+						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
+						    ((Widget<?>)c).areaTemp = new ContainerNode() {
+							    @Override public Pane getRoot() { return root; }
+							    @Override public void show() {}
+							    @Override public void hide() {}
+							    @Override public void close() { root.hide(); }
+						    };
+					    }
+					    super.show();
+
+				    }
+			    };
+			    op.display.set(SCREEN_OF_MOUSE);
+			    op.show();
+			    c.load().prefWidth(900);
+			    c.load().prefHeight(700);
+		    }
+	    }
+
+	    @IsAction(name = "Open settings", desc = "Opens application settings.")
+	    static void openSettings() {
+		    APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
+	    }
+
+	    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
+	    static void openLayoutManager() {
+		    APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
+	    }
+
+	    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
+	    static void openGuide() {
+		    APP.guide.open();
+	    }
+
+	    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
+	    static void openActions() {
+		    APP.actionPane.show(Void.class, null, false,
+			    new FastAction<>(
+				                    "Export widgets",
+				                    "Creates launcher file in the destination directory for every widget.\n"
+					                    + "Launcher file is a file that when opened by this application opens the widget. "
+					                    + "If application was not running before, it will not load normally, but will only "
+					                    + "open the widget.\n"
+					                    + "Essentially, this exports the widgets as 'standalone' applications.",
+				                    EXPORT,
+				                    ignored -> {
+					                    DirectoryChooser dc = new DirectoryChooser();
+					                    dc.setInitialDirectory(APP.DIR_LAYOUTS);
+					                    dc.setTitle("Export to...");
+					                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
+					                    if(dir!=null) {
+						                    APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+					                    }
+				                    }
+			    ),
+			    new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+			    new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
+			    new FastAction<>(GITHUB,Action.get("Open on Github")),
+			    new FastAction<>(CSS3,Action.get("Open css guide")),
+			    new FastAction<>(IMAGE,Action.get("Open icon viewer")),
+			    new FastAction<>(FOLDER,Action.get("Open app directory"))
+		    );
+	    }
+
+	    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+	    static void openOpen() {
+		    APP.actionPane.show(Void.class, null, false,
+			    new FastAction<>(
+				                    "Open widget",
+				                    "Open file chooser to open an exported widget",
+				                    MaterialIcon.WIDGETS,
+				                    none -> {
+					                    FileChooser fc = new FileChooser();
+					                    fc.setInitialDirectory(APP.DIR_LAYOUTS);
+					                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
+					                    fc.setTitle("Open widget...");
+					                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+					                    if(f!=null) UiContext.launchComponent(f);
+				                    }
+			    ),
+			    new FastAction<>(
+				                    "Open skin",
+				                    "Open file chooser to find a skin",
+				                    MaterialIcon.BRUSH,
+				                    none -> {
+					                    FileChooser fc = new FileChooser();
+					                    fc.setInitialDirectory(APP.DIR_SKINS);
+					                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
+					                    fc.setTitle("Open skin...");
+					                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+					                    if(f!=null) Gui.setSkinExternal(f);
+				                    }
+			    ),
+			    new FastAction<>(
+				                    "Open audio files",
+				                    "Open file chooser to find a audio files",
+				                    MaterialDesignIcon.MUSIC_NOTE,
+				                    none -> {
+					                    FileChooser fc = new FileChooser();
+					                    fc.setInitialDirectory(APP.DIR_SKINS);
+					                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
+					                    fc.setTitle("Open audio...");
+					                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
+					                    // Action pane may auto-close when this action finishes, so we make sure to call
+					                    // show() after that happens by delaying using runLater
+					                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
+				                    }
+			    )
+		    );
+	    }
+
+	    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
+	    static void showShortcuts() {
+		    APP.shortcutPane.show();
+	    }
+
+	    @IsAction(name = "Show system info", desc = "Display system information.")
+	    static void showSysInfo() {
+		    APP.actionPane.hide();
+		    APP.infoPane.show();
+	    }
+
+	    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
+	    static void runGarbageCollector() {
+		    System.gc();
+	    }
+
+	    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.")
+	    static void runCommand() {
+		    SimpleConfigurator sc = new SimpleConfigurator<>(
+		    	new ValueConfig<>(String.class, "Command", ""),
+                (String command) -> Environment.runCommand(command));
+		    PopOver p = new PopOver<>(sc);
+				    p.title.set("Run system command ");
+				    p.show(PopOver.ScreenPos.App_Center);
+	    }
+
+	    @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
+		                                           "the command as a parameter.")
+	    static void runAppCommand() {
+		    SimpleConfigurator sc = new SimpleConfigurator<>(
+		    	new ValueConfig<>(String.class, "Command", ""),
+                (String command) -> APP.parameterProcessor.process(list(command)));
+		    PopOver p = new PopOver<>(sc);
+				    p.title.set("Run app command");
+				    p.show(PopOver.ScreenPos.App_Center);
+	    }
+
+	    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+I ")
+	    static void showSearch() {
+		    DecoratedTextField tf = new DecoratedTextField();
+
+		    Region clearButton = new Region();
+		    clearButton.getStyleClass().addAll("graphic");
+		    StackPane clearB = new StackPane(clearButton);
+		    clearB.getStyleClass().addAll("clear-button");
+		    clearB.setOpacity(0.0);
+		    clearB.setCursor(Cursor.DEFAULT);
+		    clearB.setOnMouseReleased(e -> tf.clear());
+		    clearB.managedProperty().bind(tf.editableProperty());
+		    clearB.visibleProperty().bind(tf.editableProperty());
+		    tf.right.set(clearB);
+		    FadeTransition fade = new FadeTransition(millis(250), clearB);
+		    tf.textProperty().addListener(new InvalidationListener() {
+			    @Override public void invalidated(Observable arg0) {
+				    String text = tf.getText();
+				    boolean isTextEmpty = text == null || text.isEmpty();
+				    boolean isButtonVisible = fade.getNode().getOpacity() > 0;
+
+				    if (isTextEmpty && isButtonVisible) {
+					    setButtonVisible(false);
+				    } else if (!isTextEmpty && !isButtonVisible) {
+					    setButtonVisible(true);
+				    }
+			    }
+
+			    private void setButtonVisible( boolean visible ) {
+				    fade.setFromValue(visible? 0.0: 1.0);
+				    fade.setToValue(visible? 1.0: 0.0);
+				    fade.play();
+			    }
+		    });
 
 
-        tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
-        tf.left.get().setMouseTransparent(true);
+		    tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
+		    tf.left.get().setMouseTransparent(true);
 
-        StringProperty text = tf.textProperty();
-        new ConfigSearch(
-            tf,
-            APP.configSearchHistory,
-            p -> APP.configuration.getFields(f -> containsNoCase(f.getGuiName(),p.getUserText()))
-        );
-        PopOver<TextField> p = new PopOver<>(tf);
-        p.title.set("Search for an action or option");
-        p.setAutoHide(true);
-        p.show(PopOver.ScreenPos.App_Center);
+		    StringProperty text = tf.textProperty();
+		    new ConfigSearch(
+			                    tf,
+			                    APP.configSearchHistory,
+			                    p -> APP.configuration.getFields(f -> containsNoCase(f.getGuiName(),p.getUserText()))
+		    );
+		    PopOver<TextField> p = new PopOver<>(tf);
+		    p.title.set("Search for an action or option");
+		    p.setAutoHide(true);
+		    p.show(PopOver.ScreenPos.App_Center);
+	    }
+
     }
 
 }

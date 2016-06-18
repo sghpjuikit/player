@@ -32,7 +32,10 @@ package gui.objects.textfield.autocomplete;
 import java.util.*;
 
 import javafx.util.Callback;
+
 import gui.objects.textfield.autocomplete.AutoCompletionBinding.ISuggestionRequest;
+
+import static util.functional.Util.list;
 
 /**
  * This is a simple implementation of a generic suggestion provider callback.
@@ -50,8 +53,8 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
      * Add the given new possible suggestions to this  SuggestionProvider
      * @param newPossible
      */
-    public void addPossibleSuggestions(@SuppressWarnings("unchecked") T... newPossible){
-        addPossibleSuggestions(Arrays.asList(newPossible));
+    public void addPossibleSuggestions(T... newPossible){
+        addPossibleSuggestions(list(newPossible));
     }
 
     /**
@@ -163,20 +166,12 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
 
         /**
          * Create a new SuggestionProviderString
-         * @param stringConverter
+         * @param converter
          */
-        public SuggestionProviderString(Callback<T, String> stringConverter){
-            this.stringConverter = stringConverter;
-
-            // In case no stringConverter was provided, use the default strategy
-            if(this.stringConverter == null){
-                this.stringConverter = new Callback<T, String>() {
-                    @Override
-                    public String call(T obj) {
-                        return obj != null ? obj.toString() : ""; //$NON-NLS-1$
-                    }
-                };
-            }
+        public SuggestionProviderString(Callback<T, String> converter){
+            stringConverter = converter != null
+                                   ? converter
+                                   : obj -> obj != null ? obj.toString() : "";
         }
 
         /**{@inheritDoc}*/

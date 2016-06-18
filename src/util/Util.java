@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -44,6 +48,9 @@ public interface Util {
     /** Golden ratio - {@code 1.6180339887}. */
     double GOLDEN_RATIO = 1.6180339887;
 
+	/** System default zone id. */
+	ZoneId ZONE_ID = ZoneId.systemDefault();
+
     /**
      * Method equivalent to object's equal method, but if both objects are null
      * they are considered equal as well.
@@ -64,6 +71,37 @@ public interface Util {
     static boolean equals(Artwork a1, Artwork a2) {
         return (a1==null && a2==null) || (a1!=null && a2!=null && Arrays.equals(a1.getBinaryData(), a2.getBinaryData()));
     }
+
+    /**
+     * Returns local date time from an instant.
+     */
+	static LocalDateTime localDateTimeFromMillis(Instant instant) {
+		return LocalDateTime.ofInstant(instant, ZONE_ID);
+	}
+
+	/**
+	 * Returns local date time from epoch millis or null if parameter exceeds the maximum or minimum
+	 * {@link java.time.Instant}.
+	 */
+	static LocalDateTime localDateTimeFromMillis(long epochMillis) {
+		try {
+			return localDateTimeFromMillis(Instant.ofEpochMilli(epochMillis));
+		} catch(DateTimeException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns local date time from epoch millis or null if parameter is not a number or exceeds the maximum or minimum
+	 * {@link java.time.Instant}.
+	 */
+	static LocalDateTime localDateTimeFromMillis(String epochMillis) {
+		try {
+			return localDateTimeFromMillis(Long.parseLong(epochMillis));
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
 
     /**
      * Prints out the value of Duration - string representation of the duration

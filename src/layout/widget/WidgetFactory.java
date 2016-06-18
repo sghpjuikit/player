@@ -9,8 +9,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import gui.objects.window.stage.UiContext;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
+import main.App;
+import util.file.Util;
 import util.type.ClassName;
 
 /**
@@ -21,7 +24,7 @@ import util.type.ClassName;
 @Widget.Info // empty widget info with default values
 public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
-    private final String name;
+    private final String name;          // unique per factory
     private final String gui_name;
     private final String description;
     private final String version;
@@ -35,6 +38,9 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
     private final Class<C> controller_class;
     public final File location;
+
+	final boolean isDelegated;
+	final File fxwlFile;
 
     /** Whether this factory will be preferred over others of the same group. */
     private boolean preferred = false;
@@ -53,30 +59,59 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
      * @param location location of the widget, may be null
      */
     private WidgetFactory(String name, Class<C> type, File location) {
-        this.name = name;
-        this.controller_class = type;
-        this.location = location;
+	    this.name = name;
+	    this.controller_class = type;
+	    this.location = location;
 
-        Widget.Info i = type.getAnnotation(Widget.Info.class);
-        if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
+	    Widget.Info i = type.getAnnotation(Widget.Info.class);
+	    if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
 
-        gui_name = i.name().isEmpty() ? name : i.name();
-        description = i.description();
-        version = i.version();
-        author = i.author();
-        programmer = i.programmer();
-        contributor = i.contributor();
-        howto = i.howto();
-        year = i.year();
-        notes = i.notes();
-        group = i.group();
+	    gui_name = i.name().isEmpty() ? name : i.name();
+	    description = i.description();
+	    version = i.version();
+	    author = i.author();
+	    programmer = i.programmer();
+	    contributor = i.contributor();
+	    howto = i.howto();
+	    year = i.year();
+	    notes = i.notes();
+	    group = i.group();
+	    isDelegated = false;
+	    fxwlFile = null;
     }
 
+    /** Creates delegated widget factory. */
+	public WidgetFactory(File launcher) {
+		String customName = Util.getName(launcher);
+		String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
+		int i1 = wn.indexOf("name=\"");
+		int i2 = wn.indexOf("\">");
+		wn = wn.substring(i1+"name=\"".length(), i2);
+		WidgetFactory factory = App.APP.widgetManager.factories.get(wn);
+
+		name = customName;
+		controller_class = factory.controller_class;
+		location = factory.location;
+
+		gui_name = customName;
+		description = factory.description();
+		version = factory.version();
+		author = factory.author();
+		programmer = factory.programmer();
+		contributor = factory.contributor();
+		howto = factory.howto();
+		year = factory.year();
+		notes = factory.notes();
+		group = factory.group();
+		isDelegated = true;
+		fxwlFile = launcher;
+	}
+
     /**
-     * Calls {@link #WidgetFactory(java.lang.String, java.lang.Class)} with
-     * name derived from the class. If {@link Widget.Info} annotation is present
-     * (as it should) the name field will be used. Otherwise the controller class
-     * name will be used as widget factory name.
+     * Calls {@link #WidgetFactory(Class, java.io.File)}  with location null.
+     * If {@link Widget.Info} annotation is present (as it should) the name field will be used.
+     * Otherwise the controller class name will be used as widget factory name.
+     *
      * @param type controller class
      */
     public WidgetFactory(Class<C> type) {
@@ -92,7 +127,11 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
      * @return new widget instance or null if creation fails.
      */
     public Widget<C> create() {
-        return new Widget<>(name,this);
+    	if (isDelegated) {
+    	    return (Widget) UiContext.instantiateComponent(fxwlFile);
+	    } else {
+		    return new Widget<>(name, this);
+	    }
     }
 
     protected Class<C> getControllerClass() {

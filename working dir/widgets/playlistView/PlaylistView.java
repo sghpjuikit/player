@@ -130,17 +130,15 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         // obtain playlist by id, we will use this widget's id
         UUID id = getWidget().id;
-        playlist = PlaylistManager.playlists.getOr(id, getUnusedPlaylist(id));
-        // maybe this widget was created & no playlist exists, add it to list
-        PlaylistManager.playlists.add(playlist); // if exists, nothing happens
+        playlist = PlaylistManager.playlists.computeIfAbsent(id, PlaylistView::getUnusedPlaylist);
         // when widget closes we must remove the playlist or it would get saved
         // and playlist list would infinitely grow. When widgets close naturally
         // on app close, the playlist will get removed after app state was saved => no problem
         d(() -> PlaylistManager.playlists.remove(playlist));
 
         // widget input/output
-        outSelected = outputs.create(widget.id,"Selected", Item.class, null);
-        outPlaying = outputs.create(widget.id,"Playing", Item.class, null);
+        outSelected = outputs.create(id,"Selected", Item.class, null);
+        outPlaying = outputs.create(id,"Playing", Item.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
 	    d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
@@ -247,12 +245,11 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", initialName);
-        SimpleConfigurator sc = new SimpleConfigurator<>(mc, c -> {
-            String n = c.getField("Name").getValue();
+        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
 	        try {
-		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, n + ".xml"));
+		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"));
 	        } catch (AppSerializer.SerializationException e) {}
         });
         PopOver p = new PopOver<>(sc);
@@ -265,12 +262,11 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         if(l.isEmpty()) return;
 
         ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist");
-        SimpleConfigurator sc = new SimpleConfigurator<>(mc, c -> {
-            String n = c.getField("Name").getValue();
+        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
 	        try {
-		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, n + ".xml"));
+		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"));
 	        } catch (AppSerializer.SerializationException e) {}
         });
         PopOver p = new PopOver<>(sc);
@@ -292,7 +288,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
     private static Playlist getUnusedPlaylist(UUID id) {
         List<Playlist> pall = list(PlaylistManager.playlists);
         APP.widgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
-                 .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, this is not good
+                 .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, not good
                  .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
                  .filter(ISNTØ)
                  .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));

@@ -150,7 +150,8 @@ public final class UiContext {
 
     public static void launchComponent(String componentName) {
         WidgetFactory<?> wf = APP.widgetManager.factories.get(componentName);
-        Component w = wf==null ? null : wf.create();
+	    System.out.println("kkoooooo  " + componentName + " " + wf);
+	    Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
 

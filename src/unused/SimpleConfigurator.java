@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -57,6 +58,10 @@ public class SimpleConfigurator<T> extends AnchorPane {
      */
     public Consumer<Configurable<T>> onOK = c -> {};
 
+	public SimpleConfigurator(Config<T> c, Consumer<T> on_OK) {
+		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
+	}
+
     /**
      * @param c configurable object
      * @param on_OK OK button click action. Null if none. Affects visibility
@@ -88,8 +93,9 @@ public class SimpleConfigurator<T> extends AnchorPane {
             fields.add(cf.getNode(), 1, configFields.size()-1);
         });
         
-        // prevent scroll even leak
-        fieldsPane.setOnScroll(Event::consume);
+
+	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> ok());
+        fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
     }
     
     public SimpleConfigurator(Configurable<T> configurable) {

@@ -717,14 +717,13 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         String title = add ? "Add url item." : "Play url item.";
         SimpleConfigurator content = new SimpleConfigurator<>(
             new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title),
-            c -> {
-                URI uri = c.getField("Url").getValue();
+            (URI url) -> {
                 if(add) {
-                    addUri(uri);
+                    addUri(url);
                 } else {
                     PLAYBACK.stop();
                     clear();
-                    addUri(uri);
+                    addUri(url);
                     playFirstItem();
                 }
             });
@@ -754,10 +753,10 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
                        helpP.show(infoB);
              });
         // build popup
-        PopOver p = new PopOver(title, content);
-                p.getHeaderIcons().add(infoB);
-                p.show(PopOver.ScreenPos.App_Center);
-                p.detached.set(true);
+        PopOver<?> p = new PopOver<>(title, content);
+                   p.getHeaderIcons().add(infoB);
+                   p.show(PopOver.ScreenPos.App_Center);
+                   p.detached.set(true);
     }
 
     @Override

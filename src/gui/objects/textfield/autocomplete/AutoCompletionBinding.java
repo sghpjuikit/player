@@ -94,8 +94,8 @@ public abstract class AutoCompletionBinding<T> {
             try {
                 ignoreInputChanges = true;
                 acceptSuggestion(e.getSuggestion());
-                fireAutoCompletion(e.getSuggestion());
                 if(hideOnSuggestion.get()) hidePopup();
+                fireAutoCompletion(e.getSuggestion());
             } finally{
                 // Ensure that ignore is always set back to false
                 ignoreInputChanges = false;

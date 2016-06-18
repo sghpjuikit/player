@@ -50,7 +50,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     private Consumer<V> applier;
 
     public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, boolean editable, double min, double max, Consumer<V> applier) {
-        super(type, name, gui_name, value, name, info, editable, min, max);
+        super(type, name, gui_name, value, category, info, editable, min, max);
         this.value = value;
         this.applier = applier;
     }

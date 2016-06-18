@@ -36,8 +36,8 @@ public class FormattedDuration extends Duration {
     }
 
     /** Constructor. Initializes to specified value in milliseconds. */
-    public FormattedDuration(double value) {
-        super(value);
+    public FormattedDuration(double millis) {
+        super(millis);
     }
 
     /** @return formatted string representation of the duration */

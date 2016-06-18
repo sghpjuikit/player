@@ -6,7 +6,9 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.time.*;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.*;
 
 import javax.persistence.Entity;
@@ -58,6 +60,7 @@ import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.joining;
 import static util.Util.emptyOr;
+import static util.Util.localDateTimeFromMillis;
 import static util.dev.Util.log;
 import static util.file.Util.EMPTY_URI;
 import static util.functional.Util.*;
@@ -932,49 +935,25 @@ public final class Metadata extends MetaItem<Metadata> {
         return custom5;
     }
 
-    private static final ZoneId ZONE_ID = ZoneId.systemDefault();
-
-    public static LocalDateTime localDateTimeFromMillis(long epochMillis) {
-        try {
-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),ZONE_ID);
-        } catch(DateTimeException e) {
-            return null;
-        }
-    }
-
     public LocalDateTime getTimePlayedFirst() {
         if(playedFirst.isEmpty()) return null;
-        try {
-            long epochMillis = Long.parseLong(playedFirst);
-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),ZONE_ID);
-        } catch(NumberFormatException | DateTimeException e) {
-            return null;
-        }
+	    return localDateTimeFromMillis(playedFirst);
     }
 
     public LocalDateTime getTimePlayedLast() {
         if(playedLast.isEmpty()) return null;
-        try {
-            long epochMillis = Long.parseLong(playedLast);
-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),ZONE_ID);
-        } catch(NumberFormatException | DateTimeException e) {
-            return null;
-        }
+	    return localDateTimeFromMillis(playedLast);
     }
 
     public LocalDateTime getTimeLibraryAdded() {
         if(libraryAdded.isEmpty()) return null;
-        try {
-            long epochMillis = Long.parseLong(libraryAdded);
-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),ZONE_ID);
-        } catch(NumberFormatException | DateTimeException e) {
-            return null;
-        }
+	    return localDateTimeFromMillis(libraryAdded);
     }
 
     private static final Field[] STRING_FIELDS = stream(Field.values())
                 .filter(f -> String.class.equals(f.getType()))
-                .filter(f -> f!=FULLTEXT && f!=COVER_INFO).toArray(Field[]::new);   // stackoverlow, duh
+                .filter(f -> f!=FULLTEXT && f!=COVER_INFO)  // prevents StackOverflowException
+                .toArray(Field[]::new);
 
     public String getFulltext() {
         return stream(STRING_FIELDS)

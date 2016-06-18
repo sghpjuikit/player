@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javafx.scene.input.Clipboard;
@@ -19,6 +20,7 @@ import audio.playlist.PlaylistManager;
 import gui.Gui;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
+import util.async.Async;
 import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
 import util.system.Os;
@@ -40,15 +42,15 @@ import static util.functional.Util.*;
  */
 @TODO(purpose = FUNCTIONALITY, note = "support printing, mailing")
 @TODO(note = "File highlighting, test non windows platforms")
-public class Environment {
+public interface Environment {
 
     /** Copies the string to system clipboard. Does nothing if null. */
-    public static void copyToSysClipboard(String s) {
+    static void copyToSysClipboard(String s) {
         copyToSysClipboard(DataFormat.PLAIN_TEXT, s);
     }
 
     /** Puts given object to system clipboard. Does nothing if object null. */
-    public static void copyToSysClipboard(DataFormat df, Object o) {
+    static void copyToSysClipboard(DataFormat df, Object o) {
         if(o != null) {
             ClipboardContent c = new ClipboardContent();
                              c.put(df,o);
@@ -56,13 +58,35 @@ public class Environment {
         }
     }
 
+    /**
+     * Runs a command as a process in new background thread.
+     */
+    static void runCommand(String command) {
+        runCommand(command, null);
+    }
+
+    /**
+     * Runs a command as a process in new background thread and executes an action right after it launches.
+     * This allows process monitoring or waiting for it to.
+     */
+    static void runCommand(String command, Consumer<Process> then) {
+	    if(command!=null && !command.isEmpty())
+	    	Async.runNew(() -> {
+			    try {
+				    Process p = Runtime.getRuntime().exec(command);
+				    if(then != null) then.accept(p);
+			    } catch (IOException e) {
+				    log(Environment.class).error("Could not run command '{}'", command, e);
+			    }
+		    });
+    }
 
     /** Equivalent to {@code browse(f.toURI()); } */
-    public static void browse(File f) {
+    static void browse(File f) {
         browse(f.toURI());
     }
 
-    public static void browse(File f, boolean openDir) {
+    static void browse(File f, boolean openDir) {
         browse(f.toURI(), openDir);
     }
 
@@ -74,7 +98,7 @@ public class Environment {
      * @param uri to browse
      */
     @TODO(purpose = {UNIMPLEMENTED, UNTESTED}, note = "Non-windows platform impl. naively & untested")
-    public static void browse(URI uri) {
+    static void browse(URI uri) {
         browse(uri, false);
     }
 
@@ -120,7 +144,7 @@ public class Environment {
      *
      * @param files
      */
-    public static void browse(Stream<File> files) {
+    static void browse(Stream<File> files) {
         files.distinct()
              .collect(groupingBy(f -> f.isFile() ? f.getParentFile() : f))
              .forEach((dir,children) -> {
@@ -138,7 +162,7 @@ public class Environment {
      *
      * @param f
      */
-    public static void edit(File f) {
+    static void edit(File f) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(EDIT)) {
             log(Environment.class).warn("Unsupported operation : " + EDIT + " uri");
             return;
@@ -165,7 +189,7 @@ public class Environment {
      *
      * @param f
      */
-    public static void open(File f) {
+    static void open(File f) {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(OPEN)) {
             try {
                 Desktop.getDesktop().open(f);
@@ -180,13 +204,13 @@ public class Environment {
         }
     }
 
-    public static boolean isOpenableInApp(File f) {
+    static boolean isOpenableInApp(File f) {
         return ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) ||
                ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) ||
                AudioFileFormat.isSupported(f,Use.PLAYBACK) || ImageFileFormat.isSupported(f);
     }
 
-    public static void openIn(File f, boolean inApp) {
+    static void openIn(File f, boolean inApp) {
         // open skin - always in app
         if((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) {
             Gui.setSkin(Util.getName(f));
@@ -212,7 +236,7 @@ public class Environment {
         else open(f);
     }
 
-    public static void openIn(List<File> files, boolean inApp) {
+    static void openIn(List<File> files, boolean inApp) {
         if(files.isEmpty()) return;
         if(files.size()==1) {
             openIn(files.get(0), inApp);
@@ -235,7 +259,7 @@ public class Environment {
         }
     }
 
-    public static File chooseFile(String title, FileType type, File initial, Window w, ExtensionFilter... exts) {
+    static File chooseFile(String title, FileType type, File initial, Window w, ExtensionFilter... exts) {
         if(type==DIRECTORY) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
@@ -250,7 +274,7 @@ public class Environment {
         }
     }
 
-    public static List<File> chooseFiles(String title, File initial, Window w, ExtensionFilter... exts) {
+    static List<File> chooseFiles(String title, File initial, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
         c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));
@@ -258,7 +282,7 @@ public class Environment {
         return c.showOpenMultipleDialog(w);
     }
 
-    public static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
+    static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
         c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));

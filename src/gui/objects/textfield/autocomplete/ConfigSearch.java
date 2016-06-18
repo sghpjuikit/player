@@ -47,19 +47,6 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
         this.textField = textField;
         this.textField.setPrefWidth(400); // note this dictates the popup width
-
-        hideOnSuggestion.set(false);
-        popup.setOnSuggestion(e -> {
-            try {
-                ignoreInputChanges = true;
-                acceptSuggestion(e.getSuggestion());
-                fireAutoCompletion(e.getSuggestion());
-                if(hideOnSuggestion.get()) hidePopup();
-            } finally {
-                // Ensure that ignore is always set back to false
-                ignoreInputChanges = false;
-            }
-        });
     }
 
     @Override
@@ -72,7 +59,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                             if(!ignoreEvent)
-                                if(e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
+                                if (e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
 //                                    switch (e.getCode()) {
 //                                        case UP   : up(); break;
 //                                        case DOWN : down(); break;
@@ -146,8 +133,8 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     }
 
     private void acceptSuggestionNhide(Entry suggestion) {
-        acceptSuggestion(suggestion);
         popup.hide();
+        acceptSuggestion(suggestion);
     }
 
     public static class History {

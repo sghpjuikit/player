@@ -31,11 +31,7 @@
       </content>
     </ScrollPane><BorderPane fx:id="buttonPane" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 <center>
-    <Button id="okB" defaultButton="true" minHeight="-1.0" mnemonicParsing="false" onMouseClicked="#ok" prefWidth="70.0" text="OK" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER">
-      <tooltip>
-        <Tooltip text="Save new settings." />
-      </tooltip>
-    </Button>
+    <Button id="okB" minHeight="-1.0" mnemonicParsing="false" onMouseClicked="#ok" prefWidth="70.0" text="OK" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER"></Button>
 </center></BorderPane>
   </children>
   <padding>

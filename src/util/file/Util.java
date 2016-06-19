@@ -21,8 +21,7 @@ import javafx.scene.paint.Color;
 import util.file.AudioFileFormat.Use;
 
 import static main.App.APP;
-import static util.Util.emptyOr;
-import static util.Util.filenamizeString;
+import static util.Util.*;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.ISNTØ;
@@ -398,7 +397,7 @@ public interface Util {
             writer.write(content);
             return true;
         } catch (IOException e) {
-            log(Util.class).error("Couldnt save file: {}", file, e);
+            log(Util.class).error("Could not save file: {}", file, e);
             return false;
         }
     }
@@ -416,7 +415,7 @@ public interface Util {
             return Files.readAllLines(Paths.get(filepath));
         } catch (IOException e) {
             if (!(e.getCause() instanceof NoSuchFileException))
-                log(Util.class).error("Problems reading file {}. File wasnt read.", filepath, e);
+                log(Util.class).error("Problems reading file {}. File was not read.", filepath, e);
             return new ArrayList<>();
         }
     }
@@ -426,35 +425,9 @@ public interface Util {
             return Files.lines(f.toPath());
         } catch (IOException e) {
             if (!(e.getCause() instanceof NoSuchFileException))
-                log(Util.class).error("Problems reading file {}. File wasnt read.", f);
+                log(Util.class).error("Problem reading file {}. File was not read.", f);
             return Stream.empty();
         }
-    }
-
-    /**
-     * Reads files as key-value storage. Empty lines or lines starting with '#' or '!'
-     * (comment) will be ignored.
-     * <pre>{@code
-     * File format per line (input):
-     *     "key = value"
-     * Map of lines (output):
-     *     <String key, String value>
-     * }</pre>
-     *
-     * @param file file to read
-     * @return map of key-value pairs
-     */
-    static Map<String, String> readFileKeyValues(File file) {
-        Map<String, String> m = new HashMap<>();
-        readFileLines(file.getAbsolutePath()).forEach(line -> {
-            String l = emptyOr(line);
-            if (!l.isEmpty() && !l.startsWith("#") && !l.startsWith("!")) {
-                String key = l.substring(0, l.indexOf(" = "));
-                String value = l.substring(l.indexOf(" = ") + 3);
-                m.put(key, value);
-            }
-        });
-        return m;
     }
 
     static void deleteFile(File f) {

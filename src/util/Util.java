@@ -163,33 +163,37 @@ public interface Util {
     }
 
     /**
-     * Returns empty string if string meets is-empty criteria according to {@link #shouldBeEmpty(String)}
+     * Returns empty string if string meets is-empty criteria according to {@link #hasNoText(String)}
      * <br>
-     * More formally: {@code (shouldBeEmpty(str)) ? "" : str;}
+     * More formally: {@code (hasNoText(str)) ? "" : str;}
      *
      * @param s input string
      * @return "" if string should be empty or the string itself
      */
     static String emptyOr(String s) {
-        return shouldBeEmpty(s) ? "" : s;
+        return hasNoText(s) ? "" : s;
     }
 
     /**
      * Broader check for emptiness of String object.
      * <br/>
      * Criteria:
-     * <ul>
-     * <li> null
-     * <li> ""
+     * <ul> null
+     * <li> String.isEmpty()
      * <li> whitespace only
-     * <li> "null"
      * <ul/>
      *
      * @param s string to check.
      * @return true iff any of the criteria is met.
      */
-    static boolean shouldBeEmpty(String s) {
-        return s == null || s.trim().isEmpty() || s.equalsIgnoreCase("null");
+    static boolean hasNoText(String s) {
+    	if(s==null || s.isEmpty()) return true;
+
+	    for(int i=0; i<s.length(); i++)
+	    	if(!Character.isWhitespace(s.charAt(i)))
+	    		return false;
+
+	    return true;
     }
 
     static boolean equalsNoCase(String text, String phrase) {
@@ -227,6 +231,40 @@ public interface Util {
     static String removeLastChar(String text) {
         return text.isEmpty() ? text : text.substring(0, text.length()-1);
     }
+
+	static String escapeChar(String text, char escaped, char escape) {
+		if(text == null || text.isEmpty()) return text;
+
+		StringBuilder b = new StringBuilder();
+		for(int i=0; i<text.length(); i++) {
+			char c = text.charAt(i);
+			if (c==escaped) b.append(escape);
+			b.append(c);
+		}
+		return b.toString();
+	}
+
+	static String unescapeChar(String text, char escaped, char escape) {
+		if(text == null || text.length() <= 1) return text;
+
+		StringBuilder b = new StringBuilder();
+		boolean ignore = false;
+		for(int i=0; i<text.length()-1; i++) {
+			if (ignore) continue;
+			char c = text.charAt(i);
+			char cNext = text.charAt(i+1);
+			if (c==escape && cNext==escaped) {
+				b.append(cNext);
+				ignore = true;
+			} else {
+				b.append(c);
+				ignore = false;
+			}
+		}
+		if(!ignore) b.append(text.charAt(text.length()-1)); // handle last char specially
+
+		return b.toString();
+	}
 
     static String renameAnime(String s) {
         // remove the super annoying '_'

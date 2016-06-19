@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javafx.beans.property.ReadOnlyProperty;
@@ -24,13 +23,13 @@ import util.access.Vo;
 import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
+import util.file.Properties;
 import util.functional.Functors.Ƒ1;
 
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
-import static util.file.Util.readFileKeyValues;
-import static util.file.Util.writeFile;
-import static util.functional.Util.byNC;
+import static util.file.Util.readPropertyFile;
+import static util.functional.Util.stream;
 import static util.type.Util.getAllFields;
 import static util.type.Util.getGenericPropertyType;
 
@@ -62,7 +61,7 @@ public class Configuration {
     }
 
     public void rawAdd(File file) {
-        readFileKeyValues(file).forEach(this::rawAddProperty);
+        Properties.load(file).forEach(this::rawAddProperty);
     }
 
     public void rawRemProperty(String key) {
@@ -74,7 +73,7 @@ public class Configuration {
     }
 
     public void rawRem(File file) {
-        readFileKeyValues(file).forEach((name,value) -> rawRemProperty(name));
+        readPropertyFile(file).forEach((name, value) -> rawRemProperty(name));
     }
 
     public <C> void collect(Configurable<C> c) {
@@ -139,29 +138,24 @@ public class Configuration {
      * Loops through Configuration fields and stores them all into file.
      */
     public void save(String title, File file) {
-        StringBuilder content = new StringBuilder()
-            .append("# " + title + " property file" + "\n")
-            .append("# Last auto-modified: " + java.time.LocalDateTime.now() + "\n")
-            .append("#\n")
-            .append("# Properties are in the format: {property path}.{property.name}{separator}{property value}\n")
-            .append("# \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n")
-            .append("# \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n")
-            .append("# \t{separator}      must be ' = ' string\n")
-            .append("# \t{property value} can be any string (even empty)\n")
-            .append("# Properties must be separated by combination of '\\n', '\\r' characters\n")
-            .append("#\n")
-            .append("# Ignored lines:\n")
-            .append("# \tcomment lines (start with '#')\n")
-            .append("# \tcomment lines (start with '!')\n")
-            .append("# \tempty lines\n")
-            .append("\n");
+	    String comment = new StringBuilder()
+	        .append(" " + title + " property file" + "\n")
+	        .append(" Last auto-modified: " + java.time.LocalDateTime.now() + "\n")
+	        .append("\n")
+	        .append(" Properties are in the format: {property path}.{property.name}{separator}{property value}\n")
+	        .append(" \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n")
+	        .append(" \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n")
+	        .append(" \t{separator}      must be ' = ' string\n")
+	        .append(" \t{property value} can be any string (even empty)\n")
+	        .append(" Properties must be separated by combination of '\\n', '\\r' characters\n")
+	        .append("\n")
+	        .append(" Ignored lines:\n")
+	        .append(" \tcomment lines (start with '#')\n")
+	        .append(" \tcomment lines (start with '!')\n")
+	        .append(" \tempty lines\n")
+		    .toString();
 
-        Function<Config,String> converter = configs.keyMapper;
-        getFields().stream()
-                   .sorted(byNC(converter))
-                   .forEach(c -> content.append("\n" + converter.apply(c) + " = " + c.getValueS()));
-
-        writeFile(file, content.toString());
+	    Properties.save(file, comment, stream(getFields()).toMap(configs.keyMapper, Config::getValueS));
     }
 
     /**

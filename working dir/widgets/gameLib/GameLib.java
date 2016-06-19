@@ -32,8 +32,8 @@ import util.async.executor.FxTimer;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
-import util.file.Environment;
-import util.file.ImageFileFormat;
+import util.file.*;
+import util.file.Properties;
 import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
@@ -225,8 +225,7 @@ public class GameLib extends FXMLController {
     }
 
     @Override
-    public void onClose() {
-    }
+    public void onClose() {}
 
     private void loadGames() {
         game_list.getItems().clear();
@@ -312,7 +311,7 @@ public class GameLib extends FXMLController {
         public Map<String,String> loadMetadata() {
             if(settings==null) {
                 File f = new File(location,"game.properties");
-                settings = f.exists() ? readFileKeyValues(f) : new HashMap<>();
+                settings = f.exists() ? Properties.load(f) : new HashMap<>();
             }
             return settings;
         }

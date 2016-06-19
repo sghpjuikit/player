@@ -150,7 +150,6 @@ public final class UiContext {
 
     public static void launchComponent(String componentName) {
         WidgetFactory<?> wf = APP.widgetManager.factories.get(componentName);
-	    System.out.println("kkoooooo  " + componentName + " " + wf);
 	    Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
@@ -205,7 +204,7 @@ public final class UiContext {
     }
 
 
-    public static interface ClickHandler {
+    public interface ClickHandler {
         void handle(Window w, MouseEvent e);
     }
 

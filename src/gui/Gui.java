@@ -189,14 +189,14 @@ public class Gui {
         return locked_layout.get();
     }
 
-    @IsAction(name = "Toggle layout lock.", desc = "Lock/unlock layout.", keys = "F4")
+    @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
     /** Toggles lock to prevent layouting. */
     public static void toggleLayoutLocked() {
         locked_layout.set(!locked_layout.get());
     }
 
     /** Loads/refreshes whole gui. */
-    @IsAction(name = "Reload GUI.", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
+    @IsAction(name = "Reload GUI", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
     public static void refresh() {
         if (APP.initialized) {
             skin.applyValue();

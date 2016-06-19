@@ -41,8 +41,6 @@ import static util.dev.Util.noØ;
 @IsConfigurable
 public final class UiContext {
 
-/********************************************** CLICK *********************************************/
-
     private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
     private static boolean launching1st = !App.APP.normalLoad;
     private static double x;
@@ -196,8 +194,6 @@ public final class UiContext {
             return null;
         }
     }
-
-/******************************************************************************/
 
     public static WritableImage makeSnapshot(Node n) {
         return n.snapshot(new SnapshotParameters(), null);

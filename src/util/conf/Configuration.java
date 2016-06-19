@@ -28,7 +28,6 @@ import util.functional.Functors.Ƒ1;
 
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
-import static util.file.Util.readPropertyFile;
 import static util.functional.Util.stream;
 import static util.type.Util.getAllFields;
 import static util.type.Util.getGenericPropertyType;
@@ -73,7 +72,7 @@ public class Configuration {
     }
 
     public void rawRem(File file) {
-        readPropertyFile(file).forEach((name, value) -> rawRemProperty(name));
+        Properties.load(file).forEach((name, value) -> rawRemProperty(name));
     }
 
     public <C> void collect(Configurable<C> c) {

@@ -1,14 +1,12 @@
 package util.action;
 
+import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import javafx.application.Platform;
@@ -29,6 +27,7 @@ import com.melloware.jintellitype.JIntellitype;
 import audio.playback.PLAYBACK;
 import audio.playlist.PlaylistManager;
 import main.App;
+import main.AppSerializer;
 import util.access.V;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -36,12 +35,15 @@ import util.collections.mapset.MapSet;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
+import util.file.Environment;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
 import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
 import static util.reactive.Util.executeWhenNonNull;
 import static util.reactive.Util.listChangeHandler;
 
@@ -620,7 +622,7 @@ public final class Action extends Config<Action> implements Runnable {
         // auto-discover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
 
-        // discover all actions
+        // discover all method actions
         MapSet<Integer,Action> out = new MapSet<>(Action::getID); // must use getID
                                out.add(EMPTY);
         Lookup method_lookup = MethodHandles.lookup();
@@ -655,6 +657,54 @@ public final class Action extends Config<Action> implements Runnable {
             }
         }
         return out;
+    }
+
+    public static void loadCommandActions() {
+
+	    // discover all command actions defined in file
+	    File commandActionsDefFile = new File(APP.DIR_USERDATA, "command-actions.cfg");
+	    boolean generateTemplate = false;
+	    try {
+	    	generateTemplate |=
+		    (commandActionsDefFile.exists()
+			     ? APP.serializators.fromXML(CommandActionDatas.class, commandActionsDefFile)
+			     : new CommandActionDatas()
+		    )
+			    .stream()
+			    .filter(a -> a.isEnabled)
+			    .map(CommandActionData::toAction)
+			    .peek(Action::register)
+			    .peek(actions::add)
+		        .count() > 0;
+	    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
+
+	    if(generateTemplate)
+		    try {
+			    APP.serializators.toXML(
+				    stream(new CommandActionData(), new CommandActionData()).toCollection(CommandActionDatas::new),
+				    commandActionsDefFile
+			    );
+		    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
+    }
+
+    private static class CommandActionDatas extends HashSet<CommandActionData> {}
+    private static class CommandActionData {
+    	public String name = "";
+	    public String keys = "";
+    	public String command = "";
+    	public boolean isGlobal = false;
+    	public boolean isAppComand = true;
+    	public boolean isEnabled = true;
+
+	    public Action toAction() {
+	    	return new Action(
+	    		name,
+			    isAppComand ? () -> APP.parameterProcessor.process(list(command)) : () -> Environment.runCommand(command),
+                isAppComand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
+                isAppComand ? "Shortcuts.command.app" : "Shortcuts.command.system",
+				keys, isGlobal, false
+            );
+	    }
     }
 
     private static String getActionGroup(Class<?> c) {

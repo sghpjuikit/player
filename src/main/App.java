@@ -585,6 +585,7 @@ public class App extends Application implements Configurable {
 
         // start global shortcuts
         Action.startActionListening();
+	    Action.loadCommandActions();
     }
 
     /**

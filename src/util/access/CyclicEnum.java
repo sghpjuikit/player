@@ -24,7 +24,7 @@ public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
      * @return next cyclical enum constant according to its ordinal number.
      */
     @Override
-    public default E next() {
+    default E next() {
         return SequentialValue.next((E)this);
     }
 
@@ -36,7 +36,7 @@ public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
      * @return previous cyclical enum constant according to its ordinal number.
      */
     @Override
-    public default E previous() {
+    default E previous() {
         return SequentialValue.previous((E)this);
     }
 

@@ -183,7 +183,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void duplicateItem(PlaylistItem item) {
         int i = indexOf(item);
-        if(i!=-1) add(i+1, item.clone());
+        if(i!=-1) add(i+1, item.copy());
     }
 
     /**
@@ -197,7 +197,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         for (PlaylistItem item: items) {
             int i = items.indexOf(item);
             if (i > 0) { // if contains
-                to_dup.add(item.clone());   // item must be cloned
+                to_dup.add(item.copy());   // item must be cloned
                 index = i+1;
             }
         }

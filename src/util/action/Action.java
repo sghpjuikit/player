@@ -408,7 +408,7 @@ public final class Action extends Config<Action> implements Runnable {
 
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
+        if(this==o) return true;
 
         if(!(o instanceof Action)) return false;
         Action a = (Action) o;
@@ -675,7 +675,7 @@ public final class Action extends Config<Action> implements Runnable {
 			    .map(CommandActionData::toAction)
 			    .peek(Action::register)
 			    .peek(actions::add)
-		        .count() > 0;
+		        .count() < 1;
 	    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
 
 	    if(generateTemplate)

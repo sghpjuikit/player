@@ -26,6 +26,6 @@ public interface Selection<E> {
      * @param list List the selection operates on.
      * @return
      */
-    public E select(int size, int index, E item, List<E> list);
+    E select(int size, int index, E item, List<E> list);
 
 }

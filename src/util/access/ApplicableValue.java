@@ -18,7 +18,7 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      * Applies contained value using the applier.
      * Equivalent to {@code applyValue(getValue()); }.
      */
-    public default void applyValue() {
+    default void applyValue() {
         applyValue(getValue());
     }
 
@@ -36,13 +36,13 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      *
      * @param val
      */
-    public void applyValue(V val);
+    void applyValue(V val);
 
     /**
      * Applies contained value using provided applier.
      * Equivalent to calling {@code applier.accept(getValue()); }.
      */
-    public default void applyValue(Consumer<V> applier) {
+    default void applyValue(Consumer<V> applier) {
         applier.accept(getValue());
     }
 
@@ -50,7 +50,7 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      * Sets value and applies using the applier.
      * Equivalent to {@code setValue(val); applyValue(); }.
      */
-    public default void setNapplyValue(V v) {
+    default void setNapplyValue(V v) {
         V ov = getValue();
         if(ov==v || (ov!=null && v!=null && ov.equals(v))) return;
         setValue(v);
@@ -61,21 +61,21 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      * Equivalent to calling {@link #setNextValue()} and then {@link #applyValue()}
      * subsequently.
      */
-    public default void setNextNapplyValue() {
+    default void setNextNapplyValue() {
         setNapplyValue(next());
     }
     /**
      * Equivalent to calling {@link #setPreviousValue()} and then {@link #applyValue()}
      * subsequently.
      */
-    public default void setPreviousNapplyValue() {
+    default void setPreviousNapplyValue() {
         setNapplyValue(previous());
     }
     /**
      * Equivalent to calling {@link #setCycledValue())} and then {@link #applyValue()}
      * subsequently.
      */
-    public default void setCycledNapplyValue() {
+    default void setCycledNapplyValue() {
         setNapplyValue(cycle());
     }
 

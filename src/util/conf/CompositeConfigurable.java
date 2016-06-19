@@ -23,7 +23,7 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
 
     /** {@inheritDoc} */
     @Override
-    public default Collection<Config<T>> getFields() {
+    default Collection<Config<T>> getFields() {
         Collection<Config<T>> l = new ArrayList<>(Configurable.super.getFields());
         getSubConfigurable().forEach(c->c.getFields().forEach(l::add));
         return l;
@@ -31,7 +31,7 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
 
     /** {@inheritDoc} */
     @Override
-    public default Config getField(String name) {
+    default Config getField(String name) {
         Config f = Configurable.super.getField(name);
         if(f!=null) return f;
         for(Configurable c : getSubConfigurable()) {
@@ -45,5 +45,5 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
      * Returns configurables composing this object.
      * @return collection of subocnfigurable, never null
      */
-    public Collection<Configurable<T>> getSubConfigurable();
+    Collection<Configurable<T>> getSubConfigurable();
 }

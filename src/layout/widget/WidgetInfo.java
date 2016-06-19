@@ -102,9 +102,9 @@ public interface WidgetInfo {
     /** @return true if widget's controller implements all given features */
     default boolean hasFeatures(Class<?>... features){
         return stream(features).allMatch(this::hasFeature);
-    };
+    }
 
-    /** Returns widget info as string. */
+	/** Returns widget info as string. */
     default String toStr() {
         List<Feature> fs = getFeatures();
         String info = "";

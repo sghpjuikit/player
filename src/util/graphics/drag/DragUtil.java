@@ -129,12 +129,12 @@ public final class DragUtil {
     public static final EventHandler<DragEvent> componentDragAcceptHandler = accept(DragUtil::hasComponent);
 
     /** {@link #accept(java.util.function.Predicate) } using {@link #hasAudio(javafx.scene.input.DragEvent) } as predicate. */
-    public static final EventHandler<DragEvent> audioDragAccepthandler = accept(DragUtil::hasAudio);;
+    public static final EventHandler<DragEvent> audioDragAccepthandler = accept(DragUtil::hasAudio);
 
-    /** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
-    public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);;
+	/** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
+    public static final EventHandler<DragEvent> imgFileDragAccepthandler = accept(DragUtil::hasImage);
 
-    /** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as predicate. */
+	/** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as predicate. */
     public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = accept(DragUtil::hasWidgetOutput);
 
 /************************************ ANY *************************************/

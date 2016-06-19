@@ -342,7 +342,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             @Override
             protected void updateItem(Object item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : f.toS((T) getTableRow().getItem(), item, ""));
+                setText(empty ? "" : f.toS(getTableRow().getItem(), item, ""));
             }
         };
         cell.setAlignment(a);
@@ -354,7 +354,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             @Override
             protected void updateItem(Object item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : f.toS((T)getTableRow().getItem(),item,""));
+                setText(empty ? "" : f.toS(getTableRow().getItem(),item,""));
             }
         };
         cell.setAlignment(a);

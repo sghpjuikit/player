@@ -84,8 +84,8 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
 //        control.setManaged(false);
         horizontal = getSkinnable().getOrientation() == Orientation.HORIZONTAL;
 
-        contentRegions = FXCollections.<Content>observableArrayList();
-        contentDividers = FXCollections.<ContentDivider>observableArrayList();
+        contentRegions = FXCollections.observableArrayList();
+        contentDividers = FXCollections.observableArrayList();
 
         int index = 0;
         for (Node n: getSkinnable().getItems()) {

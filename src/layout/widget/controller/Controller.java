@@ -60,9 +60,9 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
     /** Loads the widget. Called once, before {@link #init()}. The result is then cached. */
     default Node loadFirstTime() throws Exception {
         return (Node) this;
-    };
+    }
 
-    /**
+	/**
      * Initializes the controller. Use as a constructor.
      * <p/>
      * If the contorller makes use of the {@link util.conf.IsConfig} anotated properties,
@@ -72,9 +72,9 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
      * Dont invoke this method, it is called automatically at widget's creation.
      * Invoking this method will have no effect.
      */
-    default void init() {};
+    default void init() {}
 
-    /**
+	/**
      * Refreshes the controller state.
      * <p/>
      * Brings GUI up to date ensuring all potential changes are accounted for.
@@ -90,13 +90,13 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
      * In case that widget has nothing to refresh, such implementations
      * could do nothing.
      */
-    public void refresh();
+    void refresh();
 
     /**
      * Returns widget in relationship with this Controller object.
      * @return associated widget or null if none.
      */
-    public W getWidget();
+    W getWidget();
 
     /**
      * Executes immediately before widget is closed. Widget is not

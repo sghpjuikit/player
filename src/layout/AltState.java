@@ -32,19 +32,19 @@ public interface AltState {
      * Switch states transition duration. Its consistent for all AltState
      * implementations.
      */
-    static final Duration TIME = Duration.millis(300);
+    Duration TIME = Duration.millis(300);
     
     /**
      * Transition to alternative state.
      */
-    public void show();
+    void show();
     /**
      * Transition to normal state.
      */
-    public void hide();
+    void hide();
     
     /** Invokes show() if true else hide(). */
-    public default void setShow(boolean v) {
+    default void setShow(boolean v) {
         if(v) show(); else hide();
     }
 }

@@ -1,18 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package audio.tagging.chapter;
 
-import util.units.FormattedDuration;
 import java.util.Objects;
 import javafx.util.Duration;
+import util.units.FormattedDuration;
 
 /**
  * Chapter is a text associated with specific point of time in a song item.
  * <p/>
  * Chapter always has time and text assigned to it. Time must always be specified
  * while text is "" by default.
+ *
  * @author Martin Polakovic
  */
 public final class Chapter implements Comparable<Chapter> {
@@ -20,7 +17,6 @@ public final class Chapter implements Comparable<Chapter> {
     private FormattedDuration time;
     private String info = "";
 
-    
     public Chapter(Duration time) {
         this(time, "");
     }
@@ -86,11 +82,7 @@ public final class Chapter implements Comparable<Chapter> {
      */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
-        
-        return (o == null || !(o instanceof Chapter)) 
-                ? false
-                : getTime().equals(((Chapter)o).getTime());
+	    return this == o || (o instanceof Chapter && getTime().equals(((Chapter) o).getTime()));
     }
 
     @Override

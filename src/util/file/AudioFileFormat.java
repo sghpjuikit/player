@@ -213,10 +213,10 @@ public enum AudioFileFormat {
     }
 
 
-    public static enum Use {
+    public enum Use {
         APP,
         PLAYBACK,
-        DB;
+        DB
     }
 }
 

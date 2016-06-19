@@ -18,22 +18,22 @@ public interface InfoNode<B> {
      * @implSpec this method should first call {@link #unbind()} to remove any
      * previous monitoring.
      */
-    public void bind(B bindable);
+    void bind(B bindable);
     
     /** Stops monitoring the bindable element. */
-    public void unbind();
+    void unbind();
     
     /** Sets visibility for the graphics. */
-    public void setVisible(boolean v);
+    void setVisible(boolean v);
     
     /** Binds and sets visible true. */
-    public default void showNbind(B bindable) {
+    default void showNbind(B bindable) {
         bind(bindable);
         setVisible(true);
     }
     
     /** Unbinds and sets visible false. */
-    public default void hideNunbind() {
+    default void hideNunbind() {
         unbind();
         setVisible(false);
     }

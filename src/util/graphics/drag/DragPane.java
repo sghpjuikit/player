@@ -55,15 +55,15 @@ public class DragPane extends Placeholder {
         }
     );
 
-    public static final void install(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
+    public static void install(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
         DragPane.install(r, icon, () -> name, cond);
     }
 
-    public static final void install(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
+    public static void install(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
         install(r, icon, name, cond, e -> false, null);
-    };
+    }
 
-    /**
+	/**
      * Installs drag highlighting for specified node and drag defined by specified predicate,
      * displaying specified icon and action description.
      * <p/>
@@ -120,7 +120,7 @@ public class DragPane extends Placeholder {
      * may be used to calculate size and position of the highlight. The result can be a portion of
      * the node's area and even react on mouse drag moving across the node.
      */
-    public static final void install(Node node, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
+    public static void install(Node node, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
         Data d = new Data(name, icon, cond);
         node.getProperties().put(INSTALLED, d);
         node.addEventHandler(DragEvent.DRAG_OVER, e -> {

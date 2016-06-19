@@ -67,7 +67,7 @@ public class FileCover implements Cover {
 
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
+        if(this==o) return true;
 
         if(o != null && o instanceof FileCover) {
             FileCover other = (FileCover)o;

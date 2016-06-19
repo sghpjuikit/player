@@ -104,7 +104,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     : new Callback<>() {
                         @Override
                         public ObservableValue<Object> call(CellDataFeatures<PlaylistItem, Object> cf) {
-                            return cf.getValue() == null ? null : new PojoV<>(cf.getValue().getField(f));
+                            return cf.getValue() == null ? null : new PojoV<>(f.getOf(cf.getValue()));
                         }
                     }
             );

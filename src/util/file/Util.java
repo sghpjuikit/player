@@ -562,8 +562,7 @@ public interface Util {
         URL u = new URL(url);
         try (
             InputStream is = u.openStream();
-            OutputStream os = new FileOutputStream(file);
-        ) {
+            OutputStream os = new FileOutputStream(file)) {
             byte[] b = new byte[2048];
             int length;
             while ((length = is.read(b)) > 0)

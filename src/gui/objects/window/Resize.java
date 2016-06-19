@@ -14,5 +14,5 @@ package gui.objects.window;
     SW,
     W,
     NW,
-    NONE;
+    NONE
 }

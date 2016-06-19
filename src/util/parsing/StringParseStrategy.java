@@ -56,7 +56,7 @@ public @interface StringParseStrategy {
     Class<? extends Exception>[] exFrom() default {};
 
     /** Defines strategy for parsing object from String. */
-    public static enum From {
+    enum From {
         /** {@link ParsesFromString} annotation decides responsible method. */
         ANNOTATED_METHOD,
         /**
@@ -72,11 +72,11 @@ public @interface StringParseStrategy {
          */
         FX,
         /** Parsing strategy undefined. */
-        NONE;
+        NONE
     }
 
     /** Defines strategy for parsing object to String. */
-    public static enum To {
+    enum To {
         /** toString() method is responsible. */
         TO_STRING_METHOD,
         /** {@link ParsesToString} annotation decides responsible method. */
@@ -94,6 +94,6 @@ public @interface StringParseStrategy {
          */
         FX,
         /** Parsing strategy undefined. */
-        NONE;
+        NONE
     }
 }

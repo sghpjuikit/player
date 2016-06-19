@@ -3,6 +3,7 @@ package util.conf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static util.functional.Util.list;
@@ -23,7 +24,7 @@ public class ListConfigurable<T> implements Configurable<T> {
 
     public ListConfigurable(Config<T>... configs) {
         cs = new ArrayList<>();
-        for(Config<T> c : configs) this.cs.add(c);
+	    Collections.addAll(cs, configs);
     }
 
     public ListConfigurable(Collection<Config<T>> configs) {

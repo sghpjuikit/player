@@ -24,11 +24,11 @@ package audio.playback.player.xtrememp.audio;
  * @author Besmir Beqiri
  */
 public interface PlaybackListener {
-    public void playbackBuffering(PlaybackEvent pe);
-    public void playbackOpened(PlaybackEvent pe);
-    public void playbackEndOfMedia(PlaybackEvent pe);
-    public void playbackPlaying(PlaybackEvent pe);
-    public void playbackProgress(PlaybackEvent pe);
-    public void playbackPaused(PlaybackEvent pe);
-    public void playbackStopped(PlaybackEvent pe);
+    void playbackBuffering(PlaybackEvent pe);
+    void playbackOpened(PlaybackEvent pe);
+    void playbackEndOfMedia(PlaybackEvent pe);
+    void playbackPlaying(PlaybackEvent pe);
+    void playbackProgress(PlaybackEvent pe);
+    void playbackPaused(PlaybackEvent pe);
+    void playbackStopped(PlaybackEvent pe);
 }

@@ -31,28 +31,28 @@ import util.functional.Operable;
 public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>, Operable<V> {
 
     /** Sets value to specified. Convenience setter. */
-    public default void setVof(WritableValue<V> value) {
+    default void setVof(WritableValue<V> value) {
         setValue(value.getValue());
     }
 
     /**
      * Equivalent to calling {@link #setValue()} with {@link #next()};
      */
-    public default void setNextValue() {
+    default void setNextValue() {
         setValue(next());
     }
 
     /**
      * Equivalent to calling {@link #setValue()} with {@link #previous()};
      */
-    public default void setPreviousValue() {
+    default void setPreviousValue() {
         setValue(previous());
     }
 
     /**
      * Equivalent to calling {@link #setValue()} with {@link #cycle()};
      */
-    public default void setCycledValue() {
+    default void setCycledValue() {
         setValue(cycle());
     }
 
@@ -65,7 +65,7 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
      * enum constant. Otherwise does nothing.
      */
     @Override
-    public default V next() {
+    default V next() {
         V val = getValue();
         if(val instanceof SequentialValue)
             return ((SequentialValue<V>)getValue()).next();
@@ -88,7 +88,7 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
      * {@inheritDoc}
      */
     @Override
-    public default V previous() {
+    default V previous() {
         V val = getValue();
         if(val instanceof SequentialValue)
             return ((SequentialValue<V>)getValue()).previous();
@@ -102,27 +102,27 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 /******************************************************************************/
 
     @Override
-    public default V apply(UnaryOperator<V> op) {
+    default V apply(UnaryOperator<V> op) {
         return op.apply(getValue());
     }
 
     @Override
-    public default <R> R apply(Function<V,R> op) {
+    default <R> R apply(Function<V, R> op) {
         return op.apply(getValue());
     }
 
     @Override
-    public default V apply(V e, BinaryOperator<V> op) {
+    default V apply(V e, BinaryOperator<V> op) {
         return op.apply(getValue(), e);
     }
 
     @Override
-    public default void use(Consumer<V> op) {
+    default void use(Consumer<V> op) {
         op.accept(getValue());
     }
 
     @Override
-    public default V useAnd(Consumer<V> op) {
+    default V useAnd(Consumer<V> op) {
         V v = getValue();
         op.accept(v);
         return v;
@@ -130,11 +130,11 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 
 
 
-    public default void setValueOf(UnaryOperator<V> op) {
+    default void setValueOf(UnaryOperator<V> op) {
         setValue(op.apply(getValue()));
     }
 
-    public default void setValueOf(V v2, BinaryOperator<V> op) {
+    default void setValueOf(V v2, BinaryOperator<V> op) {
         setValue(op.apply(getValue(), v2));
     }
 

@@ -1,8 +1,3 @@
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package audio.playlist;
 
 import java.io.IOException;
@@ -176,8 +171,6 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return this.time;
     }
 
-/******************************************************************************/
-
     /**
      * Updates this item by reading the tag of the source file.
      * Involves I/O, so dont use on main thread. Safe to call from bgr thread.
@@ -293,8 +286,6 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return corrupted;
     }
 
-/******************************************************************************/
-
     /**
      * {@inheritDoc}
      * <p/>
@@ -328,8 +319,6 @@ public final class PlaylistItem extends Item<PlaylistItem> {
              + getTime().toString();
     }
 
-/******************************************************************************/
-
     /**
      * Two playlistItems are equal if and only if they are the same object. Equivalent
      * to this == item, which can be used instead.
@@ -352,8 +341,6 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return hash;
     }
 
-/******************************************************************************/
-
     /**
      * Compares by name.
      * <p/>
@@ -364,34 +351,17 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return getName().compareToIgnoreCase(o.getName());
     }
 
-/******************************************************************************/
-
     /**
      * Clones the item.
      *
-     * @return clone of the item or null if parameter null.
+     * @return copy of the item or null if parameter null.
      */
-    public PlaylistItem clone() {
+    public PlaylistItem copy() {
         PlaylistItem i = new PlaylistItem(getURI(), getArtist(), getTitle(), getTime().toMillis());
-                     i.updated = updated; // also clone updated state
-                     i.corrupted = corrupted; // also clone corrupted state
+                     i.updated = updated;
+                     i.corrupted = corrupted;
         return i;
     }
-
-/******************************************************************************/
-
-    /** {@inheritDoc} */
-    public Object getField(Field field) {
-        return field.getOf(this);
-    }
-
-    /** {@inheritDoc} */
-    public Field getMainField() {
-        return Field.NAME;
-    }
-
-
- /**************************** COMPANION CLASS *********************************/
 
     /**
      *

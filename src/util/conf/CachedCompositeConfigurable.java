@@ -17,12 +17,12 @@ public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T>
     Map<String,Config<T>> getFieldsMap();
 
     @Override
-    public default Config<T> getField(String n) {
+    default Config<T> getField(String n) {
         return getFieldsMap().computeIfAbsent(n, CompositeConfigurable.super::getField);
     }
 
     @Override
-    public default Collection<Config<T>> getFields() {
+    default Collection<Config<T>> getFields() {
         CompositeConfigurable.super.getFields().forEach(c -> getFieldsMap().putIfAbsent(c.getName(), c));
         return getFieldsMap().values();
     }

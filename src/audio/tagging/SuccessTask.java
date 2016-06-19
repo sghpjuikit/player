@@ -91,8 +91,8 @@ public abstract class SuccessTask<T,O> extends Task<T> implements Operable<O> {
         sb.append(done);
         sb.append(" / ");
         sb.append(all);
-        sb.append(".");;
-        updateMessage(sb.toString());
+        sb.append(".");
+	    updateMessage(sb.toString());
     }
 
 //    @Override

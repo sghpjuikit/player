@@ -205,8 +205,9 @@ public class Comet extends ClassController {
 
     static int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
     static int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
-    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000/(4*a.radius); };
-    static double SCORE_UFO = 250;
+    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000/(4*a.radius); }
+
+	static double SCORE_UFO = 250;
     static double SCORE_UFO_DISC = 100;
     static double BONUS_MOBILITY_MULTIPLIER = 1.25; // coeficient
     static double BONUS_LASER_MULTIPLIER_LENGTH = 400; // px
@@ -628,8 +629,8 @@ public class Comet extends ClassController {
             boolean isThird = loopid%3==0;
 
             players.stream().filter(p -> p.alive).forEach(p -> {
-                if(pressedKeys.contains(p.keyLeft.get()))  p.rocket.dir -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(),0l));
-                if(pressedKeys.contains(p.keyRight.get())) p.rocket.dir += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(),0l));
+                if(pressedKeys.contains(p.keyLeft.get()))  p.rocket.dir -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
+                if(pressedKeys.contains(p.keyRight.get())) p.rocket.dir += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(), 0L));
                 if(isThird && p.rocket.rapidfire.is() && pressedKeys.contains(p.keyFire.get()))  p.rocket.gun.fire();
             });
 
@@ -980,7 +981,7 @@ public class Comet extends ClassController {
             void clear() {
                 forceFields.clear();
                 forceFieldstoAdd.clear();
-            };
+            }
         }
     }
 
@@ -1062,9 +1063,9 @@ public class Comet extends ClassController {
     }
 
     /** Loop object - object with per loop behavior. Executes once per loop. */
-    private static interface LO {
+    private interface LO {
         void doLoop();
-        default void dispose() {};
+        default void dispose() {}
     }
     private abstract class SO implements LO {
         double x = 0;
@@ -1143,9 +1144,11 @@ public class Comet extends ClassController {
             doLoopEnd();
             if(children!=null) children.forEach(LO::doLoop);
         }
-        void doLoopBegin(){};
-        void doLoopEnd(){};
-        void move() {
+        void doLoopBegin(){}
+
+	    void doLoopEnd(){}
+
+	    void move() {
             dx *= RESISTANCE;
             dy *= RESISTANCE;
 //            if(abs(dx)<1/FPS) dx = 0;
@@ -1189,21 +1192,25 @@ public class Comet extends ClassController {
                     enabled = true;
                     onOn();
                 }
-            };
-            final void off() {
+            }
+
+	        final void off() {
                 if(enabled) {
                     enabled = false;
                     onOff();
                 }
             }
-            void onOn(){};
-            void onOff(){};
-            final void doLoop(){
+            void onOn(){}
+
+	        void onOff(){}
+
+	        final void doLoop(){
                 if(enabled) {
                     onDoLoop();
                 }
-            };
-            void onDoLoop(){};
+            }
+
+	        void onDoLoop(){}
         }
     }
     /** Object with engine, gun and other space ship characteristics. */
@@ -1384,16 +1391,17 @@ public class Comet extends ClassController {
                 init();
             }
 
-            void init(){};
-            public void dispose(){
+            void init(){}
+
+	        public void dispose(){
                 passivate(); // forcefully deactivate
                 onPassivateStart(); // forcefully deactivate
                 onPassivateEnd(); // forcefully deactivate
                 if(ability_main==this) ability_main = null;
                 children.remove(this);
-            };
+            }
 
-            void onKeyPress(){
+	        void onKeyPress(){
                 if(onHold) {
                     activate();
                 } else {
@@ -1421,14 +1429,21 @@ public class Comet extends ClassController {
                     onPassivateStart();
                 }
             }
-            void onActivateStart(){};
-            void onActivateEnd(){};
-            void onActive(){};
-            void onPassivateStart(){};
-            void onPassivateEnd(){};
-            void onPassive(){};
-            void onActiveChanged(double activation){};
-            boolean isActivated() { return activation==1; }
+            void onActivateStart(){}
+
+	        void onActivateEnd(){}
+
+	        void onActive(){}
+
+	        void onPassivateStart(){}
+
+	        void onPassivateEnd(){}
+
+	        void onPassive(){}
+
+	        void onActiveChanged(double activation){}
+
+	        boolean isActivated() { return activation==1; }
             public void doLoop() {
                 if(state==ACTIVATING) {
                     activation = timeActivation==0 ? 1 : min(1,activation+1/(timeActivation*FPS));
@@ -1977,8 +1992,8 @@ public class Comet extends ClassController {
 
         double discpos = 0; // 0-1, 0=close, 1=far
         double discdspeed = 0;
-        double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; }; // jump force
-        double disc_forceBio(double pos) { return pos<0.5 ? 0.01 : -0.01; }; // standard force
+        double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // jump force
+        double disc_forceBio(double pos) { return pos<0.5 ? 0.01 : -0.01; } // standard force
 
         double interUfoForce(Ufo u){
             double d = distance(u);
@@ -2782,7 +2797,7 @@ public class Comet extends ClassController {
         abstract void onHitParticles(SO o);
     }
 
-    private static interface Mover {
+    private interface Mover {
         void calcSpeed(Asteroid o);
     }
     private static class OrganelleMover implements Mover {

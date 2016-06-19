@@ -45,43 +45,43 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 
 /******************************************************************************/
 
-    public static int next(int v) { return v+1; }
-    public static int previous(int v) { return v-1; }
-    public static Integer next(Integer v) { return v+1; }
-    public static Integer previous(Integer v) { return v-1; }
+    static int next(int v) { return v+1; }
+    static int previous(int v) { return v-1; }
+    static Integer next(Integer v) { return v+1; }
+    static Integer previous(Integer v) { return v-1; }
 
-    public static long next(long v) { return v+1; }
-    public static long previous(long v) { return v-1; }
-    public static Long next(Long v) { return v+1; }
-    public static Long previous(Long v) { return v-1; }
+    static long next(long v) { return v+1; }
+    static long previous(long v) { return v-1; }
+    static Long next(Long v) { return v+1; }
+    static Long previous(Long v) { return v-1; }
 
-    public static short next(short v) { return (short) (v+1); }
-    public static short previous(short v) { return (short) (v-1); }
+    static short next(short v) { return (short) (v+1); }
+    static short previous(short v) { return (short) (v-1); }
     @TODO(purpose = UNIMPLEMENTED)
-    public static Short next(Short v) { return v; }
+    static Short next(Short v) { return v; }
     @TODO(purpose = UNIMPLEMENTED)
-    public static Short previous(Short v) { return v; }
+    static Short previous(Short v) { return v; }
 
-    public static boolean next(boolean v) { return !v; }
-    public static boolean previous(boolean v) { return !v; }
-    public static Boolean next(Boolean v) { return !v; }
-    public static Boolean previous(Boolean v) { return !v; }
+    static boolean next(boolean v) { return !v; }
+    static boolean previous(boolean v) { return !v; }
+    static Boolean next(Boolean v) { return !v; }
+    static Boolean previous(Boolean v) { return !v; }
 
     @TODO(purpose = UNIMPLEMENTED)
-    public static char next(char v) { return v; }
+    static char next(char v) { return v; }
     @TODO(purpose = UNIMPLEMENTED)
-    public static char previous(char v) { return v; }
+    static char previous(char v) { return v; }
     @TODO(purpose = UNIMPLEMENTED)
-    public static Character next(Character v) { return v; }
+    static Character next(Character v) { return v; }
     @TODO(purpose = UNIMPLEMENTED)
-    public static Character previous(Character v) { return v; }
+    static Character previous(Character v) { return v; }
 
     /**
      * Returns cyclically next enum constant value from list of all values for
      * specified enum constant.
      * @return next cyclical enum constant according to its ordinal number.
      */
-    public static <E extends Enum> E next(E val) {
+    static <E extends Enum> E next(E val) {
         E vals[] = getEnumConstants(val.getClass());
         int index = (val.ordinal()+1) % vals.length;
         return vals[index];
@@ -92,7 +92,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
      * specified enum constant.
      * @return previous cyclical enum constant according to its ordinal number.
      */
-    public static <E extends Enum> E previous(E val) {
+    static <E extends Enum> E previous(E val) {
         E vals[] = getEnumConstants(val.getClass());
         int ord = val.ordinal();
         int index = ord==0 ? vals.length-1 : ord-1;
@@ -100,27 +100,27 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     }
 
     /** Modular incrementing by 1. */
-    public static int incrIndex(int max, int index) {
+    static int incrIndex(int max, int index) {
         return index==max-1 ? 0 : ++index;
     }
 
     /** Modular incrementing by 1. */
-    public static int incrIndex(List<?> max, int index) {
+    static int incrIndex(List<?> max, int index) {
         return incrIndex(max.size(), index);
     }
 
     /** Modular decrementing by 1. */
-    public static int decrIndex(int max, int index) {
+    static int decrIndex(int max, int index) {
         return index==0 ? max-1 : --index;
     }
 
     /** Modular decrementing by 1. */
-    public static int decrIndex(List<?> list, int index) {
+    static int decrIndex(List<?> list, int index) {
         return decrIndex(list.size(), index);
     }
 
     /** @return next modular element in the list or null if empty */
-    public static <T> T next(List<T> list, T element) {
+    static <T> T next(List<T> list, T element) {
         if (list.isEmpty()) return null;
         if(element==null) return list.get(0);
         int index = list.indexOf(element);
@@ -128,7 +128,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     }
 
     /** @return previous modular element in the list or null if empty */
-    public static <T> T previous(List<T> list, T element) {
+    static <T> T previous(List<T> list, T element) {
         if (list.isEmpty()) return null;
         if(element==null) return list.get(0);
         int index = list.indexOf(element);
@@ -136,7 +136,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     }
 
     /** @return next modular element in the array or null if empty */
-    public static <T> T next(T[] list, T element) {
+    static <T> T next(T[] list, T element) {
         if (list.length==0) return null;
         if(element==null) return list[0];
         int index = -1;
@@ -149,7 +149,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     }
 
     /** @return previous modular element in the array or null if empty */
-    public static <T> T previous(T[] list, T element) {
+    static <T> T previous(T[] list, T element) {
         if (list.length==0) return null;
         if(element==null) return list[0];
         int index = -1;

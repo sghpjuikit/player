@@ -1,10 +1,14 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- Implement own FontPicker properly
+- add and implement properly componentFactories to natively support custom user pseudo-components, also
+  solve the Fctory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
+  set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
+- Implement FontPicker properly
 - improve skinning support
   - disable bgr blur (or make optional)
   - implement apply/refresh skin properly
+  - clean up old skins
 - remove all remaining dependencies on internal APIs
 - implement OS handlers // java 9
 - implement delete file to recycle bin // java 9

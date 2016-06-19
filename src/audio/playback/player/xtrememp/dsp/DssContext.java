@@ -68,7 +68,7 @@ public class DssContext {
      */
     public void extractData(ByteBuffer audioDataBuffer) {
         long lfp = sourceDataLine.getLongFramePosition();  // long frame position
-        offset = (int) ((long) (lfp * frameSize) % (long) (audioDataBuffer.capacity()));
+        offset = (int) (lfp * frameSize % (long) (audioDataBuffer.capacity()));
         int channelNum  = 0;    // audio channel number
         int sampleNum   = 0;    // audio sample number
         int cdp         = 0;    // channel data position

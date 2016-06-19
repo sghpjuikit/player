@@ -58,7 +58,7 @@ import static util.graphics.Util.menuItem;
  */
 public class TreeItems {
 
-    public static SimpleTreeItem<? extends Object> tree(Object o) {
+    public static SimpleTreeItem<?> tree(Object o) {
         if(o instanceof TreeItem)       return (SimpleTreeItem)o;
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
         if(o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
@@ -79,15 +79,15 @@ public class TreeItems {
         return t;
     }
 
-    public static SimpleTreeItem<Object> tree(Object v, List<? extends Object> cs) {
+    public static SimpleTreeItem<Object> tree(Object v, List<?> cs) {
         return new SimpleTreeItem(v,cs.stream());
     }
 
-    public static SimpleTreeItem<Object> tree(Object v, Stream<? extends Object> cs) {
+    public static SimpleTreeItem<Object> tree(Object v, Stream<?> cs) {
         return new STreeItem(v, () -> cs);
     }
 
-    public static SimpleTreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
+    public static SimpleTreeItem<Object> tree(Object v, Supplier<Stream<?>> cs) {
         return new STreeItem(v, cs);
     }
 
@@ -113,15 +113,15 @@ public class TreeItems {
                );
     }
 
-    public static List<SimpleTreeItem<? extends Object>> trees(Object... children) {
+    public static List<SimpleTreeItem<?>> trees(Object... children) {
         return (stream(children).map(TreeItems::tree).collect(toList()));
     }
 
-    public static List<SimpleTreeItem<? extends Object>> trees(Collection<Object> children) {
+    public static List<SimpleTreeItem<?>> trees(Collection<Object> children) {
         return children.stream().map(TreeItems::tree).collect(toList());
     }
 
-    public static List<SimpleTreeItem<? extends Object>> trees(Stream<? extends Object> children) {
+    public static List<SimpleTreeItem<?>> trees(Stream<? extends Object> children) {
         return children.map(TreeItems::tree).collect(toList());
     }
 

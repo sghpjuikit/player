@@ -599,9 +599,9 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         VISUALISATION,
         OTHER,
         DEVELOPMENT,
-        UNKNOWN;
+        UNKNOWN
     }
     public enum LoadType {
-        AUTOMATIC, MANUAL;
+        AUTOMATIC, MANUAL
     }
 }

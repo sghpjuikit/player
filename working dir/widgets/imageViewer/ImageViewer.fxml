@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.*?>
+<AnchorPane id="AnchorPane" fx:id="root" prefHeight="300.0" prefWidth="300.0" styleClass="imgviewer-root"
+            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+    <ScrollPane fx:id="thumb_root" fitToWidth="true" hbarPolicy="NEVER">
+        <TilePane fx:id="thumb_pane" layoutX="65.0" layoutY="44.0" styleClass="thumbnail-pane" tileAlignment="TOP_LEFT"
+                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                  AnchorPane.topAnchor="0.0">
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </TilePane>
 
-<AnchorPane id="AnchorPane" fx:id="root" mouseTransparent="false" prefHeight="300.0" prefWidth="300.0" styleClass="imgviewer-root" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
-<children><ScrollPane fx:id="thumb_root" fitToWidth="true" hbarPolicy="NEVER">
-<content><TilePane fx:id="thumb_pane" layoutX="65.0" layoutY="44.0" styleClass="thumbnail-pane" tileAlignment="TOP_LEFT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<padding>
-<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-</padding></TilePane>
-</content>
-</ScrollPane>
-</children>
+    </ScrollPane>
 </AnchorPane>

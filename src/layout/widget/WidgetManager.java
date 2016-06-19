@@ -572,7 +572,7 @@ public final class WidgetManager {
      * Denotes source for widgets. Used when looking up a widget. Sometimes it
      * is desirable to limit the source.
      */
-    public static enum WidgetSource {
+    public enum WidgetSource {
 
         /**
          * The source is be all currently active widgets contained within all
@@ -636,11 +636,11 @@ public final class WidgetManager {
         }
     }
 
-    public static enum Widget_Target {
+    public enum Widget_Target {
         LAYOUT,
         TAB,
         POPUP,
-        WINDOW;
+        WINDOW
     }
 
 

@@ -1,40 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.*?>
-
-<fx:root id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" snapToPixel="true" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
-  <children>
-    <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-      <content>
-        <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
-          <children>
-            <GridPane fx:id="fields" alignment="CENTER" gridLinesVisible="false" hgap="10.0" prefHeight="-1.0" prefWidth="-1.0" vgap="3.0" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="8.0">
-              <columnConstraints>
-                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" prefWidth="-1.0" />
-                <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" prefWidth="-1.0" />
-              </columnConstraints>
-              <padding>
-                <Insets />
-              </padding>
-              <rowConstraints>
-                <RowConstraints fillHeight="false" maxHeight="-Infinity" minHeight="20.0" prefHeight="20.0" valignment="CENTER" vgrow="ALWAYS" />
-              </rowConstraints>
+<fx:root id="AnchorPane" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" snapToPixel="true"
+         type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.40"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+    <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxWidth="-1.0"
+                prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0"
+                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <AnchorPane id="Content" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
+            <padding>
+                <Insets/>
+            </padding>
+            <GridPane fx:id="fields" alignment="CENTER" hgap="10.0" prefHeight="-1.0" prefWidth="-1.0" vgap="3.0"
+                      AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0"
+                      AnchorPane.topAnchor="8.0">
+                <columnConstraints>
+                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"/>
+                    <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES"/>
+                </columnConstraints>
+                <padding>
+                    <Insets/>
+                </padding>
+                <rowConstraints>
+                    <RowConstraints fillHeight="false" maxHeight="-Infinity" minHeight="20.0" prefHeight="20.0"
+                                    valignment="CENTER" vgrow="ALWAYS"/>
+                </rowConstraints>
             </GridPane>
-          </children>
-          <padding>
-            <Insets />
-          </padding>
         </AnchorPane>
-      </content>
-    </ScrollPane><BorderPane fx:id="buttonPane" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-<center>
-    <Button id="okB" minHeight="-1.0" mnemonicParsing="false" onMouseClicked="#ok" prefWidth="70.0" text="OK" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER"></Button>
-</center></BorderPane>
-  </children>
-  <padding>
-    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-  </padding>
+    </ScrollPane>
+    <BorderPane fx:id="buttonPane" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0">
+        <center>
+            <Button id="okB" mnemonicParsing="false" onMouseClicked="#ok" prefWidth="70.0" text="OK"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                    BorderPane.alignment="CENTER"></Button>
+        </center>
+    </BorderPane>
 </fx:root>

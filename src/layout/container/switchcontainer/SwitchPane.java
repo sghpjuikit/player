@@ -153,9 +153,9 @@ public class SwitchPane implements ContainerNode {
         ui.setTranslateX(translate);
         // remember latest position for deserialisation (we must not rewrite init value above)
         maintain(ui.translateXProperty(), v -> container.properties.put("translate",v));
-    };
+    }
 
-    double byx = 0;
+	double byx = 0;
     double tox = 0;
 
 /********************************    TABS   ***********************************/
@@ -165,7 +165,7 @@ public class SwitchPane implements ContainerNode {
 
     public void addTab(int i, Component c) {
         if(c==layouts.get(i)) {
-            return;
+        	return;
         } else if(c==null) {
             removeTab(i);
         } else {

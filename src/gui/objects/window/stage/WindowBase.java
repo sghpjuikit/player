@@ -631,7 +631,7 @@ public class WindowBase {
     }
 
     /** State of window maximization. */
-    public static enum Maximized implements CyclicEnum<Maximized> {
+    public enum Maximized implements CyclicEnum<Maximized> {
         ALL,
         LEFT,
         RIGHT,
@@ -639,7 +639,7 @@ public class WindowBase {
         RIGHT_TOP,
         LEFT_BOTTOM,
         RIGHT_BOTTOM,
-        NONE;
+        NONE
     }
 
 }

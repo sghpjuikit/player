@@ -222,7 +222,7 @@ public abstract class AutoCompletionBinding<T> {
      * Occurs when the user text has changed and the suggestions require an update
      * @param userText
      */
-    private final void onUserInputChanged(final String userText){
+    private void onUserInputChanged(final String userText){
         synchronized (suggestionsTaskLock) {
             if(suggestionsTask != null && suggestionsTask.isRunning()){
                 // cancel the current running task

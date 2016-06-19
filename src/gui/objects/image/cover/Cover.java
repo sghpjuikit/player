@@ -17,7 +17,7 @@ import javafx.scene.image.Image;
     /**
      * Returns the cover image.
      */
-    public Image getImage();
+    Image getImage();
     /**
      * Returns the cover image as is if available or loads it from file into
      * specified size. Doesnt guarantee the resulting size will match the specified.
@@ -25,21 +25,21 @@ import javafx.scene.image.Image;
      * @param height
      * @return 
      */
-    public Image getImage(double width, double height);
+    Image getImage(double width, double height);
     /**
      * Returns file denoting the image. Only some implementations of Cover will
      * return non null value. For example cover image obtained from tag will not
      * have fle available.
      * @return file for the image or null if none.
      */
-    public File getFile();
+    File getFile();
     /**
      * Human readable information about the cover. No guarantees about the
      * format of the output. Do not parse.
      * Example: "jpg 500x500"
      * @return information about the cover or "" if not available. Never null.
      */
-    public String getDestription();
+    String getDestription();
     
     /**
      * Cover is empty if it doestnt contain any resource that could be turned
@@ -47,15 +47,15 @@ import javafx.scene.image.Image;
      * must not return null value.
      * @return 
      */
-    public boolean isEmpty();
+    boolean isEmpty();
     
     
-    public static enum CoverSource {
+    enum CoverSource {
         /** use tag as cover source */
         TAG,
         /** use parent directory image as source */
         DIRECTORY,
         /** use all of the sources in their respective order and return first find */
-        ANY;
+        ANY
     }
 }

@@ -376,15 +376,15 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		return node.getFill();
 	}
 
-	private final ObjectProperty<Effect> iconEffectProperty() {
+	private ObjectProperty<Effect> iconEffectProperty() {
 		return node.effectProperty();
 	}
 
-	private final void setIconEffect(Effect value) {
+	private void setIconEffect(Effect value) {
 		node.setEffect(value);
 	}
 
-	private final Effect getIconEffect() {
+	private Effect getIconEffect() {
 		return node.getEffect();
 	}
 

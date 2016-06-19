@@ -781,7 +781,7 @@ public class PopOver<N extends Node> extends PopupControl {
     private static double GAP = 9;
     public ScreenUse screen_preference = APP_WINDOW;
 
-    public static enum NodePos {
+    public enum NodePos {
         Center,
         UpLeft,
         UpCenter,
@@ -857,7 +857,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 
     /** Defines position within the screen area defined by {@link ScreenUse}. */
-    public static enum ScreenPos {
+    public enum ScreenPos {
         Screen_Top_Right,
         Screen_Top_Left,
         Screen_Center,
@@ -918,7 +918,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Screen area picking strategy for popover position. Decides a rectangular
      * screen area for popup positioning.
      */
-    public static enum ScreenUse {
+    public enum ScreenUse {
         /** Area of a main screen will always be picked. */
         MAIN,
         /**
@@ -1117,7 +1117,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** All possible arrow locations. */
     public enum ArrowLocation {
         LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM, RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM,
-        TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT;
+        TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
     }
 
 /**************************** IN/OUT ANIMATIONS *******************************/

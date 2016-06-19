@@ -251,9 +251,9 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates tag.")
     private static void incrementPlayback() {
         APP.use(PlaycountIncrementer.class, PlaycountIncrementer::increment);
-    };
+    }
 
-    public static PlayingSequence.LoopMode getLoopMode() {
+	public static PlayingSequence.LoopMode getLoopMode() {
         return state.loopMode.get();
     }
 

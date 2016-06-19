@@ -987,7 +987,7 @@ public interface Functors {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(), p -> {
                 V<Object> a = new V<>(p.defaultValue);
-                return new AccessorConfig<>(p.type,"",a::setValue,(Supplier)a::getValue);
+                return new AccessorConfig<>(p.type, "", a::setValue, (Supplier)a::getValue);
             }));
         }
 

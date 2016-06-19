@@ -168,7 +168,7 @@ public final class MetadataGroup {
 
 /***************************** COMPANION CLASS ********************************/
 
-    public static enum Field implements ObjectField<MetadataGroup> {
+    public enum Field implements ObjectField<MetadataGroup> {
         VALUE(Object.class, MetadataGroup::getValue,"Song field to group by"),
         ITEMS(Long.class, MetadataGroup::getItemCount,"Number of songs in the group"),
         ALBUMS(Long.class, MetadataGroup::getAlbumCount,"Number of albums in the group"),

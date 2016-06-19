@@ -142,7 +142,7 @@ public class Converter extends ClassController implements SongWriter {
         );
 
         // on source change run transformation
-        source.addListener((Change<? extends Object> change) -> ta_in.setData(source));
+        source.addListener((Change<?> change) -> ta_in.setData(source));
 
         ta_in.onItemChange = lines -> {
             List<EditArea> l = null;

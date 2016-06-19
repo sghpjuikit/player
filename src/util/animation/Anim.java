@@ -377,7 +377,7 @@ public class Anim extends Transition {
 
         /** Returns reverse interpolator, which produces 1-interpolated_value. */
         static DoubleUnaryOperator reverse(Interpolator i) {
-            return x -> 1-i.interpolate(0d,1d,(double)x);
+            return x -> 1-i.interpolate(0d,1d, x);
         }
 
         static DoubleUnaryOperator isAround(double point_span, double... points) {

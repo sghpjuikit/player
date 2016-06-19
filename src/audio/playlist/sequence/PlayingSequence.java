@@ -73,7 +73,7 @@ public class PlayingSequence {
     /**
      * Playback Loop mode type variable. Values are: PLAYLIST, SONG, OFF.
      */
-    public static enum LoopMode implements CyclicEnum<LoopMode> {
+    public enum LoopMode implements CyclicEnum<LoopMode> {
         PLAYLIST {
             @Override public ItemSelector<PlaylistItem> selector() {
                 return new ItemSelector<>(

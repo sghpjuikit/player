@@ -29,7 +29,7 @@ public @interface TODO {
         API,
         FUNCTIONALITY,
         UNIMPLEMENTED,
-        UNSPECIFIED;
+        UNSPECIFIED
     }
 
     enum Severity {
@@ -38,6 +38,6 @@ public @interface TODO {
         MEDIUM,
         LOW,
         INSIGNIFICANT,
-        UNSPECIFIED;
+        UNSPECIFIED
     }
 }

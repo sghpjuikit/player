@@ -137,22 +137,20 @@ public class Configuration {
      * Loops through Configuration fields and stores them all into file.
      */
     public void save(String title, File file) {
-	    String comment = new StringBuilder()
-	        .append(" " + title + " property file" + "\n")
-	        .append(" Last auto-modified: " + java.time.LocalDateTime.now() + "\n")
-	        .append("\n")
-	        .append(" Properties are in the format: {property path}.{property.name}{separator}{property value}\n")
-	        .append(" \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n")
-	        .append(" \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n")
-	        .append(" \t{separator}      must be ' = ' string\n")
-	        .append(" \t{property value} can be any string (even empty)\n")
-	        .append(" Properties must be separated by combination of '\\n', '\\r' characters\n")
-	        .append("\n")
-	        .append(" Ignored lines:\n")
-	        .append(" \tcomment lines (start with '#')\n")
-	        .append(" \tcomment lines (start with '!')\n")
-	        .append(" \tempty lines\n")
-		    .toString();
+	    String comment = title + " property file" + "\n"
+	        + " Last auto-modified: " + java.time.LocalDateTime.now() + "\n"
+	        + "\n"
+	        + " Properties are in the format: {property path}.{property.name}{separator}{property value}\n"
+	        + " \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n"
+	        + " \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"
+	        + " \t{separator}      must be ' = ' string\n"
+	        + " \t{property value} can be any string (even empty)\n"
+	        + " Properties must be separated by combination of '\\n', '\\r' characters\n"
+	        + "\n"
+	        + " Ignored lines:\n"
+	        + " \tcomment lines (start with '#')\n"
+	        + " \tcomment lines (start with '!')\n"
+	        + " \tempty lines\n";
 
 	    Properties.save(file, comment, stream(getFields()).toMap(configs.keyMapper, Config::getValueS));
     }

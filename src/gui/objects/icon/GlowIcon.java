@@ -36,7 +36,7 @@ public class GlowIcon extends Icon<GlowIcon> {
         
         // react on hover
         hoverProperty().addListener((ob,ov,nv) -> {
-            if(nv) {
+            if (nv) {
                 oa.stop();
                 ia.playOpenFrom((b.getRadius()-6)/15);
             } else {

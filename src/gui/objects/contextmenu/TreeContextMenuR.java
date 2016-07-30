@@ -35,7 +35,7 @@ public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,Tr
      * @param e 
      */
     public void show(TreeView<E> tree, MouseEvent e) {
-        if(!tree.getSelectionModel().isEmpty())
+        if (!tree.getSelectionModel().isEmpty())
             getM(tree).show(tree, e);
     }
     

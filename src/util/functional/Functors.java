@@ -116,8 +116,8 @@ public interface Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs)
-                        if(ec.isAssignableFrom(ec.getClass()))
+                    for (Class<?> ec : ecs)
+                        if (ec.isAssignableFrom(ec.getClass()))
                             return or;
                     throw e;
                 }
@@ -130,8 +130,8 @@ public interface Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs)
-                        if(ec.isAssignableFrom(ec.getClass()))
+                    for (Class<?> ec : ecs)
+                        if (ec.isAssignableFrom(ec.getClass()))
                             return or.get();
                     throw e;
                 }
@@ -143,8 +143,8 @@ public interface Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs)
-                        if(ec.isAssignableFrom(ec.getClass()))
+                    for (Class<?> ec : ecs)
+                        if (ec.isAssignableFrom(ec.getClass()))
                             return or.apply(i);
                     throw e;
                 }
@@ -264,18 +264,18 @@ public interface Functors {
 
         @SuppressWarnings("unchecked")
         default Ƒ1<I,O> wrap(NullIn i, NullOut o) {
-            if(i==NullIn.NULL && o==NullOut.NULL)
+            if (i==NullIn.NULL && o==NullOut.NULL)
                 return in -> in==null ? null : apply(in);
-            if(i==NullIn.APPLY && o==NullOut.NULL)
+            if (i==NullIn.APPLY && o==NullOut.NULL)
                 return (Ƒ1) this;
-            if(i==NullIn.APPLY && o==NullOut.INPUT)
+            if (i==NullIn.APPLY && o==NullOut.INPUT)
                 return in -> {
                     O out = apply(in);
                     return out==null ? (O)in : out;
                 };
-            if(i==NullIn.NULL && o==NullOut.INPUT)
+            if (i==NullIn.NULL && o==NullOut.INPUT)
                 return in -> {
-                    if(in==null) return null;
+                    if (in==null) return null;
                     O out = apply(in);
                     return out==null ? (O)in : out;
                 };
@@ -284,21 +284,21 @@ public interface Functors {
         }
 
 	    default Ƒ1<I,O> onNullIn(OnNullIn ni) {
-		    if(ni==OnNullIn.NULL)
+		    if (ni==OnNullIn.NULL)
 			    return this;
-		    if(ni==OnNullIn.APPLY)
+		    if (ni==OnNullIn.APPLY)
 			    return i -> i==null ? (O)i : apply(i);
-		    if(ni==OnNullIn.VALUE)
+		    if (ni==OnNullIn.VALUE)
 			    throw new IllegalArgumentException("No value provided");
 		    throw new SwitchException(ni);
 	    }
 
 	    default Ƒ1<I,O> onNullIn(OnNullIn ni, O or) {
-		    if(ni==OnNullIn.NULL)
+		    if (ni==OnNullIn.NULL)
 			    throw new SwitchException(ni);
-		    if(ni==OnNullIn.APPLY)
+		    if (ni==OnNullIn.APPLY)
 			    throw new SwitchException(ni);
-		    if(ni==OnNullIn.VALUE)
+		    if (ni==OnNullIn.VALUE)
 			    return i -> i==null ? or : apply(i);
 		    throw new SwitchException(ni);
 	    }
@@ -322,28 +322,28 @@ public interface Functors {
         default ƑP<I> negate() {
             // we should retain the predicate identity if possible. Of course it can be leveraged
             // only if unique predicates are used, not dynamically created ones, e.g. (o -> o==null)
-            if(this==ISØ) return (ƑP)ISNTØ;
-            else if(this==ISNTØ) return (ƑP)ISØ;
-            else if(this==IS) return (ƑP)IS;
-            else if(this==ISNT) return (ƑP)ISNT;
+            if (this==ISØ) return (ƑP)ISNTØ;
+            else if (this==ISNTØ) return (ƑP)ISØ;
+            else if (this==IS) return (ƑP)IS;
+            else if (this==ISNT) return (ƑP)ISNT;
             return i -> !apply(i);
         }
 
         @Override
         default ƑP<I> and(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
-            if(this==p) return this;
+            if (this==p) return this;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)ISNT;
-            else if(p==ISNT || this==ISNT) return (ƑP)ISNT;
+            else if (p==ISNT || this==ISNT) return (ƑP)ISNT;
             return i -> apply(i) && apply(i);
         }
 
         @Override
         default ƑP<I> or(Predicate<? super I> p) {
             // we should retain the predicate identity if possible
-            if(this==p) return this;
+            if (this==p) return this;
             else if((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP)IS;
-            else if(this==IS || p==IS) return (ƑP)IS;
+            else if (this==IS || p==IS) return (ƑP)IS;
             return i -> apply(i) || apply(i);
         }
 
@@ -361,7 +361,7 @@ public interface Functors {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                     throw e;
                 }
             };
@@ -399,7 +399,7 @@ public interface Functors {
                 try {
                     return apply(i1,i2);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                     throw e;
                 }
             };
@@ -417,7 +417,7 @@ public interface Functors {
                 try {
                     return apply(i1,i2,i3);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                     throw e;
                 }
             };
@@ -435,7 +435,7 @@ public interface Functors {
                 try {
                     return apply(i1,i2,i3,i4);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                     throw e;
                 }
             };
@@ -453,7 +453,7 @@ public interface Functors {
                 try {
                     return apply(i1,i2,i3,i4,i5);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(ec.getClass())) return or;
                     throw e;
                 }
             };
@@ -471,7 +471,7 @@ public interface Functors {
                 try {
                     return apply(i1,i2,i3,i4,i5,i6);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                    for (Class<?> ec : ecs) if (ec.isAssignableFrom(ec.getClass())) return or;
                     throw e;
                 }
             };
@@ -537,7 +537,7 @@ public interface Functors {
         @Override
         public Ƒ1<I,O> toƑ1(Object...is) {
             // retain predicate identity
-            if(isAny(ff, IDENTITY,ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
+            if (isAny(ff, IDENTITY,ISØ,ISNTØ,IS,ISNT)) return (Ƒ1<I,O>)ff;
             return new TypeAwareƑ<>(i -> apply(i, is),in,out);
             // return i -> apply(i, is); // would not preserve I,O types
         }

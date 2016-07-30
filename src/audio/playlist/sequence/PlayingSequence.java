@@ -45,7 +45,7 @@ public class PlayingSequence {
      */
     public PlaylistItem getNext(PlaylistItem current, List<PlaylistItem> playlist) {
         // if none playing, return first
-        if(current==null || !playlist.contains(current)) {
+        if (current==null || !playlist.contains(current)) {
             return playlist.isEmpty() ? null : playlist.get(0);
         }
         // else calculate
@@ -61,7 +61,7 @@ public class PlayingSequence {
      */
     public PlaylistItem getPrevious(PlaylistItem current, List<PlaylistItem> playlist) {
         // if none playing, return first
-        if(current==null || !playlist.contains(current)) {
+        if (current==null || !playlist.contains(current)) {
             return playlist.isEmpty() ? null : playlist.get(0);
         }
         // else calculate
@@ -78,13 +78,13 @@ public class PlayingSequence {
             @Override public ItemSelector<PlaylistItem> selector() {
                 return new ItemSelector<>(
                     (size,index,current_item,playlist) -> {
-                        if(size==0) return null;
-                        if(current_item==null) return playlist.get(0);
+                        if (size==0) return null;
+                        if (current_item==null) return playlist.get(0);
                         else return playlist.get(decrIndex(size, index));
                     },
                     (size,index,current_item,playlist) -> {
-                        if(size==0) return null;
-                        if(current_item==null) return playlist.get(0);
+                        if (size==0) return null;
+                        if (current_item==null) return playlist.get(0);
                         else return playlist.get(incrIndex(size, index));
                 });
             }
@@ -92,7 +92,7 @@ public class PlayingSequence {
         SONG {
             @Override public ItemSelector<PlaylistItem> selector() {
                 Selection<PlaylistItem> sel = (size,index,current_item,playlist) -> {
-                        if(current_item==null && size>0) return playlist.get(0);
+                        if (current_item==null && size>0) return playlist.get(0);
                         return current_item;
                 };
                 return new ItemSelector<>(sel,sel);
@@ -102,13 +102,13 @@ public class PlayingSequence {
             @Override public ItemSelector<PlaylistItem> selector() {
                 return new ItemSelector<>(
                     (size,index,current_item,playlist) -> {
-                        if(size==0 || index==0) return null;
-                        if(current_item==null) return playlist.get(0);
+                        if (size==0 || index==0) return null;
+                        if (current_item==null) return playlist.get(0);
                         return playlist.get(decrIndex(size, index));
                     },
                     (size,index,current_item,playlist) -> {
-                        if(size==0 || index==size-1) return null;
-                        if(current_item==null) return playlist.get(0);
+                        if (size==0 || index==size-1) return null;
+                        if (current_item==null) return playlist.get(0);
                         return playlist.get(incrIndex(size, index));
                     });
             }
@@ -116,7 +116,7 @@ public class PlayingSequence {
         RANDOM {
             @Override public ItemSelector<PlaylistItem> selector() {
 //                Selection<PlaylistItem> sel = (size,index,current_item,playlist) -> {
-//                    if(size==0) return null;
+//                    if (size==0) return null;
 //                    // generate random index
 //                    int i = (int)Math.round(Math.random()*(size-1));
 //                    return playlist.get(i);
@@ -124,14 +124,14 @@ public class PlayingSequence {
 //                return new ItemSelector(sel,sel);
                 return new ItemSelector<>(
                     (size,index,current_item,playlist) -> {
-                        if(size==0) return null;
+                        if (size==0) return null;
                         // generate random index
                         history_pos--;
                         System.out.println("prev " + history_pos + " " + history.size());
-                        for(int k = 0; k<history.size(); k++) {
+                        for (int k = 0; k<history.size(); k++) {
                             System.out.println(k + " " + history.get(k));
                         }
-                        if(history_pos>0 && history_pos<history.size()-1) {
+                        if (history_pos>0 && history_pos<history.size()-1) {
                             return history.get(history_pos);
                         }
                         int i = (int)Math.round(Math.random()*(size-1));
@@ -139,11 +139,11 @@ public class PlayingSequence {
                     },
                     (size,index,current_item,playlist) -> {
                         System.out.println("next " + history_pos + " " + history.size());
-                        if(size==0) return null;
-                        for(int k = 0; k<history.size(); k++) {
+                        if (size==0) return null;
+                        for (int k = 0; k<history.size(); k++) {
                             System.out.println(k + " " + history.get(k));
                         }
-                        if(history_pos>-1 && history_pos<history.size()-2) {
+                        if (history_pos>-1 && history_pos<history.size()-2) {
                             history_pos++;
                             PlaylistItem p = history.get(history_pos);
                             return history.get(history_pos);

@@ -168,7 +168,7 @@ public interface Properties {
 			aChar = in[off++];
 			if (aChar == '\\') {
 				aChar = in[off++];
-				if(aChar == 'u') {
+				if (aChar == 'u') {
 					// Read the xxxx
 					int value=0;
 					for (int i=0; i<4; i++) {
@@ -217,7 +217,7 @@ public interface Properties {
 		}
 		StringBuilder outBuffer = new StringBuilder(bufLen);
 
-		for(int x=0; x<len; x++) {
+		for (int x=0; x<len; x++) {
 			char aChar = theString.charAt(x);
 			// Handle common case first, selecting largest block that
 			// avoids the specials below

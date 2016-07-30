@@ -47,9 +47,9 @@ public class ImageFlowPane extends Pane {
     
     
     public void setImage(Thumbnail i) {
-        if(image!=null) getChildren().remove(image.getPane());
+        if (image!=null) getChildren().remove(image.getPane());
         image = i;
-        if(image!=null) {
+        if (image!=null) {
             getChildren().add(image.getPane());
             image.ratioImgProperty().addListener((o,ov,nv) -> layoutChildren());
         }
@@ -57,9 +57,9 @@ public class ImageFlowPane extends Pane {
     }
     
     public void setContent(Pane i) {
-        if(content!=null) getChildren().remove(content);
+        if (content!=null) getChildren().remove(content);
         content = i;
-        if(i!=null) getChildren().add(i);
+        if (i!=null) getChildren().add(i);
         layoutChildren();
     }
     
@@ -91,8 +91,8 @@ public class ImageFlowPane extends Pane {
     
     @Override
     protected void layoutChildren() {
-        if(image!=null) image.getPane().setVisible(showImage);
-        if(content!=null) content.setVisible(showContent);
+        if (image!=null) image.getPane().setVisible(showImage);
+        if (content!=null) content.setVisible(showContent);
         
         double pl = getPadding().getLeft();
         double pr = getPadding().getRight();
@@ -101,11 +101,11 @@ public class ImageFlowPane extends Pane {
         double W = getWidth()-pl-pr;
         double H = getHeight()-pt-pb;
         
-        if(showImage && showContent && image!=null && content!=null) {
+        if (showImage && showContent && image!=null && content!=null) {
             double imgRatio = image.getRatioImg();
             double thisRatio = W/H;
             boolean isHorizontal = thisRatio > imgRatio;
-            if(isHorizontal) {
+            if (isHorizontal) {
                 double imgW = min(imgRatio*H,W-minContentWidth);
                 
                 image.getPane().setLayoutX(pl);
@@ -135,7 +135,7 @@ public class ImageFlowPane extends Pane {
         if((!showImage || image==null) && showContent && content!=null) {
             layoutInArea(content, 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
-        if(showImage && image!=null && (!showContent || content==null)) {
+        if (showImage && image!=null && (!showContent || content==null)) {
             layoutInArea(image.getPane(), 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
         if((!showImage && !showContent) || (image==null && content==null)) {}

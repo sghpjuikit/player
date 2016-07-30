@@ -191,12 +191,12 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
-        if(Db.items_byId.containsKey(getId())) {
+        if (Db.items_byId.containsKey(getId())) {
             update(Db.items_byId.get(getId()));
             return;
         }
 
-        if(isFileBased()) {
+        if (isFileBased()) {
             // update as file based item
             try {
                 // read tag for data
@@ -239,7 +239,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
     private void setATN(String art, String titl) {
         artist = art;
         title = titl.isEmpty() ? Util.getName(getURI()) : titl;
-        if(artist.isEmpty() && title.isEmpty())
+        if (artist.isEmpty() && title.isEmpty())
             name.set(getInitialName());
         else
             name.set(artist.isEmpty() ? title : artist + " - " + title);
@@ -406,7 +406,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         /** {@inheritDoc} */
         @Override
         public Class getType() {
-            if(this==FORMAT) return AudioFileFormat.class;
+            if (this==FORMAT) return AudioFileFormat.class;
             else if (this==LENGTH) return FormattedDuration.class;
             else return String.class;
         }

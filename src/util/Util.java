@@ -121,11 +121,11 @@ public interface Util {
         int minutes = (int)((sec_total-seconds) /60) %60;
         int hours   = (int)(sec_total-seconds-60*minutes) /3600;
 
-        if(hours>99)
+        if (hours>99)
             return String.format("%d:%02d:%02d", hours, minutes, seconds);
         else if (hours>0)
             return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        else if(minutes>0)
+        else if (minutes>0)
             return String.format("%02d:%02d", minutes, seconds);
         else
             return String.format("00:%02d",seconds);
@@ -152,9 +152,9 @@ public interface Util {
         int minutes = (int)((sec_total-seconds) /60) %60;
         int hours   = (int)(sec_total-seconds-60*minutes) /3600;
 
-        if(hours>99)
+        if (hours>99)
             return String.format("%3d:%2d:%2d", hours, minutes, seconds);
-        else if(hours>0)
+        else if (hours>0)
             return String.format("%2d:%2d:%2d", hours, minutes, seconds);
         else if (minutes>0)
             return String.format("%2d:%2d", minutes, seconds);
@@ -187,10 +187,10 @@ public interface Util {
      * @return true iff any of the criteria is met.
      */
     static boolean hasNoText(String s) {
-    	if(s==null || s.isEmpty()) return true;
+    	if (s==null || s.isEmpty()) return true;
 
-	    for(int i=0; i<s.length(); i++)
-	    	if(!Character.isWhitespace(s.charAt(i)))
+	    for (int i=0; i<s.length(); i++)
+	    	if (!Character.isWhitespace(s.charAt(i)))
 	    		return false;
 
 	    return true;
@@ -233,10 +233,10 @@ public interface Util {
     }
 
 	static String escapeChar(String text, char escaped, char escape) {
-		if(text == null || text.isEmpty()) return text;
+		if (text == null || text.isEmpty()) return text;
 
 		StringBuilder b = new StringBuilder();
-		for(int i=0; i<text.length(); i++) {
+		for (int i=0; i<text.length(); i++) {
 			char c = text.charAt(i);
 			if (c==escaped) b.append(escape);
 			b.append(c);
@@ -245,11 +245,11 @@ public interface Util {
 	}
 
 	static String unescapeChar(String text, char escaped, char escape) {
-		if(text == null || text.length() <= 1) return text;
+		if (text == null || text.length() <= 1) return text;
 
 		StringBuilder b = new StringBuilder();
 		boolean ignore = false;
-		for(int i=0; i<text.length()-1; i++) {
+		for (int i=0; i<text.length()-1; i++) {
 			if (ignore) continue;
 			char c = text.charAt(i);
 			char cNext = text.charAt(i+1);
@@ -261,7 +261,7 @@ public interface Util {
 				ignore = false;
 			}
 		}
-		if(!ignore) b.append(text.charAt(text.length()-1)); // handle last char specially
+		if (!ignore) b.append(text.charAt(text.length()-1)); // handle last char specially
 
 		return b.toString();
 	}
@@ -397,7 +397,7 @@ public interface Util {
     /** @return true if the string is palindrome (empty string is palindrome) */
     static boolean isPalindrome(String s) {
         int n = s.length();
-        for(int i = 0; i < n/2; i++)
+        for (int i = 0; i < n/2; i++)
             if (s.charAt(i) != s.charAt(n-i-1)) return false;
         return true;
     }
@@ -430,10 +430,10 @@ public interface Util {
     static Image loadImage(File file, double width, double height) {
         if (file == null) return null;
 
-        if(Platform.isFxApplicationThread())
+        if (Platform.isFxApplicationThread())
             util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
 
-        if(file.getPath().endsWith("psd")) {
+        if (file.getPath().endsWith("psd")) {
            return loadImageFull(file, width, height, false);
         } else {
             return loadImageThumb(file, width, height);
@@ -443,7 +443,7 @@ public interface Util {
     static Image loadImageThumb(File file, double width, double height) {
         if (file == null) return null;
 
-        if(Platform.isFxApplicationThread())
+        if (Platform.isFxApplicationThread())
             util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
 
         // negative values have same effect as 0, 0 loads image at its size
@@ -452,7 +452,7 @@ public interface Util {
         boolean loadFullSize = W == 0 && H == 0;
 
         // psd special case
-        if(!file.getPath().endsWith("psd")) {
+        if (!file.getPath().endsWith("psd")) {
             return imgImplLoadFX(file, W, H, loadFullSize);
         } else {
             ImageReader reader = null;
@@ -469,7 +469,7 @@ public interface Util {
                 boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
 
                 BufferedImage i;
-                if(thumbUse) {
+                if (thumbUse) {
                     i = reader.readThumbnail(ii,0);
                 } else {
                     ImageReadParam irp = new ImageReadParam();
@@ -480,7 +480,7 @@ public interface Util {
                     i = reader.read(ii,irp);
 
                     // scale, also improves quality, very quick
-                    if(!loadFullSize)
+                    if (!loadFullSize)
                         i = imgImplScale(i, W, H, Rendering.SPEED);
                  }
                  return SwingFXUtils.toFXImage(i, null);
@@ -488,7 +488,7 @@ public interface Util {
             } catch(IndexOutOfBoundsException | IOException e) {
                 return null;
             } finally {
-                if(reader!=null) reader.dispose();
+                if (reader!=null) reader.dispose();
             }
         }
     }
@@ -500,7 +500,7 @@ public interface Util {
     private static Image loadImageFull(File file, double width, double height, boolean thumbLoadedBefore) {
         if (file == null) return null;
 
-        if(Platform.isFxApplicationThread())
+        if (Platform.isFxApplicationThread())
             util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
 
         // negative values have same effect as 0, 0 loads image at its size
@@ -509,7 +509,7 @@ public interface Util {
         boolean loadFullSize = W == 0 && H == 0;
 
         // psd special case
-        if(!file.getPath().endsWith("psd")) {
+        if (!file.getPath().endsWith("psd")) {
             return null;
         } else {
             ImageReader reader = null;
@@ -526,8 +526,8 @@ public interface Util {
                 boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
 
                 BufferedImage i;
-                if(thumbUse) {
-                    if(thumbLoadedBefore) return null;
+                if (thumbUse) {
+                    if (thumbLoadedBefore) return null;
                     i = reader.readThumbnail(ii,0);
                 } else {
                     int sw = reader.getWidth(ii)/W;
@@ -541,7 +541,7 @@ public interface Util {
                     i = reader.read(ii,irp);
 
                     // scale, also improves quality, fairly quick
-                    if(!loadFullSize)
+                    if (!loadFullSize)
                         i = imgImplScale(i, W, H, Rendering.QUALITY);
                  }
                  return SwingFXUtils.toFXImage(i, null);
@@ -549,7 +549,7 @@ public interface Util {
             } catch(IndexOutOfBoundsException | IOException e) {
                 return null;
             } finally {
-                if(reader!=null) reader.dispose();
+                if (reader!=null) reader.dispose();
             }
         }
     }
@@ -693,14 +693,14 @@ public interface Util {
         // normally we would do the below
         // return n==0 ? 0 : (int) (pow(10, 1+digits(n))-1);
         // but why not make this perform faster
-        if(n==0) return n;
+        if (n==0) return n;
         n = abs(n);
-        if(n<10) return 9;
-        else if(n<100) return 99;
-        else if(n<1000) return 999;
-        else if(n<10000) return 9999;
-        else if(n<100000) return 99999;
-        else if(n<1000000) return 999999;
+        if (n<10) return 9;
+        else if (n<100) return 99;
+        else if (n<1000) return 999;
+        else if (n<10000) return 9999;
+        else if (n<100000) return 99999;
+        else if (n<1000000) return 999999;
         else return (int) (pow(10, 1+digits(n))-1);
     }
 
@@ -812,7 +812,7 @@ public interface Util {
     /** Returns sum of squares of all numbers. */
     static double sqrΣ(double... numbers) {
         double Σ = 0;
-        for(double x : numbers)
+        for (double x : numbers)
             Σ += x*x;
         return Σ;
     }
@@ -842,11 +842,11 @@ public interface Util {
      * @throws IndexOutOfBoundsException if list does not have enough elements
      */
     private static <T> ArrayList<T> randN(int amount, List<T> source){
-        if(amount>=source.size()) return new ArrayList<>(source);
+        if (amount>=source.size()) return new ArrayList<>(source);
         else {
             ArrayList<T> all = new ArrayList<>(source);
             ArrayList<T> l = new ArrayList<>();
-            for(int i=0;i<amount;i++) l.add(rand(all));
+            for (int i=0;i<amount;i++) l.add(rand(all));
             return l;
         }
     }

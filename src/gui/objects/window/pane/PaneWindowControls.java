@@ -185,7 +185,7 @@ public class PaneWindowControls extends WindowPane {
     @FXML
     private void border_onDragStart(MouseEvent e) {
         // start resize if allowed
-        if(resizable.get()) {
+        if (resizable.get()) {
             Point2D b = root.getParent().screenToLocal(new Point2D(e.getScreenX(), e.getScreenY()));
             double X = b.getX()-x.get();
             double Y = b.getY()-y.get();
@@ -203,7 +203,7 @@ public class PaneWindowControls extends WindowPane {
             else if ((X < L))                 r = W;
             else if ((Y < L))                 r = N;
             
-            if(r!=NONE) {
+            if (r!=NONE) {
                 _resizing.set(r);
                 e.consume();
             }
@@ -213,7 +213,7 @@ public class PaneWindowControls extends WindowPane {
     @FXML
     private void border_onDragEnd(MouseEvent e) {
         // end resizing if active
-	if(_resizing.get()!=NONE) {
+	if (_resizing.get()!=NONE) {
             _resizing.set(NONE);
             e.consume();
         }
@@ -221,7 +221,7 @@ public class PaneWindowControls extends WindowPane {
 
     @FXML
     private void border_onDragged(MouseEvent e) {
-        if(_resizing.get()!=NONE) {
+        if (_resizing.get()!=NONE) {
             Point2D b = root.getParent().screenToLocal(new Point2D(e.getScreenX(), e.getScreenY()));
             double X = x.get();
             double Y = y.get();

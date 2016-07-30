@@ -36,10 +36,10 @@ public class BarRatingCellFactory implements RatingCellFactory {
                     @Override
                     protected void updateItem(Double item, boolean empty) {
                         super.updateItem(item, empty);
-                        if(empty) {
+                        if (empty) {
                             setGraphic(null);
                         } else {
-                            if(getGraphic()==null) setGraphic(p);
+                            if (getGraphic()==null) setGraphic(p);
                             p.setProgress(item);
                         }
                     }

@@ -26,7 +26,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
     void onDialogAction() {
         FileType type = v==null || v.isDirectory() ? DIRECTORY : FILE;
         File f = Environment.chooseFile(type==DIRECTORY ? "Choose directory" : "Choose file", type, v, getScene().getWindow());
-        if(f!=null) setValue(f);
+        if (f!=null) setValue(f);
     }
 
     @Override

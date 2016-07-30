@@ -25,56 +25,56 @@ import org.slf4j.LoggerFactory;
 public interface Util {
 
     static void no(boolean v) {
-        if(v) throw new IllegalStateException("Requirement condition not met");
+        if (v) throw new IllegalStateException("Requirement condition not met");
     }
 
     static void no(boolean v, String s) {
-        if(v) throw new IllegalStateException("Requirement condition not met: " + s);
+        if (v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
     static void yes(boolean v) {
-        if(!v) throw new IllegalStateException("Requirement condition not met");
+        if (!v) throw new IllegalStateException("Requirement condition not met");
     }
 
     static void yes(boolean v, String s) {
-        if(!v) throw new IllegalStateException("Requirement condition not met: " + s);
+        if (!v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
     static <T> void yes(T t, Predicate<T> cond) {
-        if(!cond.test(t)) throw new IllegalStateException("Requirement condition not met");
+        if (!cond.test(t)) throw new IllegalStateException("Requirement condition not met");
     }
 
     static void noØ(Object o) {
-        if(o==null) throw new IllegalStateException("Null forbidden");
+        if (o==null) throw new IllegalStateException("Null forbidden");
     }
 
     static void noØ(Object o, String message) {
-        if(o==null) throw new IllegalStateException("Null forbidden: " + message);
+        if (o==null) throw new IllegalStateException("Null forbidden: " + message);
     }
 
     static void noØ(Object o1, Object o2) {
-        if(o1==null || o2==null) throw new IllegalStateException("Null forbidden");
+        if (o1==null || o2==null) throw new IllegalStateException("Null forbidden");
     }
 
     static void noØ(Object o1, Object o2, Object o3) {
-        if(o1==null || o2==null || o3==null) throw new IllegalStateException("Null forbidden");
+        if (o1==null || o2==null || o3==null) throw new IllegalStateException("Null forbidden");
     }
 
     static void noØ(Object o1, Object o2, Object o3, Object o4) {
-        if(o1==null || o2==null || o3==null || o4==null) throw new IllegalStateException("Null forbidden");
+        if (o1==null || o2==null || o3==null || o4==null) throw new IllegalStateException("Null forbidden");
     }
 
     static void noØ(Object... os) {
-        for(Object o : os) if(o==null) throw new IllegalStateException("Null forbidden");
+        for (Object o : os) if (o==null) throw new IllegalStateException("Null forbidden");
     }
 
     static void noFinal(Field f) {
-        if(Modifier.isFinal(f.getModifiers()))
+        if (Modifier.isFinal(f.getModifiers()))
             throw new IllegalStateException("Final field forbidden.");
     }
 
     static void yesFinal(Field f) {
-        if(!Modifier.isFinal(f.getModifiers()))
+        if (!Modifier.isFinal(f.getModifiers()))
             throw new IllegalStateException("Non final field forbidden.");
     }
 

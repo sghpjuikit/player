@@ -33,10 +33,10 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
     @Override
     default Config getField(String name) {
         Config f = Configurable.super.getField(name);
-        if(f!=null) return f;
-        for(Configurable c : getSubConfigurable()) {
+        if (f!=null) return f;
+        for (Configurable c : getSubConfigurable()) {
             f = c.getField(name);
-            if(f!=null) return f;
+            if (f!=null) return f;
         }
         return null;
     }

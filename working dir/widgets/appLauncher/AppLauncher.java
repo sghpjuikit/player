@@ -86,7 +86,7 @@ public class AppLauncher extends ClassController {
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
         () -> {
             File dir = chooseFile("Choose program or file", FILE, APP.DIR_HOME, APP.windowOwner.getStage());
-            if(dir!=null) files.list.add(dir);
+            if (dir!=null) files.list.add(dir);
         }
     );
 
@@ -122,13 +122,13 @@ public class AppLauncher extends ClassController {
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
         grid.setOnKeyPressed(e -> {
-            if(e.getCode()==ENTER) {
+            if (e.getCode()==ENTER) {
                 Item si = grid.selectedItem.get();
-                if(si!=null) doubleClickItem(si);
+                if (si!=null) doubleClickItem(si);
             }
         });
         grid.setOnMouseClicked(e -> {
-            if(e.getButton()==SECONDARY && closeOnRightClick.get())
+            if (e.getButton()==SECONDARY && closeOnRightClick.get())
                 widget.areaTemp.close();
         });
         setOnScroll(Event::consume);
@@ -148,7 +148,7 @@ public class AppLauncher extends ClassController {
     }
 
     private void visit() {
-        if(!initialized) return;
+        if (!initialized) return;
         Item item = new TopItem();
 //        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
@@ -157,7 +157,7 @@ public class AppLauncher extends ClassController {
                 .use(cells -> cells.sort(buildSortComparator()),executorIO)
                 .use(cells -> {
                     grid.getItemsRaw().setAll(cells);
-                    if(item.last_gridposition>=0)
+                    if (item.last_gridposition>=0)
                         grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
 
 	                grid.implGetSkin().getFlow().requestFocus();    // fixes focus problem
@@ -166,7 +166,7 @@ public class AppLauncher extends ClassController {
     }
 
     private void doubleClickItem(Item i) {
-        if(closeOnLaunch.get()) {
+        if (closeOnLaunch.get()) {
             widget.areaTemp.close();
             run(250, () -> Environment.open(i.val));
         } else {
@@ -200,7 +200,7 @@ public class AppLauncher extends ClassController {
         EventReducer<Item> setCoverLater = EventReducer.toLast(100, item -> executorThumbs.execute(task(() -> {
             sleep(10); // gives FX thread some space to avoid lag under intense workload
             runFX(() -> {
-                if(item==getItem())
+                if (item==getItem())
                     setCoverNow(item);
             });
         })));
@@ -209,12 +209,12 @@ public class AppLauncher extends ClassController {
         protected void updateItem(Item item, boolean empty) {
             super.updateItem(item, empty);
 
-            if(item==null) {
+            if (item==null) {
                 // empty cell has no graphics
                 // we do not clear the content of the graphics however
                 setGraphic(null);
             } else {
-                if(root==null) {
+                if (root==null) {
                     // we create graphics only once and only when first requested
                     createGraphics();
                     // we set graphics only once (when creating it)
@@ -222,7 +222,7 @@ public class AppLauncher extends ClassController {
                 }
                 // if cell was previously empty, we set graphics back
                 // this improves performance compared to setting it every time
-                if(getGraphic()!=root) setGraphic(root);
+                if (getGraphic()!=root) setGraphic(root);
 
                 // set name
                 name.setText(getName(item.val));
@@ -242,7 +242,7 @@ public class AppLauncher extends ClassController {
         @Override
         public void updateSelected(boolean selected) {
             super.updateSelected(selected);
-            if(thumb!=null && thumb.image.get()!=null) thumb.animationPlayPause(selected);
+            if (thumb!=null && thumb.image.get()!=null) thumb.animationPlayPause(selected);
         }
 
         private void createGraphics() {
@@ -255,7 +255,7 @@ public class AppLauncher extends ClassController {
                 }
             };
             thumb.getPane().setOnMouseClicked(e -> {
-                if(e.getButton()==PRIMARY && e.getClickCount()==2) {
+                if (e.getButton()==PRIMARY && e.getClickCount()==2) {
                     doubleClickItem(getItem());
                     e.consume();
                 }
@@ -286,9 +286,9 @@ public class AppLauncher extends ClassController {
          * quality thumbnail in the bgr. Each phase uses its own executor.
          */
         private void setCoverNow(Item item) {
-	        if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+	        if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
 
-	        if(item.cover_loadedFull) {
+	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
 		        double width  = cellSize.get().width,
@@ -300,7 +300,7 @@ public class AppLauncher extends ClassController {
         }
 
 	    private void setCoverLater(Item item) {
-		    if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+		    if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
 
 		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		    setCoverLater.push(item);
@@ -308,10 +308,10 @@ public class AppLauncher extends ClassController {
 
         private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
-                if(item==getItem()) { // prevents content inconsistency
+                if (item==getItem()) { // prevents content inconsistency
                     boolean animate = animateThumbOn.get().needsAnimation(this,imgAlreadyLoaded,imgFile,img);
                     thumb.loadImage(img, imgFile);
-                    if(animate)
+                    if (animate)
                         new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
                 }
             });
@@ -350,7 +350,7 @@ public class AppLauncher extends ClassController {
     private Runnable task(Runnable r) {
         final long id = visitId.get();
         return () -> {
-            if(id==visitId.get())
+            if (id==visitId.get())
                 r.run();
         };
     }
@@ -378,9 +378,9 @@ public class AppLauncher extends ClassController {
         IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
 
         public boolean needsAnimation(Cell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
-            if(this== IMAGE_CHANGE) return cell.thumb.image.get()!=img;
-            else if(this==IMAGE_CHANGE_FROM_EMPTY) return cell.thumb.image.get()==null && img!=null;
-            else if(this==IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img!=null;
+            if (this== IMAGE_CHANGE) return cell.thumb.image.get()!=img;
+            else if (this==IMAGE_CHANGE_FROM_EMPTY) return cell.thumb.image.get()==null && img!=null;
+            else if (this==IMAGE_CHANGE_1ST_TIME) return !imgAlreadyLoaded && img!=null;
             else throw new SwitchException(this);
         }
     }

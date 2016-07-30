@@ -124,11 +124,11 @@ public interface Async {
     }
 
     static void runAfter(Duration delay, Consumer<Runnable> executor, Runnable r) {
-        if(delay.lessThanOrEqualTo(Duration.ZERO)) {
+        if (delay.lessThanOrEqualTo(Duration.ZERO)) {
             executor.accept(r);
         } else {
             executor.accept(() -> {
-                if(Platform.isFxApplicationThread()) {
+                if (Platform.isFxApplicationThread()) {
                     new FxTimer(delay, 1, r).start();
                 } else {
                     try {
@@ -163,19 +163,19 @@ public interface Async {
      * <p/>
      * Equivalent to
      * <pre>{@code
-     *   if(Platform.isFxApplicationThread())
+     *   if (Platform.isFxApplicationThread())
      *       r.run();
      *   else
      *       Platform.runLater(r);
      * }</pre>
      */
     static void runFX(Runnable r) {
-        if(Platform.isFxApplicationThread()) r.run();
+        if (Platform.isFxApplicationThread()) r.run();
         else Platform.runLater(r);
     }
 
     static void runNotFX(Runnable r) {
-        if(Platform.isFxApplicationThread()) runNew(r);
+        if (Platform.isFxApplicationThread()) runNew(r);
         else r.run();
     }
 
@@ -185,7 +185,7 @@ public interface Async {
      */
     static void runFX(double delay, Runnable r) {
         no(delay<0);
-        if(delay==0) runFX(r);
+        if (delay==0) runFX(r);
         else new FxTimer(delay, 1, () -> runFX(r)).start();
     }
 

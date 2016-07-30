@@ -55,7 +55,7 @@ public class AppInstanceComm {
      * from closing properly.
      */
     public void stop() {
-        if(rmiRegistry==null) return;
+        if (rmiRegistry==null) return;
         try {
             UnicastRemoteObject.unexportObject(appCommunicator, true);
             rmiRegistry.unbind(REGISTRY_NAME);

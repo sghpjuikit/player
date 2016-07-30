@@ -41,7 +41,7 @@ public class Tuple5<A, B, C, D, E> {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof Tuple5) {
+        if (other instanceof Tuple5) {
             Tuple5<?, ?, ?, ?, ?> that = (Tuple5<?, ?, ?, ?, ?>) other;
             return Objects.equals(this._1, that._1)
                     && Objects.equals(this._2, that._2)

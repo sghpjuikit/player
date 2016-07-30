@@ -44,7 +44,7 @@ public class FileCover implements Cover {
     @Override
     public Image getImage(double width, double height) {
         Image cached = Thumbnail.getCached(file, width, width);
-        if(cached!=null) return cached;
+        if (cached!=null) return cached;
         return file==null ? null : Util.loadImage(file, width, height);
     }
 
@@ -67,9 +67,9 @@ public class FileCover implements Cover {
 
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
+        if (this==o) return true;
 
-        if(o != null && o instanceof FileCover) {
+        if (o != null && o instanceof FileCover) {
             FileCover other = (FileCover)o;
             return file.equals(other.file);
         }

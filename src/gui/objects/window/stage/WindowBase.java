@@ -78,8 +78,8 @@ public class WindowBase {
     }
 
     public WindowBase(Stage owner, StageStyle style) {
-        if(s!=null) s.initOwner(owner);
-        if(style!=null) s.initStyle(style);
+        if (s!=null) s.initOwner(owner);
+        if (style!=null) s.initStyle(style);
         s.setFullScreenExitHint("");
     }
 
@@ -99,10 +99,10 @@ public class WindowBase {
         double sxmax = scrs.stream().mapToDouble(s->s.getBounds().getMaxX()).min().orElse(psb.getMaxX());
         double symax = scrs.stream().mapToDouble(s->s.getBounds().getMaxY()).min().orElse(psb.getMaxY());
         // prevents out of screen position
-        if(Y.get()+H.get()<symin) Y.setValue(symin);
-        if(Y.get()>symax) Y.setValue(symax);
-        if(X.get()+W.get()<sxmin) X.setValue(sxmin);
-        if(X.get()>sxmax) X.setValue(sxmax);
+        if (Y.get()+H.get()<symin) Y.setValue(symin);
+        if (Y.get()>symax) Y.setValue(symax);
+        if (X.get()+W.get()<sxmin) X.setValue(sxmin);
+        if (X.get()>sxmax) X.setValue(sxmax);
 
         s.setX(X.get());
         s.setY(Y.get());
@@ -118,7 +118,7 @@ public class WindowBase {
         // setFullscreen(FullProp.get()) produces a bug probably because the
         // window is not yet ready. Delay execution. Avoid the whole process
         // when the value is not true
-        if(FullProp.get()) run(322, ()->setFullscreen(true));
+        if (FullProp.get()) run(322, ()->setFullscreen(true));
     }
 
     /**
@@ -213,19 +213,19 @@ public class WindowBase {
     /** Sets the value of the property minimized. */
     public void setMinimized(boolean val) {
             APP.taskbarIcon.forbidIconify = true;
-        if(s.getOwner()!=null && s.getOwner() instanceof Stage) {
+        if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
             ((Stage)s.getOwner()).setIconified(val);
         } else {
             s.setIconified(val);
         }
 
-//        if(val && Window.WINDOWS.stream().allMatch(w -> w.isMinimized())) APP.taskbarIcon.iconify(val);
-        if(val) {
+//        if (val && Window.WINDOWS.stream().allMatch(w -> w.isMinimized())) APP.taskbarIcon.iconify(val);
+        if (val) {
             APP.taskbarIcon.iconify(val);
         }
 
         // focus when deminimizing
-        if(!val) focus();
+        if (!val) focus();
             runLater(() -> APP.taskbarIcon.forbidIconify = false);
     }
 
@@ -248,14 +248,14 @@ public class WindowBase {
      */
     public void setMaximized(Maximized val) {
         // no-op if fullscreen
-        if(isFullscreen()) return;
+        if (isFullscreen()) return;
 
         // prevent pointless change
         Maximized old = isMaximized();
-        if(old==val) return;
+        if (old==val) return;
 
         // remember window state if entering from non-maximized state
-        if(old==Maximized.NONE) {
+        if (old==Maximized.NONE) {
             // this must not execute when val==NONE but that will not happen here
             W.set(s.getWidth());
             H.set(s.getHeight());
@@ -469,7 +469,7 @@ public class WindowBase {
     public void snap() {
         // avoid snapping while isResizing. It leads to unwanted behavior
         // avoid when not desired
-        if(!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
+        if (!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
 
         double S = Gui.snapDistance.get();
 
@@ -491,7 +491,7 @@ public class WindowBase {
 
 
         // snap to other window edges
-        for(Window w: Window.WINDOWS) {
+        for (Window w: Window.WINDOWS) {
             double WXS = w.getX()+w.getWidth();
             double WXE = w.getX();
             double WYS = w.getY()+w.getHeight();
@@ -532,7 +532,7 @@ public class WindowBase {
         X.set(x);
         Y.set(y);
         screen = Util.getScreen(getCenterXY()); // update screen
-        if(snap) snap();
+        if (snap) snap();
     }
 
     /**
@@ -563,7 +563,7 @@ public class WindowBase {
         s.setWidth(width);
         s.setHeight(height);
         // should snap
-        // if(snap) snap();
+        // if (snap) snap();
         W.set(s.getWidth());
         H.set(s.getHeight());
         screen = Util.getScreen(getCenterXY()); // update screen

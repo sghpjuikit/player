@@ -128,7 +128,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      */
     @Override
     public void applyValue(V val) {
-        if(applier!=null) applier.accept(val);
+        if (applier!=null) applier.accept(val);
     }
 
     /**

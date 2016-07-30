@@ -24,11 +24,11 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 
 	@SuppressWarnings("unchecked")
 	default boolean isHChildOf(H h) {
-		if(this==h) return false;
+		if (this==h) return false;
 		H i = (H) this;
 
 		while ((i = i.getHParent()) != null)
-			if(i == h) return true;
+			if (i == h) return true;
 		return false;
 	}
 

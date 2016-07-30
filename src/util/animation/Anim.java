@@ -155,9 +155,9 @@ public class Anim extends Transition {
         return getCurrentTime().lessThan(getTotalDuration());
     }
 
-    /** *  Equivalent to {@code if(forward) playOpen(); else playClose();} */
+    /** *  Equivalent to {@code if (forward) playOpen(); else playClose();} */
     public void playFromDir(boolean forward) {
-        if(forward) playOpen(); else playClose();
+        if (forward) playOpen(); else playClose();
     }
 
     /**
@@ -216,27 +216,27 @@ public class Anim extends Transition {
 
     public void playOpenDoClose(Runnable middle) {
         playOpenDo(() -> {
-            if(middle!=null) middle.run();
+            if (middle!=null) middle.run();
             setOnFinished(null);
             playClose();
         });
     }
     public void playCloseDoOpen(Runnable middle) {
         playCloseDo(() -> {
-            if(middle!=null) middle.run();
+            if (middle!=null) middle.run();
             setOnFinished(null);
             playOpen();
         });
     }
     public void playOpenDoCloseDo(Runnable middle, Runnable end) {
         playOpenDo(() -> {
-            if(middle!=null) middle.run();
+            if (middle!=null) middle.run();
             playCloseDo(end);
         });
     }
     public void playCloseDoOpenDo(Runnable middle, Runnable end) {
         playCloseDo(() -> {
-            if(middle!=null) middle.run();
+            if (middle!=null) middle.run();
             playOpenDo(end);
         });
     }
@@ -297,8 +297,8 @@ public class Anim extends Transition {
     }
 
     public static double mapTo01(double x, double from, double to) {
-        if(x<=from) return 0;
-        if(x>=to) return 1;
+        if (x<=from) return 0;
+        if (x>=to) return 1;
         return (x-from)/(to-from);
     }
 
@@ -356,14 +356,14 @@ public class Anim extends Transition {
          */
         @SafeVarargs
         static DoubleUnaryOperator of(Subrange... subranges) {
-            if(Stream.of(subranges).mapToDouble(i -> i.fraction).sum() != 1)
+            if (Stream.of(subranges).mapToDouble(i -> i.fraction).sum() != 1)
                 throw new IllegalArgumentException("sum of interpolator fractions must be 1");
 
             return x -> {
                 double p1=0;
-                for(Subrange subrange : subranges) {
+                for (Subrange subrange : subranges) {
                     double p2 = p1+subrange.fraction;
-                    if(x<=p2) return subrange.interpolator.applyAsDouble((x-p1)/(p2-p1));
+                    if (x<=p2) return subrange.interpolator.applyAsDouble((x-p1)/(p2-p1));
                     p1 = p2;
                 }
                 throw new RuntimeException("Combined interpolator out of value at: " + x);
@@ -382,8 +382,8 @@ public class Anim extends Transition {
 
         static DoubleUnaryOperator isAround(double point_span, double... points) {
             return at -> {
-                for(double p : points)
-                    if(at>p-point_span && at<p+point_span)
+                for (double p : points)
+                    if (at>p-point_span && at<p+point_span)
                         return 0d;
                 return 1d;
             };
@@ -391,27 +391,27 @@ public class Anim extends Transition {
 
         static DoubleUnaryOperator isAroundMin1(double point_span, double... points) {
             return at -> {
-                if(at<points[0]-point_span) return 0d;
-                for(double p : points)
-                    if(at>p-point_span && at<p+point_span)
+                if (at<points[0]-point_span) return 0d;
+                for (double p : points)
+                    if (at>p-point_span && at<p+point_span)
                         return 0d;
                 return 1d;
             };
         }
         static DoubleUnaryOperator isAroundMin2(double point_span, double... points) {
             return at -> {
-                if(at<points[0]-point_span) return 0d;
-                for(double p : points)
-                    if(at>p-point_span && at<p+point_span)
+                if (at<points[0]-point_span) return 0d;
+                for (double p : points)
+                    if (at>p-point_span && at<p+point_span)
                         return abs((at-p+point_span)/(point_span*2)-0.5);
                 return 1d;
             };
         }
         static DoubleUnaryOperator isAroundMin3(double point_span, double... points) {
             return at -> {
-                if(at<points[0]-point_span) return 0d;
-                for(double p : points)
-                    if(at>p-point_span && at<p+point_span)
+                if (at<points[0]-point_span) return 0d;
+                for (double p : points)
+                    if (at>p-point_span && at<p+point_span)
                         return sqrt(abs((at-p+point_span)/(point_span*2)-0.5));
                 return 1d;
             };

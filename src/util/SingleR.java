@@ -52,7 +52,7 @@ public class SingleR<V,M> extends LazyR<V> {
 
     @Override
     public void set(V val) {
-        if(isSet) throw new IllegalArgumentException("Singleton instance already set.");
+        if (isSet) throw new IllegalArgumentException("Singleton instance already set.");
         super.set(val);
     }
 }

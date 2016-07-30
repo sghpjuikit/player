@@ -204,28 +204,28 @@ public class IOLayer extends StackPane {
         all_inputs.addListener((SetChangeListener.Change<? extends Input> c) -> {
             Input ai = c.getElementAdded();
             Input ri = c.getElementRemoved();
-            if(ai!=null) addInput(ai);
-            if(ri!=null) remInput(ri);
+            if (ai!=null) addInput(ai);
+            if (ri!=null) remInput(ri);
         });
         all_outputs.addListener((SetChangeListener.Change<? extends Output> c) -> {
             Output ao = c.getElementAdded();
             Output ro = c.getElementRemoved();
-            if(ao!=null) addOutput(ao);
-            if(ro!=null) remOutput(ro);
+            if (ao!=null) addOutput(ao);
+            if (ro!=null) remOutput(ro);
         });
         all_inoutputs.addListener((SetChangeListener.Change<? extends InOutput> c) -> {
             InOutput aio = c.getElementAdded();
             InOutput rio = c.getElementRemoved();
-            if(aio!=null) addInOutput(aio);
-            if(rio!=null) remInOutput(rio);
+            if (aio!=null) addInOutput(aio);
+            if (rio!=null) remInOutput(rio);
         });
     }
 
     private void removeChild(Node n) {
-        if(n!=null) getChildren().remove(n);
+        if (n!=null) getChildren().remove(n);
     }
     private void removeXNode(XNode n) {
-        if(n!=null) getChildren().remove(n.graphics);
+        if (n!=null) getChildren().remove(n.graphics);
     }
     private void removeChildren(Stream<? extends Node> ns) {
         ns.forEach(this::removeChild);
@@ -235,7 +235,7 @@ public class IOLayer extends StackPane {
     private XNode editTo = null;
 
     void editBegin(XNode n) {
-        if(n==null) return;
+        if (n==null) return;
 
         editFrom = n;
         edit = new EditIOLine<>(n);
@@ -248,7 +248,7 @@ public class IOLayer extends StackPane {
     }
 
     void editMove(MouseEvent e) {
-        if(edit==null || editFrom ==null) return;
+        if (edit==null || editFrom ==null) return;
 
         edit.lay(editFrom.cx, editFrom.cy, e.getX(), e.getY());
 
@@ -258,21 +258,21 @@ public class IOLayer extends StackPane {
                .filter(in -> in.input.canBind(editFrom.output))
                .findAny().orElse(null);
 
-        if(editTo!=n) {
-            if(editTo!=null) editTo.select(false);
+        if (editTo!=n) {
+            if (editTo!=null) editTo.select(false);
             editTo = n;
-            if(editTo!=null) editTo.select(true);
+            if (editTo!=null) editTo.select(true);
         }
     }
 
     void editEnd() {
-        if(edit==null) return;
+        if (edit==null) return;
 
-        if(editTo!=null) editTo.input.bind(editFrom.output);
+        if (editTo!=null) editTo.input.bind(editFrom.output);
         getChildren().remove(edit);
         edit = null;
 
-        if(editTo!=null) editTo.select(false);
+        if (editTo!=null) editTo.select(false);
         editTo = null;
 
         // stop effect: disable & visually differentiate bindable nodes
@@ -282,9 +282,9 @@ public class IOLayer extends StackPane {
     }
 
     void selectNode(XNode n) {
-        if(selected!=null) selected.select(false);
+        if (selected!=null) selected.select(false);
         selected = n;
-        if(selected!=null) selected.select(true);
+        if (selected!=null) selected.select(true);
     }
 
     @Override
@@ -293,8 +293,8 @@ public class IOLayer extends StackPane {
         double W = getWidth();
         double H = getHeight();
 
-//        for(Node n : getChildren()) {
-//            if(n instanceof Path)
+//        for (Node n : getChildren()) {
+//            if (n instanceof Path)
 //                n.resizeRelocate(0,0,W,H);
 //        }
         double sx = scalex.get();
@@ -311,7 +311,7 @@ public class IOLayer extends StackPane {
                 // Apparently during initiaization we are not ready yet
                 // I dont like this, but Im not going to hunt for this subtle bug, which may
                 // not be a bug at all
-                if(c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.getRoot()==null) return;
+                if (c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.getRoot()==null) return;
 
                 Node wr = c.getWidget().areaTemp.getRoot();
                 Bounds b = wr.localToScene(wr.getBoundsInLocal());
@@ -347,7 +347,7 @@ public class IOLayer extends StackPane {
         connections.forEach((input,output,line) -> {
             XNode inputnode = inputnodes.get(input);
             XNode outputnode = outputnodes.get(output);
-            if(inputnode!=null && outputnode!=null)
+            if (inputnode!=null && outputnode!=null)
                 line.lay(inputnode.cx,inputnode.cy,outputnode.cx,outputnode.cy);
         });
     }
@@ -378,17 +378,17 @@ public class IOLayer extends StackPane {
         XNode(X xput) {
             this.xput = xput;
 
-            if(xput instanceof Input) {
+            if (xput instanceof Input) {
                 input = (Input<T>)xput;
                 output = null;
                 inoutput = null;
             } else
-            if(xput instanceof Output) {
+            if (xput instanceof Output) {
                 input = null;
                 output = (Output<T>)xput;
                 inoutput = null;
             } else
-            if(xput instanceof InOutput) {
+            if (xput instanceof InOutput) {
                 input = ((InOutput<T>)xput).i;
                 output = ((InOutput<T>)xput).o;
                 inoutput = (InOutput<T>)xput;
@@ -402,7 +402,7 @@ public class IOLayer extends StackPane {
             });
 
 
-            if(output!=null) {
+            if (output!=null) {
                 Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
 
                 // This only makes sense when the descriptions are hidden by default, but that would
@@ -427,7 +427,7 @@ public class IOLayer extends StackPane {
         }
 
         void select(boolean v) {
-            if(selected==v) return;
+            if (selected==v) return;
             selected = v;
             i.pseudoClassStateChanged(XNODE_SELECTED, v);
         }
@@ -451,13 +451,13 @@ public class IOLayer extends StackPane {
                 i, null, "",
                 DragUtil::hasAny,
                 e -> {
-                    if(DragUtil.hasWidgetOutput(e)) {
+                    if (DragUtil.hasWidgetOutput(e)) {
                         input.bind(DragUtil.getWidgetOutput(e));
                         drawGraph();
                     } else {
                         Object o = DragUtil.getAny(e);
                         Class c = o.getClass();
-                        if(input.getType().isAssignableFrom(c)) {
+                        if (input.getType().isAssignableFrom(c)) {
                             input.setValue((T)o);
                         }
                     }
@@ -481,7 +481,7 @@ public class IOLayer extends StackPane {
 
             // drag&drop
             i.addEventFilter(DRAG_DETECTED,e -> {
-                if(selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                if (selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
                 else editBegin(this);
                 e.consume();
             });
@@ -503,7 +503,7 @@ public class IOLayer extends StackPane {
                 DragUtil::hasWidgetOutput,
                 e -> {
                     Output o = DragUtil.getWidgetOutput(e);
-                    if(o!=output) {
+                    if (o!=output) {
                         input.bind(o);
                         drawGraph();
                     }
@@ -512,7 +512,7 @@ public class IOLayer extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
             i.addEventFilter(DRAG_DETECTED,e -> {
-                if(selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                if (selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
                 else editBegin(this);
                 e.consume();
             });
@@ -532,7 +532,7 @@ public class IOLayer extends StackPane {
             IOLine.this.setPickOnBounds(false);
 
             setOnMouseClicked(e -> {
-                if(e.getButton()==SECONDARY) i.unbind(o);
+                if (e.getButton()==SECONDARY) i.unbind(o);
                 e.consume();
             });
             setOnDragDetected(e -> {
@@ -552,7 +552,7 @@ public class IOLayer extends StackPane {
             double h = IOLayer.this.getHeight();
             double dx = tox-startx;
             double dy = toy-starty;
-            if(dx>0) {
+            if (dx>0) {
                 double d = 20; //Math.random()*30/10*10+10;
                 // enhance start
                 starty += d*signum(dy);
@@ -573,9 +573,9 @@ public class IOLayer extends StackPane {
         private void layTo(double startx, double starty, double tox, double toy, double h) {
             double dx = tox-startx;
             double dy = toy-starty;
-            if(dx==0 || dy==0) {
+            if (dx==0 || dy==0) {
                 getElements().add(new LineTo(tox,toy));
-                if(not_finished) {
+                if (not_finished) {
                     not_finished = false;
                     layTo(tox, toy, not_finished_x, not_finished_y, h);
                 }
@@ -630,7 +630,7 @@ public class IOLayer extends StackPane {
     }
 
     public static String oToStr(Output<?> o) {
-        if(o.typet==null) {
+        if (o.typet==null) {
             return APP.className.get(o.getType()) + " : " + o.getName() +
                    "\n" + APP.instanceName.get(o.getValue());
         } else {

@@ -87,7 +87,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         V<Double> position = new V<>(splitPane.getDividers().get(0).getPosition());
         splitPane.setOnMouseReleased(e -> {
             double v = position.getValue();
-            if(v>0.01 && v<0.99)
+            if (v>0.01 && v<0.99)
                 // Remember non collapsed value
                 // This works so if user drags slider to the edge and causes collapse, no value
                 // is remembered. Then when user decollapses we can restore last value.
@@ -99,16 +99,16 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         // decollapse on user drag
         // to make sure the above drag executes only on divider drag, we consume drag on content
         splitPane.setOnMouseDragged(e -> {
-            if(getCollapsed()!=0) setCollapsed(0);
+            if (getCollapsed()!=0) setCollapsed(0);
         });
         root_child1.setOnMouseDragged(Event::consume);
         root_child2.setOnMouseDragged(Event::consume);
 
         splitPane.addEventHandler(MOUSE_CLICKED, e -> {
             boolean dividerclicked = false;
-            if(splitPane.getOrientation()==VERTICAL && (e.getY()<5 || e.getY()>splitPane.getHeight()-5)) dividerclicked = true;
-            if(splitPane.getOrientation()==HORIZONTAL && (e.getX()<5 || e.getX()>splitPane.getWidth()-5)) dividerclicked = true;
-            if(e.getClickCount()==2 && isCollapsed()) {
+            if (splitPane.getOrientation()==VERTICAL && (e.getY()<5 || e.getY()>splitPane.getHeight()-5)) dividerclicked = true;
+            if (splitPane.getOrientation()==HORIZONTAL && (e.getX()<5 || e.getX()>splitPane.getWidth()-5)) dividerclicked = true;
+            if (e.getClickCount()==2 && isCollapsed()) {
                 setCollapsed(0);
             }
         });
@@ -117,9 +117,9 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
             double v = nv.doubleValue();
 
             // occurs when user drags the divider, manual -> remember it
-            if(splitPane.isPressed()) {
-                if(v<0.01) v=0;
-                if(v>0.99) v=1;
+            if (splitPane.isPressed()) {
+                if (v<0.01) v=0;
+                if (v>0.99) v=1;
                 // It is important we do this only when the value changes manually - by user (hence
                 // the isPressed()).
                 // This way initialization and rounding errors will never affect the value
@@ -149,15 +149,15 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
                     // position, use the workaround for initialisation
                 } else {
                     double p = prop.getD("pos");
-                    if(v<p-0.08 || v>p+0.08)
+                    if (v<p-0.08 || v>p+0.08)
                         runFX(this::applyPos);
                     else
                         run(5000, () -> initialized=true);
                 }
             }
 
-            if(v<0.01) v=0;
-            if(v>0.99) v=1;
+            if (v<0.01) v=0;
+            if (v>0.99) v=1;
             // maintain collapsed pseudoclass
             splitPane.pseudoClassStateChanged(COLLAPSED_PC, v==0 || v==1);
         });
@@ -167,7 +167,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     WidgetArea wa1,wa2;
 
     public void setComponent(int i, Component c) {
-        if(i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
+        if (i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
 
         AnchorPane r = i==1 ? root_child1 : root_child2;
 
@@ -175,7 +175,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         AltState as;
         if (c instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)c);
-            if(i==1) wa1 = wa; else wa2 = wa;
+            if (i==1) wa1 = wa; else wa2 = wa;
             n = wa.root;
             as = wa;
         } else if (c instanceof Container) {
@@ -183,12 +183,12 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
             as = (Container)c;
         } else { // ==null
             Layouter l = i==1 ? layouter1 : layouter2;
-            if(l==null) l = new Layouter(container, i);
-            if(i==1) layouter1 = l; else layouter2 = l;
+            if (l==null) l = new Layouter(container, i);
+            if (i==1) layouter1 = l; else layouter2 = l;
             n = l.getRoot();
             as = l;
         }
-        if(Gui.isLayoutMode()) as.show();
+        if (Gui.isLayoutMode()) as.show();
 
         r.getChildren().setAll(n);
         setAnchors(n,0d);
@@ -229,7 +229,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     }
 
     public void setAbsoluteSize(int i) {
-        if(i<0 || i>2)
+        if (i<0 || i>2)
             throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
 
         SplitPane.setResizableWithParent(root_child1, i!=1);
@@ -246,8 +246,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     @Override
     protected void updateAbsB() {
         super.updateAbsB();
-        if(wa1!=null) wa1.controls.updateAbsB();
-        if(wa2!=null) wa2.controls.updateAbsB();
+        if (wa1!=null) wa1.controls.updateAbsB();
+        if (wa2!=null) wa2.controls.updateAbsB();
     }
 
 /********************************** COLLAPSING ********************************/
@@ -282,7 +282,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     private final ChangeListener<Orientation> orientL = (o,ov,nv) -> setupCollapsed(getCollapsed());
     public void setCollapsed(int i) {
         prop.put("col", i);
-        if(i==-1) {
+        if (i==-1) {
             splitPane.orientationProperty().removeListener(orientL);
             splitPane.orientationProperty().addListener(orientL);
         } else if (i==0) {
@@ -294,8 +294,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         setupCollapsed(i);
     }
     private void setupCollapsed(int i) {
-        if(i==-1) {
-            if(splitPane.getOrientation()==VERTICAL) {
+        if (i==-1) {
+            if (splitPane.getOrientation()==VERTICAL) {
                 root_child1.setMaxHeight(0);
                 root_child1.setMaxWidth(-1);
                 root_child2.setMaxHeight(-1);
@@ -312,7 +312,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
                 root_child2.setMaxHeight(-1);
                 root_child2.setMaxWidth(-1);
         } else if (i==1) {
-            if(splitPane.getOrientation()==VERTICAL) {
+            if (splitPane.getOrientation()==VERTICAL) {
                 root_child1.setMaxHeight(-1);
                 root_child1.setMaxWidth(-1);
                 root_child2.setMaxHeight(0);
@@ -329,15 +329,15 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     @Override
     public void show() {
         super.show();
-        if(layouter1!=null) layouter1.show();
-        if(layouter2!=null) layouter2.show();
+        if (layouter1!=null) layouter1.show();
+        if (layouter2!=null) layouter2.show();
     }
 
     @Override
     public void hide() {
         super.hide();
-        if(layouter1!=null) layouter1.hide();
-        if(layouter2!=null) layouter2.hide();
+        if (layouter1!=null) layouter1.hide();
+        if (layouter2!=null) layouter2.hide();
     }
 
 }

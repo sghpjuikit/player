@@ -51,7 +51,7 @@ public class CellPane extends Pane {
         List<Node> cells = getChildren();
 
         int elements = cells.size();
-        if(elements==0) return;
+        if (elements==0) return;
 
         int c = (int) floor((width+cellg)/(cellw+cellg));
         int columns = max(1,c);

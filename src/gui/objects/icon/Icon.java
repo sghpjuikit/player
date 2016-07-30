@@ -142,8 +142,8 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
         node.getStyleClass().clear();
         styleclass(STYLECLASS);
-        if(size!=-1) size(size);
-        if(i!=null) icon(i);
+        if (size!=-1) size(size);
+        if (i!=null) icon(i);
         tooltip(tooltip);
         onClick(onClick);
 	    node.setCache(true);
@@ -222,9 +222,9 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	@SuppressWarnings("unchecked")
     public final I tooltip(String text) {
         boolean willBeEmpty = text==null || text.isEmpty();
-        if(!willBeEmpty) {
+        if (!willBeEmpty) {
 	        Tooltip old = getTooltip();
-            if(old==null) {
+            if (old==null) {
 	            tooltip(appTooltip(text));
             } else {
                 tooltip(old);
@@ -246,7 +246,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	@SuppressWarnings("unchecked")
     public final I tooltip(Tooltip t) {
         Tooltip old = getTooltip();
-        if(t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
+        if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
             t.setWrapText(true);
             t.setMaxWidth(330);
             t.setTextAlignment(JUSTIFY);
@@ -257,7 +257,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
             // This also avoids creating useless objects
             t.setOnShowing(e -> {
                 GlyphIcons g = getGlyph();
-                if(g!=null) {
+                if (g!=null) {
                     t.setGraphic(Icons.createIcon(g, 30));
                     t.setGraphicTextGap(15);
                 }
@@ -267,7 +267,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
                 Label s = getFieldValue(t.getSkin(), "tipLabel");
                 Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");
                 Node ico = s==null ? null : getFieldValue(s.getSkin(), "graphic");
-                if(ico!=null && txt!=null) {
+                if (ico!=null && txt!=null) {
                     new Anim(millis(400), p -> {
                         double p2 = Anim.mapTo01(p, 0.4, 1);
                         txt.setTranslateX(20*p*p-20);
@@ -303,13 +303,13 @@ public class Icon<I extends Icon<?>> extends StackPane {
     @SuppressWarnings("unchecked")
     public final I onClick(EventHandler<MouseEvent> action) {
         setOnMouseClicked(action==null ? null : e -> {
-            if(e.getButton()==PRIMARY){
+            if (e.getButton()==PRIMARY){
                 action.handle(e);
                 e.consume();
             }
         });
 
-        if(action==null) removeEventHandler(Event.ANY, CONSUMER);
+        if (action==null) removeEventHandler(Event.ANY, CONSUMER);
         else addEventHandler(Event.ANY, CONSUMER);
 
         return (I)this;
@@ -328,13 +328,13 @@ public class Icon<I extends Icon<?>> extends StackPane {
      * @return this.
      */
     public final I onClick(Runnable action) {
-        if(action instanceof Action) {
+        if (action instanceof Action) {
             Action a = (Action)action;
             tooltip(a.getName()+"\n\n" + a.getInfo());
         }
         click_runnable = action;
         return onClick(action==null ? null : e -> {
-            if(e.getButton()==PRIMARY) {
+            if (e.getButton()==PRIMARY) {
                 action.run();
                 e.consume();
             }
@@ -357,7 +357,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
     // css however remains a problem and should be reimplemented to  ICON_PACK_NAME.ICON_NAME
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
-        if(glyph==null || !glyph.name().equalsIgnoreCase(n)) {
+        if (glyph==null || !glyph.name().equalsIgnoreCase(n)) {
             glyph = (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class,OctIcon.class)
                 .flatMap(c -> stream(getEnumConstants(c)))
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))

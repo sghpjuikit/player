@@ -60,14 +60,14 @@ public class OverlayPane extends StackPane {
         // setEffect(blurfront); // performance optimization, see impl. of animStart()
         getStyleClass().add(ROOT_STYLECLASS);
         setOnMouseClicked(e -> {
-            if(e.getButton()==SECONDARY && isShown()) {
+            if (e.getButton()==SECONDARY && isShown()) {
                 hide();
                 e.consume();
             }
         });
         addEventHandler(KeyEvent.ANY, e -> {
             // close on ESC press
-            if(e.getEventType()==KeyEvent.KEY_PRESSED && e.getCode()==ESCAPE && isShown()) {
+            if (e.getEventType()==KeyEvent.KEY_PRESSED && e.getCode()==ESCAPE && isShown()) {
                 hide();
             }
             // prevent events from propagating
@@ -82,7 +82,7 @@ public class OverlayPane extends StackPane {
      * @see #setContent(javafx.scene.layout.Pane)
      */
     public void show() {
-        if(!isShown()) {
+        if (!isShown()) {
             getProperties().put(IS_SHOWN,IS_SHOWN);
             animStart();
         }
@@ -95,7 +95,7 @@ public class OverlayPane extends StackPane {
 
     /** Hides this pane. */
     public void hide() {
-        if(isShown()) {
+        if (isShown()) {
             getProperties().remove(IS_SHOWN);
             animation.playCloseDo(this::animEnd);
         }
@@ -141,10 +141,10 @@ public class OverlayPane extends StackPane {
         WINDOW, SCREEN_OF_WINDOW, SCREEN_OF_MOUSE;
 
         private void animStart(OverlayPane op) {
-            if(this==WINDOW) {
+            if (this==WINDOW) {
                 // display overlay pane
                 AnchorPane root = APP.windowManager.getActive().root;
-                if(!root.getChildren().contains(op)) {
+                if (!root.getChildren().contains(op)) {
                     root.getChildren().add(op);
                     setAnchors(op,0d);
                     op.toFront();
@@ -167,7 +167,7 @@ public class OverlayPane extends StackPane {
                 //
                 op.opacityNode = APP.windowManager.getActive().content;
                 op.blurbackNode = APP.windowManager.getActive().subroot;
-                if(!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
+                if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
                 op.blurbackNode.setEffect(op.blurback);
                 op.blurfrontNode.setEffect(op.blurfront);
 
@@ -189,7 +189,7 @@ public class OverlayPane extends StackPane {
                     op.stg.setScene(new Scene(root));
 
                     // display overlay pane
-                    if(!root.getChildren().contains(op)) {
+                    if (!root.getChildren().contains(op)) {
                         root.getChildren().add(op);
                         op.toFront();
                     }
@@ -199,7 +199,7 @@ public class OverlayPane extends StackPane {
                     // apply effects (will be updated in animation)
                     op.opacityNode = contentImg;
                     op.blurbackNode = contentImg;
-                    if(!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
+                    if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
                     op.blurbackNode.setEffect(op.blurback);
                     op.blurfrontNode.setEffect(op.blurfront);
 
@@ -215,7 +215,7 @@ public class OverlayPane extends StackPane {
         }
 
         private void animDo(OverlayPane op, double x) {
-            if(op.opacityNode==null) return; // bug fix, not 100% sure why it is necessary
+            if (op.opacityNode==null) return; // bug fix, not 100% sure why it is necessary
 
             op.opacityNode.setOpacity(1-x*0.5);
             op.setOpacity(x);
@@ -241,7 +241,7 @@ public class OverlayPane extends StackPane {
             op.blurbackNode = null;
             op.onHidden.run();
 
-            if(this==WINDOW) {
+            if (this==WINDOW) {
                 op.setVisible(false);
             } else {
                 op.stg.hide();

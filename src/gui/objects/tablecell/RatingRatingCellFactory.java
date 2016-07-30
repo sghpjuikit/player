@@ -40,18 +40,18 @@ public class RatingRatingCellFactory implements RatingCellFactory {
                 r.partialRating.bind(APP.partialRating);
                 r.updateOnHover.bind(APP.hoverRating);
                 r.editable.bind(APP.allowRatingChange);
-                if(c.getUserData().equals(Metadata.Field.RATING)) {
+                if (c.getUserData().equals(Metadata.Field.RATING)) {
                     r.setOnRatingChanged(rv -> MetadataWriter.useToRate(c.getTableView().getItems().get(getIndex()), rv));
                 }
             }
             @Override
             protected void updateItem(Double item, boolean empty) {
                 super.updateItem(item, empty);
-                if(empty) {
+                if (empty) {
                     setGraphic(null);
                 } else {
                     r.rating.set(item);
-                    if(getGraphic()==null) setGraphic(r);
+                    if (getGraphic()==null) setGraphic(r);
                 }
             }
         };

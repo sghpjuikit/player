@@ -43,7 +43,7 @@ public final class PropertyMap<K> extends HashMap<K, Object>{
             throw new ClassCastException("The value does not match the type of property");
 
         Object v = get(key);
-        if(v==null || (v!=null && v.getClass()!=type)) put(key,val);
+        if (v==null || (v!=null && v.getClass()!=type)) put(key,val);
         return (T) get(key);
     }
 

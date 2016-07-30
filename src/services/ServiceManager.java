@@ -29,7 +29,7 @@ public class ServiceManager {
 
     public void addService(Service s) {
         Class<? extends Service> type = s.getClass();
-        if(services.containsKey(type)) throw new IllegalStateException("There already is a service of this type");
+        if (services.containsKey(type)) throw new IllegalStateException("There already is a service of this type");
         services.put(type, s);
         subscribers.computeIfAbsent(s, service -> new HashSet<>());
     }
@@ -50,7 +50,7 @@ public class ServiceManager {
     @SuppressWarnings("unchecked")
     public <S extends Service> Subscription acquire(Class<S> type) {
         S service = (S) services.computeIfAbsent(type, s -> (Service) instantiate(s));
-        if(!service.isRunning()) service.start();
+        if (!service.isRunning()) service.start();
         Set<Subscription> ss = subscribers.computeIfAbsent(service, s -> new HashSet<>());
         Subscription s = new Subscription() {
             @Override
@@ -73,7 +73,7 @@ public class ServiceManager {
                 .map(subscribers::get)                          // get all subscribers
                 .ifPresent(ss -> {
                     ss.remove(subscriber);                      // remove subscriber
-                    if(ss.isEmpty() && service.isRunning())
+                    if (ss.isEmpty() && service.isRunning())
                         service.stop();
                 });
     }

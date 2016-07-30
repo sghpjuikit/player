@@ -18,7 +18,7 @@ public class RangeYear {
     private boolean hasUnspecified = false;
 
     public void accumulate(int year) {
-        if(year==-1) {
+        if (year==-1) {
             hasUnspecified = true;
         } else {
             min = min(min,year);
@@ -48,11 +48,11 @@ public class RangeYear {
     @Override
     public String toString() {
         // has no value
-        if(isEmpty()) return "<none>";
+        if (isEmpty()) return "<none>";
 
         // has 1 specific value
-        if(hasSpecific()) {
-            if(min==max)
+        if (hasSpecific()) {
+            if (min==max)
                 return (hasUnspecified ? "? " : "") + max;
 
         // has >1 specific value

@@ -316,7 +316,7 @@ public class App extends Application implements Configurable {
 
 
     public App() {
-        if(APP==null) APP = this;
+        if (APP==null) APP = this;
         else throw new RuntimeException("Multiple application instances disallowed");
     }
 
@@ -363,12 +363,12 @@ public class App extends Application implements Configurable {
 
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely
-        if(getInstances()>1) {
+        if (getInstances()>1) {
             appCommunicator.fireNewInstanceEvent(fetchParameters());
             close_prematurely = true;
             LOGGER.info("Multiple app instances detected. App wil close prematurely.");
         }
-        if(close_prematurely) return;
+        if (close_prematurely) return;
 
         // configure serialization
         XStream x = serializators.x;
@@ -427,7 +427,7 @@ public class App extends Application implements Configurable {
             map.put("Format", Util.getSuffix(f));
 
             ImageFileFormat iff = ImageFileFormat.of(f.toURI());
-            if(iff.isSupported()) {
+            if (iff.isSupported()) {
                 Dimension id = getImageDim(f);
                 map.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
             }
@@ -454,7 +454,7 @@ public class App extends Application implements Configurable {
                                      dc.setInitialDirectory(DIR_APP);
                                      dc.setTitle("Export to...");
                     File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-                    if(dir!=null) w.exportFxwlDefault(dir);
+                    if (dir!=null) w.exportFxwlDefault(dir);
             })
         );
         actionPane.register(Component.class,
@@ -467,7 +467,7 @@ public class App extends Application implements Configurable {
                                      dc.setInitialDirectory(DIR_LAYOUTS);
                                      dc.setTitle("Export to...");
                     File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-                    if(dir!=null) w.exportFxwl(dir);
+                    if (dir!=null) w.exportFxwl(dir);
             })
         );
         actionPane.register(Item.class,
@@ -527,7 +527,7 @@ public class App extends Application implements Configurable {
                 MaterialDesignIcon.DATABASE_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
                 items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {
-                            if(ok && !added.isEmpty())
+                            if (ok && !added.isEmpty())
                                  APP.widgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
                         }, false).run()
             ),
@@ -607,7 +607,7 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void start(Stage primaryStage) {
-        if(close_prematurely) {
+        if (close_prematurely) {
             LOGGER.info("Application closing prematurely.");
             close();
             return;
@@ -620,9 +620,9 @@ public class App extends Application implements Configurable {
             taskbarIcon.setOnMinimize(v -> windowManager.windows.forEach(w -> w.setMinimized(v)));
             taskbarIcon.setOnAltTab(() -> {
                 boolean apphasfocus = windowManager.getFocused()!=null;
-                if(!apphasfocus) {
+                if (!apphasfocus) {
                     boolean allminimized = windowManager.windows.stream().allMatch(Window::isMinimized);
-                    if(allminimized)
+                    if (allminimized)
                         windowManager.windows.forEach(w -> w.setMinimized(false));
                     else
                         windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
@@ -686,10 +686,10 @@ public class App extends Application implements Configurable {
         configuration.getFields().forEach(Config::applyValue);
 
         // initialize non critical parts
-        if(normalLoad) Player.loadLast();
+        if (normalLoad) Player.loadLast();
 
         // show guide
-        if(guide.first_time.get()) run(3000, guide::start);
+        if (guide.first_time.get()) run(3000, guide::start);
 
         // get rid of this, load from skins
         runNew(() -> {
@@ -709,10 +709,10 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void stop() {
-        if(initialized) {
+        if (initialized) {
             onStop.run();
-            if(normalLoad) Player.state.serialize();
-            if(normalLoad) windowManager.serialize();
+            if (normalLoad) Player.state.serialize();
+            if (normalLoad) windowManager.serialize();
             configuration.save(name,FILE_SETTINGS);
             services.getAllServices()
                     .filter(Service::isRunning)
@@ -776,7 +776,7 @@ public class App extends Application implements Configurable {
         // the recognition differently.
         int instances = 0;
         String ud = System.getProperty("user.dir");
-        for(VirtualMachineDescriptor vmd : VirtualMachine.list()) {
+        for (VirtualMachineDescriptor vmd : VirtualMachine.list()) {
             try {
                 int i = 0;
                 VirtualMachine vm = VirtualMachine.attach(vmd);
@@ -786,17 +786,17 @@ public class App extends Application implements Configurable {
                 // developer) to copy-paste the app and run it from elsewhere). We want to
                 // defend against this as well.
                 String udir = vm.getSystemProperties().getProperty("user.dir");
-                if(udir!=null && ud.equals(udir)) i=1;
+                if (udir!=null && ud.equals(udir)) i=1;
 
                 // attempt 2:
                 // Injected custom property, !work. Read-only? Id like this to work though.
-                // if(vm.getAgentProperties().getProperty("apptype")!=null) i++;
+                // if (vm.getAgentProperties().getProperty("apptype")!=null) i++;
 
                 // attempt3:
                 // We use command parameter which ends with the name of the executed jar. So far
                 // this works. Its far from perfect, since user/dev could rename the jar.
                 String command = vm.getAgentProperties().getProperty("sun.java.command");
-                if(command!=null && command.endsWith("Player.jar")) i=1;
+                if (command!=null && command.endsWith("Player.jar")) i=1;
 
                 instances += i;
                 vm.detach();
@@ -847,7 +847,7 @@ public class App extends Application implements Configurable {
        }
 
        Metadata m = Db.items_byId.get(i.getId());
-       if(m!=null) {
+       if (m!=null) {
            action.accept(m);
        } else {
             Fut.fut(i).map(MetadataReader::create,Player.IO_THREAD)
@@ -866,7 +866,7 @@ public class App extends Application implements Configurable {
     public static void openImageFullscreen(File image, Screen screen) {
         // find appropriate widget
         Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
-        if(c==null) return; // one can never know
+        if (c==null) return; // one can never know
         Node cn = c.load();
         setMinPrefMaxSize(cn, USE_COMPUTED_SIZE); // make sure no settings prevents full size
         StackPane root = new StackPane(cn);
@@ -877,7 +877,7 @@ public class App extends Application implements Configurable {
 
         cn.requestFocus(); // for key events to work - just focus some root child
         root.addEventFilter(KEY_PRESSED, ke -> {
-            if(ke.getCode()==ESCAPE)
+            if (ke.getCode()==ESCAPE)
                 s.hide();
         });
 
@@ -887,7 +887,7 @@ public class App extends Application implements Configurable {
         //       so we need to delay execution
         Functors.Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
         Functors.Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
-        if(s.isShowing()) r.apply(); /// execute when/after window is shown
+        if (s.isShowing()) r.apply(); /// execute when/after window is shown
         else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
     }
 
@@ -902,13 +902,13 @@ public class App extends Application implements Configurable {
             Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
                  a.applier.accept(0d);
             p.progressProperty().addListener((o,ov,nv) -> {
-                if(nv.doubleValue()==-1) {
-                    if(onStart!=null) onStart.accept(p);
+                if (nv.doubleValue()==-1) {
+                    if (onStart!=null) onStart.accept(p);
                     a.then(null)
                      .play();
                 }
-                if(nv.doubleValue()==1) {
-                    a.then(() -> { if(onFinish!=null) onFinish.accept(p); })
+                if (nv.doubleValue()==1) {
+                    a.then(() -> { if (onFinish!=null) onFinish.accept(p); })
                      .playClose();
                 }
             });
@@ -966,7 +966,7 @@ public class App extends Application implements Configurable {
 			    protected void updateItem(GlyphIcons icon, boolean empty) {
 				    super.updateItem(icon, empty);
 				    IconInfo graphics;
-				    if(getGraphic() instanceof IconInfo)
+				    if (getGraphic() instanceof IconInfo)
 					    graphics = (IconInfo) getGraphic();
 				    else {
 					    graphics = new IconInfo(null,iconSize);
@@ -984,7 +984,7 @@ public class App extends Application implements Configurable {
 			    public void updateSelected(boolean selected) {
 				    super.updateSelected(selected);
 				    IconInfo graphics = (IconInfo) getGraphic();
-				    if(graphics!=null) graphics.select(selected);
+				    if (graphics!=null) graphics.select(selected);
 			    }
 		    });
 		    StackPane root = new StackPane(grid);
@@ -994,7 +994,7 @@ public class App extends Application implements Configurable {
 	              .map(c -> {
 	                  Button b = new Button(c.getSimpleName());
 	                  b.setOnMouseClicked(e -> {
-	                      if(e.getButton()==PRIMARY) {
+	                      if (e.getButton()==PRIMARY) {
 	                          grid.getItemsRaw().setAll(getEnumConstants(c));
 	                          e.consume();
 	                      }
@@ -1010,7 +1010,7 @@ public class App extends Application implements Configurable {
 	    static void openLauncher() {
 		    File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
 		    Component c = UiContext.instantiateComponent(f);
-		    if(c!=null) {
+		    if (c!=null) {
 			    OverlayPane op = new OverlayPane() {
 				    @Override
 				    public void show() {
@@ -1020,7 +1020,7 @@ public class App extends Application implements Configurable {
 					    run(millis(500), () ->
 						    stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus())
 					    );
-					    if(c instanceof Widget) {
+					    if (c instanceof Widget) {
 						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
 						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
 						    ((Widget<?>)c).areaTemp = new ContainerNode() {
@@ -1071,7 +1071,7 @@ public class App extends Application implements Configurable {
 	                    dc.setInitialDirectory(APP.DIR_LAYOUTS);
 	                    dc.setTitle("Export to...");
 	                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-	                    if(dir!=null) {
+	                    if (dir!=null) {
 		                    APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
 	                    }
                     }
@@ -1098,7 +1098,7 @@ public class App extends Application implements Configurable {
 	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
 	                    fc.setTitle("Open widget...");
 	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-	                    if(f!=null) UiContext.launchComponent(f);
+	                    if (f!=null) UiContext.launchComponent(f);
                     }
 			    ),
 			    new FastAction<>(
@@ -1111,7 +1111,7 @@ public class App extends Application implements Configurable {
 	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
 	                    fc.setTitle("Open skin...");
 	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-	                    if(f!=null) Gui.setSkinExternal(f);
+	                    if (f!=null) Gui.setSkinExternal(f);
                     }
 			    ),
 			    new FastAction<>(
@@ -1126,7 +1126,7 @@ public class App extends Application implements Configurable {
 	                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
 	                    // Action pane may auto-close when this action finishes, so we make sure to call
 	                    // show() after that happens by delaying using runLater
-	                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
+	                    if (fs!=null) runLater(() -> APP.actionPane.show(fs));
                     }
 			    )
 		    );
@@ -1219,7 +1219,7 @@ public class App extends Application implements Configurable {
 		    p.title.set("Search for an action or option");
 		    p.setAutoHide(true);
 		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
-		    if(!isFocused) {
+		    if (!isFocused) {
 			    run(200, () -> {
 			        APP.windowOwner.getStage().requestFocus();
 				    p.requestFocus();

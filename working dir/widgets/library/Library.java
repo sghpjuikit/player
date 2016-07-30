@@ -125,7 +125,7 @@ public class Library extends FXMLController implements SongReader {
         }
         @Override
         public void setVisible(boolean v) {
-            if(v) {
+            if (v) {
                 super.setVisible(v);
                 a.then(null)
                  .play();
@@ -236,7 +236,7 @@ public class Library extends FXMLController implements SongReader {
                 )
                 .onRightSingleClick((r,e) -> {
                     // prep selection for context menu
-                    if(!r.isSelected())
+                    if (!r.isSelected())
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
                     // show context menu
                     contxt_menu.show(table, e);
@@ -253,7 +253,7 @@ public class Library extends FXMLController implements SongReader {
         // key actions
         table.setOnKeyPressed(e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
-                if(!table.getSelectionModel().isEmpty()) {
+                if (!table.getSelectionModel().isEmpty()) {
                     PlaylistManager.use(pl ->pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
                 }
             }
@@ -302,7 +302,7 @@ public class Library extends FXMLController implements SongReader {
 
     @IsInput("To display")
     public void setItems(List<? extends Metadata> items) {
-        if(items==null) return;
+        if (items==null) return;
         table.setItemsRaw(items);
     }
 
@@ -316,9 +316,9 @@ public class Library extends FXMLController implements SongReader {
     private void addNedit(boolean edit, boolean dir) {
         Window w = root.getScene().getWindow();
         ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-        if(dir) {
+        if (dir) {
             File f = Environment.chooseFile("Add folder to library", DIRECTORY, last_file, w, ef);
-            if(f!=null) {
+            if (f!=null) {
                 addNeditDo(fut(() -> {
                     last_file = f.getParentFile()==null ? f : f.getParentFile();
                     Stream<File> files = getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
@@ -327,10 +327,10 @@ public class Library extends FXMLController implements SongReader {
             }
         } else {
             List<File> fs = Environment.chooseFiles("Add files to library", last_file, w, ef);
-            if(fs!=null) {
+            if (fs!=null) {
                 addNeditDo(fut(() -> {
                     File fr = getCommonRoot(fs);
-                    if(fr!=null) last_file=fr;
+                    if (fr!=null) last_file=fr;
                     Stream<File> files = fs.stream();
                     return files.map(SimpleItem::new);
                 }), edit);
@@ -347,7 +347,7 @@ public class Library extends FXMLController implements SongReader {
              .supply(files)
              .use(items -> {
                  Task t = MetadataReader.readAaddMetadata(items.collect(toList()),(ok,added) -> {
-                     if(ok && edit && !added.isEmpty())
+                     if (ok && edit && !added.isEmpty())
                          APP.widgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
                      hideInfo.start();
                  },false);

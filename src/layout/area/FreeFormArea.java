@@ -66,10 +66,10 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
         rt.setOnMouseClicked(e -> {
-            if(!isAltCon && (Gui.isLayoutMode() || !container.lockedUnder.get())) {
+            if (!isAltCon && (Gui.isLayoutMode() || !container.lockedUnder.get())) {
                 any_window_clicked.set(any_window_clicked.get() && isHere(e));
                 // add new widget on left click
-                if(e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
+                if (e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(),e.getY());
                     e.consume();
                 }
@@ -96,8 +96,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 w.snappable.set(false);
                 double wx = container.properties.getD(i+"x");
                 double ww = container.properties.getD(i+"w");
-                if(container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
-                if(container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
+                if (container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
+                if (container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
                 maintain(Gui.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
@@ -110,8 +110,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 w.snappable.set(false);
                 double wy = container.properties.getD(i+"y");
                 double wh = container.properties.getD(i+"h");
-                if(container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
-                if(container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
+                if (container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
+                if (container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
                 maintain(Gui.snapping, w.snappable);    // this is bad!
             });
             resizing = false;
@@ -140,13 +140,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 w.w.set(p.c*rt.getWidth());
                 w.h.set(p.d*rt.getHeight());
             });
-        if(cm instanceof Container) {
+        if (cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
-            if(c.ui instanceof ContainerNodeBase)
+            if (c.ui instanceof ContainerNodeBase)
                 ((ContainerNodeBase)c.ui).icons.getChildren().add(1,lb);
         } else
-        if(cm instanceof Widget) {
+        if (cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
             // add maximize button
             wa.controls.header_buttons.getChildren().add(1,lb);
@@ -160,12 +160,12 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         w.content.getChildren().setAll(n);
         setAnchors(n, 0d);
-        if(l!=null) l.show();
+        if (l!=null) l.show();
     }
 
     public void closeWindow(int i) {
         PaneWindowControls w = windows.get(i);
-        if(w!=null) {
+        if (w!=null) {
             w.close();
             windows.remove(i);
             container.properties.remove(i+"x");
@@ -177,7 +177,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     private PaneWindowControls getWindow(int i) {
         PaneWindowControls w = windows.get(i);
-        if(w==null) {
+        if (w==null) {
             w = buidWindow(i);
             windows.put(i,w);
         }
@@ -200,23 +200,23 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         w.alignCenter();
         w.snappable.set(false);
         // values from previous session (used when deserializing)
-        if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*rt.getWidth());
-        if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*rt.getHeight());
-        if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*rt.getWidth()-container.properties.getD(i+"x")*rt.getWidth());
-        if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*rt.getHeight()-container.properties.getD(i+"y")*rt.getHeight());
+        if (container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*rt.getWidth());
+        if (container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*rt.getHeight());
+        if (container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*rt.getWidth()-container.properties.getD(i+"x")*rt.getWidth());
+        if (container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*rt.getHeight()-container.properties.getD(i+"y")*rt.getHeight());
         // store for restoration (runLater avoids initialization problems)
         runLater(()->{
-            maintain(w.x, v -> { if(!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
-            maintain(w.y, v -> { if(!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
-            maintain(w.w, v -> { if(!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
-            maintain(w.h, v -> { if(!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
+            maintain(w.x, v -> { if (!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
+            maintain(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
+            maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
+            maintain(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
             maintain(Gui.snapDistance, d->d, w.snapDistance);
             maintain(Gui.snapping, w.snappable);
         });
         maintain(container.lockedUnder, l -> !l, w.resizable);
         maintain(container.lockedUnder, l -> !l, w.movable);
         w.resizing.addListener((o,ov,nv) -> {
-            if(nv!=Resize.NONE) any_window_resizing = true;
+            if (nv!=Resize.NONE) any_window_resizing = true;
             else runFX(100, () -> any_window_resizing = false);
         });
 
@@ -229,30 +229,30 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {
         TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
-        for(PaneWindowControls w : windows.values()) {
-            if(w==new_w) continue;   // ignore self
+        for (PaneWindowControls w : windows.values()) {
+            if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
-            if(wl<x && wl>b.a) b.a = wl;
+            if (wl<x && wl>b.a) b.a = wl;
             double wr = w.x.get();
-            if(wr>x && wr<b.b) b.b = wr;
+            if (wr>x && wr<b.b) b.b = wr;
             double ht = w.y.get()+w.h.get();
-            if(ht<y && ht>b.c) b.c = ht;
+            if (ht<y && ht>b.c) b.c = ht;
             double hb = w.y.get();
-            if(hb>y && hb<b.d) b.d = hb;
+            if (hb>y && hb<b.d) b.d = hb;
         }
 
         b.a = 0d;
         b.b = rt.getWidth();
-        for(PaneWindowControls w : windows.values()) {
-            if(w==new_w) continue;   // ignore self
+        for (PaneWindowControls w : windows.values()) {
+            if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
             double ht = w.y.get()+w.h.get();
             double hb = w.y.get();
             boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
-            if(intheway) {
-                if(wl<x && wl>b.a) b.a = wl;
-                if(wr>x && wr<b.b) b.b = wr;
+            if (intheway) {
+                if (wl<x && wl>b.a) b.a = wl;
+                if (wr>x && wr<b.b) b.b = wr;
             }
         }
 
@@ -262,30 +262,30 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     Bounds bestRecBounds(double x, double y, PaneWindowControls new_w) {
         TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
-        for(PaneWindowControls w : windows.values()) {
-            if(w==new_w) continue;   // ignore self
+        for (PaneWindowControls w : windows.values()) {
+            if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
-            if(wl<x && wl>b.a) b.a = wl;
+            if (wl<x && wl>b.a) b.a = wl;
             double wr = w.x.get();
-            if(wr>x && wr<b.b) b.b = wr;
+            if (wr>x && wr<b.b) b.b = wr;
             double ht = w.y.get()+w.h.get();
-            if(ht<y && ht>b.c) b.c = ht;
+            if (ht<y && ht>b.c) b.c = ht;
             double hb = w.y.get();
-            if(hb>y && hb<b.d) b.d = hb;
+            if (hb>y && hb<b.d) b.d = hb;
         }
 
         b.a = 0d;
         b.b = rt.getWidth();
-        for(PaneWindowControls w : windows.values()) {
-            if(w==new_w) continue;   // ignore self
+        for (PaneWindowControls w : windows.values()) {
+            if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
             double ht = w.y.get()+w.h.get();
             double hb = w.y.get();
             boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
-            if(intheway) {
-                if(wl<x && wl>b.a) b.a = wl;
-                if(wr>x && wr<b.b) b.b = wr;
+            if (intheway) {
+                if (wl<x && wl>b.a) b.a = wl;
+                if (wr>x && wr<b.b) b.b = wr;
             }
         }
 

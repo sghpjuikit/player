@@ -48,11 +48,11 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
     /** Accumulates given collection into this cache map. The collection remains
     unaffected. */
     public void accumulate(Collection<E> es) {
-        for(E e : es) accumulate(e);
+        for (E e : es) accumulate(e);
     }
     
     public void accumulate(K k, Collection<E> es) {
-        for(E e : es) accumulate(k,e);
+        for (E e : es) accumulate(k,e);
     }
     
     /** Accumulates given element into this map. */
@@ -61,7 +61,7 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
         K k = keyMapper.apply(e);
         // get cache storage with key & build new if not yet built 
         C c = get(k);
-        if(c==null) {
+        if (c==null) {
             c = cacheFactory.get();
             put(k, c);
         }
@@ -72,7 +72,7 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
     public void accumulate(K k, E e) {
         // get cache storage with key & build new if not yet built 
         C c = get(k);
-        if(c==null) {
+        if (c==null) {
             c = cacheFactory.get();
             put(k, c);
         }
@@ -85,9 +85,9 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
     containers assigned to keys in the given collection. */
     public List<C> getCacheOf(Collection<K> keys) {
         List<C> out = new ArrayList();
-        for(K k : keys) {
+        for (K k : keys) {
             C c = get(k);
-            if(c!=null) out.add(c);
+            if (c!=null) out.add(c);
         }
         return out;
     }

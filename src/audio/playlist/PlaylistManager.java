@@ -37,15 +37,15 @@ public class PlaylistManager implements Configurable {
 
     public static void use(Consumer<Playlist> action) {
         Playlist p = null;
-        if(active!=null) p = playlists.get(active);
-        if(p==null) p = playlists.stream().findAny().orElse(null);
-        if(p!=null) action.accept(p);
+        if (active!=null) p = playlists.get(active);
+        if (p==null) p = playlists.stream().findAny().orElse(null);
+        if (p!=null) action.accept(p);
     }
 
     public static <T> T use(Ƒ1<Playlist,T> action, T or) {
         Playlist p = null;
-        if(active!=null) p = playlists.get(active);
-        if(p==null) p = playlists.stream().findAny().orElse(null);
+        if (active!=null) p = playlists.get(active);
+        if (p==null) p = playlists.stream().findAny().orElse(null);
         return p==null ? or : action.apply(p);
     }
 

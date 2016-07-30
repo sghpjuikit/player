@@ -89,7 +89,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         growTo(len);
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
-            if(m<chain.size()) {
+            if (m<chain.size()) {
                 chain.setAll(chain.subList(0, m));
                 generateValue();
             }
@@ -109,7 +109,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         addChained(chain.size(), chained);
     }
     public void addChained(int i, C chained) {
-        if(chain.size()<maxChainLength.get()) {
+        if (chain.size()<maxChainLength.get()) {
             Link c = new Link(chained);
             chain.add(i,c);
             generateValue();
@@ -158,7 +158,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     }
 
     protected void generateValue() {
-        if(inconsistent_state) return;
+        if (inconsistent_state) return;
         changeValue(reduce(getValues()));
     }
 
@@ -239,7 +239,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         }
 
         void onRem(MouseEvent e) {
-            if(chain.size()>1) {
+            if (chain.size()>1) {
                 chain.remove(this);
                 generateValue();
             }
@@ -248,7 +248,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         private boolean isHomogeneous() {
             int i = getIndex();
             boolean hi = false;
-            if(chained!=null && chained.getValue()!=null) {
+            if (chained!=null && chained.getValue()!=null) {
                 hi = isHomogeneous.test(i,chained.getValue());
             }
             return homogeneous || hi || i>=chain.size()-1;
@@ -256,11 +256,11 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             // optimization, but does not work?
 //            int i = getIndex();
 //
-//            if(i==0) return false;
-//            if(i>=chain.size()-1) return true;
-//            if(homogeneous) return true;
+//            if (i==0) return false;
+//            if (i>=chain.size()-1) return true;
+//            if (homogeneous) return true;
 //
-//            if(i>0 && chained!=null && chained.getValue()!=null)
+//            if (i>0 && chained!=null && chained.getValue()!=null)
 //                return isHomogeneous.test(chained.getValue());
 //            return false;
 
@@ -314,11 +314,11 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
         @Override
         public final void configure(Collection<Config> configs) {
-            if(configs==null) return;
+            if (configs==null) return;
 
             root.getChildren().setAll(map(configs,c -> {
                 ConfigField cf = ConfigField.create(c);
-                            cf.onChange = () -> { if(onChange!=null) onChange.run(); };
+                            cf.onChange = () -> { if (onChange!=null) onChange.run(); };
                 this.configs.add(cf);
                 Label l = cf.createLabel();
                       l.setMinWidth(100);
@@ -326,7 +326,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                       l.setTextAlignment(TextAlignment.RIGHT);
                       l.setPadding(new Insets(0, 0, 0, 5));
                 HBox h = new HBox(5, l,cf.getNode());
-                     if(l.getText().isEmpty()) h.getChildren().remove(l);
+                     if (l.getText().isEmpty()) h.getChildren().remove(l);
                      h.setAlignment(CENTER_LEFT);
                 HBox.setHgrow(cf.getNode(), ALWAYS);
                 return h;

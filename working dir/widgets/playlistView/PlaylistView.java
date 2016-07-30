@@ -142,9 +142,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         d(Player.playlistSelected.i.bind(outSelected));
 	    d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
-            if(outPlaying.getValue()!=null)
+            if (outPlaying.getValue()!=null)
                 ms.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
-            if(outSelected.getValue()!=null)
+            if (outSelected.getValue()!=null)
                 ms.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
         }));
 
@@ -207,7 +207,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-            if(!table.movingItems)
+            if (!table.movingItems)
                 outSelected.setValue(nv);
         });
 
@@ -241,7 +241,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     void savePlaylist() {
         List<PlaylistItem> l = table.getItems();
-        if(l.isEmpty()) return;
+        if (l.isEmpty()) return;
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", initialName);
@@ -259,7 +259,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     void saveSelectedAsPlaylist() {
         List<PlaylistItem> l = table.getSelectedItems();
-        if(l.isEmpty()) return;
+        if (l.isEmpty()) return;
 
         ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist");
         SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
@@ -294,12 +294,12 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
                  .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
 
         Playlist leaf = pall.isEmpty() ? null : pall.get(0);
-        for(Playlist p : pall)
-            if(p.id.equals(PlaylistManager.active))
+        for (Playlist p : pall)
+            if (p.id.equals(PlaylistManager.active))
                 leaf = p;
-        if(leaf!=null) PlaylistManager.playlists.remove(leaf);
-        if(leaf!=null) {
-            if(leaf.id.equals(PlaylistManager.active))
+        if (leaf!=null) PlaylistManager.playlists.remove(leaf);
+        if (leaf!=null) {
+            if (leaf.id.equals(PlaylistManager.active))
                 PlaylistManager.active = id;
             Util.setField(Playlist.class, leaf, "id", id);
         }

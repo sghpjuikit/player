@@ -52,7 +52,7 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
      */
     default void setNapplyValue(V v) {
         V ov = getValue();
-        if(ov==v || (ov!=null && v!=null && ov.equals(v))) return;
+        if (ov==v || (ov!=null && v!=null && ov.equals(v))) return;
         setValue(v);
         applyValue(v);
     }

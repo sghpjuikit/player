@@ -52,7 +52,7 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
                 configs.add(cf);
                 paramB.getChildren().add(cf.getNode());
             });
-            if(!configs.isEmpty()) HBox.setHgrow(configs.get(configs.size()-1).getNode(), ALWAYS);
+            if (!configs.isEmpty()) HBox.setHgrow(configs.get(configs.size()-1).getNode(), ALWAYS);
             generateValue();
         });
         fCB.setValue(functionPool.get().getPreferedOrFirst()); // generate
@@ -72,7 +72,7 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
      */
     @Override
     public void focus() {
-        if(!configs.isEmpty())
+        if (!configs.isEmpty())
             configs.get(0).focus();
     }
 

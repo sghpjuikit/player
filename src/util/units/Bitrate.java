@@ -27,7 +27,7 @@ public class Bitrate implements Comparable<Bitrate> {
      * @param value bit rate value in kb per second. Use -1 if not available.
      */
     public Bitrate(int value){
-        if(value<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
+        if (value<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
         bitrate = value;
     }
 
@@ -76,7 +76,7 @@ public class Bitrate implements Comparable<Bitrate> {
 
 
     private static int val(String s) throws IndexOutOfBoundsException, NumberFormatException {
-        if(s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
+        if (s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
         s = s.trim();
         return s.isEmpty() ? -1 : parseInt(s);
     }

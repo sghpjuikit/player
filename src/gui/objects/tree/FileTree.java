@@ -50,7 +50,7 @@ public class FileTree extends TreeView<File>{
             @Override
             protected void updateItem(File item, boolean empty) {
                 super.updateItem(item, empty);
-                if(empty || item == null) {
+                if (empty || item == null) {
                     setText(null);
                     setGraphic(null);
                 } else {
@@ -64,7 +64,7 @@ public class FileTree extends TreeView<File>{
         // support drag from tree - add selected to clipboard/dragboard
         tree.setOnDragDetected( e -> {
             if (e.getButton()!=MouseButton.PRIMARY) return;
-            if(tree.getSelectionModel().isEmpty()) return;
+            if (tree.getSelectionModel().isEmpty()) return;
 
             TransferMode tm = e.isShiftDown() ? MOVE : COPY;
             Dragboard db = tree.startDragAndDrop(tm);
@@ -81,14 +81,14 @@ public class FileTree extends TreeView<File>{
 
     private static Node makeIcon(Path p) {
         File f = p.toFile();
-        if(p.toString().endsWith(".css"))
+        if (p.toString().endsWith(".css"))
             return GlyphsDude.createIcon(CSS3,"11");
         if((f.isDirectory() && APP.DIR_SKINS.equals(p.toFile().getParentFile())) || Util.isValidSkinFile(p.toFile()))
             return GlyphsDude.createIcon(PAINT_BRUSH,"11");
         if((f.isDirectory() && APP.DIR_WIDGETS.equals(p.toFile().getParentFile())) || Util.isValidWidgetFile(p.toFile()))
             return GlyphsDude.createIcon(GE,"11");
 
-        if(f.isFile()) return new Circle(2.5, CADETBLUE);
+        if (f.isFile()) return new Circle(2.5, CADETBLUE);
         else return new Rectangle(5, 5, CADETBLUE);
     }
 
@@ -130,7 +130,7 @@ public class FileTree extends TreeView<File>{
                 ObservableList<TreeItem<File>> dirs = FXCollections.observableArrayList();
                 List<TreeItem<File>> fils = new ArrayList<>();
                 listFiles(i.getValue()).forEach(f -> {
-                    if(!f.isDirectory()) dirs.add(createTreeItem(f));
+                    if (!f.isDirectory()) dirs.add(createTreeItem(f));
                     else                 fils.add(createTreeItem(f));
                 });
                        dirs.addAll(fils);

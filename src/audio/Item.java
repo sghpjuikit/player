@@ -89,7 +89,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * @throws UnsupportedOperationException if item is not file based
      */
     public File getLocation() {
-        if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
+        if (!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
         return getFile().getParentFile();
     }
 
@@ -110,11 +110,11 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      */
     public String getFilenameFull() {
         String p = getURI().getPath();
-        // shouldnt happen ever, but just in case some damaged URL gets through
-        if(p==null || p.isEmpty()) return "";
+        // should not happen ever, but just in case some damaged URL gets through
+        if (p==null || p.isEmpty()) return "";
         int i = p.lastIndexOf('/');
         // another exceptional state check (just in case, might be unnecessary)
-        if(i==-1 || p.length()<2) return p;
+        if (i==-1 || p.length()<2) return p;
         // get name portion of the path
         return p.substring(i+1);
     }
@@ -191,7 +191,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     }
 
     protected boolean isCorruptWeak() {
-        if(isFileBased()) {
+        if (isFileBased()) {
             File f = getFile();
             return !f.isFile() ||
                         !f.exists() ||

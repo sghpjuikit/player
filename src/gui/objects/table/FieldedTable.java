@@ -91,7 +91,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
     public FieldedTable(Class<F> type) {
         super();
-        if(!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
+        if (!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
         this.type = type;
 
         // install comparator updating part I
@@ -102,7 +102,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight())
                 columnVisibleMenu.show(this, e.getScreenX(), e.getScreenY());
 
-            else if(columnVisibleMenu.isShowing()) columnVisibleMenu.hide();
+            else if (columnVisibleMenu.isShowing()) columnVisibleMenu.hide();
         });
 
         // column control menu button not needed now (but still optionally usable)
@@ -158,8 +158,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
     public void setColumnVisible(ObjectField<? super T> f, boolean v) {
         TableColumn<T,?> c = getColumn(f).orElse(null);
-        if(v) {
-            if(c==null) {
+        if (v) {
+            if (c==null) {
                 c = f == ColumnField.INDEX ? columnIndex : colFact.call((F)f);
                 c.setPrefWidth(columnState.columns.get(f.name()).width);
                 c.setVisible(v);
@@ -167,7 +167,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             } else {
                 c.setVisible(v);
             }
-        } else if(!v && c!=null) {
+        } else if (!v && c!=null) {
             getColumns().remove(c);
         }
     }
@@ -202,7 +202,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             + "rather than building it from scratch, get rid of the reflection and"
             + "make a skin that does this natively. Not sure what is better option here")
     public TableColumnInfo getDefaultColumnInfo() {
-        if(defColInfo==null) {
+        if (defColInfo==null) {
             // generate column states
             List<ColumnInfo> colinfos = map(getFields(),colStateFact);
             defColInfo = new TableColumnInfo();
@@ -224,7 +224,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
                         ObjectField<? super T> f =  nameToCF(c.name);
                         SelectionMenuItem m = new SelectionMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
                         String d = f.description();
-                        if(!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
+                        if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
                         return m;
                     })
                     .forEach(columnVisibleMenu.getItems()::add);
@@ -235,7 +235,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
                             .forEach(i -> ((SelectionMenuItem)i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
 
             // link table column button to our menu instead of an old one
-            if(getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
+            if (getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
             // TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow(); // java9 no longer supports this
             TableHeaderRow h = (TableHeaderRow)invokeMethodP0(getSkin(), "getTableHeaderRow");
 
@@ -264,8 +264,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public Optional<TableColumn<T,?>> getColumn(Predicate<TableColumn<T,?>> filter) {
-        for(TableColumn t : getColumns())
-            if(filter.test(t)) {
+        for (TableColumn t : getColumns())
+            if (filter.test(t)) {
                 return Optional.of(t);
             }
         return Optional.empty();
@@ -281,7 +281,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public void refreshCoumns() {
-        if(!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
+        if (!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
 
 /************************************* SORT ***********************************/

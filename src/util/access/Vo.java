@@ -76,7 +76,7 @@ public class Vo<T> implements ObservableValue<T>, WritableValue<T> {
     
     private void change() {
         T t = override.get() ? real.getValue(): parent.getValue();
-        if(!Objects.equals(t, current.get()))
+        if (!Objects.equals(t, current.get()))
             current.setValue(t);
     }
 }

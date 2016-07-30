@@ -35,7 +35,7 @@ public interface ImageDisplayFeature {
      * @param img_files to display
      */
     default void showImages(List<File> images) {
-        if(!images.isEmpty())
+        if (!images.isEmpty())
             showImage(images.get(0));
     }
 }

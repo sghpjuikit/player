@@ -234,7 +234,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             return;
         }
 
-        for(int trys = 0; trys < 10; trys++) {
+        for (int trys = 0; trys < 10; trys++) {
             // Compute the area in between each divider.
             ContentDivider previousDivider = null;
             ContentDivider divider = null;

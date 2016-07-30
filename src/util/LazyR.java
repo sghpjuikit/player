@@ -44,18 +44,18 @@ public class LazyR<V> extends R<V> {
 
     @Override
     public V get(V or) {
-        if(!isSet) set(or);
+        if (!isSet) set(or);
         return v;
     }
 
     @Override
     public V get(Supplier<V> or) {
-        if(!isSet) set(or.get());
+        if (!isSet) set(or.get());
         return v;
     }
 
     public <M> V get(M m, Functors.Ƒ1<M, V> or) {
-        if(!isSet) set(or.apply(m));
+        if (!isSet) set(or.apply(m));
         return v;
     }
 

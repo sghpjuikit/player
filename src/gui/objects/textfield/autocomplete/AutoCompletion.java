@@ -85,7 +85,7 @@ public class AutoCompletion<T> extends AutoCompletionBinding<T> {
 			setUserInput(nv);
 	};
 	private final ChangeListener<Boolean> focusChangedListener = (o,ov,nv) -> {
-		if(!nv)
+		if (!nv)
 			hidePopup();
 	};
 

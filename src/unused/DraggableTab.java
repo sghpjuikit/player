@@ -72,7 +72,7 @@ public class DraggableTab extends Tab {
 
         nameLabel.setOnMouseDragged( e -> {
             // support only left mouse drag
-            if(e.getButton()!=PRIMARY) return;
+            if (e.getButton()!=PRIMARY) return;
 
             dragStage.setWidth(nameLabel.getWidth() + 10);
             dragStage.setHeight(nameLabel.getHeight() + 10);
@@ -82,12 +82,12 @@ public class DraggableTab extends Tab {
             Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
             tabPanes.add(getTabPane());
             InsertData data = getInsertData(screenPoint);
-            if(data == null || data.getInsertPane().getTabs().isEmpty()) {
+            if (data == null || data.getInsertPane().getTabs().isEmpty()) {
                 markerStage.hide();
             } else {
                 int index = data.getIndex();
                 boolean end = false;
-                if(index == data.getInsertPane().getTabs().size()) {
+                if (index == data.getInsertPane().getTabs().size()) {
                     end = true;
                     index--;
                 }
@@ -115,23 +115,23 @@ public class DraggableTab extends Tab {
 
         nameLabel.setOnMouseReleased( e -> {
             // support only left mouse drag
-            if(e.getButton()!=PRIMARY) return;
+            if (e.getButton()!=PRIMARY) return;
 
             markerStage.hide();
             dragStage.hide();
-            if(!e.isStillSincePress()) {
+            if (!e.isStillSincePress()) {
                 Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
                 InsertData insertData = getInsertData(screenPoint);
 
                 // if dropped at table
-                if(insertData != null) {
+                if (insertData != null) {
                     TabPane fromPane = getTabPane();
                     TabPane toPane = insertData.getInsertPane();
                     int from = fromPane.getTabs().indexOf(DraggableTab.this);
                     int to = Math.min(insertData.getIndex(), fromPane.getTabs().size());
 
                     // if dropped at the same table reorder
-                    if(fromPane == toPane) {
+                    if (fromPane == toPane) {
                         // return if nothing to do
                         if (fromPane.getTabs().size() == 1) return;System.out.println("MMMMMMMMOving " + from + " " + to);
                         // move child at position
@@ -151,7 +151,7 @@ public class DraggableTab extends Tab {
                 }
                 // if not dropped at any table detach to window
                 else {
-                    if(!detachable) return;
+                    if (!detachable) return;
                     // detach component
                     int index = getTabPane().getTabs().indexOf(this);
 //                    getTabArea().detachComponent(index);
@@ -186,30 +186,30 @@ public class DraggableTab extends Tab {
 //    }
 
     private InsertData getInsertData(Point2D screenPoint) {
-        for(TabPane tabPane : tabPanes) {
+        for (TabPane tabPane : tabPanes) {
             Rectangle2D tabAbsolute = getAbsoluteRect(tabPane);
-            if(tabAbsolute.contains(screenPoint)) {
+            if (tabAbsolute.contains(screenPoint)) {
                 int tabInsertIndex = 0;
-                if(!tabPane.getTabs().isEmpty()) {
+                if (!tabPane.getTabs().isEmpty()) {
                     Rectangle2D firstTabRect = getAbsoluteRect(tabPane.getTabs().get(0));
-                    if(firstTabRect.getMaxY()+60 < screenPoint.getY() || firstTabRect.getMinY() > screenPoint.getY()) {
+                    if (firstTabRect.getMaxY()+60 < screenPoint.getY() || firstTabRect.getMinY() > screenPoint.getY()) {
                         return null;
                     }
                     Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
-                    if(screenPoint.getX() < (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
+                    if (screenPoint.getX() < (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
                         tabInsertIndex = 0;
                     }
-                    else if(screenPoint.getX() > (lastTabRect.getMaxX() - lastTabRect.getWidth() / 2)) {
+                    else if (screenPoint.getX() > (lastTabRect.getMaxX() - lastTabRect.getWidth() / 2)) {
                         tabInsertIndex = tabPane.getTabs().size();
                     }
                     else {
-                        for(int i = 0; i < tabPane.getTabs().size() - 1; i++) {
+                        for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
                             Tab leftTab = tabPane.getTabs().get(i);
                             Tab rightTab = tabPane.getTabs().get(i + 1);
-                            if(leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
+                            if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
                                 Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
                                 Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
-                                if(betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
+                                if (betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
                                     tabInsertIndex = i + 1;
                                     break;
                                 }

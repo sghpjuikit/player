@@ -53,13 +53,13 @@ public class LastFM {
         @Override
         public void set(boolean newValue) {
             if (newValue){
-                if(isLoginSet()){
+                if (isLoginSet()){
                     session = Authenticator.getMobileSession(
                             acquireUserName(),
                             acquirePassword().get(),
                             apiKey, secret);
                     Result lastResult = Caller.getInstance().getLastResult();
-                    if(lastResult.getStatus() != Result.Status.FAILED){
+                    if (lastResult.getStatus() != Result.Status.FAILED){
                         LastFM.setLoginSuccess(true);
                         LastFM.start();
                         super.set(true);
@@ -111,7 +111,7 @@ public class LastFM {
     }
 
     public static void saveLogin(String value, Password value0) {
-        if(saveUserName(value) && savePassword(value0)){
+        if (saveUserName(value) && savePassword(value0)){
             scrobblingEnabled.set(true);
         }else{
             scrobblingEnabled.set(false);

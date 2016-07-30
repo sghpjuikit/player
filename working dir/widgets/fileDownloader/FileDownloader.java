@@ -73,7 +73,7 @@ public class FileDownloader extends ClassController  {
             this, FontAwesomeIcon.FILE_ALT, "Add to download queue",
             e -> e.getDragboard().hasUrl() || e.getDragboard().hasFiles(),
             e -> {
-                if(e.getDragboard().hasFiles())
+                if (e.getDragboard().hasFiles())
                     e.getDragboard().getFiles().forEach(this::process);
                 else if (e.getDragboard().hasUrl())
                     process(e.getDragboard().getUrl());
@@ -91,7 +91,7 @@ public class FileDownloader extends ClassController  {
     }
 
     private void process(String url) {
-        if(url!=null) {
+        if (url!=null) {
             File dest = downloadDir.get();
             fut().then(() -> {
                     try {

@@ -44,8 +44,8 @@ public class GeneralPlayer {
     private Play getPlayer(Item i) {
 //        return gp;
         AudioFileFormat f = i.getFormat();
-        if(!f.isSupported(Use.PLAYBACK)) return null;
-        if(f==mp3 || f==wav || f==mp4 || f==m4a) return dp;
+        if (!f.isSupported(Use.PLAYBACK)) return null;
+        if (f==mp3 || f==wav || f==mp4 || f==m4a) return dp;
         else return fp;
     }
 
@@ -57,17 +57,17 @@ public class GeneralPlayer {
         // Do not recreate player if same song plays again
         // 1) improves performance
         // 2) avoids firing some playback events
-        if(p!=null && item.same(i)) {
+        if (p!=null && item.same(i)) {
             seek(ZERO);
             return;
         }
 
         i = item;
-        if(p!=null) p.dispose();
+        if (p!=null) p.dispose();
         p = getPlayer(item);
 
         try {
-            if(p==null) throw new NoPlayerException();
+            if (p==null) throw new NoPlayerException();
             p.createPlayback(item, state,
                 () -> {
                     realTime.real_seek = state.realTime.get();
@@ -80,9 +80,9 @@ public class GeneralPlayer {
                     suspension_flag = false;
                     // fire other events (may rely on the above)
                     PLAYBACK.onPlaybackStart.run();
-                    if(post_activating_1st || !post_activating)
+                    if (post_activating_1st || !post_activating)
                         // bug fix, not updated playlist items can get here, but should not!
-                        if(item.getTimeMs()>0)
+                        if (item.getTimeMs()>0)
                             PLAYBACK.onPlaybackAt.forEach(t -> t.restart(item.getTime()));
                     post_activating = false;
                     post_activating_1st = false;
@@ -100,25 +100,25 @@ public class GeneralPlayer {
     }
 
     public void resume() {
-        if(p==null) return;
+        if (p==null) return;
         p.resume();
         PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::unpause);
     }
 
     public void pause() {
-        if(p==null) return;
+        if (p==null) return;
         p.pause();
         PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::pause);
     }
 
     public void pause_resume() {
-        if(p==null) return;
-        if(state.status.get()==PLAYING) pause();
+        if (p==null) return;
+        if (state.status.get()==PLAYING) pause();
         else resume();
     }
 
     public void stop() {
-        if(p==null) return;
+        if (p==null) return;
         p.stop();
 
         Async.runFX(() -> {
@@ -131,7 +131,7 @@ public class GeneralPlayer {
     }
 
     public void seek(Duration duration) {
-        if(p==null) return;
+        if (p==null) return;
 
         Status s = state.status.get();
 
@@ -140,8 +140,8 @@ public class GeneralPlayer {
         }
 
         final double currentVolume = state.volume.get();
-        if(seekDone) lastValidVolume = currentVolume;
-        else { if(volumeAnim!=null) volumeAnim.pause(); }
+        if (seekDone) lastValidVolume = currentVolume;
+        else { if (volumeAnim!=null) volumeAnim.pause(); }
         seekDone = false;
         new Anim(millis(150), x -> state.volume.set(currentVolume*pow(1-x,2))).then(() -> {
             doSeek(duration);
@@ -166,7 +166,7 @@ public class GeneralPlayer {
      * Closes player. Releases resources. Prevents double playback.
      */
     public void dispose() {
-        if(p==null) return;
+        if (p==null) return;
         p.dispose();
         p=null;
     }

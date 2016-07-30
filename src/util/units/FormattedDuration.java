@@ -48,12 +48,12 @@ public class FormattedDuration extends Duration {
     public static FormattedDuration valueOf(String s) throws NumberFormatException, IllegalArgumentException {
 
         // try parsing in hh:mm:ss format
-        if(s.contains(":")) {
+        if (s.contains(":")) {
             List<String> ls = split(s,":");
             int unit = 1000;
             double Σt = 0;
-            for(int i = ls.size()-1; i>=0; i--) {
-                if(i<ls.size()-1) unit *= 60;
+            for (int i = ls.size()-1; i>=0; i--) {
+                if (i<ls.size()-1) unit *= 60;
                 int amount = Integer.parseInt(ls.get(i));
                 if((amount<0) || (unit<=60000 && amount>59))
                     throw new IllegalArgumentException("Minutes and seconds must be >0 and <60");

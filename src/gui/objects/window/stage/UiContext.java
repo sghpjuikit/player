@@ -153,8 +153,8 @@ public final class UiContext {
     }
 
     private static void launchComponent(Component w) {
-        if(w!=null) {
-            if(launching1st) {
+        if (w!=null) {
+            if (launching1st) {
                 APP.window.setContent(w);
                 launching1st = false;
             } else {
@@ -171,10 +171,10 @@ public final class UiContext {
             // simple launcher version, contains widget name on 1st line
             String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
             wf = APP.widgetManager.factories.get(wn);
-            if(wf!=null) w = wf.create();
+            if (wf!=null) w = wf.create();
 
             // try to deserialize normally
-            if(w==null) {
+            if (w==null) {
                 try {
                     w = App.APP.serializators.fromXML(Component.class,launcher);
                 } catch (StreamException ignored) {
@@ -183,9 +183,9 @@ public final class UiContext {
             }
 
             // try to build widget using just launcher filename
-            if(w==null) {
+            if (w==null) {
                 wf = APP.widgetManager.factories.get(getName(launcher));
-                if(wf!=null) w = wf.create();
+                if (wf!=null) w = wf.create();
             }
 
             return w;

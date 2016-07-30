@@ -157,9 +157,9 @@ public class DirViewer extends ClassController {
     void visitUp() {
         // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
         // the user source - collection of directories << TODO
-        // if(item!=null) {
-        //     if(item.parent!=null) visitDir(item.parent);
-        //     else if(item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
+        // if (item!=null) {
+        //     if (item.parent!=null) visitDir(item.parent);
+        //     else if (item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
         // }
         if (item != null && item.parent != null) {
             Item toDispose = item;
@@ -244,7 +244,7 @@ public class DirViewer extends ClassController {
     private void doubleClickItem(Item i, boolean edit) {
         if (i.valtype == DIRECTORY) DirViewer.this.visit(i);
         else {
-            if(edit) Environment.edit(i.val);
+            if (edit) Environment.edit(i.val);
             else     Environment.open(i.val);
         }
     }
@@ -288,7 +288,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected void updateItem(Item item, boolean empty) {
-            if(getItem() == item) return;
+            if (getItem() == item) return;
             super.updateItem(item, empty);
 
             if (item == null) {
@@ -370,9 +370,9 @@ public class DirViewer extends ClassController {
          * Must be called on FX thread.
          */
         private void setCoverNow(Item item) {
-	        if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+	        if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
 
-	        if(item.cover_loadedFull) {
+	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
 	            double width = cellSize.get().width,
@@ -389,7 +389,7 @@ public class DirViewer extends ClassController {
         }
 
 	    private void setCoverLater(Item item) {
-		    if(!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
+		    if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
 
 		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		    setCoverLater.push(item);

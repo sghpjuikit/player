@@ -200,7 +200,7 @@ public interface Util {
      may be used to indicate that all levels should be visited.
      */
     static Stream<File> getFilesAudio(File dir, Use use, int depth) {
-        if(dir.isDirectory()) {
+        if (dir.isDirectory()) {
             try {
                 return Files.walk(dir.toPath(),depth).map(Path::toFile)
                             .filter(f->AudioFileFormat.isSupported(f,use));
@@ -209,8 +209,8 @@ public interface Util {
             }
         }
 
-        if(dir.isFile()) {
-            if(AudioFileFormat.isSupported(dir,use))
+        if (dir.isFile()) {
+            if (AudioFileFormat.isSupported(dir,use))
                 return Stream.of(dir);
         }
 
@@ -222,7 +222,7 @@ public interface Util {
     }
 
     static Stream<File> getFilesImage(File dir, int depth) {
-        if(dir.isDirectory()) {
+        if (dir.isDirectory()) {
             try {
                 return Files.walk(dir.toPath(),depth).map(Path::toFile)
                             .filter(ImageFileFormat::isSupported);
@@ -231,8 +231,8 @@ public interface Util {
             }
         }
 
-        if(dir.isFile()) {
-            if(ImageFileFormat.isSupported(dir))
+        if (dir.isFile()) {
+            if (ImageFileFormat.isSupported(dir))
                 return Stream.of(dir);
         }
 
@@ -251,8 +251,8 @@ public interface Util {
      */
     static List<Image> FilesToImages(List<File> files) {
         List<Image> list = new ArrayList<>();
-        for(File f: files) {
-            if(ImageFileFormat.isSupported(f.toURI())) {
+        for (File f: files) {
+            if (ImageFileFormat.isSupported(f.toURI())) {
                 Image img = new Image(f.toURI().toString());
                 list.add(img);
             }
@@ -266,20 +266,20 @@ public interface Util {
      * @return true if the list contains at least one supported audio file.
      */
     static boolean containsAudioFiles(List<File> files, Use use) {
-        for(File f : files)
-            if(AudioFileFormat.isSupported(f, use)) return true;
+        for (File f : files)
+            if (AudioFileFormat.isSupported(f, use)) return true;
         return false;
     }
 
     static boolean containsAudioFileOrDir(List<File> files, Use use) {
-        for(File f : files)
-            if(f.isDirectory() || AudioFileFormat.isSupported(f, use)) return true;
+        for (File f : files)
+            if (f.isDirectory() || AudioFileFormat.isSupported(f, use)) return true;
         return false;
     }
 
     static boolean containsImageFiles(List<File> files) {
-        for(File f : files)
-            if(ImageFileFormat.isSupported(f)) return true;
+        for (File f : files)
+            if (ImageFileFormat.isSupported(f)) return true;
         return false;
     }
 
@@ -298,14 +298,14 @@ public interface Util {
      */
     static File getCommonRoot(Collection<File> files) {
         int size = files.size();
-        if(size==0) return null;
-        if(size==1) return files.stream().findFirst().get();
+        if (size==0) return null;
+        if (size==1) return files.stream().findFirst().get();
 
         File d = null;
         for (File f : files) {
             if (f !=null) {
-                if(d==null) d = f;
-                if(d.toPath().compareTo(f.toPath())<0) d=f;
+                if (d==null) d = f;
+                if (d.toPath().compareTo(f.toPath())<0) d=f;
             }
         }
         return d==null ? null : d.isFile() ? d.getParentFile() : d;
@@ -322,8 +322,8 @@ public interface Util {
      */
     static String getName(File f) {
         String n = f.getName();
-        if(f.isDirectory()) return n;
-        if(n.isEmpty()) return f.toString();
+        if (f.isDirectory()) return n;
+        if (n.isEmpty()) return f.toString();
         int i = n.lastIndexOf('.');
         return i==-1 ? n : n.substring(0,i);
     }
@@ -367,9 +367,9 @@ public interface Util {
      */
     static String getName(URI u) {
         String p = u.getPath();
-        if(p==null || p.isEmpty()) return "";   // badly damaged http URL could get here
+        if (p==null || p.isEmpty()) return "";   // badly damaged http URL could get here
         int i = p.lastIndexOf('/');
-        if(i==-1 || p.length()<2) return p;     // another exceptional state check
+        if (i==-1 || p.length()<2) return p;     // another exceptional state check
         p = p.substring(i+1);       // remove leading '/' character
         i = p.lastIndexOf('.');     // remove extension
         return (i==-1) ? p : p.substring(0, i);
@@ -486,10 +486,10 @@ public interface Util {
      */
     static List<File> copyFiles(List<File> files, File target, CopyOption... options) {
         List<File> out = new ArrayList<>();
-        for(File f : files) {
+        for (File f : files) {
             try {
                 Path nf = target.toPath().resolve(f.toPath().getFileName());
-                if(!nf.equals(f.toPath())) {
+                if (!nf.equals(f.toPath())) {
                     Files.copy(f.toPath(), nf, options);
                     out.add(new File(target, f.getName()));
                 }
@@ -558,7 +558,7 @@ public interface Util {
      * @throws IOException when bad url or input or output file inaccessible
      */
     static void saveFileAs(String url, File file) throws IOException {
-        if(file.exists()) file.delete();
+        if (file.exists()) file.delete();
         URL u = new URL(url);
         try (
             InputStream is = u.openStream();
@@ -583,7 +583,7 @@ public interface Util {
      */
     static File saveFileTo(String url, File dir) throws IOException {
         int i = url.lastIndexOf('/');
-        if(i==-1) throw new IOException("url does not contain name. No '/' character found.");
+        if (i==-1) throw new IOException("url does not contain name. No '/' character found.");
         String name = url.substring(1+i);
 
         File df = new File(dir, name);
@@ -598,7 +598,7 @@ public interface Util {
      * @param f
      */
     static void renameAsOld(File f) {
-        if(f!= null && f.exists()) {
+        if (f!= null && f.exists()) {
             // remove name
             String suffix = getSuffix(f.toURI());
             f.renameTo(getFirstAvailableOld(f.getParentFile(), getName(f), suffix, 1));
@@ -619,7 +619,7 @@ public interface Util {
      */
     static File getFirstAvailableOld(File location, String name, String suffix, int i) {
         File f = new File(location, name + "-" + i + "."+suffix);
-        if(f.exists()) return getFirstAvailableOld(location, name, suffix, i+1);
+        if (f.exists()) return getFirstAvailableOld(location, name, suffix, i+1);
         else return f;
     }
 

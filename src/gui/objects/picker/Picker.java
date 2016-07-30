@@ -112,7 +112,7 @@ public class Picker<E> {
 
         // set up info pane
         String info = infoCoverter.toS(item);
-        if(!info.isEmpty()) {
+        if (!info.isEmpty()) {
             // info content
             Node content = cell.getChildren().get(0);
             Text ta = new Text(info);
@@ -145,9 +145,9 @@ public class Picker<E> {
             // right click runs cancel, sometimes its important to consume the event, sometimes
             // it is important for it to pass through. so I left it configurable until I find a
             // better way
-            if(e.getButton()==SECONDARY) {
+            if (e.getButton()==SECONDARY) {
                 onCancel.run();
-                if(consumeCancelClick) e.consume();
+                if (consumeCancelClick) e.consume();
             }
         });
         root.getStyleClass().add(STYLE_CLASS);
@@ -163,7 +163,7 @@ public class Picker<E> {
             .forEach( item -> {
                 Node cell = cellFactory.apply(item);
                      cell.setOnMouseClicked( e -> {
-                         if(e.getButton()==PRIMARY) {
+                         if (e.getButton()==PRIMARY) {
                             onSelect.accept(item);
                             e.consume();
                          }
@@ -199,7 +199,7 @@ public class Picker<E> {
             int elements = getChildren().size();
             double min_cell_w = max(1,getCells().get(0).getMinWidth());
             double min_cell_h = max(1,getCells().get(0).getMinHeight());
-            // if(elements==0) return;
+            // if (elements==0) return;
 
             int c = width>height ? (int) ceil(sqrt(elements)) : (int) floor(sqrt(elements));
                 c = width<c*min_cell_w ? (int)floor(width/min_cell_w) : c;

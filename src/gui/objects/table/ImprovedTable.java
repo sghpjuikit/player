@@ -56,7 +56,7 @@ public class ImprovedTable<T> extends TableView<T> {
         }
         @Override public void set(boolean v) {
             super.set(v);
-            if(v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
+            if (v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
             else  getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
         }
     };
@@ -104,11 +104,11 @@ public class ImprovedTable<T> extends TableView<T> {
     }
 
     private List<TableRow<T>> getRows(Parent n, List<TableRow<T>> li) {
-        for(Node nn : n.getChildrenUnmodifiable())
-            if(nn instanceof TableRow)
+        for (Node nn : n.getChildrenUnmodifiable())
+            if (nn instanceof TableRow)
                 li.add(((TableRow)nn));
-        for(Node nn : n.getChildrenUnmodifiable())
-            if(nn instanceof Parent)
+        for (Node nn : n.getChildrenUnmodifiable())
+            if (nn instanceof Parent)
                 getRows(((Parent)nn), li);
 
         return li;
@@ -116,7 +116,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
     public void updateStyleRules() {
         for (TableRow<T> row : getRows()) {
-            if(row instanceof ImprovedTableRow) {
+            if (row instanceof ImprovedTableRow) {
                 ((ImprovedTableRow)row).styleRulesUpdate();
             }
         }
@@ -197,9 +197,9 @@ public class ImprovedTable<T> extends TableView<T> {
     public double getVScrollbarWidth() {
 	    // TODO: jigsaw
 //        VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
-//        if(f!=null) {
+//        if (f!=null) {
 //            VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
-//            if(vsb!=null) {
+//            if (vsb!=null) {
 //                return vsb.isVisible() ? vsb.getWidth() : 0;
 //            }
 //        }
@@ -207,7 +207,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 
 	    Object virtualFlow = getFieldValue(getSkin(), "flow"); // VirtualFlow.class
-	    if(virtualFlow!=null) {
+	    if (virtualFlow!=null) {
 		    Object virtualScrollBar = getFieldValue(virtualFlow, "vbar"); // VirtualScrollBar.class
 		    // return virtualScrollBar.isVisible() ? virtualScrollBar.getWidth() : 0;
 		    boolean isVisible = virtualScrollBar!=null && (boolean) invokeMethodP0(virtualScrollBar, "isVisible");
@@ -228,8 +228,8 @@ public class ImprovedTable<T> extends TableView<T> {
         List<Integer> selected = getSelectionModel().getSelectedIndices();
         int size = getItems().size();
         List<Integer> inverse = new ArrayList<>();
-        for(int i=0; i<size; i++)
-            if(!selected.contains(i))
+        for (int i=0; i<size; i++)
+            if (!selected.contains(i))
                 inverse.add(i);
 
         selectRows(inverse, getSelectionModel());
@@ -255,7 +255,7 @@ public class ImprovedTable<T> extends TableView<T> {
      */
     public void setOnDragOver_NoSelf(EventHandler<? super DragEvent> h) {
         setOnDragOver(e -> {
-            if(e.getGestureSource()!=this)
+            if (e.getGestureSource()!=this)
                 h.handle(e);
         });
     }

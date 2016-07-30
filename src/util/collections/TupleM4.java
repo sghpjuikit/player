@@ -25,7 +25,7 @@ public final class TupleM4<A,B,C,D> {
     
     @Override
     public boolean equals(Object o) {
-        if(o instanceof TupleM4) {
+        if (o instanceof TupleM4) {
             TupleM4 that = (TupleM4) o;
             return Objects.equals(this.a, that.a) &&
                    Objects.equals(this.b, that.b) &&

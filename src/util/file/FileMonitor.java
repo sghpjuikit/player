@@ -118,7 +118,7 @@ public class FileMonitor {
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
                 // The check requires I/O so lets do that on bgr thread as well
-//                if(!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
+//                if (!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
                 boolean valid;
                 WatchKey watchKey;
@@ -142,9 +142,9 @@ public class FileMonitor {
                         String modifiedFileName = ev.context().toString();
                         File modifiedFile = new File(fm.monitoredFileDir, modifiedFileName);
 
-//                        if(modifiedFile.getParentFile().equals(fm.monitoredFileDir)) // to do
-                        if(fm.filter.test(modifiedFile)) {
-                            if(type==ENTRY_MODIFY) {
+//                        if (modifiedFile.getParentFile().equals(fm.monitoredFileDir)) // to do
+                        if (fm.filter.test(modifiedFile)) {
+                            if (type==ENTRY_MODIFY) {
                                 runFX(() ->
                                     fm.modificationReducer.push(tuple((Kind)type, modifiedFile))
                                 );
@@ -178,7 +178,7 @@ public class FileMonitor {
             dir.register(fm.watchService, ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY,OVERFLOW);
             runNew(() -> {
                 // The check requires I/O so lets do that on bgr thread as well
-//                if(!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
+//                if (!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
                 boolean valid = true;
                 WatchKey watchKey;
@@ -216,7 +216,7 @@ public class FileMonitor {
 
     public void stop() {
         try {
-            if(watchService!=null) watchService.close();
+            if (watchService!=null) watchService.close();
         } catch (IOException e) {
             log(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFileDir, e);
         }

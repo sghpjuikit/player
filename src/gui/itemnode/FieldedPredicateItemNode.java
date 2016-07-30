@@ -56,7 +56,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     // However, in my opinion, isNull predicate does not lose its value completely.
     private static <V,F extends ObjectField> Predicate<V> predicate(F field, Function<Object,Boolean> filter) {
             // debug
-            // if(field==Metadata.Field.FIRST_PLAYED) {
+            // if (field==Metadata.Field.FIRST_PLAYED) {
             //     System.out.println((filter==ISØ) + " " + (filter==ISNTØ) + " " + (filter==IS) + " " + (filter==ISNT));
             // }
             return Util.isAny(filter, ISØ,ISNTØ,IS,ISNT)
@@ -82,8 +82,8 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
         root.setAlignment(CENTER_LEFT);
         typeCB.setVisibleRowCount(25);
         typeCB.valueProperty().addListener((o,ov,nv) -> {
-            if(inconsistentState) return;
-            if(config!=null) root.getChildren().remove(config.getNode());
+            if (inconsistentState) return;
+            if (config!=null) root.getChildren().remove(config.getNode());
             config = new FItemNode<>(() -> predicatePool.call(nv.type));
             root.getChildren().add(config.getNode());
             HBox.setHgrow(config.getNode(), ALWAYS);
@@ -145,13 +145,13 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     }
 
     private void generatePredicate() {
-        if(inconsistentState) return;
+        if (inconsistentState) return;
         empty = false;
         Function<Object,Boolean> p = config.getValue();
         F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
-        if(p!=null && o!=null) {
+        if (p!=null && o!=null) {
             Predicate<V> pr = predicate(o, p);
-            if(negB.selected.getValue()) pr = pr.negate();
+            if (negB.selected.getValue()) pr = pr.negate();
             changeValue(pr);
         }
     }

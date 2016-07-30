@@ -54,9 +54,9 @@ public abstract class ItemNode<T> {
 
         /** Sets value & fires itemChange if available. Internal use only.*/
         protected void changeValue(T nv) {
-            if(value==nv) return;
+            if (value==nv) return;
             value = nv;
-            if(onItemChange!=null) onItemChange.accept(nv);
+            if (onItemChange!=null) onItemChange.accept(nv);
         }
     }
 

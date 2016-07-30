@@ -122,7 +122,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     /** @return next modular element in the list or null if empty */
     static <T> T next(List<T> list, T element) {
         if (list.isEmpty()) return null;
-        if(element==null) return list.get(0);
+        if (element==null) return list.get(0);
         int index = list.indexOf(element);
         return list.get(index<0 ? 0 : incrIndex(list, index));
     }
@@ -130,7 +130,7 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     /** @return previous modular element in the list or null if empty */
     static <T> T previous(List<T> list, T element) {
         if (list.isEmpty()) return null;
-        if(element==null) return list.get(0);
+        if (element==null) return list.get(0);
         int index = list.indexOf(element);
         return list.get(index<0 ? 0 : decrIndex(list, index));
     }
@@ -138,10 +138,10 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     /** @return next modular element in the array or null if empty */
     static <T> T next(T[] list, T element) {
         if (list.length==0) return null;
-        if(element==null) return list[0];
+        if (element==null) return list[0];
         int index = -1;
-        for(int i=0; i<list.length; i++)
-            if(element.equals(list[i])) {
+        for (int i=0; i<list.length; i++)
+            if (element.equals(list[i])) {
                 index = i;
                 break;
             }
@@ -151,10 +151,10 @@ public interface SequentialValue<V> extends CyclicValue<V> {
     /** @return previous modular element in the array or null if empty */
     static <T> T previous(T[] list, T element) {
         if (list.length==0) return null;
-        if(element==null) return list[0];
+        if (element==null) return list[0];
         int index = -1;
-        for(int i=0; i<list.length; i++)
-            if(element.equals(list[i])) {
+        for (int i=0; i<list.length; i++)
+            if (element.equals(list[i])) {
                 index = i;
                 break;
             }

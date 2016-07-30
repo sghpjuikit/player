@@ -92,7 +92,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
         });
         addEventHandler(KEY_PRESSED, e -> {
             KeyCode k = e.getCode();
-            if(e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
+            if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
             // typing -> scroll to
             if (k.isDigitKey() || k.isLetterKey()){
                 String st = e.getText().toLowerCase();
@@ -117,11 +117,11 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
     public void search(String s) {
         searchQuery.set(s);
         // scroll to match
-        if(!getItems().isEmpty()) {
-            for(int i=0; i<getItems().size(); i++) {
+        if (!getItems().isEmpty()) {
+            for (int i=0; i<getItems().size(); i++) {
                 T e = getItems().get(i);
                 String es = toStringConverter.apply(e);
-                if(matches(es,searchQuery.get())) {
+                if (matches(es,searchQuery.get())) {
                     listView.scrollTo(i);
                     listView.getSelectionModel().select(i);
                     break;

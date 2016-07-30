@@ -33,10 +33,10 @@ public class Output<T> extends Put<T> {
      * input to supertype output due to filtering.
      */
     <I> Subscription monitor(Input<I> input) {
-        if(!input.canBind(this)) throw new IllegalArgumentException("Input<" + input.getType() + "> can not bind to put<" + getType() + ">");
+        if (!input.canBind(this)) throw new IllegalArgumentException("Input<" + input.getType() + "> can not bind to put<" + getType() + ">");
         @SuppressWarnings("unchecked")
         Consumer<? super T> c = v -> {
-            if(v!=null && input.getType().isInstance(v))
+            if (v!=null && input.getType().isInstance(v))
                 input.setValue((I)v);
         };
         monitors.add(c);
@@ -46,7 +46,7 @@ public class Output<T> extends Put<T> {
 
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
+        if (this==o) return true;
         return o instanceof Output && id.equals(((Output) o).id);
     }
 
@@ -66,8 +66,8 @@ public class Output<T> extends Put<T> {
 
         @Override
         public boolean equals(Object o) {
-            if(this==o) return true;
-            if(o instanceof Id)
+            if (this==o) return true;
+            if (o instanceof Id)
                 return ((Id)o).name.equals(name) && ((Id)o).carrier_id.equals(carrier_id);
             return false;
         }

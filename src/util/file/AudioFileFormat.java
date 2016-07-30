@@ -176,12 +176,12 @@ public enum AudioFileFormat {
      */
     public static AudioFileFormat of(String path) {
         // do a quick job of it
-        for(AudioFileFormat f: values())
+        for (AudioFileFormat f: values())
             if (path.endsWith(f.name()))
                 return f;
         // cover damaged or weird paths
         String suffix = Util.getSuffix(path);
-        for(AudioFileFormat f: values())
+        for (AudioFileFormat f: values())
             if (suffix.equalsIgnoreCase(f.toString()))
                 return f;
         // no match
@@ -193,7 +193,7 @@ public enum AudioFileFormat {
     /** Writes up list of all supported values. */
     public static String supportedExtensionsS(Use use) {
         String out = "";
-        for(String ft: exts(use))
+        for (String ft: exts(use))
             out = out + ft +"\n";
         return out;
     }

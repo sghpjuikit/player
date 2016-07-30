@@ -66,7 +66,7 @@ public class Spectrum extends ClassController  {
         void draw() {
             // causes bars to go to 0 when paused, instead of standing still
             // cool effect(makes it feel more alive) + more natural
-            if(System.currentTimeMillis()- lastUpdate > SPECTRUM_INTERVAL)
+            if (System.currentTimeMillis()- lastUpdate > SPECTRUM_INTERVAL)
                 Arrays.fill(heights_target,0);
 
             getGraphicsContext2D().clearRect(0,0,getWidth(),getHeight());

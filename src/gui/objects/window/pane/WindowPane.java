@@ -46,11 +46,11 @@ public class WindowPane {
         @Override public void set(double nv) {
             int tmp = (int) ceil(nv);
             double v = tmp + tmp%2;
-            if(snappable.get()) {
+            if (snappable.get()) {
                 v = mapSnap(v, v+w.get(), w.get(), owner.getWidth());
                 v = mapSnapX(v, v+w.get(), w.get(), owner.getChildren());
             }
-            if(offscreenFixOn.get())
+            if (offscreenFixOn.get())
                 v = offScreenXMap(v);
             super.set(v);
             root.setLayoutX(v);
@@ -60,11 +60,11 @@ public class WindowPane {
         @Override public void set(double nv) {
             int tmp = (int) ceil(nv);
             double v = tmp + tmp%2;
-            if(snappable.get()) {
+            if (snappable.get()) {
                 v = mapSnap(v, v+h.get(), h.get(), owner.getHeight());
                 v = mapSnapY(v, v+h.get(), h.get(), owner.getChildren());
             }
-            if(offscreenFixOn.get())
+            if (offscreenFixOn.get())
                 v = offScreenYMap(v);
             super.set(v);
             root.setLayoutY(v);
@@ -181,7 +181,7 @@ public class WindowPane {
         });
         // move on drag - left button - ecluding content area
         n.addEventHandler(MOUSE_RELEASED, e -> {
-            if(_moving.get())
+            if (_moving.get())
                 _moving.set(false);
             e.consume();
         });
@@ -211,27 +211,27 @@ public class WindowPane {
         return x;
     }
     private double mapSnapX(double x, double right, double wi, List<Node> windows) {
-        for(Node n : windows) {
-            if(n == this.root) continue;
+        for (Node n : windows) {
+            if (n == this.root) continue;
             
             double wr = n.getLayoutX()+((Pane)n).getWidth(); 
-            if(abs(x-wr)<snapDistance.get())
+            if (abs(x-wr)<snapDistance.get())
                 return wr;
             
-            if(abs(x+w.get()-n.getLayoutX())<snapDistance.get())
+            if (abs(x+w.get()-n.getLayoutX())<snapDistance.get())
                 return n.getLayoutX()-w.get();
         }
         return x;
     }
     private double mapSnapY(double y, double right, double w, List<Node> windows) {
-        for(Node n : windows) {
-            if(n == this.root) continue;
+        for (Node n : windows) {
+            if (n == this.root) continue;
             
             double wr = n.getLayoutY()+((Pane)n).getHeight();
-            if(abs(y-wr)<snapDistance.get())
+            if (abs(y-wr)<snapDistance.get())
                 return wr;
             
-            if(abs(y+h.get()-n.getLayoutY())<snapDistance.get())
+            if (abs(y+h.get()-n.getLayoutY())<snapDistance.get())
                 return n.getLayoutY()-h.get();
         }
         return y;

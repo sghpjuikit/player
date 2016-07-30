@@ -91,7 +91,7 @@ public class ShortcutPane extends OverlayPane {
 
     @Override
     public void hide() {
-        if(rebuilding!=null) rebuilding.unsubscribe();
+        if (rebuilding!=null) rebuilding.unsubscribe();
         super.hide();
     }
 
@@ -125,7 +125,7 @@ public class ShortcutPane extends OverlayPane {
             GridPane.setHalignment(groupl.getParent(), HPos.LEFT);
 
             // shortcut rows
-            for(Action a : e.getValue()) {
+            for (Action a : e.getValue()) {
                 i.setOf(v -> v+1);
                 g.add(new Label(a.getKeys()), 0,i.get());
                 g.add(new Label(a.getName()), 2,i.get());

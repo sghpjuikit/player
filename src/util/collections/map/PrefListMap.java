@@ -26,7 +26,7 @@ public class PrefListMap<E,K> extends ListMap<E,K> {
         K k = keyMapper.apply(e);
         // get cache storage with key & build new if not yet built 
         PrefList c = (PrefList) get(k);
-        if(c==null) {
+        if (c==null) {
             c = (PrefList)cacheFactory.get();
             put(k, c);
         }

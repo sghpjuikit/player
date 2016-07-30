@@ -232,7 +232,7 @@ public class PopOverSkin implements Skin<PopOver> {
         //
         // We use filter to always execute the behavior & do not consume to not break any either.
         root.addEventFilter(MOUSE_PRESSED, e -> {
-            if(!p.getOwnerWindow().isFocused())
+            if (!p.getOwnerWindow().isFocused())
                 p.getOwnerWindow().requestFocus();
         });
 
@@ -264,7 +264,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     public void setTitleAsOnlyHeaderContent(boolean right) {
         header.getChildren().clear();
-        if(right) header.setRight(title);
+        if (right) header.setRight(title);
         else header.setLeft(title);
     }
 

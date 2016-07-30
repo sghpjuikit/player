@@ -136,7 +136,7 @@ public abstract class EventReducer<E> {
             super(inter_period, reduction, handler);
             t = new FxTimer(inter_period, 1, tmr -> {
                 action.accept(e);
-                if(fired) tmr.start();
+                if (fired) tmr.start();
                 fired = false;
             });
         }
@@ -147,10 +147,10 @@ public abstract class EventReducer<E> {
             long diff = now-last;
             last = now;
 
-            if(diff>inter_period) {
+            if (diff>inter_period) {
                 action.accept(e);
                 fired = false;
-                if(!t.isRunning()) t.start();
+                if (!t.isRunning()) t.start();
             } else {
                 fired = true;
             }
@@ -170,7 +170,7 @@ public abstract class EventReducer<E> {
             long now = System.currentTimeMillis();
             long diff = now-last;
             last = now;
-            if(diff > inter_period) action.accept(e);
+            if (diff > inter_period) action.accept(e);
         }
 
     }
@@ -189,7 +189,7 @@ public abstract class EventReducer<E> {
             long now = System.currentTimeMillis();
             long diff = now-last;
             boolean isFirst = diff >= inter_period;
-            if(isFirst && !t.isRunning()) t.start();
+            if (isFirst && !t.isRunning()) t.start();
 
             last = now;
         }
@@ -213,13 +213,13 @@ public abstract class EventReducer<E> {
             long diff = now-last;
             boolean isFirst = diff >= inter_period;
 
-            if(isFirst) {
+            if (isFirst) {
                 first = now;
                 ran = false;
             }
 
             boolean islongenough = now-first>=atleast;
-            if(islongenough && !ran) {
+            if (islongenough && !ran) {
                 action.accept(e);
                 ran = true;
             }

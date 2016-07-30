@@ -63,12 +63,12 @@ public class Inspector extends ClassController implements FileExplorerFeature {
             out_sel.setValue(ni);
 
             // selected node highlighting
-            if(sel_node!=null) {
+            if (sel_node!=null) {
                 sel_node.pseudoClassStateChanged(selectedPC, false);
                 sel_node.setStyle("");
                 sel_node = null;
             }
-            if(ni instanceof Node) {
+            if (ni instanceof Node) {
                 Node n = (Node)ni;
                 sel_node = n;
                 n.pseudoClassStateChanged(selectedPC, true);
@@ -103,20 +103,20 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty<>(item.orElse(null));
 
         f.getAbsoluteFile().toPath().forEach(pth -> {
-            if(it.get()!=null) {
+            if (it.get()!=null) {
                 it.get().setExpanded(true);
                 it.set(it.get().getChildren().stream().filter(i -> i.getValue().toString().contains(pth.toString())).findFirst().orElse(null));
             }
         });
 
         // expand if last==directory
-        if(it.get()!=null && it.get().getValue().isDirectory()) it.get().setExpanded(true);
+        if (it.get()!=null && it.get().getValue().isDirectory()) it.get().setExpanded(true);
 
     }
 
     @Override
     public void onClose() {
-        if(sel_node!=null) unhighlightNode(sel_node);
+        if (sel_node!=null) unhighlightNode(sel_node);
     }
 
 

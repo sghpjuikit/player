@@ -43,8 +43,8 @@ public class NofX implements Comparable<NofX> {
 
     @Override
     public boolean equals(Object ob) {
-        if(this==ob) return true;
-        if(ob instanceof NofX) {
+        if (this==ob) return true;
+        if (ob instanceof NofX) {
             NofX o = (NofX)ob;
             return n==o.n && of==o.of;
         }
@@ -59,7 +59,7 @@ public class NofX implements Comparable<NofX> {
     @ParsesFromString
     public static NofX fromString(String s) throws PatternSyntaxException, NumberFormatException, ArrayIndexOutOfBoundsException {
         String[] a = s.split("/", 0);
-        if(a.length!=2) throw new ArrayIndexOutOfBoundsException("Not in an 'X/Y' format");
+        if (a.length!=2) throw new ArrayIndexOutOfBoundsException("Not in an 'X/Y' format");
         return new NofX(Integer.parseInt(a[0]), Integer.parseInt(a[1]));
     }
 }

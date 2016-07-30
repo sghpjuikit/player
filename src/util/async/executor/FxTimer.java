@@ -73,11 +73,11 @@ public class FxTimer {
         long expected = seq;
         this.period = period;
 
-        if(period.toMillis()==0)
+        if (period.toMillis()==0)
             runNow();
         else {
             timeline.getKeyFrames().setAll(new KeyFrame(period, ae -> {
-                if(seq == expected) {
+                if (seq == expected) {
                     action.accept(this);
                 }
             }));
@@ -91,11 +91,11 @@ public class FxTimer {
 
     /** Equivalent to {@link #start()} or {@link #start()} when using true, respectively false. */
     public void setRunning(boolean b) {
-        if(b) start(); else stop();
+        if (b) start(); else stop();
     }
 
     public void runNow() {
-        if(action!=null) action.accept(this);
+        if (action!=null) action.accept(this);
     }
 
     public void pause() {

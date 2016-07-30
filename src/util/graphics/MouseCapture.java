@@ -33,7 +33,7 @@ public class MouseCapture {
     }
 
     public Subscription observeMousePosition(Consumer<Point2D> action) {
-        if(positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
+        if (positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
             startPulse();
         positionSubscribers.add(action);
         return () -> unsubscribe(action);
@@ -41,7 +41,7 @@ public class MouseCapture {
 
     /** Measured in px/second. */
     public Subscription observeMouseVelocity(DoubleConsumer action) {
-        if(positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
+        if (positionSubscribers.isEmpty() && velocitySubscribers.isEmpty())
             startPulse();
         velocitySubscribers.add(action);
         calcSpeed = true;
@@ -49,20 +49,20 @@ public class MouseCapture {
     }
 
     private void startPulse() {
-        if(pulse==null) pulse = new FxTimer(100, -1, () -> {
+        if (pulse==null) pulse = new FxTimer(100, -1, () -> {
             Point2D p = getMousePosition();
             positionSubscribers.forEach(s -> s.accept(p));
-            if(calcSpeed && lastPos!=null) {
+            if (calcSpeed && lastPos!=null) {
                 double speed = p.distance(lastPos)*10;
                 velocitySubscribers.forEach(s -> s.accept(speed));
             }
             lastPos = p;
         });
-        if(!pulse.isRunning()) pulse.start();
+        if (!pulse.isRunning()) pulse.start();
     }
 
     private void stopPulse() {
-        if(pulse!=null) {
+        if (pulse!=null) {
             pulse.stop();
             pulse = null;
         }
@@ -72,7 +72,7 @@ public class MouseCapture {
         positionSubscribers.remove(s);
         velocitySubscribers.remove(s);
         calcSpeed = !velocitySubscribers.isEmpty();
-        if(positionSubscribers.isEmpty() && velocitySubscribers.isEmpty() && pulse!=null)
+        if (positionSubscribers.isEmpty() && velocitySubscribers.isEmpty() && pulse!=null)
             stopPulse();
     }
 

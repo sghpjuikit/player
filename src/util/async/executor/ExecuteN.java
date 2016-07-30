@@ -28,7 +28,7 @@ public class ExecuteN implements Executor {
     
     @Override
     public void execute(Runnable r) {
-        if(executed<max) r.run();
+        if (executed<max) r.run();
         executed++;
     }
 

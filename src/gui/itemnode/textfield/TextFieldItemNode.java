@@ -89,13 +89,13 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
     @Override
     public void setValue(T value) {
         T ov = v;
-        if(ov==value || (ov!=null && value!=null && ov.equals(value))) return;
+        if (ov==value || (ov!=null && value!=null && ov.equals(value))) return;
 
         v = value;
         String text = valueFactory.call(value);    // use factory to convert
         setText(text);
         setPromptText(text);
-        if(onItemChange!=null) onItemChange.accept(ov,value);
+        if (onItemChange!=null) onItemChange.accept(ov,value);
     }
 
     /**
@@ -134,7 +134,7 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
      * @throws RuntimeException if no parser is provided
      */
     String itemToString(T item) {
-        if(item!=null) return converter.toS(item);
+        if (item!=null) return converter.toS(item);
         else return "";
     }
 

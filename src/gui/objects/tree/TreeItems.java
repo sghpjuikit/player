@@ -59,16 +59,16 @@ import static util.graphics.Util.menuItem;
 public class TreeItems {
 
     public static SimpleTreeItem<?> tree(Object o) {
-        if(o instanceof TreeItem)       return (SimpleTreeItem)o;
-        if(o instanceof Widget)         return new WidgetItem((Widget)o);
-        if(o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
-        if(o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
-        if(o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
-        if(o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
-        if(o instanceof Container)      return new LayoutItem((Component)o);
-        if(o instanceof File)           return new FileTreeItem((File)o);
-        if(o instanceof Node)           return new NodeTreeItem((Node)o);
-        if(o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
+        if (o instanceof TreeItem)       return (SimpleTreeItem)o;
+        if (o instanceof Widget)         return new WidgetItem((Widget)o);
+        if (o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
+        if (o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
+        if (o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
+        if (o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
+        if (o instanceof Container)      return new LayoutItem((Component)o);
+        if (o instanceof File)           return new FileTreeItem((File)o);
+        if (o instanceof Node)           return new NodeTreeItem((Node)o);
+        if (o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
         return new SimpleTreeItem<>(o);
     }
 
@@ -133,28 +133,28 @@ public class TreeItems {
                 setOnMouseClicked(e -> {
                     T o = getItem();
                     // context menu
-                    if(o!=null && e.getButton()==SECONDARY && e.getClickCount()==1) {
-                        if(!isSelected()) getTreeView().getSelectionModel().clearAndSelect(getIndex());
+                    if (o!=null && e.getButton()==SECONDARY && e.getClickCount()==1) {
+                        if (!isSelected()) getTreeView().getSelectionModel().clearAndSelect(getIndex());
                         showMenu(o, getTreeView(), this, e);
                     }
                     // custom action
-                    if(o!=null && e.getButton()==PRIMARY) {
-                        if(e.getClickCount()==1) doOnSingleClick(o);
-                        else if(e.getClickCount()==2) doOnDoubleClick(o);
+                    if (o!=null && e.getButton()==PRIMARY) {
+                        if (e.getClickCount()==1) doOnSingleClick(o);
+                        else if (e.getClickCount()==2) doOnDoubleClick(o);
                     }
                 });
             }
             @Override
             protected void updateItem(T o, boolean empty) {
                 super.updateItem(o, empty);
-                if(!empty && o!=null) {
-                    if(o instanceof Component)      setText(((Component)o).getName());
-                    else if(o instanceof Service)   setText(((Service)o).getClass().getSimpleName());
-                    else if(o instanceof WidgetFactory)  setText(((WidgetFactory)o).nameGui());
-                    else if(util.type.Util.isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
-                    else if(o instanceof File)      setText(Util.getNameFull((File)o));
-                    else if(o instanceof Node)      setText(toS((Node)o));
-                    else if(o instanceof Window)    setText(windowToName((Window)o));
+                if (!empty && o!=null) {
+                    if (o instanceof Component)      setText(((Component)o).getName());
+                    else if (o instanceof Service)   setText(((Service)o).getClass().getSimpleName());
+                    else if (o instanceof WidgetFactory)  setText(((WidgetFactory)o).nameGui());
+                    else if (util.type.Util.isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
+                    else if (o instanceof File)      setText(Util.getNameFull((File)o));
+                    else if (o instanceof Node)      setText(toS((Node)o));
+                    else if (o instanceof Window)    setText(windowToName((Window)o));
                     else setText(o.toString());
                 } else {
                     setGraphic(null);
@@ -165,9 +165,9 @@ public class TreeItems {
     }
 
     public static void doOnDoubleClick(Object o) {
-        if(o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
-        if(o instanceof Node) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
-        if(o instanceof File) {
+        if (o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
+        if (o instanceof Node) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
+        if (o instanceof File) {
             File f = (File)o;
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
         }
@@ -176,11 +176,11 @@ public class TreeItems {
     public static void doOnSingleClick(Object o) {}
 
     public static <T> void showMenu(T o, TreeView<T> t, Node n, MouseEvent e) {
-        if(o instanceof File) {
+        if (o instanceof File) {
             List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c -> c.getValue() instanceof File, c -> (File)c.getValue());
-            if(files.isEmpty()) {
+            if (files.isEmpty()) {
                 m.getItems().forEach(i -> i.setDisable(true));
-            } else if(files.size()==1) {
+            } else if (files.size()==1) {
                 m.getItems().forEach(i -> i.setDisable(false));
                 m.getItems().get(2).setDisable(!files.get(0).isFile());
             } else {
@@ -318,7 +318,7 @@ public class TreeItems {
                 boolean isFile = f.isFile();
                 (isFile ? fils : dirs).add(new FileTreeItem(f,isFile));
             });
-            if(showLeaves.get()) dirs.addAll(fils);
+            if (showLeaves.get()) dirs.addAll(fils);
             dirs.forEach(item -> item.showLeaves.set(showLeaves.get()));
             return dirs;
         }
@@ -355,7 +355,7 @@ public class TreeItems {
         private ObservableList<TreeItem<Node>> buildChildren(TreeItem<Node> i) {
             ObservableList<TreeItem<Node>> out = observableArrayList();
             Node value = i.getValue();
-	        if(value instanceof Parent)
+	        if (value instanceof Parent)
 		        ((Parent)value).getChildrenUnmodifiable().forEach(n -> out.add(new NodeTreeItem(n)));
 
             return out;
@@ -370,8 +370,8 @@ public class TreeItems {
     }
     private static String windowToName(Window w) {
         String n = "window " + list(APP.windowManager.windows).indexOf(w);
-        if(w==APP.window) n += " (main)";
-        if(w==APP.windowManager.miniWindow) n += " (mini-docked)";
+        if (w==APP.window) n += " (main)";
+        if (w==APP.windowManager.miniWindow) n += " (mini-docked)";
         return n;
     }
 }

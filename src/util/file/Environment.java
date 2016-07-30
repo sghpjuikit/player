@@ -51,7 +51,7 @@ public interface Environment {
 
     /** Puts given object to system clipboard. Does nothing if object null. */
     static void copyToSysClipboard(DataFormat df, Object o) {
-        if(o != null) {
+        if (o != null) {
             ClipboardContent c = new ClipboardContent();
                              c.put(df,o);
             Clipboard.getSystemClipboard().setContent(c);
@@ -70,11 +70,11 @@ public interface Environment {
      * This allows process monitoring or waiting for it to.
      */
     static void runCommand(String command, Consumer<Process> then) {
-	    if(command!=null && !command.isEmpty())
+	    if (command!=null && !command.isEmpty())
 	    	Async.runNew(() -> {
 			    try {
 				    Process p = Runtime.getRuntime().exec(command);
-				    if(then != null) then.accept(p);
+				    if (then != null) then.accept(p);
 			    } catch (IOException e) {
 				    log(Environment.class).error("Could not run command '{}'", command, e);
 			    }
@@ -121,7 +121,7 @@ public interface Environment {
                 File f = new File(uri);
                     boolean isDir = f.isDirectory();
                 if (f.exists()) {
-                    if(Os.WINDOWS.isCurrent() && (!isDir || !openDir)) {
+                    if (Os.WINDOWS.isCurrent() && (!isDir || !openDir)) {
                         openWindowsExplorerAndSelect(f);
                     } else {
                         open(isDir ? f.getParentFile() : f);
@@ -148,8 +148,8 @@ public interface Environment {
         files.distinct()
              .collect(groupingBy(f -> f.isFile() ? f.getParentFile() : f))
              .forEach((dir,children) -> {
-                 if(children.size()==1) browse(children.get(0));
-                 else if(children.stream().anyMatch(f -> f==dir)) browse(dir);
+                 if (children.size()==1) browse(children.get(0));
+                 else if (children.stream().anyMatch(f -> f==dir)) browse(dir);
                  else open(dir);
              });
     }
@@ -168,7 +168,7 @@ public interface Environment {
             return;
         }
 
-        if(f.isDirectory()) {
+        if (f.isDirectory()) {
             open(f);
         } else {
             try {
@@ -237,18 +237,18 @@ public interface Environment {
     }
 
     static void openIn(List<File> files, boolean inApp) {
-        if(files.isEmpty()) return;
-        if(files.size()==1) {
+        if (files.isEmpty()) return;
+        if (files.size()==1) {
             openIn(files.get(0), inApp);
         } else {
-            if(inApp) {
+            if (inApp) {
                 List<File> audio = filter(files, f -> AudioFileFormat.isSupported(f, Use.PLAYBACK));
                 List<File> images = filter(files, f -> ImageFileFormat.isSupported(f));
 
-                if(!audio.isEmpty())
+                if (!audio.isEmpty())
                     PlaylistManager.use(p -> p.addUris(map(audio,File::toURI)));
 
-                if(images.size()==1) {
+                if (images.size()==1) {
                     APP.widgetManager.use(ImageDisplayFeature.class,NO_LAYOUT, w -> w.showImage(images.get(0)));
                 } else if (images.size()>1) {
                     APP.widgetManager.use(ImagesDisplayFeature.class,NO_LAYOUT, w -> w.showImages(images));
@@ -260,7 +260,7 @@ public interface Environment {
     }
 
     static File chooseFile(String title, FileType type, File initial, Window w, ExtensionFilter... exts) {
-        if(type==DIRECTORY) {
+        if (type==DIRECTORY) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
             c.setInitialDirectory(util.Util.getExistingParent(initial,APP.DIR_APP));

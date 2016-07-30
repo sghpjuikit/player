@@ -67,11 +67,11 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
     @Override
     default V next() {
         V val = getValue();
-        if(val instanceof SequentialValue)
+        if (val instanceof SequentialValue)
             return ((SequentialValue<V>)getValue()).next();
-        else if(val instanceof Boolean)
+        else if (val instanceof Boolean)
             return (V) SequentialValue.next(Boolean.class.cast(getValue()));
-        else if(val instanceof Enum)
+        else if (val instanceof Enum)
             return (V) SequentialValue.next(Enum.class.cast(getValue()));
         else return val;
     }
@@ -90,11 +90,11 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
     @Override
     default V previous() {
         V val = getValue();
-        if(val instanceof SequentialValue)
+        if (val instanceof SequentialValue)
             return ((SequentialValue<V>)getValue()).previous();
-        else if(val instanceof Boolean)
+        else if (val instanceof Boolean)
             return (V) SequentialValue.previous(Boolean.class.cast(getValue()));
-        else if(val instanceof Enum)
+        else if (val instanceof Enum)
             return (V) SequentialValue.previous(Enum.class.cast(getValue()));
         else return val;
     }

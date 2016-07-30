@@ -71,7 +71,7 @@ public class Input<T> extends Put<T> {
 
     public void unbind(Output<? extends T> output) {
         Subscription s = sources.get(output);
-        if(s!=null) s.unsubscribe();
+        if (s!=null) s.unsubscribe();
         sources.remove(output);
         IOLayer.remConnectionE(this, output);
     }

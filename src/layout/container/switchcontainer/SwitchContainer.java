@@ -69,12 +69,12 @@ public class SwitchContainer extends Container<SwitchPane> {
 
     @Override
     public void addChild(Integer index, Component c) {
-        if(index==null) return;
+        if (index==null) return;
 
-        if(c==null) children.remove(index);
+        if (c==null) children.remove(index);
         else children.put(index, c);
 
-        if(ui!=null) ui.addTab(index, c);
+        if (ui!=null) ui.addTab(index, c);
         setParentRec();
     }
 
@@ -89,7 +89,7 @@ public class SwitchContainer extends Container<SwitchPane> {
 
     @Override
     public Node load() {
-        if(ui==null) {
+        if (ui==null) {
             ui = new SwitchPane(this);
 
             // bind properties

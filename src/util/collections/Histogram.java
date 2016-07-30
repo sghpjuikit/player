@@ -49,7 +49,7 @@ public final class Histogram<K,E,H> extends HashMap<K,H> {
         K k = keyMapper.apply(e);
         H h = computeIfAbsent(k, key -> histogramFactory.get());
         elementAccumulator.accept(h, e);
-        if(h_all==null) h_all = histogramFactory.get();
+        if (h_all==null) h_all = histogramFactory.get();
         elementAccumulator.accept(h_all, e);
     }
 

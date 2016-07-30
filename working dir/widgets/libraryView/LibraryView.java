@@ -178,7 +178,7 @@ public class LibraryView extends FXMLController {
                 .onLeftDoubleClick((row,e) -> playSelected())
                 .onRightSingleClick((row,e) -> {
                     // prep selection for context menu
-                    if(!row.isSelected())
+                    if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
                     // show context menu
                     contextMenu.show(this, (TableView)table, e);
@@ -246,12 +246,12 @@ public class LibraryView extends FXMLController {
         d(changesOf(table.getSelectedItems())
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
 
-                if(!sel_ignore) if(fieldFilter.get()==CATEGORY) {
+                if (!sel_ignore) if (fieldFilter.get()==CATEGORY) {
                     System.out.println("output set " + filterList(in_items.getValue(),true,false).size());
                 }
-                if(!sel_ignore)
+                if (!sel_ignore)
                     out_sel_met.setValue(filterList(in_items.getValue(),true,false));
-                if(sel_ignore_canturnback) {
+                if (sel_ignore_canturnback) {
                     sel_ignore_canturnback = false;
                     sel_ignore = false;
                 }
@@ -259,7 +259,7 @@ public class LibraryView extends FXMLController {
         d(changesOf(table.getSelectionModel().selectedItemProperty())
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(s -> {
                 MetadataGroup nv = s.getNewValue();
-                if(!sel_ignore)
+                if (!sel_ignore)
                     sel_last = nv==null ? "null" : VALUE.toS(nv,nv.getValue(), "");
         }));
 
@@ -309,7 +309,7 @@ public class LibraryView extends FXMLController {
 
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
-        if(list==null) return;
+        if (list==null) return;
         fut(fieldFilter.getValue())
             .use(f -> {
                 List<MetadataGroup> mgs = stream(
@@ -318,7 +318,7 @@ public class LibraryView extends FXMLController {
                 ).collect(toList());
                 List<Metadata> fl = filterList(list,true,false);
                 runLater(() -> {
-                    if(!mgs.isEmpty()) {
+                    if (!mgs.isEmpty()) {
                         selectionStore();
                         table.setItemsRaw(mgs);
                         selectionReStore();
@@ -330,12 +330,12 @@ public class LibraryView extends FXMLController {
     }
 
     private List<Metadata> filterList(List<Metadata> list, boolean orAll, boolean orEmpty) {
-        if(list==null || list.isEmpty()) return listRO();
+        if (list==null || list.isEmpty()) return listRO();
 
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
-        if(mgs.stream().anyMatch(mg -> mg.isAll())) return list;
+        if (mgs.stream().anyMatch(mg -> mg.isAll())) return list;
         else return mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
 
@@ -377,12 +377,12 @@ public class LibraryView extends FXMLController {
     }
 
     private void selectionReStore() {
-        if(table.getItems().isEmpty()) return;
+        if (table.getItems().isEmpty()) return;
 
         // restore last selected from previous session
-        if(!sel_last_restored && !"null".equals(sel_last)) {
+        if (!sel_last_restored && !"null".equals(sel_last)) {
             forEachWithI(table.getItems(), (i,mg) -> {
-                if(VALUE.toS(mg,mg.getValue(), "").equals(sel_last)) {
+                if (VALUE.toS(mg,mg.getValue(), "").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
                     return;
@@ -392,13 +392,13 @@ public class LibraryView extends FXMLController {
         // update selected - restore every available old one
         } else {
             forEachWithI(table.getItems(), (i,mg) -> {
-                if(sel_old.contains(mg.getValue())) {
+                if (sel_old.contains(mg.getValue())) {
                     table.getSelectionModel().select(i);
                 }
             });
         }
         // performance optimization - prevents refreshes of a lot of items
-        if(table.getSelectionModel().isEmpty())
+        if (table.getSelectionModel().isEmpty())
             table.getSelectionModel().select(0);
 
 //        sel_ignore = false;
@@ -436,14 +436,14 @@ public class LibraryView extends FXMLController {
             return m;
         }, (menu, w) -> {
             menu.setValue(w.filerListToSelectedNsort());
-            if(w.fieldFilter.getValue()==ALBUM && menu.getItems().size()==5)
+            if (w.fieldFilter.getValue()==ALBUM && menu.getItems().size()==5)
                 menu.getItems().add(searchMenu);
-            if(w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
+            if (w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
                 menu.getItems().remove(searchMenu);
         });
 
     private static void play(List<Metadata> items) {
-        if(items.isEmpty()) return;
+        if (items.isEmpty()) return;
         PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
     }
 

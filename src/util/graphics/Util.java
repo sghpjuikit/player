@@ -352,7 +352,7 @@ public interface Util {
      * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxSize(Node n, Double width, Double height) {
-        if(n instanceof Region) {
+        if (n instanceof Region) {
             Region r = (Region) n;
             boolean wmin  = width!=null  && !r.minWidthProperty().isBound();
             boolean wpref = width!=null  && !r.prefWidthProperty().isBound();
@@ -361,15 +361,15 @@ public interface Util {
             boolean hpref = height!=null && !r.prefHeightProperty().isBound();
             boolean hmax  = height!=null && !r.maxHeightProperty().isBound();
 
-            if(hmin && wmin)    r.setMinSize(width,height);
+            if (hmin && wmin)    r.setMinSize(width,height);
             else if (hmin)      r.setMinHeight(height);
             else if (wmin)      r.setMinWidth(height);
 
-            if(hpref && wpref)  r.setPrefSize(width,height);
+            if (hpref && wpref)  r.setPrefSize(width,height);
             else if (hpref)     r.setPrefHeight(height);
             else if (wpref)     r.setPrefWidth(height);
 
-            if(hmax && wmax)    r.setMaxSize(width,height);
+            if (hmax && wmax)    r.setMaxSize(width,height);
             else if (hmax)      r.setMaxHeight(height);
             else if (wmax)      r.setMaxWidth(height);
         }
@@ -381,11 +381,11 @@ public interface Util {
      * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxWidth(Node n, Double width) {
-        if(width!=null && n instanceof Region) {
+        if (width!=null && n instanceof Region) {
             Region r = (Region) n;
-            if(!r.minWidthProperty().isBound()) r.setMinWidth(width);
-            if(!r.prefWidthProperty().isBound()) r.setPrefWidth(width);
-            if(!r.maxWidthProperty().isBound()) r.setMaxWidth(width);
+            if (!r.minWidthProperty().isBound()) r.setMinWidth(width);
+            if (!r.prefWidthProperty().isBound()) r.setPrefWidth(width);
+            if (!r.maxWidthProperty().isBound()) r.setMaxWidth(width);
         }
     }
 
@@ -394,23 +394,23 @@ public interface Util {
      * If property bound, value null or node not a {@link javafx.scene.layout.Region}, this method is a no op.
      */
     static void setMinPrefMaxHeight(Node n, Double height) {
-        if(height!=null && n instanceof Region) {
+        if (height!=null && n instanceof Region) {
             Region r = (Region) n;
-            if(!r.minHeightProperty().isBound()) r.setMinHeight(height);
-            if(!r.prefHeightProperty().isBound()) r.setPrefHeight(height);
-            if(!r.maxHeightProperty().isBound()) r.setMaxHeight(height);
+            if (!r.minHeightProperty().isBound()) r.setMinHeight(height);
+            if (!r.prefHeightProperty().isBound()) r.setPrefHeight(height);
+            if (!r.maxHeightProperty().isBound()) r.setMaxHeight(height);
         }
     }
 
     static void removeFromParent(Node parent, Node child) {
-        if(parent==null || child==null) return;
-        if(parent instanceof Pane) {
+        if (parent==null || child==null) return;
+        if (parent instanceof Pane) {
             ((Pane)parent).getChildren().remove(child);
         }
     }
 
     static void removeFromParent(Node child) {
-        if(child==null) return;
+        if (child==null) return;
         removeFromParent(child.getParent(),child);
     }
 
@@ -609,7 +609,7 @@ public interface Util {
 
     static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
         MenuItem i = new MenuItem(text);
-        if(action!=null) i.setOnAction(action);
+        if (action!=null) i.setOnAction(action);
         return i;
     }
 

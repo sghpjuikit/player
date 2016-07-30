@@ -40,7 +40,7 @@ public class InstanceName {
         Class c = instance==null ? Void.class : instance.getClass();
         Ƒ1<?,String> f = names.getElementOfSuper(c);
         // fall back to general implementation (must be able to handle null)
-        if(f==null) f = DEF;
+        if (f==null) f = DEF;
 
         return ((Ƒ1<Object,String>) f).apply(instance);
     }

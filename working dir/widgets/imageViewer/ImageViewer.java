@@ -138,7 +138,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     public final V<Boolean> hideThumbEager = new V<>(true, v ->
        root.setOnMouseExited(!v ? null : e -> {
            double x = e.getX(), y = e.getY();
-           if(!root.contains(x,y)) // make sure mouse really is out
+           if (!root.contains(x,y)) // make sure mouse really is out
                showThumbnails.setNapplyValue(false);
        })
     );
@@ -200,11 +200,11 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         });
         navigAnim.applier.accept(0d);
 
-        EventReducer inactive = toLast(1000, () -> { if(!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
+        EventReducer inactive = toLast(1000, () -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
         EventReducer active = toFirstDelayed(400, navigAnim::playOpen);
         root.addEventFilter(MOUSE_MOVED, e -> {
-            if(thumb_root.getOpacity()==0) {
-                if(prevP.getOpacity()!=1)
+            if (thumb_root.getOpacity()==0) {
+                if (prevP.getOpacity()!=1)
                     active.push(e);
                 else
                     inactive.push(e);
@@ -220,12 +220,12 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         setAnchors(thumb_root, 0d);
         root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         root.setOnMouseClicked( e -> {
-            if(e.getButton()==SECONDARY && showThumbnails.getValue()) {
+            if (e.getButton()==SECONDARY && showThumbnails.getValue()) {
                 showThumbnails.setCycledNapplyValue();
                 e.consume();
             }
-            if(e.getButton()==PRIMARY) {
-                if(e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
+            if (e.getButton()==PRIMARY) {
+                if (e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
                     theater_mode.setCycledNapplyValue();
                 } else {
                     showThumbnails.setCycledNapplyValue();
@@ -243,10 +243,10 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
         // slideshow on hold during user activity
         root.addEventFilter(MOUSE_ENTERED, e -> {
-            if(slideshow_on.getValue()) slideshow.pause();
+            if (slideshow_on.getValue()) slideshow.pause();
         });
         root.addEventFilter(MOUSE_EXITED, e -> {
-            if(slideshow_on.getValue()) slideshow.unpause();
+            if (slideshow_on.getValue()) slideshow.unpause();
         });
 
         // refresh if source data changed
@@ -260,16 +260,16 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             e -> DragUtil.hasImage(e) || DragUtil.hasAudio(e) || DragUtil.hasFiles(e),
             e -> e.getGestureSource()==mainImage.getPane(),
             e -> {
-                if(e.getDragboard().hasFiles()) {
+                if (e.getDragboard().hasFiles()) {
                     dataChanged(getCommonRoot(e.getDragboard().getFiles()));
                     return;
                 }
-                if(DragUtil.hasAudio(e)) {
+                if (DragUtil.hasAudio(e)) {
                     // get first item
                     List<Item> items = DragUtil.getAudioItems(e);
                     if (!items.isEmpty()) dataChanged(items.get(0));
                 } else
-                if(DragUtil.hasImage(e)) {
+                if (DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
                          .use(this::showImages,FX)
                          .showProgress(getWidget().getWindow().taskAdd())
@@ -308,12 +308,12 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @Override
     public void showImage(File img_file) {
-        if(img_file!=null && img_file.getParentFile()!=null) {
+        if (img_file!=null && img_file.getParentFile()!=null) {
             folder.set(img_file.getParentFile());
             // this resets the slideshow counter
             // notice that we query whether slideshow is running, not whether it is
             // supposed to run, which might not always be the same
-            if(slideshow.isRunning()) slideshow.start();
+            if (slideshow.isRunning()) slideshow.start();
             active_image = -1;
             mainImage.loadImage(img_file);
         }
@@ -321,7 +321,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @Override
     public void showImages(Collection<File> img_files) {
-        if(img_files.isEmpty()) return;
+        if (img_files.isEmpty()) return;
 
         showImage(img_files.stream().findFirst().get());
         active_image = 0;
@@ -332,7 +332,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @IsInput("Location of")
     private void dataChanged(Item i) {
-        if(i==null) dataChanged(Metadata.EMPTY);
+        if (i==null) dataChanged(Metadata.EMPTY);
         else App.itemToMeta(i, this::dataChanged);
     }
 
@@ -349,10 +349,10 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         // calculate new location
         File new_folder = i;
         // prevent refreshing location if shouldnt
-        if(keepContentOnEmpty && new_folder==null) return;
+        if (keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
-        if(theater_mode.getValue()) itemPane.setValue("", data);
+        if (theater_mode.getValue()) itemPane.setValue("", data);
     }
 
     class Exec {
@@ -365,13 +365,13 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         boolean executing = false;
 
         public void run(Runnable r) {
-            if(!l.isEmpty()) l.add(r);
+            if (!l.isEmpty()) l.add(r);
             else {
                 e.execute(() -> {
                     r.run();
                     Platform.runLater(() -> {
                         l.remove(r);
-                        if(!l.isEmpty()) run(l.get(0));
+                        if (!l.isEmpty()) run(l.get(0));
                     });
                 });
             }
@@ -400,7 +400,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             List<File> files = folder.get()==null
                 ? listRO()
                 : getFilesImage(folder.get(),folderTreeDepth).limit(thumbsLimit).collect(toList());
-            if(files.isEmpty()) {
+            if (files.isEmpty()) {
                 Platform.runLater(() -> setImage(-1));
             } else {
                 // add actions - turn file into thumbnail
@@ -412,7 +412,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                     // set as image if it should be
                     // for example when widget loads, the image might be
                     // restored from deserialized index value
-                    if(i==ai) runLater(() -> setImage(ai));
+                    if (i==ai) runLater(() -> setImage(ai));
                 });
             }
         });
@@ -478,7 +478,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
-        if(slideshow.isRunning()) slideshow.start();
+        if (slideshow.isRunning()) slideshow.start();
     }
 
     public void prevImage() {
@@ -489,17 +489,17 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             int index = (active_image < 1) ? images.size()-1 : active_image-1;
             setImage(index);
         }
-        if(slideshow.isRunning()) slideshow.start();
+        if (slideshow.isRunning()) slideshow.start();
     }
 
     private void applyShowThumbs(boolean v) {
         thumbAnim.playFromDir(v);
-        if(v) navigAnim.playClose();
+        if (v) navigAnim.playClose();
     }
 
     private void applyTheaterMode(boolean v) {
         root.pseudoClassStateChanged(getPseudoClass("theater"), v);
-        if(v && itemPane==null) {
+        if (v && itemPane==null) {
             itemPane = new ItemInfo(false);
             root.getChildren().add(itemPane);
             itemPane.toFront();
@@ -508,8 +508,8 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             itemPane.setValue("", data);
 
             itemPane.setOnMouseClicked(ee -> {
-                if(ee.getButton()==SECONDARY) {
-                    if(itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block-alternative");
+                if (ee.getButton()==SECONDARY) {
+                    if (itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block-alternative");
                     else itemPane.getStyleClass().clear();
                     ee.consume();
                 }

@@ -61,7 +61,7 @@ public class Db {
                     string_pool = sss.isEmpty() ? new StringStore() : sss.get(0);
 
                     // populate metadata fields strings if empty
-                    if(string_pool.getStrings("album").isEmpty() && !items_byId.isEmpty()) {
+                    if (string_pool.getStrings("album").isEmpty() && !items_byId.isEmpty()) {
                         stream(Metadata.Field.values())
                                 .filter(f -> f.isAutoCompleteable())
                                 .forEach(f -> {
@@ -99,8 +99,8 @@ public class Db {
     }
 
     public static void stop() {
-        if(em!=null && em.isOpen()) em.close();
-        if(emf!=null) emf.close();
+        if (em!=null && em.isOpen()) em.close();
+        if (emf!=null) emf.close();
     }
 
     /******************************** OBTAINING ***********************************/
@@ -138,14 +138,14 @@ public class Db {
     }
 
     public static void addItems(Collection<? extends Metadata> items) {
-        if(em==null) return;
+        if (em==null) return;
 
         if (items.isEmpty()) return;
         List<Metadata> l = new ArrayList<>();
         // add to db
         em.getTransaction().begin();
         items.forEach( m -> {
-            if(em.find(Metadata.class, m.getId()) == null) {
+            if (em.find(Metadata.class, m.getId()) == null) {
                 em.persist(m);
                 l.add(m);
             }
@@ -159,13 +159,13 @@ public class Db {
     }
 
     public static void removeItems(Collection<? extends Item> items) {
-        if(em==null) return;
+        if (em==null) return;
 
         // remove in db
         em.getTransaction().begin();
         items.forEach(item -> {
             Metadata in_db = em.find(Metadata.class, item.getId());
-            if(in_db != null) em.remove(in_db);
+            if (in_db != null) em.remove(in_db);
         });
         em.getTransaction().commit();
         // update model
@@ -177,7 +177,7 @@ public class Db {
     }
 
     public static void updatePer(Collection<? extends Metadata> items) {
-        if(em==null) return;
+        if (em==null) return;
 
         // update db
         em.getTransaction().begin();
@@ -250,7 +250,7 @@ public class Db {
 
         public void addString(String name, String s) {
             boolean b = getStrings(name.toLowerCase()).add(s);
-            if(b) {
+            if (b) {
                 em.getTransaction().begin();
                 em.merge(string_pool);
                 em.getTransaction().commit();
@@ -259,7 +259,7 @@ public class Db {
 
         public void addStrings(String name, List<String> s) {
             boolean b = getStrings(name.toLowerCase()).addAll(s);
-            if(b) {
+            if (b) {
                 em.getTransaction().begin();
                 em.merge(string_pool);
                 em.getTransaction().commit();

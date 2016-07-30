@@ -102,16 +102,16 @@ public class PlaycountIncrementer extends ServiceBase {
     public void increment() {
         Metadata m = Player.playingtem.get();
         if (!m.isEmpty() && m.isFileBased() ) {
-            if(delay.get()) {
+            if (delay.get()) {
                 queue.add(m);
-                if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
-                if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented scheduled", INFO));
+                if (show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
+                if (show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented scheduled", INFO));
             } else {
                 int pc = 1 + m.getPlaycount();
                 MetadataWriter.use(m, w -> w.setPlaycount(pc), ok -> {
-                    if(ok) {
-                        if(show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
-                        if(show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented to: " + pc, INFO));
+                    if (ok) {
+                        if (show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
+                        if (show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented to: " + pc, INFO));
                     }
                 });
             }
@@ -120,7 +120,7 @@ public class PlaycountIncrementer extends ServiceBase {
 
     private void apply() {
         removeOld();
-        if(!running) return;
+        if (!running) return;
 
         if (when.get() == ON_PERCENT) {
             incrHand = new PlayTimeHandler(total -> total.multiply(when_percent.get()),incr);
@@ -151,7 +151,7 @@ public class PlaycountIncrementer extends ServiceBase {
 
     private void incrementQueued(Metadata m) {
         int δ = (int) queue.stream().filter(i -> i.same(m)).count();
-        if(δ>0) {
+        if (δ>0) {
             queue.removeIf(i -> i.same(m));
             int p = δ + m.getPlaycount();
             Player.IO_THREAD.execute(() -> {

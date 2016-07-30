@@ -77,7 +77,7 @@ public final class MetadataGroup {
         long sizesum = 0;
         double ratingsum = 0;
 
-        for(Metadata m : ms) {
+        for (Metadata m : ms) {
             albumset.add(m.getAlbum());
             lengthsum += m.getLengthInMs();
             sizesum += m.getFilesizeInB();
@@ -208,13 +208,13 @@ public final class MetadataGroup {
         }
 
         public static Field valueOfEnumString(String s) {
-            if(ITEMS.name().equals(s)) return ITEMS;
-            if(ALBUMS.name().equals(s)) return ALBUMS;
-            if(LENGTH.name().equals(s)) return LENGTH;
-            if(SIZE.name().equals(s)) return SIZE;
-            if(AVG_RATING.name().equals(s)) return AVG_RATING;
-            if(W_RATING.name().equals(s)) return W_RATING;
-            if(YEAR.name().equals(s)) return YEAR;
+            if (ITEMS.name().equals(s)) return ITEMS;
+            if (ALBUMS.name().equals(s)) return ALBUMS;
+            if (LENGTH.name().equals(s)) return LENGTH;
+            if (SIZE.name().equals(s)) return SIZE;
+            if (AVG_RATING.name().equals(s)) return AVG_RATING;
+            if (W_RATING.name().equals(s)) return W_RATING;
+            if (YEAR.name().equals(s)) return YEAR;
             else return VALUE;
         }
 
@@ -244,10 +244,10 @@ public final class MetadataGroup {
 
         @Override
         public String toS(MetadataGroup v, Object o, String empty_val) {
-            if(this==VALUE) {
-                if(v==null || v.all_flag) return "<any>";
+            if (this==VALUE) {
+                if (v==null || v.all_flag) return "<any>";
                 return v.getField().toS(o, "<none>");
-            } else if(this==YEAR) {
+            } else if (this==YEAR) {
                 return v==null || !v.years.hasSpecific() ? empty_val : v.years.toString();
             } else {
                 return toS(o,empty_val);

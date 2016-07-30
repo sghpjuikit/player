@@ -23,27 +23,27 @@ public class GPlayer implements GeneralPlayer.Play {
 
     @Override
     public void play() {
-        if(p!=null) p.play();
+        if (p!=null) p.play();
     }
 
     @Override
     public void pause() {
-        if(p!=null) p.pause();
+        if (p!=null) p.pause();
     }
 
     @Override
     public void resume() {
-        if(p!=null) p.play();
+        if (p!=null) p.play();
     }
 
     @Override
     public void seek(Duration duration) {
-        if(p!=null) p.seek(ClockTime.fromMillis((long)duration.toMillis()));
+        if (p!=null) p.seek(ClockTime.fromMillis((long)duration.toMillis()));
     }
 
     @Override
     public void stop() {
-        if(p!=null) p.stop();
+        if (p!=null) p.stop();
     }
 
     @Override
@@ -58,14 +58,14 @@ public class GPlayer implements GeneralPlayer.Play {
 
     @Override
     public void dispose() {
-        if(s1!=null) s1.unsubscribe();
-        if(s2!=null) s2.unsubscribe();
-        if(s3!=null) s3.unsubscribe();
-        if(s4!=null) s4.unsubscribe();
-        if(s5!=null) s5.unsubscribe();
+        if (s1!=null) s1.unsubscribe();
+        if (s2!=null) s2.unsubscribe();
+        if (s3!=null) s3.unsubscribe();
+        if (s4!=null) s4.unsubscribe();
+        if (s5!=null) s5.unsubscribe();
         s1 = s2 = s3 = s4 = s5 = null;
 
-        if(p!=null) {
+        if (p!=null) {
             p.disown();
             p.dispose();
             p = null;

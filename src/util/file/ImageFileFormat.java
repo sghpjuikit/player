@@ -107,7 +107,7 @@ public enum ImageFileFormat {
      */
     public static ImageFileFormat of(URI uri) {
         String suffix = Util.getSuffix(uri);
-        for(ImageFileFormat f: values())
+        for (ImageFileFormat f: values())
             if (suffix.equalsIgnoreCase(f.toString()))
                 return f;
         return UNKNOWN;
@@ -118,14 +118,14 @@ public enum ImageFileFormat {
     /** Writes up list of all supported values. */
     public static String supportedExtensionsS() {
         String out = "";
-        for(String ft: exts())
+        for (String ft: exts())
             out = out + ft +"\n";
         return out;
     }
 
     public static List<ImageFileFormat> supportedValues() {
         List<ImageFileFormat> ext = new ArrayList();
-        for(ImageFileFormat format: values()) {
+        for (ImageFileFormat format: values()) {
             if (format.isSupported())
                 ext.add(format);
         }
@@ -140,7 +140,7 @@ public enum ImageFileFormat {
     // List of supported extension strings in the format: '*.extension'
     private static List<String> exts() {
         List<String> ext = new ArrayList();
-        for(ImageFileFormat format: supportedValues()) {
+        for (ImageFileFormat format: supportedValues()) {
             if (format.isSupported())
                 ext.add(format.toExt());
         }

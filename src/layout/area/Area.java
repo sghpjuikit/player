@@ -99,8 +99,8 @@ public abstract class Area<T extends Container> implements ContainerNode {
      * Default implementation refreshes all active widgets (ignores containers).
      */
     public void refresh() {
-        for(Component c: getActiveWidgets()) {
-            if(c instanceof Widget)
+        for (Component c: getActiveWidgets()) {
+            if (c instanceof Widget)
                 ((Widget)c).getController().refresh();
         }
     }
@@ -125,7 +125,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
      */
     public void detach() {
         Component c = getWidget();
-        if(c==null) return;
+        if (c==null) return;
         c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
         Window w = UiContext.showWindow(c);
@@ -158,7 +158,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     @FXML
     public void setLocked(boolean val) {
         Component c = getWidget();
-        if(c!=null)
+        if (c!=null)
             c.locked.set(val);
     }
     public boolean isLocked() {
@@ -172,14 +172,14 @@ public abstract class Area<T extends Container> implements ContainerNode {
     @FXML
     public void toggleLocked() {
         Component c = getWidget();
-        if(c!=null)
+        if (c!=null)
             c.locked.set(!c.locked.get());
     }
 
 /**************************** activity node ***********************************/
 
     public final void setActivityVisible(boolean v) {
-        if(activityPane!=null) activityPane.setVisible(v);
+        if (activityPane!=null) activityPane.setVisible(v);
         getContent().setOpacity(v ? 0.2 : 1);
     }
 }

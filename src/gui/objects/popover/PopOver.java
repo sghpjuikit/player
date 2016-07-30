@@ -331,7 +331,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Hides this popup if it is not detached. Otherwise does nothing.
-     * Equivalent to: if(!isDetached()) hideStrong();
+     * Equivalent to: if (!isDetached()) hideStrong();
      */
     @Override
     public void hide() {
@@ -376,10 +376,10 @@ public class PopOver<N extends Node> extends PopupControl {
 
         // we must set the owners so moving with owner behavior knows which
         // mode should be done
-        if(ownerNode!=null) {
+        if (ownerNode!=null) {
             this.ownerNode = ownerNode;
             this.ownerWindow = ownerNode.getScene().getWindow();
-            if(this.ownerWindow instanceof PopOver) {
+            if (this.ownerWindow instanceof PopOver) {
                 setParentPopup((PopOver)this.ownerWindow);
             }
         }
@@ -400,7 +400,7 @@ public class PopOver<N extends Node> extends PopupControl {
         // we fix this here, because we need default hide() implementation to
         // not close detached popup
         getScene().addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE && isHideOnEscape() && detached.get())
+            if (e.getCode()==ESCAPE && isHideOnEscape() && detached.get())
                 hideStrong();
         });
     }
@@ -417,7 +417,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
         // move popover so the arrow points to the desired coordinates
         // avoid when no arrow
-        if(getArrowSize()>0) adjustWindowLocation();
+        if (getArrowSize()>0) adjustWindowLocation();
 
         // solves a small bug where the followng variables dont get initialized
         // and binding is currently impossible
@@ -476,7 +476,7 @@ public class PopOver<N extends Node> extends PopupControl {
         setArrowSize(0); // disable arrow
         showThis(null, pos.isAppCentric() ? APP.windowManager.getActive().getStage() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
-        if(!pos.isAppCentric()) uninstallMoveWith();
+        if (!pos.isAppCentric()) uninstallMoveWith();
 
     }
 
@@ -510,14 +510,14 @@ public class PopOver<N extends Node> extends PopupControl {
      */
     public void setMoveWithOwner(boolean val) {
         // avoid wasteful operation, continue only if values differ
-        if(val != move_with_owner) {
+        if (val != move_with_owner) {
             move_with_owner = val;
 
             // if is showing the behavior (one way or the other) was already initialized
             // and we need to change it. Otherwise, it needs to be applied from
             // show method as the initialisation can not precede show method
             // The behavior is uninitialized on hide so it will not be started twice
-            if(isShowing()) {
+            if (isShowing()) {
                 initializeMovingBehavior(val);
             }
         }
@@ -532,8 +532,8 @@ public class PopOver<N extends Node> extends PopupControl {
         Objects.requireNonNull(ownerWindow, "Error, popup window owner null"
                 + " while isShowing. Cant apply moving with owner behavior");
         // install/uninstall correct 'mode'
-        if(val) {
-            if(ownerNode!=null) installMoveWithNode(ownerNode); // node mode
+        if (val) {
+            if (ownerNode!=null) installMoveWithNode(ownerNode); // node mode
             else installMoveWithWindow(ownerWindow);            // window mode
         } else {
             uninstallMoveWith();    // uninstalls both
@@ -554,19 +554,19 @@ public class PopOver<N extends Node> extends PopupControl {
 
     // listeners for relocating
     private final ChangeListener<Number> xListener = (o,oldX,newX) -> {
-        if(ownerNode!=null)
+        if (ownerNode!=null)
             setX(deltaThisX+ownerNode.localToScreen(0, 0).getX()-deltaX);
     };
     private final ChangeListener<Number> yListener = (o,oldY,newY) -> {
-        if(ownerNode!=null)
+        if (ownerNode!=null)
             setY(deltaThisY+ownerNode.localToScreen(0, 0).getY()-deltaY);
     };
     private final ChangeListener<Number> winXListener = (o,oldX,newX) -> {
-        if(ownerWindow!=null)
+        if (ownerWindow!=null)
             setX(deltaThisX+ownerWindow.getX()-deltaX);
     };
     private final ChangeListener<Number> winYListener = (o,oldY,newY) -> {
-        if(ownerWindow!=null)
+        if (ownerWindow!=null)
             setY(deltaThisY+ownerWindow.getY()-deltaY);
     };
 
@@ -602,13 +602,13 @@ public class PopOver<N extends Node> extends PopupControl {
         installMonitoring();
     }
     private void uninstallMoveWith() {
-        if(ownerWindow!=null) {
+        if (ownerWindow!=null) {
             ownerWindow.xProperty().removeListener(winXListener);
             ownerWindow.yProperty().removeListener(winYListener);
             ownerWindow.widthProperty().removeListener(winXListener);
             ownerWindow.heightProperty().removeListener(winYListener);
         }
-        if(ownerNode!=null) {
+        if (ownerNode!=null) {
             ownerNode.layoutXProperty().removeListener(xListener);
             ownerNode.layoutYProperty().removeListener(yListener);
             ownerWindow.xProperty().removeListener(xListener);
@@ -628,8 +628,8 @@ public class PopOver<N extends Node> extends PopupControl {
     EventHandler<MouseEvent> lockOnHandler = e -> deltaThisLock=true;
     EventHandler<MouseEvent> lockOffHandler = e -> deltaThisLock=false;
     // remember position for dragging functionality
-    InvalidationListener deltaXListener = o->{ if(deltaThisLock) deltaThisX=getX(); };
-    InvalidationListener deltaYListener = o->{ if(deltaThisLock) deltaThisY=getY(); };
+    InvalidationListener deltaXListener = o->{ if (deltaThisLock) deltaThisX=getX(); };
+    InvalidationListener deltaYListener = o->{ if (deltaThisLock) deltaThisY=getY(); };
     // hide on scene change
     ChangeListener<Scene> visibilityListener = (o,ov,nv) -> {
             uninstallMoveWith();
@@ -690,14 +690,14 @@ public class PopOver<N extends Node> extends PopupControl {
         double v_content_screen_span = H/SH;
 
 
-        if(right>left) {
-            if(down>up) {
+        if (right>left) {
+            if (down>up) {
                 setArrowLocation(ArrowLocation.LEFT_TOP);
             } else {
                 setArrowLocation(ArrowLocation.LEFT_BOTTOM);
             }
         } else {
-            if(down>up) {
+            if (down>up) {
                 setArrowLocation(ArrowLocation.RIGHT_TOP);
             } else {
                 setArrowLocation(ArrowLocation.RIGHT_BOTTOM);
@@ -939,8 +939,8 @@ public class PopOver<N extends Node> extends PopupControl {
         public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
             Rectangle2D psb = ps.getBounds();
-            if(this==MAIN) return ps.getBounds();
-            if(this==APP_WINDOW)
+            if (this==MAIN) return ps.getBounds();
+            if (this==APP_WINDOW)
                 // rely on official util (someone hid it..., good work genius)
                 return getScreen(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
             else {
@@ -1224,19 +1224,19 @@ public class PopOver<N extends Node> extends PopupControl {
      * @param val
      */
     public void setHideOnClick(boolean val) {
-        if(val) {
+        if (val) {
             // construct the handler lazily on demand
-            if(hideOnClick==null) {
+            if (hideOnClick==null) {
                 hideOnClick = e -> {
                     // close only if the popup was not dragged since mouse press
-                    if(e.isStillSincePress()) hideStrong();
+                    if (e.isStillSincePress()) hideStrong();
                 };
             }
             // set the behavior
             getScene().addEventHandler(MOUSE_CLICKED, hideOnClick);
         } else {
             // remove the behavior but watch out for lazy initialization
-            if(hideOnClick != null) {
+            if (hideOnClick != null) {
                 getScene().removeEventHandler(MOUSE_CLICKED, hideOnClick);
                 hideOnClick = null;
             }
@@ -1256,7 +1256,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     public void setParentPopup(PopOver popover) {
         popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
-            if(this != null && this.isShowing())
+            if (this != null && this.isShowing())
                 // same bug as with 'open popups preventing app
                 // closing properly' due to owner being closed before the child
                 // we neeed to close immediatelly
@@ -1308,7 +1308,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * @return all custom children of the header
      */
     public ObservableList<Node> getHeaderIcons() {
-        if(headerContent==null) headerContent = FXCollections.observableArrayList();
+        if (headerContent==null) headerContent = FXCollections.observableArrayList();
         return headerContent;
     }
 }

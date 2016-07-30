@@ -94,7 +94,7 @@ public class MetadataWriter extends MetaItem {
 
     private static AbstractID3v2Tag wavToId3(WavTag tag) {
         AbstractID3v2Tag t = tag.getID3Tag();
-        if(t==null) {
+        if (t==null) {
             tag.setID3Tag(new org.jaudiotagger.tag.id3.ID3v24Tag());
             t = tag.getID3Tag();
         }
@@ -122,7 +122,7 @@ public class MetadataWriter extends MetaItem {
 
     @Override
     public URI getURI() {
-        if(file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
+        if (file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
         return file.toURI();
     }
     @Override
@@ -370,8 +370,8 @@ public class MetadataWriter extends MetaItem {
         // set universally
         setGeneralField(CUSTOM3, val<0 ? "" : String.valueOf(val));
         // set to id3 tag if available
-        if(tag instanceof AbstractID3v2Tag) setPlaycountID3((AbstractID3v2Tag)tag,val);
-        else if(tag instanceof WavTag) setPlaycountID3(wavToId3((WavTag)tag), val);
+        if (tag instanceof AbstractID3v2Tag) setPlaycountID3((AbstractID3v2Tag)tag,val);
+        else if (tag instanceof WavTag) setPlaycountID3(wavToId3((WavTag)tag), val);
     }
 
     /** Increments playcount by 1. */
@@ -541,7 +541,7 @@ public class MetadataWriter extends MetaItem {
     public void addChapter(Chapter chapter, Metadata metadata) {
         List<Chapter> chaps = list(metadata.getChapters());
         int i = chaps.indexOf(chapter);
-        if(i==-1) chaps.add(chapter);
+        if (i==-1) chaps.add(chapter);
         else chaps.set(i, chapter);
         setChapters(chaps);
     }
@@ -560,7 +560,7 @@ public class MetadataWriter extends MetaItem {
      */
     public void removeChapter(Chapter chapter, Metadata metadata) {
         List<Chapter> cs = metadata.getChapters();
-        if(cs.remove(chapter)) setChapters(cs);
+        if (cs.remove(chapter)) setChapters(cs);
     }
 
     /** @param val the year to set  */
@@ -581,7 +581,7 @@ public class MetadataWriter extends MetaItem {
     }
 
     public void setPlayedFirstNowIfEmpty() {
-        if(hasCustomField(TAGID_PLAYED_FIRST)) return;
+        if (hasCustomField(TAGID_PLAYED_FIRST)) return;
         long epochmillis = System.currentTimeMillis();
         setCustomField(TAGID_PLAYED_FIRST,String.valueOf(epochmillis));
     }
@@ -607,7 +607,7 @@ public class MetadataWriter extends MetaItem {
     }
 
     public void setLibraryAddedNowIfEmpty() {
-        if(hasCustomField(TAGID_LIB_ADDED)) return;
+        if (hasCustomField(TAGID_LIB_ADDED)) return;
         long epochmillis = System.currentTimeMillis();
         setCustomField(TAGID_LIB_ADDED,String.valueOf(epochmillis));
     }
@@ -688,7 +688,7 @@ public class MetadataWriter extends MetaItem {
                 : (VorbisCommentTag)tag;
         // set if possible
         try {
-            if(empty) t.deleteField(field);
+            if (empty) t.deleteField(field);
             else t.setField(field,val);
             fields_changed++;
         } catch (KeyNotFoundException | FieldDataInvalidException e) {
@@ -806,7 +806,7 @@ public class MetadataWriter extends MetaItem {
                 LOGGER.debug("File being played, will attempt to suspend playback");
                 PLAYBACK.suspend(); // asynchronous, we dont know how long it will take
                 // so we sleep the thread and try tagging again, twice once quickly, once longer
-                for(int i=1; i<=3; i+=2) {
+                for (int i=1; i<=3; i+=2) {
                     int tosleep = i*i*250;
                     LOGGER.debug("Attempt {}, sleeping for {}",1+i/2,tosleep);
                     try {
@@ -814,7 +814,7 @@ public class MetadataWriter extends MetaItem {
                         audioFile.commit();
                         break;
                     } catch (CannotWriteException | InterruptedException e) {
-                        if(i>=3) {
+                        if (i>=3) {
                             LOGGER.info("Can not write file tag (attempt {}): {} {}",1+i/2,audioFile.getFile().getPath(),e);
                             PLAYBACK.activate();
                             return false;
@@ -890,7 +890,7 @@ public class MetadataWriter extends MetaItem {
     public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
         Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
-            for(I i : items)
+            for (I i : items)
                 if (i.isFileBased()) {
                     w.reset(i);
                     setter.accept(w);
@@ -898,12 +898,12 @@ public class MetadataWriter extends MetaItem {
                 }
             List<Metadata> fresh = MetadataReader.readMetadata(items);
             Player.refreshItemsWith(fresh);
-            if(action!=null) runFX(() -> action.accept(fresh));
+            if (action!=null) runFX(() -> action.accept(fresh));
         });
     }
 
     public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
-        if(item.isFileBased()) {
+        if (item.isFileBased()) {
             Player.IO_THREAD.execute(()-> {
                 MetadataWriter w = new MetadataWriter();
                 w.reset(item);
@@ -911,14 +911,14 @@ public class MetadataWriter extends MetaItem {
                 boolean b = w.write();
 
                 Metadata m = MetadataReader.create(item);
-                if(!m.isEmpty()) Player.refreshItemWith(m);
-                if(action!=null) runFX(() -> action.accept(b));
+                if (!m.isEmpty()) Player.refreshItemWith(m);
+                if (action!=null) runFX(() -> action.accept(b));
             });
         }
     }
 
     public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
-        if(item.isFileBased()) {
+        if (item.isFileBased()) {
             MetadataWriter w = new MetadataWriter();
             w.reset(item);
             setter.accept(w);
@@ -928,8 +928,8 @@ public class MetadataWriter extends MetaItem {
 
     public static <I extends Item> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
         MetadataWriter w = new MetadataWriter();
-        for(I i : items) {
-            if(i.isFileBased()) {
+        for (I i : items) {
+            if (i.isFileBased()) {
                 w.reset(i);
                 setter.accept(w);
                 w.write();

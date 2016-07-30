@@ -236,7 +236,7 @@ public final class AreaControls {
 
 	// weak hide - deactivator behavior
         Consumer<MouseEvent> hideWeakTry = e -> {
-            if(
+            if (
                 // ignore when already not showing or in strong mode
                 isShowingWeak && !isShowingStrong &&
                 // mouse entering the popup qualifies as root.mouseExited which we need
@@ -281,7 +281,7 @@ public final class AreaControls {
 		if (area.getActiveWidgets().isEmpty()) return;
         Widget w = area.getActiveWidgets().get(0);
 
-        if(Gui.open_strategy==POPUP) {
+        if (Gui.open_strategy==POPUP) {
             showSettings(w,propB);
         } else
         if (Gui.open_strategy==INSIDE) {
@@ -289,7 +289,7 @@ public final class AreaControls {
                 Configurator sc = new Configurator(true);
                              sc.configure(w);
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-                sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
+                sc.setOnMouseClicked(me->{ if (me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
                 area.root.getChildren().add(sc);
                 setAnchors(sc, 0d);
                 openAndDo(sc, null);
@@ -298,7 +298,7 @@ public final class AreaControls {
     }
 
     void changeWidget() {
-        if(Gui.open_strategy==POPUP) {
+        if (Gui.open_strategy==POPUP) {
             WidgetPicker w = new WidgetPicker();
             PopOver p = new PopOver(w.getNode());
                     p.title.set("Change widget");
@@ -352,7 +352,7 @@ public final class AreaControls {
     }
 
     void showInfo() {
-        if(Gui.open_strategy==POPUP) {
+        if (Gui.open_strategy==POPUP) {
             helpP.getM(this).show(infoB);
         } else
         if (Gui.open_strategy==INSIDE) {
@@ -368,7 +368,7 @@ public final class AreaControls {
                 sa.addEventFilter(MOUSE_PRESSED, Event::consume);
                 sa.addEventFilter(MOUSE_RELEASED, Event::consume);
                 sa.addEventFilter(MOUSE_CLICKED, e -> {
-                    if(e.getButton()==SECONDARY)
+                    if (e.getButton()==SECONDARY)
                         closeAndDo(sa, () -> openAndDo(area.content_root, null));
                 });
                 area.root.getChildren().add(sa);

@@ -88,7 +88,7 @@ public final class Notifier extends ServiceBase {
             return l;
         },
         v -> {
-            if("Normal".equals(v)) {
+            if ("Normal".equals(v)) {
                 ItemInfo ii = new ItemInfo(true);
                 songNotifInfo = ii;
                 songNotifGui = ii;
@@ -137,9 +137,9 @@ public final class Notifier extends ServiceBase {
 
     @Override
     public void stop() {
-        if(d1!=null) d1.unsubscribe();
-        if(d2!=null) d2.unsubscribe();
-        if(n!=null) n.hideImmediatelly();
+        if (d1!=null) d1.unsubscribe();
+        if (d2!=null) d2.unsubscribe();
+        if (n!=null) n.hideImmediatelly();
         n = null;
     }
 

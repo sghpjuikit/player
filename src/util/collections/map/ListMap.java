@@ -41,7 +41,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
         K k = keyMapper.apply(e);
         // get cache storage with key
         List<E> c = get(k);
-        if(c!=null) {
+        if (c!=null) {
             // remove element
             c.remove(e);
         }
@@ -52,9 +52,9 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     containers assigned to keys in the given collection. */
     public List<E> getElementsOf(Collection<K> keys) {
         List<E> out = cacheFactory.get();
-        for(K k : keys) {
+        for (K k : keys) {
             List<E> c = get(k);
-            if(c!=null) out.addAll(c);
+            if (c!=null) out.addAll(c);
         }
         return out;
     }
@@ -62,9 +62,9 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     /** Array version of {@link #getElementsOf(java.util.Collection)}. */
     public List<E> getElementsOf(K... keys) {
         List<E> out = cacheFactory.get();
-        for(K k : keys) {
+        for (K k : keys) {
             List<E> c = get(k);
-            if(c!=null) out.addAll(c);
+            if (c!=null) out.addAll(c);
         }
         return out;
     }

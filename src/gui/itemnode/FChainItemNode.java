@@ -83,8 +83,8 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
             // generalized to Object since it works for any object. We either handle this manually
             // here, or guarantee that the identity function input type will not be erased
             // (basically we need instance of identity function per each class)
-            if(f==IDENTITY) return true;
-            if(f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true; // just in case
+            if (f==IDENTITY) return true;
+            if (f instanceof TypeAwareƑ && ((TypeAwareƑ)f).f==IDENTITY) return true; // just in case
 
             // If two subsequent functions have same output type (or input type) one of them is safe
             // to remove (which one depends on whether we check inputs or outputs).
@@ -105,7 +105,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
 
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
-            if(m<chain.size()) {
+            if (m<chain.size()) {
                 chain.setAll(chain.subList(0, m));
                 generateValue();
             }
@@ -137,7 +137,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
      * Default Void.class
      */
     public void setTypeIn(Class c) {
-        if(type_in.equals(c))
+        if (type_in.equals(c))
             generateValue();
         else {
             type_in = c;

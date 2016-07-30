@@ -32,26 +32,26 @@ public class InfoTask implements InfoNode<Task> {
     /** {@inheritDoc} */
     @Override
     public void setVisible(boolean v) {
-        if(title!=null) title.setVisible(v);
-        if(message!=null) message.setVisible(v);
-        if(progressIndicator!=null) progressIndicator.setVisible(v);
+        if (title!=null) title.setVisible(v);
+        if (message!=null) message.setVisible(v);
+        if (progressIndicator!=null) progressIndicator.setVisible(v);
     }
     
     /** {@inheritDoc} */
     @Override
     public void bind(Task t) {
         unbind();
-        if(progressIndicator!=null) progressIndicator.progressProperty().bind(t.progressProperty());
-        if(title!=null) title.textProperty().bind(t.titleProperty());
-        if(message!=null) message.textProperty().bind(t.messageProperty());
+        if (progressIndicator!=null) progressIndicator.progressProperty().bind(t.progressProperty());
+        if (title!=null) title.textProperty().bind(t.titleProperty());
+        if (message!=null) message.textProperty().bind(t.messageProperty());
     }
     
     /** {@inheritDoc} */
     @Override
     public void unbind() {
-        if(progressIndicator!=null) progressIndicator.progressProperty().unbind();
-        if(title!=null) title.textProperty().unbind();
-        if(message!=null) message.textProperty().unbind();
+        if (progressIndicator!=null) progressIndicator.progressProperty().unbind();
+        if (title!=null) title.textProperty().unbind();
+        if (message!=null) message.textProperty().unbind();
     }
     
 }

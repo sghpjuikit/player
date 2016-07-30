@@ -141,15 +141,15 @@ public class Gui {
     private static File monitoredSkin = null;
     private static FileMonitor monitorSkin = null;
     private static void monitorSkinStart(File cssFile) {
-        if(cssFile.equals(monitoredSkin)) return;
+        if (cssFile.equals(monitoredSkin)) return;
         monitorSkinStop();
         monitorSkin = monitorFile(cssFile, type -> {
-            if(type==ENTRY_MODIFY)
+            if (type==ENTRY_MODIFY)
                 loadSkin();
         });
     }
     private static void monitorSkinStop() {
-        if(monitorSkin!=null) monitorSkin.stop();
+        if (monitorSkin!=null) monitorSkin.stop();
         monitorSkin = null;
         monitoredSkin = null;
     }
@@ -226,7 +226,7 @@ public class Gui {
      */
     public static void setLayoutMode(boolean val) {
         // avoid pointless operation
-        if(layout_mode.get()==val) return;
+        if (layout_mode.get()==val) return;
         // Note that we set the layout mode flag after invoking show() but
         // before invoking hide().
         // This is important to maintain consistency. See documentation.
@@ -238,12 +238,12 @@ public class Gui {
             APP.widgetManager.getLayouts().forEach(Layout::hide);
             setZoomMode(false);
         }
-        if(val) APP.actionStream.push("Layout mode");
+        if (val) APP.actionStream.push("Layout mode");
     }
 
     public static void setZoomMode(boolean val) {
         Window w = APP.windowManager.getFocused();
-        if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().zoom(val);
+        if (w!=null && w.getSwitchPane()!=null) w.getSwitchPane().zoom(val);
     }
 
     /** Toggles layout mode. */
@@ -256,7 +256,7 @@ public class Gui {
     @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
         Window w = APP.windowManager.getFocused();
-        if(w!=null && w.getSwitchPane()!=null) w.getSwitchPane().toggleZoom();
+        if (w!=null && w.getSwitchPane()!=null) w.getSwitchPane().toggleZoom();
     }
 
     public static void setLayoutNzoom(boolean v) {
@@ -279,7 +279,7 @@ public class Gui {
         boolean m = APP.windowManager.windows.stream().map(w -> w.isMinimized()).reduce(false, Boolean::logicalOr);
         boolean f = APP.windowManager.windows.stream().map(w -> w.focused.get()).reduce(false, Boolean::logicalOr);
         APP.windowManager.windows.forEach(w -> {
-            if(!m && !f)
+            if (!m && !f)
                 w.focus();
             else
                 w.setMinimized(!m);
@@ -351,7 +351,7 @@ public class Gui {
         for (File d: dirs) {
             String name = d.getName();
             File css = new File(d, name + ".css");
-            if(Util.isValidFile(css)) {
+            if (Util.isValidFile(css)) {
                 skins.add(name);
                 LOGGER.info("Registering skin: " + name);
             }
@@ -455,7 +455,7 @@ public class Gui {
 
     public static List<File> getGuiImages() {
         File location = new File(APP.DIR_SKINS, skin + separator + "Images");
-        if(Util.isValidDirectory(location)) {
+        if (Util.isValidDirectory(location)) {
             return Util.getFilesImage(location, 1).collect(toList());
         } else {
             LOGGER.warn("Can not access skin directory: " + location.getPath());

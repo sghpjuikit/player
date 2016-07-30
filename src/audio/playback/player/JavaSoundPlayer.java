@@ -49,7 +49,7 @@ public class JavaSoundPlayer implements GeneralPlayer.Play {
             long l = 0;
             @Override public void playbackProgress(PlaybackEvent pe) {
                 l++;
-                if(l%2==0)  {// lets throttle the events a bit
+                if (l%2==0)  {// lets throttle the events a bit
                     Duration d = millis(seeked+pe.getPosition()/1000);
                     runLater(()->{
                         PLAYBACK.state.currentTime.set(d);
@@ -94,7 +94,7 @@ public class JavaSoundPlayer implements GeneralPlayer.Play {
 
 
                         Status s = state.status.get();
-                        if(PLAYBACK.startTime!=null) {
+                        if (PLAYBACK.startTime!=null) {
                             if (s == PLAYING) p.play();
                             else if (s == PAUSED) p.pause();
                         }
@@ -150,7 +150,7 @@ public class JavaSoundPlayer implements GeneralPlayer.Play {
 
     @Override
     public void seek(Duration duration) {
-        if(duration==null) return;
+        if (duration==null) return;
         // this player's seeking requires us to know the new
         // starting position to calculate new current position (see the listener
         // in constructor)

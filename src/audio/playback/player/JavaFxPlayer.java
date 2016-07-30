@@ -38,27 +38,27 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 
     @Override
     public void play() {
-        if(player!=null) player.play();
+        if (player!=null) player.play();
     }
 
     @Override
     public void pause() {
-        if(player!=null) player.pause();
+        if (player!=null) player.pause();
     }
 
     @Override
     public void resume() {
-        if(player!=null) player.play();
+        if (player!=null) player.play();
     }
 
     @Override
     public void seek(Duration duration) {
-        if(player!=null) player.seek(duration);
+        if (player!=null) player.seek(duration);
     }
 
     @Override
     public void stop() {
-        if(player!=null) player.stop();
+        if (player!=null) player.stop();
     }
 
     @Override
@@ -121,7 +121,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
                 });
 
                 Status s = state.status.get();
-                if(PLAYBACK.startTime!=null) {
+                if (PLAYBACK.startTime!=null) {
                     if (s == PLAYING) play();
                     else if (s == PAUSED) pause();
                 }
@@ -133,16 +133,16 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 
     @Override
     public void dispose() {
-        if(player==null) return;
+        if (player==null) return;
 
         // cut player sideffects, do so before disposing
-        if(d1!=null) d1.unsubscribe();
-        if(d2!=null) d2.unsubscribe();
-        if(d3!=null) d3.unsubscribe();
-        if(d4!=null) d4.unsubscribe();
-        if(d5!=null) d5.unsubscribe();
-        if(d6!=null) d6.unsubscribe();
-        if(d7!=null) d7.unsubscribe();
+        if (d1!=null) d1.unsubscribe();
+        if (d2!=null) d2.unsubscribe();
+        if (d3!=null) d3.unsubscribe();
+        if (d4!=null) d4.unsubscribe();
+        if (d5!=null) d5.unsubscribe();
+        if (d6!=null) d6.unsubscribe();
+        if (d7!=null) d7.unsubscribe();
         player.setAudioSpectrumListener(null); // just in case
         player.setOnEndOfMedia(null); // just in case
 

@@ -188,11 +188,11 @@ public class FunctorPool {
 		addPredicatesComparable(Float.class, 0f);
 
 		// fielded values
-		for(Metadata.Field f : Metadata.Field.values())
+		for (Metadata.Field f : Metadata.Field.values())
 			add(f.name(), Metadata.class, f.getType(), f::getOf);
-		for(PlaylistItem.Field f : PlaylistItem.Field.values())
+		for (PlaylistItem.Field f : PlaylistItem.Field.values())
 			add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
-		for(MetadataGroup.Field f : MetadataGroup.Field.values())
+		for (MetadataGroup.Field f : MetadataGroup.Field.values())
 			add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
 	}
 
@@ -290,24 +290,24 @@ public class FunctorPool {
 		// keeping duplicate elements in check
 		PrefList pl = new PrefList();
 		Object pref = null;
-		for(Class c : getSuperClassesInc(unPrimitivize(i))) {
+		for (Class c : getSuperClassesInc(unPrimitivize(i))) {
 			List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
 			PrefList ll = l==null ? null : (PrefList) l;
-			if(ll!=null) {
-				if(pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
+			if (ll!=null) {
+				if (pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
 				pl.addAll(ll);
 			}
 		}
 		Object prefCopy = pref;
 		pl.removeIf(e -> e==prefCopy || e==null);
-		if(pref!=null) pl.addPreferred(pref);
-		if(pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
+		if (pref!=null) pl.addPreferred(pref);
+		if (pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
 			Object e = pl.get(pl.size()-1);
 			pl.remove(pl.size()-1);
 			pl.addPreferred(e);
 		}
 
-		if(i.equals(o)) addSelfFunctor(pl,o);
+		if (i.equals(o)) addSelfFunctor(pl,o);
 		return pl;
 
 		// old impl, ignores super classes

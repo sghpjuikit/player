@@ -89,7 +89,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
              defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
         controls.getChildren().addAll(appI,new Region(),reI,defI);
-        if(isSimpleMode) controls.getChildren().remove(appI);
+        if (isSimpleMode) controls.getChildren().remove(appI);
 
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
@@ -116,7 +116,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
     @Override
     public void configure(Collection<Config> c) {
-        if(c==null) return;
+        if (c==null) return;
 
         // clear previous fields
         configFields.clear();
@@ -145,7 +145,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         boolean single = groups.size()==1;
         accordion.setVisible(!single);
         ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
-        if(single) {
+        if (single) {
             Pane t = list(groups.values()).get(0).grid;
             ((AnchorPane)accordion.getParent()).getChildren().add(t);
             setAnchors(t,0d);
@@ -172,7 +172,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
             pane.setText(name);
             pane.setContent(grid);
             pane.expandedProperty().addListener((o, ov, nv) -> {
-                if(nv) expanded.setValue(pane.getText());
+                if (nv) expanded.setValue(pane.getText());
             });
             pane.alignmentProperty().bind(title_align);
 

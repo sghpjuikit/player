@@ -29,7 +29,7 @@ public class Tuple3<A, B, C> {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof Tuple3) {
+        if (other instanceof Tuple3) {
             Tuple3<?, ?, ?> that = (Tuple3<?, ?, ?>) other;
             return Objects.equals(this._1, that._1)
                     && Objects.equals(this._2, that._2)

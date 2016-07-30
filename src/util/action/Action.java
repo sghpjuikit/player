@@ -202,13 +202,13 @@ public final class Action extends Config<Action> implements Runnable {
         int id = getID();
         boolean canRun = id!=lock;
 
-        if(!continuous) {
+        if (!continuous) {
             lock = id;
             locker.start();
         }
 
         // run on appFX thread
-        if(canRun) Async.runFX(this::runUnsafe);
+        if (canRun) Async.runFX(this::runUnsafe);
     }
 
     private void runUnsafe() {
@@ -234,7 +234,7 @@ public final class Action extends Config<Action> implements Runnable {
      * unregistered before registering it.
      */
     public void register() {
-        if(!hasKeysAssigned()) return;
+        if (!hasKeysAssigned()) return;
 
         boolean can_be_global = global && globalShortcuts.getValue() && isGlobalShortcutsSupported();
         if (can_be_global) registerGlobal();
@@ -267,7 +267,7 @@ public final class Action extends Config<Action> implements Runnable {
 /*********************** helper methods ***************************/
 
     private void changeKeys(String keys) {
-        if(keys.isEmpty()) {
+        if (keys.isEmpty()) {
             this.keys = NO_MATCH;   // disable shortcut for empty keys
         } else {
             try {
@@ -280,13 +280,13 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void registerLocal() {
-        if(!isActionListening()) return; // make sure there is no illegal state
+        if (!isActionListening()) return; // make sure there is no illegal state
 
         KeyCombination k = getKeysForLocalRegistering();
 //        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
         // register for each app window separately
-        for(Window w: Stage.getWindows())
-            if(w.getScene()!=null)
+        for (Window w: Stage.getWindows())
+            if (w.getScene()!=null)
                 w.getScene().getAccelerators().put(k,this);
     }
 
@@ -294,13 +294,13 @@ public final class Action extends Config<Action> implements Runnable {
         KeyCombination k = getKeysForLocalRegistering();
         // unregister for each app window separately
 //        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
-        for(Window w: Stage.getWindows())
-            if(w.getScene()!=null)
+        for (Window w: Stage.getWindows())
+            if (w.getScene()!=null)
                 w.getScene().getAccelerators().remove(k);
     }
 
     private void registerInScene(Scene s) {
-        if(!isActionListening()) return; // make sure there is no illegal state
+        if (!isActionListening()) return; // make sure there is no illegal state
         s.getAccelerators().put(getKeysForLocalRegistering(),this);
     }
 
@@ -310,7 +310,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void registerGlobal() {
-        if(!isActionListening()) return; // make sure there is no illegal state
+        if (!isActionListening()) return; // make sure there is no illegal state
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
     }
 
@@ -327,9 +327,9 @@ public final class Action extends Config<Action> implements Runnable {
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
         String s = getKeys();
-        if(s.contains("Back_Slash"))
+        if (s.contains("Back_Slash"))
             return KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
-        else if(s.contains("Back_Quote"))
+        else if (s.contains("Back_Quote"))
             return KeyCombination.keyCombination(s.replace("Back_Quote","`"));
         else
             return keys;
@@ -406,9 +406,9 @@ public final class Action extends Config<Action> implements Runnable {
 
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
+        if (this==o) return true;
 
-        if(!(o instanceof Action)) return false;
+        if (!(o instanceof Action)) return false;
         Action a = (Action) o;
         // we will compare all fields that can change (global & keys)
         // for all the rest only one (name) is necesary because they go
@@ -442,7 +442,7 @@ public final class Action extends Config<Action> implements Runnable {
     // TODO: remove
     private static Action fromString(String str) {
         int i = str.lastIndexOf(",");
-        if(i==-1) return null;
+        if (i==-1) return null;
         String s1 = str.substring(0,i);
         String s2 = str.substring(i+1, str.length());
         boolean isGlobal = Boolean.parseBoolean(s1);
@@ -452,7 +452,7 @@ public final class Action extends Config<Action> implements Runnable {
 
     private static Action from(Action a, String str) {
         Action tmp = fromString(str);
-        if(tmp!=null) {
+        if (tmp!=null) {
             a.global = tmp.global;
             a.keys = tmp.keys;
         }
@@ -482,7 +482,7 @@ public final class Action extends Config<Action> implements Runnable {
      * @throws IllegalStateException if ran more than once without calling {@link #stopActionListening()}
      */
     public static void startActionListening() {
-        if(isRunning) throw new IllegalStateException("Action listening already running");
+        if (isRunning) throw new IllegalStateException("Action listening already running");
         startLocalListening();
         startGlobalListening();
         isRunning = true;
@@ -511,7 +511,7 @@ public final class Action extends Config<Action> implements Runnable {
         window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
         window -> {
             Scene scene = window.getScene();
-            if(scene!=null)
+            if (scene!=null)
                 Action.getActions().forEach(a -> a.unregisterInScene(scene));
         }
     );
@@ -537,7 +537,7 @@ public final class Action extends Config<Action> implements Runnable {
         Stage.getWindows().removeListener(local_listener_registrator);
         Stage.getWindows().forEach(window -> {
             Scene scene = window.getScene();
-            if(scene!=null)
+            if (scene!=null)
                 Action.getActions().forEach(a -> a.unregisterInScene(scene));
         });
     }
@@ -549,7 +549,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Does nothing if not supported.
      */
     private static void startGlobalListening() {
-        if(isIntelliJSupported) {
+        if (isIntelliJSupported) {
             JIntellitype.getInstance().addHotKeyListener(global_listener);
             JIntellitype.getInstance().addIntellitypeListener(media_listener);
         }
@@ -563,7 +563,7 @@ public final class Action extends Config<Action> implements Runnable {
      * because bgr listening thread will not close.
      */
     private static void stopGlobalListening() {
-        if(isIntelliJSupported) {
+        if (isIntelliJSupported) {
             JIntellitype.getInstance().cleanUp();
         }
     }
@@ -600,7 +600,7 @@ public final class Action extends Config<Action> implements Runnable {
      */
     public static Action get(String name) {
         Action a = actions.get(idOf(name));
-        if(a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
+        if (a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
                                                "declared and annotation processing is enabled and functioning properly.");
         return a;
     }
@@ -626,7 +626,7 @@ public final class Action extends Config<Action> implements Runnable {
         for (Class<?> c : cs) {
             for (Method m : c.getDeclaredMethods()) {
                 if (Modifier.isStatic(m.getModifiers())) {
-                    for(IsAction a : m.getAnnotationsByType(IsAction.class)) {
+                    for (IsAction a : m.getAnnotationsByType(IsAction.class)) {
                         if (m.getParameters().length > 0)
                             throw new RuntimeException("Action Method must have 0 parameters!");
 
@@ -675,7 +675,7 @@ public final class Action extends Config<Action> implements Runnable {
 		        .count() < 1;
 	    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
 
-	    if(generateTemplate)
+	    if (generateTemplate)
 		    try {
 			    APP.serializators.toXML(
 				    stream(new CommandActionData(), new CommandActionData()).toCollection(CommandActionDatas::new),
@@ -706,7 +706,7 @@ public final class Action extends Config<Action> implements Runnable {
 
     private static String getActionGroup(Class<?> c) {
         IsConfigurable ac = c.getAnnotation(IsConfigurable.class);
-        if(ac!=null && !ac.value().isEmpty())
+        if (ac!=null && !ac.value().isEmpty())
             return ac.value();
 
         IsActionable aa = c.getAnnotation(IsActionable.class);
@@ -730,14 +730,14 @@ public final class Action extends Config<Action> implements Runnable {
         // run on appFX thread
         Platform.runLater(() -> {
             if     (i==JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK) PlaylistManager.playPreviousItem();
-            else if(i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
-            else if(i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
-            else if(i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
-            else if(i==JIntellitype.APPCOMMAND_LAUNCH_MEDIA_SELECT) App.Actions.openOpen();
-            else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
-            else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
-            else if(i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
-            else if(i==JIntellitype.APPCOMMAND_CLOSE) APP.close();
+            else if (i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
+            else if (i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
+            else if (i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
+            else if (i==JIntellitype.APPCOMMAND_LAUNCH_MEDIA_SELECT) App.Actions.openOpen();
+            else if (i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
+            else if (i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
+            else if (i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
+            else if (i==JIntellitype.APPCOMMAND_CLOSE) APP.close();
         });
     };
 
@@ -746,8 +746,8 @@ public final class Action extends Config<Action> implements Runnable {
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
             + " application is not focused. Not all platforms supported.", group = "Shortcuts")
     public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
-        if(isGlobalShortcutsSupported()) {
-            if(v){
+        if (isGlobalShortcutsSupported()) {
+            if (v){
                 // make sure we do not add the listener twice
                 JIntellitype.getInstance().removeHotKeyListener(global_listener);
                 JIntellitype.getInstance().addHotKeyListener(global_listener);
@@ -770,8 +770,8 @@ public final class Action extends Config<Action> implements Runnable {
 
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
     public static final V<Boolean> globalMediaShortcuts = new V<>(true, v -> {
-        if(isGlobalShortcutsSupported()) {
-            if(v) {
+        if (isGlobalShortcutsSupported()) {
+            if (v) {
                 // make sure we dont add the listener twice
                 JIntellitype.getInstance().removeIntellitypeListener(media_listener);
                 JIntellitype.getInstance().addIntellitypeListener(media_listener);
@@ -783,8 +783,8 @@ public final class Action extends Config<Action> implements Runnable {
 
 //    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
 //    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
-//        if(isLocalShortcutsSupported()) {
-//            if(v){
+//        if (isLocalShortcutsSupported()) {
+//            if (v){
 //            } else {
 //
 //            }

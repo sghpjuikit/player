@@ -42,13 +42,13 @@ public class ImprovedTableRow<T> extends TableRow<T>{
         super();
         
         setOnMouseClicked(e -> {
-            if(!isEmpty()) {
+            if (!isEmpty()) {
                 MouseButton b = e.getButton();
                 int clicks = e.getClickCount();
-                if(b==PRIMARY && clicks==1 && onL1Click!=null) onL1Click.accept(this,e);
-                if(b==PRIMARY && clicks==2 && onL2Click!=null) onL2Click.accept(this,e);
-                if(b==SECONDARY && clicks==1 && onR1Click!=null) onR1Click.accept(this,e);
-                if(b==SECONDARY && clicks==2 && onR2Click!=null) onR2Click.accept(this,e);
+                if (b==PRIMARY && clicks==1 && onL1Click!=null) onL1Click.accept(this,e);
+                if (b==PRIMARY && clicks==2 && onL2Click!=null) onL2Click.accept(this,e);
+                if (b==SECONDARY && clicks==1 && onR1Click!=null) onR1Click.accept(this,e);
+                if (b==SECONDARY && clicks==2 && onR2Click!=null) onR2Click.accept(this,e);
             }
         });
     }

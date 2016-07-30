@@ -56,7 +56,7 @@ public interface MapByClass<E> {
      */
     default List<E> getElementsOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
-                    if(!Void.class.equals(key)) keys.add(Void.class);
+                    if (!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
         List<E> o = getElementsOf(keys);
         return o;
@@ -73,9 +73,9 @@ public interface MapByClass<E> {
      */
     default E getElementOfSuper(Class key) {
         List<Class> keys = getSuperClassesInc(key);
-        for(Class c : keys) {
+        for (Class c : keys) {
             List<E> es = getElementsOf(c);
-            if(!es.isEmpty())
+            if (!es.isEmpty())
                 return es.get(0);
         }
         return null;
@@ -93,11 +93,11 @@ public interface MapByClass<E> {
      */
     default E getElementOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
-                    if(!Void.class.equals(key)) keys.add(Void.class);
+                    if (!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
-        for(Class c : keys) {
+        for (Class c : keys) {
             List<E> es = getElementsOf(c);
-            if(!es.isEmpty())
+            if (!es.isEmpty())
                 return es.get(0);
         }
         return null;

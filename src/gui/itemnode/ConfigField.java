@@ -106,14 +106,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         // display default button when hovered for certain time
         root.addEventFilter(MOUSE_ENTERED, e -> {
-            if(!config.isEditable()) return;
+            if (!config.isEditable()) return;
             // wait delay
             run(270, () -> {
                 // no need to do anything if hover ended
-                if(root.isHover()) {
+                if (root.isHover()) {
                     // lazily build the button when requested
                     // we do not want hundreds of buttons we will never use anyway
-                    if(defB==null) {
+                    if (defB==null) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
@@ -132,7 +132,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         // hide default button
         root.addEventFilter(MOUSE_EXITED, e-> {
             // return if nothing to hide
-            if(defB == null) return;
+            if (defB == null) return;
             // hide it
             FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
             fa.stop();
@@ -167,7 +167,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         Label l = new Label(config.getGuiName());
 
         String tooltip_text = getTooltipText();
-        if(!tooltip_text.isEmpty()) {
+        if (!tooltip_text.isEmpty()) {
             Tooltip t = appTooltip(tooltip_text);
                     t.setWrapText(true);
                     t.setMaxWidth(300);
@@ -185,7 +185,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     @Override
     public final HBox getNode() {
         Node config = getControl();
-        if(!root.getChildren().contains(config))
+        if (!root.getChildren().contains(config))
             root.getChildren().add(0, config);
         HBox.setHgrow(config, ALWAYS);
         HBox.setHgrow(config.getParent(), ALWAYS);
@@ -223,10 +223,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     public void setNapplyDefault() {
         T t = config.getDefaultValue();
-        if(!config.getValue().equals(t)) {
+        if (!config.getValue().equals(t)) {
             config.setNapplyValue(t);
             refreshItem();
-            if(onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
+            if (onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
         }
     }
 
@@ -237,18 +237,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
     protected void apply(boolean user) {
-        if(inconsistentState) return;
+        if (inconsistentState) return;
         T t = get();
         boolean erroneous = t==null;
-        if(erroneous) return;
+        if (erroneous) return;
         boolean needsapply = !Objects.equals(t, config.getValue());
-        if(!needsapply) return;
+        if (!needsapply) return;
 
         inconsistentState = true;
-        if(applyOnChange || user) config.setNapplyValue(t);
+        if (applyOnChange || user) config.setNapplyValue(t);
         else config.setValue(t);
         refreshItem();
-        if(onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
+        if (onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
         inconsistentState = false;
     }
 
@@ -284,7 +284,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         ConfigField cf;
         if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
         else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
-        else if(c.isMinMax()) cf = new SliderField(c);
+        else if (c.isMinMax()) cf = new SliderField(c);
         else cf = m.getOrDefault(c.getType(), GeneralField::new).apply(c);
 
         cf.setEditable(c.isEditable());
@@ -343,7 +343,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.setText(c.getValueS());
 
             n.focusedProperty().addListener((o,ov,nv) -> {
-                if(nv) {
+                if (nv) {
                     n.pseudoClassStateChanged(editedPC, true);
                 } else {
                     n.pseudoClassStateChanged(editedPC, false);
@@ -377,7 +377,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override public void refreshItem() {
-            if(inconsistentState) return;
+            if (inconsistentState) return;
             n.setText(config.getValueS());
         }
 
@@ -393,7 +393,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             // does not work because of CustomTextField instead f TextField
             // restrict input
-//            if(c.isTypeNumber())
+//            if (c.isTypeNumber())
 //                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
 
             okB.setPrefSize(11, 11);
@@ -412,14 +412,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.setText(c.getValueS());
 
             n.focusedProperty().addListener((o,ov,nv) -> {
-                if(nv) {
+                if (nv) {
                     n.pseudoClassStateChanged(editedPC, true);
                 } else {
                     n.pseudoClassStateChanged(editedPC, false);
 //                    // the timer solves a little bug where the focus shift from
 //                    // txtF to okB has a delay which we need to jump over
 //                    run(80, () -> {
-//                        if(!okBL.isFocused() && !okB.isFocused()) {
+//                        if (!okBL.isFocused() && !okB.isFocused()) {
 //                            txtF.setText("");
 //                            showOkButton(false);
 //                        }
@@ -439,11 +439,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 boolean applicable = !config.getValue().equals(i);
                 showOkButton(!applyOnChange && applicable && !erroneous);
                 showWarnButton(erroneous);
-                if(nv.isEmpty()) return;
-                if(applyOnChange) apply(false);
+                if (nv.isEmpty()) return;
+                if (applyOnChange) apply(false);
             });
             okI.setOnMouseClicked( e -> apply(true));
-            n.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(true); });
+            n.setOnKeyPressed( e -> { if (e.getCode()==ENTER) apply(true); });
         }
 
         @Override public Control getControl() {
@@ -466,16 +466,16 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         @Override
         protected void apply(boolean user) {
-            if(inconsistentState) return;
+            if (inconsistentState) return;
             Object t = get();
 
             boolean erroneous = t==null;
-            if(erroneous) return;
+            if (erroneous) return;
             boolean applicable = !config.getValue().equals(t);
-            if(!applicable) return;
+            if (!applicable) return;
 
             inconsistentState = true;
-            if(applyOnChange || user) config.setNapplyValue(t);
+            if (applyOnChange || user) config.setNapplyValue(t);
             else config.setValue(t);
             inconsistentState = false;
         }
@@ -486,7 +486,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private void showWarnButton(boolean val) {
             n.setRight(val ? warnB : null);
             warnB.setVisible(val);
-            if(val) warnTooltip.setText(Parser.DEFAULT.getError());
+            if (val) warnTooltip.setText(Parser.DEFAULT.getError());
         }
 
     }
@@ -504,7 +504,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             cBox.styleclass("boolean-config-field");
             cBox.selected.setValue(config.getValue());
             // bind config -> config field (if possible)
-            if(observable) v.addListener((o,ov,nv) -> cBox.selected.setValue(nv));
+            if (observable) v.addListener((o,ov,nv) -> cBox.selected.setValue(nv));
             // bind config field -> config
             cBox.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
         }
@@ -516,7 +516,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return cBox.selected.getValue();
         }
         @Override public void refreshItem() {
-            if(!observable)
+            if (!observable)
                 cBox.selected.setValue(config.getValue());
         }
     }
@@ -549,11 +549,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // also bug with snap to tick, which does not work on mouse drag
                 // so we use get() which returns correct value
                 cur.setText(get().toString());
-                if(!slider.isValueChanging())
+                if (!slider.isValueChanging())
                     apply(false);
             });
             slider.setOnMouseReleased(e -> {
-                if(applyOnChange) apply(false);
+                if (applyOnChange) apply(false);
             });
             slider.setBlockIncrement((c.getMax()-c.getMin())/20);
             slider.setMinWidth(-1);
@@ -566,7 +566,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             box.setSpacing(5);
 
             Class type = config.getType();
-            if(isContainedIn(type, Integer.class,Short.class,Long.class)) {
+            if (isContainedIn(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
                 slider.setMajorTickUnit(1);
                 slider.setSnapToTicks(true);
@@ -579,11 +579,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Number get() {
             Double d = slider.getValue();
             Class type = config.getType();
-            if(Integer.class==type) return d.intValue();
-            if(Double.class==type) return d;
-            if(Float.class==type) return d.floatValue();
-            if(Long.class==type) return d.longValue();
-            if(Short.class==type) return d.shortValue();
+            if (Integer.class==type) return d.intValue();
+            if (Double.class==type) return d;
+            if (Float.class==type) return d.floatValue();
+            if (Long.class==type) return d.longValue();
+            if (Short.class==type) return d.shortValue();
             throw new IllegalStateException("wrong number type: " + type);
         }
         @Override public void refreshItem() {
@@ -600,7 +600,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private EnumerableField(Config<T> c, Collection<T> enumeration) {
             super(c);
             n = new ImprovedComboBox<>(item -> enumToHuman(c.toS(item)));
-            if(enumeration instanceof ObservableList) n.setItems((ObservableList<T>)enumeration);
+            if (enumeration instanceof ObservableList) n.setItems((ObservableList<T>)enumeration);
             else n.getItems().setAll(enumeration);
             n.getItems().sort(by(c::toS));
             n.setValue(c.getValue());
@@ -641,7 +641,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 n.setValue(e.getCode());
 
 	            // TODO: jigsaw
-                if(e.getEventType()==KEY_RELEASED) {
+                if (e.getEventType()==KEY_RELEASED) {
                     // conveniently traverse focus by simulating TAB behavior
                     // currently only hacks allow this
                     //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
@@ -679,9 +679,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                         else t=t.substring(0,t.lastIndexOf('+'));
                         txtF.setText(t);
                     }
-                } else if(c==ENTER) {
+                } else if (c==ENTER) {
                     apply(true);
-                } else if(c==ESCAPE) {
+                } else if (c==ESCAPE) {
                     refreshItem();
                 // handle addition
                 } else {
@@ -693,12 +693,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setEditable(false);
             txtF.setTooltip(appTooltip(a.getInfo()));
             txtF.focusedProperty().addListener((o,ov,nv) -> {
-                if(nv) {
+                if (nv) {
                     txtF.setText(txtF.getPromptText());
                 } else {
                     // prevent 'deselection' if we txtF lost focus because glob
                     // received click
-                    if(!globB.isFocused())
+                    if (!globB.isFocused())
                         txtF.setText("");
                 }
             });
@@ -733,7 +733,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
 
-            if(!sameglobal && !sameKeys)
+            if (!sameglobal && !sameKeys)
                 a.set(globB.selected.getValue(), txtF.getText());
             else if (!sameKeys)
                 a.setKeys(txtF.getText());
@@ -801,7 +801,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             ObservableValue<File> v = getObservableValue(c);
             observable = v!=null;
             editor.setValue(config.getValue());
-            if(observable) v.addListener((o,ov,nv) -> editor.setValue(nv));
+            if (observable) v.addListener((o,ov,nv) -> editor.setValue(nv));
             editor.setOnItemChange((ov,nv) -> apply(false));
         }
 
@@ -812,7 +812,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return editor.getValue();
         }
         @Override public void refreshItem() {
-            if(!observable)
+            if (!observable)
                 editor.setValue(config.getValue());
         }
     }
@@ -842,10 +842,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         protected void apply(boolean user) {
             Effect t = get();
-            if(applyOnChange || user) config.setNapplyValue(t);
+            if (applyOnChange || user) config.setNapplyValue(t);
             else config.setValue(t);
             refreshItem();
-            if(onChange!=null) onChange.run();
+            if (onChange!=null) onChange.run();
         }
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
@@ -897,7 +897,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             @Override
             public T getValue() {
                 Object o = p.getValuesC().get(0).getValue();
-                if(value.getClass().equals(o.getClass())) return (T)o;
+                if (value.getClass().equals(o.getClass())) return (T)o;
                 else return super.getValue();
             }
 

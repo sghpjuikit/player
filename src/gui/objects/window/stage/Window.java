@@ -196,7 +196,7 @@ public class Window extends WindowBase {
 
 	    // app dragging (anywhere on ALT)
         root.addEventFilter(MOUSE_PRESSED, e -> {
-            if(e.getButton()==PRIMARY && e.isAltDown() && e.isShiftDown()) {
+            if (e.getButton()==PRIMARY && e.isAltDown() && e.isShiftDown()) {
                 isMovingAlt = true;
 	            subroot.setMouseTransparent(true);
                 moveStart(e);
@@ -204,13 +204,13 @@ public class Window extends WindowBase {
             }
         });
         root.addEventFilter(MOUSE_DRAGGED, e -> {
-            if(isMovingAlt) {
+            if (isMovingAlt) {
                 moveDo(e);
                 e.consume();
             }
         });
         root.addEventFilter(MOUSE_RELEASED, e -> {
-            if(e.getButton()==PRIMARY && isMovingAlt) {
+            if (e.getButton()==PRIMARY && isMovingAlt) {
                 isMovingAlt = false;
 	            subroot.setMouseTransparent(false);
                 moveEnd(e);
@@ -218,7 +218,7 @@ public class Window extends WindowBase {
             }
         });
 	    root.addEventFilter(MouseEvent.ANY, e -> {
-		    if(isMovingAlt) e.consume();
+		    if (isMovingAlt) e.consume();
 	    });
 
         // header double click maximize, show header on/off
@@ -234,11 +234,11 @@ public class Window extends WindowBase {
 
         // header open/close
         header_activator.addEventFilter(MOUSE_ENTERED, e -> {
-            if(!headerVisible)
+            if (!headerVisible)
                 applyHeaderVisible(true);
         });
         header.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-            if(!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
+            if (!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
                 applyHeaderVisible(false);
         });
 
@@ -263,26 +263,26 @@ public class Window extends WindowBase {
         root.addEventFilter(KeyEvent.ANY, e -> {
             if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
                 Gui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
-                    if(e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
+                    if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
                         runLater(() ->{
                             getSwitchPane().widget_io.layout();
                             getSwitchPane().widget_io.drawGraph();
                         });
             }
-            if(e.getEventType().equals(KEY_PRESSED)) {
-                if(cycleSMLeft.match(e)) {
-                    if(maximized.get()==Maximized.LEFT) screen = previous(screens,screen);
+            if (e.getEventType().equals(KEY_PRESSED)) {
+                if (cycleSMLeft.match(e)) {
+                    if (maximized.get()==Maximized.LEFT) screen = previous(screens,screen);
                     setMaximized(previous(maximizedValues,maximized.get()));
                 }
-                if(cycleSMRight.match(e)) {
-                    if(maximized.get()==Maximized.RIGHT) screen = next(screens,screen);
+                if (cycleSMRight.match(e)) {
+                    if (maximized.get()==Maximized.RIGHT) screen = next(screens,screen);
                     setMaximized(next(maximizedValues,maximized.get()));
                 }
-                if(maximize.match(e)) {
+                if (maximize.match(e)) {
                     setMaximized(Maximized.ALL);
                 }
-                if(minimize.match(e)) {
-                    if(maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
+                if (minimize.match(e)) {
+                    if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
                     else minimize();
                 }
             }
@@ -378,7 +378,7 @@ public class Window extends WindowBase {
 //    }
 
     public void setContent(Component c) {
-        if(c!=null)
+        if (c!=null)
             topContainer.addChild(topContainer.getEmptySpot(), c);
     }
 
@@ -479,7 +479,7 @@ public class Window extends WindowBase {
 
     private void applyHeaderVisible(boolean val) {
         if (!headerAllowed & val) return;
-        if(rightHeaderBox.isVisible()==val) return;
+        if (rightHeaderBox.isVisible()==val) return;
         rightHeaderBox.setVisible(val);
         leftHeaderBox.setVisible(val);
         if (val) {
@@ -575,7 +575,7 @@ public class Window extends WindowBase {
             WINDOWS.forEach(w -> w.s.hide());
             APP.close();
 	    } else {
-            if(layout!=null) layout.close(); // close layout to release resources
+            if (layout!=null) layout.close(); // close layout to release resources
             disposables.forEach(Subscription::unsubscribe);
             WINDOWS.remove(this);   // remove from window list
             super.close();  // in the end close itself
@@ -623,7 +623,7 @@ public class Window extends WindowBase {
         // it can not consume drag detected event and prevent dragging
         // should be fixed
         if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
-//        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
+//        if (header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
 
         mouseMonitor = APP.mouseCapture.observeMouseVelocity(speed -> mouseSpeed = speed);
         isMoving.set(true);
@@ -683,14 +683,14 @@ public class Window extends WindowBase {
 
     private void moveEnd(MouseEvent e) {
         isMoving.set(false);
-        if(mouseMonitor!=null) mouseMonitor.unsubscribe();
+        if (mouseMonitor!=null) mouseMonitor.unsubscribe();
     }
 
 /*******************************    RESIZING  *********************************/
 
     @FXML
     private void border_onDragStart(MouseEvent e) {
-        if(resizable.get()) {
+        if (resizable.get()) {
             double X = e.getSceneX();
             double Y = e.getSceneY();
             double WW = getWidth();
@@ -713,13 +713,13 @@ public class Window extends WindowBase {
 
     @FXML
     private void border_onDragEnd(MouseEvent e) {
-        if(isResizing.get()!=NONE) isResizing.set(NONE);
+        if (isResizing.get()!=NONE) isResizing.set(NONE);
         e.consume();
     }
 
     @FXML
     private void border_onDragged(MouseEvent e) {
-        if(resizable.get()) {
+        if (resizable.get()) {
             Resize r = isResizing.get();
             if (r == Resize.SE)
                 setSize(e.getScreenX() - getX(), e.getScreenY() - getY());

@@ -167,9 +167,9 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
      */
     @Override
     public final Node load() {
-        if(root==null) {
+        if (root==null) {
             controller = instantiateController();
-            if(controller==null) {
+            if (controller==null) {
                 root = Widget.EMPTY().load();
             } else {
                 Exception ex = null;
@@ -191,7 +191,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
                 } catch(Exception e) {
                     ex = e;
                 }
-                if(root==null) {
+                if (root==null) {
                     root = Widget.EMPTY().load();
                     LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(),ex);
                 }
@@ -228,11 +228,11 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         }
 
         // generate inputs
-        for(Method m : cc.getDeclaredMethods()) {
+        for (Method m : cc.getDeclaredMethods()) {
             IsInput a = m.getAnnotation(IsInput.class);
-            if(a!=null) {
+            if (a!=null) {
                 int params = m.getParameterCount();
-                if(Modifier.isStatic(m.getModifiers()) || params>1)
+                if (Modifier.isStatic(m.getModifiers()) || params>1)
                     throw new RuntimeException("Method " + m + " can not be an input.");
 
                 String i_name = a.value();
@@ -240,7 +240,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
                 Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
                 Consumer i_action = isvoid
                     ?   value -> {
-                            if(value!=null)
+                            if (value!=null)
                                 throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
                             try {
                                 m.setAccessible(true);
@@ -284,7 +284,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     }
 
     public void close() {
-        if(controller!=null) {
+        if (controller!=null) {
             // We set controller null (before closing it). Makes sure that:
             // 1) widget is unusable
             // 2) calling this method again is no-op
@@ -313,7 +313,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     public void exportFxwlDefault(File dir) {
         File f = new File(dir,name + ".fxwl");
         boolean ok = writeFile(f, name);
-        if(!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
+        if (!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
     }
 
     /**
@@ -322,7 +322,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
      */
     public void setStateFrom(Widget<C> w) {
         // if widget was loaded we store its latest state, otherwise it contains serialized pme
-        if(w.controller!=null)
+        if (w.controller!=null)
             w.storeConfigs();
 
         // this takes care of any custom state or controller persistence state or deserialized
@@ -338,7 +338,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         locked.set(w.locked.get());
 
         // if this widget is loaded we apply state, otherwise its done when it loads
-        if(controller!=null)
+        if (controller!=null)
             restoreConfigs();
     }
 
@@ -391,7 +391,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
         // Prepare input-outputs
         // If widget is loaded, we serialize inputs & outputs
-        if(isLoaded) {
+        if (isLoaded) {
             getController().getInputs().getInputs().forEach(i ->
                 properties.put("io"+i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
             );
@@ -400,7 +400,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
         // Prepare configs
         // If widget is loaded, we serialize name:value pairs
-        if(isLoaded) {
+        if (isLoaded) {
             storeConfigs();
         // Otherwise we still have the deserialized name:value pairs and leave them as they are
         } else {}
@@ -419,10 +419,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         super.readResolve();
 
         // try to assign factory (it must exist) or fallback to empty eidget
-        if(factory==null) Util.setField(this, "factory", APP.widgetManager.factories.get(name));
-        if(factory==null) return Widget.EMPTY();
+        if (factory==null) Util.setField(this, "factory", APP.widgetManager.factories.get(name));
+        if (factory==null) return Widget.EMPTY();
 
-        if(configs==null) configs = new HashMap<>();
+        if (configs==null) configs = new HashMap<>();
 
         // accumulate serialized inputs for later deserialiation when all widgets are ready
         properties.entrySet().stream()
@@ -442,7 +442,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         // 2) serializing empty list could actually rewrite previously serialized properties,
         //    not yet restored due to widget not yet loaded
         // 3) easy optimization
-        if(controller==null) return;
+        if (controller==null) return;
 
         @SuppressWarnings("unchecked")
         Map<String,String> serialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>()); // preserves existing configs
@@ -452,7 +452,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     private void restoreConfigs() {
         @SuppressWarnings("unchecked")
         Map<String,String> deserialized_configs = (Map) properties.get("configs");
-        if(deserialized_configs!=null) {
+        if (deserialized_configs!=null) {
             deserialized_configs.forEach(this::setField);
             properties.remove("configs"); // restoration can only ever happen once
         }
@@ -484,9 +484,9 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
         IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
         ios.forEach(io -> {
-            if(io.widget.controller==null) return;
+            if (io.widget.controller==null) return;
             Input i = io.widget.controller.getInputs().getInput(io.input_name);
-            if(i==null) return;
+            if (i==null) return;
             io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
 

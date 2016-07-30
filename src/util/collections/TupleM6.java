@@ -29,7 +29,7 @@ public final class TupleM6<A,B,C,D, E, F> {
     
     @Override
     public boolean equals(Object o) {
-        if(o instanceof TupleM6) {
+        if (o instanceof TupleM6) {
             TupleM6 that = (TupleM6) o;
             return Objects.equals(this.a, that.a) &&
                    Objects.equals(this.b, that.b) &&

@@ -48,7 +48,7 @@ abstract public class FXMLController implements Controller<Widget<?>> {
                    loader.setLocation(getResource(name + ".fxml").toURI().toURL());
                    loader.setController(this);
         Node root = loader.load();
-        if(root instanceof Pane) loadSkin("skin.css",(Pane)root);
+        if (root instanceof Pane) loadSkin("skin.css",(Pane)root);
         return root;
     }
 
@@ -67,7 +67,7 @@ abstract public class FXMLController implements Controller<Widget<?>> {
 
         try {
             File skin = getResource(filename);
-            if(skin.exists())
+            if (skin.exists())
                 root.getStylesheets().add(skin.toURI().toURL().toExternalForm());
         } catch (MalformedURLException ex) {}
     }

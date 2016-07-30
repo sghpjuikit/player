@@ -144,7 +144,7 @@ public class MapSet<K,E> implements Set<E> {
     @Override
     public boolean add(E e) {
         K k = keyMapper.apply(e);
-        if(m.containsKey(k)) return false;
+        if (m.containsKey(k)) return false;
         m.put(k, e);
         return true;
     }
@@ -177,7 +177,7 @@ public class MapSet<K,E> implements Set<E> {
 
     public boolean removeKey(K key) {
         E e = m.get(key);
-        if(e==null) return false;
+        if (e==null) return false;
         m.remove(key);
         return true;
     }
@@ -243,13 +243,13 @@ public class MapSet<K,E> implements Set<E> {
 
     public void ifHasK(K k, Consumer<E> action) {
         E e = m.get(k);
-        if(e != null)
+        if (e != null)
             action.accept(e);
     }
 
     public void ifHasE(E element, Consumer<E> action) {
         E e = m.get(keyMapper.apply(element));
-        if(e != null)
+        if (e != null)
             action.accept(e);
     }
 

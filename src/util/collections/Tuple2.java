@@ -23,7 +23,7 @@ public class Tuple2<A, B> {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof Tuple2) {
+        if (other instanceof Tuple2) {
             Tuple2<?, ?> that = (Tuple2<?, ?>) other;
             return Objects.equals(this._1, that._1)
                     && Objects.equals(this._2, that._2);

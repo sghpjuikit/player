@@ -84,7 +84,7 @@ public final class Layout extends UniContainer {
      * @throws IllegalArgumentException if name parameter null or empty
      */
     public void setName(String new_name) {
-        if(new_name == null || new_name.isEmpty())
+        if (new_name == null || new_name.isEmpty())
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
         name = new_name;
     }
@@ -97,7 +97,7 @@ public final class Layout extends UniContainer {
      * @throws IllegalArgumentException if name parameter null or empty
      */
     public void setNameAndSave(String new_name) {
-        if(new_name == null || new_name.isEmpty())
+        if (new_name == null || new_name.isEmpty())
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
         name = new_name;
         // save new
@@ -140,7 +140,7 @@ public final class Layout extends UniContainer {
     }
 
     public void serialize(File f) {
-        if(getChild() == null) return;
+        if (getChild() == null) return;
 
         try {
             X.toXML(this,f);
@@ -195,7 +195,7 @@ public final class Layout extends UniContainer {
      /** @return true if and only if two layouts share the same name. */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true;
+        if (this==o) return true;
         return ( o instanceof Layout && name.equals(((Layout)o).name));
     }
 

@@ -60,27 +60,27 @@ public class StringSplitParser implements Function<String, List<String>> {
         int limiter = 0;
         String key = "";
         String sep = "";
-        for(int i=0; i<expression.length(); i++) {
+        for (int i=0; i<expression.length(); i++) {
             char c = expression.charAt(i);
-            if(c==PARRSE_KEY_LIMITER) {
-                if(limiter==1) {
+            if (c==PARRSE_KEY_LIMITER) {
+                if (limiter==1) {
                     limiter=0;
-                    if(!key.isEmpty()) parse_keys.add(key);
+                    if (!key.isEmpty()) parse_keys.add(key);
                     else throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
                     key="";
                 } else {
                     limiter=1;
-                    if(!sep.isEmpty()) key_separators.add(sep);
-                    if(sep.isEmpty()&&i!=0) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
+                    if (!sep.isEmpty()) key_separators.add(sep);
+                    if (sep.isEmpty()&&i!=0) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
                     sep="";
                 }
             } else {
-                if(limiter==1) key+=c;
-                if(limiter==0) sep+=c;
+                if (limiter==1) key+=c;
+                if (limiter==0) sep+=c;
             }
         }
-        if(limiter==1) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
-        if(parse_keys.isEmpty()) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
+        if (limiter==1) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
+        if (parse_keys.isEmpty()) throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
     }
 
     /**

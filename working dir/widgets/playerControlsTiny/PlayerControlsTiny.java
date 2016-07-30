@@ -202,7 +202,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
     private void currentTimeChanged() {
         double millis = PLAYBACK.getCurrentTime().toMillis();
-        if(lastUpdatedTime+1000 <= millis) {
+        if (lastUpdatedTime+1000 <= millis) {
             lastUpdatedTime = millis;
             if (elapsedTime) {
                 Duration elapsed = PLAYBACK.getCurrentTime();
@@ -216,7 +216,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void loopModeChanged(LoopMode looping) {
-        if(loopB.getTooltip()==null) loopB.tooltip("ignoredText"); // lazy init
+        if (loopB.getTooltip()==null) loopB.tooltip("ignoredText"); // lazy init
         loopB.getTooltip().setText(mapRef(looping,
             LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
             "Loop mode: off", "Loop mode: loop playlist", "Loop mode: loop song", "Play mode: random")

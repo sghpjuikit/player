@@ -270,7 +270,7 @@ public class MetadataReader{
                         succeeded = false;
                         l = null;
                         l = em.find(Metadata.class, Metadata.metadataID(item.getURI()));
-                        if(l == null) {
+                        if (l == null) {
                             MetadataWriter.useNoRefresh(item, MetadataWriter::setLibraryAddedNowIfEmpty);
                             m = create(item);
 
@@ -285,8 +285,8 @@ public class MetadataReader{
                         log(MetadataReader.class).warn("Problem during reading tag of {}", item);
                     }
 
-                    if(!succeeded) skipped++;
-                    if(!succeeded && all_i && l!=null) {
+                    if (!succeeded) skipped++;
+                    if (!succeeded && all_i && l!=null) {
                         out.add(l);
                     }
 
@@ -326,7 +326,7 @@ public class MetadataReader{
                     completed++;
                     if (isCancelled()) break;
 
-                    if(!m.getFile().exists()) {
+                    if (!m.getFile().exists()) {
                         Db.em.remove(m);
                         removed++;
                     }

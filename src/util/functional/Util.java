@@ -93,15 +93,15 @@ public interface Util {
 
     @SafeVarargs
     static <E> boolean isAny(E o, E... es) {
-        for(E e : es)
-            if(o == e)
+        for (E e : es)
+            if (o == e)
                 return true;
         return false;
     }
 
     static <E> boolean isAny(E o, Collection<E> es) {
-        for(E e : es)
-            if(o == e)
+        for (E e : es)
+            if (o == e)
                 return true;
         return false;
     }
@@ -124,8 +124,8 @@ public interface Util {
 
     @SafeVarargs
     static <E> boolean isContainedIn(E o, E... es) {
-        for(E e : es)
-            if(o.equals(e))
+        for (E e : es)
+            if (o.equals(e))
                 return true;
         return false;
     }
@@ -139,7 +139,7 @@ public interface Util {
     @SafeVarargs
     static <E> boolean isAll(E o, Predicate<E>... ps) {
         boolean b = true;
-        for(Predicate<E> p : ps)
+        for (Predicate<E> p : ps)
             b &= p.test(o);
         return b;
     }
@@ -147,7 +147,7 @@ public interface Util {
     @SafeVarargs
     static <E> boolean isAny(E o, Predicate<E>... ps) {
         boolean b = false;
-        for(Predicate<E> p : ps)
+        for (Predicate<E> p : ps)
             b |= p.test(o);
         return b;
     }
@@ -174,8 +174,8 @@ public interface Util {
     }
 
     static boolean isAnyØ(Object... objects) {
-        if(objects==null) throw new IllegalArgumentException("Array must ot be null.");
-        for(Object o : objects) if(o==null) return true;
+        if (objects==null) throw new IllegalArgumentException("Array must ot be null.");
+        for (Object o : objects) if (o==null) return true;
         return false;
     }
 
@@ -196,18 +196,18 @@ public interface Util {
     }
 
     static boolean isNoneØ(Object... objects) {
-        for(Object o : objects) if(o!=null) return false;
+        for (Object o : objects) if (o!=null) return false;
         return true;
     }
 
     /** Repeat action n times. */
     static void repeat(int n, Runnable action) {
-        for(int x=0; x<n; x++) action.run();
+        for (int x=0; x<n; x++) action.run();
     }
 
     /** Repeat action n times. Action takes the index of execution as parameter starting from 0. */
     static void repeat(int n, IntConsumer action) {
-        for(int x=0; x<n; x++) action.accept(x);
+        for (int x=0; x<n; x++) action.accept(x);
     }
 
 
@@ -350,28 +350,28 @@ public interface Util {
 
 
     static <I,O> O mapRef(I value, I i1, O o1) {
-        if(value==i1) return o1;
+        if (value==i1) return o1;
         throw new SwitchException(value);
     }
 
     static <I,O> O mapRef(I value, I i1, I i2, O o1, O o2) {
-        if(value==i1) return o1;
-        if(value==i2) return o2;
+        if (value==i1) return o1;
+        if (value==i2) return o2;
         throw new SwitchException(value);
     }
 
     static <I,O> O mapRef(I value, I i1, I i2, I i3, O o1, O o2, O o3) {
-        if(value==i1) return o1;
-        if(value==i2) return o2;
-        if(value==i3) return o3;
+        if (value==i1) return o1;
+        if (value==i2) return o2;
+        if (value==i3) return o3;
         throw new SwitchException(value);
     }
 
     static <I,O> O mapRef(I value, I i1, I i2, I i3, I i4, O o1, O o2, O o3, O o4) {
-        if(value==i1) return o1;
-        if(value==i2) return o2;
-        if(value==i3) return o3;
-        if(value==i4) return o4;
+        if (value==i1) return o1;
+        if (value==i2) return o2;
+        if (value==i3) return o3;
+        if (value==i4) return o4;
         throw new SwitchException(value);
     }
 
@@ -409,44 +409,44 @@ public interface Util {
     /** Returns the first non null object or null if all null. */
     @SafeVarargs
     static <O> O noNull(O... objects) {
-        for(O o : objects)
-            if(o!=null) return o;
+        for (O o : objects)
+            if (o!=null) return o;
         return null;
     }
 
     /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
     static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2) {
         I i = supplier1.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         return supplier2.get();
     }
 
     /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
     static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
         I i = supplier1.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         i = supplier2.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         return supplier3.get();
     }
 
     /** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
     static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
         I i = supplier1.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         i = supplier2.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         i = supplier3.get();
-        if(i!=null) return i;
+        if (i!=null) return i;
         return supplier4.get();
     }
 
     /** Returns the first supplied non null value or null if all null by iterating the suppliers. */
     @SafeVarargs
     static <I> I noNull(Supplier<I>... suppliers) {
-        for(Supplier<I> s : suppliers) {
+        for (Supplier<I> s : suppliers) {
             I i = s.get();
-            if(i!=null) return i;
+            if (i!=null) return i;
         }
         return null;
     }
@@ -484,7 +484,7 @@ public interface Util {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                 throw e;
             }
         };
@@ -523,7 +523,7 @@ public interface Util {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
+                for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                 throw new RuntimeException(e);
             }
         };
@@ -661,9 +661,9 @@ public interface Util {
     static <V,C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
         V minv = null;
         C minc = atMost;
-        for(V v : c) {
+        for (V v : c) {
             C vc = by.apply(v);
-            if(minc==null || vc.compareTo(minc)<0) {
+            if (minc==null || vc.compareTo(minc)<0) {
                 minv = v;
                 minc = vc;
             }
@@ -695,9 +695,9 @@ public interface Util {
     static <V,C extends Comparable<? super C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<? super V,C> by) {
         V maxv = null;
         C maxc = atleast;
-        for(V v : c) {
+        for (V v : c) {
             C vc = by.apply(v);
-            if(maxc==null || vc.compareTo(maxc)>0) {
+            if (maxc==null || vc.compareTo(maxc)>0) {
                 maxv = v;
                 maxc = vc;
             }
@@ -782,10 +782,10 @@ public interface Util {
      * result.
      */
     static <V,R> boolean equalBy(List<V> o, Function<V,R> by) {
-        if(o.size()<2) return true;
+        if (o.size()<2) return true;
         R r = by.apply(o.get(0));
-        for(int i=1; i<o.size(); i++)
-            if(!r.equals(by.apply(o.get(i)))) return false;
+        for (int i=1; i<o.size(); i++)
+            if (!r.equals(by.apply(o.get(i)))) return false;
         return true;
     }
 
@@ -814,13 +814,13 @@ public interface Util {
 
     /** Functional equivalent of a for loop. */
     static <I> void forEach(Iterable<I> items, Consumer<? super I> action) {
-        for(I item : items)
+        for (I item : items)
             action.accept(item);
     }
     
     /** Functional equivalent of a for loop. */
     static <I> void forEach(I[] items, Consumer<? super I> action) {
-        for(I item : items)
+        for (I item : items)
             action.accept(item);
     }
 
@@ -837,10 +837,10 @@ public interface Util {
      * @param action action that executes once per item. It can throw exception to signal loop break
      */
     static <T> void forEachAfter(long period, Collection<T> items, ƑEC<T,InterruptedException> action) {
-        for(T item : items) {
+        for (T item : items) {
             try {
                 action.apply(item);
-                if(period>0) Thread.sleep(period);
+                if (period>0) Thread.sleep(period);
             } catch (InterruptedException ex) {
                 break;
             }
@@ -850,21 +850,21 @@ public interface Util {
     /** Loops over both lists simultaneously. Must be of the same size. */
     static <A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
         yes(a.size()==b.size());
-        for(int i=0; i<a.size(); i++)
+        for (int i=0; i<a.size(); i++)
             action.accept(a.get(i), b.get(i));
     }
 
     /** Loops over both arrays simultaneously. Must be of the same size. */
     static <A,B> void forEachBoth(A[] a, B[] b, BiConsumer<A,B> action) {
         yes(a.length==b.length);
-        for(int i=0; i<a.length; i++)
+        for (int i=0; i<a.length; i++)
             action.accept(a[i], b[i]);
     }
 
     /** Loops over list zipping index with each item. Index starts at 0. */
     static <T> void forEachWithI(Collection<T> c, BiConsumer<Integer,T> action) {
         int i=0;
-        for(T item : c) {
+        for (T item : c) {
             action.accept(i, item);
             i++;
         }
@@ -873,7 +873,7 @@ public interface Util {
     /** Loops over array zipping index with each item. Index starts at 0. */
     static <T> void forEachWithI(T[] c, BiConsumer<Integer,T> action) {
         int i=0;
-        for(T item : c) {
+        for (T item : c) {
             action.accept(i, item);
             i++;
         }
@@ -886,22 +886,22 @@ public interface Util {
 
     /** Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j) (j;i). */
     static <E> void forEachCartesianHalf(Collection<E> c, BiConsumer<? super E, ? super E> action) {
-//        for(int i=0; i<c.size(); i++)
-//            for(int j=i; j<c.size(); j++)
+//        for (int i=0; i<c.size(); i++)
+//            for (int j=i; j<c.size(); j++)
 //                action.accept(c.get(i), c.get(j));
 
 //        int j = 0;
-//        for(E e : c) {
+//        for (E e : c) {
 //            c.stream().skip(j).forEach(t -> action.accept(e,t));
 //            j++;
 //        }
 
         int j = 1;
-        for(E e : c) {
+        for (E e : c) {
             int i = j;
-            for(E t : c) {
-                if(i>0)i--;
-                if(i==0) action.accept(e,t);
+            for (E t : c) {
+                if (i>0)i--;
+                if (i==0) action.accept(e,t);
             }
             j++;
         }
@@ -912,22 +912,22 @@ public interface Util {
      * self elements (i,i).
      */
     static <E> void forEachCartesianHalfNoSelf(Collection<E> c, BiConsumer<? super E, ? super E> action) {
-//        for(int i=0; i<c.size(); i++)
-//            for(int j=i+1; j<c.size(); j++)
+//        for (int i=0; i<c.size(); i++)
+//            for (int j=i+1; j<c.size(); j++)
 //                action.accept(c.get(i), c.get(j));
 
 //        int j = 1;
-//        for(E e : c) {
+//        for (E e : c) {
 //            c.stream().skip(j).forEach(t -> action.accept(e,t));
 //            j++;
 //        }
 
         int j = 1;
-        for(E e : c) {
+        for (E e : c) {
             int i = j;
-            for(E t : c) {
-                if(i==0) action.accept(e,t);
-                if(i>0)i--;
+            for (E t : c) {
+                if (i==0) action.accept(e,t);
+                if (i>0)i--;
             }
             j++;
         }
@@ -937,12 +937,12 @@ public interface Util {
      * @param action 1st parameter is element from 1st collection, 2nd parameter is el. from 2nd
      */
     static <E,T> void forEachPair(Collection<E> c1, Collection<T> c2, BiConsumer<? super E, ? super T> action) {
-        for(E e : c1) for(T t : c2) action.accept(e,t);
+        for (E e : c1) for (T t : c2) action.accept(e,t);
     }
 
     /** Loops over list zipping each item with a companion derived from it. */
     static <T,W> void forEachWith(Collection<T> c, Function<T,W> toCompanion, BiConsumer<? super T, ? super W> action) {
-        for(T t : c)
+        for (T t : c)
             action.accept(t, toCompanion.apply(t));
     }
 
@@ -963,7 +963,7 @@ public interface Util {
     static <T,R> Stream<R> forEachIStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
         int i=0;
         Stream.Builder<R> b = Stream.builder();
-        for(T item : c) {
+        for (T item : c) {
             b.accept(mapper.apply(i, item));
             i++;
         }
@@ -978,7 +978,7 @@ public interface Util {
     static <T,R> Stream<R> forEachIRStream(List<T> c, BiFunction<Integer,T,R> mapper) {
         int size = c.size();
         Stream.Builder<R> b = Stream.builder();
-        for(int i = 1; i<=size; i++)
+        for (int i = 1; i<=size; i++)
             b.accept(mapper.apply(i-1, c.get(size-i)));
         return b.build();
     }
@@ -1000,7 +1000,7 @@ public interface Util {
     static <I,T,R> Stream<R> forEachIStream(Collection<T> c, I initial_val, Function<I,I> operation, BiFunction<I,T,R> mapper) {
         I i = initial_val;
         Stream.Builder<R> b = Stream.builder();
-        for(T item : c) {
+        for (T item : c) {
             b.accept(mapper.apply(i, item));
             i = operation.apply(i);
         }
@@ -1012,7 +1012,7 @@ public interface Util {
     static <T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
         int i=0;
         Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
-        for(T item : c) {
+        for (T item : c) {
             b.accept(tuple(i, item));
             i++;
         }
@@ -1037,8 +1037,8 @@ public interface Util {
     @SuppressWarnings("unchecked")
     static <T> Set<T> setRO(T... ts) {
         int size = ts.length;
-        if(size==0) return EMPTY_SET;
-        if(size==1) return singleton(ts[0]);
+        if (size==0) return EMPTY_SET;
+        if (size==1) return singleton(ts[0]);
         else return stream(ts).toSetAndThen(Collections::unmodifiableSet);
     }
 
@@ -1066,8 +1066,8 @@ public interface Util {
     @SuppressWarnings("unchecked")
     static <T> List<T> listRO(T... ts) {
         int size = ts.length;
-        if(size==0) return EMPTY_LIST;
-        if(size==1) return singletonList(ts[0]);
+        if (size==0) return EMPTY_LIST;
+        if (size==1) return singletonList(ts[0]);
         else return Arrays.asList(ts);
     }
 
@@ -1085,14 +1085,14 @@ public interface Util {
     /** Returns modifiable list containing specified element i times. */
     static <T> List<T> list(int i, T a) {
         List<T> l = new ArrayList<>(i);
-        for(int j=0; j<i; j++) l.add(a);
+        for (int j=0; j<i; j++) l.add(a);
         return l;
     }
 
     /** Returns modifiable list containing element supplied by specified supplier i times. */
     static <T> List<T> list(int i, Supplier<T> factory) {
         List<T> l = new ArrayList<>(i);
-        for(int j=0; j<i; j++) l.add(factory.get());
+        for (int j=0; j<i; j++) l.add(factory.get());
         return l;
     }
 
@@ -1102,7 +1102,7 @@ public interface Util {
      */
     static <T> List<T> listF(int i, Function<Integer,T> factory) {
         List<T> l = new ArrayList<>(i);
-        for(int j=0; j<i; j++) l.add(factory.apply(j));
+        for (int j=0; j<i; j++) l.add(factory.apply(j));
         return l;
     }
 
@@ -1141,7 +1141,7 @@ public interface Util {
     static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
         yes(a.length==b.length);
         Stream.Builder<R> builder = Stream.builder();
-        for(int i=0; i<a.length; i++)
+        for (int i=0; i<a.length; i++)
             builder.accept(zipper.apply(a[i], b[i]));
         return builder.build();
     }
@@ -1149,20 +1149,20 @@ public interface Util {
     /** @return stream equivalent to a for loop */
     static <T> Stream<T> stream(T seed, Predicate<T> cond, UnaryOperator<T> op) {
         Stream.Builder<T> b = Stream.builder();
-        for(T t = seed; cond.test(t); t=op.apply(t)) b.accept(t);
+        for (T t = seed; cond.test(t); t=op.apply(t)) b.accept(t);
         return b.build();
     }
 
     /** Creates stream of {@link Integer} in range from-to inclusive. */
     static Stream<Integer> range(int fromInclusive, int toInclusive) {
         Stream.Builder<Integer> b = Stream.builder();
-        for(int i=fromInclusive; i<=toInclusive; i++) b.accept(i);
+        for (int i=fromInclusive; i<=toInclusive; i++) b.accept(i);
         return b.build();
     }
 
     static Stream<Double> range(double fromInclusive, double toInclusive) {
         Stream.Builder<Double> b = Stream.builder();
-        for(double i=fromInclusive; i<=toInclusive; i++) b.accept(i);
+        for (double i=fromInclusive; i<=toInclusive; i++) b.accept(i);
         return b.build();
     }
 
@@ -1230,36 +1230,36 @@ public interface Util {
 
     @SuppressWarnings("unchecked")
     static <T> List<T> split(String txt, String regex, int i, Function<String,T> m) {
-        if(txt.isEmpty()) return EMPTY_LIST;
+        if (txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).map(m).collect(toList());
     }
 
     @SuppressWarnings("unchecked")
     static <T> List<T> split(String txt, String regex, Function<String,T> m) {
-        if(txt.isEmpty()) return EMPTY_LIST;
+        if (txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
     }
 
     @SuppressWarnings("unchecked")
     static List<String> split(String txt, String regex, int i) {
-        if(txt.isEmpty()) return EMPTY_LIST;
+        if (txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, i)).collect(toList());
     }
 
     @SuppressWarnings("unchecked")
     static List<String> splitToNonemptyOrNull(String txt, String regex, int i) {
-        if(txt.isEmpty()) return EMPTY_LIST;
+        if (txt.isEmpty()) return EMPTY_LIST;
         String[] a = txt.split(regex, i);
-        if(a.length<i) return null;
-        for(String s : a)
-            if(s==null || s.isEmpty())
+        if (a.length<i) return null;
+        for (String s : a)
+            if (s==null || s.isEmpty())
                 return null;
         return Stream.of(a).collect(toList());
     }
 
     @SuppressWarnings("unchecked")
     static List<String> split(String txt, String regex) {
-        if(txt.isEmpty()) return EMPTY_LIST;
+        if (txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).collect(toList());
     }
 

@@ -121,14 +121,14 @@ public abstract class Parser {
             try {
                 String[] vals = text.split(DELIMITER_CONFIG_VALUE);
                 Class<?> objecttype = Class.forName(vals[0]);
-                if(type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
+                if (type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
                 T v = (T) objecttype.newInstance();
                 Configurable c = Configurable.configsFromFxPropertiesOf(v);
                 stream(vals).skip(1)
                             .forEach(str -> {
                                 try {
                                     String[] nameval = str.split(DELIMITER_CONFIG_NAME);
-                                    if(nameval.length!=2) return; // ignore
+                                    if (nameval.length!=2) return; // ignore
                                     String name = nameval[0], val = nameval[1];
                                     c.setField(name, val);
                                 } catch(Exception e){
@@ -209,11 +209,11 @@ public abstract class Parser {
         }, Exception.class));
         DEFAULT.addParser(Functors.PƑ.class, f -> f.name + "," + f.in + "," + f.out, text -> {
             List<String> data = split(text,",");
-            if(data.size()!=3) return null;
+            if (data.size()!=3) return null;
             String name = data.get(0);
             Class<?> in = DEFAULT.fromS(Class.class, data.get(1));
             Class<?> out = DEFAULT.fromS(Class.class, data.get(2));
-            if(name==null || in==null || out==null) return null;
+            if (name==null || in==null || out==null) return null;
             return Functors.pool.getPF(name,in,out);
         });
     }
@@ -304,13 +304,13 @@ public abstract class Parser {
         public <T> T fromS(Class<T> c, String s) {
             noØ(c,"Parsing type must be specified!");
             noØ(s,"Parsing null not allowed!");
-            if(CONSTANT_NULL.equals(s)) return null;
+            if (CONSTANT_NULL.equals(s)) return null;
             return getParserFromS(c).apply(s);
         }
 
         @Override
         public <T> String toS(T o) {
-            if(o==null) return CONSTANT_NULL;
+            if (o==null) return CONSTANT_NULL;
             String s = getParserToS((Class<T>)o.getClass()).apply(o);
             return noNull(s,CONSTANT_NULL);
         }
@@ -350,16 +350,16 @@ public abstract class Parser {
         Function<String,T> fromS = null;
         StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
 
-        if(fromS==null && a!=null) {
+        if (fromS==null && a!=null) {
             From strategy = a.from();
             if (strategy==From.NONE) {
                 throw new IllegalArgumentException("Failed to create from string converter. Class '"+ type +"'s parsing strategy forbids parsing from string.");
             } else if (strategy==From.ANNOTATED_METHOD) {
                 Invokable<T> invokable = null;  // in class T returns ?
 
-                if(invokable==null) {
+                if (invokable==null) {
                     Constructor<T> c = getConstructorAnnotated(type, ParsesFromString.class);
-                    if(c!=null) invokable = new Invokable<>() {
+                    if (c!=null) invokable = new Invokable<>() {
 	                    @Override
 	                    public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
 		                    try {
@@ -381,9 +381,9 @@ public abstract class Parser {
                     };
                 }
 
-                if(invokable==null) {
+                if (invokable==null) {
                     Method m = getMethodAnnotated(type, ParsesFromString.class);
-                    if(m!=null && Modifier.isStatic(m.getModifiers()))
+                    if (m!=null && Modifier.isStatic(m.getModifiers()))
 	                    invokable = new Invokable<>() {
 		                    @Override
 		                    public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
@@ -402,7 +402,7 @@ public abstract class Parser {
 	                    };
                 }
 
-                if(invokable==null)
+                if (invokable==null)
                     throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
 
                 fromS = parserOfI(invokable, String.class, type, a, ParseDir.FROMS);
@@ -414,13 +414,13 @@ public abstract class Parser {
         }
 
         // try to fall back to valueOf or fromString parsers
-        if(fromS==null) {
+        if (fromS==null) {
             Method m = getValueOfStatic(type);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
+            if (m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
         }
-        if(fromS==null) {
+        if (fromS==null) {
             Method m = getMethodStatic("fromString",type);
-            if(m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
+            if (m!=null) fromS = noEx(parserOfM(m, String.class, type, null, null), Exception.class);
         }
 
         return fromS;
@@ -428,30 +428,30 @@ public abstract class Parser {
 
     private static <T> Function<T,String> buildTosParser(Class<T> c) {
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
-        if(a!=null) {
+        if (a!=null) {
             To strategy = a.to();
-            if(strategy==To.CONSTANT) {
+            if (strategy==To.CONSTANT) {
                 String constant = a.constant();
                 return in -> constant;
             } else if (strategy==To.NONE) {
                 throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"'s parsing strategy forbids parsing to string.");
             } else if (strategy==To.ANNOTATED_METHOD) {
                 Method m = getMethodAnnotated(c,ParsesToString.class);
-                if(m==null || m.getReturnType()!=String.class || m.getParameterCount()>1 || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
+                if (m==null || m.getReturnType()!=String.class || m.getParameterCount()>1 || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
                     throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because suitable method was not found: " + m);
                 boolean pass_params = m.getParameterCount()==1;
                 Function<T,String> f = pass_params
                     ? in -> {
                         try {
                             return (String) m.invoke(in,in);
-                        } catch( IllegalAccessException | InvocationTargetException e ) {
+                        } catch(IllegalAccessException | InvocationTargetException e ) {
                             throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                         }
                     }
                     : in -> {
                         try {
                             return (String) m.invoke(in);
-                        } catch( IllegalAccessException | InvocationTargetException e ) {
+                        } catch(IllegalAccessException | InvocationTargetException e ) {
                             throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                         }
                     };
@@ -474,7 +474,7 @@ public abstract class Parser {
         // hadle enum with class bodies that dont identify as enums
         // simply fool the parser by changing the class to the enum
         // note: getDeclaringClass() does not seem to work here though
-        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
+        if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();
 
         try {
@@ -497,13 +497,13 @@ public abstract class Parser {
 
     private static <I,O> Function<I,O> parserOfI(Invokable<O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
         Collection<Parameter> params = m.getParameters();
-        if(params.size()>1)
+        if (params.size()>1)
             throw new IllegalArgumentException("Parser method/constructor must take 0 or 1 parameter");
 
         // exceptions (we will make union of those annotated and those known to be thrown
         Set<Class<?>> ecs = new HashSet<>();
-        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
-        if(m!=null) ecs.addAll(m.getExceptionTypes());
+        if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+        if (m!=null) ecs.addAll(m.getExceptionTypes());
 
         boolean no_input = params.isEmpty();
         Function<I,O> f = no_input
@@ -511,10 +511,10 @@ public abstract class Parser {
                     try {
                         return m.invoke(null);
                     } catch(IllegalAccessException | InvocationTargetException e ) {
-                        for(Class<?> ec : ecs) {
-                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
-                            if(ec.isInstance(e.getCause())) return null;
-                            if(ec.isInstance(e)) return null;
+                        for (Class<?> ec : ecs) {
+                            if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if (ec.isInstance(e.getCause())) return null;
+                            if (ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                     }
@@ -523,10 +523,10 @@ public abstract class Parser {
                     try {
                         return m.invoke(null, in);
                     } catch(IllegalAccessException | InvocationTargetException e ) {
-                        for(Class<?> ec : ecs) {
-                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
-                            if(ec.isInstance(e.getCause())) return null;
-                            if(ec.isInstance(e)) return null;
+                        for (Class<?> ec : ecs) {
+                            if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if (ec.isInstance(e.getCause())) return null;
+                            if (ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                     }
@@ -537,8 +537,8 @@ public abstract class Parser {
 
     private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
         Set<Class<?>> ecs = new HashSet<>();
-        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
-        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
+        if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+        if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
         boolean isSupplier = i==Void.class || i==void.class || i==null;
         boolean isStatic = Modifier.isStatic(m.getModifiers());
         Function<I,O> f = isSupplier
@@ -546,10 +546,10 @@ public abstract class Parser {
                     try {
                         return (O) m.invoke(null);
                     } catch(IllegalAccessException | InvocationTargetException e ) {
-                        for(Class<?> ec : ecs) {
-                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
-                            if(ec.isInstance(e.getCause())) return null;
-                            if(ec.isInstance(e)) return null;
+                        for (Class<?> ec : ecs) {
+                            if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if (ec.isInstance(e.getCause())) return null;
+                            if (ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                     }
@@ -558,10 +558,10 @@ public abstract class Parser {
                     try {
                         return (O) m.invoke(null, in);
                     } catch(IllegalAccessException | InvocationTargetException e ) {
-                        for(Class<?> ec : ecs) {
-                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
-                            if(ec.isInstance(e.getCause())) return null;
-                            if(ec.isInstance(e)) return null;
+                        for (Class<?> ec : ecs) {
+                            if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if (ec.isInstance(e.getCause())) return null;
+                            if (ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
                     }
@@ -574,17 +574,17 @@ public abstract class Parser {
             Constructor<O> cn = type.getConstructor(params);
             boolean passinput = params.length==1;
             Set<Class<?>> ecs = new HashSet<>();
-            if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
-            if(cn!=null) ecs.addAll(list(cn.getExceptionTypes()));
+            if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
+            if (cn!=null) ecs.addAll(list(cn.getExceptionTypes()));
                 Function<String,O> f = in -> {
                     try {
                         Object[] p = passinput ? new Object[]{in} : new Object[]{};
                         return cn.newInstance(p);
                     } catch (ExceptionInInitializerError | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                        for(Class<?> ec : ecs) {
-                            if(e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
-                            if(ec.isInstance(e.getCause())) return null;
-                            if(ec.isInstance(e)) return null;
+                        for (Class<?> ec : ecs) {
+                            if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return null;
+                            if (ec.isInstance(e.getCause())) return null;
+                            if (ec.isInstance(e)) return null;
                         }
                         throw new RuntimeException("String '"+in+"' parsing failed to invoke constructor in class " + cn.getDeclaringClass(), e);
                     }
@@ -597,8 +597,8 @@ public abstract class Parser {
 
     private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
         Set<Class<?>> ecs = new HashSet<>();
-        if(a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
-        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
+        if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
+        if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
         return noEx(f, ecs);
     }
 
@@ -610,8 +610,8 @@ public abstract class Parser {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs)
-                    if(ec.isAssignableFrom(e.getClass())) {
+                for (Class<?> ec : ecs)
+                    if (ec.isAssignableFrom(e.getClass())) {
                         DEFAULT.error = e.getMessage();
                         return or;
                     }
@@ -638,8 +638,8 @@ public abstract class Parser {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs)
-                    if(ec.isAssignableFrom(e.getClass())) {
+                for (Class<?> ec : ecs)
+                    if (ec.isAssignableFrom(e.getClass())) {
                     }
 //                if (e instanceof RuntimeException) throw (RuntimeException)e;
 //                else throw new RuntimeException("Parsing error", e);

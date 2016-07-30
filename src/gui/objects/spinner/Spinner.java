@@ -73,25 +73,25 @@ public class Spinner extends ProgressIndicator {
 
         @Override
         public void dispose() {
-            if(rt!=null) rt.stop();
+            if (rt!=null) rt.stop();
             outer.rotateProperty().unbind();
         }
 
         private void update() {
             Spinner s = getSkinnable();
             double p = s.getProgress();
-            if(s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
-                if(rt==null) {
+            if (s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
+                if (rt==null) {
                     rt = new RotateTransition(Duration.seconds(120), inner);
                     rt.setInterpolator(Interpolator.LINEAR);
                     rt.setCycleCount(Transition.INDEFINITE);
                     rt.setDelay(ZERO);
                     rt.setByAngle(360*100);
                 }
-                if(!playing) rt.play();
+                if (!playing) rt.play();
                 playing = true;
             } else {
-                if(playing && rt!=null) rt.pause();
+                if (playing && rt!=null) rt.pause();
                 playing = false;
             }
         }

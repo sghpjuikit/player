@@ -51,7 +51,7 @@ public class Placeholder extends StackPane {
 
     public void showFor(Node n) {
         Pane p = n instanceof Pane ? (Pane)n : n.getParent()==null ? null : (Pane)n.getParent();
-        if(p!=null && !p.getChildren().contains(this)) {
+        if (p!=null && !p.getChildren().contains(this)) {
 //            parent = p;
 //            parent.getChildren().forEach(c -> c.setOpacity(0.2));
             p.getChildren().add(this);
@@ -68,13 +68,13 @@ public class Placeholder extends StackPane {
     }
 
     public void hide() {
-//        if(parent!=null) parent.getChildren().forEach(c -> c.setOpacity(1));
-        if(s!=null) s.unsubscribe();
+//        if (parent!=null) parent.getChildren().forEach(c -> c.setOpacity(1));
+        if (s!=null) s.unsubscribe();
         removeFromParent(this);
     }
 
     public void show(Node n, boolean visible) {
-        if(visible) showFor(n);
+        if (visible) showFor(n);
         else hide();
     }
 }

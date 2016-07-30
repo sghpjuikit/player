@@ -86,7 +86,7 @@ public interface Util {
      * not guaranteed to be the case).
      */
     static <T> void executeWhenNonNull(ObservableValue<T> property, Consumer<T> action) {
-        if(property.getValue()!=null)
+        if (property.getValue()!=null)
             action.accept(property.getValue());
         else {
             property.addListener(singletonListener(property, action));
@@ -97,7 +97,7 @@ public interface Util {
         return new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
-                if(nv!=null) {
+                if (nv!=null) {
                     action.accept(nv);
                     property.removeListener(this);
                 }
@@ -115,8 +115,8 @@ public interface Util {
         return change -> {
             while(change.next()) {
                 if (!change.wasPermutated() && !change.wasUpdated()) {
-                    if(change.wasAdded()) onAdded.onChanged(change);
-                    if(change.wasAdded()) onRemoved.onChanged(change);
+                    if (change.wasAdded()) onAdded.onChanged(change);
+                    if (change.wasAdded()) onRemoved.onChanged(change);
                 }
             }
         };
@@ -128,8 +128,8 @@ public interface Util {
         return change -> {
             while(change.next()) {
                 if (!change.wasPermutated() && !change.wasUpdated()) {
-                    if(change.wasAdded()) change.getRemoved().forEach(removedHandler);
-                    if(change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
+                    if (change.wasAdded()) change.getRemoved().forEach(removedHandler);
+                    if (change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
                 }
             }
         };

@@ -55,14 +55,14 @@ public class Fut<T> implements Runnable{
 
     public static <T> Fut<T> futAfter(Fut<T> f) {
         CompletableFuture<T> nf = f.f.handle((result,exception) -> {
-            if(exception!=null) throw new RuntimeException("Fut errored out",exception);
+            if (exception!=null) throw new RuntimeException("Fut errored out",exception);
             else return result;
         });
         return new Fut<>(nf);
     }
     public static <T> Fut<T> after(Fut<T> f) {
         CompletableFuture<T> nf = f.f.handle((result,exception) -> {
-            if(exception!=null) throw new RuntimeException("Fut errored out",exception);
+            if (exception!=null) throw new RuntimeException("Fut errored out",exception);
             else return result;
         });
         return new Fut<>(nf);
@@ -73,7 +73,7 @@ public class Fut<T> implements Runnable{
     }
 
     public T getDone() {
-        if(f.isDone()) {
+        if (f.isDone()) {
             try {
                 return f.get();
             } catch (InterruptedException ex) {
@@ -175,7 +175,7 @@ public class Fut<T> implements Runnable{
         );
     }
     public final Fut<T> showProgress(boolean condition, Supplier<ProgressIndicator> sp) {
-        if(condition) {
+        if (condition) {
             ProgressIndicator p = sp.get();
             return showProgress(p);
         } else

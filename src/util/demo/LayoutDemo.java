@@ -242,8 +242,8 @@ public class LayoutDemo extends Application {
 
 		@Override
 		public boolean equals(Object other) {
-			if(this==other) return true;
-			if(!(other instanceof ShapePair)) return false;
+			if (this==other) return true;
+			if (!(other instanceof ShapePair)) return false;
 			ShapePair o = (ShapePair) other;
 			return (a == o.a && b == o.b) || (a == o.b) &&  (b == o.a);
 		}

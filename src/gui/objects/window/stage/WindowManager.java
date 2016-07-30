@@ -117,8 +117,8 @@ public class WindowManager implements Configurable<Object> {
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
     public final V<Boolean> show_windows = new V<>(true, v -> {
-        if(!App.APP.normalLoad) return;
-        if(v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
+        if (!App.APP.normalLoad) return;
+        if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     });
 
@@ -187,7 +187,7 @@ public class WindowManager implements Configurable<Object> {
             Logger.getLogger(WindowManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
-        if(APP.window==null) setAsMain(w);
+        if (APP.window==null) setAsMain(w);
         windows.add(w); // add to list of active windows
         w.initialize();
 
@@ -224,12 +224,12 @@ public class WindowManager implements Configurable<Object> {
         // move the window owner to screen of this window, which
         // moves taskbar icon to respective screen's taskbar
         w.moving.addListener((o,ov,nv) -> {
-            if(ov && !nv)
+            if (ov && !nv)
                 APP.taskbarIcon.setScreen(getScreen(w.getCenterXY()));
         });
         add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(getScreen(w.getCenterXY())));
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
-//            if(nv) APP.taskbarIcon.iconify(nv);
+//            if (nv) APP.taskbarIcon.iconify(nv);
 //        });
 
         Icon i = new Icon(FontAwesomeIcon.CIRCLE,5)
@@ -244,28 +244,28 @@ public class WindowManager implements Configurable<Object> {
     }
 
     private void toggleMiniFull() {
-        if(!App.APP.normalLoad) return;
-        if(mini.get()) APP.window.show();
+        if (!App.APP.normalLoad) return;
+        if (mini.get()) APP.window.show();
         else APP.window.hide();
         setMini(!mini.get());
     }
 
     private void toggleShowWindows() {
-        if(!App.APP.normalLoad) return;
+        if (!App.APP.normalLoad) return;
         show_windows.set(!show_windows.get());
     }
 
     private void setMini(boolean val) {
-        if(!App.APP.normalLoad) return;
+        if (!App.APP.normalLoad) return;
 
         mini.set(val);
-        if(val) {
+        if (val) {
             // avoid pointless operation
-            if(miniWindow!=null && miniWindow.isShowing()) return;
+            if (miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
             // miniWindow = Window.deserialize(FILE_MINIWINDOW); // disabled for now (but works)
             // if not available, make new one, set initial size
-            if(miniWindow == null)  miniWindow = create();
+            if (miniWindow == null)  miniWindow = create();
             Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(false);
@@ -294,7 +294,7 @@ public class WindowManager implements Configurable<Object> {
                     Widget<?> newW = APP.widgetManager.factories.get(name,"Empty").create();
                     // Close old widget if any to free resources
                     Widget<?> oldW = (Widget) content.getProperties().get("widget");
-                    if(oldW!=null) oldW.close();
+                    if (oldW!=null) oldW.close();
                     // set new widget
                     content.getProperties().put("widget",newW);
                     content.setCenter(newW.load());
@@ -317,48 +317,48 @@ public class WindowManager implements Configurable<Object> {
             Anim a = new Anim(millis(300),frac -> miniWindow.setY(-H*frac, false));
 
             FxTimer hider = new FxTimer(0, 1, () -> {
-                if(miniWindow==null) return;
-                if(miniWindow.getY()!=0) return;    // if not open
+                if (miniWindow==null) return;
+                if (miniWindow.getY()!=0) return;    // if not open
                 Duration d = a.getCurrentTime();
-                if(d.equals(ZERO)) d = millis(300).subtract(d);
+                if (d.equals(ZERO)) d = millis(300).subtract(d);
                 a.stop();
                 a.setRate(1);
                 a.playFrom(millis(300).subtract(d));
             });
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
-                if(!mini_hide_onInactive.get()) return;   // if disabled
-                if(mw_root.isHover()) return;       // if mouse still in (we only want MOUSE_EXIT)
+                if (!mini_hide_onInactive.get()) return;   // if disabled
+                if (mw_root.isHover()) return;       // if mouse still in (we only want MOUSE_EXIT)
                 hider.start(mini_inactive_delay);
             });
             hider.runNow();
 
             FxTimer shower = new FxTimer(0, 1, () ->{
-                if(miniWindow==null) return;
-                if(miniWindow.getY()==0) return;    // if open
-                if(!mw_root.isHover()) return;      // if mouse left
+                if (miniWindow==null) return;
+                if (miniWindow.getY()==0) return;    // if open
+                if (!mw_root.isHover()) return;      // if mouse left
                 Duration d = a.getCurrentTime();
-                if(d.equals(ZERO)) d = millis(300).subtract(d);
+                if (d.equals(ZERO)) d = millis(300).subtract(d);
                 a.stop();
                 a.setRate(-1);
                 a.playFrom(d);
             });
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
-                if(!miniWindow.isShowing()) return;     // bug fix
+                if (!miniWindow.isShowing()) return;     // bug fix
                 shower.start(mini_hover_delay);         // open after delay
             });
             mw_root.addEventHandler(MOUSE_CLICKED, e -> {
-                if(e.getButton()==PRIMARY) {
-                    if(!miniWindow.isShowing()) return; // bug fix
+                if (e.getButton()==PRIMARY) {
+                    if (!miniWindow.isShowing()) return; // bug fix
                     shower.runNow();                    // open with delay
                 }
-                if(e.getButton()==SECONDARY) {
-                    if(!miniWindow.isShowing()) return; // bug fix
+                if (e.getButton()==SECONDARY) {
+                    if (!miniWindow.isShowing()) return; // bug fix
                     hider.runNow();                     // open with delay
                 }
             });
         } else {
             // do nothing if not in minimode (for example during initialization)
-            if(miniWindow==null) return;
+            if (miniWindow==null) return;
             // serialize mini
             miniWindow.serialize(new File(APP.DIR_LAYOUTS, "mini-window.w"));
             miniWindow.close();
@@ -384,7 +384,7 @@ public class WindowManager implements Configurable<Object> {
         listFiles(dir).forEach(File::delete);
 
         // serialize - for now each window to its own file with .ws extension
-        for(int i=0; i<src.size(); i++) {
+        for (int i=0; i<src.size(); i++) {
             // ret resources
             Window w = src.get(i);
             String name = "window" + i;
@@ -398,13 +398,13 @@ public class WindowManager implements Configurable<Object> {
         }
 
         // serialize mini too
-        if(miniWindow!=null)
+        if (miniWindow!=null)
             miniWindow.serialize(new File(APP.DIR_LAYOUTS, "mini-window.w"));
     }
 
     public void deserialize(boolean load_normally) {
         List<Window> ws = new ArrayList<>();
-        if(load_normally) {
+        if (load_normally) {
 
             // make sure directory is accessible
             File dir = new File(APP.DIR_LAYOUTS, "current");
@@ -419,23 +419,23 @@ public class WindowManager implements Configurable<Object> {
             log(WindowManager.class).info("Deserializing {} application windows", fs.length);
 
             // deserialize windows
-            for(int i=0; i<fs.length; i++) {
+            for (int i=0; i<fs.length; i++) {
                 File f = fs[i];
                 Window w = Window.deserialize(f);
-                if(w==null) continue;    // handle next window if this was not successfully deserialized
+                if (w==null) continue;    // handle next window if this was not successfully deserialized
 
                 ws.add(w);
 
                 // deserialize layout
                 File lf = new File(dir,"layout" + i + ".l");
                 Layout l = new Layout("layout"+i).deserialize(lf);
-                if(l==null) w.initLayout();
+                if (l==null) w.initLayout();
                 else w.initLayout(l);
             }
          }
 
         // show windows
-        if(ws.isEmpty()) {
+        if (ws.isEmpty()) {
             Window w = create();
                    w.setXYSizeInitial();
                    w.initLayout();

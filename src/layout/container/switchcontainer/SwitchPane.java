@@ -70,8 +70,8 @@ public class SwitchPane implements ContainerNode {
     };
     public final IOLayer widget_io = new IOLayer(this);
 
-    public final V<Boolean> align = new V<>(true, v -> { if(v) alignTabs(); });
-    public final V<Boolean> snap = new V<>(true, v -> { if(v) snapTabs(); });
+    public final V<Boolean> align = new V<>(true, v -> { if (v) alignTabs(); });
+    public final V<Boolean> snap = new V<>(true, v -> { if (v) snapTabs(); });
     public final V<Double> switch_dist_abs = new V<>(150.0);
     public final V<Double> switch_dist_rel = new V<>(0.15); // 0 - 1
     public final V<Double> drag_inertia = new V<>(1.5);
@@ -103,12 +103,12 @@ public class SwitchPane implements ContainerNode {
         // prevent problematic events
         // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
         root.addEventFilter(Event.ANY, e -> {
-            if(uiDragActive) e.consume();
-            else if(e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
+            if (uiDragActive) e.consume();
+            else if (e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
         });
 
         root.addEventFilter(MOUSE_DRAGGED, e -> {
-            if(e.getButton()==SECONDARY) {
+            if (e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
                 dragUiStart(e);
                 dragUi(e);
@@ -116,7 +116,7 @@ public class SwitchPane implements ContainerNode {
         });
 
         root.addEventFilter(MOUSE_RELEASED, e-> {
-            if(e.getButton()==SECONDARY) {
+            if (e.getButton()==SECONDARY) {
                 dragUiEnd(e);
                 ui.setMouseTransparent(false);
             }
@@ -129,7 +129,7 @@ public class SwitchPane implements ContainerNode {
         });
 
         root.addEventHandler(SCROLL, e-> {
-            if(Gui.isLayoutMode()) {
+            if (Gui.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
@@ -164,9 +164,9 @@ public class SwitchPane implements ContainerNode {
     boolean changed = false;
 
     public void addTab(int i, Component c) {
-        if(c==layouts.get(i)) {
+        if (c==layouts.get(i)) {
         	return;
-        } else if(c==null) {
+        } else if (c==null) {
             removeTab(i);
         } else {
             removeTab(i);
@@ -180,7 +180,7 @@ public class SwitchPane implements ContainerNode {
     }
 
     public void addTab(int i) {
-        if(!container.getChildren().containsKey(i)) loadTab(i);
+        if (!container.getChildren().containsKey(i)) loadTab(i);
     }
 
     /**
@@ -212,12 +212,12 @@ public class SwitchPane implements ContainerNode {
             n = l.getRoot();
             as = l;
         }
-        if(Gui.isLayoutMode()) as.show();
+        if (Gui.isLayoutMode()) as.show();
         tab.getChildren().setAll(n);
     }
 
     void removeTab(int i) {
-        if(tabs.containsKey(i)) {
+        if (tabs.containsKey(i)) {
             // detach from scene graph
             ui.getChildren().remove(tabs.get(i));
             // remove layout
@@ -226,7 +226,7 @@ public class SwitchPane implements ContainerNode {
             tabs.remove(i);
         }
 
-        if(currTab()==i) addTab(i);
+        if (currTab()==i) addTab(i);
     }
 
     void removeAllTabs() {
@@ -248,7 +248,7 @@ public class SwitchPane implements ContainerNode {
     });
 
     private void dragUiStart(MouseEvent e) {
-        if(uiDragActive) return;//System.out.println("start");
+        if (uiDragActive) return;//System.out.println("start");
         uiDrag.stop();
         uiStartX = e.getSceneX();
         uiTransX = ui.getTranslateX();
@@ -257,13 +257,13 @@ public class SwitchPane implements ContainerNode {
         e.consume();
     }
     private void dragUiEnd(MouseEvent e) {
-        if(!uiDragActive) return;//System.out.println("end");
+        if (!uiDragActive) return;//System.out.println("end");
         // stop drag
 //        uiDragActive = false;
         Async.run(100, () -> uiDragActive=false);
         measurePulser.stop();
         // handle drag end
-        if(align.get()) {
+        if (align.get()) {
             uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
                 @Override protected double baseCurve(double x) {
                     return Math.pow(2-2/(x+1), 0.4);
@@ -295,7 +295,7 @@ public class SwitchPane implements ContainerNode {
         e.consume();
     }
     private void dragUi(MouseEvent e) {
-        if(!uiDragActive) return;
+        if (!uiDragActive) return;
         // drag
         double byX = e.getSceneX()-uiStartX;
         ui.setTranslateX(uiTransX + byX);
@@ -365,10 +365,10 @@ public class SwitchPane implements ContainerNode {
      */
     public int alignTab(Component c) {
         int i = -1;
-        for(Entry<Integer,Component> e : layouts.entrySet()) {
+        for (Entry<Integer,Component> e : layouts.entrySet()) {
             Component cm = e.getValue();
             boolean has = cm==c || (cm instanceof Container && ((Container)cm).getAllChildren().anyMatch(ch -> ch==c));
-            if(has) {
+            if (has) {
                 i = e.getKey();
                 alignTab(i);
                 break;
@@ -387,7 +387,7 @@ public class SwitchPane implements ContainerNode {
      */
     public int snapTabs() {
         int i = currTab();
-        if(!snap.get()) return i;
+        if (!snap.get()) return i;
 
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
@@ -477,7 +477,7 @@ public class SwitchPane implements ContainerNode {
 
     // this is called in animation with 0-1 as parameter
     private void zoom(double d) {
-        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
+        if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // remember amount
         // Design flaw. If we want to remember the value, use another property. This overwrites
         // the 'proper' value by setting zoom to 1 - effectively disallowing zooming more than once
@@ -494,7 +494,7 @@ public class SwitchPane implements ContainerNode {
         APP.actionStream.push("Zoom mode");
     }
     private void zoomNoAcc(double d) {
-        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
+        if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // calculate amount
         double missed = Double.compare(NaN, z.getToX())==0 ? 0 : z.getToX() - zoom.getScaleX();
                missed = signum(missed)==signum(d) ? missed : 0;
@@ -530,10 +530,10 @@ public class SwitchPane implements ContainerNode {
     @Override
     public void show() {
         layouts.values().forEach(c -> {
-            if(c instanceof Container) ((Container)c).show();
-            if(c instanceof Widget) {
+            if (c instanceof Container) ((Container)c).show();
+            if (c instanceof Widget) {
                 ContainerNode ct = ((Widget)c).areaTemp;
-                if(ct!=null) ct.show();
+                if (ct!=null) ct.show();
             }
         });
         layouters.forEach((i,l) -> l.show());
@@ -542,10 +542,10 @@ public class SwitchPane implements ContainerNode {
     @Override
     public void hide() {
         layouts.values().forEach(c -> {
-            if(c instanceof Container) ((Container)c).hide();
-            if(c instanceof Widget) {
+            if (c instanceof Container) ((Container)c).hide();
+            if (c instanceof Widget) {
                 ContainerNode ct = ((Widget)c).areaTemp;
-                if(ct!=null) ct.hide();
+                if (ct!=null) ct.hide();
             }
         });
         layouters.forEach((i,l) -> l.hide());
@@ -560,7 +560,7 @@ public class SwitchPane implements ContainerNode {
 
         @Override
         protected void layoutChildren() {
-            for(Node n : getChildren())
+            for (Node n : getChildren())
                 n.resizeRelocate(0,0,getWidth(),getHeight());
         }
 

@@ -50,19 +50,19 @@ public class CascadingStream<E> {
     }
     
     private void link(int i) {
-        if(i<1) throw new IllegalArgumentException();
+        if (i<1) throw new IllegalArgumentException();
         ValueEventSource<E> s = map.get(i);
-        if(s==null) {
+        if (s==null) {
             map.put(i, eventStreamFactory.get());
-            if(i>1) link(i-1);
+            if (i>1) link(i-1);
         }
     }
     @TODO(severity = CRITICAL, purpose = FUNCTIONALITY)
     private void unlink(int i) {
         ValueEventSource<E> s = map.get(i);
-//        if(s!=null) {
+//        if (s!=null) {
 //            s.
-//            if(i>1) link(i-1);
+//            if (i>1) link(i-1);
 //        }
     }
     

@@ -52,12 +52,12 @@ public class ClickEffect extends ServiceBase {
 
     private void applyC() {
         List<Window> ws = APP.windowManager.windows;
-        if(show_clickEffect.get()) ws.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
+        if (show_clickEffect.get()) ws.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
         else ws.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
     }
 
     private void apply() {
-        if(APP.initialized)
+        if (APP.initialized)
         pool.forEach(Effect::apply);
     }
 
@@ -84,7 +84,7 @@ public class ClickEffect extends ServiceBase {
      * @param y
      */
     public void run(double x, double y) {
-        if(!isRunning) return; // create() must not execute when not running since screen==null
+        if (!isRunning) return; // create() must not execute when not running since screen==null
         create().play(x, y);
     }
 
@@ -116,7 +116,7 @@ public class ClickEffect extends ServiceBase {
 
         runLater(() -> {
             AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
-            if(p!=null) {
+            if (p!=null) {
                 p.getChildren().add(screen);
                 setAnchors(screen,0d);
             }
@@ -134,7 +134,7 @@ public class ClickEffect extends ServiceBase {
 
         runLater(() -> {
             AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
-            if(p!=null) {
+            if (p!=null) {
                 p.getChildren().remove(screen);
                 screen = null;
             }

@@ -43,7 +43,7 @@ public class MimeTypes {
 	private final Map<String, MimeType> extensions = new ConcurrentHashMap<>();
 
 	private MimeTypes(boolean addStandardTypes) {
-		if(addStandardTypes) {
+		if (addStandardTypes) {
 			try(
 				   InputStream file = MimeTypes.class.getResourceAsStream("mime.types");
 				   InputStreamReader ir = new InputStreamReader(file, "UTF-8");
@@ -51,7 +51,7 @@ public class MimeTypes {
 			){
 				String line;
 				while ((line = br.readLine()) != null)
-					if(!line.isEmpty())
+					if (!line.isEmpty())
 						loadOne(line);
 			} catch(Exception e) {
 				log(MimeTypes.class).error("Failed to load default mime types", e);

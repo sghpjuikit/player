@@ -55,7 +55,7 @@ public class SystemOutListener extends PrintStream {
 		public void write(int b) throws IOException {
 			// Less efficient
 			// sout.write(b);
-			// if(!listeners.isEmpty())
+			// if (!listeners.isEmpty())
 			//     runFX(() -> listeners.forEach(l -> l.accept(b)));
 			throw new AssertionError("Operation not allowed for performance reasons.");
 		}
@@ -73,7 +73,7 @@ public class SystemOutListener extends PrintStream {
 
 			// for (int i=0 ; i<len ; i++) write(b[off + i]);
 			sout.write(b, off, len);
-			if(!listeners.isEmpty()) {
+			if (!listeners.isEmpty()) {
 				String s = new String(b); // encoding!?
 				runFX(() -> listeners.forEach(l -> l.accept(s)));
 			}

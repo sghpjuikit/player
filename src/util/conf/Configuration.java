@@ -85,7 +85,7 @@ public class Configuration {
 
     @SafeVarargs
     public final <C> void collect(Configurable<C>... cs) {
-        for(Configurable<C> c : cs) collect(c);
+        for (Configurable<C> c : cs) collect(c);
     }
 
     public void collectStatic() {
@@ -187,14 +187,14 @@ public class Configuration {
     private void discoverMethodsOf(Class<?> c) {
         for (Method m : c.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
-                for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
+                for (AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
                     if (a != null) {
                         String name = a.value();
                         String group = getGroup(c);
                         String config_id = mapper.apply(group + "." + name);
-                        if(configs.containsKey(config_id) && !name.isEmpty()) {
+                        if (configs.containsKey(config_id) && !name.isEmpty()) {
                             Config config = configs.get(config_id);
-                            if(config instanceof FieldConfig) {
+                            if (config instanceof FieldConfig) {
                                 try {
                                     m.setAccessible(true);
                                     ((FieldConfig)config).applier = methodLookup.unreflect(m);
@@ -211,14 +211,14 @@ public class Configuration {
     }
 
     static List<Config<Object>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
-        if(include_instance && instance==null)
+        if (include_instance && instance==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
         List<Config<Object>> out = new ArrayList<>();
 
-        for(Field f : getAllFields(clazz)) {
+        for (Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instance, include_static, include_instance);
-            if(c!=null) out.add(c);
+            if (c!=null) out.add(c);
         }
         return out;
     }
@@ -242,10 +242,10 @@ public class Configuration {
 
     private static Config<?> createConfig(Field f, Object instance, String name, IsConfig annotation, String group) {
         Class<?> c = f.getType();
-        if(Config.class.isAssignableFrom(c)) {
+        if (Config.class.isAssignableFrom(c)) {
             return newFromConfig(f, instance);
         } else
-        if(WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c)) {
+        if (WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c)) {
             return newFromProperty(f, instance, name, annotation, group);
         } else {
             try {
@@ -265,19 +265,19 @@ public class Configuration {
         try {
             yesFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
-            if(VarList.class.isAssignableFrom(f.getType()))
+            if (VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig<>(name, annotation, (VarList)f.get(instance), group);
-            if(Vo.class.isAssignableFrom(f.getType())) {
+            if (Vo.class.isAssignableFrom(f.getType())) {
                 Vo<?> property = (Vo)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new OverridablePropertyConfig(property_type, name, annotation, property, group);
             }
-            if(WritableValue.class.isAssignableFrom(f.getType())) {
+            if (WritableValue.class.isAssignableFrom(f.getType())) {
                 WritableValue<?> property = (WritableValue)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new PropertyConfig(property_type, name, annotation, property, group);
             }
-            if(ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
+            if (ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
                 ReadOnlyProperty<?> property = (ReadOnlyProperty)f.get(instance);
                 Class<?> property_type = getGenericPropertyType(f.getGenericType());
                 return new ReadOnlyPropertyConfig(property_type, name, annotation, property, group);

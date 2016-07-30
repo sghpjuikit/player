@@ -133,7 +133,7 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
     }
 
     private void openProperties(MouseEvent me) {
-        if(v!=null) UiContext.showSettings(configsFromFxPropertiesOf(v), me);
+        if (v!=null) UiContext.showSettings(configsFromFxPropertiesOf(v), me);
         me.consume();
     }
 }

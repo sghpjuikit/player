@@ -61,7 +61,7 @@ public interface Util {
                         method.setAccessible(true);
                         ObservableValue<?> property = (ObservableValue) method.invoke(o);
                         Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-                        if(isNoneØ(property, propertyName, propertyType))
+                        if (isNoneØ(property, propertyName, propertyType))
                             action.accept(property, propertyName, propertyType);
 	                } catch(IllegalAccessException | InvocationTargetException e) {
 	                    log(Util.class).error("Could not obtain property '{}' from object", propertyName);
@@ -76,7 +76,7 @@ public interface Util {
     @SuppressWarnings("unchecked")
     static <T> T getValueFromFieldMethodHandle(MethodHandle mh, Object instance) {
         try {
-            if(instance==null) return (T) mh.invoke();
+            if (instance==null) return (T) mh.invoke();
             else return (T) mh.invokeWithArguments(instance);
         } catch (Throwable e) {
             throw new RuntimeException("Error during getting value from a config field. ", e);
@@ -95,7 +95,7 @@ public interface Util {
 
         Class superClazz = clazz.getSuperclass();
         // get super class' fields recursively
-        if(superClazz != null) fields.addAll(getAllFields(superClazz));
+        if (superClazz != null) fields.addAll(getAllFields(superClazz));
 
         return fields;
     }
@@ -112,7 +112,7 @@ public interface Util {
 
         Class superClazz = clazz.getSuperclass();
         // get super class' fields recursively
-        if(superClazz != null) methods.addAll(getAllMethods(superClazz));
+        if (superClazz != null) methods.addAll(getAllMethods(superClazz));
 
         return methods;
     }
@@ -121,9 +121,9 @@ public interface Util {
 
     /** Finds all declared methods in the class that are annotated by annotation of specified type. */
     static <A extends Annotation> Method getMethodAnnotated(Class<?> type, Class<A> ca) {
-        for(Method m: type.getDeclaredMethods()) {
+        for (Method m: type.getDeclaredMethods()) {
             A a = m.getAnnotation(ca);
-            if(a!=null) return m;
+            if (a!=null) return m;
         }
         return null;
     }
@@ -131,9 +131,9 @@ public interface Util {
     /** Finds all declared constructors in the class that are annotated by annotation of specified type. */
     @SuppressWarnings("unchecked")
     static <A extends Annotation, T> Constructor<T> getConstructorAnnotated(Class<T> type, Class<A> ca) {
-        for(Constructor<?> m: type.getDeclaredConstructors()) {
+        for (Constructor<?> m: type.getDeclaredConstructors()) {
             A a = m.getAnnotation(ca);
-            if(a!=null) return (Constructor<T>) m; // safe right? what else can the constructor return than T ?
+            if (a!=null) return (Constructor<T>) m; // safe right? what else can the constructor return than T ?
         }
         return null;
     }
@@ -158,12 +158,12 @@ public interface Util {
 
     private static List<Class> getSuperClasses(Class<?> c, List<Class> cs) {
         Class<?> sc = c.getSuperclass();
-        if(sc!=null) {
+        if (sc!=null) {
             cs.add(sc);
             getSuperClasses(sc, cs);
         }
         Class<?>[] is = c.getInterfaces();
-        for(Class<?> i : is) {
+        for (Class<?> i : is) {
             cs.add(i);
             getSuperClasses(i, cs);
         }
@@ -178,15 +178,15 @@ public interface Util {
      */
     @SuppressWarnings("unchecked")
     static <T> Class<T> unPrimitivize(Class<T> c) {
-        if(c.isPrimitive()) {
-            if(c.equals(boolean.class)) return (Class) Boolean.class;
-            if(c.equals(int.class)) return (Class) Integer.class;
-            if(c.equals(float.class)) return (Class) Float.class;
-            if(c.equals(double.class)) return (Class) Double.class;
-            if(c.equals(long.class)) return (Class) Long.class;
-            if(c.equals(byte.class)) return (Class) Byte.class;
-            if(c.equals(short.class)) return (Class) Short.class;
-            if(c.equals(char.class)) return (Class) Character.class;
+        if (c.isPrimitive()) {
+            if (c.equals(boolean.class)) return (Class) Boolean.class;
+            if (c.equals(int.class)) return (Class) Integer.class;
+            if (c.equals(float.class)) return (Class) Float.class;
+            if (c.equals(double.class)) return (Class) Double.class;
+            if (c.equals(long.class)) return (Class) Long.class;
+            if (c.equals(byte.class)) return (Class) Byte.class;
+            if (c.equals(short.class)) return (Class) Short.class;
+            if (c.equals(char.class)) return (Class) Character.class;
         }
         return c;
     }
@@ -248,36 +248,36 @@ public interface Util {
         // class, due to all implementing something along the lines Property<Number>. As per
         // javadoc review, the affected are the four classes : Double, Float, Long, Integer.
         String typename = t.getTypeName(); // classname
-        if(typename.contains("Double")) return Double.class;
-        if(typename.contains("Integer")) return Integer.class;
-        if(typename.contains("Float")) return Float.class;
-        if(typename.contains("Long")) return Double.class;
+        if (typename.contains("Double")) return Double.class;
+        if (typename.contains("Integer")) return Integer.class;
+        if (typename.contains("Float")) return Float.class;
+        if (typename.contains("Long")) return Double.class;
 
         // This method is called recursively, but if ParameterizedType is passed in, we are halfway
         // there. We just return generic type if it is available. If not we return null and the
         // iteration will continue on upper level.
-        if(t instanceof ParameterizedType) {
+        if (t instanceof ParameterizedType) {
             Type[] genericTypes = ((ParameterizedType)t).getActualTypeArguments();
-            if(genericTypes.length>0 && genericTypes[0] instanceof Class)
+            if (genericTypes.length>0 && genericTypes[0] instanceof Class)
                 return (Class)genericTypes[0];
             else return null;
         }
 
-        if(t instanceof Class) {
+        if (t instanceof Class) {
             // recursively traverse class hierarchy until we find ParameterizedType
             // and return result if not null.
             Type supertype = ((Class)t).getGenericSuperclass();
             Class output = null;
-            if(supertype!=null && supertype!=Object.class)
+            if (supertype!=null && supertype!=Object.class)
                 output = getGenericPropertyType(supertype);
-            if(output!=null) return output;
+            if (output!=null) return output;
 
             // else try interfaces
             Type[] superinterfaces = ((Class)t).getGenericInterfaces();
-            for(Type superinterface : superinterfaces) {
-                if(superinterface instanceof ParameterizedType) {
+            for (Type superinterface : superinterfaces) {
+                if (superinterface instanceof ParameterizedType) {
                     output = getGenericPropertyType(superinterface);
-                    if(output!=null) return output;
+                    if (output!=null) return output;
                 }
             }
         }
@@ -337,7 +337,7 @@ public interface Util {
 		} catch(Exception e) {
 			return null;
 		} finally {
-			if(f!=null) f.setAccessible(false);
+			if (f!=null) f.setAccessible(false);
 		}
 	}
 
@@ -369,7 +369,7 @@ public interface Util {
         } catch (Exception x) {
             throw new RuntimeException(x);
         } finally {
-	        if(f!=null) f.setAccessible(false);
+	        if (f!=null) f.setAccessible(false);
         }
     }
 
@@ -406,7 +406,7 @@ public interface Util {
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new RuntimeException("Failed to invoke method: " + name, e);
         } finally {
-	        if(m!=null) m.setAccessible(false);
+	        if (m!=null) m.setAccessible(false);
         }
     }
 
@@ -420,7 +420,7 @@ public interface Util {
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new RuntimeException("Failed to invoke method '" + name + "' for " + param.getClass(), e);
         } finally {
-            if(m!=null) m.setAccessible(false);
+            if (m!=null) m.setAccessible(false);
         }
     }
 
@@ -479,12 +479,12 @@ public interface Util {
     @SuppressWarnings("unchecked")
     static <T> T[] getEnumConstants(Class type) {
         // handle enums
-        if(type.isEnum()) return (T[]) type.getEnumConstants();
+        if (type.isEnum()) return (T[]) type.getEnumConstants();
 
             // handle enum with class method bodies (they are not recognized as enums)
         else {
             Class ec = type.getEnclosingClass();
-            if(ec!=null && ec.isEnum())
+            if (ec!=null && ec.isEnum())
                 return (T[]) ec.getEnumConstants();
             else
                 throw new IllegalArgumentException("Class " + type + " is not an Enum.");

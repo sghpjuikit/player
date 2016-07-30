@@ -136,10 +136,10 @@ public class Player {
      */
     public static void refreshItems(Collection<? extends Item> is) {
         noØ(is);
-        if(is.isEmpty()) return;
+        if (is.isEmpty()) return;
 
         MetadataReader.readMetadata(is, (ok,m) -> {
-            if(ok) refreshItemsWith(m);
+            if (ok) refreshItemsWith(m);
         });
     }
 
@@ -175,7 +175,7 @@ public class Player {
      */
     public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
         noØ(ms);
-        if(allowDelay) Async.runFX(() -> red.push(ms));
+        if (allowDelay) Async.runFX(() -> red.push(ms));
         else refreshItemsWithNow(ms);
     }
 
@@ -192,7 +192,7 @@ public class Player {
     private static void refreshItemsWithNow(List<Metadata> ms) {
 //        System.out.println("refreshing now " + ms.size());
         noØ(ms);
-        if(ms.isEmpty()) return;
+        if (ms.isEmpty()) return;
 
         // always on br thread
         IO_THREAD.execute(() -> {
@@ -211,9 +211,9 @@ public class Player {
                 // refresh playing item data
                 mm.ifHasE(playingtem.get(), playingtem::update);
 
-                if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
-                if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
-                if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
+                if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
+                if (playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
+                if (librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
 
                 // refresh rest
                 refreshHandlers.forEach(h -> h.accept(mm));
@@ -257,10 +257,10 @@ public class Player {
             // this will cause infinite loop!
             //
             // for now we will use flag as dirty solution
-            if(PLAYBACK.suspension_flag) return;
+            if (PLAYBACK.suspension_flag) return;
 
 
-            if(change) changes.forEach(h -> h.accept(ov,nv));
+            if (change) changes.forEach(h -> h.accept(ov,nv));
             updates.forEach(h -> h.accept(ov,nv));
         }
 
@@ -323,12 +323,12 @@ public class Player {
 
         /** Execute when song starts playing. */
         public void itemChanged(Item item) {
-            if(item == null) {
+            if (item == null) {
                 set(true,EMPTY);
                 log(Player.class).info("Current item metadata set to empty. No item playing.");
             }
             // if same item, still fire change
-            else if(val.same(item)) {
+            else if (val.same(item)) {
                 set(true,val);
                 log(Player.class).info("Current item metadata reused. Same item playing.");
             }

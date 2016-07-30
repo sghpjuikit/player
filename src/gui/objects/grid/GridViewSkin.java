@@ -81,7 +81,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.setFocusTraversable(getSkinnable().isFocusTraversable());
         skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
         control.focusedProperty().addListener((o,ov,nv) -> {
-            if(nv) getFlow().requestFocus();
+            if (nv) getFlow().requestFocus();
         });
 
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
@@ -89,7 +89,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
 
         ListChangeListener<T> itemsListener = change -> {
-            if(change.next())
+            if (change.next())
                 updateGridViewItems();
         };
         //        WeakListChangeListener<T> weakGridViewItemsListener = new WeakListChangeListener<>(itemsListener);
@@ -102,20 +102,20 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         // selection
         skin.flow.addEventHandler(KEY_PRESSED, e -> {
             KeyCode c = e.getCode();
-            if(c.isNavigationKey()) {
-                if(control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
-                    if(c==KeyCode.UP || c==KeyCode.KP_UP)       selectIfNoneOr(this::selectFirst,this::selectUp);
-                    if(c==KeyCode.DOWN || c==KeyCode.KP_DOWN)   selectIfNoneOr(this::selectFirst,this::selectDown);
-                    if(c==KeyCode.LEFT || c==KeyCode.KP_LEFT)   selectIfNoneOr(this::selectFirst,this::selectLeft);
-                    if(c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst,this::selectRight);
-                    if(c==KeyCode.PAGE_UP)      selectIfNoneOr(this::selectFirst,this::selectPageUp);
-                    if(c==KeyCode.PAGE_DOWN)    selectIfNoneOr(this::selectFirst,this::selectPageDown);
-                    if(c==KeyCode.HOME)         selectFirst();
-                    if(c==KeyCode.END)          selectLast();
+            if (c.isNavigationKey()) {
+                if (control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
+                    if (c==KeyCode.UP || c==KeyCode.KP_UP)       selectIfNoneOr(this::selectFirst,this::selectUp);
+                    if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN)   selectIfNoneOr(this::selectFirst,this::selectDown);
+                    if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT)   selectIfNoneOr(this::selectFirst,this::selectLeft);
+                    if (c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst,this::selectRight);
+                    if (c==KeyCode.PAGE_UP)      selectIfNoneOr(this::selectFirst,this::selectPageUp);
+                    if (c==KeyCode.PAGE_DOWN)    selectIfNoneOr(this::selectFirst,this::selectPageDown);
+                    if (c==KeyCode.HOME)         selectFirst();
+                    if (c==KeyCode.END)          selectLast();
                 }
 	            e.consume();
-            } else if(c==ESCAPE && !e.isConsumed()) {
-                if(selectedCI>=0) {
+            } else if (c==ESCAPE && !e.isConsumed()) {
+                if (selectedCI>=0) {
                     selectNone();
                     e.consume();
                 }
@@ -216,7 +216,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     protected double getVScrollbarWidth() {
-        if(skin.flow!=null) {
+        if (skin.flow!=null) {
             Object virtualScrollBar = Util.getFieldValue(skin.flow, "vbar"); // VirtualScrollBar.class
             // return virtualScrollBar!=null && virtualScrollBar.isVisible() ? virtualScrollBar.getWidth() : 0;
             boolean isVisible = virtualScrollBar!=null && (boolean) invokeMethodP0(virtualScrollBar, "isVisible");
@@ -301,17 +301,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     public BooleanProperty filterVisible = new SimpleBooleanProperty(false) {
         @Override
         public void set(boolean v) {
-            if(v && get()) {
+            if (v && get()) {
                 runLater(filter::focus);
                 return;
             }
 
             super.set(v);
-            if(!v) filter.clear();
+            if (!v) filter.clear();
 
             Node sn = filter.getNode();
-            if(v) {
-                if(!filterPane.getChildren().contains(sn))
+            if (v) {
+                if (!filterPane.getChildren().contains(sn))
                     filterPane.getChildren().add(0,sn);
             } else {
                 filterPane.getChildren().clear();
@@ -320,7 +320,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             filter.getNode().setVisible(v);
 
             // focus filter to allow user use filter asap
-            if(v) runLater(filter::focus);
+            if (v) runLater(filter::focus);
         }
     };
 
@@ -355,21 +355,21 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
             getNode().addEventFilter(KEY_PRESSED, e -> {
                 // ESC -> close filter
-                if(e.getCode()==ESCAPE) {
+                if (e.getCode()==ESCAPE) {
                     // clear & hide filter on single ESC
                     // clear();
                     // setFilterVisible(false);
 
 
                     // clear filter on 1st, hide on 2nd
-                    if(filterVisible.get()) {
-                        if(isEmpty()) filterVisible.set(false);
+                    if (filterVisible.get()) {
+                        if (isEmpty()) filterVisible.set(false);
                         else clear();
                         e.consume();
                     }
                 }
                 // CTRL+F -> hide filter
-                if(e.getCode()==F && e.isShortcutDown()) {
+                if (e.getCode()==F && e.isShortcutDown()) {
                     filterVisible.set(false);
                     GridViewSkin.this.root.requestFocus();
                 }
@@ -379,17 +379,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             GridViewSkin.this.skin.flow.addEventHandler(KEY_PRESSED, e -> {
                 KeyCode k = e.getCode();
                 // CTRL+F -> toggle filter
-                if(k==F && e.isShortcutDown()) {
+                if (k==F && e.isShortcutDown()) {
                     filterVisible.set(!filterVisible.get());
-                    if(!filterVisible.get()) GridViewSkin.this.root.requestFocus();
+                    if (!filterVisible.get()) GridViewSkin.this.root.requestFocus();
                     return;
                 }
 
-                if(e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
+                if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
                 // ESC, filter not focused -> close filter
-                if(k==ESCAPE) {
-                    if(filterVisible.get()) {
-                        if(isEmpty()) filterVisible.set(false);
+                if (k==ESCAPE) {
+                    if (filterVisible.get()) {
+                        if (isEmpty()) filterVisible.set(false);
                         else clear();
                         e.consume();
                     }
@@ -417,7 +417,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private GridCell<T,F> selectedC = null;
 
     void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
-        if(selectedCI <0) ifEmpty.run();
+        if (selectedCI <0) ifEmpty.run();
         else otherwise.run();
     }
 
@@ -459,8 +459,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void selectNone() {
-        if(selectedC!=null) selectedC.updateSelected(false);
-        if(selectedR!=null) selectedR.updateSelected(false);
+        if (selectedC!=null) selectedC.updateSelected(false);
+        if (selectedR!=null) selectedR.updateSelected(false);
         getSkinnable().selectedRow.set(null);
         getSkinnable().selectedItem.set(null);
         selectedR = null;
@@ -470,19 +470,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void select(GridCell<T,F> c) {
-        if(c==null || c.getItem()==null) selectNone();
+        if (c==null || c.getItem()==null) selectNone();
         else select(c.getIndex());
     }
 
     /** Select cell (and row it is in) at index. No-op if out of range. */
     void select(int i) {
-        if(skin.flow==null) return;
-        if(i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
+        if (skin.flow==null) return;
+        if (i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
 
         int itemCount = getSkinnable().getItemsShown().size();
         int iMin = 0;
         int iMax = itemCount-1;
-        if(itemCount==0 || i== selectedCI || !isInRangeInc(i,iMin,iMax)) return;
+        if (itemCount==0 || i== selectedCI || !isInRangeInc(i,iMin,iMax)) return;
 
         selectNone();
 
@@ -492,23 +492,23 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         int row = i/cols;
         int col = i%cols;
 
-        if(row<0 || row>rows) return;
+        if (row<0 || row>rows) return;
 
         // show row & cell to select
         GridRow<T,F> fvc = skin.flow.getFirstVisibleCell();
         GridRow<T,F> lvc = skin.flow.getLastVisibleCell();
         boolean isUp   = row<=fvc.getIndex();
         boolean isDown = row>=lvc.getIndex();
-        if(fvc.getIndex() >= row || row >= lvc.getIndex()) {
-            if(isUp) skin.flow.scrollToTop(row);
+        if (fvc.getIndex() >= row || row >= lvc.getIndex()) {
+            if (isUp) skin.flow.scrollToTop(row);
             else skin.flow.scrollTo(row); // TODO: fix weird behavior
         }
 
         // find row & cell to select
         GridRow<T,F> r = skin.flow.getCell(row);
-        if(r==null) return;
+        if (r==null) return;
         GridCell<T,F> c = r.getSkinn().getCellAtIndex(col);
-        if(c==null) return;
+        if (c==null) return;
 
         selectedCI = i;
         selectedRI = row;

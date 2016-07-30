@@ -61,7 +61,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 		public FontStyle(String styles) {
 			this();
 			String[] fontStyles = (styles == null? "": styles.trim().toUpperCase()).split(" ");
-			for ( String style: fontStyles) {
+			for (String style: fontStyles) {
 				FontWeight w = FontWeight.findByName(style);
 				if ( w != null ) {
 					weight = w;
@@ -279,7 +279,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 						listSelection(sizeListView));
 				}
 
-			} catch( Throwable ex ) {
+			} catch(Throwable ex ) {
 				return null;
 			}
 		}

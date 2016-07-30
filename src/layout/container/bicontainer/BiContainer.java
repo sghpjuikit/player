@@ -63,14 +63,14 @@ public class BiContainer extends Container<Splitter> {
      */
     @Override
     public void addChild(Integer index, Component c) {
-        if(index == null) return;
+        if (index == null) return;
         if (index<1 || index>2)
             throw new IndexOutOfBoundsException("Index " + index + " not supported. Only null,1,2 values supported.");
 
-        if(c==null) children.remove(index);
+        if (c==null) children.remove(index);
         else children.put(index, c);
 
-        if(ui!=null) ui.setComponent(index, c);
+        if (ui!=null) ui.setComponent(index, c);
         setParentRec();
     }
 
@@ -85,22 +85,22 @@ public class BiContainer extends Container<Splitter> {
 
     @Override
     public Integer getEmptySpot() {
-        if(children.get(1)==null) return 1;
-        if(children.get(2)==null) return 2;
+        if (children.get(1)==null) return 1;
+        if (children.get(2)==null) return 2;
         else return null;
     }
 
     @Override
     public void show() {
 //        super.show();
-        if(ui!=null) ui.show();
+        if (ui!=null) ui.show();
     }
 
     @Override
     public void hide() {
 //        super.hide();
-//        if(gui !=null) gui.widgets.values().forEach(Area::hide);
-                if(ui!=null) ui.hide();
+//        if (gui !=null) gui.widgets.values().forEach(Area::hide);
+                if (ui!=null) ui.hide();
     }
 
 }

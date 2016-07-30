@@ -97,7 +97,7 @@ class Utils {
         double s = y/dist;
         double ac = acos(c);
         double as = asin(s);
-        if(c>0) return as;
+        if (c>0) return as;
         return (s<0) ? acos(c) : acos(c)+PI/2;
     }
 
@@ -110,7 +110,7 @@ class Utils {
      * sequence with 0 in the middle and consistent angle gap in between each.
      */
     static Double[] calculateGunTurretAngles(int i) {
-        if(i<=1) return array(0d);
+        if (i<=1) return array(0d);
         return ( i%2==1
             ? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
             : stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
@@ -270,7 +270,7 @@ class Utils {
         return l==0 ? null : c[randInt(c.length)];
     }
     static <T> T randOf(Collection<T> c) {
-        if(c.isEmpty()) return null;
+        if (c.isEmpty()) return null;
         int size = c.size();
         return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
     }
@@ -499,21 +499,21 @@ class Utils {
         void inc() {
             times++;
             value = valueCalc.apply(times);
-            if(changeApplier!=null) changeApplier.accept(times);
+            if (changeApplier!=null) changeApplier.accept(times);
         }
 
         void dec() {
-            if(times<=0) return;
+            if (times<=0) return;
             times--;
             value = valueCalc.apply(times);
-            if(changeApplier!=null) changeApplier.accept(times);
+            if (changeApplier!=null) changeApplier.accept(times);
         }
 
         void reset() {
-            if(times!=0) {
+            if (times!=0) {
                 times = 0;
                 value = valueCalc.apply(times);
-                if(changeApplier!=null) changeApplier.accept(times);
+                if (changeApplier!=null) changeApplier.accept(times);
             }
         }
     }
@@ -531,7 +531,7 @@ class Utils {
 
         void remove(O o) {
             Set l = m.get(mapper.apply(o));
-            if(l!=null) l.remove(o);
+            if (l!=null) l.remove(o);
         }
 
         @SuppressWarnings("unchecked")
@@ -546,7 +546,7 @@ class Utils {
         @SuppressWarnings("unchecked")
         <T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
             Set<T> l = (Set<T>) m.get(c);
-            if(l!=null) l.forEach(action);
+            if (l!=null) l.forEach(action);
         }
 
         void forEach(Consumer<? super O> action) {
@@ -555,7 +555,7 @@ class Utils {
 
         @SuppressWarnings("unchecked")
         <T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
-            if(t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
+            if (t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
             else forEachPair(get(t),get(e), action);
         }
 
@@ -575,11 +575,11 @@ class Utils {
         }
 
         void add(P p) {
-            if(pool.size()<max) pool.add(p);
+            if (pool.size()<max) pool.add(p);
         }
         P get() {
             P n = pool.isEmpty() ? null : pool.get(0);
-            if(n!=null) pool.remove(0);
+            if (n!=null) pool.remove(0);
             return n==null ? fac.apply() : n;
         }
 
@@ -619,24 +619,24 @@ class Utils {
             ymax = sizey;
             bucketspan = bucket_SPAN;
             a = new Set[xmax][ymax];
-            for(int i=0; i<xmax; i++)
-                for(int j=0; j<ymax; j++)
+            for (int i=0; i<xmax; i++)
+                for (int j=0; j<ymax; j++)
                     a[i][j] = new HashSet<>();
         }
 
         void add(Collection<PO> os) {
-            for(PO o : os) {
+            for (PO o : os) {
                 int i = (int) o.x/bucketspan;
                 int j = (int) o.y/bucketspan;
                 a[i][j].add(o);
             }
-//            for(PO o : os) {
+//            for (PO o : os) {
 //                int mini = (int) (o.x-o.hit_radius)/bucketspan;
 //                int minj = (int) (o.y-o.hit_radius)/bucketspan;
 //                int maxi = (int) (o.x+o.hit_radius)/bucketspan;
 //                int maxj = (int) (o.y+o.hit_radius)/bucketspan;
-//                for(int i=mini; i<=maxi; i++)
-//                    for(int j=minj; j<maxj; j++)
+//                for (int i=mini; i<=maxi; i++)
+//                    for (int j=minj; j<maxj; j++)
 //                        a[i][j].add(o);
 //            }
         }
@@ -645,9 +645,9 @@ class Utils {
             int minj = (int) (o.y-o.radius)/bucketspan;
             int maxi = (int) (o.x+o.radius)/bucketspan;
             int maxj = (int) (o.y+o.radius)/bucketspan;
-            for(int i=mini; i<=maxi; i++)
-                for(int j=minj; j<maxj; j++)
-                    for(PO e : a[i][j])
+            for (int i=mini; i<=maxi; i++)
+                for (int j=minj; j<maxj; j++)
+                    for (PO e : a[i][j])
                         action.accept(o,e);
         }
     }
@@ -711,9 +711,9 @@ class Utils {
             ltc.forEach(Runnable::run);
             ltc.removeIf(t -> t.isDone());
 
-            for(int i=lt.size()-1; i>=0; i--) {
+            for (int i=lt.size()-1; i>=0; i--) {
                 TTL t = lt.get(i);
-                if(t.ttl>1) t.ttl--;
+                if (t.ttl>1) t.ttl--;
                 else {
                     lt.remove(i);
                     temp.add(t);
@@ -722,9 +722,9 @@ class Utils {
             temp.forEach(Runnable::run);
             temp.clear();
 
-            for(int i=lpt.size()-1; i>=0; i--) {
+            for (int i=lpt.size()-1; i>=0; i--) {
                 PTTL t = lpt.get(i);
-                if(t.ttl>1) t.ttl--;
+                if (t.ttl>1) t.ttl--;
                 else t.run();
             }
 
@@ -763,7 +763,7 @@ class Utils {
             ttlto = TTLto;
             ttlby = TTLby;
             isincr = ttlby>0;
-            if(ttlby==0) throw new IllegalArgumentException("Infinite runnable");
+            if (ttlby==0) throw new IllegalArgumentException("Infinite runnable");
             r = R;
         }
 
@@ -1022,17 +1022,17 @@ class Utils {
         }
 
         void update() {
-            for(Spring s : springs)
+            for (Spring s : springs)
                 s.update();
 
-            for(PointMass[] ps : points)
-                for(PointMass p : ps)
+            for (PointMass[] ps : points)
+                for (PointMass p : ps)
                     p.update();
         }
 
          void applyDirectedForce(Vec2 force, Vec2 position, double radius) {
-            for(PointMass[] ps : points)
-                for(PointMass p : ps) {
+            for (PointMass[] ps : points)
+                for (PointMass p : ps) {
                     double distsqr = position.distSqr(p.position);
                     double dist = sqrt(distsqr);
                     if (distsqr < radius*radius) {
@@ -1044,8 +1044,8 @@ class Utils {
         }
 
          void applyImplosiveForce(double force, Vec2 position, double radius) {
-            for(PointMass[] ps : points)
-                for(PointMass p : ps) {
+            for (PointMass[] ps : points)
+                for (PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
                 if (dist2 < radius*radius) {
                     Vec2 f = new Vec2(position);
@@ -1058,8 +1058,8 @@ class Utils {
         }
 
          void applyExplosiveForce(double force, Vec2 position, double radius) {
-            for(PointMass[] ps : points)
-                for(PointMass p : ps) {
+            for (PointMass[] ps : points)
+                for (PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
                 if (dist2 < radius*radius) {
                     Vec2 f = new Vec2(p.position);
@@ -1149,7 +1149,7 @@ class Utils {
                 velocity.add(acceleration);
                 position.add(velocity);
                 acceleration = new Vec2(0,0);
-                if(velocity.lengthSqr() < 0.000001) // forbids small values, perf optimization
+                if (velocity.lengthSqr() < 0.000001) // forbids small values, perf optimization
                     velocity = new Vec2(0,0);
 
                 velocity.mul(damping);
@@ -1174,7 +1174,7 @@ class Utils {
             void update() {
                 Vec2 posDiff = end1.position.diff(end2.position);
                 double posDiffLen = posDiff.length();
-                if(posDiffLen <= length) // we will only pull, not push
+                if (posDiffLen <= length) // we will only pull, not push
                     return;
 
                 posDiff.setResult(v -> (v/posDiffLen) * (posDiffLen-length));

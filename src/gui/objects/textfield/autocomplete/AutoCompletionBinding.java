@@ -94,7 +94,7 @@ public abstract class AutoCompletionBinding<T> {
             try {
                 ignoreInputChanges = true;
                 acceptSuggestion(e.getSuggestion());
-                if(hideOnSuggestion.get()) hidePopup();
+                if (hideOnSuggestion.get()) hidePopup();
                 fireAutoCompletion(e.getSuggestion());
             } finally{
                 // Ensure that ignore is always set back to false
@@ -118,7 +118,7 @@ public abstract class AutoCompletionBinding<T> {
      * @param userText
      */
     public final void setUserInput(String userText){
-        if(!ignoreInputChanges)
+        if (!ignoreInputChanges)
             onUserInputChanged(userText);
     }
 
@@ -198,7 +198,7 @@ public abstract class AutoCompletionBinding<T> {
     }
 
     protected void fireAutoCompletion(T completion){
-	    if(completion != null && onAutoCompleted!=null && onAutoCompleted.get() != null)
+	    if (completion != null && onAutoCompleted!=null && onAutoCompleted.get() != null)
 		    onAutoCompleted.get().handle(new AutoCompletionEvent<>(completion));
     }
 
@@ -209,10 +209,10 @@ public abstract class AutoCompletionBinding<T> {
      */
     private void selectFirstSuggestion(AutoCompletePopup<?> autoCompletionPopup){
         Skin<?> skin = autoCompletionPopup.getSkin();
-        if(skin instanceof AutoCompletePopupSkin){
+        if (skin instanceof AutoCompletePopupSkin){
             AutoCompletePopupSkin<?> au = (AutoCompletePopupSkin<?>)skin;
             ListView<?> li = (ListView<?>)au.getNode();
-            if(li.getItems() != null && !li.getItems().isEmpty()){
+            if (li.getItems() != null && !li.getItems().isEmpty()){
                 li.getSelectionModel().select(0);
             }
         }
@@ -224,7 +224,7 @@ public abstract class AutoCompletionBinding<T> {
      */
     private void onUserInputChanged(final String userText){
         synchronized (suggestionsTaskLock) {
-            if(suggestionsTask != null && suggestionsTask.isRunning()){
+            if (suggestionsTask != null && suggestionsTask.isRunning()){
                 // cancel the current running task
                 suggestionsTask.cancel();
             }
@@ -265,16 +265,16 @@ public abstract class AutoCompletionBinding<T> {
         @Override
         protected Void call() throws Exception {
             Callback<ISuggestionRequest, Collection<T>> provider = suggestionProvider;
-            if(provider != null){
+            if (provider != null){
                 long start_time = System.currentTimeMillis();
                 final Collection<T> fetchedSuggestions = provider.call(this);
                 long sleep_time = start_time + AUTO_COMPLETE_DELAY - System.currentTimeMillis();
                 if (sleep_time > 0 && !isCancelled()) {
                     Thread.sleep(sleep_time);
                 }
-                if(!isCancelled()){
+                if (!isCancelled()){
                     Platform.runLater(() -> {
-                        if(fetchedSuggestions != null && !fetchedSuggestions.isEmpty()){
+                        if (fetchedSuggestions != null && !fetchedSuggestions.isEmpty()){
                             popup.getSuggestions().setAll(fetchedSuggestions);
                             showPopup();
                         } else {

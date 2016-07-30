@@ -77,7 +77,7 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
                 if (i < totalCellsInGrid) {
                     // Check if we can re-use a cell at this index or create a new one
                     GridCell<T,F> cell = getCellAtIndex(cacheIndex);
-                    if(cell == null) {
+                    if (cell == null) {
                         cell = createCell();
                         getChildren().add(cell);
                     }
@@ -132,11 +132,11 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
                 : createDefaultCellImpl();
         cell.updateGridView(grid);
         cell.addEventHandler(MOUSE_CLICKED, e -> {
-            if(grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
+            if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
                 getSkinnable().getGridView().implGetSkin().select(cell);
         });
         cell.hoverProperty().addListener((o,ov,nv) -> {
-            if(nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
+            if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
                 getSkinnable().getGridView().implGetSkin().select(cell);
         });
         return cell;

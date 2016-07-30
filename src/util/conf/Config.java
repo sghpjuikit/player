@@ -161,7 +161,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     @TODO(note = "Make this behave consistently for null values")
     public void setValueS(String str) {
         T v = fromS(str);
-        if(v!=null) setValue(v);
+        if (v!=null) setValue(v);
     }
 
     /**
@@ -183,7 +183,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public T fromS(String str) {
-        if(isTypeEnumerable()) {
+        if (isTypeEnumerable()) {
             // 1 Notice we are traversing all enumarated values to look up the one which we want to
             //   deserialize.
             //   We do this by converting each value to string and compare. This is potentially
@@ -198,8 +198,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             //   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
             //   by having OverridableConfig provide its own implementation, but I dont want to
             //   spread problematic code such as this around. Not till 1 gets fixed up.
-            for(T v : enumerateValues())
-                if(Parser.DEFAULT.toS(v).equalsIgnoreCase(str)) return v;
+            for (T v : enumerateValues())
+                if (Parser.DEFAULT.toS(v).equalsIgnoreCase(str)) return v;
 
             log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
             return getDefaultValue();
@@ -214,7 +214,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     private boolean init = false;
 
     public boolean isTypeEnumerable() {
-        if(!init && valueEnumerator==null) {
+        if (!init && valueEnumerator==null) {
             valueEnumerator = buildEnumEnumerator(getDefaultValue());
             init = true;
         }
@@ -223,7 +223,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
     @Override
     public Collection<T> enumerateValues() {
-        if(isTypeEnumerable()) return valueEnumerator.get();
+        if (isTypeEnumerable()) return valueEnumerator.get();
         throw new RuntimeException(getType() + " not enumerable.");
     }
 
@@ -248,7 +248,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public final Config<T> getField(String name) {
-        if(!name.equals(getName())) throw new IllegalArgumentException("Name mismatch");
+        if (!name.equals(getName())) throw new IllegalArgumentException("Name mismatch");
         else return this;
     }
 
@@ -284,7 +284,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     public static <T> Config<T> forValue(Class type, String name, Object value) {
         noØ(value, "Config can not be created for null");
-        if(value instanceof Config ||
+        if (value instanceof Config ||
            value instanceof VarList ||
            value instanceof Vo ||
            value instanceof WritableValue ||
@@ -314,15 +314,15 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * the above, runtime exception will be thrown.
      */
     public static <T> Config<T> forProperty(Class<T> type, String name, Object property) {
-        if(property instanceof Config)
+        if (property instanceof Config)
             return (Config<T>)property;
-        if(property instanceof VarList)
+        if (property instanceof VarList)
             return new ListConfig(name,(VarList)property);
-        if(property instanceof Vo)
+        if (property instanceof Vo)
             return new OverridablePropertyConfig<>(type,name,(Vo<T>)property);
-        if(property instanceof WritableValue)
+        if (property instanceof WritableValue)
             return new PropertyConfig<>(type,name,(WritableValue<T>)property);
-        if(property instanceof ObservableValue)
+        if (property instanceof ObservableValue)
             return new ReadOnlyPropertyConfig<>(type,name,(ObservableValue<T>)property);
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
     }
@@ -459,7 +459,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public void setValue(T val) {
             try {
-                if(instance==null) setter.invokeWithArguments(val);
+                if (instance==null) setter.invokeWithArguments(val);
                 else setter.invokeWithArguments(instance,val);
             } catch (Throwable e) {
                 throw new RuntimeException("Error setting config field " + getName(),e);
@@ -468,11 +468,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
         @Override
         public void applyValue(T val) {
-            if(applier != null) {
+            if (applier != null) {
                 try {
                     int i = applier.type().parameterCount();
 
-                    if(i==1) applier.invokeWithArguments(val);
+                    if (i==1) applier.invokeWithArguments(val);
                     else applier.invoke();
                 } catch (Throwable e) {
                     throw new RuntimeException("Error applying config field " + getName(),e);
@@ -485,7 +485,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          */
         @Override
         public boolean equals(Object o) {
-            if(this==o) return true;
+            if (this==o) return true;
 
             if (o == null || !(o instanceof FieldConfig)) return false;
 
@@ -521,7 +521,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(value instanceof EnumerableValue)
+            if (value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
@@ -540,7 +540,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(value instanceof EnumerableValue)
+            if (value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
@@ -597,7 +597,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          */
         @Override
         public boolean equals(Object o) {
-            if(o==this) return true;
+            if (o==this) return true;
             return (o instanceof PropertyConfig && value==((PropertyConfig)o).value);
         }
 
@@ -624,7 +624,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(value instanceof EnumerableValue)
+            if (value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
@@ -641,7 +641,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             super(property_type, name, gui_name, property.getValue(), category, info, false, min, max);
             value = property;
 
-            if(value instanceof EnumerableValue)
+            if (value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
@@ -691,7 +691,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          */
         @Override
         public boolean equals(Object o) {
-            if(o==this) return true;
+            if (o==this) return true;
             return (o instanceof ReadOnlyPropertyConfig && value==((ReadOnlyPropertyConfig)o).value);
         }
 
@@ -781,11 +781,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public T fromS(String str) {
             String s = str;
-            if(s.contains("overrides:true, ")) {
+            if (s.contains("overrides:true, ")) {
                 getProperty().override.setValue(true);
                 s = s.replace("overrides:true, ", "");
             }
-            if(s.contains("overrides:false, ")) {
+            if (s.contains("overrides:false, ")) {
                 getProperty().override.setValue(false);
                 s = s.replace("overrides:false, ", "");
             }
@@ -869,11 +869,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
                     T t = a.factory.get();
                     List<Config<Object>> configs = (List)list(a.toConfigurable.apply(t).getFields());
                     List<String> vals = split(s, ";");
-                    if(configs.size()==vals.size())
+                    if (configs.size()==vals.size())
                          // its important to apply the values too
                         forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));
 
-                    if(t.getClass().equals(configs.get(0).getType()))
+                    if (t.getClass().equals(configs.get(0).getType()))
                         return (T)configs.get(0).getValue();
                     else
                     return t;
@@ -907,7 +907,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         public void setValue(ObservableList<T> v) {
              // guarantees that the list will be permanent value since it is
              // only null before initialization. thus we no overwriting it
-            if(list==null) super.setValue(v);
+            if (list==null) super.setValue(v);
         }
 
         /**

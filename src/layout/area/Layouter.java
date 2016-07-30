@@ -107,10 +107,10 @@ public final class Layouter implements ContainerNode {
         );
 
         clickShowHider =  e -> {
-            if(e.getButton()==PRIMARY) {
-                if(cp.root.getOpacity()!=0) return;
+            if (e.getButton()==PRIMARY) {
+                if (cp.root.getOpacity()!=0) return;
                 // avoid when under lock
-                if(container.lockedUnder.get()) return;
+                if (container.lockedUnder.get()) return;
                 // rely on the public show() implementation, not internal one
                 show();
                 e.consume();
@@ -118,7 +118,7 @@ public final class Layouter implements ContainerNode {
         };
 //        exitHider =  e -> cp.onCancel.run();
         exitHider = e -> {
-            if(!isCancelPlaying) {
+            if (!isCancelPlaying) {
                 // rely on the public show() implementation, not internal one
                 cp.onCancel.run();
                 e.consume();
@@ -139,7 +139,7 @@ public final class Layouter implements ContainerNode {
     @Override
     public void hide() {
         // prevent leaving layout mode when layout mode active
-        if(Gui.isLayoutMode()) return;
+        if (Gui.isLayoutMode()) return;
         showControls(false);
 //        closeAndDo(cp.root, null);
     }
@@ -155,7 +155,7 @@ public final class Layouter implements ContainerNode {
         } else {
             a1.setOnFinished(isCancelPlaying ? e -> {
                 isCancelPlaying = false;
-                if(onCpCancel!=null) onCpCancel.run();
+                if (onCpCancel!=null) onCpCancel.run();
             } : e -> isCancelPlaying=false);
             a1.setToValue(0);
             a2.setToX(0);
@@ -179,7 +179,7 @@ public final class Layouter implements ContainerNode {
         if (root.getOnMouseExited()==null)
             root.setOnMouseExited(exitHider);
         // swap handlers
-        if(val) {
+        if (val) {
             root.addEventHandler(MOUSE_CLICKED,clickShowHider);
             root.removeEventHandler(MOUSE_ENTERED,clickShowHider);
         } else {
@@ -203,7 +203,7 @@ public final class Layouter implements ContainerNode {
                 root.setOnMouseExited(null);
                 // this is the crucial part
                 container.addChild(index, factory.create());
-                if(Gui.isLayoutMode()) container.show();
+                if (Gui.isLayoutMode()) container.show();
                 APP.actionStream.push("New widget");
             });
         };

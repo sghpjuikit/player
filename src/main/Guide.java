@@ -101,14 +101,14 @@ public final class Guide implements Configurable {
             new Label()
         );
         p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
-            if(e.getButton()==PRIMARY)   goToNext();
-            if(e.getButton()==SECONDARY) goToPrevious();
+            if (e.getButton()==PRIMARY)   goToNext();
+            if (e.getButton()==SECONDARY) goToPrevious();
             e.consume();
         });
         p.getContentNode().addEventHandler(KEY_PRESSED, e -> {
             System.out.println(e);
-            if(e.getCode()==RIGHT) goToNext();
-            if(e.getCode()==LEFT)  goToPrevious();
+            if (e.getCode()==RIGHT) goToNext();
+            if (e.getCode()==LEFT)  goToPrevious();
             e.consume();
         });
 
@@ -136,14 +136,14 @@ public final class Guide implements Configurable {
         Icon<?> pi = new Icon(DEBUG_STEP_OVER,ICON_SIZE){{setScaleX(-1);}};
              pi.setOpacity(0.5);
              ni.onClick(e -> {
-                 if(e.getButton()==PRIMARY) {
+                 if (e.getButton()==PRIMARY) {
                      ni.setOpacity(0.5);
                      pi.setOpacity(1);
                  }
                  e.consume();
              });
              pi.onClick(e -> {
-                 if(e.getButton()==SECONDARY) {
+                 if (e.getButton()==SECONDARY) {
                      pi.setOpacity(0.5);
                      ni.setOpacity(1);
                  }
@@ -394,7 +394,7 @@ public final class Guide implements Configurable {
     private final Anim proceed_anim = new Anim(millis(400),x -> p.getContentNode().setOpacity(-(x*x-1)));
 
     private void proceed() {
-        if(hints.isEmpty()) return;
+        if (hints.isEmpty()) return;
         if (at<0 || at>=hints.size()) at=0;
         proceed_anim.playOpenDoClose(this::proceedDo);
         first_time.set(false);
@@ -402,15 +402,15 @@ public final class Guide implements Configurable {
 
     private void proceedDo() {
         // exit old hint
-        if(prev_at>=0 && prev_at<hints.size()) {
+        if (prev_at>=0 && prev_at<hints.size()) {
             Hint ph = hints.get(prev_at);
-            if(ph.onExit!=null) ph.onExit.run();
+            if (ph.onExit!=null) ph.onExit.run();
         }
 
         Hint h = hints.get(at);
 
         // enter new hint
-        if(h.onEnter!=null) h.onEnter.run();
+        if (h.onEnter!=null) h.onEnter.run();
 
         // the condition has 2 reasons
         // - avoids unneeded show() call
@@ -424,7 +424,7 @@ public final class Guide implements Configurable {
         text.setText(h.text.get());
         // graphics
         p.getContentNode().getChildren().retainAll(text);
-        if(h.graphics!=null) {
+        if (h.graphics!=null) {
             h.graphics.removeEventHandler(MOUSE_CLICKED, consumer);
             h.graphics.addEventHandler(MOUSE_CLICKED, consumer);
             p.getContentNode().getChildren().add(h.graphics);
@@ -441,7 +441,7 @@ public final class Guide implements Configurable {
     public void start() {
         if (action_monitoring==null)
             action_monitoring = APP.actionStream.subscribe(action -> {
-//                if(p.isShowing())
+//                if (p.isShowing())
                     handleAction(action);
             });
         proceed();
@@ -459,7 +459,7 @@ public final class Guide implements Configurable {
         APP.actionStream.push("Guide opening");
         if (action_monitoring==null) start();
         else {
-            if(at>=hints.size()-1) at=0;
+            if (at>=hints.size()-1) at=0;
             proceed();
         }
     }
@@ -470,14 +470,14 @@ public final class Guide implements Configurable {
 
 
     public void goToStart() {
-        if(hints.isEmpty()) return;
+        if (hints.isEmpty()) return;
         prev_at = -1;
         at = 0;
         proceed();
     }
 
     public void goToPrevious() {
-        if(at==0) return;
+        if (at==0) return;
         prev_at = at;
         at--;
         proceed();

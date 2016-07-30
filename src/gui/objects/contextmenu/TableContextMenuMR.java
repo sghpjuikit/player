@@ -36,11 +36,11 @@ public class TableContextMenuMR<E,M> extends SingleR<ImprovedContextMenu<List<E>
      * @param e 
      */
     public void show(M mutator, TableView<E> table, MouseEvent e) {
-        if(!table.getSelectionModel().isEmpty())
+        if (!table.getSelectionModel().isEmpty())
             getM(mutator).show(table, e);
     }
     public void show(M mutator, TableView<E> table, ContextMenuEvent e) {
-        if(!table.getSelectionModel().isEmpty())
+        if (!table.getSelectionModel().isEmpty())
             getM(mutator).show(table, e);
     }
     

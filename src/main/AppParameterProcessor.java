@@ -61,7 +61,7 @@ public class AppParameterProcessor {
         @Override
         public void process(Collection<String> params) {
             List<String> strings = params.stream().filter(isProcessible).collect(toList());
-            if(!strings.isEmpty()) processor.accept(strings);
+            if (!strings.isEmpty()) processor.accept(strings);
         }
     }
     public static class URIParameterProcessor implements ParameterProcessor {
@@ -78,7 +78,7 @@ public class AppParameterProcessor {
             List<URI> uris = params.stream()
                .map(p -> {
                    try {
-                       if(p.length()>=2 && p.charAt(1)==':')
+                       if (p.length()>=2 && p.charAt(1)==':')
                            return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
                        return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
                    } catch(IllegalArgumentException | java.io.UnsupportedEncodingException e) {
@@ -88,7 +88,7 @@ public class AppParameterProcessor {
                .filter(ISNTØ)
                .filter(isProcessible)
                .collect(toList());
-            if(!uris.isEmpty()) processor.accept(uris);
+            if (!uris.isEmpty()) processor.accept(uris);
         }
     }
     public static class FileParameterProcessor implements ParameterProcessor {
@@ -105,7 +105,7 @@ public class AppParameterProcessor {
             List<File> files = params.stream()
                .map(p -> {
                    try {
-                       if(p.length()>=2 && p.charAt(1)==':')
+                       if (p.length()>=2 && p.charAt(1)==':')
                            return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
                        return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
                    } catch(IllegalArgumentException | java.io.UnsupportedEncodingException e) {
@@ -123,7 +123,7 @@ public class AppParameterProcessor {
                .filter(ISNTØ)
                .filter(isProcessible)
                .collect(toList());
-            if(!files.isEmpty()) processor.accept(files);
+            if (!files.isEmpty()) processor.accept(files);
         }
     }
 

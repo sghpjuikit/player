@@ -60,7 +60,7 @@ public class Outputs {
 
     public <T> Subscription monitor(String name, Consumer<T> action) {
         Output<T> o = (Output<T>)m.get(name);
-        if(o==null) return Subscription.EMPTY;
+        if (o==null) return Subscription.EMPTY;
 
         return maintain(o.val, action);
     }

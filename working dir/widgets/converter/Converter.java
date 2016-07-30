@@ -147,7 +147,7 @@ public class Converter extends ClassController implements SongWriter {
         ta_in.onItemChange = lines -> {
             List<EditArea> l = null;
             List<EditArea> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
-            if(!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
+            if (!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
                 List<SplitData> s = (List) ta_in.output;
                 List<String> names = s.get(0).stream().map(split -> split.parse_key).collect(toList());
 
@@ -183,10 +183,10 @@ public class Converter extends ClassController implements SongWriter {
         }));
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(util.type.Util.getEnumConstants(Metadata.Field.class),Object::toString), data -> {
             List<Item> songs = (List)list(source);
-            if(songs.isEmpty()) return;
+            if (songs.isEmpty()) return;
             Fut.fut()
                .then(() -> {
-                    for(int i=0; i<songs.size(); i++) {
+                    for (int i=0; i<songs.size(); i++) {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
                     }
@@ -213,9 +213,9 @@ public class Converter extends ClassController implements SongWriter {
     }
 
     public static List<?> unpackData(Object o) {
-        if(o instanceof String)
+        if (o instanceof String)
             return split((String) o, "\n", x->x);
-        else if(o instanceof Collection)
+        else if (o instanceof Collection)
             return list((Collection) o);
         else return listRO(o);
     }
@@ -285,7 +285,7 @@ public class Converter extends ClassController implements SongWriter {
             remI.setDisable(isMain);   // disallow removing main edit area
 
             // drag & drop (main area is handled globally)
-            if(!isMain) {
+            if (!isMain) {
                 installDrag(
                     getNode(), OctIcon.DATABASE, () -> "Set data to " + this.name.get() + " edit area",
                     e -> true,
@@ -294,15 +294,15 @@ public class Converter extends ClassController implements SongWriter {
             }
 
             textarea.addEventHandler(KEY_PRESSED, e -> {
-                if(e.getCode()==KeyCode.V && e.isControlDown()) {
+                if (e.getCode()==KeyCode.V && e.isControlDown()) {
                     String pasted_text = Clipboard.getSystemClipboard().getString();
-                    if(pasted_text!=null) {
+                    if (pasted_text!=null) {
                         String[] arealines = textarea.getText().split("\\n");
                         String[] pastedlines = pasted_text.split("\\n");
                         String text;
                         int min = min(arealines.length,pastedlines.length);
                         int max = max(arealines.length,pastedlines.length);
-                        if(min==max) {
+                        if (min==max) {
                             text = streamBi(arealines,pastedlines, (a,p) -> a+p).collect(joining("\n"));
                         } else {
                             // not implemented
@@ -330,7 +330,7 @@ public class Converter extends ClassController implements SongWriter {
         }
 
         public void fillActionData(){
-            if(isMain && applier!=null) {
+            if (isMain && applier!=null) {
                 applier.fillActs(transforms.getTypeIn());
             }
         }
@@ -353,18 +353,18 @@ public class Converter extends ClassController implements SongWriter {
         };
         private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
             Act action = actCB.getValue();
-            if(action==null) return;
+            if (action==null) return;
 
-            if(action.isPartial()) {
+            if (action.isPartial()) {
                 boolean empty = source.isEmpty() || ins.vals().count()==0;
-                if(empty) return;
+                if (empty) return;
 
                 boolean in_out_type_match = true;//action.type.isInstance(source.get(0));
                 boolean same_size = equalBy(tas, ta->ta.getValue().size());
-                if(!in_out_type_match || !same_size) return;
+                if (!in_out_type_match || !same_size) return;
 
                 Map<String,List<String>> m = ins.vals().collect(toMap(in->in.name,in ->in.ta.getValue()));
-                for(int i=0; i<source.size(); i++)
+                for (int i=0; i<source.size(); i++)
                     action.actionPartial.accept(source.get(i), mapSlice(m,i));
             } else {
                 Map<String,List<String>> m = ins.vals().collect(toMap(in->in.name,in ->in.ta.getValue()));
@@ -379,20 +379,20 @@ public class Converter extends ClassController implements SongWriter {
 
         public Applier() {
             actCB.valueProperty().addListener((o,ov,nv) -> {
-                if(nv==null) return;
-                if(ins!=null) root.getChildren().remove(ins.node());
-                if(root.getChildren().size()==4) root.getChildren().remove(2);
+                if (nv==null) return;
+                if (ins!=null) root.getChildren().remove(ins.node());
+                if (root.getChildren().size()==4) root.getChildren().remove(2);
                 ins = nv.isNamesDeterminate ? new InsSimple(nv) : new InsComplex(nv);
                 root.getChildren().add(2,ins.node());
                 Node n = nv.getNode();
-                if(n!=null) root.getChildren().add(3,n);
+                if (n!=null) root.getChildren().add(3,n);
             });
         }
 
         public void fillActs(Class<?> c) {
             List<Act> l = acts.getElementsOfSuperV(c);
             actCB.getItems().setAll(l);
-            if(!l.isEmpty()) actCB.setValue(l.get(0));
+            if (!l.isEmpty()) actCB.setValue(l.get(0));
         }
     }
     private class Act<V> {
@@ -484,7 +484,7 @@ public class Converter extends ClassController implements SongWriter {
                        names.forEach(name -> {
                            try {
                                File newf;
-                               if(use_loc.get()) {
+                               if (use_loc.get()) {
                                    name = name.startsWith(File.separator) ? name.substring(1) : name;
                                    newf = new File(dir,filenamizeString(name));
                                } else {

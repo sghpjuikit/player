@@ -74,7 +74,7 @@ public final class WidgetManager {
     }
 
     public void initialize() {
-        if(initialized) throw new IllegalStateException("Already initialized");
+        if (initialized) throw new IllegalStateException("Already initialized");
 
         // internal factories
         // Factories for classes known at compile time and packaged along the application requesting
@@ -135,11 +135,11 @@ public final class WidgetManager {
     }
 
     private void constructFactory(Class<?> controller_class, File dir) {
-        if(controller_class==null) {
+        if (controller_class==null) {
             LOGGER.warn("Widget class {} is null", dir);
             return;
         }
-        if(!Controller.class.isAssignableFrom(controller_class)) {
+        if (!Controller.class.isAssignableFrom(controller_class)) {
             LOGGER.warn("Widget class {} {} does not implement Controller", controller_class,dir);
             return;
         }
@@ -150,7 +150,7 @@ public final class WidgetManager {
         factories.add(wf);
         LOGGER.info("Registering widget factory: {}", wf.name());
 
-        if(was_replaced) {
+        if (was_replaced) {
             LOGGER.info("Reloading all open widgets of {}", wf.name());
             findAll(OPEN)
             .filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
@@ -187,19 +187,19 @@ public final class WidgetManager {
 
         @Idempotent
         void monitorStart() {
-            if(monitorOn) return;
+            if (monitorOn) return;
             monitorOn = true;
 
             // monitor source files (any .java file) & recompile on change
             classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> file.getPath().endsWith(".java"), (type,file) -> {
-                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} source file changed {}", file,type);
                     runNew(() -> compile(getSrcFiles()));
                 }
             });
             // monitor class file (only the main class' one) & recreate factory on change
             srcMonitor = FileMonitor.monitorFile(classfile, type -> {
-                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} class file changed {}", widgetname,type);
                     // run on fx thread & give the compilation some time to finish
                     runFX(500, () ->
@@ -209,7 +209,7 @@ public final class WidgetManager {
             });
             // monitor skin file & reload factory on change
             srcMonitor = FileMonitor.monitorFile(skinfile, type -> {
-                if(type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+                if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} SKIN file changed {}", widgetname,type);
                     // reload skin on all open widgets
                     // run on fx thread
@@ -217,7 +217,7 @@ public final class WidgetManager {
                         findAll(OPEN).filter(w -> w.getName().equals(widgetname))
                             .forEach(w -> {
                                 try {
-                                    if(w.root instanceof Pane) {
+                                    if (w.root instanceof Pane) {
                                         ((Pane)w.root).getStylesheets().remove(skinfile.toURI().toURL().toExternalForm());
                                         ((Pane)w.root).getStylesheets().add(skinfile.toURI().toURL().toExternalForm());
                                     }
@@ -233,9 +233,9 @@ public final class WidgetManager {
         @Idempotent
         void monitorStop() {
             monitorOn = false;
-            if(classMonitor!=null) classMonitor.stop();
-            if(classMonitor!=null) srcMonitor.stop();
-            if(classMonitor!=null) skinsMonitor.stop();
+            if (classMonitor!=null) classMonitor.stop();
+            if (classMonitor!=null) srcMonitor.stop();
+            if (classMonitor!=null) skinsMonitor.stop();
         }
 
 	    @Idempotent
@@ -257,13 +257,13 @@ public final class WidgetManager {
             boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
 
             // If class file is available, we just create factory for it.
-            if(classfile_available) {
+            if (classfile_available) {
                 Class<?> controller_class = loadClass(getName(widgetdir), classfile);
                 constructFactory(controller_class, widgetdir);
             }
 
             // If only source file is available, compile
-            else if(srcfile_available) {
+            else if (srcfile_available) {
                 // If we are initialized, app is running and some widget has been added (its factory
                 // does not exist yet), so we compile in the bgr as we should.
                 // Else, we are initializing now, and we must be able to
@@ -274,7 +274,7 @@ public final class WidgetManager {
                 // factories are ready (we finish compiling on bgr thread). Too much work for no real
                 // benefit - This is developer convenience feature anyway. We only need to compile
                 // once, then any subsequent app start will be compile-free.
-                if(initialized) runNew(() -> compile(getSrcFiles()));
+                if (initialized) runNew(() -> compile(getSrcFiles()));
                 else {
                     compile(getSrcFiles());
                     // File monitoring is not and must not be running yet (as it creates factory
@@ -308,7 +308,7 @@ public final class WidgetManager {
         LOGGER.info("Compiling with command: {} ", (Object[])arguments);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int success = compiler.run(null, null, null, arguments);
-        if(success == 0){
+        if (success == 0){
             LOGGER.info("Compilation succeeded");
         } else{
             LOGGER.info("Compilation failed");
@@ -509,8 +509,8 @@ public final class WidgetManager {
                 .collect(Collectors.toList());
 
         // get preferred widget or any if none preferred
-        for(Widget<?> w : widgets) {
-            if(out==null) out = w;
+        for (Widget<?> w : widgets) {
+            if (out==null) out = w;
             if (w.preferred.getValue()) {
                 out = w;
                 break;
@@ -530,7 +530,7 @@ public final class WidgetManager {
             if (f!=null) {
                 out = f.create();
                 standaloneWidgets.add(out);
-                if(!ignore) {
+                if (!ignore) {
                     UiContext.showFloating(out);
                 }
             }

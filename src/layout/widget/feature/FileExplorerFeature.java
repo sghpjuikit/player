@@ -40,6 +40,6 @@ public interface FileExplorerFeature {
      */
     default void exploreFiles(Collection<File> files) {
         File f = getCommonRoot(files);
-        if(f!=null) exploreFile(f);
+        if (f!=null) exploreFile(f);
     }
 }

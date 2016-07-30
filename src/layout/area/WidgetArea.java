@@ -81,7 +81,7 @@ public final class WidgetArea extends Area<Container> {
         );
 
         loadWidget();
-        if(Gui.isLayoutMode()) show(); else hide();
+        if (Gui.isLayoutMode()) show(); else hide();
     }
 
 
@@ -107,13 +107,13 @@ public final class WidgetArea extends Area<Container> {
     
     private void loadWidget(boolean forceloading) {
         noØ(widget);
-        if(s2!=null) s2.unsubscribe();
+        if (s2!=null) s2.unsubscribe();
 
         // We load the widget, but uphold loading type settings. Only user can load widget manually.
         // If the widget is loaded already, we are safe. This is important since widget switching
         // wouldnt load already loaded widget (if set to manual), but when it is loaded already
         // it makes no sense for the widget to not stay loaded.
-        if(forceloading || widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
+        if (forceloading || widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
             // load widget
             Node wNode = widget.load();
             content.getChildren().clear();
@@ -129,7 +129,7 @@ public final class WidgetArea extends Area<Container> {
 
             // workaround code
             widget.lockedUnder.initLocked(container);
-            if(s!=null) s.unsubscribe();
+            if (s!=null) s.unsubscribe();
             s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
         } else
         if (widget.loadType.get()==MANUAL) {
@@ -144,7 +144,7 @@ public final class WidgetArea extends Area<Container> {
 
             // workaround code
             widget.lockedUnder.initLocked(container);
-            if(s!=null) s.unsubscribe();
+            if (s!=null) s.unsubscribe();
             s = maintain(widget.locked, mapB(LOCK,UNLOCK),controls.lockB::icon);
 
             passiveLoadPane.getM(widget).showFor(content);

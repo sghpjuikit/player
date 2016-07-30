@@ -149,7 +149,7 @@ public class GridView<T,F> extends Control {
         // impl: consume scroll events and re-fire with smaller vertical values
         double factor = 1/3d;
         addEventFilter(ScrollEvent.ANY, e -> {
-            if(scrollFlag) {
+            if (scrollFlag) {
                 Event ne = new ScrollEvent(
                     e.getEventType(),e.getX(),e.getY(),e.getScreenX(),e.getScreenY(),
                     e.isShiftDown(),e.isControlDown(),e.isAltDown(),e.isMetaDown(),e.isDirect(),

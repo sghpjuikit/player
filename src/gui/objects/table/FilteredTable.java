@@ -124,21 +124,21 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         filterPane.getNode().setVisible(false);
         filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
             // ESC -> close filter
-            if(e.getCode()==ESCAPE) {
+            if (e.getCode()==ESCAPE) {
                 // clear & hide filter on single ESC
                 // searchBox.clear();
                 // setFilterVisible(false);
 
 
                 // clear filter on 1st, hide on 2nd
-                if(filterVisible.get()) {
-                    if(filterPane.isEmpty()) filterVisible.set(false);
+                if (filterVisible.get()) {
+                    if (filterPane.isEmpty()) filterVisible.set(false);
                     else filterPane.clear();
                     e.consume();
                 }
             }
             // CTRL+F -> hide filter
-            if(e.getCode()==F && e.isShortcutDown()) {
+            if (e.getCode()==F && e.isShortcutDown()) {
                 filterVisible.set(false);
                 requestFocus();
             }
@@ -148,17 +148,17 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         addEventHandler(KEY_PRESSED, e -> {
             KeyCode k = e.getCode();
             // CTRL+F -> toggle filter
-            if(k==F && e.isShortcutDown()) {
+            if (k==F && e.isShortcutDown()) {
                 filterVisible.set(!filterVisible.get());
-                if(!filterVisible.get()) requestFocus();
+                if (!filterVisible.get()) requestFocus();
                 return;
             }
 
-            if(e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
+            if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
             // ESC, filter not focused -> close filter
-            if(k==ESCAPE) {
-                if(filterVisible.get()) {
-                    if(filterPane.isEmpty()) filterVisible.set(false);
+            if (k==ESCAPE) {
+                if (filterVisible.get()) {
+                    if (filterPane.isEmpty()) filterVisible.set(false);
                     else filterPane.clear();
                     e.consume();
                 }
@@ -177,7 +177,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         });
 
         addEventFilter(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE && searchIsActive()) {
+            if (e.getCode()==ESCAPE && searchIsActive()) {
                 searchEnd();
                 e.consume(); // must cause all KEY_PRESSED handlers to be ignored
             }
@@ -259,17 +259,17 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      */
     public BooleanProperty filterVisible = new SimpleBooleanProperty(false) {
         @Override public void set(boolean v) {
-            if(v && get()) {
+            if (v && get()) {
                 runLater(filterPane::focus);
                 return;
             }
 
             super.set(v);
-            if(!v) filterPane.clear();
+            if (!v) filterPane.clear();
 
             Node sn = filterPane.getNode();
-            if(v) {
-                if(!root.getChildren().contains(sn))
+            if (v) {
+                if (!root.getChildren().contains(sn))
                     root.getChildren().add(0,sn);
             } else {
                 root.getChildren().remove(sn);
@@ -277,7 +277,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             filterPane.getNode().setVisible(v);
 
             // focus filter to allow user use filter asap
-            if(v) runLater(filterPane::focus);
+            if (v) runLater(filterPane::focus);
         }
     };
 
@@ -319,8 +319,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     public final BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
         @Override public void set(boolean v) {
             super.set(v);
-            if(v) {
-                if(!root.getChildren().contains(footerPane))
+            if (v) {
+                if (!root.getChildren().contains(footerPane))
                     root.getChildren().add(footerPane);
             } else {
                 root.getChildren().remove(footerPane);
@@ -343,7 +343,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             });
             setPrefTypeSupplier(() -> PredicateData.ofField(prefFilterType));
             onItemChange = filtereditems::setPredicate;
-            if(prefFilterType instanceof Enum) {
+            if (prefFilterType instanceof Enum) {
                 setData(d(prefFilterType));
             } else
                 throw new IllegalArgumentException("Initial value - field type must be an enum");
@@ -388,7 +388,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     public void scrollToCenter(int i) {
         int items = getItems().size();
-        if(i<0 || i>=items) return;
+        if (i<0 || i>=items) return;
 
         double rows = getHeight()/getFixedCellSize();
         i -= rows/2;
@@ -443,10 +443,10 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         searchQuery.set(s);
         // scroll to first found item
         TableColumn c = getColumn(searchField).orElse(null);
-        if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
-            for(int i=0; i<getItems().size(); i++) {
+        if (!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
+            for (int i=0; i<getItems().size(); i++) {
                 String item = (String)searchField.getOf(getItems().get(i));
-                if(matches(item,searchQuery.get())) {
+                if (matches(item,searchQuery.get())) {
                     scrollToCenter(i);
                     updateSearchStyles();
                     break;
@@ -465,7 +465,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     }
 
     private void updateSearchStyles() {
-        if(scrolFautocancel) searchAutocanceller.start(scrolFautocancelTime);
+        if (scrolFautocancel) searchAutocanceller.start(scrolFautocancelTime);
         updateSearchStyleRowsNoReset();
     }
 
@@ -553,7 +553,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     public TableColumnInfo getDefaultColumnInfo() {
         boolean needs_creating = columnVisibleMenu==null;
         TableColumnInfo tci = super.getDefaultColumnInfo();
-        if(needs_creating) {
+        if (needs_creating) {
             columnVisibleMenu.getItems().add(
                 buildSingleSelectionMenu(
                     "Search column",

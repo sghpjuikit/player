@@ -100,9 +100,9 @@ public class GameLib extends FXMLController {
     ProgressIndicator gameOpening_progressI; // we reuse same indicator
 
     public void openGame(GameItem g) {
-        if(game!=null && game.equals(g)) return;
+        if (game!=null && game.equals(g)) return;
         game = g;
-        if(g==null) return;
+        if (g==null) return;
 
         titleL.setText(g.getName());
         info_text.toFront();
@@ -110,14 +110,14 @@ public class GameLib extends FXMLController {
 //        info_text.getChildren().clear();
 
         info_text.setText("Play");
-        if(gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindow().taskAdd();
+        if (gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindow().taskAdd();
         gameOpening_progressI.setProgress(-1);
         Async.runNew(() -> {
             File f = new File(g.getLocation(),"play-howto.txt");
             String s = !f.exists() ? "" : readFileLines(f).collect(joining("\n"));
             Cover cv = g.getCover();
             g.loadMetadata();
-            if(g==game) runFX(() -> {
+            if (g==game) runFX(() -> {
                 cover.loadImage(cv);
                 info_text.setText("Play\n\n" + s);
                 gameOpening_progressI.setProgress(1);
@@ -170,12 +170,12 @@ public class GameLib extends FXMLController {
 
         inforoot.setVisible(false);
         cover_root.addEventFilter(MOUSE_RELEASED, e -> {
-            if(e.getButton()==SECONDARY)
+            if (e.getButton()==SECONDARY)
                 inforoot.setVisible(!inforoot.isVisible());
         });
 
         Icon playB = new Icon(GAMEPAD, 40, null, () -> {
-            if(at!=InfoType.PLAY) goTo(InfoType.PLAY);
+            if (at!=InfoType.PLAY) goTo(InfoType.PLAY);
             else {
                 String s = game.play();
                 infoL.setText(s);
@@ -183,11 +183,11 @@ public class GameLib extends FXMLController {
             }
         });
         Icon exploreB = new Icon(FOLDER, 40, null, () -> {
-            if(at!=InfoType.EXPLORER) goTo(InfoType.EXPLORER);
+            if (at!=InfoType.EXPLORER) goTo(InfoType.EXPLORER);
             else Environment.browse(game.getLocation());
         });
         Icon wikiB = new Icon(WIKIPEDIA, 40, null, () -> {
-            if(game!=null) {
+            if (game!=null) {
                 Environment.browse(new web.WikipediaQBuilder().apply(game.getName()));
                 // in-widget browser
                 // WebView w = new javafx.scene.web.WebView();
@@ -207,9 +207,9 @@ public class GameLib extends FXMLController {
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         FileTree.from(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-            if(nv.getValue()!=null && nv.getValue().isDirectory()) {
+            if (nv.getValue()!=null && nv.getValue().isDirectory()) {
                 File f = new File(nv.getValue(),"readme.txt");
-                if(f.exists()) {
+                if (f.exists()) {
                     String s = readFileLines(f).collect(joining("\n"));
                     info_text.setText(getName(f) + "\n\n" + s);
                 }
@@ -236,7 +236,7 @@ public class GameLib extends FXMLController {
     }
 
     public void goTo(InfoType to) {
-        if(game==null || at==to) return;
+        if (game==null || at==to) return;
 
         switch(to) {
             case EXPLORER:  cover_root.setVisible(false);
@@ -282,7 +282,7 @@ public class GameLib extends FXMLController {
             File cf = listFiles(dir).filter(f -> {
                 String filename = f.getName();
                 int i = filename.lastIndexOf('.');
-                if(i == -1) return false;
+                if (i == -1) return false;
                 String name = filename.substring(0, i);
                 return (ImageFileFormat.isSupported(f.toURI()) && name.equalsIgnoreCase("cover"));
             }).findFirst().orElse(null);
@@ -309,7 +309,7 @@ public class GameLib extends FXMLController {
         }
 
         public Map<String,String> loadMetadata() {
-            if(settings==null) {
+            if (settings==null) {
                 File f = new File(location,"game.properties");
                 settings = f.exists() ? Properties.load(f) : new HashMap<>();
             }
@@ -324,13 +324,13 @@ public class GameLib extends FXMLController {
                 File exe =null ;
                 String pathA = settings.get("pathAbs");
 
-                if(pathA!=null) {
+                if (pathA!=null) {
                     exe = new File(pathA);
                 }
 
-                if(exe==null) {
+                if (exe==null) {
                     String pathR = settings.get("path");
-                    if(pathR==null) return "No path is set up.";
+                    if (pathR==null) return "No path is set up.";
                     exe = new File(location,pathR);
                 }
 
@@ -339,10 +339,10 @@ public class GameLib extends FXMLController {
 
                 // with optional parameter
                 String arg = settings.get("arguments");
-                if(arg!=null) {
+                if (arg!=null) {
                     arg = arg.replaceAll(", ", ",");
                     String[] args = arg.split(",",0);
-                    for(String a : args) if(!a.isEmpty()) command.add("-" + a);
+                    for (String a : args) if (!a.isEmpty()) command.add("-" + a);
                 }
                 // run
                 new ProcessBuilder(command).start();

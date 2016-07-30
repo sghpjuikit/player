@@ -141,8 +141,8 @@ public class Thumbnail extends ImageNode {
             super.layoutChildren();
 
             // lay out border
-            if(borderToImage && imageView.getImage()!=null) {
-                if(ratioIMG.get()>ratioTHUMB.get()) {
+            if (borderToImage && imageView.getImage()!=null) {
+                if (ratioIMG.get()>ratioTHUMB.get()) {
                     double borderW = imgW;
                     double borderWgap = (W-borderW)/2;
                     double borderH = imgW/ratioIMG.get();
@@ -276,7 +276,7 @@ public class Thumbnail extends ImageNode {
 
     public void loadImage(Cover img) {
         imagefile = img==null ? null : img.getFile();
-        if(img==null) {
+        if (img==null) {
             setImgA(null);
         } else {
             Point2D size = calculateImageLoadSize(root);
@@ -307,14 +307,14 @@ public class Thumbnail extends ImageNode {
     private void setImgA(Image i) {
         loadId++;   // load next image
         final long id = loadId; // expected id (must match when load finishes)
-        if(i==null) {
+        if (i==null) {
             setImg(null,id);
         } else {
-            if(i.getProgress()==1) {
+            if (i.getProgress()==1) {
                 setImg(i,id);
             } else {
                 i.progressProperty().addListener((o,ov,nv) -> {
-                    if(nv.doubleValue()==1)
+                    if (nv.doubleValue()==1)
                         setImg(i,id);
                 });
             }
@@ -324,25 +324,25 @@ public class Thumbnail extends ImageNode {
     // set synchronously
     private void setImg(Image i, long id) {
         // cache
-        if(i!=null && cache_images) {
+        if (i!=null && cache_images) {
             Image ci = IMG_CACHE.get(i.getUrl());
-            if(ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
+            if (ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
                 IMG_CACHE.put(i.getUrl(), i);
         }
 
         // ignore outdated loadings
-        if(id!=loadId) return;
+        if (id!=loadId) return;
 
         imageView.setImage(i);
-        if(i!=null) {
+        if (i!=null) {
             maxIMGW.set(i.getWidth()*maxScaleFactor);
             maxIMGH.set(i.getHeight()*maxScaleFactor);
         }
-//        if(borderToImage)
+//        if (borderToImage)
             root.layout();
 
         // animation
-        if(i!=null) {
+        if (i!=null) {
             Object animWrapper = getFieldValue(i, "animation");
             animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
             animationPause();
@@ -362,16 +362,16 @@ public class Thumbnail extends ImageNode {
     }
 
     public void animationPlayPause(boolean play) {
-        if(play) animationPlay();
+        if (play) animationPlay();
         else animationPause();
     }
 
     public void animationPlay() {
-        if(animation!=null) animation.play();
+        if (animation!=null) animation.play();
     }
 
     public void animationPause() {
-        if(animation!=null) animation.pause();
+        if (animation!=null) animation.pause();
     }
 
 /**************************************************************************************************/
@@ -441,7 +441,7 @@ public class Thumbnail extends ImageNode {
      * @throws IllegalArgumentException if parameter < 1
      */
     public void setMaxScaleFactor(double val) {
-        if(val < 1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
+        if (val < 1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
         maxScaleFactor = val;
     }
 
@@ -464,13 +464,13 @@ public class Thumbnail extends ImageNode {
 
     /** Sets the {@link #borderToImage}. */
     public void setBorderToImage(boolean val) {
-        if(borderToImage==val) return;
+        if (borderToImage==val) return;
         borderToImage = val;
         root.layout();
     }
 
     public void setBorderVisible(boolean val) {
-        if(val) img_border.getStyleClass().add(border_styleclass);
+        if (val) img_border.getStyleClass().add(border_styleclass);
         else img_border.getStyleClass().remove(border_styleclass);
     }
 
@@ -482,8 +482,8 @@ public class Thumbnail extends ImageNode {
      * Stylizable with css.
      */
     public void setBackgroundVisible(boolean val) {
-        if(val) {
-            if(!root.getStyleClass().contains(bgr_styleclass))
+        if (val) {
+            if (!root.getStyleClass().contains(bgr_styleclass))
                 root.getStyleClass().add(bgr_styleclass);
         }
         else root.getStyleClass().remove(bgr_styleclass);
@@ -502,7 +502,7 @@ public class Thumbnail extends ImageNode {
      * Default true.
      */
     public void setDragEnabled(boolean val) {
-        if(val) {
+        if (val) {
             dragHandler = buildDH();
             root.addEventHandler(DRAG_DETECTED, dragHandler);
         } else {
@@ -514,11 +514,11 @@ public class Thumbnail extends ImageNode {
     private EventHandler<MouseEvent> dragHandler;
     private EventHandler<MouseEvent> buildDH() {
         return e -> {
-            if(e.getButton()==PRIMARY && getFile()!=null) {
+            if (e.getButton()==PRIMARY && getFile()!=null) {
 //                TransferMode t = e.isShiftDown() ? TransferMode.MOVE : e.isAltDown() ? TransferMode.
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 // set drag image
-                if(getImage()!=null) db.setDragView(getImage());
+                if (getImage()!=null) db.setDragView(getImage());
                 // set content
                 HashMap<DataFormat,Object> c = new HashMap<>();
                 c.put(FILES, singletonList(getFile()));
@@ -545,14 +545,14 @@ public class Thumbnail extends ImageNode {
     private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
     private final EventHandler<MouseEvent> hoverHandler = e -> {
             hoverAnimation.dur(durationOnHover.get());
-            if(isH())
+            if (isH())
                 hoverAnimation.playFromDir(e.getEventType().equals(MOUSE_ENTERED));
     };
     /** Hover scaling efect on/off. Default false.*/
     public final BooleanProperty hoverable = new SimpleBooleanProperty(this, "hoverable", false) {
         @Override public void set(boolean v) {
             super.set(v);
-            if(v) {
+            if (v) {
                 root.addEventFilter(MOUSE_ENTERED, hoverHandler);
                 root.addEventFilter(MOUSE_EXITED, hoverHandler);
             } else {
@@ -624,7 +624,7 @@ public class Thumbnail extends ImageNode {
                 menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
                 menuItem("Fullscreen", e -> {
                     File f = getValue().fsImageFile;
-                    if(ImageFileFormat.isSupported(f)) {
+                    if (ImageFileFormat.isSupported(f)) {
                         Screen screen = util.graphics.Util.getScreen(getX(),getY());
                         App.openImageFullscreen(f,screen);
                     }
@@ -639,7 +639,7 @@ public class Thumbnail extends ImageNode {
                     fc.setInitialDirectory(APP.DIR_APP);
 
                     File nf = fc.showSaveDialog(APP.windowOwner.getStage());
-                    if(nf!=null) {
+                    if (nf!=null) {
                         try {
                             Files.copy(f.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException ex) {
@@ -658,7 +658,7 @@ public class Thumbnail extends ImageNode {
     );
 
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
-        if(e.getButton()==SECONDARY) {
+        if (e.getButton()==SECONDARY) {
             if (getRepresentant() instanceof File)
                 file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)

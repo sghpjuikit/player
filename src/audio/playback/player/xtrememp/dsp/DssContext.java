@@ -102,7 +102,7 @@ public class DssContext {
         // produce only the audioChannel[0][] array.  We should create an
         // audioChannels[1][] array containing a replica of the input so that
         // all subsequent processing steps will have 2 channels to work with.
-        if(channelCount == 1) {
+        if (channelCount == 1) {
             System.arraycopy(audioChannels[0], 0, audioChannels[1], 0, blockLength);
         }
     }

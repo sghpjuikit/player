@@ -52,7 +52,7 @@ public class TrayService extends ServiceBase {
 
     private String tooltip_text = null;
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-    public final V<Boolean> showTooltip = new V<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
+    public final V<Boolean> showTooltip = new V<>(true,v -> { if (isRunning()) setTooltipText(tooltip_text);});
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
     public final V<Boolean> showPlayingInTooltip = new V<>(true);
 
@@ -81,9 +81,9 @@ public class TrayService extends ServiceBase {
                         menuItem("Exit", APP::close)
                     );
                     s.focusedProperty().addListener((o,ov,nv) -> {
-                        if(!nv) {
-                            if(cm.isShowing()) cm.hide();
-                            if(s.isShowing()) s.hide();
+                        if (!nv) {
+                            if (cm.isShowing()) cm.hide();
+                            if (s.isShowing()) s.hide();
                         }
                     });
                     cm.setAutoFix(true);
@@ -107,7 +107,7 @@ public class TrayService extends ServiceBase {
                                         b==PRIMARY, false, b==SECONDARY, false, true, true, null);
 
                         // show menu on right click
-                        if(me.getButton()==SECONDARY)
+                        if (me.getButton()==SECONDARY)
                             runLater(()->{
                                 s.show();
                                 s.requestFocus();
@@ -115,11 +115,11 @@ public class TrayService extends ServiceBase {
                             });
 //                            runLater(() -> cm.show(App.getWindow().getStage(), me.getScreenX(), me.getScreenY()-40));
 
-                        if(me.getButton()==PRIMARY)
+                        if (me.getButton()==PRIMARY)
                             runLater(Gui::toggleMinimize);
 
                         // run custom mouse action
-                        if(onClick!=null)
+                        if (onClick!=null)
                             runLater(()->onClick.handle(me));
                     }
                 });
@@ -174,7 +174,7 @@ public class TrayService extends ServiceBase {
      * @param text - the string for the tooltip; if the value is null no tooltip is shown
      */
     public void setTooltipText(String text){
-        if(!isRunning()) return;
+        if (!isRunning()) return;
 
         tooltip_text = text==null ? null : text.isEmpty() ? APP.name : text;
         String s = showTooltip.getValue() ? text : null;
@@ -183,7 +183,7 @@ public class TrayService extends ServiceBase {
 
     /**  Equivalent to: {@code showNotification(caption,text,NONE)}. */
     public void showNotification(String caption, String text){
-        if(!isRunning()) return;
+        if (!isRunning()) return;
 
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, TrayIcon.MessageType.NONE));
     }
@@ -197,13 +197,13 @@ public class TrayService extends ServiceBase {
      * @throws NullPointerException - if both caption and text are null
      */
     public void showNotification(String caption, String text, TrayIcon.MessageType type){
-        if(!isRunning()) return;
+        if (!isRunning()) return;
 
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, type));
     }
 
     public void setIcon(File img){
-        if(!isRunning()) return;
+        if (!isRunning()) return;
 
         image = img;
         if (trayIcon != null){

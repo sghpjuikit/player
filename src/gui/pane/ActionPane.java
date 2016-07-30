@@ -234,7 +234,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     }
 
     private void doneHide() {
-        if(closeOnDone.get()) hide();
+        if (closeOnDone.get()) hide();
     }
 
 /* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
@@ -263,7 +263,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         // set content
         data = collectionUnwrap(d);
         boolean isDataReady = !(data instanceof Fut && !((Fut)data).isDone());
-        if(isDataReady) {
+        if (isDataReady) {
             data = futureUnwrap(data);
             setDataInfo(data, true);
             showIcons(data);
@@ -287,11 +287,11 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         dataInfo.setText(getDataInfo(data, computed));
         tablePane.getChildren().clear();
         double gap = 0;
-        if(data instanceof Collection && !((Collection)data).isEmpty()) {
+        if (data instanceof Collection && !((Collection)data).isEmpty()) {
             Collection<?> collection = (Collection) data;
             // TODO: improve collection element type recognition
             Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
-            if(fieldMap.containsKey(coltype)) {
+            if (fieldMap.containsKey(coltype)) {
                 FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldMap.get(coltype))[0]);
                 t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -315,13 +315,13 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     private String getDataInfo(Object data, boolean computed) {
         Class<?> type = data==null ? Void.class : data.getClass();
-        if(Void.class.equals(type)) return "";
+        if (Void.class.equals(type)) return "";
 
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
         String dName = computed ? APP.instanceName.get(d) : "n/a";
         String dKind = computed ? APP.className.get(type) : "n/a";
         String dInfo = stream(APP.instanceInfo.get(d)).mapKeyValue((key,val) -> key + ": " + val).sorted().collect(joining("\n"));
-        if(!dInfo.isEmpty()) dInfo = "\n" + dInfo;
+        if (!dInfo.isEmpty()) dInfo = "\n" + dInfo;
 
         return "Data: " + dName + "\nType: " + dKind + dInfo ;
     }
@@ -332,16 +332,16 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         // get suitable actions
         actionsData.clear();
         actionsData.addAll(actionsIcons);
-        if(use_registered_actions) actionsData.addAll(actions.getElementsOfSuperV(dt));
+        if (use_registered_actions) actionsData.addAll(actions.getElementsOfSuperV(dt));
         actionsData.removeIf(a -> {
-            if(a.groupApply==FOR_ALL) {
+            if (a.groupApply==FOR_ALL) {
                 return a.condition.test(collectionWrap(d));
             }
-            if(a.groupApply==FOR_EACH) {
+            if (a.groupApply==FOR_EACH) {
                 List ds = list(d instanceof Collection ? (Collection)d : listRO(d));
                 return ds.stream().noneMatch(a.condition);
             }
-            if(a.groupApply==NONE) {
+            if (a.groupApply==NONE) {
                 Object o = collectionUnwrap(d);
                 return o instanceof Collection || !a.condition.test(o);
             }
@@ -399,10 +399,10 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     }
 
     private static Object collectionUnwrap(Object o) {
-        if(o instanceof Collection) {
+        if (o instanceof Collection) {
             Collection<?> c = (Collection)o;
-            if(c.isEmpty()) return null;
-            if(c.size()==1) return c.stream().findAny().get();
+            if (c.isEmpty()) return null;
+            if (c.size()==1) return c.stream().findAny().get();
         }
         return o;
     }
@@ -436,19 +436,19 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         @Override
         public Object apply(Object data) {
             boolean isCollection = data instanceof Collection;
-            if(groupApply==FOR_ALL) {
+            if (groupApply==FOR_ALL) {
                 return action.apply(isCollection ? (T) data : (T) collectionWrap(data));
             } else
-            if(groupApply==FOR_EACH) {
-                if(isCollection) {
+            if (groupApply==FOR_EACH) {
+                if (isCollection) {
                     ((Collection<T>) data).forEach(action::apply);
                     return null;
                 } else {
                     return action.apply((T)data);
                 }
             } else
-            if(groupApply==NONE) {
-                if(isCollection) throw new RuntimeException("Action can not use collection");
+            if (groupApply==NONE) {
+                if (isCollection) throw new RuntimeException("Action can not use collection");
                 return action.apply((T)data);
             } else {
                 throw new util.SwitchException(groupApply);

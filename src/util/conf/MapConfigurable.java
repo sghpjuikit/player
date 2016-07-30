@@ -22,12 +22,12 @@ public class MapConfigurable<T> implements Configurable<T> {
     
     public MapConfigurable(Config... configs) {
         this.configs = new HashMap();
-        for(Config c : configs) this.configs.put(c.getName(),c);
+        for (Config c : configs) this.configs.put(c.getName(),c);
     }
     
     public MapConfigurable(List<Config> configs) {
         this.configs = new HashMap();
-        for(Config c : configs) this.configs.put(c.getName(),c);
+        for (Config c : configs) this.configs.put(c.getName(),c);
     }
     
     /**

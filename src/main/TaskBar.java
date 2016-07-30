@@ -42,17 +42,17 @@ public class TaskBar {
 
     public void setTitle(String title) {
         titl = title;
-        if(s!=null) s.setTitle(titl==null ? "" : titl);
+        if (s!=null) s.setTitle(titl==null ? "" : titl);
     }
 
     public void setIcon(Image icon) {
         icn = icon;
-        if(s!=null) s.getIcons().setAll(icn);
+        if (s!=null) s.getIcons().setAll(icn);
     }
 
     public void setScreen(Screen screen) {
         noØ(screen);
-        if(scr==screen) return;
+        if (scr==screen) return;
 
         scr = screen;
 
@@ -62,12 +62,12 @@ public class TaskBar {
         // refreshing the stage's in some unspecified way (clicking manually on the taskbar to
         // minimize the stage repositiones the tasbar correctly, but im not going to try emulating
         // that)
-         if(s!=null) {
+         if (s!=null) {
              s.setX(scr.getBounds().getMinX());
              s.setY(scr.getBounds().getMinY());
          }
         // rather, just reinitialize the whole thing, problem solved
-        if(s!=null){
+        if (s!=null){
 //            setVisible(false);
 //            setVisible(true);
         }
@@ -106,8 +106,8 @@ public class TaskBar {
     }
 
     public void setVisible(boolean v) {
-        if(v) {
-            if(s==null) {
+        if (v) {
+            if (s==null) {
                 s = new Stage();
                 s.initStyle(DECORATED);
                 s.setOpacity(0);
@@ -118,20 +118,20 @@ public class TaskBar {
                 s.getScene().setFill(null);
                 // we continue everything just like it was on close
                 s.addEventFilter(WINDOW_CLOSE_REQUEST, e -> {
-                    if(onClose!=null) onClose.run();
+                    if (onClose!=null) onClose.run();
                     setVisible(false);
                     setVisible(true);
                 });
                 s.focusedProperty().addListener((o,ov,nv) -> {
-                    if(inconsistent || forbidIconify) return;
+                    if (inconsistent || forbidIconify) return;
 
                     // FIXME: only works when taskbar at the bottom of the screen!
                     Point2D mouse = APP.mouseCapture.getMousePosition();
-                    if(mouse.getX()< Util.getScreen(mouse).getBounds().getMaxY()-50) {
-                        if(nv) {
+                    if (mouse.getX()< Util.getScreen(mouse).getBounds().getMaxY()-50) {
+                        if (nv) {
                             System.out.println("ALT TAB event");
                             inconsistent = true;
-                            if(onAltTab!=null) onAltTab.run();
+                            if (onAltTab!=null) onAltTab.run();
                             runLater(() -> inconsistent = false);
                         }
                     } else {
@@ -159,19 +159,19 @@ public class TaskBar {
                     // That is nice, but my testing shows, the action is now called only once and
                     // stuff works, but sometimes during initializations, it is actually called twice
                     // and we have to keep handling it like this to make sure it all works corectly.
-                        if(onMinimized!=null) {
-                            if(!ignore2) {
-                                if(!ignore) {
+                        if (onMinimized!=null) {
+                            if (!ignore2) {
+                                if (!ignore) {
                                     ignore = true;
                                     System.out.println("start1");
-                                    if(s!=null) onMinimized.accept(nv);
+                                    if (s!=null) onMinimized.accept(nv);
                                     System.out.println("end1");
                                     ignore = false;
                                 } else {
                                     ignore2 = true;
                                     System.out.println("start2");
                                     runLater(() -> {
-                                        if(s!=null) onMinimized.accept(nv);
+                                        if (s!=null) onMinimized.accept(nv);
                                         System.out.println("end2");
                                         ignore2 = false;
                                     });
@@ -181,7 +181,7 @@ public class TaskBar {
                     }
                 });
             }
-            if(scr==null) scr = Screen.getPrimary();
+            if (scr==null) scr = Screen.getPrimary();
             s.setTitle(titl==null ? "" : titl);
             s.getIcons().setAll(icn==null ? list() : list(icn));
             s.setIconified(iconified);
@@ -190,7 +190,7 @@ public class TaskBar {
             inconsistent = true;
             Window w = APP.windowManager.getFocused();
             s.show();
-            if(w!=null) w.focus();
+            if (w!=null) w.focus();
             runLater(() -> inconsistent = false);
 
             s.setX(scr.getBounds().getMinX());
@@ -201,7 +201,7 @@ public class TaskBar {
             // s.iconifiedProperty().addListener((o,ov,nv) -> System.out.println("iconified " + nv));
             // s.focusedProperty().addListener((o,ov,nv) -> System.out.println("focused " + nv));
         } else {
-            if(s!=null) {
+            if (s!=null) {
                 Stage dispose = s;
                 s = null;
                 dispose.hide();
@@ -216,9 +216,9 @@ public class TaskBar {
     private boolean ignore2 = false;
 
     public void iconify(boolean v) {
-        if(ignore || ignore2) return;      // no idea if this is necessary
+        if (ignore || ignore2) return;      // no idea if this is necessary
         iconified = v;
-        if(s!=null) {
+        if (s!=null) {
             inconsistent = true;
             s.setIconified(iconified);
             runLater(() -> inconsistent = false);

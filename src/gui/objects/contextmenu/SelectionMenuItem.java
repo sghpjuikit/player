@@ -68,8 +68,8 @@ public class SelectionMenuItem extends Menu {
             @Override
             public void onChanged(ListChangeListener.Change<? extends MenuItem> c) {
                 ObservableList<String> sc = getStyleClass();
-                if(c.getList().isEmpty()){
-                    if(!sc.contains(NO_CHILDREN_STYLECLASS)) sc.add(NO_CHILDREN_STYLECLASS);
+                if (c.getList().isEmpty()){
+                    if (!sc.contains(NO_CHILDREN_STYLECLASS)) sc.add(NO_CHILDREN_STYLECLASS);
                 } else
                     sc.remove(NO_CHILDREN_STYLECLASS);
             }
@@ -139,7 +139,7 @@ public class SelectionMenuItem extends Menu {
                 m.icon.styleclass(STYLECLASS_ICON_SINGLE_SEL);
                 m.setOnMouseClicked(() -> {
                     Menu parent = m.getParentMenu();
-                    if(parent!=null) {
+                    if (parent!=null) {
                         parent.getItems().forEach(i -> ((SelectionMenuItem)i).selected.setValue(false));
                         m.selected.setValue(true);
                         action.accept(input);

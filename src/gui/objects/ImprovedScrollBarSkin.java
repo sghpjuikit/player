@@ -32,20 +32,20 @@ public class ImprovedScrollBarSkin extends ScrollBarSkin {
         Anim v = new Anim(millis(350),p -> thumb.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> thumb.setScaleY(1+p*p));
         scrollbar.addEventHandler(MOUSE_ENTERED, e -> {
-            if(scrollbar.getOrientation()==VERTICAL) v.playOpen();
+            if (scrollbar.getOrientation()==VERTICAL) v.playOpen();
             else h.playOpen();
         });
         scrollbar.addEventHandler(MOUSE_EXITED, e -> {
-            if(!isDragged) {
-                if(scrollbar.getOrientation()==VERTICAL) v.playClose();
+            if (!isDragged) {
+                if (scrollbar.getOrientation()==VERTICAL) v.playClose();
                 else h.playClose();
             }
         });
         scrollbar.addEventHandler(DRAG_DETECTED, e -> isDragged = true);
         scrollbar.addEventHandler(MOUSE_RELEASED, e -> {
-            if(isDragged) {
+            if (isDragged) {
                 isDragged = false;
-                if(scrollbar.getOrientation()==VERTICAL) v.playClose();
+                if (scrollbar.getOrientation()==VERTICAL) v.playClose();
                 else h.playClose();
             }
         });

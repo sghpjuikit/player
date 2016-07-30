@@ -121,8 +121,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @see Item#same(audio.Item)
      */
     public int indexOfSame(Item item) {
-        if(item==null) return -1;
-        for(int i=0; i<transform().size(); i++)
+        if (item==null) return -1;
+        for (int i=0; i<transform().size(); i++)
             if (transform().get(i).same(item)) return i;
         return -1;
     }
@@ -149,12 +149,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
     /** Removes all unplayable items from this playlist. */
     public void removeUnplayable() {
         List<PlaylistItem> staying = new ArrayList<>();
-        for(int i=0; i<size(); i++) {
+        for (int i=0; i<size(); i++) {
             PlaylistItem p = get(i);
-            if(!p.isCorrupt(Use.PLAYBACK))
+            if (!p.isCorrupt(Use.PLAYBACK))
                 staying.add(p);
         }
-        if(staying.size()==size()) return;
+        if (staying.size()==size()) return;
         setAll(staying);
     }
 
@@ -165,14 +165,14 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
     public void removeDuplicates() {
         MapSet<URI,Item> unique = new MapSet<>(Item::getURI);
         List<PlaylistItem> staying = new ArrayList<>();
-        for(int i=0; i<size(); i++) {
+        for (int i=0; i<size(); i++) {
             PlaylistItem p = get(i);
-            if(!unique.contains(p)) {
+            if (!unique.contains(p)) {
                 unique.add(p);
                 staying.add(p);
             }
         }
-        if(staying.size()==size()) return;
+        if (staying.size()==size()) return;
         setAll(staying);
     }
 
@@ -183,7 +183,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void duplicateItem(PlaylistItem item) {
         int i = indexOf(item);
-        if(i!=-1) add(i+1, item.copy());
+        if (i!=-1) add(i+1, item.copy());
     }
 
     /**
@@ -243,12 +243,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         List<Integer> newSelected = new ArrayList<>();
 
         try {
-            if(by>0) {
-                for(int i=blocks.size()-1; i>=0; i--) {
+            if (by>0) {
+                for (int i=blocks.size()-1; i>=0; i--) {
                     newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
                 }
             } else if ( by < 0) {
-                for(int i=0; i<blocks.size(); i++) {
+                for (int i=0; i<blocks.size(); i++) {
                     newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
                 }
             }
@@ -261,7 +261,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
     private List<Integer> moveItemsByBlock(List<Integer> indexes, int by) throws IndexOutOfBoundsException {
         List<Integer> newSelected = new ArrayList<>();
         try {
-            if(by > 0) {
+            if (by > 0) {
                 for (int i = indexes.size()-1; i >= 0; i--) {
                     int ii = indexes.get(i);
                     Collections.swap(this, ii, ii+by);
@@ -287,7 +287,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
     // slice to monolithic blocks
     private List<List<Integer>> slice(List<Integer> indexes){
-        if(indexes.isEmpty()) return new ArrayList<>();
+        if (indexes.isEmpty()) return new ArrayList<>();
 
         List<List<Integer>> blocks = new ArrayList<>();
                             blocks.add(new ArrayList<>());
@@ -296,7 +296,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         blocks.get(list).add(indexes.get(0));
         for (int i=1; i<indexes.size(); i++) {
             int index = indexes.get(i);
-            if(index==last+1) {
+            if (index==last+1) {
                 blocks.get(list).add(index);
                 last++;
             }
@@ -340,7 +340,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         Player.IO_THREAD.execute(() -> {
             for (PlaylistItem i: l) {
                 if (Thread.interrupted()) return;
-                if(!i.isUpdated()) i.update();
+                if (!i.isUpdated()) i.update();
             }
         });
         // THIS NEEDS TO FIRE DURATION UPDATE
@@ -407,7 +407,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
                         // be selected randomly), so if we check same item twice
                         // check whole playlist
                         boolean isNonePlayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
-                        if(isNonePlayable) return;    // stop the loop
+                        if (isNonePlayable) return;    // stop the loop
 
                         runFX(() -> {
                             PLAYBACK.stop();            // stop playback
@@ -417,7 +417,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
                     runFX(() -> {
                         // remember 1st unplayable
-                        if(unplayable1st==null) unplayable1st = item;
+                        if (unplayable1st==null) unplayable1st = item;
                         // try to play next item, note we dont use the supplier as a fallback 2nd time
                         // we use linear 'next time' supplier instead, to make sure we check every
                         // item on a completely unplayable playlist and exactly once. Say provided
@@ -547,7 +547,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void addUrls(Collection<String> urls) {
         List<URI> add = new ArrayList<>();
-        for(String url: urls) {
+        for (String url: urls) {
             try{
                 URI u = new URI(url);
                 URL r = new URL(url);
@@ -676,7 +676,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
             List<URI> queue = new ArrayList<>();
             files.forEach(f -> queue.add(f.toURI()));
 
-            if(add) addUris(queue);
+            if (add) addUris(queue);
             else {
                 PLAYBACK.stop();
                 clear();
@@ -698,7 +698,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
             List<URI> queue = new ArrayList<>();
             getFilesAudio(dir, Use.APP, PlaylistManager.folder_depth).forEach(f -> queue.add(f.toURI()));
 
-            if(add) addUris(queue);
+            if (add) addUris(queue);
             else {
                 PLAYBACK.stop();
                 clear();
@@ -718,7 +718,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
         SimpleConfigurator content = new SimpleConfigurator<>(
             new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title),
             (URI url) -> {
-                if(add) {
+                if (add) {
                     addUri(url);
                 } else {
                     PLAYBACK.stop();

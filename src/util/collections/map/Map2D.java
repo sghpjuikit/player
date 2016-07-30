@@ -111,8 +111,8 @@ public class Map2D<K1,K2,E> extends HashMap<Key<K1,K2>,E> {
          */
         @Override
         public boolean equals(Object obj) {
-            if(this==obj) return true;
-            if(obj instanceof Key) {
+            if (this==obj) return true;
+            if (obj instanceof Key) {
                 return key1.equals(((Key)obj).key1) && key2.equals(((Key)obj).key2);
             } return false;
         }

@@ -74,7 +74,7 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
         ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
         // ListChangeListener l = o -> updateText(al, sl);
         ListChangeListener<E> l = o -> {
-            if(o.next()) {
+            if (o.next()) {
                 updateText(al, sl);
             }
         };
@@ -89,7 +89,7 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
 
     @Override
     public void unbind() {
-        if(s != null) s.unsubscribe();
+        if (s != null) s.unsubscribe();
         s = null;
     }
 

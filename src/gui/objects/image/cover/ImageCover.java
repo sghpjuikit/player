@@ -74,13 +74,13 @@ public class ImageCover implements Cover {
 
     @Override
     public boolean equals(Object o) {
-        if(o==this) return true;
+        if (o==this) return true;
 
-        if(o != null && o instanceof ImageCover) {
+        if (o != null && o instanceof ImageCover) {
             ImageCover other = (ImageCover)o;
-            if(imageB!=null && other.imageB!=null)
+            if (imageB!=null && other.imageB!=null)
                 return imageB.equals(other.imageB);
-            if(imageI!=null && other.imageI!=null)
+            if (imageI!=null && other.imageI!=null)
                 return imageI.equals(other.imageI);
         }
         return false;

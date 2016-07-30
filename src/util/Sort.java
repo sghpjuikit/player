@@ -39,7 +39,7 @@ public enum Sort {
      */
     @SuppressWarnings("unchecked")
     public <T> Comparator<T> cmp(Comparator<T> c) {
-        if(c==null) return null;
+        if (c==null) return null;
         switch (this) {
             case ASCENDING: return c;
             // note the java implementation of ReversedComparator causes multiple calls to reversed()

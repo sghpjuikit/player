@@ -49,13 +49,13 @@ public class InfoPane extends OverlayPane {
     private static final String STYLECLASS = "info-pane";
     private static final String STYLECLASS_GROUP = "info-pane-group-label";
     private static String fixASCII(String s) {
-        if(s.length()==1) {
+        if (s.length()==1) {
             char c = s.charAt(0);
-            if(c=='\n') return "\n";
-            if(c=='\r') return "\r";
-        } else if(s.length()==2) {
-            if(s.charAt(0)=='\n' && s.charAt(1)=='\r') return "\\n\\r";
-            if(s.charAt(0)=='\r' && s.charAt(1)=='\n') return "\\r\\n";
+            if (c=='\n') return "\n";
+            if (c=='\r') return "\r";
+        } else if (s.length()==2) {
+            if (s.charAt(0)=='\n' && s.charAt(1)=='\r') return "\\n\\r";
+            if (s.charAt(0)=='\r' && s.charAt(1)=='\n') return "\\r\\n";
         }
         return s;
     }
@@ -148,7 +148,7 @@ public class InfoPane extends OverlayPane {
                     GridPane.setHalignment(groupl.getParent(), HPos.LEFT);
 
                     // property rows
-                    for(Entry<String,String> a : e.getValue()) {
+                    for (Entry<String,String> a : e.getValue()) {
                         i.setOf(v -> v+1);
                         String name = a.getKey().startsWith(e.getKey()) ? a.getKey().substring(e.getKey().length()+1) : a.getKey();
                         String val = fixASCII(a.getValue());

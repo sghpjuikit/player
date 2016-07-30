@@ -147,12 +147,12 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
-        if(hasItemList(e)) return getItemsList(e);
-        if(hasComponent(e)) return getComponent(e);
-        if(d.hasFiles()) return d.getFiles();
-        if(d.hasImage()) return d.getImage();
-        if(d.hasUrl()) return d.getUrl();
-        if(d.hasString()) return d.getString();
+        if (hasItemList(e)) return getItemsList(e);
+        if (hasComponent(e)) return getComponent(e);
+        if (d.hasFiles()) return d.getFiles();
+        if (d.hasImage()) return d.getImage();
+        if (d.hasUrl()) return d.getUrl();
+        if (d.hasString()) return d.getString();
         return data;
     }
 
@@ -160,12 +160,12 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         // as we return immediately with the result, the order matters
         // first inapp objects, then general object (text, files, etc.)
-        if(hasItemList(e)) return getItemsList(e);
-        if(hasComponent(e)) return getComponent(e);
-        if(d.hasFiles()) return d.getFiles();
-        if(d.hasImage()) return d.getImage();
-        if(d.hasUrl()) return futUrl(d.getUrl());
-        if(d.hasString()) return d.getString(); // must be after url
+        if (hasItemList(e)) return getItemsList(e);
+        if (hasComponent(e)) return getComponent(e);
+        if (d.hasFiles()) return d.getFiles();
+        if (d.hasImage()) return d.getImage();
+        if (d.hasUrl()) return futUrl(d.getUrl());
+        if (d.hasString()) return d.getString(); // must be after url
         return data;
     }
 
@@ -210,7 +210,7 @@ public final class DragUtil {
      */
     public static String getText(DragEvent e) {
         String o = e.getDragboard().getString();
-        if(o==null) o = e.getDragboard().getRtf();
+        if (o==null) o = e.getDragboard().getRtf();
         return o==null ? "" : o;
     }
 
@@ -228,7 +228,7 @@ public final class DragUtil {
 
     /** Returns widget output from dragboard or runtime exceptin if none. */
     public static Output getWidgetOutput(DragEvent e) {
-        if(!hasWidgetOutput(e))
+        if (!hasWidgetOutput(e))
             throw new RuntimeException("No widget output in data available.");
         return (Output) data;
     }
@@ -244,7 +244,7 @@ public final class DragUtil {
         data = items;
         db.setContent(singletonMap(itemsDF, ""));   // fake data
 
-        if(includeFiles) {
+        if (includeFiles) {
             HashMap<DataFormat,Object> c = new HashMap();
             c.put(itemsDF, "");   // fake data
             c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
@@ -253,7 +253,7 @@ public final class DragUtil {
     }
 
     public static List<Item> getItemsList(DragEvent e) {
-        if(!hasItemList(e)) throw new RuntimeException("No item list in data available.");
+        if (!hasItemList(e)) throw new RuntimeException("No item list in data available.");
         return (List<Item>) data;
     }
 
@@ -269,7 +269,7 @@ public final class DragUtil {
     }
 
     public static Component getComponent(DragEvent e) {
-        if(!hasComponent(e)) throw new RuntimeException("No component in data available.");
+        if (!hasComponent(e)) throw new RuntimeException("No component in data available.");
         return (Component) data;
     }
 
@@ -301,7 +301,7 @@ public final class DragUtil {
             String url = d.getUrl();
             // watch out for non audio urls, we must filter those out, or
             // we could cause subtle bugs
-            if(AudioFileFormat.isSupported(url,Use.APP))
+            if (AudioFileFormat.isSupported(url,Use.APP))
                 Optional.of(new SimpleItem(URI.create(url)))  // is not this dangerous?
                         .filter(i->!i.isCorrupt(Use.APP)) // is not this pointless?
                         .ifPresent(o::add);
@@ -346,7 +346,7 @@ public final class DragUtil {
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
             List<File> fs = Util.getImageFiles(files);
-            if(!fs.isEmpty())
+            if (!fs.isEmpty())
                 return fut(fs.get(0));
 
 //                // for debugging purposes to simulate long running actions
@@ -372,7 +372,7 @@ public final class DragUtil {
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
             List<File> fs = Util.getImageFiles(files);
-            if(!fs.isEmpty())
+            if (!fs.isEmpty())
                 return fs.get(0);
         }
         return null;
@@ -400,7 +400,7 @@ public final class DragUtil {
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
             List<File> images = Util.getImageFiles(files);
-            if(!images.isEmpty())
+            if (!images.isEmpty())
                 return fut(images);
         }
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {

@@ -62,7 +62,7 @@ public class ThumbnailWithAdd extends Thumbnail {
         // highlight on hover | drag
         root.addEventHandler(MOUSE_EXITED, e -> highlight(false));
         root.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
-        root.addEventHandler(DRAG_OVER, e -> { if(DragUtil.hasImage(e)) onHighlight.accept(true); });
+        root.addEventHandler(DRAG_OVER, e -> { if (DragUtil.hasImage(e)) onHighlight.accept(true); });
         root.addEventHandler(DRAG_EXITED, e -> onHighlight.accept(false));
 
         // add image on click
@@ -97,7 +97,7 @@ public class ThumbnailWithAdd extends Thumbnail {
     }
 
     private void highlight(boolean v) {
-        if(v) DragPane.PANE.getM(dragData).showFor(root);
+        if (v) DragPane.PANE.getM(dragData).showFor(root);
         else DragPane.PANE.get().hide();
 
         onHighlight.accept(v);

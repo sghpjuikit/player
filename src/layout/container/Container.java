@@ -190,10 +190,10 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     }
 
     protected void closeChild(Component c) {
-        if(c instanceof Container) {
+        if (c instanceof Container) {
 //            ((Container)c).close();
         }
-        else if(c instanceof Widget) {
+        else if (c instanceof Widget) {
             ((Widget)c).close();
         }
     }
@@ -208,12 +208,12 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         Container<?> c1 = this;
         Container<?> c2 = toParent;
 
-        if(toParent==null || i1==null ) return;
+        if (toParent==null || i1==null ) return;
 
         Component w1 = c1.getChildren().get(i1);
         Component w2 = toChild;
 
-        if(w2==null) return;
+        if (w2==null) return;
 
         int i2 = c2.indexOf(w2);
 
@@ -254,7 +254,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
                         out.add(this);
 
         for (Component w: getChildren().values()) {
-            if(w!=null) out.add(w);
+            if (w!=null) out.add(w);
             if (w instanceof Container)
                 out.addAll(((Container<?>)w).getAllChildren().collect(toList()));
         }
@@ -345,11 +345,11 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     protected void removeGraphicsFromSceneGraph() {
         // to do: make sure the layout brachn under this container does not
         // cause a memory leak
-        if(ui!=null) root.getChildren().remove(ui.getRoot());
+        if (ui!=null) root.getChildren().remove(ui.getRoot());
     }
 
     protected void closeGraphics() {
-        if(ui!=null) ui.close();
+        if (ui!=null) ui.close();
     }
 
     /**
@@ -372,14 +372,14 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 
     @Override
     public void show() {
-        if(ui!=null) ui.show();
+        if (ui!=null) ui.show();
         stream(getChildren().values()).select(AltState.class).forEach(AltState::show);
 
     }
 
     @Override
     public void hide() {
-        if(ui!=null) ui.hide();
+        if (ui!=null) ui.hide();
         stream(getChildren().values()).select(AltState.class).forEach(AltState::hide);
     }
 

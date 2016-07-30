@@ -39,10 +39,10 @@ public interface Service extends Configurable {
         
         private void enable(boolean isToBeRunning) {
             boolean isRunning = isRunning();
-            if(isRunning==isToBeRunning) return;
+            if (isRunning==isToBeRunning) return;
             
-            if(isToBeRunning && !isDependency() && isSupported()) start();
-            if(!isToBeRunning) stop();
+            if (isToBeRunning && !isDependency() && isSupported()) start();
+            if (!isToBeRunning) stop();
         }
         
         @Override

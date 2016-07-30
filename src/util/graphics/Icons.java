@@ -41,7 +41,7 @@ public class Icons {
     public static Text createIcon(GlyphIcons icon, int icons, int size) {
         String s = icon.characterToString();
         StringBuilder sb = new StringBuilder(icons);
-        for(int i=0; i<icons; i++) sb.append(s);
+        for (int i=0; i<icons; i++) sb.append(s);
         
         Text t = new Text(sb.toString());
         t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getFontFamily(), size));

@@ -30,7 +30,7 @@ public class CircleContextMenu {
 //        // populate
 //        double angle_interval = (maxAngle>minAngle) ? maxAngle-minAngle : 2*PI-minAngle+maxAngle;
 //        double angle_unit = angle_interval/elements.size();
-//        if(angle_interval!=2*PI) angle_unit += angle_unit/(elements.size()-1); // occupy empty last position in semi-circles
+//        if (angle_interval!=2*PI) angle_unit += angle_unit/(elements.size()-1); // occupy empty last position in semi-circles
 //        for (ContextElement e: elements) {
 //            int index = elements.indexOf(e);
 //            double angle = index * angle_unit + minAngle;

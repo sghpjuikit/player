@@ -241,7 +241,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         root.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
             Point2D click = CoverV.getPane().sceneToLocal(e.getSceneX(),e.getSceneY());
             // only if drag starts on the cover and ends outside of it
-            if(e.getGestureSource().equals(CoverV.getPane()) && !CoverV.getPane().contains(click)) {
+            if (e.getGestureSource().equals(CoverV.getPane()) && !CoverV.getPane().contains(click)) {
                 addImg(null); // removes image
             }
         });
@@ -257,8 +257,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         infoL.setCursor(Cursor.HAND);
 
         // maintain add or set
-        root.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
-        root.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
+        root.setOnKeyPressed(e -> { if (e.getCode()==CONTROL) add_not_set.set(true); });
+        root.setOnKeyReleased(e -> { if (e.getCode()==CONTROL) add_not_set.set(false); });
 
         populate(null);
     }
@@ -322,25 +322,25 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @Override
     @IsInput("Edit")
     public void read(List<? extends Item> items) {
-        if(items==null) return;
+        if (items==null) return;
 
         // remove duplicates
         MapSet<URI,? extends Item> unique = new MapSet<>(Item::getURI, items);
 
         this.allItems.setAll(unique);
-        if(add_not_set.get()) add(unique, false); else set(unique);
+        if (add_not_set.get()) add(unique, false); else set(unique);
     }
 
     private void set(Collection<? extends Item> set) {
         metadatas.clear();
-        if(set.isEmpty()) {
+        if (set.isEmpty()) {
             showProgressReading();
             populate(metadatas);
         }
         else add(set, true);
     }
     private void add(Collection<? extends Item> added, boolean readAll) {
-        if(added.isEmpty()) return;
+        if (added.isEmpty()) return;
 
         // show progress, hide when populate ends - in populate()
         showProgressReading();
@@ -351,13 +351,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             // filter out untaggable
             .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
             .forEach(i -> {
-                if(!readAll && i instanceof Metadata) ready.add((Metadata)i);
+                if (!readAll && i instanceof Metadata) ready.add((Metadata)i);
                 else needs_read.add(i);
             });
 
         // read metadata for items
         MetadataReader.readMetadata(needs_read, (ok,result) -> {
-            if(ok) {
+            if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
                                       unique.addAll(metadatas);
@@ -371,7 +371,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         });
     }
     private void rem(Collection<? extends Item> rem) {
-        if(rem.isEmpty()) return;
+        if (rem.isEmpty()) return;
         // show progress, hide when populate ends - in populate()
         showProgressReading();
         metadatas.removeIf(m -> rem.stream().anyMatch(i -> i.same(m)));
@@ -389,7 +389,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     public void write() {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
-        if(v!=null) {
+        if (v!=null) {
             PopOver p = new PopOver<>(new Text(v.text));
             p.show(PopOver.ScreenPos.App_Center);
             return;
@@ -457,7 +457,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         boolean totally_empty = allItems.isEmpty();
         content.setVisible(!totally_empty);
         placeholder.setVisible(totally_empty);
-        if(totally_empty) return;
+        if (totally_empty) return;
 
         // empty
         boolean empty = items == null || items.isEmpty();
@@ -495,7 +495,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     Set<AudioFileFormat> formats = new HashSet<>();
 
                     // histogram do
-                    for(Metadata m: items) {
+                    for (Metadata m: items) {
                         int i = items.indexOf(m);
                         fields.forEach(f -> f.histogramDo(m, i));
                         formats.add(m.getFormat());
@@ -599,7 +599,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
 
-            if(valCond!=null && c instanceof DecoratedTextField) {
+            if (valCond!=null && c instanceof DecoratedTextField) {
                 Validation v = new Validation(c, valCond , field + " field does not contain valid text.");
                 validators.add(v);
                 Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
@@ -607,8 +607,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
                     l.setVisible(!b);
-                    if(b) if(cf.getRight()==l) cf.setRight(new Region());
-                    else if(cf.getRight()!=l) cf.setRight(l);
+                    if (b) if (cf.getRight()==l) cf.setRight(new Region());
+                    else if (cf.getRight()!=l) cf.setRight(l);
                 });
             }
 
@@ -619,12 +619,12 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c.addEventFilter(MOUSE_EXITED, e -> fieldDesc.setText(""));
 
             // restrain input
-            if(field.isTypeNumber())
+            if (field.isTypeNumber())
                 InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
 
             // if not commitable yet, enable commitable & set text to tag value on click
             c.setOnMouseClicked(e -> {
-                if(e.getButton()==PRIMARY)
+                if (e.getButton()==PRIMARY)
                     OnMouseClicked();
             });
 
@@ -635,7 +635,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             });
 
             // autocompletion
-            if(c instanceof TextField && !isContainedIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
+            if (c instanceof TextField && !isContainedIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
                String n = f.name();
                Comparator<String> cmp = String::compareTo;
                autoComplete(
@@ -734,7 +734,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             }
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
-            if(f==CUSTOM1) {
+            if (f==CUSTOM1) {
                 Color c = Parser.DEFAULT.fromS(Color.class,histogramS);
                 colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 colorF.setText("");
@@ -785,8 +785,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                                 cb.setOnMouseClicked(e -> {
                                     Item item = getItem();
                                     // avoid nulls & respect lock
-                                    if(item != null) {
-                                        if(cb.selected.getValue()) add(singletonList(item),false);
+                                    if (item != null) {
+                                        if (cb.selected.getValue()) add(singletonList(item),false);
                                         else rem(singletonList(item));
                                     }
                                 });
@@ -794,7 +794,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                             @Override
                             protected void updateItem(Item item, boolean empty) {
                                 super.updateItem(item, empty);
-                                if(!empty) {
+                                if (!empty) {
                                     int index = getIndex() + 1;
                                     setText(index + "   " + item.getFilenameFull());
                                     // handle untaggable

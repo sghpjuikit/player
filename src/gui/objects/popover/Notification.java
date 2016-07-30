@@ -38,8 +38,8 @@ public class Notification extends PopOver {
 
         setContentNode(root);
         root.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY && lClickAction!=null ) lClickAction.run();
-            if(e.getButton()==SECONDARY && rClickAction!=null ) rClickAction.run();
+            if (e.getButton()==PRIMARY && lClickAction!=null ) lClickAction.run();
+            if (e.getButton()==SECONDARY && rClickAction!=null ) rClickAction.run();
         });
         root.setOnMouseEntered(e-> closer.pause());
         root.setOnMouseExited(e-> closer.unpause());

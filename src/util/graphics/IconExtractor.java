@@ -47,7 +47,7 @@ public class IconExtractor {
         String ext = Util.getSuffix(file.getPath()).toLowerCase();
 
 	    // Handle windows shortcut files (we need to resolve the target file)
-        if("lnk".equals(ext))
+        if ("lnk".equals(ext))
             return WindowsShortcut.targetedFile(file).map(IconExtractor::getFileIcon).orElse(null);
 
 	    // Handle windows executable files (we need to handle each individually)
@@ -73,7 +73,7 @@ public class IconExtractor {
     }
 
     private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
-	    if(jswingIcon==null) return null;
+	    if (jswingIcon==null) return null;
         BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
         jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
         return SwingFXUtils.toFXImage(image, null);
@@ -97,7 +97,7 @@ public class IconExtractor {
 		//        return i==null ? null : imageSwingToFx(i);
 
 		javax.swing.Icon i = fc.getUI().getFileView(fc).getIcon(file);
-		if(i==null) action.accept(null);
+		if (i==null) action.accept(null);
 		else imageSwingToFx(i, action);
 
 
@@ -107,7 +107,7 @@ public class IconExtractor {
 
 	private static ImageIcon getLargeIcon(File file) {
 		try {
-			if(file==null) throw new FileNotFoundException("File is null");
+			if (file==null) throw new FileNotFoundException("File is null");
 			ShellFolder sf = ShellFolder.getShellFolder(file);
 			return new ImageIcon(sf.getIcon(true), sf.getFolderType());
 		} catch (FileNotFoundException e) {
@@ -117,7 +117,7 @@ public class IconExtractor {
 	}
 
 	private static Image imageAwtToFx(java.awt.Image awtImage) {
-		if(awtImage==null) return null;
+		if (awtImage==null) return null;
 		BufferedImage bimg;
 		if (awtImage instanceof BufferedImage) {
 			bimg = (BufferedImage) awtImage ;
@@ -131,7 +131,7 @@ public class IconExtractor {
 	}
 
 	private static void imageAwtToFx(java.awt.Image awtImage, Consumer<Image> then) {
-		if(awtImage==null) {
+		if (awtImage==null) {
 			then.accept(null);
 			return;
 		}
@@ -148,14 +148,14 @@ public class IconExtractor {
 	}
 
 	private static Image imageSwingToFx(javax.swing.Icon swingIcon) {
-		if(swingIcon==null) return null;
+		if (swingIcon==null) return null;
 		BufferedImage bimg = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(),BufferedImage.TYPE_INT_ARGB);
 		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
 		return SwingFXUtils.toFXImage(bimg, null);
 	}
 
 	private static void imageSwingToFx(javax.swing.Icon swingIcon, Consumer<Image> then) {
-		if(swingIcon==null) {
+		if (swingIcon==null) {
 			then.accept(null);
 			return;
 		}

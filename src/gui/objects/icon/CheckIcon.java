@@ -52,7 +52,7 @@ public class CheckIcon extends Icon<CheckIcon> {
     /** Sets normal and selected icons. Overrides icon css values. */
     public CheckIcon icons(GlyphIcons selectedIcon, GlyphIcons unselectedIcon) {
         getStyleClass().remove(STYLECLASS_DISABLING);
-        if(s!=null) s.unsubscribe();
+        if (s!=null) s.unsubscribe();
         s = maintain(selected, v -> icon(v ? selectedIcon : unselectedIcon));
         return this;
     }
@@ -63,8 +63,8 @@ public class CheckIcon extends Icon<CheckIcon> {
      * instead of different icon.
      */
     public CheckIcon icons(GlyphIcons icon) {
-        if(!getStyleClass().contains(STYLECLASS_DISABLING)) getStyleClass().add(STYLECLASS_DISABLING);
-        if(s!=null) s.unsubscribe();
+        if (!getStyleClass().contains(STYLECLASS_DISABLING)) getStyleClass().add(STYLECLASS_DISABLING);
+        if (s!=null) s.unsubscribe();
         icon(icon);
         return this;
     }

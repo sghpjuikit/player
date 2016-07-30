@@ -96,7 +96,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     }
 
     private void onSuggestionChosen(T suggestion){
-        if(suggestion != null && getSkinnable().onSuggestion.get() != null)
+        if (suggestion != null && getSkinnable().onSuggestion.get() != null)
 		    getSkinnable().onSuggestion.get().handle(new SuggestionEvent<>(suggestion));
     }
 

@@ -41,17 +41,17 @@ public class TextStarRatingCellFactory implements RatingCellFactory {
             @Override
             protected void updateItem(Double item, boolean empty) {
                 super.updateItem(item, empty);
-                if(empty) {
+                if (empty) {
                     setText(null);
                 } else {
                     int r = (int)round(item/0.2);
                     String s;
-                    if(r==0) s = s0;
-                    else if(r==1) s = s1;
-                    else if(r==2) s = s2;
-                    else if(r==3) s = s3;
-                    else if(r==4) s = s4;
-                    else if(r==5) s = s5;
+                    if (r==0) s = s0;
+                    else if (r==1) s = s1;
+                    else if (r==2) s = s2;
+                    else if (r==3) s = s3;
+                    else if (r==4) s = s4;
+                    else if (r==5) s = s5;
                     else s = null;
                     setText(s);
                 }

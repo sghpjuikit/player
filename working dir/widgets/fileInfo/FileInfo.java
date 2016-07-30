@@ -264,14 +264,14 @@ public class FileInfo extends FXMLController implements SongReader {
 
     // item -> metadata
     private void setValue(Item i) {
-        if(i==null) setValue(EMPTY);
-        else if(i instanceof Metadata) setValue((Metadata)i);
+        if (i==null) setValue(EMPTY);
+        else if (i instanceof Metadata) setValue((Metadata)i);
         else App.itemToMeta(i, this::setValue);
     }
 
     private void setValue(Metadata m) {
         // no empty content if desired
-        if(!allowNoContent && m==EMPTY) return;
+        if (!allowNoContent && m==EMPTY) return;
 
         // remember data
         data = m;
@@ -322,9 +322,9 @@ public class FileInfo extends FXMLController implements SongReader {
 /**************************************************************************************************/
 
     private void setAsCover(File file, boolean setAsCover) {
-        if(file==null) return;
+        if (file==null) return;
 
-        if(setAsCover)
+        if (setAsCover)
             copyFileSafe(file, data.getLocation(), "cover");
         else
             copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
@@ -333,7 +333,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     private void tagAsCover(File file, boolean includeAlbum) {
-        if(file==null) return;
+        if (file==null) return;
 
         Collection<Metadata> items = includeAlbum
             // get all known songs from album
@@ -365,9 +365,9 @@ public class FileInfo extends FXMLController implements SongReader {
             this.visibleConfig = new V<>(true,FileInfo.this::update);
             this.semantic_index = i;
 
-            if(field==DISCS_TOTAL) name = "disc";
-            else if(field==TRACKS_TOTAL) name = "track";
-            else if(field==PATH) name = "location";
+            if (field==DISCS_TOTAL) name = "disc";
+            else if (field==TRACKS_TOTAL) name = "track";
+            else if (field==PATH) name = "location";
             else name = field.toStringEnum().toLowerCase();
         }
 
@@ -403,7 +403,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
             double cellH = 15+tiles.getVgap();
             int rows = (int)floor(max(height, 5)/cellH);
-            if(rows==0) rows=1;
+            if (rows==0) rows=1;
             int columns = 1+(int) ceil(labels.size()/rows);
             double cellW = columns==1 || columns==0
                 // do not allow 0 columns & set whole width if 1 column

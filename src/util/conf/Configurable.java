@@ -143,7 +143,7 @@ public interface Configurable<T> {
      */
     default void setField(String name, T v) {
         Config<T> c = getField(name);
-        if(c!=null) c.setValue(v);
+        if (c!=null) c.setValue(v);
     }
 
     /**
@@ -158,7 +158,7 @@ public interface Configurable<T> {
      */
     default void setFieldOrThrow(String name, T v) {
         Config<T> c = getField(name);
-        if(c!=null) c.setValue(v);
+        if (c!=null) c.setValue(v);
         else throw new IllegalArgumentException("Config field '" + name + "' not found.");
     }
 
@@ -174,7 +174,7 @@ public interface Configurable<T> {
      */
     default void setField(String name, String v) {
         Config<T> c = getField(name);
-        if(c!=null) c.setValueS(v);
+        if (c!=null) c.setValueS(v);
     }
 
 

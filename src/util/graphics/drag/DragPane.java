@@ -124,15 +124,15 @@ public class DragPane extends Placeholder {
         Data d = new Data(name, icon, cond);
         node.getProperties().put(INSTALLED, d);
         node.addEventHandler(DragEvent.DRAG_OVER, e -> {
-            if(!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
-                if(d.cond.test(e)) {
+            if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
+                if (d.cond.test(e)) {
                     PANE.get().hide();
 
-                    if(except==null || !except.test(e)) { // null is equivalent to e -> false
+                    if (except==null || !except.test(e)) { // null is equivalent to e -> false
                         node.getProperties().put(ACTIVE, ACTIVE);
                         Pane p = node instanceof Pane ? (Pane)node : node.getParent()==null ? null : (Pane)node.getParent();
                         Pane dp = PANE.getM(d);
-                        if(p!=null && !p.getChildren().contains(dp)) {
+                        if (p!=null && !p.getChildren().contains(dp)) {
                             p.getChildren().add(dp);
                             Bounds b = area==null ? node.getLayoutBounds() : area.apply(e);
                             double w = b.getWidth();
@@ -148,7 +148,7 @@ public class DragPane extends Placeholder {
                 }
             }
 
-            if(area!=null && node.getProperties().containsKey(ACTIVE)) {
+            if (area!=null && node.getProperties().containsKey(ACTIVE)) {
                 Pane dp = PANE.getM(d);
                     Bounds b = area.apply(e);
                     double w = b.getWidth();

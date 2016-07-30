@@ -81,7 +81,7 @@ public class WebReader extends FXMLController {
     @FXML
     @Override
     public void refresh() {
-        if(addressBar.getText().isEmpty()) { // TODO: improve this
+        if (addressBar.getText().isEmpty()) { // TODO: improve this
             // For now we do not reload the page, just set up the address
 	        // loadPage(url);
 	        addressBar.setText(url);
@@ -96,7 +96,7 @@ public class WebReader extends FXMLController {
     }
 
     public void loadPage(String page) {
-	    if(page!=null) {
+	    if (page!=null) {
 		    //			    String s = "<body text=white>" + text + "</body>";
 		    String s = page;
 		    engine.loadContent(s);

@@ -130,18 +130,18 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
             // close on right click
-            if(isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
+            if (isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
                 closeAndDo(root, container::close);
                 e.consume();
                 return;
             }
-            if(isAlt && !isAltCon && e.getButton()==SECONDARY) {
+            if (isAlt && !isAltCon && e.getButton()==SECONDARY) {
                 setAltCon(true);
                 e.consume();
             }
         });
         ctrls.setOnMouseClicked(e -> {
-            if(isAltCon && e.getButton()==PRIMARY) {
+            if (isAltCon && e.getButton()==PRIMARY) {
                 setAltCon(false);
                 e.consume();
             }
@@ -158,30 +158,30 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         // Interesting idea, but turns out it is not intuitive. Most of the time, user
         // simply wants to add child, so this gets in the way.
         // go to container if children empty
-        // if(container.getChildren().isEmpty())
+        // if (container.getChildren().isEmpty())
         //     setAltCon(true);
 
         isAlt = true;
 
         container.getChildren().values().forEach(c -> {
-            if(c instanceof Container) ((Container)c).show();
-            if(c instanceof Widget) {
+            if (c instanceof Container) ((Container)c).show();
+            if (c instanceof Widget) {
                 ContainerNode ct = ((Widget)c).areaTemp;
-                if(ct!=null) ct.show();
+                if (ct!=null) ct.show();
             }
         });
     }
 
     @Override
     public void hide() {
-        if(isAltCon) setAltCon(false);
+        if (isAltCon) setAltCon(false);
         isAlt = false;
 
         container.getChildren().values().forEach(c -> {
-            if(c instanceof Container) ((Container)c).hide();
-            if(c instanceof Widget) {
+            if (c instanceof Container) ((Container)c).hide();
+            if (c instanceof Widget) {
                 ContainerNode ct = ((Widget)c).areaTemp;
-                if(ct!=null) ct.hide();
+                if (ct!=null) ct.hide();
             }
         });
     }
@@ -194,7 +194,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
 
     void setAltCon(boolean b) {
-        if(isAltCon==b) return;
+        if (isAltCon==b) return;
         isAltCon = b;
         new Anim(this::applyanim).dur(250).intpl(b ? x->x : x->1-x).play();
         ctrls.toFront();
@@ -235,7 +235,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
     }
 
     public void detach() {
-        if(!container.hasParent()) return;
+        if (!container.hasParent()) return;
         // get first active component
         Component c = container;
         c.getParent().addChild(c.indexInParent(),null);

@@ -107,10 +107,10 @@ public abstract class Component {
      * </ul>
      */
     public Container<?> getRootParent() {
-        if(hasParent())
+        if (hasParent())
             return getParent().getRootParent();
         else {
-            if(this instanceof Container) return (Container) this;
+            if (this instanceof Container) return (Container) this;
             else return null;
         }
     }
@@ -118,13 +118,13 @@ public abstract class Component {
     /** Window containing this component. Null if not loaded or not in any window. */
     public Window getWindow() {
         Window w = null;
-        if(this instanceof Container) {
+        if (this instanceof Container) {
             Node root = ((Container)this).getRoot();
             Scene scene = root==null ? null : root.getScene();
             javafx.stage.Window stage = scene==null ? null : scene.getWindow();
             w = stage==null ? null : (Window)stage.getProperties().get("window");
         }
-        if(this instanceof Widget) {
+        if (this instanceof Widget) {
             Node root = ((Widget)this).getGraphics();
             Scene scene = root==null ? null : root.getScene();
             javafx.stage.Window stage = scene==null ? null : scene.getWindow();
@@ -136,13 +136,13 @@ public abstract class Component {
 //    /** @return whether this component is currently open*/
 //    public boolean isOpen() {
 //        // check if this is not standalone widget (not in a layout)
-//        if(APP.widgetManager.standaloneWidgets.contains(this)) return true;
+//        if (APP.widgetManager.standaloneWidgets.contains(this)) return true;
 //
 //        Component c = this;
 //        Component p = this;
 //        do {
 //            p = c instanceof Widget ? null : ((Container)c).getParent();
-//            if(p!=null) c = p;
+//            if (p!=null) c = p;
 //        } while(p!=null);
 //
 //        // top container is always layout
@@ -165,7 +165,7 @@ public abstract class Component {
     }
 
     public void swapWith(Container c, int i) {
-        if(c!=null) {
+        if (c!=null) {
             c.swapChildren(getParent(), i, this);
         }
     }
@@ -179,7 +179,7 @@ public abstract class Component {
         //
         // We must always initialize it manually (we use @XStreamOmit for that) and because
         // it really should be final, but the initialization is here, we use reflection
-        if(lockedUnder == null) Util.setField(this, "lockedUnder", new LockedProperty());
+        if (lockedUnder == null) Util.setField(this, "lockedUnder", new LockedProperty());
         return this;
     }
 
@@ -207,7 +207,7 @@ public abstract class Component {
         // cal when component parent changes
         public void initLocked(Component p) {
             unbind();
-            if(p==null) bind(locked.or(Gui.locked_layout));
+            if (p==null) bind(locked.or(Gui.locked_layout));
             else bind(p.lockedUnder.or(locked).or(Gui.locked_layout));
         }
 

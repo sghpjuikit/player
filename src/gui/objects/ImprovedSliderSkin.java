@@ -32,11 +32,11 @@ public class ImprovedSliderSkin extends SliderSkin {
         Anim v = new Anim(millis(350),p -> track.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> track.setScaleY(1+p*p));
         slider.addEventHandler(MOUSE_ENTERED, e -> {
-            if(slider.getOrientation()==VERTICAL) v.playOpen();
+            if (slider.getOrientation()==VERTICAL) v.playOpen();
             else h.playOpen();
         });
         slider.addEventHandler(MOUSE_EXITED, e -> {
-            if(slider.getOrientation()==VERTICAL) v.playClose();
+            if (slider.getOrientation()==VERTICAL) v.playClose();
             else h.playClose();
         });
     }

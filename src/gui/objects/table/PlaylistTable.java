@@ -131,7 +131,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 // right click -> show context menu
                 onRightSingleClick((r,e) -> {
                     // prep selection for context menu
-                    if(!isSelected())
+                    if (!isSelected())
                         getSelectionModel().clearAndSelect(getIndex());
                     // show context menu
                     contextMenu.show(PlaylistTable.this, e);
@@ -150,8 +150,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // resizing
         setColumnResizePolicy(resize -> {
             // handle column resize (except index)
-            if(resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
-                if(getColumns().contains(columnName))
+            if (resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
+                if (getColumns().contains(columnName))
                     columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
                 resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
 
@@ -179,7 +179,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
             List<TableColumn> cs = new ArrayList<>(resize.getTable().getColumns());
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
-            if(mc!=null) {
+            if (mc!=null) {
                 cs.remove(mc);
                 double Σcw = cs.stream().mapToDouble(c -> c.getWidth()).sum();
                 mc.setPrefWidth(tw-Σcw-sw-gap);
@@ -203,13 +203,13 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         addEventFilter(MOUSE_DRAGGED, e -> {
             if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
             // we cant move items when filter on & we cant cancel filter, user would freak out
-            //  if(itemsPredicate.get()!=null) return; // unreliable as non null predicates may have no effect
-            if(getItems().size()!=getItemsRaw().size()) return;
+            //  if (itemsPredicate.get()!=null) return; // unreliable as non null predicates may have no effect
+            if (getItems().size()!=getItemsRaw().size()) return;
 
             // transform any sort (if in effect) to actual table items, we cant change order on
             // items out of natural order
             // note this is only called the 1st time (or not at all), not repeatedly
-            if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
+            if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
                 movingItems = true;
                 List<PlaylistItem> l = list(getItems());
                 List<Integer> sl = list(getSelectionModel().getSelectedIndices());
@@ -233,7 +233,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // set key-induced actions
         setOnKeyReleased(e -> {
             if (e.getCode() == KeyCode.ENTER) {     // play first of the selected
-                if(!getSelectedItems().isEmpty())
+                if (!getSelectedItems().isEmpty())
                     getPlaylist().playItem(getSelectedItems().get(0));
             } else
             if (e.getCode() == KeyCode.DELETE) {    // delete selected
@@ -246,12 +246,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             }
         });
         setOnKeyPressed(e -> {
-            if(e.isControlDown()) {
-                if(e.getCode()==KeyCode.UP) {
+            if (e.isControlDown()) {
+                if (e.getCode()==KeyCode.UP) {
 //                    table.getFocusModel().focus(-1);
                     moveSelectedItems(-1);
                 } else
-                if(e.getCode()==KeyCode.DOWN) {
+                if (e.getCode()==KeyCode.DOWN) {
 //                    table.getFocusModel().focus(-1);
                     moveSelectedItems(1);
                 }
@@ -281,12 +281,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
         // scroll to playing item
         maintain(scrollToPlaying, v -> {
-            if(v) {
+            if (v) {
                 scrollToCenter(getItems().indexOf(playlist.getPlaying()));
             }
         });
         playlist.playingI.addListener((o,ov,nv) -> {
-            if(scrollToPlaying.getValue())
+            if (scrollToPlaying.getValue())
                 scrollToCenter(getItems().indexOf(playlist.getPlaying()));
         });
 
@@ -313,11 +313,11 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
 
     public boolean movingItems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
-        if(movingItems) return;
+        if (movingItems) return;
         PlaylistManager.selectedItemES.push(nv);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
-        if(movingItems) return;
+        if (movingItems) return;
         while(c.next()) {
             PlaylistManager.selectedItemsES.push(getSelectionModel().getSelectedItems());
         }
@@ -410,7 +410,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         (menu,table) -> {
             List<PlaylistItem> items = ImprovedTable.class.cast(table).getSelectedItemsCopy();
             menu.setValue(items);
-            if(items.isEmpty()) {
+            if (items.isEmpty()) {
                 menu.getItems().forEach(i->i.setDisable(true));
             } else {
                 menu.getItems().forEach(i->i.setDisable(false));

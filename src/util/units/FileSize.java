@@ -66,7 +66,7 @@ public final class FileSize implements Comparable<FileSize> {
      * @throws IllegalArgumentException if param negative
      */
     public FileSize(long bytes) {
-        if(bytes<-1) throw new IllegalArgumentException("File size value must be -1 or larger");
+        if (bytes<-1) throw new IllegalArgumentException("File size value must be -1 or larger");
         v = bytes;
     }
 
@@ -140,7 +140,7 @@ public final class FileSize implements Comparable<FileSize> {
     @Dependency("Designed to be used in tables, filters and gui.")
     @Dependency("Supports different units. B - EB")
     public String toString() {
-        if(v == -1) return NAString;
+        if (v == -1) return NAString;
         double EB = (v / (double)Ei);
         if (EB>=1) return String.format("%.2f EiB", EB);
         double PB = (v / (double)Pi);
@@ -177,32 +177,32 @@ public final class FileSize implements Comparable<FileSize> {
     private static long val(String s) throws NumberFormatException {
         long unit = 1;
 
-        if(s.equals(NAString)) return NA;
+        if (s.equals(NAString)) return NA;
         int b = max(s.indexOf("B"),s.indexOf("b"));
         if (b>0) {
             String prefix = s.substring(b-1, b);
             int skip = 0;
-            if("k".equalsIgnoreCase(prefix)) {
+            if ("k".equalsIgnoreCase(prefix)) {
                 unit = Ki;
                 skip++;
             } else
-            if("m".equalsIgnoreCase(prefix)) {
+            if ("m".equalsIgnoreCase(prefix)) {
                 unit = Mi;
                 skip++;
             } else
-            if("g".equalsIgnoreCase(prefix)) {
+            if ("g".equalsIgnoreCase(prefix)) {
                 unit = Gi;
                 skip++;
             } else
-            if("t".equalsIgnoreCase(prefix)) {
+            if ("t".equalsIgnoreCase(prefix)) {
                 unit = Ti;
                 skip++;
             } else
-            if("p".equalsIgnoreCase(prefix)) {
+            if ("p".equalsIgnoreCase(prefix)) {
                 unit = Pi;
                 skip++;
             } else
-            if("e".equalsIgnoreCase(prefix)) {
+            if ("e".equalsIgnoreCase(prefix)) {
                 unit = Ei;
                 skip++;
             }

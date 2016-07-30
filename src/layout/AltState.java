@@ -18,7 +18,7 @@ import javafx.util.Duration;
  * This is how the implementation of passing down the call should look like:
  * 
  *   public void showInfo(boolean show) {
- *       for(Object child: children.values()) {
+ *       for (Object child: children.values()) {
  *           if (child instanceof ShowableInfo) {
  *               ((ShowableInfo) child).showInfo(show);
  *           }
@@ -45,6 +45,6 @@ public interface AltState {
     
     /** Invokes show() if true else hide(). */
     default void setShow(boolean v) {
-        if(v) show(); else hide();
+        if (v) show(); else hide();
     }
 }

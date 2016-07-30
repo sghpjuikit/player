@@ -90,7 +90,7 @@ public final class PLAYBACK implements Configurable {
 
     /** Initialize state from last session */
     public static void loadLastState() {
-        if(!continuePlaybackOnStart) return;
+        if (!continuePlaybackOnStart) return;
         if (PlaylistManager.use(Playlist::getPlaying, null)==null) return;
 
         if (continuePlaybackPaused)
@@ -185,9 +185,9 @@ public final class PLAYBACK implements Configurable {
 
     /** Seeks player to position specified by percent value 0-1. */
     public static void seek(double at) {
-        if(at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
+        if (at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
         seek(getTotalTime().multiply(at));
-        if(state.status.get()==PAUSED) player.pause_resume();
+        if (state.status.get()==PAUSED) player.pause_resume();
     }
 
     /** Seek forward by specified duration */
@@ -199,7 +199,7 @@ public final class PLAYBACK implements Configurable {
     /** Seek forward by specified duration */
     @IsAction(name = "Seek forward", desc = "Seek forward playback.", keys = "ALT+D", repeat = true, global = true)
     public static void seekForward() {
-        if(seekPercent) {
+        if (seekPercent) {
             double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
             seek(min(d, 1));
         } else
@@ -209,7 +209,7 @@ public final class PLAYBACK implements Configurable {
     /** Seek backward by specified duration */
     @IsAction(name = "Seek backward", desc = "Seek backward playback.", keys = "ALT+A", repeat = true, global = true)
     public static void seekBackward() {
-        if(seekPercent) {
+        if (seekPercent) {
             double d = getCurrentTime().toMillis()/getTotalTime().toMillis() - seekUnitP;
             seek(max(d, 0));
         } else
@@ -263,8 +263,8 @@ public final class PLAYBACK implements Configurable {
     }
 
     public static void toggleLoopMode(MouseEvent e) {
-        if(e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
-        if(e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
+        if (e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
+        if (e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
     }
 
     public static void setLoopMode(LoopMode mode) {
@@ -383,7 +383,7 @@ public final class PLAYBACK implements Configurable {
     public static void openPlayedLocation() {
         if (PlaylistManager.active==null) return;
         Item i = PlaylistManager.use(Playlist::getPlaying, null);
-        if(i!=null) Environment.browse(i.getURI());
+        if (i!=null) Environment.browse(i.getURI());
     }
 
     //********************************** EVENTS ***********************************/

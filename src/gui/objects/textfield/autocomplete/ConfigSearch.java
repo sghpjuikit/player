@@ -63,22 +63,22 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                     {
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                            if(!ignoreEvent)
+                            if (!ignoreEvent)
                                 if (e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
                                     switch (e.getCode()) {
                                         case UP   : history.up(ConfigSearch.this); break;
                                         case DOWN : history.down(ConfigSearch.this); break;
                                         default   : break;
                                     }
-                                } else if(e.getCode()==KeyCode.BACK_SPACE) {
+                                } else if (e.getCode()==KeyCode.BACK_SPACE) {
                                     textField.deletePreviousChar();
                                     e.consume();
-                                } else if(!e.getCode().isNavigationKey()) {
+                                } else if (!e.getCode().isNavigationKey()) {
                                 	// TODO: remove
                                     // We re-fire event on text field so we can type even though it
                                     // does not have focus. This causes event stack overflow, so we
                                     // defend against it with a boolean flag.
-                                	if(!textField.isFocused()) {
+                                	if (!textField.isFocused()) {
 	                                    ignoreEvent = true;
 	                                    completionTarget.fireEvent(e);
 	                                }
@@ -87,37 +87,37 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                             // e.consume(); // may brake functionality
                         });
                         getNode().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                            if(!ignoreEvent)
-                                if(e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
+                            if (!ignoreEvent)
+                                if (e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
                                     switch (e.getCode()) {
                                         case UP   : history.up(ConfigSearch.this); break;
                                         case DOWN : history.down(ConfigSearch.this); break;
                                         default   : break;
                                     }
                                     e.consume();
-                                } else if(e.isControlDown() && e.getCode()==KeyCode.A) {
+                                } else if (e.isControlDown() && e.getCode()==KeyCode.A) {
                                     textField.selectAll();
                                     e.consume();
-                                } else if(e.getCode()==KeyCode.BACK_SPACE) {
+                                } else if (e.getCode()==KeyCode.BACK_SPACE) {
                                     // textField.deletePreviousChar(); // doesn't work here
                                     // e.consume();
-                                } else if(e.getCode()==KeyCode.END) {
+                                } else if (e.getCode()==KeyCode.END) {
                                     if (e.isShiftDown()) textField.selectEnd();
                                     else textField.positionCaret(textField.getLength());
                                     e.consume();
-                                } else if(e.getCode()==KeyCode.HOME) {
+                                } else if (e.getCode()==KeyCode.HOME) {
                                     if (e.isShiftDown()) textField.selectHome();
                                     else textField.positionCaret(0);
                                     e.consume();
-                                } else if(e.getCode()==KeyCode.LEFT) {
+                                } else if (e.getCode()==KeyCode.LEFT) {
                                     if (e.isControlDown()) textField.selectPreviousWord(); else textField.selectBackward();
-                                    if(!e.isShiftDown()) textField.deselect();
+                                    if (!e.isShiftDown()) textField.deselect();
                                     e.consume();
-                                } else if(e.getCode()==KeyCode.RIGHT) {
-                                    if(e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
-                                    if(!e.isShiftDown()) textField.deselect();
+                                } else if (e.getCode()==KeyCode.RIGHT) {
+                                    if (e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
+                                    if (!e.isShiftDown()) textField.deselect();
                                     e.consume();
-                                } else if(!e.getCode().isNavigationKey()) {
+                                } else if (!e.getCode().isNavigationKey()) {
 
                                 }
                             ignoreEvent = false;
@@ -149,13 +149,13 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         private final List<String> history = new ArrayList<>();
 
         private void up(ConfigSearch search) {
-            if(history.isEmpty()) return;
+            if (history.isEmpty()) return;
             history_at = history_at==0 ? history.size()-1 : history_at-1;
             ((TextField)search.completionTarget).setText(history.get(history_at));
         }
 
         private void down(ConfigSearch search) {
-            if(history.isEmpty()) return;
+            if (history.isEmpty()) return;
             history_at = history_at==history.size()-1 ? 0 : history_at+1;
             ((TextField)search.completionTarget).setText(history.get(history_at));
         }
@@ -164,7 +164,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
             String last = history.isEmpty() ? null : history.get(history.size()-1);
             String curr = ((TextField)search.completionTarget).getText();
             boolean isDiff = last!=null && curr!=null && last.equalsIgnoreCase(curr);
-            if(isDiff) {
+            if (isDiff) {
                 history.add(curr);
                 history_at = history.size()-1;
             }
@@ -212,7 +212,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 	    @Override
 	    public void run() {
 			Runnable a = actionLazy.get();
-		    if(a!=null) a.run();
+		    if (a!=null) a.run();
 	    }
     }
 	private static class ConfigEntry implements Entry {
@@ -236,9 +236,9 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
 	    @Override
         public Node getGraphics() {
-            if(loaded) return graphics;
+            if (loaded) return graphics;
 
-            if(config.getType()==Action.class && ((Action)config).hasKeysAssigned()) {
+            if (config.getType()==Action.class && ((Action)config).hasKeysAssigned()) {
                 graphics = new Label(((Action)config).getKeys());
                 ((Label)graphics).setTextAlignment(TextAlignment.RIGHT);
             } else {
@@ -253,10 +253,10 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
 	    @Override
 	    public void run() {
-		    if(Runnable.class.isAssignableFrom(config.getClass()))
+		    if (Runnable.class.isAssignableFrom(config.getClass()))
 			    ((Runnable)config).run();
 		    else
-		    if(Runnable.class.isAssignableFrom(config.getType()) && config.getValue() != null)
+		    if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue() != null)
 			    ((Runnable)config.getValue()).run();
 	    }
     }
@@ -280,18 +280,18 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         @Override
         protected void updateItem(Entry item, boolean empty) {
             super.updateItem(item, empty);
-            if(empty) {
+            if (empty) {
                 text.setText("");
                 setGraphic(null);
             } else {
-                if(getGraphic()!=root) setGraphic(root);
+                if (getGraphic()!=root) setGraphic(root);
 
                 tooltip.setText(item.getInfo());
 
                 text.setText(item.getName());
 	            Node node = item.getGraphics();
-	            if(node instanceof HBox) ((HBox)node).setAlignment(Pos.CENTER_RIGHT);
-	            if(node==null) configNodeRoot.getChildren().clear();
+	            if (node instanceof HBox) ((HBox)node).setAlignment(Pos.CENTER_RIGHT);
+	            if (node==null) configNodeRoot.getChildren().clear();
 	            else {
 	            	configNodeRoot.getChildren().setAll(node);
 		            StackPane.setAlignment(node, Pos.CENTER_RIGHT);

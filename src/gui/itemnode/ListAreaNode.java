@@ -103,7 +103,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     public ListAreaNode() {
         transforms.onItemChange = f -> {
             List l = map(input,f);
-            if(transforms.getTypeOut()!=String.class)   // prevents duplicate update
+            if (transforms.getTypeOut()!=String.class)   // prevents duplicate update
                 output.setAll(l);
             textarea.setText(toS(l,toString,"\n"));     // update the text -> update the value
         };
@@ -119,7 +119,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
             // transformation outputs. Of course, this will still ignore edits done in between individual
             // transformations, but if someone uses the transformation output, it will be there, which
             // is progress.
-            if(transforms.getTypeOut()==String.class)
+            if (transforms.getTypeOut()==String.class)
                 output.setAll(newval);
         });
         // layout
@@ -127,7 +127,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
         VBox.setVgrow(textarea, ALWAYS);
 
         textarea.addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode()==KeyCode.V && e.isControlDown()) {
+            if (e.getCode()==KeyCode.V && e.isControlDown()) {
                 e.consume();
             }
         });
@@ -192,7 +192,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     // very naive, this is just bad...
     @TODO(purpose = FUNCTIONALITY, severity = SEVERE)
     private static <E> Class<?> getElementClass(Collection<E> c) {
-        for(E e : c) if(e!=null) return e.getClass();
+        for (E e : c) if (e!=null) return e.getClass();
         return Void.class;
     }
 

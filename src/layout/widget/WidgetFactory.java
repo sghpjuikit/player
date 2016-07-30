@@ -198,7 +198,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
     @Override
     public List<Feature> getFeatures() {
         List<Feature> out = new ArrayList<>();
-        for(Class<?> c : controller_class.getInterfaces()) {
+        for (Class<?> c : controller_class.getInterfaces()) {
             Feature f = c.getAnnotation(Feature.class);
             if (f!=null) out.add(f);
         }

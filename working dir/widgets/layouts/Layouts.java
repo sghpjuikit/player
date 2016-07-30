@@ -137,7 +137,7 @@ public final class Layouts extends ClassController {
         // attempt to get layout from active layouts
         Layout l = APP.widgetManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
         // attempt to deserialize the layout if not active
-        if(l==null) {
+        if (l==null) {
             l = new Layout(name);
             l.deserialize();
         }

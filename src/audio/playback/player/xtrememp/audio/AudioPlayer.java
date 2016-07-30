@@ -543,7 +543,7 @@ public class AudioPlayer implements Callable<Void> {
 
 
     public void setVolume(double v) { // v = normalized 0-1
-        if(gainControl!=null) {
+        if (gainControl!=null) {
             // float f = (float)v; // logarithmic
             float f = (float) Math.sqrt(Math.sqrt(v)); // approximated linear
             // denormalized
@@ -801,20 +801,20 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     private long doSeek(long to, long by) throws IOException, PlayerException {
-        if(audioInputStream==null)
+        if (audioInputStream==null)
             return 0;
 
         // To explain, stream supports 'seeking' forward only, using skip().
         // To seek backwards it needs to support marking, which allows reseting to 0
         // and then skipping  to where we wanted
         boolean isForward = by > 0;
-//        if(isForward) {
+//        if (isForward) {
 //            // Unfortunately this is bugged - skips 0. Disabled for now.
 //            return audioInputStream.skip(by);
 //        } else {
             // This impl. performs very badly even for single seek. Concecutive seeking is big fail.
             System.out.println("seekin debug: is mark supported: " + audioInputStream.markSupported());
-            if(audioInputStream.markSupported()) {
+            if (audioInputStream.markSupported()) {
                 audioInputStream.reset();
                 return audioInputStream.skip(to);
             } else {

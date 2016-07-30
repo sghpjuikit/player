@@ -218,7 +218,7 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     public Metadata(Item item) {
         uri = item.getURI().toString();
-        if(item instanceof PlaylistItem) {
+        if (item instanceof PlaylistItem) {
             PlaylistItem pitem = (PlaylistItem)item;
             artist = pitem.getArtist();
             duration = pitem.getTime().toMillis();
@@ -252,7 +252,7 @@ public final class Metadata extends MetaItem<Metadata> {
         Tag tag = audiofile.getTagOrCreateAndSetDefault();
         // If the tag is null, we skip reading
 //        Tag tag = audiofile.getTag();
-        if(tag!=null) {
+        if (tag!=null) {
             loadGeneralFields(tag);
             switch (getFormat()) {
                 case mp3:  loadFieldsID3((AbstractID3Tag)tag);                     break;
@@ -270,7 +270,7 @@ public final class Metadata extends MetaItem<Metadata> {
     /** loads all header fields  */
     private void loadHeaderFields(AudioFile aFile) {
         AudioHeader header = aFile.getAudioHeader();
-        if(header==null) {  // just in case
+        if (header==null) {  // just in case
             log(Metadata.class).info("Header not found: " + getURI());
         } else {
             bitrate = (int)header.getBitRateAsNumber();
@@ -296,7 +296,7 @@ public final class Metadata extends MetaItem<Metadata> {
         // track
         String tr = getGeneral(tag,FieldKey.TRACK);
         int i = tr.indexOf('/');
-        if(i!=-1) {
+        if (i!=-1) {
             // some apps use TRACK for "x/y" string format, we cover that
             track = number(tr.substring(0, i));
             tracks_total = number(tr.substring(i+1, tr.length()));
@@ -308,7 +308,7 @@ public final class Metadata extends MetaItem<Metadata> {
         // disc
         String dr = getGeneral(tag,FieldKey.DISC_NO);
         int j = dr.indexOf('/');
-        if(j!=-1) {
+        if (j!=-1) {
             // some apps use DISC_NO for "x/y" string format, we cover that
             disc = number(dr.substring(0, j));
             discs_total = number(dr.substring(j+1, dr.length()));
@@ -331,9 +331,9 @@ public final class Metadata extends MetaItem<Metadata> {
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
 
         // Following acquire data from special tag
-        if(!custom5.isEmpty()) {
-            for(String tagField : list(split(custom5,SEPARATOR_GROUP.toString()))) {
-                if(tagField.length()<10) continue;      // skip deformed to avoid exception
+        if (!custom5.isEmpty()) {
+            for (String tagField : list(split(custom5,SEPARATOR_GROUP.toString()))) {
+                if (tagField.length()<10) continue;      // skip deformed to avoid exception
                 String tagId = tagField.substring(0,10);
                 String tagValue = tagField.substring(10);
                 switch(tagId) {
@@ -384,10 +384,10 @@ public final class Metadata extends MetaItem<Metadata> {
         int i = -1;
         List<TagField> fields = tag.getFields(FieldKey.COMMENT);
         // get index of comment within all comment-type tags
-        for(TagField t: fields) // custom
+        for (TagField t: fields) // custom
             if (!t.toString().contains("Description"))
                 i = fields.indexOf(t);
-        if(i>-1) return tag.getValue(FieldKey.COMMENT, i);
+        if (i>-1) return tag.getValue(FieldKey.COMMENT, i);
         else return "";
     }
 
@@ -429,11 +429,11 @@ public final class Metadata extends MetaItem<Metadata> {
     // CATEGORY - Each tag handles it differently, simply read it
 
     private void loadFieldsID3(AbstractID3Tag tag) {
-        if(tag instanceof AbstractID3v1Tag) {
+        if (tag instanceof AbstractID3v1Tag) {
             // RATING + PLAYCOUNT +PUBLISHER + CATEGORY ----------------------------
             // id3 has no fields for this (note that when we write these fields we convert tag to
             // ID3v2, so this only happens with untagged songs, which we dont care about
-        } else if(tag instanceof AbstractID3v2Tag) {
+        } else if (tag instanceof AbstractID3v2Tag) {
             AbstractID3v2Tag t = (AbstractID3v2Tag) tag;
             // RATING + PLAYCOUNT --------------------------------------------------
             // we use POPM field (rating + counter + mail/user)
@@ -458,7 +458,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
                     try {
                         int pc = Math.toIntExact(cou);
-                        if(pc > playcount) playcount = pc;
+                        if (pc > playcount) playcount = pc;
                     } catch (ArithmeticException ignored) {}
                 }
             }
@@ -475,7 +475,7 @@ public final class Metadata extends MetaItem<Metadata> {
     // wav
     private void loadFieldsWAV(WavTag tag) {
         AbstractID3v2Tag t = tag.getID3Tag();
-        if(t!=null) {
+        if (t!=null) {
             loadFieldsID3(t);
         } else {
             // todo: implement fallback
@@ -503,11 +503,11 @@ public final class Metadata extends MetaItem<Metadata> {
         // sometimes we get unintelligible values for some reason (dont ask me),
         // Mp3Tagger app can recognize them somehow
         // the values appear consistent so lets use them
-        if(r==12592) rating = 100;
-        else if(r==14384) rating = 80;
-        else if(r==13872) rating = 60;
-        else if(r==13360) rating = 40;
-        else if(r==12848) rating = 20;
+        if (r==12592) rating = 100;
+        else if (r==14384) rating = 80;
+        else if (r==13872) rating = 60;
+        else if (r==13360) rating = 40;
+        else if (r==12848) rating = 20;
         // handle normally
         else rating = (r<0 || r>100) ? -1 : r;
 
@@ -521,7 +521,7 @@ public final class Metadata extends MetaItem<Metadata> {
         //      tag.getFirst(Mp4FieldKey.LABEL) // not same as WINAMP_PUBLISHER, but perhaps also valid
         //      tag.getFirst(FieldKey.KEY)
         publisher = emptyOr(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
-        if(publisher.isEmpty()) publisher = emptyOr(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
+        if (publisher.isEmpty()) publisher = emptyOr(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
 
         // CATEGORY ------------------------------------------------------------
         // the general acquisition is good enough
@@ -534,19 +534,19 @@ public final class Metadata extends MetaItem<Metadata> {
         // RATING --------------------------------------------------------------
         // some players use 0-5 value, so extends it to 100
         rating = number(emptyOr(tag.getFirst("RATING")));
-        if(0<rating && rating<6) rating *=20;
+        if (0<rating && rating<6) rating *=20;
 
         // PLAYCOUNT -----------------------------------------------------------
         // if we want to support playcount in vorbis specific field, we can
         // just lets not overwrite value we obtained with previous methods
-        // if(playcount==-1) playcount = number(emptyOr(tag.getFirst("PLAYCOUNT")));
+        // if (playcount==-1) playcount = number(emptyOr(tag.getFirst("PLAYCOUNT")));
 
         // PUBLISHER -----------------------------------------------------------
         publisher = emptyOr(tag.getFirst("PUBLISHER"));
 
         // CATEGORY ------------------------------------------------------------
         // try to get category the winamp way, dont if we already have a value
-        if(category.isEmpty()) category = emptyOr(tag.getFirst("CATEGORY"));
+        if (category.isEmpty()) category = emptyOr(tag.getFirst("CATEGORY"));
     }
 
 /******************************************************************************/
@@ -779,7 +779,7 @@ public final class Metadata extends MetaItem<Metadata> {
     }
 
     private void loadCover() {
-        if(cover!=null || cover_loaded) return;
+        if (cover!=null || cover_loaded) return;
         cover_loaded = true;
         AudioFile af = isFileBased() ? readAudioFile(getFile()) : null;
         Tag tag = af!=null ? af.getTagOrCreateAndSetDefault() : null;
@@ -789,7 +789,7 @@ public final class Metadata extends MetaItem<Metadata> {
     private Cover getCover() {
         try {
             loadCover();
-            if(cover==null) return new ImageCover((Image)null, getCoverInfo());
+            if (cover==null) return new ImageCover((Image)null, getCoverInfo());
             else return new ImageCover((BufferedImage) cover.getImage(), getCoverInfo());
         } catch (IOException e) {
             return new ImageCover((Image)null, getCoverInfo());
@@ -828,7 +828,7 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     @TODO(note = "ensure null does not cause any problems")
     private File getCoverFromDirAsFile() {
-        if(!isFileBased()) return null;
+        if (!isFileBased()) return null;
 
         File dir = getFile().getParentFile();
         if (!Util.isValidDirectory(dir)) return null;
@@ -837,7 +837,7 @@ public final class Metadata extends MetaItem<Metadata> {
         files = dir.listFiles( f -> {
             String filename = f.getName();
             int i = filename.lastIndexOf('.');
-            if(i == -1) return false;
+            if (i == -1) return false;
             String name = filename.substring(0, i);
             return (ImageFileFormat.isSupported(f.toURI()) && (
                         name.equalsIgnoreCase("cover") ||
@@ -936,17 +936,17 @@ public final class Metadata extends MetaItem<Metadata> {
     }
 
     public LocalDateTime getTimePlayedFirst() {
-        if(playedFirst.isEmpty()) return null;
+        if (playedFirst.isEmpty()) return null;
 	    return localDateTimeFromMillis(playedFirst);
     }
 
     public LocalDateTime getTimePlayedLast() {
-        if(playedLast.isEmpty()) return null;
+        if (playedLast.isEmpty()) return null;
 	    return localDateTimeFromMillis(playedLast);
     }
 
     public LocalDateTime getTimeLibraryAdded() {
-        if(libraryAdded.isEmpty()) return null;
+        if (libraryAdded.isEmpty()) return null;
 	    return localDateTimeFromMillis(libraryAdded);
     }
 
@@ -993,14 +993,14 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     public List<Chapter> getChapters() {
         String chapterString = getCustom2();
-        if(chapterString.isEmpty()) return list();
+        if (chapterString.isEmpty()) return list();
 
         List<Chapter> cs = new ArrayList<>();
-        for(String c: getCustom2().split("\\|", 0)) {
+        for (String c: getCustom2().split("\\|", 0)) {
             try {
-                if(c.isEmpty()) continue;
+                if (c.isEmpty()) continue;
                 cs.add(new Chapter(c));
-            } catch( IllegalArgumentException e) {
+            } catch(IllegalArgumentException e) {
                 log(Metadata.class).error("String '{}' not be parsed as chapter. Will be ignored.", c);
             }
         }
@@ -1160,16 +1160,16 @@ public final class Metadata extends MetaItem<Metadata> {
             // initialize file size group cache
             GROUPS_FILESIZE[64] = new FileSize(0);
             GROUPS_FILESIZE[0] = new FileSize(1);
-            for(int i=1; i<63; i++)
+            for (int i=1; i<63; i++)
                 GROUPS_FILESIZE[i] = new FileSize(GROUPS_FILESIZE[i-1].inBytes()*2);
             // note that 2^63==Long.MAX_VALUE+1, meaning such value is impossible to use, so we
             // use max value instead. Note that this changes the 'unit' from 16EiB to 15.999... PiB
             GROUPS_FILESIZE[63] = new FileSize(Long.MAX_VALUE);
-            // for(int i=0; i<=64; i++) // debug
+            // for (int i=0; i<=64; i++) // debug
             //     System.out.println(i + " : " + FILESIZE_GROUPS[i]);
 
             // initialize rating group cache
-            for(int i=0; i<=20; i++)
+            for (int i=0; i<=20; i++)
                 GROUPS_RATING[i] = i*5/100d;
         }
 
@@ -1200,12 +1200,12 @@ public final class Metadata extends MetaItem<Metadata> {
         public Object getGroupedOf(Metadata m) {
             // Note that groups must include the 'empty' group for when the value is empty
 
-            if(this==FILESIZE) {
+            if (this==FILESIZE) {
                 // filesize can not have empty value, every file has some size.
                 return GROUPS_FILESIZE[64 - Long.numberOfLeadingZeros(m.filesize - 1)];
             }
-            if(this==RATING) {
-                if(m.rating==EMPTY.rating) return -1d; // empty group
+            if (this==RATING) {
+                if (m.rating==EMPTY.rating) return -1d; // empty group
                 return GROUPS_RATING[(int)(m.getRatingPercent()*100/5)];
             }
             return extr.apply(m);
@@ -1245,7 +1245,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public String toS(Object o, String empty_val) {
-            if(o==null || "".equals(o)) return empty_val;
+            if (o==null || "".equals(o)) return empty_val;
             switch(this) {
                 case RATING_RAW : return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
                 case RATING : return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", (double)o);

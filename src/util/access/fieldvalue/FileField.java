@@ -11,12 +11,18 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
+import java.util.Date;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.xmp.XmpDirectory;
 
 import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 
 import static util.Util.localDateTimeFromMillis;
+import static util.file.Util.getSuffix;
 import static util.type.Util.mapEnumConstantName;
 
 /**
@@ -25,29 +31,40 @@ import static util.type.Util.mapEnumConstantName;
  */
 public enum FileField implements ObjectField<File> {
 
-    PATH("Path",File::getPath, String.class),
+    PATH("Path", File::getPath, String.class),
     NAME("Name", Util::getName, String.class),
     NAME_FULL("Filename", Util::getNameFull, String.class),
     EXTENSION("Extension", Util::getSuffix, String.class),
-    SIZE("Size",FileSize::new, FileSize.class),
-    TIME_MODIFIED("Time Modified",f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class),
-    TIME_CREATED("Time Created",f -> {
+    SIZE("Size", FileSize::new, FileSize.class),
+    TIME_MODIFIED("Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class),
+    TIME_CREATED("Time Created", f -> {
         try {
-            BasicFileAttributes attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-            return attr.creationTime();
+            return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
+	                    .creationTime();
         } catch (IOException e) {
             return null;
         }
     }, FileTime.class),
-    TIME_ACCESSED("Time Accessed",f -> {
+	TIME_CREATED_FROM_TAG("Time Created (metadata)", f -> {
+		try {
+			return ImageMetadataReader
+				       .readMetadata(f)
+					   .getFirstDirectoryOfType(XmpDirectory.class)
+					   .getDate(XmpDirectory.TAG_CREATE_DATE);
+		} catch (IOException | ImageProcessingException | NullPointerException e) {
+//			log(FileField.class).error("Could not read image xmp metadata for {}", f, e);
+			return null;
+		}
+	}, Date.class),
+    TIME_ACCESSED("Time Accessed", f -> {
         try {
-            BasicFileAttributes attr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-            return attr.lastAccessTime();
+            return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
+	                    .lastAccessTime();
         } catch (IOException e) {
             return null;
         }
     }, FileTime.class),
-    TYPE("Type",f -> f.isDirectory() ? "Directory" : Util.getSuffix(f), String.class);
+    TYPE("Type", f -> f.isDirectory() ? "Directory" : getSuffix(f), String.class);
 
     private final String description;
     private final Ƒ1<File,?> mapper;

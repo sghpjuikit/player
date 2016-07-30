@@ -1,4 +1,3 @@
-
 package util.type;
 
 import java.util.Collection;
@@ -18,7 +17,6 @@ public class ObjectFieldMap {
 
     private final ClassMap<Set> fields = new ClassMap<>();
     private final ClassMap<Set> cache = new ClassMap<>();
-
 
     public <T> void add(Class<T> c, Collection<ObjectField<T>> fields) {
         noØ(c, fields);

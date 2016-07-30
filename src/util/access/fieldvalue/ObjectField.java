@@ -6,10 +6,13 @@
 package util.access.fieldvalue;
 
 import java.util.Comparator;
+import java.util.function.Function;
 
 import util.Util;
 import util.access.TypedValue;
 
+import static util.dev.Util.noØ;
+import static util.functional.Util.by;
 import static util.type.Util.mapEnumConstantName;
 
 /**
@@ -54,11 +57,42 @@ public interface ObjectField<V> extends TypedValue {
     /**
      * Returns a comparator comparing by the value extracted by this field or {@link util.functional.Util#SAME} if
      * this field does not extract {@link java.lang.Comparable} type.
+     * <p/>
+     * Comparator treats nulls as per {@link Comparator#nullsLast(java.util.Comparator)}.
      */
-    default <C> Comparator<V> comparator() {
+    @SuppressWarnings("unchecked")
+    default Comparator<V> comparator() {
+        return comparator(Comparator::nullsLast);
+    }
+
+    /**
+     * Returns a comparator comparing by the value extracted by this field or {@link util.functional.Util#SAME} if
+     * this field does not extract {@link java.lang.Comparable} type.
+     * <p/>
+     * Note, that because value returned by {@link #getOf(Object)} can be null, comparator this method returns may
+     * be unsafe - throw {@link java.lang.NullPointerException} when comparing null values - and must be guarded, by
+     * providing transformer that makes it null safe.
+     *
+     * @param comparatorTransformer non null function that transforms the underlying comparator to be used. At minimum
+     * it must handle null logic such as it does not permit the underlying comparator to compare null.
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends Comparable<C>> Comparator<V> comparator(Function<Comparator,Comparator> comparatorTransformer) {
+    	noØ(comparatorTransformer);
         return Comparable.class.isAssignableFrom(getType())
-                ? (a,b) -> ((Comparable<C>)getOf(a)).compareTo((C)getOf(b))
-                : util.functional.Util.SAME;
+		    // Complexity of this simple method (we only want to compare by extracted value, like: by(this::getOf)
+            // lies in the fact, that it is necessary to be able to modify the behavior of the comparator, which
+		    // is (nonintuitively) impossible outside of this method, because what we need to modify is the
+			// underlying comparator of extracted values (hidden as implementation of this method), so we must pass in
+	        // an additional argument that does this - comparatorTransformer.
+			// In other words, this convenience method sort of inverts control (of comparator chaining), and the
+            // comparator transformations must be applied from below up, similarly to how nested callbacks work
+			// Then there are two problems
+	        // 1) transformer must be a function, so we must pass in it natural comparator Comparable::compareTo,
+	        //    which alleviates developer from doing this at call site
+	        // 2) bunch of generics & inference problems in the way
+			? by(o -> getOf((V)o), comparatorTransformer.apply((a,b) -> ((C)a).compareTo((C)b)))
+            : util.functional.Util.SAME;
     }
 
     default String toS(V v, Object o, String empty_val) {

@@ -1264,6 +1264,10 @@
     
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
+.text-input:hover:readonly,
+.text-input:focused:readonly {
+    -fx-background-color: null;
+}
 
 /********************************* TextArea ***********************************/
 

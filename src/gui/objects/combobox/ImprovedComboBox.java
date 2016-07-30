@@ -18,9 +18,9 @@ import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
-import static java.util.Objects.requireNonNull;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.util.Duration.millis;
+import static util.dev.Util.noØ;
 import static util.type.Util.getFieldValue;
 
 /**
@@ -40,23 +40,29 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
     /** Text for when no value is selected. Default {@code "<none>"} */
     public final String emptyText;
 
+	/** Equivalent to {@code this(Object::toString)}. */
     public ImprovedComboBox() {
         this(Object::toString);
     }
 
-    public ImprovedComboBox(Function<T, String> toS) {
+	/** Equivalent to {@code this(Object::toString, "<none>")}. */
+    public ImprovedComboBox(Function<T,String> toS) {
         this(toS, "<none>");
     }
 
-    public ImprovedComboBox(Function<T, String> toS, String empty_text) {
-        requireNonNull(toS);
+	/**
+	 * @param toS to string converter (it will never receive null)
+	 * @param empty_text
+	 */
+    public ImprovedComboBox(Function<T,String> toS, String empty_text) {
+        noØ(toS, empty_text);
         toStringConverter = toS;
         // we need to set the converter specifically or the combobox cell wont get updated sometimes
-        setConverter(new javafx.util.StringConverter<T>() {
+        setConverter(new javafx.util.StringConverter<>() {
 
             @Override
             public String toString(T object) {
-                return toStringConverter.apply(object);
+                return object==null ? empty_text : toStringConverter.apply(object);
             }
 
             @Override
@@ -64,7 +70,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
                 return (T) string;
             }
         });
-        setCellFactory(view -> new ListCell<T>(){ // do not use ComboBoxListCell! causes problems!
+        setCellFactory(view -> new ListCell<>(){ // do not use ComboBoxListCell! causes problems!
             @Override
             public void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
@@ -80,7 +86,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
         skinProperty().addListener(new ChangeListener<Skin<?>>() {
             @Override
             public void changed(ObservableValue<? extends Skin<?>> o, Skin<?> ov, Skin<?> nv) {
-                listView = getFieldValue(getSkin(), ListView.class, "listView");
+                listView = getFieldValue(getSkin(), "listView");
                 skinProperty().removeListener(this);
             }
         });

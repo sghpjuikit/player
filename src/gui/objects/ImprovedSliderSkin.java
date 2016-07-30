@@ -28,7 +28,7 @@ public class ImprovedSliderSkin extends SliderSkin {
         super(slider);
 
         // install hover animation
-        StackPane track = getFieldValue(this, StackPane.class, "track");
+        StackPane track = getFieldValue(this, "track");
         Anim v = new Anim(millis(350),p -> track.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> track.setScaleY(1+p*p));
         slider.addEventHandler(MOUSE_ENTERED, e -> {

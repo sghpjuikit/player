@@ -21,7 +21,7 @@ public class SeekerSkin extends SliderSkin {
 
 	/** Called in constructor. */
 	public static void installCustomFunctionality(SliderSkin skin) {
-		StackPane thumb = Util.getFieldValue(skin, StackPane.class, "thumb");
+		StackPane thumb = Util.getFieldValue(skin, "thumb");
 		// hover scaling animation
 		Anim scaling = new Anim(millis(350), p -> thumb.setScaleX(1+4*p*p));
 		thumb.addEventFilter(MOUSE_ENTERED, e -> scaling.playOpen());

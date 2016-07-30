@@ -1,4 +1,3 @@
-
 package util.type;
 
 import java.util.HashMap;
@@ -19,7 +18,6 @@ public class InstanceInfo {
 
     private static final Ƒ1<?,Map<String,String>> DEF = o -> EMPTY_MAP;
     private final ClassMap<Ƒ1<?,Map<String,String>>> names = new ClassMap<>();
-
 
     /**
      * Registers info function for specified class..

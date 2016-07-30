@@ -28,7 +28,7 @@ public class ImprovedScrollBarSkin extends ScrollBarSkin {
         super(scrollbar);
 
         // install hover animation
-        StackPane thumb = getFieldValue(this, StackPane.class, "thumb");
+        StackPane thumb = getFieldValue(this, "thumb");
         Anim v = new Anim(millis(350),p -> thumb.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> thumb.setScaleY(1+p*p));
         scrollbar.addEventHandler(MOUSE_ENTERED, e -> {

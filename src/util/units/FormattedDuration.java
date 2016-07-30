@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.units;
 
 import java.util.List;
@@ -40,7 +36,7 @@ public class FormattedDuration extends Duration {
         super(millis);
     }
 
-    /** @return formatted string representation of the duration */
+    /** @return formatted string representation of the duration. */
     @Dependency("Designed to be used in tables and gui. Should be in xx:xx format")
     @ParsesToString
     @Override
@@ -60,7 +56,7 @@ public class FormattedDuration extends Duration {
                 if(i<ls.size()-1) unit *= 60;
                 int amount = Integer.parseInt(ls.get(i));
                 if((amount<0) || (unit<=60000 && amount>59))
-                    throw new IllegalArgumentException("Minutes and seconds must be >=0 and <60");
+                    throw new IllegalArgumentException("Minutes and seconds must be >0 and <60");
                 int t = unit*amount;
                 Σt += t;
             }

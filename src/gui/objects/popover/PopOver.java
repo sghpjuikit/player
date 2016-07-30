@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, ControlsFX
  * All rights reserved.
  *
@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.popover;
 
 import java.util.ArrayList;
@@ -37,7 +38,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.*;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
@@ -51,7 +55,6 @@ import gui.objects.Text;
 import gui.objects.window.stage.WindowBase;
 import util.SwitchException;
 
-import static gui.objects.popover.PopOver.ScreenPos.*;
 import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
 import static java.util.Objects.requireNonNull;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -59,7 +62,8 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
-import static util.functional.Util.*;
+import static util.functional.Util.isAny;
+import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
 
 /**
@@ -203,8 +207,9 @@ public class PopOver<N extends Node> extends PopupControl {
      * that the event handler will be written as lambda. In that case the
      * reference to the popup will have to be global as the object referenced
      * from lambda must be effectively final and can not be reinitialized inside.
-     * @param text
-     * @return
+     *
+     * @param text text to show
+     * @return new popover
      */
     public static PopOver<Text> createHelpPopOver(String text) {
         Text t = new Text(text);
@@ -425,12 +430,13 @@ public class PopOver<N extends Node> extends PopupControl {
     /**
      * Makes the pop over visible at the give location and associates it with
      * the given owner node. The x and y coordinate will be the target location
-     * of the arrow of the pop over and not the location of the window.     *
+     * of the arrow of the pop over and not the location of the window.
+     *
      * @param owner the owning node
      * @param x the x coordinate for the pop over arrow tip
      * @param y the y coordinate for the pop over arrow tip
      * @throws NullPointerException if owner param null or is not residing
-     * within any {@link Window} - (its {@link getScene().getWindow()}) must not
+     * within any {@link Window} - its getScene().getWindow() must not
      * return null
      */
     @Override
@@ -470,10 +476,7 @@ public class PopOver<N extends Node> extends PopupControl {
         setArrowSize(0); // disable arrow
         showThis(null, pos.isAppCentric() ? APP.windowManager.getActive().getStage() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
-
-        if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center
-                || pos==Screen_Top_Left || pos==Screen_Top_Right)
-            uninstallMoveWith();
+        if(!pos.isAppCentric()) uninstallMoveWith();
 
     }
 
@@ -870,8 +873,7 @@ public class PopOver<N extends Node> extends PopupControl {
         App_Bottom_Left;
 
         public boolean isAppCentric() {
-            return this==App_Bottom_Left || this==App_Bottom_Right || this==App_Center ||
-                   this==App_Top_Left || this==App_Top_Right;
+            return isAny(this, App_Bottom_Left,App_Bottom_Right,App_Center,App_Top_Left,App_Top_Right);
         }
 
         public double calcX(PopOver popup) {

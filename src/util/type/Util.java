@@ -195,13 +195,12 @@ public interface Util {
      * Returns i-th generic parameter of the field starting from 0.
      * For example {@code Integer for List<Integer>}
      *
-     * @param f
-     * @return
+     * @param field field to get generic parameter of
+     * @return i-th generic parameter of the field starting from 0.
      */
-    static Class getGenericType(Field f, int i) {
-        ParameterizedType pType = (ParameterizedType) f.getGenericType();
-        Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[i];
-        return genericType;
+    static Class getGenericType(Field field, int i) {
+        ParameterizedType pType = (ParameterizedType) field.getGenericType();
+	    return (Class<?>) pType.getActualTypeArguments()[i];
     }
 
     /**
@@ -210,12 +209,12 @@ public interface Util {
      * <p/>
      * Will NOT work on variables, using getClass() method on them.
      *
-     * @param c
-     * @param i
-     * @return
+     * @param type class to get generic parameter of
+     * @param i index of the parameter
+     * @return i-th generic parameter of the class starting from 0.
      */
-    static Class getGenericClass(Class c, int i) {
-        return (Class) ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()[i];
+    static Class getGenericClass(Class type, int i) {
+        return (Class) ((ParameterizedType) type.getGenericSuperclass()).getActualTypeArguments()[i];
     }
 
     /**
@@ -258,9 +257,9 @@ public interface Util {
         // there. We just return generic type if it is available. If not we return null and the
         // iteration will continue on upper level.
         if(t instanceof ParameterizedType) {
-            Type[] generictypes = ((ParameterizedType)t).getActualTypeArguments();
-            if(generictypes.length>0 && generictypes[0] instanceof Class)
-                return (Class)generictypes[0];
+            Type[] genericTypes = ((ParameterizedType)t).getActualTypeArguments();
+            if(genericTypes.length>0 && genericTypes[0] instanceof Class)
+                return (Class)genericTypes[0];
             else return null;
         }
 
@@ -287,13 +286,13 @@ public interface Util {
     }
 
     /**
+     * Returns i-th generic parameter of the class starting from 0.
      * Same as {@link #getGenericClass(Class, int)} but for interfaces.
-     * Returns p-th generic parameter of the i-th interface of c class starting from 0.
      *
-     * @param type
-     * @param i
-     * @param p
-     * @return
+     * @param type class to get generic parameter of
+     * @param i index of the interface
+     * @param p index of the parameter
+     * @return i-th generic parameter of the class starting from 0.
      */
     static Class getGenericInterface(Class type, int i, int p) {
         return (Class) ((ParameterizedType) type.getGenericInterfaces()[i]).getActualTypeArguments()[p];
@@ -325,19 +324,11 @@ public interface Util {
 	/**
 	 * Gets value of a field of an object using reflection or null on error. Consumes all
 	 * exceptions.
-	 * @return value of a field of given object or null if value null or not possible
-	 */
-	static Object getFieldValue(Object o, String name) {
-		return getFieldValue(o, Object.class, name);
-	}
-
-	/**
-	 * Gets value of a field of an object using reflection or null on error. Consumes all
-	 * exceptions.
+	 *
 	 * @return value of a field of given object or null if value null or not possible
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> T getFieldValue(Object o, Class<T> type, String name) {
+	static <T> T getFieldValue(Object o, String name) {
 		Field f = null;
 		try {
 			f = getField(o.getClass(), name);
@@ -353,7 +344,7 @@ public interface Util {
     /**
      * Set field named f of the object o to value v.
      *
-     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * @implSpec the field can be declared in the class or any of its super classes
      * as opposed to standard reflection behavior which checks only the specified class
      * @throws RuntimeException if reflection error occurs
      */
@@ -365,7 +356,7 @@ public interface Util {
      * Set field named f of the object o declared in class c to value v.
 
      *
-     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * @implSpec the field can be declared in the class or any of its super classes
      * as opposed to standard reflection behavior which checks only the specified class
      * @throws RuntimeException if reflection error occurs
      */
@@ -434,12 +425,12 @@ public interface Util {
     }
 
     /**
-     * Renames declared enum sonstant using the mapper function on the enum
+     * Renames declared enum constant using the mapper function on the enum
      * constant string.
      * <p/>
      * This method effectively overrides both enum's toString() and valueOf()
      * methods. It allows using arbitrary string values for enum constants,
-     * but in toString/valueOf cpliant way.
+     * but in toString/valueOf compliant way.
      * <p/>
      * Use in enum constructor. For example:
      * <br/>
@@ -456,7 +447,6 @@ public interface Util {
      * }
      * </pre>
      *
-     * @param <E>
      * @param constant enum constant
      * @param mapper function to apply on the constant
      * @throws RuntimeException if reflection error occurs
@@ -482,22 +472,22 @@ public interface Util {
      * <p/>
      * Always use {@link #isEnum(Class)} before this method.
      *
-     * @param c
+     * @param type type of enum
      * @return array of enum constants, never null
      * @throws IllegalArgumentException if class not an enum
      */
     @SuppressWarnings("unchecked")
-    static <T> T[] getEnumConstants(Class c) {
+    static <T> T[] getEnumConstants(Class type) {
         // handle enums
-        if(c.isEnum()) return (T[]) c.getEnumConstants();
+        if(type.isEnum()) return (T[]) type.getEnumConstants();
 
             // handle enum with class method bodies (they are not recognized as enums)
         else {
-            Class ec = c.getEnclosingClass();
+            Class ec = type.getEnclosingClass();
             if(ec!=null && ec.isEnum())
                 return (T[]) ec.getEnumConstants();
             else
-                throw new IllegalArgumentException("Class " + c + " is not an Enum.");
+                throw new IllegalArgumentException("Class " + type + " is not an Enum.");
         }
     }
 }

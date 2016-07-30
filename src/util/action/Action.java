@@ -181,10 +181,8 @@ public final class Action extends Config<Action> implements Runnable {
         register();
     }
     /**
-     * Set keys and scope of this action. See {@link #setGlobal(boolean)} and
-     * {@link #setKeys(java.lang.String)}
-     * @param global
-     * @param key_combination
+     * Set keys and scope of this action atomically.
+     * See {@link #setGlobal(boolean)} and {@link #setKeys(java.lang.String)}.
      */
     public void set(boolean global, String key_combination) {
         unregister();
@@ -214,7 +212,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void runUnsafe() {
-        log(Action.class).info("Shortcut {} execuing, global: {}.", name,global);
+        log(Action.class).info("Shortcut {} executing, global: {}.", name,global);
 
         action.run();
         APP.actionStream.push(name);
@@ -441,8 +439,8 @@ public final class Action extends Config<Action> implements Runnable {
         this.defaultKeys = getKeys();
     }
 
-    @Deprecated // internal use only
-    public static Action fromString(String str) {
+    // TODO: remove
+    private static Action fromString(String str) {
         int i = str.lastIndexOf(",");
         if(i==-1) return null;
         String s1 = str.substring(0,i);
@@ -452,8 +450,7 @@ public final class Action extends Config<Action> implements Runnable {
         return new Action(isGlobal, keys);
     }
 
-    @Deprecated // internal use only
-    public static Action from(Action a, String str) {
+    private static Action from(Action a, String str) {
         Action tmp = fromString(str);
         if(tmp!=null) {
             a.global = tmp.global;
@@ -666,10 +663,10 @@ public final class Action extends Config<Action> implements Runnable {
 	    boolean generateTemplate = false;
 	    try {
 	    	generateTemplate |=
-		    (commandActionsDefFile.exists()
-			     ? APP.serializators.fromXML(CommandActionDatas.class, commandActionsDefFile)
-			     : new CommandActionDatas()
-		    )
+			    (commandActionsDefFile.exists()
+				     ? APP.serializators.fromXML(CommandActionDatas.class, commandActionsDefFile)
+				     : new CommandActionDatas()
+			    )
 			    .stream()
 			    .filter(a -> a.isEnabled)
 			    .map(CommandActionData::toAction)

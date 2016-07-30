@@ -2,7 +2,7 @@
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
-  solve the Fctory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
+  solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
   set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
 - Implement FontPicker properly
 - improve skinning support
@@ -74,7 +74,7 @@
   instead. This marvellously increases structural code cohesion.
 - rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
-- figure out image animation autoplay def behavior & indicative play/pause mechanism
+- figure out image animation auto-play def behavior & indicative play/pause mechanism
 - widget compilation - report errors back to user through gui (popup? notifications? else?)
 - widget manager monitor .fxml files too
 - LibraryView placeholder does not detect empty table correctly
@@ -111,7 +111,7 @@
 - popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random play order
-- unify table column resizing, namely getMain column and autoresize with
+- unify table column resizing, namely getMain column and autosize with
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off auto-resize columns option

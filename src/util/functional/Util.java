@@ -259,7 +259,7 @@ public interface Util {
     Comparator<String> COMPARATOR_STR_CASELESS = String::compareToIgnoreCase;
 
     /**
-     * Creates comparator comparing E elements by extracte {@link Comparable} value.
+     * Creates comparator comparing E elements by extracted {@link Comparable} value.
      * <p/>
      * This method is generic Comparator factory producing comparators comparing
      * the obtained result of the comparable supplier.

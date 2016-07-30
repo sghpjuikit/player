@@ -277,13 +277,13 @@ public abstract class AutoCompletionBinding<T> {
                         if(fetchedSuggestions != null && !fetchedSuggestions.isEmpty()){
                             popup.getSuggestions().setAll(fetchedSuggestions);
                             showPopup();
-                        }else{
+                        } else {
                             // No suggestions found, so hide the popup
                             hidePopup();
                         }
                     });
                 }
-            }else {
+            } else {
                 // No suggestion provider
                 hidePopup();
             }

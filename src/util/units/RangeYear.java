@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.units;
 
 import java.time.Year;
@@ -20,7 +15,7 @@ import static java.lang.Integer.min;
 public class RangeYear {
     private int min = Integer.MAX_VALUE;
     private int max = Integer.MIN_VALUE;
-    boolean hasUnspecified = false;
+    private boolean hasUnspecified = false;
 
     public void accumulate(int year) {
         if(year==-1) {
@@ -62,7 +57,6 @@ public class RangeYear {
 
         // has >1 specific value
             else {
-                String delimiter = hasUnspecified ? " ? " : " - ";
                 return min + (hasUnspecified ? " ? " : " - ") + max;
             }
         }

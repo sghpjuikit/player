@@ -83,7 +83,8 @@ public class Configuration {
 	    collectConfigs(c);
     }
 
-    public <C> void collect(Configurable<C>... cs) {
+    @SafeVarargs
+    public final <C> void collect(Configurable<C>... cs) {
         for(Configurable<C> c : cs) collect(c);
     }
 
@@ -218,7 +219,7 @@ public class Configuration {
         for(Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instance, include_static, include_instance);
             if(c!=null) out.add(c);
-    }
+        }
         return out;
     }
 

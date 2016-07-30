@@ -125,8 +125,8 @@ public final class UiContext {
                      sc.configure(c);
         PopOver p = new PopOver(sc);
                 p.title.set((name==null ? "" : name+" ") + " Settings");
-                p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
-                p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+                p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
                 p.setAutoHide(true);
                 p.show(n);
     }

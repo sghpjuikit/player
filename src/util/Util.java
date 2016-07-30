@@ -818,7 +818,7 @@ public interface Util {
     }
 
     /** Returns {@code sqrt(a^2 + b^2)}. */
-    static double pyth(double a, double b) {
+    static double sqrSum(double a, double b) {
         return Math.sqrt(a*a+b*b);
     }
 

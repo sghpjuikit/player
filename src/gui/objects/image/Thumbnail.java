@@ -343,8 +343,8 @@ public class Thumbnail extends ImageNode {
 
         // animation
         if(i!=null) {
-            Object animWrapper = getFieldValue(i, Object.class, "animation");
-            animation = animWrapper==null ? null : getFieldValue(animWrapper, Timeline.class, "timeline");
+            Object animWrapper = getFieldValue(i, "animation");
+            animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
             animationPause();
         }
     }

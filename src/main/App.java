@@ -7,8 +7,10 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javafx.animation.FadeTransition;
@@ -16,7 +18,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.StringProperty;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
@@ -37,6 +38,8 @@ import org.reactfx.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
@@ -148,7 +151,6 @@ import static javafx.util.Duration.seconds;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
-import static util.Util.containsNoCase;
 import static util.Util.getImageDim;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -430,12 +432,11 @@ public class App extends Application implements Configurable {
                 map.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
             }
         });
-        instanceInfo.add(Metadata.class, (m,map) -> {
+        instanceInfo.add(Metadata.class, (m,map) ->
             stream(Metadata.Field.values())
                     .filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
-                    .forEach(f -> map.put(f.name(), m.getFieldS(f))
-            );
-        });
+                    .forEach(f -> map.put(f.name(), m.getFieldS(f)))
+        );
         instanceInfo.add(PlaylistItem.class, p ->
             stream(PlaylistItem.Field.values())
                     .filter(TypedValue::isTypeString)
@@ -490,11 +491,15 @@ public class App extends Application implements Configurable {
             new FastColAction<>("Remove from library",
                 "Removes all specified items from library. After this library will contain none of these items.",
                 MaterialDesignIcon.DATABASE_MINUS,
-                Db::removeItems // id like this to be async. too
+                Db::removeItems // this needs to be asynchronous
             )
         );
         actionPane.register(File.class,
-            new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
+            new FastAction<>("Read metadata", "Prints all image metadata to console.",
+                MaterialIcon.IMAGE_ASPECT_RATIO,
+	            ImageFileFormat::isSupported,
+                App.Actions::printAllImageFileMetadata),
+	        new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
                 MaterialIcon.OPEN_IN_NEW,
                 Environment::open),
             new FastAction<>("Edit (OS)", "Edit file in a native editor program associated with this file type.",
@@ -618,7 +623,7 @@ public class App extends Application implements Configurable {
                 if(!apphasfocus) {
                     boolean allminimized = windowManager.windows.stream().allMatch(Window::isMinimized);
                     if(allminimized)
-                        windowManager.windows.stream().forEach(w -> w.setMinimized(false));
+                        windowManager.windows.forEach(w -> w.setMinimized(false));
                     else
                         windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
                 }
@@ -985,17 +990,18 @@ public class App extends Application implements Configurable {
 		    StackPane root = new StackPane(grid);
 		    root.setPrefSize(600, 720); // determines popup size
 		    List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
-			    MaterialDesignIcon.class,MaterialIcon.class)
-			                          .map(c -> {
-				                          Button b = new Button(c.getSimpleName());
-				                          b.setOnMouseClicked(e -> {
-					                          if(e.getButton()==PRIMARY) {
-						                          grid.getItemsRaw().setAll(getEnumConstants(c));
-						                          e.consume();
-					                          }
-				                          });
-				                          return b;
-			                          }).toList();
+			                             MaterialDesignIcon.class,MaterialIcon.class)
+	              .map(c -> {
+	                  Button b = new Button(c.getSimpleName());
+	                  b.setOnMouseClicked(e -> {
+	                      if(e.getButton()==PRIMARY) {
+	                          grid.getItemsRaw().setAll(getEnumConstants(c));
+	                          e.consume();
+	                      }
+	                  });
+	                  return b;
+	              })
+                  .toList();
 		    PopOver o = new PopOver<>(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
 		    o.show(App_Center);
 	    }
@@ -1011,9 +1017,9 @@ public class App extends Application implements Configurable {
 					    OverlayPane root = this;
 					    getChildren().add(c.load());
 					    // TODO: remove
-					    run(millis(500), () -> {
-						    stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus());
-					    });
+					    run(millis(500), () ->
+						    stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus())
+					    );
 					    if(c instanceof Widget) {
 						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
 						    ((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
@@ -1025,7 +1031,6 @@ public class App extends Application implements Configurable {
 						    };
 					    }
 					    super.show();
-
 				    }
 			    };
 			    op.display.set(SCREEN_OF_MOUSE);
@@ -1054,22 +1059,22 @@ public class App extends Application implements Configurable {
 	    static void openActions() {
 		    APP.actionPane.show(Void.class, null, false,
 			    new FastAction<>(
-				                    "Export widgets",
-				                    "Creates launcher file in the destination directory for every widget.\n"
-					                    + "Launcher file is a file that when opened by this application opens the widget. "
-					                    + "If application was not running before, it will not load normally, but will only "
-					                    + "open the widget.\n"
-					                    + "Essentially, this exports the widgets as 'standalone' applications.",
-				                    EXPORT,
-				                    ignored -> {
-					                    DirectoryChooser dc = new DirectoryChooser();
-					                    dc.setInitialDirectory(APP.DIR_LAYOUTS);
-					                    dc.setTitle("Export to...");
-					                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-					                    if(dir!=null) {
-						                    APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
-					                    }
-				                    }
+                    "Export widgets",
+                    "Creates launcher file in the destination directory for every widget.\n"
+	                    + "Launcher file is a file that when opened by this application opens the widget. "
+	                    + "If application was not running before, it will not load normally, but will only "
+	                    + "open the widget.\n"
+	                    + "Essentially, this exports the widgets as 'standalone' applications.",
+                    EXPORT,
+                    ignored -> {
+	                    DirectoryChooser dc = new DirectoryChooser();
+	                    dc.setInitialDirectory(APP.DIR_LAYOUTS);
+	                    dc.setTitle("Export to...");
+	                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
+	                    if(dir!=null) {
+		                    APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+	                    }
+                    }
 			    ),
 			    new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
 			    new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
@@ -1084,45 +1089,45 @@ public class App extends Application implements Configurable {
 	    static void openOpen() {
 		    APP.actionPane.show(Void.class, null, false,
 			    new FastAction<>(
-				                    "Open widget",
-				                    "Open file chooser to open an exported widget",
-				                    MaterialIcon.WIDGETS,
-				                    none -> {
-					                    FileChooser fc = new FileChooser();
-					                    fc.setInitialDirectory(APP.DIR_LAYOUTS);
-					                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
-					                    fc.setTitle("Open widget...");
-					                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-					                    if(f!=null) UiContext.launchComponent(f);
-				                    }
+                    "Open widget",
+                    "Open file chooser to open an exported widget",
+                    MaterialIcon.WIDGETS,
+                    none -> {
+	                    FileChooser fc = new FileChooser();
+	                    fc.setInitialDirectory(APP.DIR_LAYOUTS);
+	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
+	                    fc.setTitle("Open widget...");
+	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+	                    if(f!=null) UiContext.launchComponent(f);
+                    }
 			    ),
 			    new FastAction<>(
-				                    "Open skin",
-				                    "Open file chooser to find a skin",
-				                    MaterialIcon.BRUSH,
-				                    none -> {
-					                    FileChooser fc = new FileChooser();
-					                    fc.setInitialDirectory(APP.DIR_SKINS);
-					                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
-					                    fc.setTitle("Open skin...");
-					                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
-					                    if(f!=null) Gui.setSkinExternal(f);
-				                    }
+                    "Open skin",
+                    "Open file chooser to find a skin",
+                    MaterialIcon.BRUSH,
+                    none -> {
+	                    FileChooser fc = new FileChooser();
+	                    fc.setInitialDirectory(APP.DIR_SKINS);
+	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
+	                    fc.setTitle("Open skin...");
+	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+	                    if(f!=null) Gui.setSkinExternal(f);
+                    }
 			    ),
 			    new FastAction<>(
-				                    "Open audio files",
-				                    "Open file chooser to find a audio files",
-				                    MaterialDesignIcon.MUSIC_NOTE,
-				                    none -> {
-					                    FileChooser fc = new FileChooser();
-					                    fc.setInitialDirectory(APP.DIR_SKINS);
-					                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
-					                    fc.setTitle("Open audio...");
-					                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
-					                    // Action pane may auto-close when this action finishes, so we make sure to call
-					                    // show() after that happens by delaying using runLater
-					                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
-				                    }
+                    "Open audio files",
+                    "Open file chooser to find a audio files",
+                    MaterialDesignIcon.MUSIC_NOTE,
+                    none -> {
+	                    FileChooser fc = new FileChooser();
+	                    fc.setInitialDirectory(APP.DIR_SKINS);
+	                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
+	                    fc.setTitle("Open audio...");
+	                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
+	                    // Action pane may auto-close when this action finishes, so we make sure to call
+	                    // show() after that happens by delaying using runLater
+	                    if(fs!=null) runLater(() -> APP.actionPane.show(fs));
+                    }
 			    )
 		    );
 	    }
@@ -1143,7 +1148,7 @@ public class App extends Application implements Configurable {
 		    System.gc();
 	    }
 
-	    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.")
+	    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
 	    static void runCommand() {
 		    SimpleConfigurator sc = new SimpleConfigurator<>(
 		    	new ValueConfig<>(String.class, "Command", ""),
@@ -1164,10 +1169,13 @@ public class App extends Application implements Configurable {
 				    p.show(PopOver.ScreenPos.App_Center);
 	    }
 
-	    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+I ")
+	    @IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
+	    @IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
 	    static void showSearch() {
-		    DecoratedTextField tf = new DecoratedTextField();
+	    	Window w = APP.windowManager.getFocused();
+		    boolean isFocused = w != null;
 
+		    DecoratedTextField tf = new DecoratedTextField();
 		    Region clearButton = new Region();
 		    clearButton.getStyleClass().addAll("graphic");
 		    StackPane clearB = new StackPane(clearButton);
@@ -1203,16 +1211,36 @@ public class App extends Application implements Configurable {
 		    tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
 		    tf.left.get().setMouseTransparent(true);
 
-		    StringProperty text = tf.textProperty();
-		    new ConfigSearch(
-			                    tf,
-			                    APP.configSearchHistory,
-			                    p -> APP.configuration.getFields(f -> containsNoCase(f.getGuiName(),p.getUserText()))
+		    new ConfigSearch(tf, APP.configSearchHistory,
+			    () -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
+                () -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of)
 		    );
 		    PopOver<TextField> p = new PopOver<>(tf);
 		    p.title.set("Search for an action or option");
 		    p.setAutoHide(true);
-		    p.show(PopOver.ScreenPos.App_Center);
+		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
+		    if(!isFocused) {
+			    run(200, () -> {
+			        APP.windowOwner.getStage().requestFocus();
+				    p.requestFocus();
+				    tf.requestFocus();
+			    });
+		    }
+	    }
+
+	    static void printAllImageFileMetadata(File file) {
+		    try {
+			    StringBuilder sb = new StringBuilder("Metadata of ").append(file.getPath());
+			    com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
+			    metadata.getDirectories().forEach(d -> {
+				    sb.append("\nName: " + d.getName());
+				    d.getTags().forEach(tag -> sb.append("\n\t" + tag.toString() + "\n"));
+			    });
+			    APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
+			    System.out.println(sb.toString());
+		    } catch (IOException | ImageProcessingException e) {
+			    e.printStackTrace();
+		    }
 	    }
 
     }

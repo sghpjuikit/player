@@ -43,6 +43,7 @@ import util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static dirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static dirViewer.DirViewer.CellSize.NORMAL;
+import static java.util.Comparator.nullsLast;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -258,9 +259,9 @@ public class DirViewer extends ClassController {
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
 	         sortHomo = sort.get();                 // sorts each group separately
-        FileField field = sortBy.get();             // precompute once for consistency and performance
+        FileField field = sortBy.get();             // pre-compute, do not compute in comparator
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
-                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+                         cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.cmp(c))));
         return cmpHetero.thenComparing(cmpHomo);
     }
 

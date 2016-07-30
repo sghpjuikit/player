@@ -29,7 +29,6 @@
 
 package gui.objects.textfield.autocomplete;
 
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
@@ -39,10 +38,12 @@ import javafx.scene.layout.Region;
 
 import gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent;
 
+import static javafx.beans.binding.Bindings.min;
+import static javafx.beans.binding.Bindings.size;
+
 public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     private final AutoCompletePopup<T> control;
-    private final ListView<T> suggestionList;
-    private final int LIST_CELL_HEIGHT = 24;
+    private final ListView<T> list;
     private final int activationClickCount;
 
     public AutoCompletePopupSkin(AutoCompletePopup<T> control){
@@ -52,24 +53,20 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     public AutoCompletePopupSkin(AutoCompletePopup<T> control, int activationClickCount){
         this.control = control;
         this.activationClickCount = activationClickCount;
-        suggestionList = new ListView<>(control.getSuggestions());
 
-        /**
-         * Here we bind the prefHeightProperty to the minimum height between the
-         * max visible rows and the current items list. We also add an arbitrary
-         * 5 number because when we have only one item we have the vertical
-         * scrollBar showing for no reason.
-         */
-        suggestionList.prefHeightProperty().bind(
-                Bindings.min(control.visibleRowCountProperty(), Bindings.size(suggestionList.getItems()))
-                        .multiply(LIST_CELL_HEIGHT).add(5));
-        suggestionList.setCellFactory(this::buildListViewCellFactory);
-
-        suggestionList.setOnMouseClicked(e -> {
+        double reserve = 12; // removes vertical scrollbar
+        list = new ListView<>(control.getSuggestions());
+		list.setFixedCellSize(20);
+        list.prefHeightProperty().bind(
+                min(control.visibleRowCountProperty(), size(list.getItems()))
+                .multiply(list.fixedCellSizeProperty())
+	            .add(reserve));
+        list.setCellFactory(this::buildListViewCellFactory);
+        list.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount()==activationClickCount)
                 chooseSuggestion();
         });
-        suggestionList.setOnKeyPressed(e -> {
+        list.setOnKeyPressed(e -> {
             switch (e.getCode()) {
                 case ENTER  : chooseSuggestion();
                               break;
@@ -83,7 +80,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
 
     @Override
     public Region getNode() {
-        return suggestionList;
+        return list;
     }
 
     @Override
@@ -95,7 +92,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
     public void dispose() {}
 
     private void chooseSuggestion(){
-        onSuggestionChosen(suggestionList.getSelectionModel().getSelectedItem());
+        onSuggestionChosen(list.getSelectionModel().getSelectedItem());
     }
 
     private void onSuggestionChosen(T suggestion){
@@ -103,7 +100,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
 		    getSkinnable().onSuggestion.get().handle(new SuggestionEvent<>(suggestion));
     }
 
-    protected ListCell<T> buildListViewCellFactory(ListView<T> listview) {
-        return TextFieldListCell.forListView(control.getConverter()).call(listview);
+    protected ListCell<T> buildListViewCellFactory(ListView<T> listView) {
+        return TextFieldListCell.forListView(control.getConverter()).call(listView);
     }
 }

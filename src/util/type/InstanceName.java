@@ -1,4 +1,3 @@
-
 package util.type;
 
 import java.util.Objects;
@@ -14,7 +13,6 @@ public class InstanceName {
 
     private static final Ƒ1<?,String> DEF = Objects::toString;
     private final ClassMap<Ƒ1<?,String>> names = new ClassMap<>();
-
 
     /**
      * Registers name function for specified class and all its subclasses that 

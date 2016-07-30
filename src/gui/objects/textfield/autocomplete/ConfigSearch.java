@@ -1,12 +1,12 @@
 package gui.objects.textfield.autocomplete;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -14,15 +14,19 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
-import javafx.util.Callback;
 
 import gui.itemnode.ConfigField;
 import gui.objects.textfield.autocomplete.ConfigSearch.Entry;
+import gui.objects.window.stage.UiContext;
+import layout.widget.WidgetFactory;
 import util.action.Action;
 import util.conf.Config;
 
+import static java.util.stream.Collectors.toList;
 import static main.App.Build.appTooltip;
-import static util.functional.Util.map;
+import static util.Util.containsNoCase;
+import static util.functional.Util.by;
+import static util.functional.Util.stream;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
 
@@ -37,16 +41,17 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     private final History history;
     private boolean ignoreEvent = false;
 
-    public ConfigSearch(TextField textField, Callback<ISuggestionRequest, Collection<Config>> suggestionProvider) {
-        this(textField, new History(), suggestionProvider);
+	@SafeVarargs
+    public ConfigSearch(TextField textField, Supplier<Stream<Entry>>...searchTargets) {
+        this(textField, new History(), searchTargets);
     }
 
-    public ConfigSearch(TextField textField, History history, Callback<ISuggestionRequest, Collection<Config>> suggestionProvider) {
-        super(textField, sr -> map(suggestionProvider.call(sr), Entry::new), AutoCompletion.defaultStringConverter());
+	@SafeVarargs
+    public ConfigSearch(TextField textField, History history, Supplier<Stream<Entry>>... searchTargets) {
+        super(textField, s -> stream(searchTargets).flatMap(o -> o.get()).filter(f -> containsNoCase(f.getName(), s.getUserText())).sorted(by(Entry::getName)).collect(toList()), AutoCompletion.defaultStringConverter());
         this.history = history;
-
         this.textField = textField;
-        this.textField.setPrefWidth(400); // note this dictates the popup width
+        this.textField.setPrefWidth(450); // dictates the popup width
     }
 
     @Override
@@ -54,26 +59,29 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         return new AutoCompletePopup(){
             @Override
             protected Skin<?> createDefaultSkin() {
-                return new AutoCompletePopupSkin<Entry>(this,2) {
+                return new AutoCompletePopupSkin<Entry>(this, 2) {
                     {
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                             if(!ignoreEvent)
                                 if (e.isControlDown() && (e.getCode()==KeyCode.UP || e.getCode()==KeyCode.DOWN)) {
-//                                    switch (e.getCode()) {
-//                                        case UP   : up(); break;
-//                                        case DOWN : down(); break;
-//                                        default   : break;
-//                                    }
+                                    switch (e.getCode()) {
+                                        case UP   : history.up(ConfigSearch.this); break;
+                                        case DOWN : history.down(ConfigSearch.this); break;
+                                        default   : break;
+                                    }
                                 } else if(e.getCode()==KeyCode.BACK_SPACE) {
                                     textField.deletePreviousChar();
                                     e.consume();
                                 } else if(!e.getCode().isNavigationKey()) {
-                                    // We refire event on text field so we can type even though it
+                                	// TODO: remove
+                                    // We re-fire event on text field so we can type even though it
                                     // does not have focus. This causes event stack overflow, so we
                                     // defend against it with a boolean flag.
-                                    ignoreEvent = true;
-                                    completionTarget.fireEvent(e);
+                                	if(!textField.isFocused()) {
+	                                    ignoreEvent = true;
+	                                    completionTarget.fireEvent(e);
+	                                }
                                 }
                             ignoreEvent = false;
                             // e.consume(); // may brake functionality
@@ -91,7 +99,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                     textField.selectAll();
                                     e.consume();
                                 } else if(e.getCode()==KeyCode.BACK_SPACE) {
-                                    // textField.deletePreviousChar(); // doenst work here
+                                    // textField.deletePreviousChar(); // doesn't work here
                                     // e.consume();
                                 } else if(e.getCode()==KeyCode.END) {
                                     if (e.isShiftDown()) textField.selectEnd();
@@ -127,8 +135,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
     @Override
     protected void acceptSuggestion(Entry suggestion) {
-        if(Runnable.class.isAssignableFrom(suggestion.config.getType()))
-            ((Runnable)suggestion.config).run();
+		suggestion.run();
         history.add(this);
     }
 
@@ -156,33 +163,83 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         private void add(ConfigSearch search) {
             String last = history.isEmpty() ? null : history.get(history.size()-1);
             String curr = ((TextField)search.completionTarget).getText();
-            boolean isDiff = last!=null & last!=null && last.equalsIgnoreCase(curr);
+            boolean isDiff = last!=null && curr!=null && last.equalsIgnoreCase(curr);
             if(isDiff) {
                 history.add(curr);
                 history_at = history.size()-1;
             }
         }
     }
-    public static class Entry {
+    public interface Entry extends Runnable {
+
+    	static <T> Entry of(Config<T> config) {
+    	    return new ConfigEntry(config);
+	    }
+
+    	static <T> Entry of(WidgetFactory f) {
+    	    return new SimpleEntry(
+                "Open widget " + f.nameGui(),
+				"Open widget " + f.nameGui() + "\n\n" + "Opens the widget in new window.",
+                () -> () -> UiContext.launchComponent(f.name())
+	        );
+	    }
+
+
+	    String getName();
+	    default String getInfo() {
+		    return "";
+	    }
+	    default Node getGraphics() {
+	    	return null;
+	    }
+    }
+    private static class SimpleEntry implements Entry {
+    	private final String name;
+    	private final String info;
+    	private final Supplier<Runnable> actionLazy;
+
+	    SimpleEntry(String name, String info, Supplier<Runnable> actionLazy) {
+		    this.name = name;
+		    this.info = info;
+		    this.actionLazy = actionLazy;
+	    }
+
+	    @Override
+	    public String getName() {
+		    return name;
+	    }
+
+	    @Override
+	    public void run() {
+			Runnable a = actionLazy.get();
+		    if(a!=null) a.run();
+	    }
+    }
+	private static class ConfigEntry implements Entry {
         public final Config<?> config;
         private boolean loaded = false;
         private Node graphics;
 
-        public Entry(Config<?> config) {
+        ConfigEntry(Config<?> config) {
             this.config = config;
         }
 
+	    @Override
         public String getName() {
             return config.getGroup() + "." + config.getGuiName();
         }
 
+	    @Override
+	    public String getInfo() {
+		    return getName() + "\n\n" + config.getInfo();
+	    }
+
+	    @Override
         public Node getGraphics() {
             if(loaded) return graphics;
 
-            if(config.getType()==Action.class) {
+            if(config.getType()==Action.class && ((Action)config).hasKeysAssigned()) {
                 graphics = new Label(((Action)config).getKeys());
-                graphics.setCursor(Cursor.HAND);
-                graphics.setMouseTransparent(true);
                 ((Label)graphics).setTextAlignment(TextAlignment.RIGHT);
             } else {
                 graphics = config.getType()==Boolean.class || config.isTypeEnumerable()
@@ -193,20 +250,27 @@ public class ConfigSearch extends AutoCompletion<Entry> {
             loaded = true;
             return graphics;
         }
+
+	    @Override
+	    public void run() {
+		    if(Runnable.class.isAssignableFrom(config.getClass()))
+			    ((Runnable)config).run();
+		    else
+		    if(Runnable.class.isAssignableFrom(config.getType()) && config.getValue() != null)
+			    ((Runnable)config.getValue()).run();
+	    }
     }
     private static class EntryListCell extends ListCell<Entry> {
         private final Label text = new Label();
-        private final StackPane root = layStack(text,Pos.CENTER_LEFT, new StackPane(),Pos.CENTER_RIGHT);
-        private final StackPane congigNodeRoot = (StackPane) root.getChildren().get(1);
+        private final StackPane configNodeRoot = new StackPane();
+        private final StackPane root = layStack(text,Pos.CENTER_LEFT, configNodeRoot,Pos.CENTER_RIGHT);
         private final Tooltip tooltip = appTooltip();
-        private Config oldconfig = null; // cache
-        private Node oldnode = null; // cache
 
         public EntryListCell() {
             text.setTextAlignment(TextAlignment.LEFT);
             text.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
             setMinPrefMaxSize(text,USE_COMPUTED_SIZE);
-            text.prefWidthProperty().bind(root.widthProperty().subtract(congigNodeRoot.widthProperty()).subtract(10));
+            text.prefWidthProperty().bind(root.widthProperty().subtract(configNodeRoot.widthProperty()).subtract(10));
             text.setMinWidth(200);
             text.maxWidthProperty().bind(root.widthProperty().subtract(100));
             text.setPadding(new Insets(5,0,0,10));
@@ -221,16 +285,17 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                 setGraphic(null);
             } else {
                 if(getGraphic()!=root) setGraphic(root);
-                tooltip.setText(item.config.getGroup() + item.config.getGuiName() + "\n\n" + item.config.getInfo());
 
-                boolean changed = oldconfig!=item.config;
-                oldconfig = item.config;
-                Node node = !changed ? oldnode : item.getGraphics();
-                if(node instanceof HBox) ((HBox)node).setAlignment(Pos.CENTER_RIGHT);
-                if(oldnode!=null) congigNodeRoot.getChildren().remove(oldnode);
-                oldnode = node;
-                if(node!=null) congigNodeRoot.getChildren().add(node);
+                tooltip.setText(item.getInfo());
+
                 text.setText(item.getName());
+	            Node node = item.getGraphics();
+	            if(node instanceof HBox) ((HBox)node).setAlignment(Pos.CENTER_RIGHT);
+	            if(node==null) configNodeRoot.getChildren().clear();
+	            else {
+	            	configNodeRoot.getChildren().setAll(node);
+		            StackPane.setAlignment(node, Pos.CENTER_RIGHT);
+	            }
             }
         }
     }

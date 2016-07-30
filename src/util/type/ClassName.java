@@ -1,4 +1,3 @@
-
 package util.type;
 
 import util.collections.map.ClassMap;

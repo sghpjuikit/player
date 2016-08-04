@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import java.util.function.Consumer;
@@ -24,6 +19,7 @@ import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.list;
 
+// TODO: implement this whole mess properly, look into java9 desktop enhancement features
 /**
  *
  * @author Martin Polakovic
@@ -57,10 +53,10 @@ public class TaskBar {
         scr = screen;
 
         // The below is not working for some reason, even though I have successfully used this
-        // approach elsewhere. Moving the stage to are of the new screen will reposition the
-        // taskbar icon. I mean should. In this case, the taskbar "update" does not happen without
+        // approach elsewhere. Moving the stage to different screen will reposition the
+        // taskbar icon (OS Windows). I mean should. In this case, the taskbar "update" does not happen without
         // refreshing the stage's in some unspecified way (clicking manually on the taskbar to
-        // minimize the stage repositiones the tasbar correctly, but im not going to try emulating
+        // minimize the stage repositions the taskbar correctly, but im not going to try emulating
         // that)
          if (s!=null) {
              s.setX(scr.getBounds().getMinX());
@@ -85,8 +81,8 @@ public class TaskBar {
             // What does happen though, is focus change. Minimizing window makes it lose focus and
             // vice versa. Thus if we do not cause focus change in any other way, we have a reliable
             // way to detect minimization events.
-            // As an added bonus, we detect both minimize and deminimize events. Unexpectedly,
-            // deminimization by user click on taskbar icon does not work for javaFX applications!
+            // As an added bonus, we detect both minimize and de-minimize events. Unexpectedly,
+            // de-minimization by user click on taskbar icon does not work for javaFX applications!
             // Rejoice, this solution fixes that.
     }
 

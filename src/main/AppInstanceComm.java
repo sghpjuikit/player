@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import java.rmi.ConnectException;
@@ -21,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import util.async.Async;
 
-
 /**
  * Application instance communicator.
  * Facilitates communication between different instances of this application by
@@ -37,7 +31,7 @@ public class AppInstanceComm {
 
     private AppMediator appCommunicator;
     private Registry rmiRegistry;
-    public ArrayList<Consumer<List<String>>> onNewInstanceHandlers = new ArrayList<>();
+    public final ArrayList<Consumer<List<String>>> onNewInstanceHandlers = new ArrayList<>();
 
     /**
      * Opens communication channel with other instances of this application.
@@ -87,7 +81,6 @@ public class AppInstanceComm {
             LOGGER.error("Unable to fire new app instance event.", e);
         }
     }
-
 
     interface Mediator extends Remote {
         void newInstanceLaunched(List<String> params) throws RemoteException;

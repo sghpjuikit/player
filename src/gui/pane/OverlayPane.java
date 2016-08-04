@@ -16,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import gui.objects.window.stage.Window;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
@@ -57,7 +58,6 @@ public class OverlayPane extends StackPane {
     public OverlayPane() {
         setVisible(false);
 
-        // setEffect(blurfront); // performance optimization, see impl. of animStart()
         getStyleClass().add(ROOT_STYLECLASS);
         setOnMouseClicked(e -> {
             if (e.getButton()==SECONDARY && isShown()) {
@@ -116,11 +116,11 @@ public class OverlayPane extends StackPane {
     private Display displayForHide; // prevents inconsistency, see use
     private Anim animation = new Anim(30, this::animDo).dur(millis(250)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
     private Stage stg = null;
-    private BoxBlur blurback = new BoxBlur(0,0,3);  // we need best possible quality
-    private BoxBlur blurfront = new BoxBlur(0,0,1); // we do not need quality, hence iterations==1
+    private BoxBlur blurBack = new BoxBlur(0,0,3);  // we need best possible quality
+    private BoxBlur blurFront = new BoxBlur(0,0,1); // we do not need quality, hence iterations==1
     private Node opacityNode = null;
-    private Node blurfrontNode = null;
-    private Node blurbackNode = null;
+    private Node blurFrontNode = null;
+    private Node blurBackNode = null;
 
     private void animStart() {
         displayForHide = display.get();
@@ -168,10 +168,10 @@ public class OverlayPane extends StackPane {
 			            // - decrease blur amount
 			            //
 			            op.opacityNode = window.content;
-			            op.blurbackNode = window.subroot;
-			            if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
-			            op.blurbackNode.setEffect(op.blurback);
-			            op.blurfrontNode.setEffect(op.blurfront);
+			            op.blurBackNode = window.subroot;
+			            if (!op.getChildren().isEmpty()) op.blurFrontNode = op.getChildren().get(0);
+			            op.blurBackNode.setEffect(op.blurBack);
+			            op.blurFrontNode.setEffect(op.blurFront);
 
 			            // start showing
 			            op.animation.playOpenDo(null);
@@ -181,7 +181,7 @@ public class OverlayPane extends StackPane {
 	            );
             } else {
                 Screen screen = this==SCREEN_OF_WINDOW
-                                    ? APP.windowManager.getActive().map(w -> w.getScreen()).orElseGet(() -> getScreen(APP.mouseCapture.getMousePosition()))
+                                    ? APP.windowManager.getActive().map(Window::getScreen).orElseGet(() -> getScreen(APP.mouseCapture.getMousePosition()))
                                     : getScreen(APP.mouseCapture.getMousePosition());
                 screenCaptureAndDo(screen, image -> {
                     Pane bgr = new Pane();
@@ -203,10 +203,10 @@ public class OverlayPane extends StackPane {
 
                     // apply effects (will be updated in animation)
                     op.opacityNode = contentImg;
-                    op.blurbackNode = contentImg;
-                    if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
-                    op.blurbackNode.setEffect(op.blurback);
-                    op.blurfrontNode.setEffect(op.blurfront);
+                    op.blurBackNode = contentImg;
+                    if (!op.getChildren().isEmpty()) op.blurFrontNode = op.getChildren().get(0);
+                    op.blurBackNode.setEffect(op.blurBack);
+                    op.blurFrontNode.setEffect(op.blurFront);
 
                     op.animation.applier.accept(0d);
                     op.stg.show();
@@ -224,14 +224,14 @@ public class OverlayPane extends StackPane {
 
             op.opacityNode.setOpacity(1-x*0.5);
             op.setOpacity(x);
-            // unfocus bgr
-            op.blurback.setHeight(15*x*x);
-            op.blurback.setWidth(15*x*x);
+            // un-focus bgr
+            op.blurBack.setHeight(15*x*x);
+            op.blurBack.setWidth(15*x*x);
             op.opacityNode.setScaleX(1-0.02*x);
             op.opacityNode.setScaleY(1-0.02*x);
             // focus this
-            op.blurfront.setHeight(20*(1-x*x));
-            op.blurfront.setWidth(20*(1-x*x));
+            op.blurFront.setHeight(20*(1-x*x));
+            op.blurFront.setWidth(20*(1-x*x));
             // zoom in effect - make it appear this pane comes from the front
             op.setScaleX(1+2*(1-x));
             op.setScaleY(1+2*(1-x));
@@ -239,11 +239,11 @@ public class OverlayPane extends StackPane {
 
         private void animEnd(OverlayPane op) {
             op.opacityNode.setEffect(null);
-            op.blurfrontNode.setEffect(null);
-            op.blurbackNode.setEffect(null);
+            op.blurFrontNode.setEffect(null);
+            op.blurBackNode.setEffect(null);
             op.opacityNode = null;
-            op.blurfrontNode = null;
-            op.blurbackNode = null;
+            op.blurFrontNode = null;
+            op.blurBackNode = null;
             op.onHidden.run();
 
             if (this==WINDOW) {

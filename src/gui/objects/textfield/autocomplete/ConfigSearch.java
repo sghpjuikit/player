@@ -22,11 +22,9 @@ import layout.widget.WidgetFactory;
 import util.action.Action;
 import util.conf.Config;
 
-import static java.util.stream.Collectors.toList;
 import static main.App.Build.appTooltip;
 import static util.Util.containsNoCase;
-import static util.functional.Util.by;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
 
@@ -48,7 +46,19 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
 	@SafeVarargs
     public ConfigSearch(TextField textField, History history, Supplier<Stream<Entry>>... searchTargets) {
-        super(textField, s -> stream(searchTargets).flatMap(o -> o.get()).filter(f -> containsNoCase(f.getName(), s.getUserText())).sorted(by(Entry::getName)).collect(toList()), AutoCompletion.defaultStringConverter());
+        super(
+        	textField,
+	        s -> {
+        		String text = s.getUserText();
+//        		Stream<String> phrases = text.contains(" ") ? stream(text.split(" ")) : stream(text); // pre-calculate once
+        		return stream(searchTargets).flatMap(o -> o.get())
+//			               .filter(f -> phrases.allMatch(phrase -> containsNoCase(f.getName(), phrase)))
+			               .filter(f -> containsNoCase(f.getName(), text))
+			               .sorted(by(Entry::getName))
+			               .toList();
+	        },
+	        AutoCompletion.defaultStringConverter()
+        );
         this.history = history;
         this.textField = textField;
         this.textField.setPrefWidth(450); // dictates the popup width

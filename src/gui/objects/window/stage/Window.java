@@ -1,6 +1,6 @@
 package gui.objects.window.stage;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,10 +10,13 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -26,17 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import audio.playback.PLAYBACK;
-import main.AppSerializer.SerializationException;
-import services.lasfm.LastFM;
+import gui.Gui;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
+import gui.objects.window.Resize;
 import layout.Component;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.container.switchcontainer.SwitchPane;
-import gui.Gui;
-import gui.objects.popover.PopOver;
-import gui.objects.window.Resize;
-import gui.objects.icon.Icon;
 import main.App;
+import main.AppSerializer.SerializationException;
+import services.lasfm.LastFM;
+import util.access.V;
 import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
@@ -45,12 +49,13 @@ import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
-import static gui.objects.window.Resize.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LASTFM;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.icon.Icon.createInfoIcon;
+import static gui.objects.window.Resize.NONE;
 import static java.lang.Math.*;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -67,11 +72,9 @@ import static util.access.SequentialValue.previous;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
 import static util.dev.Util.yes;
-import static util.functional.Util.forEachIRStream;
-import static util.functional.Util.forEachIStream;
-import static util.functional.Util.list;
-import static util.functional.Util.mapB;
-import static util.graphics.Util.*;
+import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.setScaleXY;
 import static util.reactive.Util.maintain;
 
 /**
@@ -94,7 +97,7 @@ import static util.reactive.Util.maintain;
 public class Window extends WindowBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
-    static final ObservableList<Window> WINDOWS = observableArrayList(); // accessed from WindowManager.class
+    static final ObservableList<Window> WINDOWS = observableArrayList();
 
     /** Pseudoclass active when this window is focused. Applied on root as '.window'. */
     public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
@@ -123,7 +126,7 @@ public class Window extends WindowBase {
      * <li> Closing it causes application to close as well
      * </ul>
      */
-    boolean isMain = false;
+    public final V<Boolean> isMain = new V<>(false);
 
     Window() {
         this(null,UNDECORATED);
@@ -147,13 +150,13 @@ public class Window extends WindowBase {
         mask.heightProperty().bind(content.heightProperty());
         content.setClip(mask);
 
-            // normally we would bind bgr size, but we will bind it more dynamically later
+	    // normally we would bind bgr size, but we will bind it more dynamically later
         // bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
 
         // avoid some instances of not closing properly
         s.setOnCloseRequest(e -> close());
 
-            // disable default exit fullscreen on ESC key
+	    // disable default exit fullscreen on ESC key
         // it does not exit fullscreen properly for this class, because it calls
         // stage.setFullscreen() directly
         s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
@@ -564,15 +567,8 @@ public class Window extends WindowBase {
 
     @Override
     public void close() {
-        LOGGER.info("Closing window. {} windows currently open.", WINDOWS.size());
-	    if (isMain) {
-            LOGGER.info("Window is is main window. App will be closed.", WINDOWS.size());
-            // javaFX bug fix - close all pop overs first
-            // new list avoids ConcurrentModificationError
-            list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
-            // closing app takes a little while, so we close the windows instantly and let it finish
-            // in the background. This removes disturbing "lag" effect.
-            WINDOWS.forEach(w -> w.s.hide());
+        LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? " main" : "",WINDOWS.size());
+	    if (isMain.get()) {
             APP.close();
 	    } else {
             if (layout!=null) layout.close(); // close layout to release resources
@@ -652,7 +648,7 @@ public class Window extends WindowBase {
         if (isMaximized() == Maximized.NONE)
             setXY(X - appX, Y - appY);
 
-        // (imitate Aero Snap)
+        // (imitate Windows Aero Snap)
         Maximized to;
 
         //left screen edge

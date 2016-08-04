@@ -721,8 +721,13 @@ public class App extends Application implements Configurable {
 
     /** Closes this app normally. Invokes {@link #stop()} as a result. */
     public void close() {
-        // close app
-        Platform.exit();
+	    // javaFX bug fix - must close all popups before windows (new list avoids ConcurrentModificationError)
+	    list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
+	    // closing app can take a little while, during which the gui will not respond
+	    // To avoid that effect, hide all windows instantly and close app "in the background".
+	    windowManager.windows.forEach(Window::hide); // this assumes we don't serialize visibility state !
+
+        Platform.exit();    // close app
     }
 
 	/**

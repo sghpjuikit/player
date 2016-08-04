@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import java.io.File;
@@ -44,7 +39,6 @@ public class AppParameterProcessor {
     public void addFileProcessor(Predicate<File> isProcessible, Consumer<List<File>> processor) {
         processors.add(new FileParameterProcessor(isProcessible, processor));
     }
-
 
     public interface ParameterProcessor {
         void process(Collection<String> params);

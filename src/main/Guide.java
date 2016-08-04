@@ -440,10 +440,7 @@ public final class Guide implements Configurable {
 
     public void start() {
         if (action_monitoring==null)
-            action_monitoring = APP.actionStream.subscribe(action -> {
-//                if (p.isShowing())
-                    handleAction(action);
-            });
+	        action_monitoring = APP.actionStream.subscribe(this::handleAction);
         proceed();
     }
 

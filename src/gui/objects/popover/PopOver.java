@@ -240,7 +240,7 @@ public class PopOver<N extends Node> extends PopupControl {
         setAutoFix(false);
 
 
-        // not working as advertized, disable for now...
+        // not working as advertised, disable for now...
 //        ChangeListener<Object> repositionListener = (o, oldV, newV) -> {
 //            if (isShowing() && !isDetached()) {
 //                System.out.println("reposition listener fired");
@@ -448,6 +448,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     /**
      * Shows popup. Equivalent to: show(owner,0,0);
+     *
      * @param owner
      */
     public final void show(Node owner) {
@@ -504,6 +505,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * The 'mode' is decided based on the parameters of the show method that was
      * called.
      * Must never be called before the popover is shown.
+     *
      * @param val
      */
     public void setMoveWithOwner(boolean val) {

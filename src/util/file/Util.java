@@ -170,8 +170,7 @@ public interface Util {
      * SecurityManager.checkRead(String) method denies read access to the
      * directory
      *
-     * @return unmodifiable list of files in the directory, it is empty if
-     * parameter null, not a directory or I/O error occurs
+     * @return stream of files in the directory, empty if parameter null, not a directory or I/O error occurs
      */
     static Stream<File> listFiles(File dir) {
         File[] l = dir==null ? null : dir.listFiles();
@@ -191,13 +190,13 @@ public interface Util {
 
     /** Stream parameter version of {@link #listFiles(java.io.File...)}. */
     static Stream<File> listFiles(Stream<File> dirs) {
-        return dirs.filter(ISNTØ).flatMap(d -> listFiles(d));
+        return dirs.filter(ISNTØ).flatMap(Util::listFiles);
     }
 
     /**
-     @param depth the maximum number of levels of directories to visit. A value
-     of 0 means that only the starting file is visited. Integer.MAX_VALUE
-     may be used to indicate that all levels should be visited.
+     * @param depth the maximum number of levels of directories to visit. A value
+     * of 0 means that only the starting file is visited. Integer.MAX_VALUE
+     * may be used to indicate that all levels should be visited.
      */
     static Stream<File> getFilesAudio(File dir, Use use, int depth) {
         if (dir.isDirectory()) {

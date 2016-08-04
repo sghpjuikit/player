@@ -92,13 +92,10 @@ public class WindowManager implements Configurable<Object> {
         APP.windowManager.toggleMini();
     }
 
-/**************************************************************************************************/
 
     public final ObservableList<Window> windows = Window.WINDOWS;
     public Window miniWindow;
 	private Window mainWindow;
-
-    /**************************************** WINDOW SETTINGS *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
     public final V<Double> windowOpacity = new V<>(1d);
@@ -112,7 +109,7 @@ public class WindowManager implements Configurable<Object> {
     @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
     public final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
-    @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
+    @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
     public final V<Boolean> show_windows = new V<>(true, v -> {
         if (!App.APP.normalLoad) return;
         if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
@@ -136,14 +133,12 @@ public class WindowManager implements Configurable<Object> {
         () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(WidgetFactory::name)
     );
 
-
 	public Optional<Window> getMain() {
 		return Optional.ofNullable(mainWindow);
 	}
 
     /**
-     * Get focused window. There is zero or one focused window in the application
-     * at any given time.
+     * Get focused window. There is zero or one focused window in the application at any given time.
      *
      * @see #getActive()
      * @return focused window or null if none focused.
@@ -168,7 +163,6 @@ public class WindowManager implements Configurable<Object> {
     public Optional<Window> getActive() {
 		return getFocused().or(this::getMain);
     }
-
 
     public Window getActiveOrDefault() {
 	    return getActive().orElseGet(this::createDefaultWindow);
@@ -241,7 +235,7 @@ public class WindowManager implements Configurable<Object> {
         no(mainWindow!=null, "Only one window can be main window");
 
 		mainWindow = w;
-		w.isMain = true;
+		w.isMain.setValue(true);
         w.setIcon(null);
         w.setTitle(null);
 
@@ -260,6 +254,7 @@ public class WindowManager implements Configurable<Object> {
                 .tooltip("Main window\n\nThis window is main app window\nClosing it will close application.");
         w.rightHeaderBox.getChildren().add(0, new Label(""));
         w.rightHeaderBox.getChildren().add(0, i);
+	    w.disposables.add(maintain(w.isMain, i.visibleProperty()));
     }
 
 
@@ -286,8 +281,6 @@ public class WindowManager implements Configurable<Object> {
         if (val) {
             // avoid pointless operation
             if (miniWindow!=null && miniWindow.isShowing()) return;
-            // get window instance by deserializing saved state
-            // miniWindow = Window.deserialize(FILE_MINIWINDOW); // disabled for now (but works)
             // if not available, make new one, set initial size
             if (miniWindow == null)  miniWindow = create();
             Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
@@ -332,7 +325,7 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.update();
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
-            // todo - rather allow widgetarea have no controls and use Window.setContent(Component)
+            // todo - rather allow widget area have no controls and use Window.setContent(Component)
             //        for simplicity and consistency
 
             // auto-hiding
@@ -356,7 +349,7 @@ public class WindowManager implements Configurable<Object> {
             });
             hider.runNow();
 
-            FxTimer shower = new FxTimer(0, 1, () ->{
+            FxTimer shower = new FxTimer(0, 1, () -> {
                 if (miniWindow==null) return;
                 if (miniWindow.getY()==0) return;    // if open
                 if (!mw_root.isHover()) return;      // if mouse left
@@ -392,18 +385,16 @@ public class WindowManager implements Configurable<Object> {
         // make sure directory is accessible
         File dir = new File(APP.DIR_LAYOUTS,"current");
         if (!Util.isValidatedDirectory(dir)) {
-            log(WindowManager.class).error("Serialization of windows and layouts failed. " + dir.getPath() +
-                    " could not be accessed.");
+            log(WindowManager.class).error("Serialization of windows and layouts failed. {} not accessible.", dir);
             return;
         }
 
-        // get windows
-        List<Window> src = new ArrayList<>(Window.WINDOWS);
-                     src.remove(miniWindow);    // manually
-        log(WindowManager.class).info("Serializing " + src.size() + " application windows");
-
         // remove serialized files from previous session
         listFiles(dir).forEach(File::delete);
+
+        // get windows
+        List<Window> src = stream(Window.WINDOWS).without(miniWindow).toList();
+        log(WindowManager.class).info("Serializing " + src.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
         for (int i=0; i<src.size(); i++) {
@@ -423,23 +414,23 @@ public class WindowManager implements Configurable<Object> {
     public void deserialize(boolean load_normally) {
         List<Window> ws = new ArrayList<>();
         if (load_normally) {
+	        canBeMainTemp = true;
 
             // make sure directory is accessible
             File dir = new File(APP.DIR_LAYOUTS, "current");
             if (!Util.isValidatedDirectory(dir)) {
-                log(WindowManager.class).error("Deserialization of windows and layouts failed. {} could not be accessed.", dir);
+                log(WindowManager.class).error("Deserialization of windows and layouts failed. {} not accessible.", dir);
                 return;
             }
-
             // discover all window files with 'ws extension
-            File[] fs = dir.listFiles(f -> f.getName().endsWith(".ws"));
+            File[] fs = listFiles(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
             log(WindowManager.class).info("Deserializing {} application windows", fs.length);
 
             // deserialize windows
             for (int i=0; i<fs.length; i++) {
                 File f = fs[i];
                 Window w = Window.deserialize(f);
-                if (w==null) continue;    // handle next window if this was not successfully deserialized
+                if (w==null) continue;    // ignore failures
 
                 ws.add(w);
 
@@ -449,6 +440,8 @@ public class WindowManager implements Configurable<Object> {
                 if (l==null) w.initLayout();
                 else w.initLayout(l);
             }
+
+	        canBeMainTemp = false;
          }
 
         log(WindowManager.class).info("Deserialized " + ws.size() + " windows.");
@@ -462,6 +455,8 @@ public class WindowManager implements Configurable<Object> {
             Widget.deserializeWidgetIO();
         }
     }
+
+    private volatile boolean canBeMainTemp = false;
 
     public final class WindowConverter implements Converter {
 
@@ -506,7 +501,7 @@ public class WindowManager implements Configurable<Object> {
 
 		@Override
 		public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-		    Window w = create();
+		    Window w = create(canBeMainTemp);
 		    if (w == null) return null;
 
 		    reader.moveDown();

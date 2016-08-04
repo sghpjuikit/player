@@ -1,6 +1,5 @@
 package gui.objects.window.stage;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,6 @@ import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.container.switchcontainer.SwitchPane;
 import main.App;
-import main.AppSerializer.SerializationException;
 import services.lasfm.LastFM;
 import util.access.V;
 import util.action.Action;
@@ -748,25 +746,6 @@ public class Window extends WindowBase {
     @FXML
     private void consumeMouseEvent(MouseEvent e) {
 	e.consume();
-    }
-
-/**************************** SERIALIZATION ***********************************/
-
-    public void serialize(File f) {
-        try {
-            App.APP.serializators.toXML(this, f);
-        } catch (SerializationException e) {
-            LOGGER.error("Window serialization failed into file {}", f,e);
-        }
-    }
-
-    public static Window deserialize(File f) {
-        try {
-            return App.APP.serializators.fromXML(Window.class, f);
-        } catch (SerializationException e) {
-            LOGGER.error("Unable to load window from the file {}",e);
-            return null;
-        }
     }
 
 }

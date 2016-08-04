@@ -14,13 +14,12 @@ import org.atteo.classindex.IndexSubclasses;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+import gui.Gui;
+import gui.objects.window.stage.Window;
 import layout.container.Container;
 import layout.widget.Widget;
 import layout.widget.Widget.LoadType;
-import gui.Gui;
-import gui.objects.window.stage.Window;
 import main.App;
-import main.AppSerializer.SerializationException;
 import util.access.V;
 import util.collections.map.PropertyMap;
 import util.conf.IsConfig;
@@ -157,11 +156,9 @@ public abstract class Component {
     public void exportFxwl(File dir) {
         String name = this instanceof Widget ? ((Widget<?>)this).custom_name.getValue() : getName();
         File f = new File(dir,name + ".fxwl");
-        try {
-            App.APP.serializators.toXML(this, f);
-        } catch (SerializationException ex) {
-            log(Component.class).error("Failed to export component {} to {}", getName(),f);
-        }
+        App.APP.serializators.toXML(this, f)
+			.ifError(e -> log(Component.class).error("Failed to export component {}", getName(), e));
+
     }
 
     public void swapWith(Container c, int i) {
@@ -175,7 +172,7 @@ public abstract class Component {
     protected Object readResolve() throws ObjectStreamException {
         // Special case. The class at hand (LockedProperty) is inner class (due to unavoidable
         // dependency on this one) and can not be deserialized since we can not create an
-        // xstream converter for it.
+        // XStream converter for it.
         //
         // We must always initialize it manually (we use @XStreamOmit for that) and because
         // it really should be final, but the initialization is here, we use reflection

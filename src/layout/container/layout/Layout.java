@@ -17,7 +17,6 @@ import gui.objects.window.stage.Window;
 import layout.container.uncontainer.UniContainer;
 import main.App;
 import main.AppSerializer;
-import main.AppSerializer.SerializationException;
 import util.file.Util;
 
 import static main.App.APP;
@@ -60,11 +59,11 @@ public final class Layout extends UniContainer {
      * all.
      *
      * @see #setName(java.lang.String)
-     * @param _name
+     * @param name name of this layout
      * @throws IllegalArgumentException if name parameter null or empty
      */
-    public Layout(String new_name) {
-        setName(new_name);
+    public Layout(String name) {
+        setName(name);
     }
 
     /**
@@ -82,13 +81,13 @@ public final class Layout extends UniContainer {
      * Do not use.
      * This method is not intended to be used outside of serialization context.
      *
-     * @param new_name - name to put.
+     * @param name name of this layout
      * @throws IllegalArgumentException if name parameter null or empty
      */
-    public void setName(String new_name) {
-        if (new_name == null || new_name.isEmpty())
+    public void setName(String name) {
+        if (name == null || name.isEmpty())
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
-        name = new_name;
+        this.name = name;
     }
 
     /**
@@ -96,7 +95,7 @@ public final class Layout extends UniContainer {
      * needed to maintain consistency -saves layout to the new file, old
      * file will deleted, etc.
      *
-     * @param new_name. Same as old one, empty or null will do nothing.
+     * @param new_name same as old one, empty or null will do nothing.
      * @throws IllegalArgumentException if name parameter null or empty
      */
     public void setNameAndSave(String new_name) {
@@ -138,12 +137,8 @@ public final class Layout extends UniContainer {
 
     public void serialize(File f) {
         if (getChild() == null) return;
-
-        try {
-            X.toXML(this,f);
-        } catch (SerializationException e) {
-            LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
-        }
+        X.toXML(this, f)
+            .ifError(e -> LOGGER.error("Unable to save layout {}", name));
     }
 
     /**
@@ -154,30 +149,18 @@ public final class Layout extends UniContainer {
     }
 
     public Layout deserialize(File f) {
-        Layout l;
-
-        try {
-            l = X.fromXML(Layout.class,f);
-            l.setName(Util.getName(f)); // hmm
-        } catch (SerializationException e) {
-            LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
-            l = new Layout(Util.getName(f));
-        }
+        Layout l = X.fromXML(Layout.class, f)
+            .ifError(e -> LOGGER.error("Unable to deserialize layout", e))
+            .getOrSupply(() -> new Layout(Util.getName(f)));
 
         l.properties.forEach(properties::put);
+        l.setName(name);    // TODO: dangerous
         child = l.child;
 
         return this;
     }
 
-    /**
-     * Get file this layout will sarialize as if not put otherwise. The file
-     * should always be derived from the layouts name, Specifically name+".l".
-     *
-     * @return
-     */
-    @Deprecated
-    public File getFile() {
+    private File getFile() {
         return new File(APP.DIR_LAYOUTS,name + ".l");
     }
 
@@ -193,7 +176,7 @@ public final class Layout extends UniContainer {
     @Override
     public boolean equals(Object o) {
         if (this==o) return true;
-        return ( o instanceof Layout && name.equals(((Layout)o).name));
+        return o instanceof Layout && name.equals(((Layout)o).name);
     }
 
     @Override

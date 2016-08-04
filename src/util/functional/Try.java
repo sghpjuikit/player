@@ -2,6 +2,7 @@ package util.functional;
 
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  *
@@ -23,11 +24,17 @@ public interface Try<R,E> {
 	boolean isOk();
 	boolean isError();
 	R get();
+	default R getOr(R val) {
+		return isOk() ? get() : val;
+	}
+	default R getOrSupply(Supplier<R> val) {
+		return isOk() ? get() : val.get();
+	}
 	E getError();
-	void ifOk(Consumer<? super R> action);
-	void ifError(Consumer<? super E> action);
+	Try<R,E> ifOk(Consumer<? super R> action);
+	Try<R,E> ifError(Consumer<? super E> action);
 
-	private class Ok<R,E> implements Try<R,E> {
+	class Ok<R,E> implements Try<R,E> {
 
 		private final R val;
 
@@ -56,16 +63,17 @@ public interface Try<R,E> {
 		}
 
 		@Override
-		public void ifOk(Consumer<? super R> action) {
+		public Try<R,E> ifOk(Consumer<? super R> action) {
 			action.accept(val);
+			return this;
 		}
 
 		@Override
-		public void ifError(Consumer<? super E> action) {
-
+		public Try<R,E> ifError(Consumer<? super E> action) {
+			return this;
 		}
 	}
-	private class Error<R,E> implements Try<R,E> {
+	class Error<R,E> implements Try<R,E> {
 
 		private final E val;
 
@@ -94,13 +102,14 @@ public interface Try<R,E> {
 		}
 
 		@Override
-		public void ifOk(Consumer<? super R> action) {
-
+		public Try<R,E> ifOk(Consumer<? super R> action) {
+			return this;
 		}
 
 		@Override
-		public void ifError(Consumer<? super E> action) {
+		public Try<R,E> ifError(Consumer<? super E> action) {
 			action.accept(val);
+			return this;
 		}
 	}
 }

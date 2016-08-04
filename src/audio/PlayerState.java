@@ -20,7 +20,6 @@ import audio.playback.PlaybackState;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistManager;
 import main.AppSerializer;
-import main.AppSerializer.SerializationException;
 
 import static main.App.APP;
 import static util.functional.Util.stream;
@@ -50,22 +49,15 @@ public final class PlayerState {
 
     public static PlayerState deserialize() {
         File f = new File(APP.DIR_USERDATA, "playerstate.cfg");
-        try {
-            return X.fromXML(PlayerState.class, f);
-        } catch (SerializationException ex) {
-            LOGGER.error("Unable to load player state from the file {}. "
-                    + "Loading default state.", f);
-            return new PlayerState();
-        }
+	    return X.fromXML(PlayerState.class, f)
+			.ifError(e -> LOGGER.error("Unable to load player state - loading default state", e))
+			.getOrSupply(PlayerState::new);
     }
 
     public void serialize() {
         File f = new File(APP.DIR_USERDATA, "playerstate.cfg");
-        try {
-            X.toXML(this, f);
-        } catch (SerializationException ex) {
-            LOGGER.error("Unable to save player state into the file {}", f);
-        }
+	    X.toXML(this,f)
+		    .ifError(e -> LOGGER.error("Unable to save player state", f, e));
     }
 
     /** Invoked just before the serialization. */

@@ -27,7 +27,6 @@ import com.melloware.jintellitype.JIntellitype;
 import audio.playback.PLAYBACK;
 import audio.playlist.PlaylistManager;
 import main.App;
-import main.AppSerializer;
 import util.access.V;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -657,31 +656,20 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     public static void loadCommandActions() {
-
 	    // discover all command actions defined in file
-	    File commandActionsDefFile = new File(APP.DIR_USERDATA, "command-actions.cfg");
-	    boolean generateTemplate = false;
-	    try {
-	    	generateTemplate |=
-			    (commandActionsDefFile.exists()
-				     ? APP.serializators.fromXML(CommandActionDatas.class, commandActionsDefFile)
-				     : new CommandActionDatas()
-			    )
+	    File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
+	    boolean generateTemplate = APP.serializators.fromXML(CommandActionDatas.class, file)
+			    .ifError(e -> log(Action.class).error("Could not load command actions", e))
+                .getOrSupply(CommandActionDatas::new)
 			    .stream()
 			    .filter(a -> a.isEnabled)
 			    .map(CommandActionData::toAction)
 			    .peek(Action::register)
 			    .peek(actions::add)
 		        .count() < 1;
-	    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
-
 	    if (generateTemplate)
-		    try {
-			    APP.serializators.toXML(
-				    Util.stream(new CommandActionData(), new CommandActionData()).toCollection(CommandActionDatas::new),
-				    commandActionsDefFile
-			    );
-		    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}
+		    APP.serializators.toXML(Util.stream(new CommandActionData()).toCollection(CommandActionDatas::new), file)
+			    .ifError(e -> log(Action.class).error("Could not save command actions", e));
     }
 
     private static class CommandActionDatas extends HashSet<CommandActionData> {}

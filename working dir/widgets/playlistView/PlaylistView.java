@@ -29,7 +29,6 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.PlaylistFeature;
 import layout.widget.feature.SongReader;
-import main.AppSerializer;
 import unused.SimpleConfigurator;
 import util.access.V;
 import util.access.Vo;
@@ -50,6 +49,7 @@ import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
 import static main.App.Build.appTooltip;
+import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
@@ -248,9 +248,8 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
-	        try {
-		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"));
-	        } catch (AppSerializer.SerializationException e) {}
+	        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
+				.ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save playlist as...");
@@ -265,9 +264,8 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
-	        try {
-		        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"));
-	        } catch (AppSerializer.SerializationException e) {}
+	        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
+		        .ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save selected items as...");

@@ -15,24 +15,22 @@ import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.io.StreamException;
-
-import util.conf.Configurable;
-import util.conf.IsConfigurable;
 import configurator.Configurator;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
 import layout.Component;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
-import gui.objects.popover.PopOver;
-import gui.objects.icon.Icon;
 import main.App;
+import util.conf.Configurable;
+import util.conf.IsConfigurable;
 import util.file.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
-import static util.file.Util.getName;
 import static util.dev.Util.noØ;
+import static util.file.Util.getName;
 import static util.graphics.Util.getScreen;
 
 /**
@@ -170,16 +168,15 @@ public final class UiContext {
             // simple launcher version, contains widget name on 1st line
             String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
             wf = APP.widgetManager.factories.get(wn);
-            if (wf!=null) w = wf.create();
+            if (wf!=null)
+            	w = wf.create();
 
             // try to deserialize normally
-            if (w==null) {
-                try {
-                    w = App.APP.serializators.fromXML(Component.class,launcher);
-                } catch (StreamException ignored) {
-                    LOGGER.error("Could not load .fxwl {}", launcher);
-                }
-            }
+            if (w==null)
+            	w = App.APP.serializators.fromXML(Component.class, launcher)
+						.ifError(e -> LOGGER.error("Could not load component", e))
+		                .get();
+
 
             // try to build widget using just launcher filename
             if (w==null) {

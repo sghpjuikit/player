@@ -5,8 +5,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -84,6 +82,8 @@ import static util.reactive.Util.maintain;
 @IsConfigurable("Window")
 @IsActionable
 public class WindowManager implements Configurable<Object> {
+
+	private static final org.slf4j.Logger LOGGER = log(WindowManager.class);
 
     // todo: remove & auto-crate from config annotation
     @IsAction(name = "Mini mode", global = true, keys = "F9",
@@ -185,10 +185,11 @@ public class WindowManager implements Configurable<Object> {
 
     public Window create(Stage owner, StageStyle style, boolean canBeMain) {
         Window w = new Window(owner,style);
+        File skinFile = new File(APP.DIR_SKINS.getPath(), Gui.skin.getValue() + separator + Gui.skin.getValue() + ".css");
         try {
-            w.root.getStylesheets().add( new File(APP.DIR_SKINS.getPath(), Gui.skin.getValue() + separator + Gui.skin.getValue() + ".css").toURI().toURL().toExternalForm());
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(WindowManager.class.getName()).log(Level.SEVERE, null, ex);
+            w.root.getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
+        } catch (MalformedURLException e) {
+	        LOGGER.error("Could not load skin {}", skinFile, e);
         }
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
         if (canBeMain && mainWindow==null) setAsMain(w); // TODO: improve main window detection/decision strategy
@@ -209,7 +210,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
     private Window createDefaultWindow(boolean canBeMain) {
-    	log(WindowManager.class).debug("Creating default window");
+	    LOGGER.debug("Creating default window");
 	    Window w = create(canBeMain);
 	    w.setXYSizeInitial();
 	    w.initLayout();
@@ -385,7 +386,7 @@ public class WindowManager implements Configurable<Object> {
         // make sure directory is accessible
         File dir = new File(APP.DIR_LAYOUTS,"current");
         if (!Util.isValidatedDirectory(dir)) {
-            log(WindowManager.class).error("Serialization of windows and layouts failed. {} not accessible.", dir);
+	        LOGGER.error("Serialization of windows and layouts failed. {} not accessible.", dir);
             return;
         }
 
@@ -394,7 +395,7 @@ public class WindowManager implements Configurable<Object> {
 
         // get windows
         List<Window> src = stream(Window.WINDOWS).without(miniWindow).toList();
-        log(WindowManager.class).info("Serializing " + src.size() + " application windows");
+	    LOGGER.info("Serializing " + src.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
         for (int i=0; i<src.size(); i++) {
@@ -403,7 +404,8 @@ public class WindowManager implements Configurable<Object> {
             String name = "window" + i;
             File f = new File(dir, name + ".ws");
             // serialize window
-            w.serialize(f);
+	        App.APP.serializators.toXML(w, f)
+		        .ifError(e -> LOGGER.error("Window serialization failed", e));
             // serialize layout (associate the layout with the window by name)
             Layout l = w.getLayout();
             l.setName("layout" + i);
@@ -419,32 +421,33 @@ public class WindowManager implements Configurable<Object> {
             // make sure directory is accessible
             File dir = new File(APP.DIR_LAYOUTS, "current");
             if (!Util.isValidatedDirectory(dir)) {
-                log(WindowManager.class).error("Deserialization of windows and layouts failed. {} not accessible.", dir);
+	            LOGGER.error("Deserialization of windows and layouts failed. {} not accessible.", dir);
                 return;
             }
             // discover all window files with 'ws extension
             File[] fs = listFiles(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
-            log(WindowManager.class).info("Deserializing {} application windows", fs.length);
+	        LOGGER.info("Deserializing {} application windows", fs.length);
 
             // deserialize windows
             for (int i=0; i<fs.length; i++) {
-                File f = fs[i];
-                Window w = Window.deserialize(f);
-                if (w==null) continue;    // ignore failures
+            	int j = i;
+                App.APP.serializators.fromXML(Window.class, fs[i])
+	                .ifError(e -> LOGGER.error("Unable to load window", e))
+					.ifOk(w -> {
+						ws.add(w);
 
-                ws.add(w);
-
-                // deserialize layout
-                File lf = new File(dir,"layout" + i + ".l");
-                Layout l = new Layout("layout"+i).deserialize(lf);
-                if (l==null) w.initLayout();
-                else w.initLayout(l);
+						// deserialize layout
+						File lf = new File(dir,"layout" + j + ".l");
+						Layout l = new Layout("layout" + j).deserialize(lf);
+						if (l==null) w.initLayout(); // TODO: this is plain wrong
+						else w.initLayout(l);
+					});
             }
 
 	        canBeMainTemp = false;
          }
 
-        log(WindowManager.class).info("Deserialized " + ws.size() + " windows.");
+	    LOGGER.info("Deserialized " + ws.size() + " windows.");
         // show windows
         if (ws.isEmpty()) {
         	if(load_normally)

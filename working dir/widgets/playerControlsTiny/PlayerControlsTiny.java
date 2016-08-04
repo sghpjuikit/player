@@ -154,8 +154,8 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         d(maintain(ps.currentTime, t -> currentTimeChanged()));
         d(maintain(ps.loopMode,this::loopModeChanged));
         d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
-        d(Player.playingtem.onUpdate(this::playbackItemChanged));
-        playbackItemChanged(Player.playingtem.get());
+        d(Player.playingItem.onUpdate(this::playbackItemChanged));
+        playbackItemChanged(Player.playingItem.get());
 
         // drag & drop
         installDrag(

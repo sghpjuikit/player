@@ -167,6 +167,7 @@ public class TreeItems {
     public static void doOnDoubleClick(Object o) {
         if (o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
         if (o instanceof Node) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
+        if (o instanceof Window) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(((Window)o).getStage())));
         if (o instanceof File) {
             File f = (File)o;
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
@@ -370,7 +371,7 @@ public class TreeItems {
     }
     private static String windowToName(Window w) {
         String n = "window " + list(APP.windowManager.windows).indexOf(w);
-        if (w==APP.window) n += " (main)";
+        if (APP.windowManager.getMain().filter(mw -> mw==w).isPresent()) n += " (main)";
         if (w==APP.windowManager.miniWindow) n += " (mini-docked)";
         return n;
     }

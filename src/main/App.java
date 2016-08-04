@@ -19,7 +19,6 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.Cursor;
-import javafx.scene.ImageCursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -248,7 +247,6 @@ public class App extends Application implements Configurable {
     /** {@link System#out} provider. Allows multiple parties to observe it.. */
     public final SystemOutListener systemout = new SystemOutListener();
 
-    public Window window;
     public Window windowOwner;
     public final TaskBar taskbarIcon = new TaskBar();
     public final ActionPane actionPane = new ActionPane();
@@ -266,7 +264,8 @@ public class App extends Application implements Configurable {
      * the meantime and be in inconsistent state.
      */
     public final SetƑ onStop = new SetƑ();
-    public boolean normalLoad = true;
+    @IsConfig(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
+	public boolean normalLoad = true;
     public boolean initialized = false;
     private boolean close_prematurely = false;
 
@@ -280,7 +279,7 @@ public class App extends Application implements Configurable {
     public final InstanceInfo instanceInfo = new InstanceInfo();
     public final ObjectFieldMap classFields = new ObjectFieldMap();
 
-    @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
+    @IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
     public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
             () -> plugins.getPlugins(RatingCellFactory.class));
 
@@ -348,18 +347,6 @@ public class App extends Application implements Configurable {
 
         // log uncaught thread termination exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
-
-        // mark app instance so other instances can recognize it. !work so far
-//        try {
-//            String id = String.valueOf(ProcessHandle.current().getPid());
-//            VirtualMachine vm = VirtualMachine.attach(id);
-//            vm.getAgentProperties().put("apptype", "somevalue");
-//            vm.getAgentProperties().forEach((key,val) -> System.out.println(" vm key: " + key + ": " + val));
-//            System.out.println("isntnull " + vm.getAgentProperties().get("apptype"));
-//            vm.detach();
-//        } catch (AttachNotSupportedException|IOException ex) {
-//            LOGGER.error("Failed to mark application instance");
-//        }
 
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely
@@ -619,10 +606,10 @@ public class App extends Application implements Configurable {
             taskbarIcon.setOnClose(this::close);
             taskbarIcon.setOnMinimize(v -> windowManager.windows.forEach(w -> w.setMinimized(v)));
             taskbarIcon.setOnAltTab(() -> {
-                boolean apphasfocus = windowManager.getFocused()!=null;
-                if (!apphasfocus) {
-                    boolean allminimized = windowManager.windows.stream().allMatch(Window::isMinimized);
-                    if (allminimized)
+                boolean isAppFocused = windowManager.getFocused()!=null;
+                if (!isAppFocused) {
+                    boolean isAllMinimized = windowManager.windows.stream().allMatch(Window::isMinimized);
+                    if (isAllMinimized)
                         windowManager.windows.forEach(w -> w.setMinimized(false));
                     else
                         windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
@@ -659,7 +646,7 @@ public class App extends Application implements Configurable {
             Player.initialize();
 
             List<String> ps = fetchParameters();
-            normalLoad = ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
+            normalLoad &= ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
 
             // use for faster widget testing
             // Set project to run with application parameters and use widget name
@@ -691,16 +678,25 @@ public class App extends Application implements Configurable {
         // show guide
         if (guide.first_time.get()) run(3000, guide::start);
 
-        // get rid of this, load from skins
-        runNew(() -> {
-            Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  // pass in the image path
-            ImageCursor c = new ImageCursor(image,3,3);
-            runLater(() -> window.getStage().getScene().setCursor(c));
-        });
+        // TODO: implement properly - load with skin
+        // runNew(() -> {
+        //     Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
+        //     ImageCursor c = new ImageCursor(image,3,3);
+        //     runLater(() -> window.getStage().getScene().setCursor(c));
+        // });
 
         // process app parameters passed when app started
         parameterProcessor.process(fetchParameters());
     }
+
+    /** Starts this application normally if not yet started that way, otherwise has no effect. */
+	public void startNormally() {
+		if(!normalLoad) {
+			normalLoad = true;
+			windowManager.deserialize(true);
+			Player.loadLast();
+		}
+	}
 
     /**
      * This method is called when the application should stop, and provides a
@@ -723,10 +719,19 @@ public class App extends Application implements Configurable {
         appCommunicator.stop();
     }
 
-    /** Forces application to stop. Invokes {@link #stop()} as a result. */
+    /** Closes this app normally. Invokes {@link #stop()} as a result. */
     public void close() {
         // close app
         Platform.exit();
+    }
+
+	/**
+	 * Closes this app abnormally, so next time this app does not start normally.
+	 * Invokes {@link #close()} and then {@link #stop()} as a result.
+	 */
+    public void closeAbnormally() {
+        normalLoad = false;
+	    close();
     }
 
     public <S extends Service> void use(Class<S> type, Consumer<S> action) {
@@ -756,8 +761,8 @@ public class App extends Application implements Configurable {
         // try {
         //     MonitoredHost mh = MonitoredHost.getMonitoredHost("//localhost" );
         //     for (int id : mh.activeVms() ) {
-        //         VmIdentifier vmid = new VmIdentifier("" + id);
-        //         MonitoredVm vm = mh.getMonitoredVm(vmid, 0 );
+        //         VmIdentifier vmId = new VmIdentifier("" + id);
+        //         MonitoredVm vm = mh.getMonitoredVm(vmId, 0 );
         //         System.out.printf( "%d %s %s %s%n\n", id,MonitoredVmUtil.mainClass( vm, true ),
         //                            MonitoredVmUtil.jvmArgs( vm ),MonitoredVmUtil.mainArgs( vm ) );
         //     }
@@ -772,7 +777,7 @@ public class App extends Application implements Configurable {
         // check some property to determine what kind of app this is to count instances of this app.
         //
         // Note: I tried to inject some custom property into vm using
-        // vm.getAgentProeprties().setProperty(...)  but it appears to be read only. So we handle
+        // vm.getAgentProperties().setProperty(...)  but it appears to be read only. So we handle
         // the recognition differently.
         int instances = 0;
         String ud = System.getProperty("user.dir");
@@ -785,12 +790,12 @@ public class App extends Application implements Configurable {
                 // User directory. Unfortunately nothing forbids user (or more likely
                 // developer) to copy-paste the app and run it from elsewhere). We want to
                 // defend against this as well.
-                String udir = vm.getSystemProperties().getProperty("user.dir");
-                if (udir!=null && ud.equals(udir)) i=1;
+                String dir = vm.getSystemProperties().getProperty("user.dir");
+                if (dir!=null && ud.equals(dir)) i=1;
 
                 // attempt 2:
                 // Injected custom property, !work. Read-only? Id like this to work though.
-                // if (vm.getAgentProperties().getProperty("apptype")!=null) i++;
+                // if (vm.getAgentProperties().getProperty("propertyName")!=null) i++;
 
                 // attempt3:
                 // We use command parameter which ends with the name of the executed jar. So far
@@ -836,13 +841,13 @@ public class App extends Application implements Configurable {
                l.forEach(m -> System.out.println(m.getCustom5()));
                Player.refreshItemsWith(l);
            },Player.IO_THREAD)
-           .showProgress(APP.window.taskAdd())
+           .showProgress(APP.windowManager.getActive().map(Window::taskAdd))
            .run();
     }
 
     public static void itemToMeta(Item i, Consumer<Metadata> action) {
-       if (i.same(Player.playingtem.get())) {
-           action.accept(Player.playingtem.get());
+       if (i.same(Player.playingItem.get())) {
+           action.accept(Player.playingItem.get());
            return;
        }
 
@@ -856,8 +861,8 @@ public class App extends Application implements Configurable {
     }
 
 //    public static Metadata itemToMeta(Item i) {
-//       if (i.same(Player.playingtem.get()))
-//           return Player.playingtem.get();
+//       if (i.same(Player.playingItem.get()))
+//           return Player.playingItem.get();
 //
 //       Metadata m = DB.items_byId.get(i.getId());
 //       return m==null ? MetadataReader.create(i) : m;
@@ -934,6 +939,22 @@ public class App extends Application implements Configurable {
 
     @IsActionable
     public interface Actions {
+
+	    @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded. Has only effect once.")
+	    static void startAppNormally() {
+		    APP.startNormally();
+	    }
+
+	    @IsAction(name = "Close app", desc = "Closes this application.")
+	    static void closeApp() {
+		    APP.close();
+	    }
+
+	    @IsAction(name = "Close app abnormally", desc = "Closes this application so next time it loads it does not loads" +
+                                            " its state. The state is saved and can be loaded manually at any time.")
+	    static void closeAppAbnormally() {
+		    APP.closeAbnormally();
+	    }
 
 	    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
 	    static void openAppGithubPage() {
@@ -1121,7 +1142,7 @@ public class App extends Application implements Configurable {
                     none -> {
 	                    FileChooser fc = new FileChooser();
 	                    fc.setInitialDirectory(APP.DIR_SKINS);
-	                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP),f -> f.toExtFilter()));
+	                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP), AudioFileFormat::toExtFilter));
 	                    fc.setTitle("Open audio...");
 	                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
 	                    // Action pane may auto-close when this action finishes, so we make sure to call
@@ -1152,7 +1173,7 @@ public class App extends Application implements Configurable {
 	    static void runCommand() {
 		    SimpleConfigurator sc = new SimpleConfigurator<>(
 		    	new ValueConfig<>(String.class, "Command", ""),
-                (String command) -> Environment.runCommand(command));
+                (Consumer<String>) Environment::runCommand);
 		    PopOver p = new PopOver<>(sc);
 				    p.title.set("Run system command ");
 				    p.show(PopOver.ScreenPos.App_Center);
@@ -1172,8 +1193,7 @@ public class App extends Application implements Configurable {
 	    @IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 	    @IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
 	    static void showSearch() {
-	    	Window w = APP.windowManager.getFocused();
-		    boolean isFocused = w != null;
+		    boolean isFocused = APP.windowManager.getFocused().isPresent();
 
 		    DecoratedTextField tf = new DecoratedTextField();
 		    Region clearButton = new Region();
@@ -1213,7 +1233,25 @@ public class App extends Application implements Configurable {
 
 		    new ConfigSearch(tf, APP.configSearchHistory,
 			    () -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
-                () -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of)
+                () -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
+                () -> Gui.skin.stream().map(s -> new ConfigSearch.Entry() {
+	                @Override
+	                public String getName() {
+		                return "Open skin: " + s;
+	                }
+	                @Override
+	                public String getInfo() {
+		                return "Open skin: " + s;
+	                }
+	                @Override
+	                public Node getGraphics() {
+		                return new Icon(MaterialIcon.BRUSH);
+	                }
+	                @Override
+	                public void run() {
+		                Gui.skin.setNapplyValue(s);
+	                }
+                })
 		    );
 		    PopOver<TextField> p = new PopOver<>(tf);
 		    p.title.set("Search for an action or option");
@@ -1233,8 +1271,8 @@ public class App extends Application implements Configurable {
 			    StringBuilder sb = new StringBuilder("Metadata of ").append(file.getPath());
 			    com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
 			    metadata.getDirectories().forEach(d -> {
-				    sb.append("\nName: " + d.getName());
-				    d.getTags().forEach(tag -> sb.append("\n\t" + tag.toString() + "\n"));
+				    sb.append("\nName: ").append(d.getName());
+				    d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()).append('\n'));
 			    });
 			    APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
 			    System.out.println(sb.toString());

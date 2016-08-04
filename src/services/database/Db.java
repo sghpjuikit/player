@@ -22,6 +22,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import audio.Item;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataWriter;
+import gui.objects.window.stage.Window;
 import layout.widget.controller.io.InOutput;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
@@ -94,7 +95,7 @@ public class Db {
                     em.getTransaction().commit();
 
                 })
-                .showProgress(APP.window.taskAdd())
+                .showProgress(APP.windowManager.getActive().map(Window::taskAdd))
                 .run();
     }
 

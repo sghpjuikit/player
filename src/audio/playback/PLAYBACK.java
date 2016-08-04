@@ -72,7 +72,7 @@ public final class PLAYBACK implements Configurable {
     /** Initializes the Playback. */
     public static void initialize() {
         player.realTime.initialize();
-        onPlaybackAt.add(at(1, () -> onPlaybackAt.forEach(h->h.restart(Player.playingtem.get().getLength()))));
+        onPlaybackAt.add(at(1, () -> onPlaybackAt.forEach(h->h.restart(Player.playingItem.get().getLength()))));
 
         // add end of player behavior
         onPlaybackEnd.add(() -> {
@@ -345,7 +345,7 @@ public final class PLAYBACK implements Configurable {
      */
     public static void rate(double rating) {
         if (PlaylistManager.active==null) return;
-        MetadataWriter.useToRate(Player.playingtem.get(), rating);
+        MetadataWriter.useToRate(Player.playingItem.get(), rating);
     }
 
     /** Rate playing item 0/5. */

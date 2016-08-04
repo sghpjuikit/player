@@ -117,7 +117,7 @@ public class OverlayPane extends StackPane {
     private Anim animation = new Anim(30, this::animDo).dur(millis(250)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
     private Stage stg = null;
     private BoxBlur blurback = new BoxBlur(0,0,3);  // we need best possible quality
-    private BoxBlur blurfront = new BoxBlur(0,0,1); // we dont need quality, hence iterations==1
+    private BoxBlur blurfront = new BoxBlur(0,0,1); // we do not need quality, hence iterations==1
     private Node opacityNode = null;
     private Node blurfrontNode = null;
     private Node blurbackNode = null;
@@ -142,41 +142,46 @@ public class OverlayPane extends StackPane {
 
         private void animStart(OverlayPane op) {
             if (this==WINDOW) {
-                // display overlay pane
-                AnchorPane root = APP.windowManager.getActive().root;
-                if (!root.getChildren().contains(op)) {
-                    root.getChildren().add(op);
-                    setAnchors(op,0d);
-                    op.toFront();
-                }
-                op.setVisible(true);
-                op.requestFocus();     // 'bug fix' - we need focus or key events wont work
+	            APP.windowManager.getActive().ifPresentOrElse(
+	            	window -> {
+			            // display overlay pane
+			            AnchorPane root = window.root;
+			            if (!root.getChildren().contains(op)) {
+				            root.getChildren().add(op);
+				            setAnchors(op,0d);
+				            op.toFront();
+			            }
+			            op.setVisible(true);
+			            op.requestFocus();     // 'bug fix' - we need focus or key events wont work
 
-                // apply effects (will be updated in animation)
-                //
-                // blur front performance optimization
-                // We want to apply blur on this overlay pane, but that can be potentially
-                // giant area (tests show HD and beyond can kill fps here). So we just apply
-                // the blur on the content of the overlay pane instead, which is generally
-                // smaller.
-                // More tweaking:
-                // It is possible with the overlay blur to:
-                // - disable (does not look the best)
-                // - decrease blur iteration count (we dont need super blur quality here)
-                // - decrease blur amount
-                //
-                op.opacityNode = APP.windowManager.getActive().content;
-                op.blurbackNode = APP.windowManager.getActive().subroot;
-                if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
-                op.blurbackNode.setEffect(op.blurback);
-                op.blurfrontNode.setEffect(op.blurfront);
+			            // apply effects (will be updated in animation)
+			            //
+			            // blur front performance optimization
+			            // We want to apply blur on this overlay pane, but that can be potentially
+			            // giant area (tests show HD and beyond can kill fps here). So we just apply
+			            // the blur on the content of the overlay pane instead, which is generally
+			            // smaller.
+			            // More tweaking:
+			            // It is possible with the overlay blur to:
+			            // - disable (does not look the best)
+			            // - decrease blur iteration count (we don not need super blur quality here)
+			            // - decrease blur amount
+			            //
+			            op.opacityNode = window.content;
+			            op.blurbackNode = window.subroot;
+			            if (!op.getChildren().isEmpty()) op.blurfrontNode = op.getChildren().get(0);
+			            op.blurbackNode.setEffect(op.blurback);
+			            op.blurfrontNode.setEffect(op.blurfront);
 
-                // start showing
-                op.animation.playOpenDo(null);
-                op.onShown.run();
+			            // start showing
+			            op.animation.playOpenDo(null);
+			            op.onShown.run();
+		            },
+		            () -> SCREEN_OF_MOUSE.animStart(op)
+	            );
             } else {
                 Screen screen = this==SCREEN_OF_WINDOW
-                                    ? APP.windowManager.getActive().getScreen()
+                                    ? APP.windowManager.getActive().map(w -> w.getScreen()).orElseGet(() -> getScreen(APP.mouseCapture.getMousePosition()))
                                     : getScreen(APP.mouseCapture.getMousePosition());
                 screenCaptureAndDo(screen, image -> {
                     Pane bgr = new Pane();

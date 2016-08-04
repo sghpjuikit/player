@@ -145,7 +145,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             }
         });
         // maintain playing item css by refreshing index column
-        d1 = Player.playingtem.onChange(o -> refreshColumn(columnIndex));
+        d1 = Player.playingItem.onChange(o -> refreshColumn(columnIndex));
 
         // resizing
         setColumnResizePolicy(resize -> {

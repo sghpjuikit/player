@@ -68,7 +68,7 @@ public class Player {
      * Prvides access to Metadata representing currently played item or empty
      * metadata if none. Never null.
      */
-    public static final CurrentItem playingtem = new CurrentItem();
+    public static final CurrentItem playingItem = new CurrentItem();
 
     public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"),"Playing", Metadata.class);
     public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"),"Selected in playlist", PlaylistItem.class);
@@ -78,15 +78,15 @@ public class Player {
     static {
         anySelected.i.bind(playlistSelected.o);
         anySelected.i.bind(librarySelected.o);
-        playingtem.onUpdate(playing.i::setValue);
+        playingItem.onUpdate(playing.i::setValue);
 
         // use jaudiotagger for total time value (fixes incorrect values coming from player classes)
-        playingtem.onChange(m -> state.playback.duration.set(m.getLength()));
+        playingItem.onChange(m -> state.playback.duration.set(m.getLength()));
         // maintain PLAYED_FIRST_TIME & PLAYED_LAST_TIME metadata
         // note: for performance reasons we update AFTER song stops playing, not WHEN it starts
         // as with playcount incrementing, it could discrupt playback, although now we are losing
         // updates on application closing!
-        playingtem.onChange((o,n) -> {
+        playingItem.onChange((o, n) -> {
             MetadataWriter.use(o, w -> {
                 w.setPlayedFirstNowIfEmpty();
                 w.setPlayedLastNow();
@@ -209,7 +209,7 @@ public class Player {
 //                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
                 // refresh playing item data
-                mm.ifHasE(playingtem.get(), playingtem::update);
+                mm.ifHasE(playingItem.get(), playingItem::update);
 
                 if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
                 if (playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));

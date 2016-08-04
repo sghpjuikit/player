@@ -7,7 +7,9 @@ import java.net.MalformedURLException;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -23,31 +25,26 @@ import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gui.objects.window.stage.UiContext;
+import gui.objects.window.stage.WindowManager;
 import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
-import gui.objects.window.stage.UiContext;
-import gui.objects.window.stage.Window;
-import gui.objects.window.stage.WindowManager;
 import util.SwitchException;
 import util.collections.mapset.MapSet;
 import util.dev.Idempotent;
 import util.file.FileMonitor;
 import util.file.Util;
 
-import static layout.widget.WidgetManager.WidgetSource.*;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.*;
 import static java.util.stream.Collectors.toList;
+import static layout.widget.WidgetManager.WidgetSource.*;
 import static main.App.APP;
 import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
-import static util.file.Util.getName;
-import static util.file.Util.listFiles;
-import static util.file.Util.readFileLines;
+import static util.file.Util.*;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -295,7 +292,7 @@ public final class WidgetManager {
      * Compiles the .java file into .class file. All project dependencies (including the project
      * itself - its jar) are available because they are on the classpath.
      *
-     * @param srcfile .java file to compile
+     * @param srcFiles .java files to compile
      */
     private static void compile(File... srcFiles) {
         File[] files = srcFiles;
@@ -461,7 +458,7 @@ public final class WidgetManager {
 
     /**
      * Equivalent to {@code find(filter, source, false);}
-     * @see #find(java.util.function.Predicate, Layout.Widgets.WidgetManager.WidgetSource, boolean)
+     * @see #find(java.util.function.Predicate, layout.widget.WidgetManager.WidgetSource, boolean)
      */
     public Optional<Widget<?>> find(Predicate<WidgetInfo> filter, WidgetSource source) {
         return find(filter, source, false);
@@ -650,23 +647,20 @@ public final class WidgetManager {
 
 
 
-    private final List<String> layouts = new ArrayList();
+    private final List<String> layouts = new ArrayList<>();
 
 
     public Layout getActive() {
-        // If no window is focused no layout
-        // should be active as application is either not focused or in an
-        // illegal state itself.
-        Window w = windowManager.getFocused();
-        // get active layout from focused window
-        return w==null ? null : w.getLayout();
+        // If no window is focused no layout should be active as application
+	    // is either not focused or in an illegal state itself.
+        return windowManager.getFocused().map(w -> w.getLayout()).orElse(null);
     }
 
     /**
      * @return all Layouts in the application.
      */
     public Stream<Layout> getLayouts() {
-        return windowManager.windows.stream().map(w->w.getLayout()).filter(ISNTØ);
+        return windowManager.windows.stream().map(w -> w.getLayout()).filter(ISNTØ);
     }
 
     /**

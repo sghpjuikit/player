@@ -63,7 +63,7 @@ public class ClickEffect extends ServiceBase {
 
 
     // pooling
-    private final List<Effect> pool = new ArrayList();
+    private final List<Effect> pool = new ArrayList<>();
 
     // creating
     public Effect create() {
@@ -115,7 +115,7 @@ public class ClickEffect extends ServiceBase {
         screen.setPickOnBounds(false);
 
         runLater(() -> {
-            AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
+            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrDefault().getStage().getScene().getRoot();
             if (p!=null) {
                 p.getChildren().add(screen);
                 setAnchors(screen,0d);
@@ -133,7 +133,7 @@ public class ClickEffect extends ServiceBase {
         isRunning = false;
 
         runLater(() -> {
-            AnchorPane p = (AnchorPane) APP.window.getStage().getScene().getRoot();
+            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrDefault().getStage().getScene().getRoot();
             if (p!=null) {
                 p.getChildren().remove(screen);
                 screen = null;

@@ -16,7 +16,6 @@ import audio.Player;
 import audio.playback.PLAYBACK;
 import services.Service.ServiceBase;
 import audio.tagging.Metadata;
-import layout.widget.Widget;
 import layout.widget.feature.SongReader;
 import gui.infonode.ItemInfo;
 import gui.objects.popover.Notification;
@@ -48,7 +47,7 @@ public final class Notifier extends ServiceBase {
     }
     @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
     public static void notifNowPlaying() {
-        APP.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
+        APP.use(Notifier.class, nm -> nm.songChange(Player.playingItem.get()));
     }
 
     private static Notification n;
@@ -127,7 +126,7 @@ public final class Notifier extends ServiceBase {
         d2 = () -> PLAYBACK.statusProperty().removeListener(statusListener);
 
         // show notification on song change
-        d1 = Player.playingtem.onChange(this::songChange);
+        d1 = Player.playingItem.onChange(this::songChange);
     }
 
     @Override
@@ -200,7 +199,7 @@ public final class Notifier extends ServiceBase {
         if (showSongNotification || s == null) {
             String title = "Playback change : " + s;
             SongReader i = new ItemInfo(false);
-                       i.read(Player.playingtem.get());
+                       i.read(Player.playingItem.get());
 
             showNotification((Node)i, title);
         }

@@ -76,7 +76,7 @@ public class GeneralPlayer {
 
                     realTime.synchroRealTime_onPlayed();
                     // throw item change event
-                    Player.playingtem.itemChanged(item);
+                    Player.playingItem.itemChanged(item);
                     suspension_flag = false;
                     // fire other events (may rely on the above)
                     PLAYBACK.onPlaybackStart.run();
@@ -122,7 +122,7 @@ public class GeneralPlayer {
         p.stop();
 
         Async.runFX(() -> {
-            Player.playingtem.itemChanged(Metadata.EMPTY);
+            Player.playingItem.itemChanged(Metadata.EMPTY);
             realTime.synchroRealTime_onStopped();
             PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::stop);
             PlaylistManager.playlists.forEach(p -> p.updatePlayingItem(-1));

@@ -33,6 +33,7 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
 import static util.file.Util.getName;
 import static util.dev.Util.noØ;
+import static util.graphics.Util.getScreen;
 
 /**
  *
@@ -42,7 +43,6 @@ import static util.dev.Util.noØ;
 public final class UiContext {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
-    private static boolean launching1st = !App.APP.normalLoad;
     private static double x;
     private static double y;
     private static final Set<ClickHandler> onClicks = new HashSet<>();
@@ -75,23 +75,23 @@ public final class UiContext {
 
     /** Get last mouse press screen x coordinate. */
     public static double getX() {
-        return windowManager.getActive().getX()+x;
+        return windowManager.getActive().get().getX()+x;
     }
 
     /** Get last mouse press screen y coordinate. */
     public static double getY() {
-        return windowManager.getActive().getY()+y;
+        return windowManager.getActive().get().getY()+y;
     }
 
     /**
-     * @param widget widget to open, does nothing when null.
+     * @param widget non-null widget widget to open
      */
     public static Window showWindow(Component widget) {
         Window w = windowManager.create();
                w.initLayout();
                w.setContent(widget);
                w.show();
-               w.setScreen(windowManager.getActive().getScreen());
+               w.setScreen(getScreen(APP.mouseCapture.getMousePosition()));
                w.setXYScreenCenter();
         return w;
     }
@@ -109,8 +109,8 @@ public final class UiContext {
                 p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
-                p.show(windowManager.getActive().getStage(),getX(),getY());
-                // unregister the widget from active eidgets manually
+                p.show(windowManager.getActive().get().getStage(),getX(),getY());
+                // unregister the widget from active widgets manually
                 p.addEventFilter(WINDOW_HIDING, we -> APP.widgetManager.standaloneWidgets.remove(w));
         return p;
     }
@@ -138,7 +138,7 @@ public final class UiContext {
         PopOver p = new PopOver(content);
                 p.title.set(title);
                 p.setAutoFix(false);
-                p.show(windowManager.getActive().getStage(),getX(),getY());
+                p.show(windowManager.getActive().get().getStage(),getX(),getY());
         return p;
     }
 
@@ -154,9 +154,8 @@ public final class UiContext {
 
     private static void launchComponent(Component w) {
         if (w!=null) {
-            if (launching1st) {
-                APP.window.setContent(w);
-                launching1st = false;
+            if (APP.windowManager.windows.isEmpty()) {
+                APP.windowManager.getActiveOrDefault().setContent(w);
             } else {
                 showWindow(w);
             }

@@ -150,7 +150,7 @@ public final class MetadataGroup {
     /**  Is playing if any of the songs belonging to this group is playing. */
     @TODO(purpose = BUG, note = "We need to check the contained metadata instead of just comparing the group value")
     public boolean isPlaying() {
-        return equalNonNull(field.getOf(Player.playingtem.get()),getValue());
+        return equalNonNull(field.getOf(Player.playingItem.get()),getValue());
     }
 
     /** {@inheritDoc} */

@@ -95,7 +95,7 @@ public final class Guide implements Configurable {
                + "\n\nThere are many others. If you see one for the first time, check it out."
                + "\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
             ),
-            // new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious), // unnecessary, uses left+right mouse button navigation
+            // new Icon(ARROW_LEFT,11,"Previous",this::goToPrevious), // unnecessary, uses left+right mouse button navigation
             infoL,
             // new Icon(ARROW_RIGHT,11,"Next",this::goToNext) // unnecessary, uses left+right mouse button navigation
             new Label()
@@ -113,10 +113,10 @@ public final class Guide implements Configurable {
         });
 
         hint("Intro", "Hi, this is guide for this application. It will show you around. " +
-             "\n\nBut first some music, right?",
+             "\n\nBut first let's play some music.",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
-                SwitchContainer la = APP.windowManager.getFocused().getSwitchPane().container;
+                SwitchContainer la = APP.windowManager.getActiveOrDefault().getSwitchPane().container;
                 // prepare container
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
@@ -262,7 +262,7 @@ public final class Guide implements Configurable {
            + "\n\t• Left click: go 'down' - visit children"
            + "\n\n Try out container navigation:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window w = APP.window;
+                 Window w = APP.windowManager.getActiveOrDefault();
                  int i = w.getTopContainer().getEmptySpot();
                  w.getTopContainer().ui.alignTab(i);
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
@@ -333,7 +333,7 @@ public final class Guide implements Configurable {
            + "the mouse within the area can still activate different area (child area)."
            + "\n\nYou can start the tutorial below:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window wd = APP.window;
+                 Window wd = APP.windowManager.getActiveOrDefault();
                  int i = wd.getTopContainer().getEmptySpot();
                  wd.getTopContainer().ui.alignTab(i);
 

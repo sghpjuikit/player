@@ -63,19 +63,17 @@ public final class Layouts extends ClassController {
             else
                 infoT.setText("");
         });
-        layoutsCB.setCellFactory( list -> {
-            return new ListCell<String>() {
-                @Override public void updateItem(String l, boolean empty) {
-                    super.updateItem(l, empty);
-                    if (empty)
-                        setText("");
+        layoutsCB.setCellFactory( list -> new ListCell<>() {
+            @Override public void updateItem(String l, boolean empty) {
+                super.updateItem(l, empty);
+                if (empty)
+                    setText("");
+                else
+                    if (new Layout(l).isMain())
+                        setText(l + " (active)");
                     else
-                        if (new Layout(l).isMain())
-                            setText(l + " (active)");
-                        else
-                            setText(l);
-                }
-            };
+                        setText(l);
+            }
         });
 
         imgContainer.getChildren().add(thumb.getPane());
@@ -94,9 +92,9 @@ public final class Layouts extends ClassController {
     public void loadSelectedLayout() {
         if (!isSelected()) return;
 
-        SwitchContainer c = APP.windowManager.getActive().getTopContainer();
+        SwitchContainer c = APP.windowManager.getActiveOrDefault().getTopContainer();
         Component toLoad = getSelectedLayout().getChild();
-        int i = c.getEmptySpot(); // this can normally return null, but not SwitchContainer
+        int i = c.getEmptySpot(); // this can usually return null, but never in case of SwitchContainer
         c.addChild(i, toLoad);
         c.ui.alignTab(i);
     }

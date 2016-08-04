@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
+import gui.objects.window.stage.Window;
 import layout.container.uncontainer.UniContainer;
 import main.App;
 import main.AppSerializer;
@@ -80,6 +81,7 @@ public final class Layout extends UniContainer {
      * <p/>
      * Do not use.
      * This method is not intended to be used outside of serialization context.
+     *
      * @param new_name - name to put.
      * @throws IllegalArgumentException if name parameter null or empty
      */
@@ -92,7 +94,8 @@ public final class Layout extends UniContainer {
     /**
      * Change name. This method immediately takes care of all file operations
      * needed to maintain consistency -saves layout to the new file, old
-     * file will deleted, etc
+     * file will deleted, etc.
+     *
      * @param new_name. Same as old one, empty or null will do nothing.
      * @throws IllegalArgumentException if name parameter null or empty
      */
@@ -104,15 +107,9 @@ public final class Layout extends UniContainer {
         serialize();
     }
 
-    /**
-     * Similar to {@link #isActive()} but this method returns true only if this
-     * layout is active layout within layout aggregator of the main application
-     * application window.
-     * @return true if and only if layout is displayed on the screen as main tab
-     */
     @Deprecated // remove this
     public boolean isMain() {
-        return this == APP.window.getLayout();
+        return APP.windowManager.getMain().map(Window::getLayout).filter(l -> l==this).isPresent();
     }
 
     /**

@@ -130,7 +130,7 @@ public abstract class Component {
             javafx.stage.Window stage = scene==null ? null : scene.getWindow();
             w = stage==null ? null : (Window)stage.getProperties().get("window");
         }
-        return w==null ? APP.windowManager.getActive() : w;
+        return w==null ? APP.windowManager.getActive().orElse(null) : w;
     }
 
 //    /** @return whether this component is currently open*/

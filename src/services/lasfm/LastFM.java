@@ -98,7 +98,7 @@ public class LastFM {
     public LastFM() { }
 
     public static void start() {
-        playingItemMonitoring = Player.playingtem.onChange(itemChangeHandler);
+        playingItemMonitoring = Player.playingItem.onChange(itemChangeHandler);
 
 //        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
 //        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
@@ -152,7 +152,7 @@ public class LastFM {
     /************** Scrobble logic - event handlers etc ***********************/
 
     public static void updateNowPlaying() {
-        Metadata currentMetadata = audio.Player.playingtem.get();
+        Metadata currentMetadata = audio.Player.playingItem.get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
                 currentMetadata.getTitle(),

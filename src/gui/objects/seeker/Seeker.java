@@ -452,7 +452,7 @@ public final class Seeker extends AnchorPane {
         }
 
         void show() {
-            i.setDisable(!Player.playingtem.get().isFileBased());
+            i.setDisable(!Player.playingItem.get().isFileBased());
             fade.playOpenDo(() -> visible=true);
         }
 
@@ -567,7 +567,7 @@ public final class Seeker extends AnchorPane {
                 editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
                 commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
                 delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
-                     Metadata m = Player.playingtem.get();
+                     Metadata m = Player.playingItem.get();
                      MetadataWriter.use(m, w->w.removeChapter(c,m));
                 });
                 cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
@@ -697,7 +697,7 @@ public final class Seeker extends AnchorPane {
                 message.setWrappingWidthNatural(true);
                 // and physically
                 c.setText(text);
-                Metadata m = Player.playingtem.get();
+                Metadata m = Player.playingItem.get();
                 MetadataWriter.use(m, w->w.addChapter(c,m));
             }
             // maintain proper content

@@ -160,8 +160,8 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         d(maintain(ps.mute,         v -> muteChanged(v, ps.volume.get())));
         d(maintain(ps.volume,       v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
-        d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
-        playingItemChanged(Player.playingtem.get());              // init value
+        d(Player.playingItem.onUpdate(this::playingItemChanged));  // add listener
+        playingItemChanged(Player.playingItem.get());              // init value
 
         // drag & drop
         installDrag(

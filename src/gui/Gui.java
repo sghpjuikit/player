@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 import com.sun.javafx.css.StyleManager;
 
 import gui.objects.window.stage.Window;
+import gui.objects.window.stage.WindowBase;
 import layout.container.layout.Layout;
+import layout.container.switchcontainer.SwitchPane;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -242,8 +244,7 @@ public class Gui {
     }
 
     public static void setZoomMode(boolean val) {
-        Window w = APP.windowManager.getFocused();
-        if (w!=null && w.getSwitchPane()!=null) w.getSwitchPane().zoom(val);
+        APP.windowManager.getFocused().map(Window::getSwitchPane).ifPresent(sp -> sp.zoom(val));
     }
 
     /** Toggles layout mode. */
@@ -255,8 +256,7 @@ public class Gui {
     /** Toggles zoom mode. */
     @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
-        Window w = APP.windowManager.getFocused();
-        if (w!=null && w.getSwitchPane()!=null) w.getSwitchPane().toggleZoom();
+	    APP.windowManager.getFocused().map(Window::getSwitchPane).ifPresent(SwitchPane::toggleZoom);
     }
 
     public static void setLayoutNzoom(boolean v) {
@@ -303,33 +303,32 @@ public class Gui {
 
     @IsAction(name = "Maximize", desc = "Switch maximized mode.", keys = "F11")
     public static void toggleMaximize() {
-        APP.windowManager.getActive().toggleMaximize();
+        APP.windowManager.getActive().ifPresent(WindowBase::toggleMaximize);
     }
 
     @IsAction(name = "Loop maximized state", desc = "Switch to different maximized window states.", keys = "F3")
     public static void toggleMaximizedState() {
-        Window w = APP.windowManager.getActive();
-        w.setMaximized(w.isMaximized().next());
+        APP.windowManager.getActive().ifPresent(w -> w.setMaximized(w.isMaximized().next()));
     }
 
     @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     public static void toggleFullscreen() {
-        APP.windowManager.getActive().toggleFullscreen();
+        APP.windowManager.getActive().ifPresent(WindowBase::toggleFullscreen);
     }
 
     @IsAction(name = "Align tabs", desc = "Aligns tabs to the window", keys = "SHIFT+UP")
     public static void tabAlign() {
-        APP.windowManager.getActive().getSwitchPane().alignTabs();
+        APP.windowManager.getActive().map(Window::getSwitchPane).ifPresent(SwitchPane::alignTabs);
     }
 
     @IsAction(name = "Align to next tab", desc = "Goes to next tab and aligns tabs to the window", keys = "SHIFT+RIGHT")
     public static void tabNext() {
-        APP.windowManager.getActive().getSwitchPane().alignRightTab();
+	    APP.windowManager.getActive().map(Window::getSwitchPane).ifPresent(SwitchPane::alignRightTab);
     }
 
     @IsAction(name = "Align to previous tab", desc = "Goes to previous tab and aligns tabs to the window", keys = "SHIFT+LEFT")
     public static void tabPrevious() {
-        APP.windowManager.getActive().getSwitchPane().alignLeftTab();
+	    APP.windowManager.getActive().map(Window::getSwitchPane).ifPresent(SwitchPane::alignLeftTab);
     }
 
 

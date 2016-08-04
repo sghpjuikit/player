@@ -6,6 +6,7 @@
 package util.access.fieldvalue;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Value that has can list its possible values, which it is restricted to.
@@ -13,8 +14,11 @@ import java.util.Collection;
 public interface EnumerableValue<T> {
     
     /**
-     * Provides list of all currently available values. The list can differ if
-     * constructed at different time.
+     * Provides list of all currently available values. The list can differ if constructed at different time.
      */
     Collection<T> enumerateValues();
+
+	default Stream<T> stream() {
+		return enumerateValues().stream();
+	}
 }

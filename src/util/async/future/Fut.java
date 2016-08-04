@@ -5,6 +5,7 @@
  */
 package util.async.future;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -164,9 +165,13 @@ public class Fut<T> implements Runnable{
      * part of its computation. This will cause only that computation to be bound to
      * the progress.
      */
+    public final Fut<T> showProgress(Optional<ProgressIndicator> p) {
+    	return p.map(this::showProgress).orElse(this);
+    }
+    
     public final Fut<T> showProgress(ProgressIndicator p) {
         return new Fut<>(CompletableFuture
-            .runAsync(()->p.setProgress(-1),eFX)
+            .runAsync(() -> p.setProgress(-1),eFX)
             .thenComposeAsync(res -> f)
             .thenApplyAsync(t -> {
                 p.setProgress(1);

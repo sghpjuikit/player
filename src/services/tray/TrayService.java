@@ -131,7 +131,7 @@ public class TrayService extends ServiceBase {
             }
         });
 
-        d1 = Player.playingtem.onUpdate(m ->
+        d1 = Player.playingItem.onUpdate(m ->
            setTooltipText(!showPlayingInTooltip.get() || m.getTitle().isEmpty() ? APP.name : APP.name + " - " + m.getTitle()));
 
         running = true;

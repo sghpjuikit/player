@@ -185,8 +185,6 @@ public class PopOver<N extends Node> extends PopupControl {
      * The created popover is not detached, not detachable, hide on click is true,
      * autohide true, rest default.
      * <p/>
-     * Tip: make use of {@link #setChildPopup(gui.objects.popover.PopOver)}
-     * <p/>
      * Tip: Associate help popovers with buttons marked with question mark or
      * similar icon.
      * <p/>
@@ -291,7 +289,7 @@ public class PopOver<N extends Node> extends PopupControl {
         return (PopOverSkin) getSkin();
     }
 
-    private final ObjectProperty<N> contentNode = new SimpleObjectProperty<N>(this, "contentNode") {
+    private final ObjectProperty<N> contentNode = new SimpleObjectProperty<>(this, "contentNode") {
         @Override public void setValue(N node) {
             requireNonNull(node);
             super.setValue(node);
@@ -310,7 +308,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Returns the content of this popover as previously set with
      * {@link #setContentNode(javafx.scene.Node)}.
      * @return the content node
-     * @see #contentProperty()
+     * @see #contentNodeProperty()
      */
     public final N getContentNode() {
         return contentNodeProperty().get();
@@ -320,7 +318,7 @@ public class PopOver<N extends Node> extends PopupControl {
      * Sets the content. There can only be one content. Old content will be
      * removed.
      * @param content the new content node value
-     * @see #contentProperty()
+     * @see #contentNodeProperty()
      * @throws  NullPointerException if param null.
      */
     public final void setContentNode(N content) {
@@ -474,7 +472,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
-        showThis(null, pos.isAppCentric() ? APP.windowManager.getActive().getStage() : APP.windowOwner.getStage());
+        showThis(null, pos.isAppCentric() && APP.windowManager.getActive().isPresent() ? APP.windowManager.getActive().map(w -> w.getStage()).get() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
         if (!pos.isAppCentric()) uninstallMoveWith();
 
@@ -878,39 +876,39 @@ public class PopOver<N extends Node> extends PopupControl {
 
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.window.getStage(), this);
-//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
-            WindowBase app = APP.window;
+            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.windowManager.getMain().map(w -> w.getStage()).orElse(null), this); // I have doubts about this
+//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this); // use this instead
+            WindowBase app = APP.windowManager.getMain().orElse(null);
             switch(this) {
                 case App_Top_Left:
-                case App_Bottom_Left:     return app.getX();
+                case App_Bottom_Left:     return app==null ? Screen_Bottom_Left.calcX(popup) : app.getX();
                 case App_Top_Right:
-                case App_Bottom_Right:    return app.getX()+app.getWidth()-W;
-                case App_Center:         return app.getX()+app.getWidth()/2-W/2;
+                case App_Bottom_Right:    return app==null ? Screen_Bottom_Right.calcX(popup) : app.getX()+app.getWidth()-W;
+                case App_Center:          return app==null ? Screen_Center.calcX(popup) : app.getX()+app.getWidth()/2-W/2;
                 case Screen_Top_Left:
                 case Screen_Bottom_Left:  return screen.getMinX()+GAP;
                 case Screen_Top_Right:
                 case Screen_Bottom_Right: return screen.getMaxX()-W-GAP;
-                case Screen_Center:      return screen.getMinX()+screen.getWidth()/2-W/2;
+                case Screen_Center:       return screen.getMinX()+screen.getWidth()/2-W/2;
                 default: throw new SwitchException(this);
             }
         }
         public double calcY(PopOver popup) {
             double H = popup.getSkinn().root.getHeight();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.window.getStage(), this);
-//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
-            WindowBase app = APP.window;
+            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.windowManager.getMain().map(w -> w.getStage()).orElse(null), this); // I have doubts about this
+//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this); // use this instead
+	        WindowBase app = APP.windowManager.getMain().orElse(null);
             switch(this) {
                 case App_Bottom_Left:
-                case App_Bottom_Right:    return app.getY()+app.getHeight()-H;
+                case App_Bottom_Right:    return app==null ? Screen_Bottom_Right.calcY(popup) :  app.getY()+app.getHeight()-H;
                 case App_Top_Left:
-                case App_Top_Right:       return app.getY();
-                case App_Center:         return app.getY()+app.getHeight()/2-H/2;
+                case App_Top_Right:       return app==null ? Screen_Top_Right.calcY(popup) :  app.getY();
+                case App_Center:          return app==null ? Screen_Center.calcY(popup) :  app.getY()+app.getHeight()/2-H/2;
                 case Screen_Bottom_Left:
                 case Screen_Bottom_Right: return screen.getMaxY()-H-GAP;
                 case Screen_Top_Left:
                 case Screen_Top_Right:    return screen.getMinY()+GAP;
-                case Screen_Center:      return screen.getMinY()+screen.getHeight()/2-H/2;
+                case Screen_Center:       return screen.getMinY()+screen.getHeight()/2-H/2;
                 default: throw new SwitchException(this);
             }
         }
@@ -939,9 +937,8 @@ public class PopOver<N extends Node> extends PopupControl {
         public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
             Rectangle2D psb = ps.getBounds();
-            if (this==MAIN) return ps.getBounds();
+            if (this==MAIN || (this==APP_WINDOW && w==null)) return ps.getBounds();
             if (this==APP_WINDOW)
-                // rely on official util (someone hid it..., good work genius)
                 return getScreen(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
             else {
                 List<Screen> ss = Screen.getScreens();
@@ -1085,7 +1082,7 @@ public class PopOver<N extends Node> extends PopupControl {
         cornerRadiusProperty().set(radius);
     }
 
-    private final ObjectProperty<PopOver.ArrowLocation> arrowLocation = new SimpleObjectProperty(
+    private final ObjectProperty<PopOver.ArrowLocation> arrowLocation = new SimpleObjectProperty<>(
             this, "arrowLocation", PopOver.ArrowLocation.LEFT_TOP);
 
     /**

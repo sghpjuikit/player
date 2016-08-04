@@ -36,6 +36,7 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
+import util.functional.Util;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -43,7 +44,6 @@ import static main.App.APP;
 import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
 import static util.functional.Util.list;
-import static util.functional.Util.stream;
 import static util.reactive.Util.executeWhenNonNull;
 import static util.reactive.Util.listChangeHandler;
 
@@ -678,7 +678,7 @@ public final class Action extends Config<Action> implements Runnable {
 	    if (generateTemplate)
 		    try {
 			    APP.serializators.toXML(
-				    stream(new CommandActionData(), new CommandActionData()).toCollection(CommandActionDatas::new),
+				    Util.stream(new CommandActionData(), new CommandActionData()).toCollection(CommandActionDatas::new),
 				    commandActionsDefFile
 			    );
 		    } catch (AppSerializer.SerializationException ignoredAndAlreadyLogged) {}

@@ -176,14 +176,13 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     	    return new ConfigEntry(config);
 	    }
 
-    	static <T> Entry of(WidgetFactory f) {
+    	static Entry of(WidgetFactory f) {
     	    return new SimpleEntry(
                 "Open widget " + f.nameGui(),
 				"Open widget " + f.nameGui() + "\n\n" + "Opens the widget in new window.",
                 () -> () -> UiContext.launchComponent(f.name())
 	        );
 	    }
-
 
 	    String getName();
 	    default String getInfo() {

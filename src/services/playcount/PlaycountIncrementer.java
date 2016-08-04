@@ -60,7 +60,7 @@ public class PlaycountIncrementer extends ServiceBase {
     public void start() {
         running = true;
         apply();
-        d = Player.playingtem.onChange((o,n) -> incrementQueued(o));
+        d = Player.playingItem.onChange((o, n) -> incrementQueued(o));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class PlaycountIncrementer extends ServiceBase {
      * later. Also throws notifications if set.
      */
     public void increment() {
-        Metadata m = Player.playingtem.get();
+        Metadata m = Player.playingItem.get();
         if (!m.isEmpty() && m.isFileBased() ) {
             if (delay.get()) {
                 queue.add(m);

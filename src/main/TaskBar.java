@@ -188,7 +188,7 @@ public class TaskBar {
 
             // we need to return focus, stolen by this stage on show
             inconsistent = true;
-            Window w = APP.windowManager.getFocused();
+            Window w = APP.windowManager.getFocused().orElse(null);
             s.show();
             if (w!=null) w.focus();
             runLater(() -> inconsistent = false);

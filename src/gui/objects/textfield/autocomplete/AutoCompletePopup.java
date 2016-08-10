@@ -1,4 +1,4 @@
-/**
+/*
  * Impl based on ControlsF:
  *
  * Copyright (c) 2014, 2015, ControlsFX
@@ -79,8 +79,7 @@ public class AutoCompletePopup<T> extends PopupControl{
         }
 
         /**
-         * Returns the suggestion which was chosen by the user
-         * @return
+         * @return the suggestion which was chosen by the user
          */
         public TE getSuggestion() {
             return suggestion;
@@ -102,8 +101,7 @@ public class AutoCompletePopup<T> extends PopupControl{
 
 
     /**
-     * Get the suggestions presented by this AutoCompletePopup
-     * @return
+     * @return the suggestions presented by this AutoCompletePopup
      */
     public ObservableList<T> getSuggestions() {
         return suggestions;
@@ -111,7 +109,8 @@ public class AutoCompletePopup<T> extends PopupControl{
 
     /**
      * Show this popup right below the given Node
-     * @param node
+     *
+     * @param node to show this popup right below
      */
     public void show(Node node){
 
@@ -154,7 +153,7 @@ public class AutoCompletePopup<T> extends PopupControl{
     }
 
     @Override
-    protected Skin<?> createDefaultSkin() {
+    protected Skin<AutoCompletePopup<T>> createDefaultSkin() {
         return new AutoCompletePopupSkin<>(this);
     }
 

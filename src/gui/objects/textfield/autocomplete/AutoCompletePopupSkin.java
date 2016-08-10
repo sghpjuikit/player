@@ -1,4 +1,4 @@
-/**
+/*
  * Impl based on ControlsF:
  *
  * Copyright (c) 2014, 2015, ControlsFX

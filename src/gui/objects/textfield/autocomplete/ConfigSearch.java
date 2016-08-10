@@ -24,7 +24,8 @@ import util.conf.Config;
 
 import static main.App.Build.appTooltip;
 import static util.Util.containsNoCase;
-import static util.functional.Util.*;
+import static util.functional.Util.by;
+import static util.functional.Util.stream;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
 
@@ -50,10 +51,9 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         	textField,
 	        s -> {
         		String text = s.getUserText();
-//        		Stream<String> phrases = text.contains(" ") ? stream(text.split(" ")) : stream(text); // pre-calculate once
-        		return stream(searchTargets).flatMap(o -> o.get())
-//			               .filter(f -> phrases.allMatch(phrase -> containsNoCase(f.getName(), phrase)))
-			               .filter(f -> containsNoCase(f.getName(), text))
+		        String[] phrases = text.split(" ");
+        		return stream(searchTargets).flatMap(Supplier::get)
+			               .filter(f -> stream(phrases).allMatch(phrase -> containsNoCase(f.getName(), phrase)))
 			               .sorted(by(Entry::getName))
 			               .toList();
 	        },
@@ -65,11 +65,11 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     }
 
     @Override
-    protected AutoCompletePopup buildPopup() {
-        return new AutoCompletePopup(){
+    protected AutoCompletePopup<Entry> buildPopup() {
+        return new AutoCompletePopup<>(){
             @Override
-            protected Skin<?> createDefaultSkin() {
-                return new AutoCompletePopupSkin<Entry>(this, 2) {
+            protected Skin<AutoCompletePopup<Entry>> createDefaultSkin() {
+                return new AutoCompletePopupSkin<>(this, 2) {
                     {
                         // set keys & allow typing
                         getSkinnable().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
@@ -108,9 +108,9 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                 } else if (e.isControlDown() && e.getCode()==KeyCode.A) {
                                     textField.selectAll();
                                     e.consume();
-                                } else if (e.getCode()==KeyCode.BACK_SPACE) {
-                                    // textField.deletePreviousChar(); // doesn't work here
-                                    // e.consume();
+                                // } else if (e.getCode()==KeyCode.BACK_SPACE) {
+                                ///    textField.deletePreviousChar(); // doesn't work here
+                                //     e.consume();
                                 } else if (e.getCode()==KeyCode.END) {
                                     if (e.isShiftDown()) textField.selectEnd();
                                     else textField.positionCaret(textField.getLength());
@@ -127,9 +127,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                     if (e.isControlDown()) textField.selectNextWord(); else textField.selectForward();
                                     if (!e.isShiftDown()) textField.deselect();
                                     e.consume();
-                                } else if (!e.getCode().isNavigationKey()) {
-
-                                }
+                                } // else if (!e.getCode().isNavigationKey()) {}
                             ignoreEvent = false;
                             // e.consume(); // may brake functionality
                         });
@@ -147,11 +145,6 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     protected void acceptSuggestion(Entry suggestion) {
 		suggestion.run();
         history.add(this);
-    }
-
-    private void acceptSuggestionNhide(Entry suggestion) {
-        popup.hide();
-        acceptSuggestion(suggestion);
     }
 
     public static class History {

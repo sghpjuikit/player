@@ -658,35 +658,35 @@ public final class Action extends Config<Action> implements Runnable {
     public static void loadCommandActions() {
 	    // discover all command actions defined in file
 	    File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
-	    boolean generateTemplate = APP.serializators.fromXML(CommandActionDatas.class, file)
+	    boolean generateTemplate = APP.serializators.fromXML(Commands.class, file)
 			    .ifError(e -> log(Action.class).error("Could not load command actions", e))
-                .getOrSupply(CommandActionDatas::new)
+                .getOrSupply(Commands::new)
 			    .stream()
 			    .filter(a -> a.isEnabled)
-			    .map(CommandActionData::toAction)
+			    .map(Command::toAction)
 			    .peek(Action::register)
 			    .peek(actions::add)
 		        .count() < 1;
 	    if (generateTemplate)
-		    APP.serializators.toXML(Util.stream(new CommandActionData()).toCollection(CommandActionDatas::new), file)
+		    APP.serializators.toXML(Util.stream(new Command()).toCollection(Commands::new), file)
 			    .ifError(e -> log(Action.class).error("Could not save command actions", e));
     }
 
-    private static class CommandActionDatas extends HashSet<CommandActionData> {}
-    private static class CommandActionData {
+    private static class Commands extends HashSet<Command> {}
+    private static class Command {
     	public String name = "";
 	    public String keys = "";
     	public String command = "";
     	public boolean isGlobal = false;
-    	public boolean isAppComand = true;
+    	public boolean isAppCommand = true;
     	public boolean isEnabled = true;
 
 	    public Action toAction() {
 	    	return new Action(
 	    		name,
-			    isAppComand ? () -> APP.parameterProcessor.process(list(command)) : () -> Environment.runCommand(command),
-                isAppComand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
-                isAppComand ? "Shortcuts.command.app" : "Shortcuts.command.system",
+			    isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> Environment.runCommand(command),
+                isAppCommand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
+                isAppCommand ? "Shortcuts.command.app" : "Shortcuts.command.system",
 				keys, isGlobal, false
             );
 	    }

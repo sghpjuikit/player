@@ -20,6 +20,7 @@ import util.conf.Config;
 import util.conf.Configurable;
 import util.graphics.fxml.ConventionFxmlLoader;
 
+import static javafx.scene.input.KeyCode.ENTER;
 import static util.functional.Util.byNC;
 
 /**
@@ -94,7 +95,10 @@ public class SimpleConfigurator<T> extends AnchorPane {
         });
         
 
-	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> ok());
+	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+	    	if (e.getCode()==ENTER)
+			    ok();
+	    });
         fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
     }
     

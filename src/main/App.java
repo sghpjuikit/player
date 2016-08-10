@@ -1277,7 +1277,7 @@ public class App extends Application implements Configurable {
 			    com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
 			    metadata.getDirectories().forEach(d -> {
 				    sb.append("\nName: ").append(d.getName());
-				    d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()).append('\n'));
+				    d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()));
 			    });
 			    APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
 			    System.out.println(sb.toString());

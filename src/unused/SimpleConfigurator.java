@@ -16,12 +16,14 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Screen;
 
 import gui.itemnode.ConfigField;
+import util.access.V;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static javafx.scene.input.KeyCode.ENTER;
 import static util.functional.Util.byNC;
+import static util.functional.Util.stream;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 
@@ -57,9 +59,13 @@ public class SimpleConfigurator<T> extends AnchorPane {
      * <p/>
      * For example one might want to close this control when no item is selected.
      */
-    public Consumer<Configurable<T>> onOK = c -> {};
+    public final Consumer<? super Configurable<T>> onOK;
+	/**
+	 * Denotes whether parent window or popup should close immediately after {@link #onOK} executes. Default false.
+	 */
+	public final V<Boolean> hideOnOk = new V<>(false);
 
-	public SimpleConfigurator(Config<T> c, Consumer<T> on_OK) {
+	public SimpleConfigurator(Config<T> c, Consumer<? super T> on_OK) {
 		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
 	}
 
@@ -68,12 +74,13 @@ public class SimpleConfigurator<T> extends AnchorPane {
      * @param on_OK OK button click action. Null if none. Affects visibility
      * of the OK button. It is only visible if there is an action to execute.
      */
-    public SimpleConfigurator(Configurable<T> c, Consumer<Configurable<T>> on_OK) {
+    @SafeVarargs
+    public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
         Objects.requireNonNull(c);
         
         configurable = c;
-        onOK = on_OK==null ? onOK : on_OK;
-        
+        onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));
+
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
 
@@ -101,18 +108,22 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	    });
         fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
     }
-    
-    public SimpleConfigurator(Configurable<T> configurable) {
-        this(configurable, null);
-    }
 
     @FXML
     public void ok() {
         // set and apply values and refresh if needed
         configFields.forEach(ConfigField::apply);
         onOK.accept(configurable);
+	    if (hideOnOk.get() && getScene()!=null && getScene().getWindow()!=null && getScene().getWindow().isShowing()) {
+		    if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
+	    }
     }
-    
+
+    public void focusFirstConfigField() {
+    	if (!configFields.isEmpty())
+    		configFields.get(0).focus();
+    }
+
     public Configurable getConfigurable() {
         return configurable;
     }

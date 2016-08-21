@@ -158,6 +158,8 @@ import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
 
+import gui.objects.window.stage.Window;
+
 /**
  * Application. Represents the program.
  * <p/>
@@ -1262,11 +1264,30 @@ public class App extends Application implements Configurable {
 		    p.title.set("Search for an action or option");
 		    p.setAutoHide(true);
 		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
-		    if (!isFocused) {
+		    if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
 			    run(200, () -> {
-			        APP.windowOwner.getStage().requestFocus();
+				    p.getOwnerWindow().requestFocus();
 				    p.requestFocus();
 				    tf.requestFocus();
+			    });
+		    }
+	    }
+
+	    @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
+	    static void openDictionary() {
+		    boolean isFocused = APP.windowManager.getFocused().isPresent();
+		    PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
+                  new ValueConfig<>(String.class, "Word", ""),
+                  (String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
+		    ));
+		    p.title.set("Look up in dictionary...");
+		    p.setAutoHide(true);
+		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
+		    p.getContentNode().focusFirstConfigField();
+		    p.getContentNode().hideOnOk.setValue(true);
+		    if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
+			    run(200, () -> {
+				    p.getOwnerWindow().requestFocus();
 			    });
 		    }
 	    }

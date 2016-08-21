@@ -26,7 +26,8 @@ import javafx.stage.StageStyle;
 /**
  * Demo for understanding JavaFX Layout Bounds
  *
- * @author https://gist.github.com/jewelsea/1441960
+ * @author jewelsea (github)
+ * @see <a href="http://gist.github.com/jewelsea/1441960">gist.github.com/jewelsea/1441960</a>
  */
 public class LayoutDemo extends Application {
 	private final ObservableList<Shape>     shapes        = FXCollections.observableArrayList();

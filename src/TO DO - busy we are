@@ -1,6 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- single file window serialization with layouts
 - implement custom skinnable cursor (load it with skin, btw it must respect skin extension/overriding)
 - improve ConfigSearch
   - add file search support (how without killing real-time performance?)

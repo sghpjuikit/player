@@ -13,6 +13,7 @@ import javafx.stage.StageStyle;
 import gui.Gui;
 import gui.objects.window.Resize;
 import util.access.CyclicEnum;
+import util.async.Async;
 import util.dev.Dependency;
 import util.graphics.Util;
 
@@ -417,12 +418,12 @@ public class WindowBase {
         s.setX(screen.getBounds().getMaxX() - s.getWidth());
     }
 
-    /** @see #setX(double, boolean)  */
+    /** @see #setX(double, boolean) */
     public void setX(double x) {
         setXY(x, getY(), true);
     }
 
-    /** @see #setX(double, double, boolean)  */
+    /** @see #setX(double, boolean) */
     public void setX(double x, boolean snap) {
         setXY(x, getY(), snap);
     }
@@ -432,7 +433,7 @@ public class WindowBase {
         setXY(getX(), y, true);
     }
 
-    /** @see #setX(double, double, boolean)  */
+    /** @see #setY(double, boolean) */
     public void setY(double y, boolean snap) {
         setXY(getX(), y, snap);
     }
@@ -518,8 +519,8 @@ public class WindowBase {
      * <p/>
      * If the window is in full screen mode, this method is no-op.
      *
-     * @param x x coordinate for left upper corner
-     * @param y y coordinate for left upper corner
+     * @param x horizontal location of the top left corner
+     * @param y vertical location of the top left corner
      * @param snap flag for snapping to screen edge and other windows. Snapping
      * will be executed only if the window id not being resized.
      */
@@ -549,8 +550,11 @@ public class WindowBase {
      * setHeight() methods of Stage.
      *
      * If the window is in full screen mode or !isResizable(), this method is no-op.
-     * @param width
-     * @param height
+     *
+     * @param x horizontal location of the top left corner
+     * @param y vertical location of the top left corner
+     * @param width horizontal size of the window
+     * @param height vertical size of the window
      */
     @Dependency("must update screen")
     public void setXYSize(double x, double y, double width, double height) {
@@ -569,7 +573,11 @@ public class WindowBase {
         screen = Util.getScreen(getCenterXY()); // update screen
     }
 
-    @Dependency("must update screen")
+	/**
+	 * @param width horizontal size of the window
+	 * @param height vertical size of the window
+	 */
+	@Dependency("must update screen")
     public void setSize(double width, double height) {
         if (isFullscreen()) return;
         s.setWidth(width);
@@ -581,7 +589,7 @@ public class WindowBase {
 
     /**
      * Sets initial size and location by invoking the {@link #setSize} and
-     * {@link #setLocation()} method. The initial size values are primary screen
+     * {@link #setXY(double, double)} method. The initial size values are primary screen
      * size divided by half and the location will be set so the window is
      * center aligned on the primary screen.
      */
@@ -594,8 +602,10 @@ public class WindowBase {
 
     /** Sets the window visible and focuses it. */
     public void show() {
-        s.show();
-        focus();
+	    Async.runLater(() -> {
+	        s.show();
+	        focus();
+	    });
     }
 
     public void hide() {
@@ -611,24 +621,25 @@ public class WindowBase {
     }
 
 
-    /**
-     * Checks whether the GUI has completed its initialization.
-     * If true is returned, the GUI - the Stage and Scene will never be
-     * null. Otherwise, some
-     * operations might be unupported and Stage or Scene will be null. Window and Stage
-     * will never be null, but their state might not be optimal for carrying out
-     * operations - this method guarantees that optimality.
-     * It is recommended to run this check before executing operations operating
-     * on Window, Stage and Scene objects of he application and handle the case,
-     * when the initialization has not been completed differently.
-     * This method helps avoid exceptions resulting from uninitialized GUI state.
-     * @return
-     */
-    public boolean isInitialized() {
-        return (!(getStage() == null ||
-                  getStage().getScene() == null ||
-                  getStage().getScene().getRoot() == null));
-    }
+//    /**
+//     * Checks whether the GUI has completed its initialization.
+//     * If true is returned, the GUI - the Stage and Scene will never be
+//     * null. Otherwise, some
+//     * operations might be unupported and Stage or Scene will be null. Window and Stage
+//     * will never be null, but their state might not be optimal for carrying out
+//     * operations - this method guarantees that optimality.
+//     * It is recommended to run this check before executing operations operating
+//     * on Window, Stage and Scene objects of he application and handle the case,
+//     * when the initialization has not been completed differently.
+//     * This method helps avoid exceptions resulting from uninitialized GUI state.
+//     *
+//     * @return
+//     */
+//    public boolean isInitialized() {
+//        return (!(getStage() == null ||
+//                  getStage().getScene() == null ||
+//                  getStage().getScene().getRoot() == null));
+//    }
 
     /** State of window maximization. */
     public enum Maximized implements CyclicEnum<Maximized> {

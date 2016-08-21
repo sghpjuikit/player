@@ -270,9 +270,9 @@ public class PopOver<N extends Node> extends PopupControl {
      * Sets autoFix and consumeAutoHidingEvents to false.
      * @param content shown by the pop over
      */
-    public PopOver(String titl, N content) {
+    public PopOver(String title, N content) {
         this();
-        title.set(titl);
+        this.title.set(title);
         setContentNode(content);
     }
 
@@ -473,10 +473,11 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
+	    // TODO: do not use APP.windowOwner, instead create new hidden window and focus it, or closing this popup may
+	    // not return focus to whatever application had it before
         showThis(null, pos.isAppCentric() && APP.windowManager.getActive().isPresent() ? APP.windowManager.getActive().map(w -> w.getStage()).get() : APP.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
         if (!pos.isAppCentric()) uninstallMoveWith();
-
     }
 
     @Override

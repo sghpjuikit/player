@@ -451,10 +451,10 @@ public class WindowManager implements Configurable<Object> {
         // show windows
         if (ws.isEmpty()) {
         	if(load_normally)
-	            ws.add(createDefaultWindow(true));
+		        ws.add(createDefaultWindow(true));
         } else {
             ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
-	        ws.forEach(w -> w.getStage().show());
+	        ws.forEach(w -> w.show());
             Widget.deserializeWidgetIO();
         }
     }

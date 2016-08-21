@@ -6,6 +6,8 @@
 package gui.objects.tree;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +50,7 @@ import static layout.widget.WidgetManager.WidgetSource.*;
 import static main.App.APP;
 import static util.Util.emptyOr;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
+import static util.dev.Util.log;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
@@ -176,6 +179,7 @@ public class TreeItems {
 
     public static void doOnSingleClick(Object o) {}
 
+    // TODO: implement properly
     public static <T> void showMenu(T o, TreeView<T> t, Node n, MouseEvent e) {
         if (o instanceof File) {
             List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c -> c.getValue() instanceof File, c -> (File)c.getValue());
@@ -192,6 +196,11 @@ public class TreeItems {
             m.setValue(files);
             m.show(n, e);
         }
+
+	    if (o instanceof Window) {
+		    windowMenu.setValue((Window) o);
+		    windowMenu.show(n, e);
+	    }
     }
 
     private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu<>(){{
@@ -207,6 +216,22 @@ public class TreeItems {
             menuItem("Explore in browser", e -> Environment.browse(getValue().stream()))
         );
     }};
+
+	private static ImprovedContextMenu<Window> windowMenu = new ImprovedContextMenu<>(){{
+		util.type.Util.getAllMethods(Window.class).stream()
+			.filter(m -> Modifier.isPublic(m.getModifiers()))
+			.filter(m -> m.getParameterCount() == 0)
+			.filter(m -> m.getReturnType() == void.class)
+			.map(m -> menuItem(m.getName(), e -> {
+					try {
+						m.invoke(getValue());
+					} catch (IllegalAccessException | InvocationTargetException x) {
+						log(TreeItems.class).error("Could not invoke method {} on object {}", m, getValue(), x);
+					}
+				}
+			))
+			.forEach(getItems()::add);
+	}};
 
     public static class SimpleTreeItem<T> extends TreeItem<T> {
         public final V<Boolean> showLeaves = new V<>(true);
@@ -363,9 +388,6 @@ public class TreeItems {
         }
     }
 
-    private static Stream strm(Object o, Stream t) {
-        return Stream.concat(Stream.of(o), t);
-    }
     private static String toS(Node n) {
         return emptyOr(n.getId()) + ":" + APP.className.get(n.getClass());
     }

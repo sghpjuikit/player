@@ -389,6 +389,7 @@ public class Gui {
             setSkinExternal(skin_file);
         }
     }
+
     /**
      * Changes application's skin.
      *
@@ -403,53 +404,41 @@ public class Gui {
      */
     // TODO: jigsaw
     @Dependency("requires access to javafx.graphics/com.sun.javafx.tk.StyleManager")
-    public static boolean setSkinExternal(File cssFile) {
-        if (APP.windowOwner.isInitialized() && Util.isValidSkinFile(cssFile)) {
-            try {
-                monitorSkinStart(cssFile);
-                String url = cssFile.toURI().toURL().toExternalForm();
+    public static void setSkinExternal(File cssFile) {
+        try {
+            monitorSkinStart(cssFile);
+            String url = cssFile.toURI().toURL().toExternalForm();
 
-	            // Id like to not rely on com.sun.javafx.css.StyleManager, but the below code causes some problems
-	            // like icons with incorrect glyph and size (see gui.objects.icon.Icon.class)
+            // Id like to not rely on com.sun.javafx.css.StyleManager, but the below code causes some problems
+            // like icons with incorrect glyph and size (see gui.objects.icon.Icon.class)
 //	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(skinOldUrl));
 ////	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().setUserAgentStylesheet(STYLESHEET_MODENA));
 //	            App.setUserAgentStylesheet(STYLESHEET_MODENA);
 //	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(url));
 
-                // Application.setUserAgentStylesheet(STYLESHEET_MODENA); // unnecessary ?
-                StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-                StyleManager.getInstance().addUserAgentStylesheet(url);
+            // Application.setUserAgentStylesheet(STYLESHEET_MODENA); // unnecessary ?
+            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
+            StyleManager.getInstance().addUserAgentStylesheet(url);
 
-                skin.setValue(Util.getName(cssFile));   // set current skin
-                skinOldUrl = url;   // store its url so we can remove the skin later
-                return true;
-            } catch (MalformedURLException ex) {
-                LOGGER.error(ex.getMessage());
-                return false;
-            }
+            skin.setValue(Util.getName(cssFile));   // set current skin
+            skinOldUrl = url;   // store its url so we can remove the skin later
+        } catch (MalformedURLException ex) {
+            LOGGER.error(ex.getMessage());
         }
-        return false;
     }
 
-    private static boolean setSkinModena() {
+    private static void setSkinModena() {
         monitorSkinStop();
-        if (APP.windowOwner.isInitialized()) {
-            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
-            Application.setUserAgentStylesheet(STYLESHEET_MODENA);
-            skin.setValue("Modena");
-            return true;
-        }
-        return false;
+        StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
+        Application.setUserAgentStylesheet(STYLESHEET_MODENA);
+        skin.setValue("Modena");
     }
-    private static boolean setSkinCaspian() {
+
+    private static void setSkinCaspian() {
         monitorSkinStop();
-        if (APP.windowOwner.isInitialized()) {
-            StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
-            Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
-            skin.setValue("Caspian");
-            return true;
-        }
-        return false;
+        StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
+        Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
+        skin.setValue("Caspian");
     }
 
     public static List<File> getGuiImages() {

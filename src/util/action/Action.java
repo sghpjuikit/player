@@ -658,7 +658,7 @@ public final class Action extends Config<Action> implements Runnable {
     public static void loadCommandActions() {
 	    // discover all command actions defined in file
 	    File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
-	    boolean generateTemplate = APP.serializators.fromXML(Commands.class, file)
+	    long count = APP.serializators.fromXML(Commands.class, file)
 			    .ifError(e -> log(Action.class).error("Could not load command actions", e))
                 .getOrSupply(Commands::new)
 			    .stream()
@@ -666,7 +666,11 @@ public final class Action extends Config<Action> implements Runnable {
 			    .map(Command::toAction)
 			    .peek(Action::register)
 			    .peek(actions::add)
-		        .count() < 1;
+		        .count();
+	    // Generate default template for the user if necessary (shows how to define commands).
+	    // Note we must not overwrite existing file, possibly containing already defined commands, hence the
+	    // file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason
+	    boolean generateTemplate = count<1 && !file.exists();
 	    if (generateTemplate)
 		    APP.serializators.toXML(Util.stream(new Command()).toCollection(Commands::new), file)
 			    .ifError(e -> log(Action.class).error("Could not save command actions", e));

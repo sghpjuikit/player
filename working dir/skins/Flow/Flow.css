@@ -14,7 +14,7 @@
     -fx-font-size: 11;
     -fx-def-font-color: rgb(130,180,220);
     -fx-sel-font-color: rgb(175, 175, 176);
-    -fx-prompt-font-color: rgb(165, 165, 165);
+    -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
     
     -fx-pane-color: rgba(100,130,180,0.1);
     -fx-popup-def-bgr-color: rgba(15,30,55,0.8);
@@ -170,7 +170,7 @@
 
 .combobox-field-config:edited > .list-cell {
     -fx-text-fill: -fx-focus-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-prompt-font-color;
 }
 
 

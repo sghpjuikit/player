@@ -63,7 +63,7 @@
     -fx-def-font-color: rgb(190, 190, 195);
     -fx-def-font-color-hover: rgb(235,235,230);
     -fx-sel-font-color: rgb(175, 175, 176);
-    -fx-prompt-font-color: rgb(165, 165, 165);
+    -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
     -fx-color-darker: rgba(0,0,0,0.2);
     -fx-color-lighter: rgba(180,200,255,0.08);
 
@@ -1293,8 +1293,7 @@
 .text-area:focused .content {
     -fx-background-color:  transparent;
     -fx-background-insets: 0;
-    -fx-padding: 3 6 2 6;   
-    -fx-prompt-text-fill: -fx-prompt-font-color;
+    -fx-padding: 3 6 2 6;
 }
 
 
@@ -3707,7 +3706,7 @@ check-icon-disabling:selected {
 
 .combobox-field-config:edited > .list-cell {
     -fx-text-fill: -fx-focus-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-prompt-font-color;
 }
 
 /** 

@@ -14,6 +14,7 @@ import util.animation.Anim;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
+import static util.dev.Util.noØ;
 import static util.type.Util.getFieldValue;
 
 /**
@@ -29,24 +30,20 @@ public class ImprovedScrollBarSkin extends ScrollBarSkin {
 
         // install hover animation
         StackPane thumb = getFieldValue(this, "thumb");
+	    noØ(thumb);
         Anim v = new Anim(millis(350),p -> thumb.setScaleX(1+p*p));
         Anim h = new Anim(millis(350),p -> thumb.setScaleY(1+p*p));
-        scrollbar.addEventHandler(MOUSE_ENTERED, e -> {
-            if (scrollbar.getOrientation()==VERTICAL) v.playOpen();
-            else h.playOpen();
-        });
+        scrollbar.addEventHandler(MOUSE_ENTERED, e -> (scrollbar.getOrientation()==VERTICAL ? v : h).playOpen());
         scrollbar.addEventHandler(MOUSE_EXITED, e -> {
             if (!isDragged) {
-                if (scrollbar.getOrientation()==VERTICAL) v.playClose();
-                else h.playClose();
+                (scrollbar.getOrientation()==VERTICAL ? v : h).playClose();
             }
         });
         scrollbar.addEventHandler(DRAG_DETECTED, e -> isDragged = true);
         scrollbar.addEventHandler(MOUSE_RELEASED, e -> {
             if (isDragged) {
                 isDragged = false;
-                if (scrollbar.getOrientation()==VERTICAL) v.playClose();
-                else h.playClose();
+                (scrollbar.getOrientation()==VERTICAL ? v : h).playClose();
             }
         });
     }

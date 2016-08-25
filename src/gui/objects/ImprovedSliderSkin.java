@@ -15,6 +15,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
+import static util.dev.Util.noØ;
 import static util.type.Util.getFieldValue;
 
 /**
@@ -29,15 +30,10 @@ public class ImprovedSliderSkin extends SliderSkin {
 
         // install hover animation
         StackPane track = getFieldValue(this, "track");
-        Anim v = new Anim(millis(350),p -> track.setScaleX(1+p*p));
-        Anim h = new Anim(millis(350),p -> track.setScaleY(1+p*p));
-        slider.addEventHandler(MOUSE_ENTERED, e -> {
-            if (slider.getOrientation()==VERTICAL) v.playOpen();
-            else h.playOpen();
-        });
-        slider.addEventHandler(MOUSE_EXITED, e -> {
-            if (slider.getOrientation()==VERTICAL) v.playClose();
-            else h.playClose();
-        });
+	    noØ(track);
+        Anim v = new Anim(millis(350), p -> track.setScaleX(1+p*p));
+        Anim h = new Anim(millis(350), p -> track.setScaleY(1+p*p));
+        slider.addEventHandler(MOUSE_ENTERED, e -> (slider.getOrientation()==VERTICAL ? v : h).playOpen());
+        slider.addEventHandler(MOUSE_EXITED, e -> (slider.getOrientation()==VERTICAL ? v : h).playClose());
     }
 }

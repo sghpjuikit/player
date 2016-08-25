@@ -47,6 +47,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 
+// TODO: fix this terrible workaround
+// to find changes from super class, look for the phrase 'CHANGED_FROM_SUPER'
 /**
  * Custom skin for the {@link SplitPane} which does not consume mouse events. Otherwise identical
  * to official impl.
@@ -631,6 +633,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
     }
 
     private void initializeDivderEventHandlers(final ContentDivider divider) {
+    	// CHANGED_FROM_SUPER
         // TODO: do we need to consume all mouse events? // no we dont and YOU WONT!
         // divider.addEventHandler(MouseEvent.ANY, event -> {
         //    event.consume();

@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package gui.objects;
 
 import javafx.beans.property.BooleanProperty;
@@ -13,7 +7,6 @@ import javafx.beans.value.ChangeListener;
 /**
  * {@link javafx.scene.text.Text} with a default styleclass "text-shape" and
  * support for automatic wrap width based on contained text value.
- * <p/>
  *
  * @author Martin Polakovic
  */
@@ -56,7 +49,11 @@ public class Text extends javafx.scene.text.Text {
         setWrappingWidth(110 + s.length()/4);
     };
 
-    private final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
+    /**
+     * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
+     * Default false.
+     */
+    public final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
         @Override
         public void set(boolean newV) {
             super.set(newV);
@@ -70,29 +67,21 @@ public class Text extends javafx.scene.text.Text {
     };
 
     /**
-     * Returns natural wrapping width property.
      * @see #setWrappingWidthNatural(boolean)
-     * @return
      */
     public BooleanProperty wrappingWidthNatural() {
         return wrappingWithNatural;
     }
 
     /**
-     * Returns value of natural wrapping width property. Default false.
      * @see #setWrappingWidthNatural(boolean)
-     * @return
      */
     public boolean isWrappingWidthNaturally() {
         return wrappingWithNatural.getValue();
     }
 
     /**
-     * Sets value of natural wrapping width property.
-     * Sets natural wrapping width dynamically reacting on text change on/off.
-     * Default false.
      * @see #wrapWidthNaturally()
-     * @param val
      */
     public void setWrappingWidthNatural(boolean val) {
         wrappingWithNatural.setValue(val);

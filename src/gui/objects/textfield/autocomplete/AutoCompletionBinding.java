@@ -106,8 +106,6 @@ public abstract class AutoCompletionBinding<T> {
     /**
      * Specifies whether the PopupWindow should be hidden when an unhandled
      * escape key is pressed while the popup has focus.
-     *
-     * @param value
      */
     public void setHideOnEscape(boolean value) {
         popup.setHideOnEscape(value);
@@ -115,7 +113,6 @@ public abstract class AutoCompletionBinding<T> {
 
     /**
      * Set the current text the user has entered
-     * @param userText
      */
     public final void setUserInput(String userText){
         if (!ignoreInputChanges)
@@ -139,8 +136,6 @@ public abstract class AutoCompletionBinding<T> {
     /**
      * Set the maximum number of rows to be visible in the popup when it is
      * showing.
-     *
-     * @param value
      */
     public final void setVisibleRowCount(int value) {
         popup.setVisibleRowCount(value);
@@ -172,8 +167,6 @@ public abstract class AutoCompletionBinding<T> {
     /**
      * Consumes user selected suggestion.
      * Normally when user clicks or presses ENTER key on given suggestion.
-     *
-     * @param suggestion
      */
     protected abstract void acceptSuggestion(T suggestion);
 
@@ -220,7 +213,6 @@ public abstract class AutoCompletionBinding<T> {
 
     /**
      * Occurs when the user text has changed and the suggestions require an update
-     * @param userText
      */
     private void onUserInputChanged(final String userText){
         synchronized (suggestionsTaskLock) {
@@ -235,25 +227,25 @@ public abstract class AutoCompletionBinding<T> {
     }
 
 
-    /** Represents a suggestion fetch request */
+    /** Represents a suggestion fetch request. */
     public interface ISuggestionRequest {
         /**
          * Is this request canceled?
+         *
          * @return {@code true} if the request is canceled, otherwise {@code false}
          */
         boolean isCancelled();
 
         /**
          * Get the user text to which suggestions shall be found
+         *
          * @return {@link String} containing the user text
          */
         String getUserText();
     }
 
     /**
-     * This task is responsible to fetch suggestions asynchronous
-     * by using the current defined suggestionProvider
-     *
+     * This task is responsible to fetch suggestions asynchronous by using the current defined suggestionProvider.
      */
     private class FetchSuggestionsTask extends Task<Void> implements ISuggestionRequest {
         private final String userText;
@@ -328,8 +320,6 @@ public abstract class AutoCompletionBinding<T> {
 
     /**
      * Set a event handler which is invoked after an auto completion.
-     *
-     * @param value
      */
     public final void setOnAutoCompleted(EventHandler<AutoCompletionEvent<T>> value) {
 	    if (onAutoCompleted == null) onAutoCompleted = new SimpleObjectProperty<>();

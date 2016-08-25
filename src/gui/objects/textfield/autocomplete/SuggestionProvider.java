@@ -1,4 +1,4 @@
-/**
+/*
  * Impl based on ControlsF:
  *
  * Copyright (c) 2014, 2015, ControlsFX
@@ -51,15 +51,14 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
 
     /**
      * Add the given new possible suggestions to this  SuggestionProvider
-     * @param newPossible
      */
-    public void addPossibleSuggestions(T... newPossible){
+    @SafeVarargs
+    public final void addPossibleSuggestions(T... newPossible){
         addPossibleSuggestions(list(newPossible));
     }
 
     /**
      * Add the given new possible suggestions to this  SuggestionProvider
-     * @param newPossible
      */
     public void addPossibleSuggestions(Collection<T> newPossible){
         synchronized (possibleSuggestionsLock) {
@@ -94,30 +93,18 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
 
     /**
      * Get the comparator to order the suggestions
-     * @return
      */
     protected abstract Comparator<T> getComparator();
 
     /**
      * Check the given possible suggestion is a match (is a valid suggestion)
-     * @param suggestion
-     * @param request
-     * @return
      */
     protected abstract boolean isMatch(T suggestion, ISuggestionRequest request);
-
-
-    /***************************************************************************
-     *                                                                         *
-     * Static methods                                                          *
-     *                                                                         *
-     **************************************************************************/
 
 
     /**
      * Create a default suggestion provider based on the toString() method of the generic objects
      * @param possibleSuggestions All possible suggestions
-     * @return
      */
     public static <T> SuggestionProvider<T> create(Collection<T> possibleSuggestions){
         return create(null, possibleSuggestions);
@@ -129,7 +116,6 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
      *
      * @param stringConverter A stringConverter which converts generic T into a string
      * @param possibleSuggestions All possible suggestions
-     * @return
      */
     public static <T> SuggestionProvider<T> create(Callback<T, String> stringConverter, Collection<T> possibleSuggestions){
         SuggestionProviderString<T> suggestionProvider = new SuggestionProviderString<>(stringConverter);
@@ -138,24 +124,15 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
     }
 
 
-
-    /***************************************************************************
-     *                                                                         *
-     * Default implementations                                                 *
-     *                                                                         *
-     **************************************************************************/
-
-
     /**
      * This is a simple string based suggestion provider.
      * All generic suggestions T are turned into strings for processing.
-     *
      */
     private static class SuggestionProviderString<T> extends SuggestionProvider<T> {
 
         private Callback<T, String> stringConverter;
 
-        private final Comparator<T> stringComparator = new Comparator<T>() {
+        private final Comparator<T> stringComparator = new Comparator<>() {
             @Override
             public int compare(T o1, T o2) {
                 String o1str = stringConverter.call(o1);
@@ -166,7 +143,6 @@ public abstract class SuggestionProvider<T> implements Callback<ISuggestionReque
 
         /**
          * Create a new SuggestionProviderString
-         * @param converter
          */
         public SuggestionProviderString(Callback<T, String> converter){
             stringConverter = converter != null

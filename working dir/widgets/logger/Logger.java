@@ -1,7 +1,5 @@
 package logger;
 
-import java.util.function.Consumer;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 
@@ -33,7 +31,6 @@ import static util.graphics.Util.setMinPrefMaxSize;
 public class Logger extends ClassController {
 
     private final TextArea area = new TextArea();
-    private final Consumer<String> writer = area::appendText;
 
     @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
     public final BooleanProperty wrap_text = area.wrapTextProperty();
@@ -41,18 +38,13 @@ public class Logger extends ClassController {
     public Logger() {
         area.setEditable(false);
 	    area.setWrapText(false);
-        area.appendText("# This is redirected System.out stream of this application.\n");
+        area.appendText("# This is redirected output (System.out) stream of this application.\n");
         setMinPrefMaxSize(area, USE_COMPUTED_SIZE);
         setMinPrefMaxSize(this, USE_COMPUTED_SIZE);
         getChildren().add(area);
         setAnchors(area, 0d);
 
-        APP.systemout.addListener(writer);
-    }
-
-    @Override
-    public void onClose() {
-        APP.systemout.removeListener(writer);
+        d(APP.systemout.addListener(area::appendText));
     }
 
 }

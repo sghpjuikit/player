@@ -1,4 +1,6 @@
-/**
+/*
+ * Impl based on ControlsFX
+ *
  * Copyright (c) 2013, 2015, ControlsFX
  * All rights reserved.
  *
@@ -24,6 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.textfield;
 
 import javafx.beans.property.ObjectProperty;
@@ -33,23 +36,12 @@ import javafx.scene.control.Skin;
 import javafx.scene.control.TextField;
 
 /**
- * A base class for people wanting to customize a {@link TextField} to contain nodes
- * inside the text field itself, without being on top of the users typed-in text.
- *
- * <h3>Screenshot</h3>
- * <p/>The following screenshot is taken from the HelloControlsFX sample application,
- * and shows a normal TextField, with a {@link TextFields#createClearableTextField() clearable text field},
- * followed by three CustomTextFields. Note what happens with long text input -
- * it is prevented from going beneath the left and right graphics. Of course, if
- * the keyboard caret moves to the right, the text will become visible, but this
- * is because it will all scroll to the left (as is the case in a normal {@link TextField}).
- *
+ * {@link TextField}, which can be decorated with nodes inside on the left an right.
  */
 public class DecoratedTextField extends TextField {
 
     public final ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left");
     public final ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right");
-
 
     /**
      * Instantiates a default CustomTextField.
@@ -60,73 +52,50 @@ public class DecoratedTextField extends TextField {
         setMaxWidth(TextField.USE_PREF_SIZE);
     }
 
-    /**
-     *
-     * @return An ObjectProperty wrapping the {@link Node} that is placed
-     * on the left ofthe text field.
-     */
+	/**
+	 * @see #left
+	 */
     public final ObjectProperty<Node> leftProperty() {
         return left;
     }
 
-    /**
-     *
-     * @return the {@link Node} that is placed on the left of
-     * the text field.
-     */
+	/**
+	 * @see #left
+	 */
     public final Node getLeft() {
         return left.get();
     }
 
-    /**
-     * Sets the {@link Node} that is placed on the left of
-     * the text field.
-     * @param value
-     */
+	/**
+	 * @see #left
+	 */
     public final void setLeft(Node value) {
         left.set(value);
     }
 
     /**
-     * Property representing the {@link Node} that is placed on the right of
-     * the text field.
-     * @return An ObjectProperty.
+     * @see #right
      */
     public final ObjectProperty<Node> rightProperty() {
         return right;
     }
 
-    /**
-     *
-     * @return The {@link Node} that is placed on the right of
-     * the text field.
-     */
+	/**
+	 * @see #right
+	 */
     public final Node getRight() {
         return right.get();
     }
 
-    /**
-     * Sets the {@link Node} that is placed on the right of
-     * the text field.
-     * @param value
-     */
+	/**
+	 * @see #right
+	 */
     public final void setRight(Node value) {
         right.set(value);
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override protected Skin<?> createDefaultSkin() {
-        return new DecoratedTextFieldSkin(this) {
-            @Override public ObjectProperty<Node> leftProperty() {
-                return left;
-            }
-
-            @Override public ObjectProperty<Node> rightProperty() {
-                return right;
-            }
-        };
+    @Override
+    protected Skin<?> createDefaultSkin() {
+        return new DecoratedTextFieldSkin(this);
     }
 }

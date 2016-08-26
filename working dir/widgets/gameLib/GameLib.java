@@ -62,7 +62,6 @@ import static util.functional.Util.by;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "GameLib",
     description = "Simple game manager.",
     howto = "",

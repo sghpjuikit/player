@@ -27,7 +27,6 @@ import static util.graphics.Util.setAnchors;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Function Viewer",
     description = "Plots functions",
     howto = "",

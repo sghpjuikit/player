@@ -55,7 +55,6 @@ import static util.reactive.Util.maintain;
 @Widget.Info(
     name = "Playback",
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     howto = "Playback actions:\n"
           + "    Control Playback\n"
           + "    Drop audio files : Adds or plays the files\n"

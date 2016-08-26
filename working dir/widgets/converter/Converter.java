@@ -71,7 +71,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Converter",
     description = "Transformation utility. Capable of transforming objects "
         + "and chaining the transforming functions. Capable of text manipulation, file renaming and "

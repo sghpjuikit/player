@@ -26,7 +26,6 @@ import static util.functional.Util.listRO;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Empty",
     description = "Empty widget with no content or functionality.",
     version = "1.0",
@@ -45,7 +44,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
 
     @Override
     public Collection<Config<Object>> getFields() {
-        // cant use default implementation. it calls getFields on the controller
+        // can not use default implementation. it calls getFields on the controller
         // since this=this.controller -> StackOverflow
         return listRO();
     }

@@ -76,7 +76,6 @@ import static util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Library View",
     description = "Provides database filtering.",
     howto = "Available actions:\n" +

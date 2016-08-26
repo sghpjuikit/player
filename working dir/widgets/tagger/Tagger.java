@@ -95,7 +95,6 @@ import static util.functional.Util.*;
 @Widget.Info(
     name = "Tagger",
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     howto = "Available actions:\n"
           + "    Drag cover away : Removes cover\n"
           + "    Drop image file : Adds cover\n"

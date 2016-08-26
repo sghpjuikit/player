@@ -18,7 +18,6 @@ import static util.graphics.Util.setMinPrefMaxSize;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Logger",
     description = "Displays console output by listening to System.out, which contains all of the "
             + "application logging.",

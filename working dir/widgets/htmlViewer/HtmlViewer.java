@@ -21,7 +21,6 @@ import static util.graphics.Util.setAnchor;
 @Widget.Info(
 	name = "HtmlEditor",
 	author = "Martin Polakovic",
-	programmer = "Martin Polakovic",
 	howto = "",
 	description = "Very simple html text editor.",
 	notes = "",

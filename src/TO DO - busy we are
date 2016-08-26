@@ -8,7 +8,6 @@
   - make graphics mouse transparent
   - discard anonymous Entry class, use flexible one with lambda factories?
   - look for actions by their keys too
-  - support multi-word look-up
   - support different look-up strategies based on type of Entry
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
@@ -131,7 +130,7 @@
            - Add selectedProperty for easy control and observation.
     - main.ImageThumbIconTest
 - cleanups
-    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action
+    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action, Autocomplete
 - annoying java "bugs" (problem scope == entire application)
     - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 

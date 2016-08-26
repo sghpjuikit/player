@@ -60,7 +60,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "AppLauncher",
     description = "Launches programs",
     howto = "",

@@ -34,7 +34,6 @@ import static util.graphics.Util.*;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "FileDownloader",
     description = "Displays real time audio spectrum of playback",
     howto = "",

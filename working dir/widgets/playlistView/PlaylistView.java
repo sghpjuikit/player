@@ -61,7 +61,6 @@ import static util.reactive.Util.maintain;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Playlist",
     description = "Provides list of items to play. Highlights playing and unplayable "
                 + "items.",

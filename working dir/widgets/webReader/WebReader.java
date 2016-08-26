@@ -28,7 +28,6 @@ import static util.type.Util.invokeMethodP1;
 @Widget.Info(
 	name = "WebReader",
 	author = "Martin Polakovic",
-	programmer = "Martin Polakovic",
 	howto = "",
 	description = "Very simple web browser widget.",
 	notes = "",

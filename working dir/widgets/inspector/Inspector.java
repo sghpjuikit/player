@@ -26,7 +26,6 @@ import static util.graphics.Util.setAnchor;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Inspector",
     description = "Inspects application as hierarchy. Displays windows, widgets,"
                 + "file system and more. Allows editing if possible.",

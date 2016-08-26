@@ -69,7 +69,6 @@ import static util.graphics.Util.setAnchor;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "File Info",
     description = "Displays song information. Supports rating change.",
     howto = ""

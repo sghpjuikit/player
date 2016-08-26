@@ -112,7 +112,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 
     /**
-     * @param {@link Widget#name}
+     * @param name name of the widget {@link Widget#name}
      */
     public Widget(String name) {
         this.name = name;
@@ -501,7 +501,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     private void updateIO() {
         // because widget inputs can be bound to other widget outputs, and because widgets can be
         // loaded passively (then its i/o does not exists yet), we need to update all widget i/os
-        // because we dont know which bind to this widget
+        // because we do not know which bind to this widget
         IOLayer.all_inputs.addAll(controller.getInputs().getInputs());
         IOLayer.all_outputs.addAll(controller.getOutputs().getOutputs());
         deserializeWidgetIO();
@@ -541,20 +541,13 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
          */
         String author() default "";
 
-        /**
-         * Main developer of the widget.
-         * @return
-         */
-        String programmer() default "";
-
-        /**
+	    /**
          * Co-developer of the widget.
          */
         String contributor() default "";
 
         /**
          * Last time of change.
-         * @return
          */
         String year() default "";
 
@@ -569,7 +562,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
          * "    Write : Saves the tags\n" +
          * "    Open list of tagged items"
          * </pre>
-         * @return
          */
         String howto() default "";
 
@@ -578,13 +570,11 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
          * or plans for the widget or simply unrelated to anything else information.
          * <p/>
          * For example: "To do: simplify user interface." or: "Discontinued."
-         * @return
          */
         String notes() default "";
 
         /**
-         * Group the widget should categorize under as. Default {@link Widget.Group.UNKNOWN}
-         * @return
+         * Group the widget should categorize under as. Default {@link Widget.Group#UNKNOWN}
          */
         Widget.Group group() default Widget.Group.UNKNOWN;
     }

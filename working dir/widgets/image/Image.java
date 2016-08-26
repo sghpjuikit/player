@@ -27,7 +27,6 @@ import static util.graphics.drag.DragUtil.installDrag;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Image",
     description = "Shows a static image",
     howto = "Available actions:\n" +

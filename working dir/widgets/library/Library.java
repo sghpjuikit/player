@@ -93,7 +93,6 @@ import static util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Library",
     description = "Provides access to database.",
     howto = "Available actions:\n" +

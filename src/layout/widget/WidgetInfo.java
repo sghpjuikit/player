@@ -42,19 +42,12 @@ public interface WidgetInfo {
     String author();
 
     /**
-     * Main developer of the widget.
-     * @return
-     */
-    String programmer();
-
-    /**
      * Co-developer of the widget.
      */
     String contributor();
 
     /**
      * Last time of change.
-     * @return
      */
     String year();
 
@@ -69,7 +62,6 @@ public interface WidgetInfo {
      * "    Write : Saves the tags\n" +
      * "    Open list of tagged items"
      * </pre>
-     * @return
      */
     String howto();
 
@@ -78,11 +70,10 @@ public interface WidgetInfo {
      * or plans for the widget or simply unrelated to anything else.
      * <p/>
      * For example: "To do: simplify user interface." or: "Discontinued."
-     * @return
      */
     String notes();
 
-    /** @return widget group. Default {@link Widget.Group.UNKNOWN} */
+    /** @return widget group. Default {@link Widget.Group#UNKNOWN} */
     Widget.Group group();
 
     /** Exact type of the widget. Denotes widget's controller type. */

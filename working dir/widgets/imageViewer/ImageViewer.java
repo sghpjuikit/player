@@ -70,7 +70,6 @@ import static util.graphics.drag.DragUtil.installDrag;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Image Viewer",
     description = "Displays images in directory. Shows main image and thumbnails. "
         + "Looks for images in subfolders.",

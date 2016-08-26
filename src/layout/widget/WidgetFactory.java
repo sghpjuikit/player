@@ -29,7 +29,6 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
     private final String description;
     private final String version;
     private final String author;
-    private final String programmer;
     private final String contributor;
     private final String howto;
     private final String year;
@@ -70,7 +69,6 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 	    description = i.description();
 	    version = i.version();
 	    author = i.author();
-	    programmer = i.programmer();
 	    contributor = i.contributor();
 	    howto = i.howto();
 	    year = i.year();
@@ -97,7 +95,6 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 		description = factory.description();
 		version = factory.version();
 		author = factory.author();
-		programmer = factory.programmer();
 		contributor = factory.contributor();
 		howto = factory.howto();
 		year = factory.year();
@@ -124,6 +121,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
     /**
      * Creates new widget.
+     *
      * @return new widget instance or null if creation fails.
      */
     public Widget<C> create() {
@@ -169,9 +167,6 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
     @Override
     public String author() { return author; }
-
-    @Override
-    public String programmer() { return programmer; }
 
     @Override
     public String contributor() { return contributor; }

@@ -1,4 +1,3 @@
-
 package gui.objects.window.stage;
 
 import java.util.List;
@@ -79,6 +78,7 @@ public class WindowBase {
     }
 
     public WindowBase(Stage owner, StageStyle style) {
+    	// TODO: wtf
         if (s!=null) s.initOwner(owner);
         if (style!=null) s.initStyle(style);
         s.setFullScreenExitHint("");
@@ -619,27 +619,6 @@ public class WindowBase {
     public void close() {
        s.close();
     }
-
-
-//    /**
-//     * Checks whether the GUI has completed its initialization.
-//     * If true is returned, the GUI - the Stage and Scene will never be
-//     * null. Otherwise, some
-//     * operations might be unupported and Stage or Scene will be null. Window and Stage
-//     * will never be null, but their state might not be optimal for carrying out
-//     * operations - this method guarantees that optimality.
-//     * It is recommended to run this check before executing operations operating
-//     * on Window, Stage and Scene objects of he application and handle the case,
-//     * when the initialization has not been completed differently.
-//     * This method helps avoid exceptions resulting from uninitialized GUI state.
-//     *
-//     * @return
-//     */
-//    public boolean isInitialized() {
-//        return (!(getStage() == null ||
-//                  getStage().getScene() == null ||
-//                  getStage().getScene().getRoot() == null));
-//    }
 
     /** State of window maximization. */
     public enum Maximized implements CyclicEnum<Maximized> {

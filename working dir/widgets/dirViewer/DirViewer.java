@@ -69,7 +69,6 @@ import static util.graphics.Util.setAnchor;
  */
 @Widget.Info(
         author = "Martin Polakovic",
-        programmer = "Martin Polakovic",
         name = "Dir Viewer",
         description = "Displays directory hierarchy and files as thumbnails in a "
                 + "vertically scrollable grid. Intended as simple library",

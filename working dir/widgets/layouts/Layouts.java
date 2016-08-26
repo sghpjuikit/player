@@ -29,7 +29,6 @@ import static util.functional.Util.toCSList;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Layouts",
     description = "",
     howto = "",

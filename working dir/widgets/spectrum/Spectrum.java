@@ -18,7 +18,6 @@ import util.animation.Loop;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Spectrum",
     description = "Displays real time audio spectrum of playback",
     howto = "",

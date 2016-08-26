@@ -36,7 +36,6 @@ import static util.graphics.Util.setAnchors;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Settings",
     description = "Provides access to application settings",
     howto = "Available actions:\n"

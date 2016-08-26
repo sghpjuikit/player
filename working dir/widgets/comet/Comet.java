@@ -75,7 +75,6 @@ import static util.reactive.Util.maintain;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    programmer = "Martin Polakovic",
     name = "Comet",
     description = "Port of the game Comet.",
     howto = "",

@@ -269,3 +269,6 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   Hence, it is important to think about whether the behavior is one-and-only or can play along
   with different behaviors. does not assume and consume. If the parent's behavior needs to run no matter 
   what its children do, then it should use event filters to bypass the consumption.
+
+  -Dprism.order=j2d
+  -Dprism.order=sw

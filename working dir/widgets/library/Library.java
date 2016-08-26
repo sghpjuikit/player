@@ -118,10 +118,7 @@ public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner()){
-        Anim a;
-        {
-            a = new Anim(at->Util.setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
-        }
+        Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         @Override
         public void setVisible(boolean v) {
             if (v) {

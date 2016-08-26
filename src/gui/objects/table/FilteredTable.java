@@ -406,7 +406,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     private F searchField;
     private long searchTime = -1;
     private final StringProperty searchQuery = searchQueryLabel.textProperty();
-    private final FxTimer searchAutocanceller = new FxTimer(3000,-1,this::searchEnd);
+    private final FxTimer searchAutocanceller = new FxTimer(3000,1,this::searchEnd);
     private static final PseudoClass SEARCHMATCHPC = getPseudoClass("searchmatch");
     private static final PseudoClass SEARCHMATCHNOTPC = getPseudoClass("searchmatchnot");
 

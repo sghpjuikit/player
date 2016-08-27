@@ -1,3 +1,4 @@
+
 package gui.objects.window.stage;
 
 import java.util.List;
@@ -448,8 +449,9 @@ public class WindowBase {
 
     /** Centers this window on ita screen. */
     public void setXYScreenCenter() {
-        double x = screen.getBounds().getWidth()/2 - getWidth()/2;
-        double y = screen.getBounds().getHeight()/2 - getHeight()/2;
+    	Rectangle2D b = screen.getBounds();
+        double x = (b.getMinX() + b.getMaxX())/2 - getWidth()/2;
+        double y = (b.getMinY() + b.getMaxY())/2 - getHeight()/2;
         setXY(x, y);
     }
 

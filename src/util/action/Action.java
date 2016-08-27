@@ -4,10 +4,12 @@ import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -17,8 +19,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import org.atteo.classindex.ClassIndex;
 
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
@@ -72,7 +72,11 @@ public final class Action extends Config<Action> implements Runnable {
     private final boolean defaultGlobal;
 
     private Action(IsAction a, String group, Runnable action) {
-        this(a.name(),action,a.desc(),group, a.keys(),a.global(),a.repeat());
+        this(a.name(), action, a.desc(), group, a.keys(), a.global(), a.repeat());
+    }
+
+    public Action(String name, Runnable action, String info, String group, String keys) {
+        this(name, action, info, group, keys, false, false);
     }
 
     /**
@@ -613,46 +617,48 @@ public final class Action extends Config<Action> implements Runnable {
 
     /** @return all actions of this application */
     private static MapSet<Integer,Action> gatherActions() {
-        List<Class<?>> cs = new ArrayList<>();
+	    return util.type.Util.getAnnotated(IsActionable.class)
+		    .flatMap(c -> gatherActions(c, null))
+	        .append(EMPTY)
+			.toCollection(() -> new MapSet<>(Action::getID));
+    }
 
-        // auto-discover all classes that can contain actions
-        ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
+    public static <T> Stream<Action> gatherActions(T object) {
+    	return gatherActions(object.getClass(), object);
+    }
 
-        // discover all method actions
-        MapSet<Integer,Action> out = new MapSet<>(Action::getID); // must use getID
-                               out.add(EMPTY);
-        Lookup method_lookup = MethodHandles.lookup();
-        for (Class<?> c : cs) {
-            for (Method m : c.getDeclaredMethods()) {
-                if (Modifier.isStatic(m.getModifiers())) {
-                    for (IsAction a : m.getAnnotationsByType(IsAction.class)) {
-                        if (m.getParameters().length > 0)
-                            throw new RuntimeException("Action Method must have 0 parameters!");
+    private static <T> Stream<Action> gatherActions(Class<? extends T> type, T instance) {
+    	boolean findInstance = instance != null;
+	    Lookup method_lookup = MethodHandles.lookup();
+	    return Util.stream(type.getDeclaredMethods())
+			.mapToEntry(m -> m, m -> Modifier.isStatic(m.getModifiers()))
+       	    .filterValues(isStatic -> findInstance ^ isStatic)
+			.flatMapKeyValue((m,isStatic) ->  Util.stream(m.getAnnotationsByType(IsAction.class))
+					.map(a -> {
+						if (m.getParameters().length > 0)
+							throw new RuntimeException("Action Method must have 0 parameters!");
 
-                        String group = getActionGroup(c);
-                        MethodHandle mh;
-                        try {
-                            m.setAccessible(true);
-                            mh = method_lookup.unreflect(m);
-                            m.setAccessible(false);
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
+						String group = getActionGroup(type);
+						MethodHandle mh;
+						try {
+							m.setAccessible(true);
+							mh = method_lookup.unreflect(m);
+							m.setAccessible(false);
+						} catch (IllegalAccessException e) {
+							throw new RuntimeException(e);
+						}
 
-                        Runnable r = () -> {
-                            try {
-                                mh.invokeExact();
-                            } catch (Throwable e) {
-                                throw new RuntimeException("Error during running action",e);
-                            }
-                        };
-                        Action ac = new Action(a, group, r);
-                        out.add(ac);
-                    }
-                }
-            }
-        }
-        return out;
+						Runnable r = () -> {
+							try {
+								if (isStatic) mh.invokeExact();
+								else mh.invoke(instance);
+							} catch (Throwable e) {
+								throw new RuntimeException("Error during running action",e);
+							}
+						};
+						return new Action(a, group, r);
+					})
+			);
     }
 
     public static void loadCommandActions() {
@@ -783,10 +789,10 @@ public final class Action extends Config<Action> implements Runnable {
 //        }
 //    });
 
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", group = "Shortcuts")
     public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
 
-    @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
+    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";
 
 }

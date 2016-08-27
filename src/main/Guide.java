@@ -26,6 +26,7 @@ import layout.container.switchcontainer.SwitchContainer;
 import layout.widget.Widget;
 import util.access.V;
 import util.action.Action;
+import util.action.IsAction;
 import util.animation.Anim;
 import util.conf.Configurable;
 import util.conf.IsConfig;
@@ -60,10 +61,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 @IsConfigurable
 public final class Guide implements Configurable {
 
-    @IsConfig(name = "Show guide on app start", info = "Show guide when application "
-            + "starts. Default true, but when guide is shown, it is set to false "
-            + "so the guide will never appear again on its own.")
-    public final V<Boolean> first_time = new V<>(true);
     private static final String STYLECLASS_TEXT = "guide-text";
     private final double ICON_SIZE = 40; // use css style instead
 
@@ -75,6 +72,11 @@ public final class Guide implements Configurable {
     private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));
     private Subscription action_monitoring;
     private final Label infoL = new Label();
+
+	@IsConfig(name = "Show guide on app start", info = "Show guide when application "
+		                                             + "starts. Default true, but when guide is shown, it is set to false "
+		                                             + "so the guide will never appear again on its own.")
+	public final V<Boolean> first_time = new V<>(true);
 
     public Guide() {
         text.setWrappingWidth(350);
@@ -452,6 +454,7 @@ public final class Guide implements Configurable {
         }
     }
 
+	@IsAction(name = "Open guide", desc = "Resume or start the guide.")
     public void open() {
         APP.actionStream.push("Guide opening");
         if (action_monitoring==null) start();

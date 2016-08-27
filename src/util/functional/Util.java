@@ -1106,6 +1106,11 @@ public interface Util {
         return l;
     }
 
+
+    static <T> StreamEx<T> stream() {
+        return StreamEx.empty();
+    }
+
     static <T> StreamEx<T> stream(T t) {
         return StreamEx.of(t);
     }
@@ -1124,18 +1129,22 @@ public interface Util {
     }
 
     static <T> StreamEx<T> stream(T o, Stream<T> t) {
-//        return Stream.concat(Stream.of(o), t);
         return StreamEx.of(o).append(t);
     }
 
     static <T> StreamEx<T> stream(T o, Collection<T> t) {
-//        return Stream.concat(Stream.of(o), t);
         return StreamEx.of(o).append(t);
     }
 
     static <T> StreamEx<T> stream(Collection<T> t) {
         return StreamEx.of(t);
-//        return t.stream();
+    }
+
+    static <T> StreamEx<T> stream(Iterator<T>  t) {
+        return StreamEx.of(t);
+    }
+    static <T> StreamEx<T> stream(Enumeration<T> t) {
+        return StreamEx.of(t);
     }
 
     static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {

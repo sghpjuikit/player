@@ -670,7 +670,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFiles(boolean add) {
-        List<File> files = Environment.chooseFiles("Choose Audio Files", PlaylistManager.browse, APP.windowOwner.getStage(), AudioFileFormat.filter(Use.PLAYBACK));
+        List<File> files = Environment.chooseFiles("Choose Audio Files", PlaylistManager.browse, APP.windowManager.windowOwner.getStage(), AudioFileFormat.filter(Use.PLAYBACK));
         if (files != null) {
             PlaylistManager.browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -692,7 +692,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void addOrEnqueueFolder(boolean add) {
         File dir = Environment.chooseFile("Choose Audio Files From Directory Tree",
-                DIRECTORY, PlaylistManager.browse, APP.windowOwner.getStage());
+                DIRECTORY, PlaylistManager.browse, APP.windowManager.windowOwner.getStage());
         if (dir != null) {
             PlaylistManager.browse = dir;
             List<URI> queue = new ArrayList<>();

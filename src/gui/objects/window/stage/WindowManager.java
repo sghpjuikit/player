@@ -23,6 +23,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import org.slf4j.Logger;
+
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -41,7 +43,6 @@ import main.App;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
-import util.action.IsActionable;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.conf.Configurable;
@@ -80,22 +81,22 @@ import static util.reactive.Util.maintain;
  * @author Martin Polakovic
  */
 @IsConfigurable("Window")
-@IsActionable
 public class WindowManager implements Configurable<Object> {
 
-	private static final org.slf4j.Logger LOGGER = log(WindowManager.class);
+	private static final Logger LOGGER = log(WindowManager.class);
 
-    // todo: remove & auto-crate from config annotation
-    @IsAction(name = "Mini mode", global = true, keys = "F9",
-              desc = "Dock auxiliary window with playback control to the screen edge")
-    private static void implToggleMini() {
-        APP.windowManager.toggleMini();
-    }
-
-
-    public final ObservableList<Window> windows = Window.WINDOWS;
-    public Window miniWindow;
-	private Window mainWindow;
+	/**
+	 * Window owner - all 'top' windows are owned by it, see {@link javafx.stage.Stage#getWindowOwner()}. Never null.
+	 */ public Window windowOwner;
+	/**
+	 * Main application window, see {@link gui.objects.window.stage.Window#isMain}. May be null.
+	 */ private Window mainWindow;
+	/**
+	 * Observable list of all application windows.
+	 */ public final ObservableList<Window> windows = Window.WINDOWS;
+	/**
+	 * Dock window. Null if not active.
+	 */ public Window miniWindow;
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
     public final V<Double> windowOpacity = new V<>(1d);
@@ -205,6 +206,7 @@ public class WindowManager implements Configurable<Object> {
         return w;
     }
 
+    @IsAction(name = "Open new window", desc = "Opens new application window")
     public Window createDefaultWindow() {
         return createDefaultWindow(false);
     }
@@ -259,6 +261,8 @@ public class WindowManager implements Configurable<Object> {
     }
 
 
+	// TODO: create dynamically from config annotation
+	@IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
     private void toggleMini() {
         setMini(!mini.get());
     }
@@ -454,7 +458,7 @@ public class WindowManager implements Configurable<Object> {
 		        ws.add(createDefaultWindow(true));
         } else {
             ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
-	        ws.forEach(w -> w.show());
+	        ws.forEach(Window::show);
             Widget.deserializeWidgetIO();
         }
     }

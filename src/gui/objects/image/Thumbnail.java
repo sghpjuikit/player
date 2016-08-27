@@ -601,7 +601,7 @@ public class Thumbnail extends ImageNode {
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
                         fc.setInitialDirectory(APP.DIR_APP);
-                    File f = fc.showSaveDialog(APP.windowOwner.getStage());
+                    File f = fc.showSaveDialog(APP.windowManager.windowOwner.getStage());
                     Util.writeImage(m.getValue(), f);
                 }),
                 menuItem("Copy the image to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE,m.getValue()))
@@ -638,7 +638,7 @@ public class Thumbnail extends ImageNode {
                     fc.setInitialFileName(f.getName());
                     fc.setInitialDirectory(APP.DIR_APP);
 
-                    File nf = fc.showSaveDialog(APP.windowOwner.getStage());
+                    File nf = fc.showSaveDialog(APP.windowManager.windowOwner.getStage());
                     if (nf!=null) {
                         try {
                             Files.copy(f.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);

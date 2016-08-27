@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * Denotes method that can be turned into an {@link Action}.
  * <p/>
- * Such method must be static and have zero parameters. There is no restriction
+ * Such method must have zero parameters. There is no restriction
  * to the access modifier and private method will work the same as public or one
  * with any other access modifier one.
  * <p/>
@@ -13,7 +13,7 @@ import java.lang.annotation.*;
  * Therefore multiple actions with different parameters of this annotation can
  * be derived from the method.
  * <p/>
- * In order for the method to be discovered the class the method resides within
+ * In order for the static method to be discovered the class the method resides within
  * must itself be annotated by {@link IsActionable} which auto-discovers the
  * class in order to scan it for action candidate methods.
  *
@@ -65,4 +65,5 @@ public @interface IsAction {
      * as key press. Default false.
      */
     boolean repeat() default false;
+
 }

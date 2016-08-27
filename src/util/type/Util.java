@@ -12,11 +12,13 @@ import java.util.function.Supplier;
 
 import javafx.beans.value.ObservableValue;
 
+import org.atteo.classindex.ClassIndex;
+
+import one.util.streamex.StreamEx;
 import unused.TriConsumer;
 
 import static util.dev.Util.log;
-import static util.functional.Util.isNoneØ;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
 
 /**
  * Reflection utility methods.
@@ -70,6 +72,20 @@ public interface Util {
             }
         }
     }
+
+/* ---------- REFLECTION - TYPE ------------------------------------------------------------------------------------- */
+
+	/**
+	 * Retrieves a list of classes annotated by given annotation.
+	 * Identical to {@link org.atteo.classindex.ClassIndex#getAnnotated(Class)}, but returns a
+	 * {@link java.util.stream.Stream} instead of {@link java.lang.Iterable}.
+	 *
+	 * @param annotation annotation to search class for
+	 * @return annotated classes
+	 */
+	static StreamEx<Class<?>> getAnnotated(Class<? extends Annotation> annotation) {
+		return stream(ClassIndex.getAnnotated(annotation).iterator());
+	}
 
 /* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
 

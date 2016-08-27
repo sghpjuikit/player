@@ -475,7 +475,7 @@ public class PopOver<N extends Node> extends PopupControl {
         setArrowSize(0); // disable arrow
 	    // TODO: do not use APP.windowOwner, instead create new hidden window and focus it, or closing this popup may
 	    // not return focus to whatever application had it before
-        showThis(null, pos.isAppCentric() && APP.windowManager.getActive().isPresent() ? APP.windowManager.getActive().map(w -> w.getStage()).get() : APP.windowOwner.getStage());
+        showThis(null, pos.isAppCentric() && APP.windowManager.getActive().isPresent() ? APP.windowManager.getActive().map(w -> w.getStage()).get() : APP.windowManager.windowOwner.getStage());
         position(pos.calcX(this), pos.calcY(this));
         if (!pos.isAppCentric()) uninstallMoveWith();
     }

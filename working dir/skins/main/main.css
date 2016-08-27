@@ -1257,7 +1257,9 @@
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
 .choice-box:focused,
-.text-input:focused {
+.text-input:focused,
+.custom-text-field,
+.custom-text-field:focused {
     -fx-background-color: rgba(235, 235, 235, 0.7),
                           rgba(0, 0, 0, 0.6),
                           rgba(255, 255, 255, 0.92);
@@ -3699,12 +3701,12 @@ check-icon-disabling:selected {
  * inherits: .text-field
  * pseudoclasses: edited (it is basically focused)
  */
-.text-field-config:edited {
-    -fx-text-fill: -fx-focus-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
-}
-
-.combobox-field-config:edited > .list-cell {
+.text-field-config:edited,
+.text-field-config:hover:edited,
+.text-field-config:focused:edited,
+.combobox-field-config:edited > .list-cell,
+.combobox-field-config:hover:edited > .list-cell,
+.combobox-field-config:focused:edited > .list-cell {
     -fx-text-fill: -fx-focus-color;
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }

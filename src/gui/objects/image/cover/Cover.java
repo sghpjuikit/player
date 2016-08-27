@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package gui.objects.image.cover;
 
 import java.io.File;
@@ -13,7 +7,7 @@ import javafx.scene.image.Image;
  *
  * @author Martin Polakovic
  */
- public interface Cover {
+public interface Cover {
     /**
      * Returns the cover image.
      */
@@ -39,7 +33,7 @@ import javafx.scene.image.Image;
      * Example: "jpg 500x500"
      * @return information about the cover or "" if not available. Never null.
      */
-    String getDestription();
+    String getDescription();
     
     /**
      * Cover is empty if it doestnt contain any resource that could be turned
@@ -48,7 +42,6 @@ import javafx.scene.image.Image;
      * @return 
      */
     boolean isEmpty();
-    
     
     enum CoverSource {
         /** use tag as cover source */

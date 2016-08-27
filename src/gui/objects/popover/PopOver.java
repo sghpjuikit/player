@@ -29,7 +29,6 @@ package gui.objects.popover;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
@@ -56,12 +55,12 @@ import gui.objects.window.stage.WindowBase;
 import util.SwitchException;
 
 import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
-import static java.util.Objects.requireNonNull;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
+import static util.dev.Util.noØ;
 import static util.functional.Util.isAny;
 import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
@@ -291,7 +290,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
     private final ObjectProperty<N> contentNode = new SimpleObjectProperty<>(this, "contentNode") {
         @Override public void setValue(N node) {
-            requireNonNull(node);
+	        noØ(node);
             super.setValue(node);
         }
     };
@@ -367,7 +366,7 @@ public class PopOver<N extends Node> extends PopupControl {
 /******************************************************************************/
 
     private void showThis(Node ownerNode, Window ownerWindow) {
-        Objects.requireNonNull(ownerWindow);
+	    noØ(ownerWindow);
         Screen s = getScreen(ownerWindow.getX()+ownerWindow.getWidth()/2, ownerWindow.getY()+ownerWindow.getHeight()/2);
         setMaxWidth(s.getBounds().getWidth());
         setMaxHeight(s.getBounds().getHeight());
@@ -529,9 +528,8 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 
     private void initializeMovingBehavior(boolean val) {
-        // throw exception if illegal state
-        Objects.requireNonNull(ownerWindow, "Error, popup window owner null"
-                + " while isShowing. Cant apply moving with owner behavior");
+	    noØ(ownerWindow, "Error, popup window owner null while isShowing. Cant apply moving with owner behavior");
+
         // install/uninstall correct 'mode'
         if (val) {
             if (ownerNode!=null) installMoveWithNode(ownerNode); // node mode

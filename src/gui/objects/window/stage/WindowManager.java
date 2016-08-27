@@ -35,6 +35,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.window.stage.WindowBase.Maximized;
+import layout.Component;
 import layout.container.layout.Layout;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
@@ -165,8 +166,8 @@ public class WindowManager implements Configurable<Object> {
 		return getFocused().or(this::getMain);
     }
 
-    public Window getActiveOrDefault() {
-	    return getActive().orElseGet(this::createDefaultWindow);
+    public Window getActiveOrNew() {
+	    return getActive().orElseGet(this::createWindow);
     }
 
     public Window create() {
@@ -206,33 +207,41 @@ public class WindowManager implements Configurable<Object> {
         return w;
     }
 
-    @IsAction(name = "Open new window", desc = "Opens new application window")
-    public Window createDefaultWindow() {
-        return createDefaultWindow(false);
-    }
+	public Window createWindowOwner() {
+		Window w = new Window();
+		w.getStage().initStyle(UTILITY);
+		w.s.setOpacity(0);
+		w.s.setScene(new Scene(new Region()));
+		((Region)w.s.getScene().getRoot()).setBackground(null);
+		w.s.getScene().setFill(null);
+		w.s.setTitle(APP.name);
+		w.s.getIcons().add(APP.getIcon());
+		w.setSize(20, 20);
+		return w;
+	}
 
-    private Window createDefaultWindow(boolean canBeMain) {
+    private Window createWindow(boolean canBeMain) {
 	    LOGGER.debug("Creating default window");
 	    Window w = create(canBeMain);
 	    w.setXYSizeInitial();
 	    w.initLayout();
 	    w.update();
 	    w.show();
+	    w.setScreen(getScreen(APP.mouseCapture.getMousePosition()));
+	    w.setXYScreenCenter();
 	    return w;
     }
 
-    public Window createWindowOwner() {
-        Window w = new Window();
-                   w.getStage().initStyle(UTILITY);
-                   w.s.setOpacity(0);
-                   w.s.setScene(new Scene(new Region()));
-                   ((Region)w.s.getScene().getRoot()).setBackground(null);
-                   w.s.getScene().setFill(null);
-                   w.s.setTitle(APP.name);
-                   w.s.getIcons().add(APP.getIcon());
-                   w.setSize(20, 20);
-        return w;
-    }
+	@IsAction(name = "Open new window", desc = "Opens new application window")
+	public Window createWindow() {
+		return createWindow(false);
+	}
+
+	public Window createWindow(Component widget) {
+		Window w = createWindow();
+		w.setContent(widget);
+		return w;
+	}
 
     private void setAsMain(Window w) {
         no(mainWindow!=null, "Only one window can be main window");
@@ -455,7 +464,7 @@ public class WindowManager implements Configurable<Object> {
         // show windows
         if (ws.isEmpty()) {
         	if(load_normally)
-		        ws.add(createDefaultWindow(true));
+		        ws.add(createWindow(true));
         } else {
             ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
 	        ws.forEach(Window::show);

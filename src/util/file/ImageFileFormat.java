@@ -1,10 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.file;
 
 import java.io.File;
@@ -18,10 +11,11 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 import one.util.streamex.StreamEx;
 
+import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
 
 /**
- * All image filetypes known and supported by application except for UNKNOWN that
+ * All image file types known and supported by application except for UNKNOWN that
  * serves as a marker for all the other file types.
  * Any operation with unsupported file will produce undefined behavior.
  */
@@ -80,7 +74,7 @@ public enum ImageFileFormat {
      * @return
      */
     public static boolean isSupported(File file) {
-        Objects.requireNonNull(file);
+	    noØ(file);
         return of(file.toURI()).isSupported();
     }
 
@@ -124,7 +118,7 @@ public enum ImageFileFormat {
     }
 
     public static List<ImageFileFormat> supportedValues() {
-        List<ImageFileFormat> ext = new ArrayList();
+        List<ImageFileFormat> ext = new ArrayList<>();
         for (ImageFileFormat format: values()) {
             if (format.isSupported())
                 ext.add(format);
@@ -139,7 +133,7 @@ public enum ImageFileFormat {
 
     // List of supported extension strings in the format: '*.extension'
     private static List<String> exts() {
-        List<String> ext = new ArrayList();
+        List<String> ext = new ArrayList<>();
         for (ImageFileFormat format: supportedValues()) {
             if (format.isSupported())
                 ext.add(format.toExt());

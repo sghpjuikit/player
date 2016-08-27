@@ -20,7 +20,6 @@ import layout.*;
 import layout.container.Container;
 import layout.container.bicontainer.BiContainer;
 import layout.widget.Widget;
-import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import gui.objects.icon.Icon;
 import util.animation.Anim;
@@ -240,7 +239,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         Component c = container;
         c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
-        Window w = UiContext.showWindow(c);
+        Window w = APP.windowManager.createWindow(c);
         // set size to that of a source (also add header & border space)
         w.setSize(root.getWidth()+10, root.getHeight()+30);
     }

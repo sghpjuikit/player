@@ -115,7 +115,7 @@ public class ClickEffect extends ServiceBase {
         screen.setPickOnBounds(false);
 
         runLater(() -> {
-            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrDefault().getStage().getScene().getRoot();
+            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrNew().getStage().getScene().getRoot();
             if (p!=null) {
                 p.getChildren().add(screen);
                 setAnchors(screen,0d);
@@ -133,7 +133,7 @@ public class ClickEffect extends ServiceBase {
         isRunning = false;
 
         runLater(() -> {
-            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrDefault().getStage().getScene().getRoot();
+            AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrNew().getStage().getScene().getRoot();
             if (p!=null) {
                 p.getChildren().remove(screen);
                 screen = null;

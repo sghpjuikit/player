@@ -16,9 +16,9 @@ import org.reactfx.Subscription;
 import util.dev.TODO;
 import util.reactive.ValueEventSource;
 
-import static java.util.Objects.requireNonNull;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.CRITICAL;
+import static util.dev.Util.noØ;
 import static util.functional.Util.listRO;
 
 /**
@@ -69,7 +69,7 @@ public class CascadingStream<E> {
     public E getValue(int i) {
         link(i);
         ValueEventSource<E> s = map.get(i);
-        requireNonNull(s);
+	    noØ(s);
         return s.getValue();
     }
     

@@ -1,8 +1,3 @@
-    /** {@inheritDoc} */    /** {@inheritDoc} *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.collections.map;
 
 import java.util.ArrayList;
@@ -10,10 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
+import static java.util.stream.Collectors.toCollection;
+
+    /**
 More specific cache map using {@link ArrayList} as a cache bucket/accumulation
 container.
 <p/>
@@ -28,7 +24,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
 
     /** Creates collection map with {@link ArrayList} list cache buckets. */
     public ListMap(Function<E,K> keyMapper) {
-        super(keyMapper, () -> new ArrayList(), (e,cache) -> cache.add(e));
+        super(keyMapper, ArrayList::new, (e, cache) -> cache.add(e));
     }
 
     public ListMap(Supplier<List<E>> cacheFactory, Function<E,K> keyMapper) {
@@ -76,6 +72,6 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
      */
     public List<E> getElementsOf(Stream<K> keys) {
         return keys.map(this::get).filter(c -> c!=null)
-                   .flatMap(c->c.stream()).collect(Collectors.toCollection(cacheFactory));
+                   .flatMap(Collection::stream).collect(toCollection(cacheFactory));
     }
 }

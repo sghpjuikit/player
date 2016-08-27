@@ -118,7 +118,7 @@ public final class Guide implements Configurable {
              "\n\nBut first let's play some music.",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
-                SwitchContainer la = APP.windowManager.getActiveOrDefault().getSwitchPane().container;
+                SwitchContainer la = APP.windowManager.getActiveOrNew().getSwitchPane().container;
                 // prepare container
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
@@ -264,7 +264,7 @@ public final class Guide implements Configurable {
            + "\n\t• Left click: go 'down' - visit children"
            + "\n\n Try out container navigation:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window w = APP.windowManager.getActiveOrDefault();
+                 Window w = APP.windowManager.getActiveOrNew();
                  int i = w.getTopContainer().getEmptySpot();
                  w.getTopContainer().ui.alignTab(i);
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
@@ -335,7 +335,7 @@ public final class Guide implements Configurable {
            + "the mouse within the area can still activate different area (child area)."
            + "\n\nYou can start the tutorial below:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window wd = APP.windowManager.getActiveOrDefault();
+                 Window wd = APP.windowManager.getActiveOrNew();
                  int i = wd.getTopContainer().getEmptySpot();
                  wd.getTopContainer().ui.alignTab(i);
 

@@ -84,7 +84,7 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
     @return list containing of all cache buckets / accumulation
     containers assigned to keys in the given collection. */
     public List<C> getCacheOf(Collection<K> keys) {
-        List<C> out = new ArrayList();
+        List<C> out = new ArrayList<>();
         for (K k : keys) {
             C c = get(k);
             if (c!=null) out.add(c);

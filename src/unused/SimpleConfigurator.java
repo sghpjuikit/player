@@ -1,9 +1,7 @@
-
 package unused;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javafx.event.Event;
@@ -22,14 +20,15 @@ import util.conf.Configurable;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static javafx.scene.input.KeyCode.ENTER;
+import static util.dev.Util.noØ;
 import static util.functional.Util.byNC;
 import static util.functional.Util.stream;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 
- * {@link Configurable}.
+ * {@link util.conf.Configurable}.
  * <p/>
- * When OK button is clicked all changed {@ConfigField}s with unapplied values
+ * When OK button is clicked all changed {@link gui.itemnode.ConfigField}s with unapplied values
  * will be set and applied. Then the specified behavior is executed.
  * 
  * @param <T> Specifies generic type of Configurable for this component. Only
@@ -40,7 +39,7 @@ import static util.functional.Util.stream;
  * OK button callback. The configurable is provided as a parameter and if this
  * object is generic it will provide correct configurable returning correct
  * values without type casting.
- * @see Configurable  
+ * @see util.conf.Configurable
  * @author Martin Polakovic
  */
 public class SimpleConfigurator<T> extends AnchorPane {
@@ -76,7 +75,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
      */
     @SafeVarargs
     public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
-        Objects.requireNonNull(c);
+	    noØ(c);
         
         configurable = c;
         onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));

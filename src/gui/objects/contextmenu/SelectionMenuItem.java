@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.contextmenu;
 
 import java.util.List;
@@ -64,7 +59,7 @@ public class SelectionMenuItem extends Menu {
 
         // hide open submenu arrow if no children
         getStyleClass().add(NO_CHILDREN_STYLECLASS);
-        getItems().addListener(new ListChangeListener<MenuItem>() {
+        getItems().addListener(new ListChangeListener<>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends MenuItem> c) {
                 ObservableList<String> sc = getStyleClass();
@@ -82,7 +77,7 @@ public class SelectionMenuItem extends Menu {
      * @param text text of this menu item
      * @param s initial selection state
      * @param sh selection listener to add. Equivalent to:
-     * {@code selected.addListener((o,oldv,newv) -> sel_han.accept(newv)); }
+     * {@code selected.addListener((o,ov,nv) -> sel_han.accept(nv)); }
      */
     public SelectionMenuItem(String text, boolean s, Consumer<Boolean> sh) {
         this(text, s);

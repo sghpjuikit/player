@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package gui.objects.image.cover;
 
 import java.io.File;
@@ -14,11 +8,13 @@ import javafx.scene.image.Image;
 import gui.objects.image.Thumbnail;
 import util.Util;
 
+import static util.dev.Util.noØ;
+
 /**
- * Denotes Cover represented by a {@link File}.
+ * Denotes Cover represented by a {@link java.io.File}.
  * <p/>
  * This class is fully polymorphic
- * Should never be used directly but instead use the {@Cover} interface
+ * Should never be used directly but instead use the {@link gui.objects.image.cover.Cover} interface
  * and leverage polymorphism.
  *
  * @author Martin Polakovic
@@ -28,19 +24,17 @@ public class FileCover implements Cover {
     private final String info;
 
     public FileCover(File image, String description) {
-        Objects.requireNonNull(description);
+	    noØ(description);
 
         this.file = image;
         this.info = description;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Image getImage() {
         return file==null ? null : new Image(file.toURI().toString());
     }
 
-    /** {@inheritDoc} */
     @Override
     public Image getImage(double width, double height) {
         Image cached = Thumbnail.getCached(file, width, width);
@@ -48,7 +42,6 @@ public class FileCover implements Cover {
         return file==null ? null : Util.loadImage(file, width, height);
     }
 
-    /** {@inheritDoc} */
     @Override
     public File getFile() {
         return file;
@@ -59,9 +52,8 @@ public class FileCover implements Cover {
         return file != null;
     }
 
-    /** {@inheritDoc} */
     @Override
-    public String getDestription() {
+    public String getDescription() {
         return info;
     }
 
@@ -82,6 +74,5 @@ public class FileCover implements Cover {
         hash = 43 * hash + Objects.hashCode(this.file);
         return hash;
     }
-
 
 }

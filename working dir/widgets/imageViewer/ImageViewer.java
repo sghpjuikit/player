@@ -347,7 +347,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     private void dataChanged(File i) {
         // calculate new location
         File new_folder = i;
-        // prevent refreshing location if shouldnt
+        // prevent refreshing location if should not
         if (keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
@@ -360,7 +360,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                    t.setDaemon(true);
                    return t;
         });
-        List<Runnable> l = new ArrayList();
+        List<Runnable> l = new ArrayList<>();
         boolean executing = false;
 
         public void run(Runnable r) {

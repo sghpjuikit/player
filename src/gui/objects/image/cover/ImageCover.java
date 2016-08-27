@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package gui.objects.image.cover;
 
 import java.awt.image.BufferedImage;
@@ -13,11 +7,13 @@ import java.util.Objects;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
+import static util.dev.Util.noØ;
+
 /**
- * Denotes Cover represented by a {@link Image} or {@link BufferedImage}.
+ * Denotes Cover represented by a {@link javafx.scene.image.Image} or {@link java.awt.image.BufferedImage}.
  * <p/>
  * This class is fully polymorphic
- * Should never be used directly but instead use the {@Cover} interface
+ * Should never be used directly but instead use the {@link gui.objects.image.cover.Cover} interface
  * and leverage polymorphism.
  * 
  * @author Martin Polakovic
@@ -28,7 +24,7 @@ public class ImageCover implements Cover {
     private final String info;
     
     public ImageCover(Image image, String description) {
-        Objects.requireNonNull(description);
+	    noØ(description);
         
         this.imageI = image;
         this.imageB = null;
@@ -36,26 +32,23 @@ public class ImageCover implements Cover {
     }
     
     public ImageCover(BufferedImage image, String description) {
-        Objects.requireNonNull(description);
+	    noØ(description);
         
         this.imageB = image;
         this.imageI = null;
         this.info = description;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Image getImage() {
         return imageB==null ? imageI : SwingFXUtils.toFXImage(imageB, null);
     }
     
-    /** {@inheritDoc} */
     @Override
     public Image getImage(double width, double height) {
         return getImage();
     }
 
-    /** {@inheritDoc} */
     @Override
     public File getFile() {
         return null;
@@ -66,9 +59,8 @@ public class ImageCover implements Cover {
         return imageB!=null && imageI!=null;
     }
 
-    /** {@inheritDoc} */
     @Override
-    public String getDestription() {
+    public String getDescription() {
         return info;
     }
 
@@ -93,6 +85,5 @@ public class ImageCover implements Cover {
         hash = 37 * hash + Objects.hashCode(this.imageB);
         return hash;
     }
-    
     
 }

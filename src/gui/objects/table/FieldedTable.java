@@ -38,7 +38,6 @@ import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 
-import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
@@ -46,6 +45,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static main.App.Build.appTooltip;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.type.Util.getEnumConstants;
 import static util.type.Util.invokeMethodP0;
@@ -173,7 +173,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public void setColumnState(TableColumnInfo state) {
-        requireNonNull(state);
+	    noØ(state);
 
         List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
         state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {

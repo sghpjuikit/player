@@ -44,7 +44,6 @@ import static java.lang.Double.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import static java.time.Duration.ofMillis;
-import static java.util.Objects.requireNonNull;
 import static javafx.beans.binding.Bindings.notEqual;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -58,6 +57,7 @@ import static util.Util.clip;
 import static util.animation.Anim.mapConcave;
 import static util.animation.Anim.mapTo01;
 import static util.async.Async.run;
+import static util.dev.Util.noØ;
 import static util.functional.Util.minBy;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
@@ -181,7 +181,7 @@ public final class Seeker extends AnchorPane {
                 seeker.setScaleY(1+3*p2);
             })
            .intpl(new CircularInterpolator()).delay(150);
-        onHoverChanged(v -> sa.playFromDir(v));
+        onHoverChanged(sa::playFromDir);
     }
 
     // we override this to conveniently layout chapters
@@ -276,7 +276,7 @@ public final class Seeker extends AnchorPane {
      * @throws NullPointerException if parameter null
      */
     public void reloadChapters(Metadata m) {
-        requireNonNull(m);
+	    noØ(m);
 
         // clear
         getChildren().removeAll(chapters);
@@ -471,7 +471,7 @@ public final class Seeker extends AnchorPane {
         }
 
         void select(Chap c) {
-            Runnable oc = selectChapOnHover.getValue() ? ()-> c.showPopup() : null; // open chap
+            Runnable oc = selectChapOnHover.getValue() ? c::showPopup : null; // open chap
             selectedChap = c;
             setCenterX(c.getCenterX());             // move this to chapter
             select.playOpen();                      // animate this
@@ -539,7 +539,7 @@ public final class Seeker extends AnchorPane {
         }
 
         public void showPopup() {
-            hover.playOpenDo(popupChapters ? () -> showPopupReal() : null);
+            hover.playOpenDo(popupChapters ? this::showPopupReal : null);
         }
 
         public void hidePopup() {

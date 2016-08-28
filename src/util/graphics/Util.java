@@ -714,22 +714,36 @@ public interface Util {
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
+	/**
+	 * @return the latest mouse position
+	 */
+	static Point2D getMousePosition() {
+		Point p = MouseInfo.getPointerInfo().getLocation();
+		return new Point2D(p.getX(), p.getY());
+	}
+
     /** Returns screen containing the given coordinates. Never null. */
     static Screen getScreen(Point2D p) {
         return getScreen(p.getX(), p.getY());
     }
 
-    /** Returns screen containing the given coordinates. Never null. */
-    static Screen getScreen(double x, double y) {
-	    // TODO: jigsaw
-        // rely on official util (someone hid it..., good work genius)
-        // return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+	/** Returns screen containing the given coordinates. Never null. */
+	static Screen getScreen(double x, double y) {
+		// TODO: jigsaw
+		// rely on official util (someone hid it..., good work genius)
+		// return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 
-        for (Screen scr : Screen.getScreens())
-            if (scr.getBounds().intersects(x,y,1,1))
-                return scr;
-        return Screen.getPrimary();
-    }
+		for (Screen scr : Screen.getScreens())
+			if (scr.getBounds().intersects(x,y,1,1))
+				return scr;
+		return Screen.getPrimary();
+	}
+
+	/** Returns screen containing the given coordinates. Never null. */
+	static Screen getScreenForMouse() {
+		Point2D mouse = getMousePosition();
+		return getScreen(mouse.getX(), mouse.getY());
+	}
 
     /** Captures screenshot of the entire screen and runs custom action on fx thread. */
     static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
@@ -776,5 +790,4 @@ public interface Util {
             }
         });
     }
-
 }

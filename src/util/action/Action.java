@@ -35,14 +35,12 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
-import util.functional.Util;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
 import static util.dev.Util.log;
-import static util.functional.Util.do_NOTHING;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
 import static util.reactive.Util.executeWhenNonNull;
 import static util.reactive.Util.listChangeHandler;
 
@@ -630,10 +628,10 @@ public final class Action extends Config<Action> implements Runnable {
     private static <T> Stream<Action> gatherActions(Class<? extends T> type, T instance) {
     	boolean findInstance = instance != null;
 	    Lookup method_lookup = MethodHandles.lookup();
-	    return Util.stream(type.getDeclaredMethods())
+	    return stream(type.getDeclaredMethods())
 			.mapToEntry(m -> m, m -> Modifier.isStatic(m.getModifiers()))
        	    .filterValues(isStatic -> findInstance ^ isStatic)
-			.flatMapKeyValue((m,isStatic) ->  Util.stream(m.getAnnotationsByType(IsAction.class))
+			.flatMapKeyValue((m,isStatic) ->  stream(m.getAnnotationsByType(IsAction.class))
 					.map(a -> {
 						if (m.getParameters().length > 0)
 							throw new RuntimeException("Action Method must have 0 parameters!");
@@ -678,7 +676,7 @@ public final class Action extends Config<Action> implements Runnable {
 	    // file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason
 	    boolean generateTemplate = count<1 && !file.exists();
 	    if (generateTemplate)
-		    APP.serializators.toXML(Util.stream(new Command()).toCollection(Commands::new), file)
+		    APP.serializators.toXML(stream(new Command()).toCollection(Commands::new), file)
 			    .ifError(e -> log(Action.class).error("Could not save command actions", e));
     }
 

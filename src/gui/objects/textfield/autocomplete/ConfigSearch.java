@@ -21,6 +21,7 @@ import gui.objects.window.stage.UiContext;
 import layout.widget.WidgetFactory;
 import util.action.Action;
 import util.conf.Config;
+import util.functional.Functors.Ƒ0;
 
 import static main.App.Build.appTooltip;
 import static util.Util.containsNoCase;
@@ -53,7 +54,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
         		String text = s.getUserText();
 		        String[] phrases = text.split(" ");
         		return stream(searchTargets).flatMap(Supplier::get)
-			               .filter(f -> stream(phrases).allMatch(phrase -> containsNoCase(f.getName(), phrase)))
+			               .filter(f -> stream(phrases).allMatch(phrase -> containsNoCase(f.getSearchText(), phrase)))
 			               .sorted(by(Entry::getName))
 			               .toList();
 	        },
@@ -81,8 +82,11 @@ public class ConfigSearch extends AutoCompletion<Entry> {
                                         default   : break;
                                     }
                                 } else if (e.getCode()==KeyCode.BACK_SPACE) {
-                                    textField.deletePreviousChar();
-                                    e.consume();
+	                                textField.deletePreviousChar();
+	                                e.consume();
+                                } else if (e.getCode()==KeyCode.DELETE) {
+	                                textField.deleteNextChar();
+	                                e.consume();
                                 } else if (!e.getCode().isNavigationKey()) {
                                 	// TODO: remove
                                     // We re-fire event on text field so we can type even though it
@@ -175,7 +179,23 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     }
     public interface Entry extends Runnable {
 
-    	static <T> Entry of(Config<T> config) {
+	    static Entry of(Ƒ0<String> nameΛ, Runnable runΛ) {
+		    return new ΛEntry(nameΛ, nameΛ, () -> null, runΛ);
+	    }
+
+	    static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Runnable runΛ) {
+		    return new ΛEntry(nameΛ, infoΛ, () -> null, runΛ);
+	    }
+
+	    static Entry of(Ƒ0<String> nameΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+		    return new ΛEntry(nameΛ, nameΛ, graphicsΛ, runΛ);
+	    }
+
+	    static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+		    return new ΛEntry(nameΛ, infoΛ, graphicsΛ, runΛ);
+	    }
+
+    	static Entry of(Config<?> config) {
     	    return new ConfigEntry(config);
 	    }
 
@@ -183,83 +203,126 @@ public class ConfigSearch extends AutoCompletion<Entry> {
     	    return new SimpleEntry(
                 "Open widget " + f.nameGui(),
 				"Open widget " + f.nameGui() + "\n\n" + "Opens the widget in new window.",
-                () -> () -> UiContext.launchComponent(f.name())
+                () -> UiContext.launchComponent(f.name())
 	        );
 	    }
 
 	    String getName();
+	    default String getSearchText() {
+	        return getName();
+	    }
 	    default String getInfo() {
-		    return "";
+		    return getName();
 	    }
 	    default Node getGraphics() {
 	    	return null;
 	    }
-    }
-    private static class SimpleEntry implements Entry {
-    	private final String name;
-    	private final String info;
-    	private final Supplier<Runnable> actionLazy;
 
-	    SimpleEntry(String name, String info, Supplier<Runnable> actionLazy) {
-		    this.name = name;
-		    this.info = info;
-		    this.actionLazy = actionLazy;
+	    class ΛEntry implements Entry {
+		    private final Ƒ0<String> nameΛ;
+		    private final Ƒ0<String> infoΛ;
+		    private final Ƒ0<Node> graphicsΛ;
+		    private final Runnable runΛ;
+
+		    public ΛEntry(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<Node> graphicsΛ, Runnable runΛ) {
+			    this.nameΛ = nameΛ;
+			    this.infoΛ = infoΛ;
+			    this.graphicsΛ = graphicsΛ;
+			    this.runΛ = runΛ;
+		    }
+
+		    @Override
+		    public String getName() {
+			    return nameΛ.get();
+		    }
+
+		    @Override
+		    public void run() {
+			    runΛ.run();
+		    }
+
+		    @Override
+		    public String getInfo() {
+			    return infoΛ.get();
+		    }
+
+		    @Override
+		    public Node getGraphics() {
+			    return graphicsΛ.get();
+		    }
 	    }
+	    class SimpleEntry implements Entry {
+		    private final String name;
+		    private final String info;
+		    private final Runnable action;
 
-	    @Override
-	    public String getName() {
-		    return name;
+		    SimpleEntry(String name, String info, Runnable action) {
+			    this.name = name;
+			    this.info = info;
+			    this.action = action;
+		    }
+
+		    @Override
+		    public String getName() {
+			    return name;
+		    }
+
+		    @Override
+		    public void run() {
+			    if (action!=null) action.run();
+		    }
 	    }
+	    class ConfigEntry implements Entry {
+		    public final Config<?> config;
+		    private boolean loaded = false;
+		    private Node graphics;
 
-	    @Override
-	    public void run() {
-			Runnable a = actionLazy.get();
-		    if (a!=null) a.run();
-	    }
-    }
-	private static class ConfigEntry implements Entry {
-        public final Config<?> config;
-        private boolean loaded = false;
-        private Node graphics;
+		    ConfigEntry(Config<?> config) {
+			    this.config = config;
+		    }
 
-        ConfigEntry(Config<?> config) {
-            this.config = config;
-        }
+		    @Override
+		    public String getName() {
+			    return config.getGroup() + "." + config.getGuiName();
+		    }
 
-	    @Override
-        public String getName() {
-            return config.getGroup() + "." + config.getGuiName();
-        }
+		    @Override
+		    public String getSearchText() {
+			    return Action.class.isAssignableFrom(config.getType())
+				           ? getName() + Action.class.cast(config).getKeys()
+				           : getName();
+		    }
 
-	    @Override
-	    public String getInfo() {
-		    return getName() + "\n\n" + config.getInfo();
-	    }
+		    @Override
+		    public String getInfo() {
+			    return getName() + "\n\n" + config.getInfo();
+		    }
 
-	    @Override
-        public Node getGraphics() {
-            if (loaded) return graphics;
+		    @Override
+		    public Node getGraphics() {
+			    if (loaded) return graphics;
 
-            if (config.getType()==Action.class && ((Action)config).hasKeysAssigned()) {
-                graphics = new Label(((Action)config).getKeys());
-                ((Label)graphics).setTextAlignment(TextAlignment.RIGHT);
-            } else {
-                graphics = config.getType()==Boolean.class || config.isTypeEnumerable()
-                        ? ConfigField.create(config).getNode()
-                        : null;
-            }
+			    if (config.getType()==Action.class && ((Action)config).hasKeysAssigned()) {
+				    graphics = new Label(((Action)config).getKeys());
+				    ((Label)graphics).setTextAlignment(TextAlignment.RIGHT);
+			    } else {
+				    graphics = config.getType()==Boolean.class || config.isTypeEnumerable()
+					               ? ConfigField.create(config).getNode()
+					               : null;
+			    }
 
-            loaded = true;
-            return graphics;
-        }
+			    loaded = true;
+			    return graphics;
+		    }
 
-	    @Override
-	    public void run() {
-		    if (Runnable.class.isAssignableFrom(config.getClass()))
-			    ((Runnable)config).run();
-		    else
-		    if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue() != null)
-			    ((Runnable)config.getValue()).run();
+		    @Override
+		    public void run() {
+			    if (Runnable.class.isAssignableFrom(config.getClass()))
+				    ((Runnable)config).run();
+			    else
+			    if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue() != null)
+				    ((Runnable)config.getValue()).run();
+		    }
 	    }
     }
     private static class EntryListCell extends ListCell<Entry> {

@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.access.fieldvalue;
 
 import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * Value that has can list its possible values, which it is restricted to.
+ * Value that is included in an enume can list its possible values, which it is restricted to.
  */
 public interface EnumerableValue<T> {
     
@@ -18,7 +13,7 @@ public interface EnumerableValue<T> {
      */
     Collection<T> enumerateValues();
 
-	default Stream<T> stream() {
+	default Stream<T> streamValues() {
 		return enumerateValues().stream();
 	}
 }

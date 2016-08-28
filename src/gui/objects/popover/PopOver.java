@@ -64,6 +64,7 @@ import static util.dev.Util.noØ;
 import static util.functional.Util.isAny;
 import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
+import static util.graphics.Util.getScreenForMouse;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
@@ -877,8 +878,10 @@ public class PopOver<N extends Node> extends PopupControl {
 
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.windowManager.getMain().map(w -> w.getStage()).orElse(null), this); // I have doubts about this
-//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this); // use this instead
+            Rectangle2D screen = isAppCentric()
+	            ? null
+	            : getScreenForMouse().getBounds();
+//				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
             WindowBase app = APP.windowManager.getMain().orElse(null);
             switch(this) {
                 case App_Top_Left:
@@ -894,10 +897,13 @@ public class PopOver<N extends Node> extends PopupControl {
                 default: throw new SwitchException(this);
             }
         }
+
         public double calcY(PopOver popup) {
             double H = popup.getSkinn().root.getHeight();
-            Rectangle2D screen = popup.screen_preference.getScreenArea(APP.windowManager.getMain().map(w -> w.getStage()).orElse(null), this); // I have doubts about this
-//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this); // use this instead
+	        Rectangle2D screen = isAppCentric()
+                 ? null
+				 : getScreenForMouse().getBounds();
+//				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
 	        WindowBase app = APP.windowManager.getMain().orElse(null);
             switch(this) {
                 case App_Bottom_Left:
@@ -938,27 +944,28 @@ public class PopOver<N extends Node> extends PopupControl {
         public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
             Rectangle2D psb = ps.getBounds();
-            if (this==MAIN || (this==APP_WINDOW && w==null)) return ps.getBounds();
-            if (this==APP_WINDOW)
-                return getScreen(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
-            else {
-                List<Screen> ss = Screen.getScreens();
-                Rectangle2D left = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinX()).orElse(psb);
-                Rectangle2D right = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxX()).orElse(psb);
-                switch(pos) {
-                    case Screen_Bottom_Left:
-                    case Screen_Top_Left: return left;
-                    case Screen_Bottom_Right:
-                    case Screen_Top_Right: return right;
-                    case Screen_Center: {
-                        Rectangle2D top = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinY()).orElse(psb);
-                        Rectangle2D bottom = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxY()).orElse(psb);
-                        return new Rectangle2D(left.getMinX(),top.getMinY(),
-                                               right.getMaxX()-left.getMinX(),
-                                               bottom.getMaxY()-top.getMinY());
-                    }
-                    default: return null;
+            if (this==MAIN)
+            	return ps.getBounds();
+            if (this==APP_WINDOW) {
+	            Screen s = w == null ? getScreenForMouse() : getScreen(w.getX() + w.getWidth() / 2, w.getY() + w.getHeight() / 2);
+	            return s.getBounds();
+            }
+            List<Screen> ss = Screen.getScreens();
+            Rectangle2D left = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinX()).orElse(psb);
+            Rectangle2D right = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxX()).orElse(psb);
+            switch(pos) {
+                case Screen_Bottom_Left:
+                case Screen_Top_Left: return left;
+                case Screen_Bottom_Right:
+                case Screen_Top_Right: return right;
+                case Screen_Center: {
+                    Rectangle2D top = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinY()).orElse(psb);
+                    Rectangle2D bottom = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxY()).orElse(psb);
+                    return new Rectangle2D(left.getMinX(),top.getMinY(),
+                                           right.getMaxX()-left.getMinX(),
+                                           bottom.getMaxY()-top.getMinY());
                 }
+                default: return null;
             }
         }
     }

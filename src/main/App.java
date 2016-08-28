@@ -250,14 +250,27 @@ public class App extends Application implements Configurable {
      * and get notified if the expected action was executed.
      * <p/>
      * Running an {@link Action} always fires an event.
-     * Supports custom actions. Simply push a String value into the stream.
+     * <p/>
+     * Usage: simply push a String value into the stream.
      */ public final EventSource<String> actionStream = new EventSource<>();
-    public final AppInstanceComm appCommunicator = new AppInstanceComm();
-    public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-    public final AppSerializer serializators = new AppSerializer(encoding);
-    public final Configuration configuration = new Configuration();
-    public final MouseCapture mouseCapture = new MouseCapture();
-    /** {@link System#out} provider. Allows multiple parties to observe it.. */ public final SystemOutListener systemout = new SystemOutListener();
+	/**
+	 * Allows sending and receiving {@link java.lang.String} messages to and from other instances of this application.
+	 */ public final AppInstanceComm appCommunicator = new AppInstanceComm();
+	/**
+	 * Handles application parameters as commands
+	 */ public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
+	/**
+	 * Serializators and deserializators, e.g., to save object into a file.
+	 */ public final AppSerializer serializators = new AppSerializer(encoding);
+	/**
+	 * Configurable state, i.e., the settings of the application.
+	 */ public final Configuration configuration = new Configuration();
+	/**
+	 * System mouse monitor.
+	 */ public final MouseCapture mouseCapture = new MouseCapture();
+    /**
+     * Observable {@link System#out}
+     */ public final SystemOutListener systemout = new SystemOutListener();
 
     public final TaskBar taskbarIcon = new TaskBar();
     public final ActionPane actionPane = new ActionPane();
@@ -279,10 +292,18 @@ public class App extends Application implements Configurable {
     public boolean initialized = false;
     private boolean close_prematurely = false;
 
-    public final WindowManager windowManager = new WindowManager();
-    public final WidgetManager widgetManager = new WidgetManager(windowManager);
-    public final ServiceManager services = new ServiceManager();
-    public final PluginMap plugins = new PluginMap();
+	/**
+	 * Manages windows.
+	 */ public final WindowManager windowManager = new WindowManager();
+	/**
+	 * Manages widgets.
+	 */ public final WidgetManager widgetManager = new WidgetManager(windowManager);
+	/**
+	 * Manages services.
+	 */ public final ServiceManager services = new ServiceManager();
+	/**
+	 * Manages plugins.
+	 */ public final PluginMap plugins = new PluginMap();
 
     public final ClassName className = new ClassName();
     public final InstanceName instanceName = new InstanceName();
@@ -1241,24 +1262,7 @@ public class App extends Application implements Configurable {
 		    new ConfigSearch(tf, APP.configSearchHistory,
 			    () -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
                 () -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
-                () -> Gui.skin.stream().map(s -> new ConfigSearch.Entry() {
-	                @Override
-	                public String getName() {
-		                return "Open skin: " + s;
-	                }
-	                @Override
-	                public String getInfo() {
-		                return "Open skin: " + s;
-	                }
-	                @Override
-	                public Node getGraphics() {
-		                return new Icon(MaterialIcon.BRUSH);
-	                }
-	                @Override
-	                public void run() {
-		                Gui.skin.setNapplyValue(s);
-	                }
-                })
+                () -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		    );
 		    PopOver<TextField> p = new PopOver<>(tf);
 		    p.title.set("Search for an action or option");
@@ -1285,11 +1289,8 @@ public class App extends Application implements Configurable {
 		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
 		    p.getContentNode().focusFirstConfigField();
 		    p.getContentNode().hideOnOk.setValue(true);
-		    if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
-			    run(200, () -> {
-				    p.getOwnerWindow().requestFocus();
-			    });
-		    }
+		    if (!isFocused)   // TODO: remove this by incorporating it into PopOver#show()
+			    run(200, () -> p.getOwnerWindow().requestFocus());
 	    }
 
 	    static void printAllImageFileMetadata(File file) {

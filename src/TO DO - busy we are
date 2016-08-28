@@ -6,8 +6,6 @@
 - improve ConfigSearch
   - add file search support (how without killing real-time performance?)
   - make graphics mouse transparent
-  - discard anonymous Entry class, use flexible one with lambda factories?
-  - look for actions by their keys too
   - support different look-up strategies based on type of Entry
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
@@ -76,9 +74,7 @@
 - I think spectrum suffers from logarithmic band intensity distribution, maybe just needs its
   higher frequencies cut off
 - display window snap preview & snap only on mouse release
-- toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
-  instead. This marvellously increases structural code cohesion.
 - rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
 - figure out image animation auto-play def behavior & indicative play/pause mechanism

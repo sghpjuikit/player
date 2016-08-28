@@ -1,15 +1,12 @@
 package util.graphics;
 
-import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 
 import javafx.geometry.Point2D;
-
 import org.reactfx.Subscription;
-
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 
@@ -24,12 +21,12 @@ public class MouseCapture {
     private final Set<Consumer<Point2D>> positionSubscribers = new HashSet<>();
     private final Set<DoubleConsumer> velocitySubscribers = new HashSet<>();
     private FxTimer pulse;
+	private final int pulseFrequency = 10; // Hz
     private Point2D lastPos = null;
     private boolean calcSpeed = false;
 
     public Point2D getMousePosition() {
-	    Point p = MouseInfo.getPointerInfo().getLocation();
-        return new Point2D(p.getX(), p.getY());
+	    return Util.getMousePosition();
     }
 
     public Subscription observeMousePosition(Consumer<Point2D> action) {
@@ -49,11 +46,11 @@ public class MouseCapture {
     }
 
     private void startPulse() {
-        if (pulse==null) pulse = new FxTimer(100, -1, () -> {
+        if (pulse==null) pulse = new FxTimer(1000/pulseFrequency, -1, () -> {
             Point2D p = getMousePosition();
             positionSubscribers.forEach(s -> s.accept(p));
             if (calcSpeed && lastPos!=null) {
-                double speed = p.distance(lastPos)*10;
+                double speed = p.distance(lastPos)*pulseFrequency;
                 velocitySubscribers.forEach(s -> s.accept(speed));
             }
             lastPos = p;

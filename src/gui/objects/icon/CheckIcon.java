@@ -27,6 +27,7 @@ public class CheckIcon extends Icon<CheckIcon> {
 
     /** Selection state.*/
     public final Property<Boolean> selected;
+	private Subscription s = null;
 
     /** Creates icon with selection true.*/
     public CheckIcon() {
@@ -45,9 +46,6 @@ public class CheckIcon extends Icon<CheckIcon> {
         maintain(selected, v -> pseudoClassStateChanged(selectedPC,v));
         addEventHandler(MOUSE_CLICKED, e -> selected.setValue(!selected.getValue()));
     }
-
-
-    private Subscription s = null;
 
     /** Sets normal and selected icons. Overrides icon css values. */
     public CheckIcon icons(GlyphIcons selectedIcon, GlyphIcons unselectedIcon) {

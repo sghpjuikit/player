@@ -96,7 +96,6 @@
 - reimplement playcount, chapters tags as custom tags
 - FieldedValue hasField predicates
 - layout manager + mock widgets
-- impl main window switching
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
 - Metadata cover caching causes outdated data if cover is set to tag
@@ -126,8 +125,7 @@
     - main.ImageThumbIconTest
 - cleanups
     - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action, Autocomplete
-- annoying java "bugs" (problem scope == entire application)
-    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
+
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
@@ -186,6 +184,8 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
+- annoying java "bugs" (problem scope == entire application)
+    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 
 /* ---------- WORKAROUNDS ------------------------------------------------------------------------------------------- */
 

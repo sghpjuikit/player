@@ -41,7 +41,7 @@ import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
-import static util.reactive.Util.executeWhenNonNull;
+import static util.reactive.Util.doOnceIfNonNull;
 import static util.reactive.Util.listChangeHandler;
 
 /**
@@ -509,7 +509,7 @@ public final class Action extends Config<Action> implements Runnable {
 /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
 
     private static final ListChangeListener<Window> local_listener_registrator = listChangeHandler(
-        window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
+        window -> doOnceIfNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
         window -> {
             Scene scene = window.getScene();
             if (scene!=null)

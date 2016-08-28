@@ -11,7 +11,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
@@ -23,6 +22,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import org.reactfx.Subscription;
 import org.slf4j.Logger;
 
 import com.thoughtworks.xstream.converters.Converter;
@@ -31,7 +31,6 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.window.stage.WindowBase.Maximized;
@@ -63,18 +62,17 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
-import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.dev.Util.log;
-import static util.dev.Util.no;
+import static util.dev.Util.noØ;
 import static util.file.Util.listFiles;
 import static util.functional.Util.mapB;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.Util.getScreen;
-import static util.reactive.Util.maintain;
+import static util.reactive.Util.*;
 
 /**
  * Manages windows.
@@ -243,30 +241,21 @@ public class WindowManager implements Configurable<Object> {
 		return w;
 	}
 
-    private void setAsMain(Window w) {
-        no(mainWindow!=null, "Only one window can be main window");
-
+    void setAsMain(Window w) {
+        noØ(w);
+	    if (mainWindow==w) return;
+	    if (mainWindow!=null) mainWindow.isMainDisposables.forEach(Subscription::unsubscribe);
+	    if (mainWindow!=null) mainWindow.isMain.setValue(false);
 		mainWindow = w;
 		w.isMain.setValue(true);
-        w.setIcon(null);
-        w.setTitle(null);
 
-        // move the window owner to screen of this window, which
-        // moves taskbar icon to respective screen's taskbar
-        w.moving.addListener((o,ov,nv) -> {
-            if (ov && !nv)
-                APP.taskbarIcon.setScreen(getScreen(w.getCenterXY()));
-        });
-        add1timeEventHandler(w.s, WINDOW_SHOWN, e -> APP.taskbarIcon.setScreen(getScreen(w.getCenterXY())));
+	    w.isMainDisposables.add(changes(w.isMoving, (o,n) -> { if (o && !n) APP.taskbarIcon.setScreen(getScreen(w.getCenterXY())); }));
+	    w.isMainDisposables.add(doOnceIf(w.s.showingProperty(), v -> v, v -> APP.taskbarIcon.setScreen(getScreen(w.getCenterXY()))));
+	    w.isMainDisposables.add(() -> w.isMain.setValue(false));
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
 //            if (nv) APP.taskbarIcon.iconify(nv);
 //        });
 
-        Icon i = new Icon(FontAwesomeIcon.CIRCLE,5)
-                .tooltip("Main window\n\nThis window is main app window\nClosing it will close application.");
-        w.rightHeaderBox.getChildren().add(0, new Label(""));
-        w.rightHeaderBox.getChildren().add(0, i);
-	    w.disposables.add(maintain(w.isMain, i.visibleProperty()));
     }
 
 

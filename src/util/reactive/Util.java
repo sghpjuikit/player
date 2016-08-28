@@ -5,8 +5,10 @@
  */
 package util.reactive;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -23,6 +25,13 @@ import static util.dev.Util.noØ;
  * Utility methods for reactive behavior.
  */
 public interface Util {
+
+
+	static <O> Subscription changes(ObservableValue<O> o, BiConsumer<? super O,? super O> u) {
+		ChangeListener<O> l = (b,ov,nv) -> u.accept(ov,nv);
+		o.addListener(l);
+		return () -> o.removeListener(l);
+	}
 
     /**  */
     static <O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
@@ -85,19 +94,26 @@ public interface Util {
      * Used to execute some kind of initialization routine, which requires nonnull value (which is
      * not guaranteed to be the case).
      */
-    static <T> void executeWhenNonNull(ObservableValue<T> property, Consumer<T> action) {
-        if (property.getValue()!=null)
-            action.accept(property.getValue());
-        else {
-            property.addListener(singletonListener(property, action));
-        }
+    static <T> Subscription doOnceIfNonNull(ObservableValue<T> property, Consumer<T> action) {
+        return doOnceIf(property, v -> v!=null, action);
     }
 
-    static <T> ChangeListener<T> singletonListener(ObservableValue<T> property, Consumer<T> action) {
+	static <T> Subscription doOnceIf(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
+		if (condition.test(property.getValue())) {
+			action.accept(property.getValue());
+			return () -> {};
+		} else {
+			ChangeListener<T> l = singletonListener(property, condition, action);
+			property.addListener(l);
+			return () -> property.removeListener(l);
+		}
+	}
+
+    static <T> ChangeListener<T> singletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
         return new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
-                if (nv!=null) {
+                if (condition.test(nv)) {
                     action.accept(nv);
                     property.removeListener(this);
                 }
@@ -105,8 +121,10 @@ public interface Util {
         };
     }
 
-    static <T> void installSingletonListener(ObservableValue<T> property, Consumer<T> action) {
-        property.addListener(singletonListener(property, action));
+    static <T> Subscription installSingletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
+	    ChangeListener<T> l = singletonListener(property, condition, action);
+        property.addListener(l);
+	    return () -> property.removeListener(l);
     }
 
     /** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */

@@ -153,7 +153,7 @@ public class GeneralPlayer {
 
     private void doSeek(Duration duration) {
         realTime.synchroRealTime_onPreSeeked();
-        installSingletonListener(state.currentTime, v -> PLAYBACK.onSeekDone.run());
+        installSingletonListener(state.currentTime, v -> v!=null, v -> PLAYBACK.onSeekDone.run());
         p.seek(duration);
         realTime.synchroRealTime_onPostSeeked(duration);
     }

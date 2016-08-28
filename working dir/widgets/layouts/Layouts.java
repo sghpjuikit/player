@@ -56,7 +56,7 @@ public final class Layouts extends ClassController {
         infoT.setWrappingWidth(200);
         box.getChildren().add(3, infoT);
 
-        layoutsCB.valueProperty().addListener((o,oldValue,newValue) -> {
+        layoutsCB.valueProperty().addListener((o,ov,nv) -> {
             if (isSelected())
                 displayInfo(getSelectedLayout());
             else

@@ -2,6 +2,8 @@ package gui.objects.window.stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +49,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.io.File.separator;
+import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -384,20 +387,26 @@ public class WindowManager implements Configurable<Object> {
             return;
         }
 
-        // remove serialized files from previous session
-        listFiles(dir).forEach(File::delete);
-
-        // get windows
-        List<Window> ws = stream(Window.WINDOWS).without(miniWindow).toList();
-	    LOGGER.info("Serializing " + ws.size() + " application windows");
+        Set<File> filesOld = listFiles(dir).collect(toSet());
+        List<Window> windows = stream(Window.WINDOWS).without(miniWindow).toList();
+	    LOGGER.info("Serializing " + windows.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
-        for (int i=0; i<ws.size(); i++) {
-            Window w = ws.get(i);
-            File f = new File(dir, "window" + i + ".ws");
-	        App.APP.serializators.toXML(new WindowState(w), f)
-		        .ifError(e -> LOGGER.error("Window serialization failed", e));
+	    String sessionUniqueName = LocalDateTime.now().toString();
+	    boolean isError = false;
+	    Set<File> filesNew = new HashSet<>();
+        for (int i=0; i<windows.size(); i++) {
+            Window w = windows.get(i);
+            File f = new File(dir, "window_" + sessionUniqueName + "_" + i + ".ws");
+	        filesNew.add(f);
+	        isError |= App.APP.serializators.toXML(new WindowState(w), f)
+		        .ifError(e -> LOGGER.error("Window serialization failed", e))
+	            .isError();
+	        if (isError) break;
         }
+
+	    // remove unneeded files, either old or new session will remain
+        (isError ? filesNew : filesOld).forEach(File::delete);
     }
 
     public void deserialize(boolean load_normally) {

@@ -115,7 +115,7 @@ public final class WidgetManager {
                 factories.computeIfAbsent(name, key -> new WidgetFactory<>(fxwl));
 		    });
 
-		    FileMonitor.monitorDirsFiles(dirL, File::isFile, (type, fxwl) -> {
+		    FileMonitor.monitorDirsFiles(dirL, f -> f.getPath().endsWith(".fxwl"), (type, fxwl) -> {
 			    String name = capitalize(getName(fxwl));
 			    if (type == ENTRY_CREATE && !factories.contains(name)) {
 				    LOGGER.info("Discovered widget type: {}", name);

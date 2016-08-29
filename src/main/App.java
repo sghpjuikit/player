@@ -405,7 +405,6 @@ public class App extends Application implements Configurable {
 	    x.registerConverter(new ObservableListConverter(xm));   // -||-
 	    x.registerConverter(new PlaylistConverter(xm));
         x.registerConverter(new VConverter(xm));
-        x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
         x.alias("Component", Component.class);

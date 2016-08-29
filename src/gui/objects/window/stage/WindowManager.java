@@ -2,9 +2,9 @@ package gui.objects.window.stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -25,12 +25,6 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.window.stage.WindowBase.Maximized;
@@ -48,8 +42,6 @@ import util.async.executor.FxTimer;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-import util.dev.TODO;
-import util.dev.TODO.Purpose;
 import util.file.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
 
@@ -68,8 +60,7 @@ import static main.App.APP;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.Util.listFiles;
-import static util.functional.Util.mapB;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.Util.getScreen;
 import static util.reactive.Util.*;
@@ -96,6 +87,7 @@ public class WindowManager implements Configurable<Object> {
 	/**
 	 * Dock window. Null if not active.
 	 */ public Window miniWindow;
+	private static volatile boolean canBeMainTemp = false; // TODO: remove hack
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
     public final V<Double> windowOpacity = new V<>(1d);
@@ -396,27 +388,20 @@ public class WindowManager implements Configurable<Object> {
         listFiles(dir).forEach(File::delete);
 
         // get windows
-        List<Window> src = stream(Window.WINDOWS).without(miniWindow).toList();
-	    LOGGER.info("Serializing " + src.size() + " application windows");
+        List<Window> ws = stream(Window.WINDOWS).without(miniWindow).toList();
+	    LOGGER.info("Serializing " + ws.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
-        for (int i=0; i<src.size(); i++) {
-            // ret resources
-            Window w = src.get(i);
-            String name = "window" + i;
-            File f = new File(dir, name + ".ws");
-            // serialize window
-	        App.APP.serializators.toXML(w, f)
+        for (int i=0; i<ws.size(); i++) {
+            Window w = ws.get(i);
+            File f = new File(dir, "window" + i + ".ws");
+	        App.APP.serializators.toXML(new WindowState(w), f)
 		        .ifError(e -> LOGGER.error("Window serialization failed", e));
-            // serialize layout (associate the layout with the window by name)
-            Layout l = w.getLayout();
-            l.setName("layout" + i);
-            l.serialize(new File(dir,l.getName()+".l"));
         }
     }
 
     public void deserialize(boolean load_normally) {
-        List<Window> ws = new ArrayList<>();
+	    Set<Window> ws = set();
         if (load_normally) {
 	        canBeMainTemp = true;
 
@@ -426,26 +411,18 @@ public class WindowManager implements Configurable<Object> {
 	            LOGGER.error("Deserialization of windows and layouts failed. {} not accessible.", dir);
                 return;
             }
-            // discover all window files with 'ws extension
-            File[] fs = listFiles(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
-	        LOGGER.info("Deserializing {} application windows", fs.length);
 
             // deserialize windows
-            for (int i=0; i<fs.length; i++) {
-            	int j = i;
-                App.APP.serializators.fromXML(Window.class, fs[i])
-	                .ifError(e -> LOGGER.error("Unable to load window", e))
-					.ifOk(w -> {
-						ws.add(w);
-
-						// deserialize layout
-						File lf = new File(dir,"layout" + j + ".l");
-						Layout l = new Layout("layout" + j).deserialize(lf);
-						if (l==null) w.initLayout(); // TODO: this is plain wrong
-						else w.initLayout(l);
-					});
-            }
-
+            File[] fs = listFiles(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
+	        LOGGER.info("Deserializing {} application windows", fs.length);
+	        stream(fs)
+		        .map(f -> App.APP.serializators.fromXML(WindowState.class, f)
+					        .ifError(e -> LOGGER.error("Unable to load window", e))
+					        .map(WindowState::toWindow)
+					        .getOr(null)
+		        )
+				.filter(ISNTØ)
+				.forEach(ws::add);
 	        canBeMainTemp = false;
          }
 
@@ -461,82 +438,38 @@ public class WindowManager implements Configurable<Object> {
         }
     }
 
-    private volatile boolean canBeMainTemp = false;
+    private static class WindowState {
+    	public final double x, y, w, h;
+	    public final boolean resizable, minimized, fullscreen, onTop;
+	    public final Maximized maximized;
+	    public final Layout layout;
 
-    public final class WindowConverter implements Converter {
+	    public WindowState(Window window) {
+	    	x = window.X.getValue();
+	    	y = window.Y.getValue();
+	    	w = window.W.getValue();
+	    	h = window.H.getValue();
+	    	resizable = window.resizable.getValue();
+	    	minimized = window.s.iconifiedProperty().getValue();
+	    	fullscreen = window.fullscreen.getValue();
+	    	onTop = window.alwaysOnTop.getValue();
+	    	maximized = window.maximized.getValue();
+	    	layout = window.getLayout();
+	    }
 
-		@Override
-		public boolean canConvert(Class type) {
-		    return Window.class.equals(type);
-		}
-
-		@TODO(purpose = Purpose.BUG, note = "fullscreen deserialization bug in WindowBase")
-		@Override
-		public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
-		    Window w = (Window) value;
-		    writer.startNode("W");
-		    writer.setValue(w.W.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("H");
-		    writer.setValue(w.H.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("X");
-		    writer.setValue(w.X.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("Y");
-		    writer.setValue(w.Y.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("minimized");
-		    writer.setValue(w.s.iconifiedProperty().getValue().toString());
-		    writer.endNode();
-		    writer.startNode("maximized");
-		    writer.setValue(w.MaxProp.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("fullscreen");
-	//	    writer.setValue(w.FullProp.getValue().toString());
-		    writer.setValue(Boolean.FALSE.toString());
-		    writer.endNode();
-		    writer.startNode("resizable");
-		    writer.setValue(w.resizable.getValue().toString());
-		    writer.endNode();
-		    writer.startNode("alwaysOnTop");
-		    writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
-		    writer.endNode();
-		}
-
-		@Override
-		public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-		    Window w = create(canBeMainTemp);
-		    if (w == null) return null;
-
-		    reader.moveDown();
-		    w.W.set(Double.parseDouble(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.H.set(Double.parseDouble(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.X.set(Double.parseDouble(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.Y.set(Double.parseDouble(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.s.setIconified(Boolean.parseBoolean(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.MaxProp.set(Maximized.valueOf(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.FullProp.set(Boolean.parseBoolean(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.resizable.set(Boolean.parseBoolean(reader.getValue()));
-		    reader.moveUp();
-		    reader.moveDown();
-		    w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));
-		    reader.moveUp();
-		    return w;
-		}
+	    public Window toWindow() {
+		    Window window = APP.windowManager.create(canBeMainTemp);
+		    window.X.set(x);
+		    window.Y.set(y);
+		    window.W.set(w);
+		    window.H.set(h);
+		    window.s.setIconified(minimized);
+		    window.MaxProp.set(maximized);
+		    window.FullProp.set(fullscreen);
+		    window.resizable.set(resizable);
+		    window.setAlwaysOnTop(onTop);
+		    window.initLayout(layout);
+		    return window;
+	    }
     }
 }

@@ -1,12 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- single file window serialization with layouts
 - implement custom skinnable cursor (load it with skin, btw it must respect skin extension/overriding)
-- improve ConfigSearch
-  - add file search support (how without killing real-time performance?)
-  - make graphics mouse transparent
-  - support different look-up strategies based on type of Entry
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
   set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
@@ -125,7 +120,6 @@
     - main.ImageThumbIconTest
 - cleanups
     - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action, Autocomplete
-
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 

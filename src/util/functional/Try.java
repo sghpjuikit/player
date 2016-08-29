@@ -2,6 +2,7 @@ package util.functional;
 
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -33,6 +34,10 @@ public interface Try<R,E> {
 	E getError();
 	Try<R,E> ifOk(Consumer<? super R> action);
 	Try<R,E> ifError(Consumer<? super E> action);
+
+	default <T> Try<T,E> map(Function<? super R, ? extends T> mapper) {
+		return isOk() ? ok(mapper.apply(get())) : error(getError());
+	}
 
 	class Ok<R,E> implements Try<R,E> {
 

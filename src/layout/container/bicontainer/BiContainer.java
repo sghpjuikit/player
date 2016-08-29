@@ -1,4 +1,3 @@
-
 package layout.container.bicontainer;
 
 import java.util.HashMap;
@@ -17,13 +16,8 @@ import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
- * <p/>
- * @author Martin Polakovic
  *
- * Warning: do not use this class.
- * @TODO implement load() properly, currently works only for Containers. Hence
- * the abstract class type to avoid misuse. Do not use this class as non-pure
- * Container. See addChild and the exception.
+ * @author Martin Polakovic
  */
 public class BiContainer extends Container<Splitter> {
 
@@ -38,7 +32,7 @@ public class BiContainer extends Container<Splitter> {
 
     @Override
     public Node load() {
-        // lazy load (needed because of the serialization ommiting this field)
+        // lazy load (needed because of the serialization omitting this field)
         if (ui == null) ui = new Splitter(this);
 
         ui.setChild1(children.get(1));
@@ -47,9 +41,6 @@ public class BiContainer extends Container<Splitter> {
         return ui.getRoot();
     }
 
-    /**
-     * @return the children
-     */
     @Override
     public Map<Integer, Component> getChildren() {
         return children;
@@ -74,7 +65,7 @@ public class BiContainer extends Container<Splitter> {
         setParentRec();
     }
 
-    public void switchCildren() {
+    public void switchChildren() {
         Component c1 = children.get(1);
         Component c2 = children.get(2);
         children.clear();

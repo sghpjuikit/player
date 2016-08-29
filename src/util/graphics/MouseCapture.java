@@ -6,17 +6,15 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 
 import javafx.geometry.Point2D;
-import org.reactfx.Subscription;
-import util.async.executor.FxTimer;
-import util.dev.TODO;
 
-import static util.dev.TODO.Purpose.UNTESTED;
+import org.reactfx.Subscription;
+
+import util.async.executor.FxTimer;
 
 /**
  * Provides access to mouse position and mouse speed.
  * By default is lazy, i.e., consumes resources only if observed.
  */
-@TODO(purpose = UNTESTED, note = "Make sure the class is thread safe")
 public class MouseCapture {
     private final Set<Consumer<Point2D>> positionSubscribers = new HashSet<>();
     private final Set<DoubleConsumer> velocitySubscribers = new HashSet<>();

@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.image;
 
 import java.io.File;
@@ -37,6 +33,7 @@ import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.image.cover.Cover;
 import main.App;
 import util.SingleR;
+import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -117,7 +114,7 @@ public class Thumbnail extends ImageNode {
     private static final String border_styleclass = "thumbnail-border";
     private static final String image_styleclass = "thumbnail-image";
 
-    @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
+    @IsConfig(name="Thumbnail anim duration", info = "Preferred hover scale animation duration for thumbnails.")
     public static Duration animDur = millis(100);
 
     protected final ImageView imageView = new ImageView();
@@ -125,7 +122,6 @@ public class Thumbnail extends ImageNode {
     protected final StackPane root = new StackPane(imageView,img_border) {
         @Override
         protected void layoutChildren() {
-
             // lay out image
             double W = getWidth();
             double H = getHeight();
@@ -133,8 +129,6 @@ public class Thumbnail extends ImageNode {
             double imgH = min(H, maxImgH.get());
             imageView.setFitWidth(imgW);
             imageView.setFitHeight(imgH);
-//            imageView.resizeRelocate(imgWgap,imgHgap,imgW,imgH);
-//            imageView.resize(0,0);
 
             // lay out other children (maybe introduced in subclass)
             super.layoutChildren();
@@ -160,28 +154,15 @@ public class Thumbnail extends ImageNode {
         }
     };
 
-	private File imageFile = null;
-
-    // bug fix
-    // Inconsistent border width and can be blurry, and image under it can stick out (very ugly).
-    // Probably problem with drawing at non-integer coordinates. See:
-    // http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
-    // workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
-    //             is not of the same width on all sizes and now it even sticks out of the image area.
-    //             But at least its not so hideous
-    private void resizeRelocateBorder(double x, double y, double w, double h) {
-        img_border.resizeRelocate(x-1,y-1,w+2,h+2);
-    }
-
     /**
      * Displayed image. Editable, but it is recommended to use one of the load
- methods instead. Note, that those load the image on bgr thread and setting
- this property is delayed until the image fully loads. Until then this
- thumbnail will keep showing the previous image and this property will
- reflect that. Thus calling getM() on this property may not provide the
- expected result.
-     */
-    public final ObjectProperty<Image> image = imageView.imageProperty();
+     * methods instead. Note, that those load the image on bgr thread and setting
+     * this property is delayed until the image fully loads. Until then this
+     * thumbnail will keep showing the previous image and this property will
+     * reflect that. Thus calling getM() on this property may not provide the
+     * expected result.
+     */ public final ObjectProperty<Image> image = imageView.imageProperty();
+	private File imageFile = null;
 
     /** Constructor.
      * Use if you need  default thumbnail size and the image is expected to
@@ -246,12 +227,9 @@ public class Thumbnail extends ImageNode {
         root.addEventFilter(MOUSE_EXITED, e -> animationPause());
     }
 
-
     public final ObservableList<String> getStyleClass() {
         return root.getStyleClass();
     }
-
-
 
     @Override
     public void loadImage(Image img) {
@@ -348,7 +326,7 @@ public class Thumbnail extends ImageNode {
         }
     }
 
-/****************************************** ANIMATION *********************************************/
+/* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     Timeline animation = null;
 
@@ -373,7 +351,7 @@ public class Thumbnail extends ImageNode {
         if (animation!=null) animation.pause();
     }
 
-/**************************************************************************************************/
+/* ---------- DATA -------------------------------------------------------------------------------------------------- */
 
     /** File of the displayed image or null if no image displayed or not a file (e.g. over http). */
     @Override
@@ -397,9 +375,7 @@ public class Thumbnail extends ImageNode {
     public Image getImage() {
         return imageView.getImage();
     }
-    public boolean isEmpty() {
-        return getImage() == null;
-    }
+
     @Override
     public ImageView getView() {
         return imageView;
@@ -419,7 +395,7 @@ public class Thumbnail extends ImageNode {
         return root;
     }
 
-/*******************************  properties  *********************************/
+/* ---------- properties -------------------------------------------------------------------------------------------- */
 
     private double maxScaleFactor = 1.3;
 
@@ -538,19 +514,20 @@ public class Thumbnail extends ImageNode {
         else root.removeEventHandler(MOUSE_CLICKED,contextMenuHandler);
     }
 
-/********************************  HOVERING  **********************************/
+/* ---------- HOVER ------------------------------------------------------------------------------------------------- */
 
-    /** Duration of the scaling animation effect when transitioning to gover state. */
-    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty<>(this, "durationOnHover", animDur);
+    /** Duration of the scaling animation effect when transitioning to hover state. */
+    public final V<Duration> durationOnHover = new V<>(animDur);
     private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
     private final EventHandler<MouseEvent> hoverHandler = e -> {
             hoverAnimation.dur(durationOnHover.get());
             if (isH())
                 hoverAnimation.playFromDir(e.getEventType().equals(MOUSE_ENTERED));
     };
-    /** Hover scaling efect on/off. Default false.*/
+    /** Hover scaling effect on/off. Default false.*/
     public final BooleanProperty hoverable = new SimpleBooleanProperty(this, "hoverable", false) {
-        @Override public void set(boolean v) {
+        @Override
+        public void set(boolean v) {
             super.set(v);
             if (v) {
                 root.addEventFilter(MOUSE_ENTERED, hoverHandler);
@@ -566,8 +543,7 @@ public class Thumbnail extends ImageNode {
         return hoverable.get();
     }
 
-
-/******************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
 
     /**
      * Image aspect ratio. Image width/height.
@@ -591,7 +567,20 @@ public class Thumbnail extends ImageNode {
         return ratioIMG;
     }
 
-/******************************************************************************/
+/* ---------- HELPER ------------------------------------------------------------------------------------------------ */
+
+	// bug fix
+	// Inconsistent border width and can be blurry, and image under it can stick out (very ugly).
+	// Probably problem with drawing at non-integer coordinates. See:
+	// http://stackoverflow.com/questions/9779693/javafx-graphics-blurred-or-anti-aliased-no-effects-used
+	// workaround: border is moved 1px outside in layoutChildren(). Not ideal, since border still
+	//             is not of the same width on all sizes and now it even sticks out of the image area.
+	//             But at least its not so hideous
+	private void resizeRelocateBorder(double x, double y, double w, double h) {
+		img_border.resizeRelocate(x-1,y-1,w+2,h+2);
+	}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 
     private static final SingleR<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleR<>(
         () -> {
@@ -654,7 +643,7 @@ public class Thumbnail extends ImageNode {
             ContextMenuData data = thumbnail.new ContextMenuData();
             menu.setValue(data);
             menu.getItems().forEach(i -> i.setDisable(data.menuDisabled));
-            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).get().setDisable(data.fsDisabled);
+            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).ifPresent(i -> i.setDisable(data.fsDisabled));
         }
     );
 

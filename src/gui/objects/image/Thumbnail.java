@@ -41,13 +41,11 @@ import util.animation.Anim;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.Dependency;
-import util.dev.TODO;
 import util.file.Environment;
-import util.file.Util;
 import util.file.ImageFileFormat;
+import util.file.Util;
 
 import static java.lang.Double.min;
-import static java.util.Collections.singletonList;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -55,11 +53,13 @@ import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.type.Util.getFieldValue;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.copyToSysClipboard;
+import static util.file.Util.deleteFile;
+import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
+import static util.graphics.Util.getScreen;
 import static util.graphics.Util.menuItem;
+import static util.type.Util.getFieldValue;
 
 /**
  * Thumbnail.
@@ -109,7 +109,6 @@ import static util.graphics.Util.menuItem;
  * the application, and more.
  * </ul>
  */
-@TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable("Images")
 public class Thumbnail extends ImageNode {
 
@@ -130,8 +129,8 @@ public class Thumbnail extends ImageNode {
             // lay out image
             double W = getWidth();
             double H = getHeight();
-            double imgW = min(W,maxIMGW.get());
-            double imgH = min(H,maxIMGH.get());
+            double imgW = min(W, maxImgW.get());
+            double imgH = min(H, maxImgH.get());
             imageView.setFitWidth(imgW);
             imageView.setFitHeight(imgH);
 //            imageView.resizeRelocate(imgWgap,imgHgap,imgW,imgH);
@@ -160,6 +159,8 @@ public class Thumbnail extends ImageNode {
             }
         }
     };
+
+	private File imageFile = null;
 
     // bug fix
     // Inconsistent border width and can be blurry, and image under it can stick out (very ugly).
@@ -250,24 +251,22 @@ public class Thumbnail extends ImageNode {
         return root.getStyleClass();
     }
 
-/******************************************************************************/
 
-    private File imagefile = null;
 
     @Override
     public void loadImage(Image img) {
-        imagefile=null;
+        imageFile =null;
         setImgA(img);
     }
 
     public void loadImage(Image img, File imageFile) {
         loadImage(img);
-        imagefile = imageFile;
+        this.imageFile = imageFile;
     }
 
     @Override
     public void loadImage(File img) {
-        imagefile = img;
+        imageFile = img;
         Point2D size = calculateImageLoadSize(root);
         Image c = getCached(img, size.getX(), size.getY());
         Image i = c!=null ? c : util.Util.loadImage(img, size.getX(), size.getY());
@@ -275,7 +274,7 @@ public class Thumbnail extends ImageNode {
     }
 
     public void loadImage(Cover img) {
-        imagefile = img==null ? null : img.getFile();
+        imageFile = img==null ? null : img.getFile();
         if (img==null) {
             setImgA(null);
         } else {
@@ -335,8 +334,8 @@ public class Thumbnail extends ImageNode {
 
         imageView.setImage(i);
         if (i!=null) {
-            maxIMGW.set(i.getWidth()*maxScaleFactor);
-            maxIMGH.set(i.getHeight()*maxScaleFactor);
+            maxImgW.set(i.getWidth()*maxScaleFactor);
+            maxImgH.set(i.getHeight()*maxScaleFactor);
         }
 //        if (borderToImage)
             root.layout();
@@ -380,10 +379,10 @@ public class Thumbnail extends ImageNode {
     @Override
     public File getFile() {
         // Since we delay image loading or something, image.get() can be null, in that case we fall
-        // back to imagefile
+        // back to imageFile
         String url = image.get()==null ? null : image.get().getUrl();
         try {
-            return url==null ? imagefile : new File(URI.create(url));
+            return url==null ? imageFile : new File(URI.create(url));
         } catch(IllegalArgumentException e) {
             return null;
         }
@@ -521,7 +520,8 @@ public class Thumbnail extends ImageNode {
                 if (getImage()!=null) db.setDragView(getImage());
                 // set content
                 HashMap<DataFormat,Object> c = new HashMap<>();
-                c.put(FILES, singletonList(getFile()));
+	            Object o = getRepresentant();
+                c.put(FILES, stream(o instanceof File ? o : getFile()).filter(ISNTØ).toList());
                 db.setContent(c);
                 e.consume();
             }
@@ -569,12 +569,14 @@ public class Thumbnail extends ImageNode {
 
 /******************************************************************************/
 
-    /** Image aspect ratio. Image width/height. */
-    public final DoubleProperty ratioIMG = new SimpleDoubleProperty(1);
-    /** Thumbnail aspect ratio. Root width/height. */
-    public final DoubleProperty ratioTHUMB = new SimpleDoubleProperty(1);
-    private final DoubleProperty maxIMGW = new SimpleDoubleProperty(Double.MAX_VALUE);
-    private final DoubleProperty maxIMGH = new SimpleDoubleProperty(Double.MAX_VALUE);
+    /**
+     * Image aspect ratio. Image width/height.
+     */ public final DoubleProperty ratioIMG = new SimpleDoubleProperty(1);
+    /**
+     * Thumbnail aspect ratio. Root width/height.
+     */ public final DoubleProperty ratioTHUMB = new SimpleDoubleProperty(1);
+    private final DoubleProperty maxImgW = new SimpleDoubleProperty(Double.MAX_VALUE);
+    private final DoubleProperty maxImgH = new SimpleDoubleProperty(Double.MAX_VALUE);
 
     public double getRatioPane() {
         return ratioTHUMB.get();
@@ -615,7 +617,6 @@ public class Thumbnail extends ImageNode {
         }
     );
 
-    @TODO(note = "support non file objects and differentiate properly between file & image file")
     private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> file_context_menu = new SingleR<>(
         () -> new ImprovedContextMenu<ContextMenuData>(){{
             getItems().setAll(
@@ -625,11 +626,11 @@ public class Thumbnail extends ImageNode {
                 menuItem("Fullscreen", e -> {
                     File f = getValue().fsImageFile;
                     if (ImageFileFormat.isSupported(f)) {
-                        Screen screen = util.graphics.Util.getScreen(getX(),getY());
+                        Screen screen = getScreen(getX(),getY());
                         App.openImageFullscreen(f,screen);
                     }
                 }),
-                menuItem("Delete from disc", e -> Util.deleteFile(getValue().file)),
+                menuItem("Delete from disc", e -> deleteFile(getValue().file)),
                 menuItem("Save as ...", e -> {
                     File f = getValue().file;
                     FileChooser fc = new FileChooser();

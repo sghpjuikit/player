@@ -1,14 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- single file window serialization with layouts
 - implement custom skinnable cursor (load it with skin, btw it must respect skin extension/overriding)
-- improve ConfigSearch
-  - add file search support (how without killing real-time performance?)
-  - make graphics mouse transparent
-  - discard anonymous Entry class, use flexible one with lambda factories?
-  - look for actions by their keys too
-  - support different look-up strategies based on type of Entry
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
   set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
@@ -24,7 +17,6 @@
 - refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
 - add properties to Config
-- fix GridView filter
 - implement configurable DirView cell size and shape
 - implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
@@ -77,9 +69,7 @@
 - I think spectrum suffers from logarithmic band intensity distribution, maybe just needs its
   higher frequencies cut off
 - display window snap preview & snap only on mouse release
-- toggle action annotation
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
-  instead. This marvellously increases structural code cohesion.
 - rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
 - figure out image animation auto-play def behavior & indicative play/pause mechanism
@@ -101,7 +91,6 @@
 - reimplement playcount, chapters tags as custom tags
 - FieldedValue hasField predicates
 - layout manager + mock widgets
-- impl main window switching
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
 - Metadata cover caching causes outdated data if cover is set to tag
@@ -131,8 +120,6 @@
     - main.ImageThumbIconTest
 - cleanups
     - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action, Autocomplete
-- annoying java "bugs" (problem scope == entire application)
-    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
@@ -191,6 +178,8 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
 	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
 	... 5 common frames omitted
+- annoying java "bugs" (problem scope == entire application)
+    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
 
 /* ---------- WORKAROUNDS ------------------------------------------------------------------------------------------- */
 

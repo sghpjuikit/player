@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.infonode;
 
 import java.util.List;
-import java.util.Objects;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -14,14 +8,17 @@ import javafx.scene.layout.AnchorPane;
 
 import audio.Item;
 import audio.tagging.Metadata;
-import layout.widget.feature.SongReader;
 import gui.objects.image.Thumbnail;
+import layout.widget.feature.SongReader;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
+import static util.dev.Util.noØ;
 import static util.graphics.Util.setAnchors;
 
-/** Info about song. */
+/**
+ * Info about song.
+ */
 public class ItemInfo extends AnchorPane implements SongReader {
 
     @FXML private Label typeL;
@@ -67,19 +64,19 @@ public class ItemInfo extends AnchorPane implements SongReader {
     }
 
     /**
-     Displays metadata information and title.
-     <p/>
-     @param title
-     @param m
+     * Displays metadata information and title.
+     *
+     * @param title nullable title
+     * @param m non-null metadata
      */
     public void setValue(String title, Metadata m) {
-	Objects.requireNonNull(m);
-	typeL.setText(title);
-	if (thumb != null) thumb.loadImage(m.getCover(ANY));
-	indexL.setText(m.getPlaylistIndexInfo());
-	songL.setText(m.getTitle().isEmpty() ? (m.isFileBased() ? m.getFilename() : m.getPath()) : m.getTitle());
-	artistL.setText(m.getArtist());
-	albumL.setText(m.getAlbum());
+	    noØ(m);
+		typeL.setText(title);
+		if (thumb != null) thumb.loadImage(m.getCover(ANY));
+		indexL.setText(m.getPlaylistIndexInfo());
+		songL.setText(m.getTitle().isEmpty() ? (m.isFileBased() ? m.getFilename() : m.getPath()) : m.getTitle());
+		artistL.setText(m.getArtist());
+		albumL.setText(m.getAlbum());
     }
 
 }

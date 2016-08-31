@@ -1,14 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.file;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,8 +14,8 @@ import audio.tagging.Metadata;
 import one.util.streamex.StreamEx;
 import util.SwitchException;
 
+import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
-
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -128,18 +123,19 @@ public enum AudioFileFormat {
      * @throws NullPointerException if param is null
      */
     public static boolean isSupported(URI uri, Use use) {
-        Objects.requireNonNull(uri);
+	    noØ(uri);
         return of(uri).isSupported(use);
     }
 
     /**
-     * Equivalent to {@link #isSupported(java.io.URI)} using file.toURI().
+     * Equivalent to {@code of(file.toURI()).isSupported(use)} using file.toURI().
+     *
      * @param file
      * @return
      * @throws NullPointerException if param is null
      */
     public static boolean isSupported(File file, Use use) {
-        Objects.requireNonNull(file);
+	    noØ(file);
         return of(file.toURI()).isSupported(use);
     }
 
@@ -171,8 +167,6 @@ public enum AudioFileFormat {
 
     /**
      * Labels file as one of the audio file types the application recognizes.
-     * @param uri
-     * @return
      */
     public static AudioFileFormat of(String path) {
         // do a quick job of it

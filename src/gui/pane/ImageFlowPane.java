@@ -1,15 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.pane;
 
-import gui.objects.image.Thumbnail;
-import static java.lang.Double.min;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.layout.Pane;
+
+import gui.objects.image.Thumbnail;
+
+import static java.lang.Double.min;
 
 /**
  * Pane displaying an image and content - another pane.
@@ -39,13 +36,11 @@ public class ImageFlowPane extends Pane {
     private Thumbnail image;
     private Pane content;
     
-    
     public ImageFlowPane(Thumbnail image, Pane content) {
         setImage(image);
         setContent(content);
     }
-    
-    
+
     public void setImage(Thumbnail i) {
         if (image!=null) getChildren().remove(image.getPane());
         image = i;
@@ -87,7 +82,6 @@ public class ImageFlowPane extends Pane {
         minContentHeight = h;
         layoutChildren();
     }
-    
     
     @Override
     protected void layoutChildren() {
@@ -132,13 +126,13 @@ public class ImageFlowPane extends Pane {
                 content.setMaxSize(W,H-gap-imgH);
             }
         }
-        if((!showImage || image==null) && showContent && content!=null) {
+        if ((!showImage || image==null) && showContent && content!=null) {
             layoutInArea(content, 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
         if (showImage && image!=null && (!showContent || content==null)) {
             layoutInArea(image.getPane(), 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
-        if((!showImage && !showContent) || (image==null && content==null)) {}
+        if ((!showImage && !showContent) || (image==null && content==null)) {}
         
         super.layoutChildren();
     }

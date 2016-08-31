@@ -200,7 +200,8 @@ public abstract class Container<G extends ContainerNode> extends Component imple
 
     /**
      * Swaps children in the layout.
-     * @param w1 child of this container to swap.
+     *
+     * @param i1 index of the child of this container to swap.
      * @param toParent container containing the child to swap with
      * @param toChild child to swap with
      */
@@ -247,7 +248,8 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     /**
      * Returns all components in layout mapB of which this is the root. In other
      * words all children recursively. The root (this) is included in the list.
-     * @return
+     *
+     * @return components
      */
     public Stream<Component> getAllChildren() {
         List<Component> out = new ArrayList<>();
@@ -264,15 +266,15 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     /**
      * Returns all widgets in layout mapB of which this is the root. In other words
      * all widget children recursively.
-     * @return
+     *
+     * @return widgets
      */
     public Stream<Widget<?>> getAllWidgets() {
         List<Widget<?>> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
                 out.addAll(((Container<?>)w).getAllWidgets().collect(toList()));
-            else
-            if (w instanceof Widget)
+            else if (w instanceof Widget)
                 out.add((Widget)w);
         }
         return out.stream();
@@ -281,7 +283,8 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     /**
      * Returns all containers in layout mapB of which this is the root. In other words
      * all container children recursively. The root (this) is included in the list.
-     * @return
+     *
+     * @return containers
      */
     public Stream<Container> getAllContainers(boolean include_self) {
         Stream<Container> s1 = include_self ? stream(this) : stream();
@@ -297,11 +300,12 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * Use for as the first load of the controller to assign the parent_pane.
      * Here, the term parent is not parent Container, but instead the very AnchorPane
      * this container will be loaded into.
-     * @param _parent
-     * @return
+     *
+     * @param parentPane
+     * @return the result of the call to {@link #load()}
      */
-    public Node load(AnchorPane _parent){
-        root = _parent;
+    public Node load(AnchorPane parentPane){
+        root = parentPane;
         return load();
     }
 
@@ -310,7 +314,8 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * Loads the whole container and its children - the whole layout sub branch
      * having this container as root - to its parent_pane. The parent_pane must be assigned
      * before calling this method.
-     * @return
+     * <p/>
+     * {@inheritDoc}
      */
     @Override
     public abstract Node load();
@@ -324,7 +329,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * If this container is root (in case of {@link Layout}, only its children will close.
      */
     public void close() {
-        getAllWidgets().forEach(w -> w.close());
+        getAllWidgets().forEach(Widget::close);
 
         if (parent!=null) {
             // remove from layout graph
@@ -356,15 +361,18 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * Set the root of this container. The container is attached to the scene
      * graph through this root. The root is parent node of all the nodes of
      * this container (including its children).
-     * @param pane
+     *
+     * @param rootPane
      */
-    public void setRoot(AnchorPane pane) {
-        root = pane;
+    public void setRoot(AnchorPane rootPane) {
+        root = rootPane;
     }
 
     /**
-     * Returns the root. See {@link #getRoot()}
+     * Returns the root.
+     *
      * @return the root or null if none.
+     * @see #getRoot()
      */
     public AnchorPane getRoot() {
         return root;

@@ -56,7 +56,7 @@ public final class Layouts extends ClassController {
         infoT.setWrappingWidth(200);
         box.getChildren().add(3, infoT);
 
-        layoutsCB.valueProperty().addListener((o,oldValue,newValue) -> {
+        layoutsCB.valueProperty().addListener((o,ov,nv) -> {
             if (isSelected())
                 displayInfo(getSelectedLayout());
             else
@@ -91,7 +91,7 @@ public final class Layouts extends ClassController {
     public void loadSelectedLayout() {
         if (!isSelected()) return;
 
-        SwitchContainer c = APP.windowManager.getActiveOrDefault().getTopContainer();
+        SwitchContainer c = APP.windowManager.getActiveOrNew().getTopContainer();
         Component toLoad = getSelectedLayout().getChild();
         int i = c.getEmptySpot(); // this can usually return null, but never in case of SwitchContainer
         c.addChild(i, toLoad);
@@ -146,7 +146,7 @@ public final class Layouts extends ClassController {
         nameF.setPromptText(l.getName());
         lockedChB.setSelected(l.locked.get());
 
-        List<String> w_names = new ArrayList();
+        List<String> w_names = new ArrayList<>();
         // get children counts by counting leaf Components
             // all widgets (and fetch names while at it to avoid reiterating
         long ws = l.getAllWidgets().peek(w->w_names.add(w.getName())).count();

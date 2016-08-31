@@ -158,8 +158,6 @@ import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
 
-import gui.objects.window.stage.Window;
-
 /**
  * Application. Represents the program.
  * <p/>
@@ -169,13 +167,15 @@ import gui.objects.window.stage.Window;
  *
  * @author Martin Polakovic
  */
-@IsActionable
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
 
-    /** Single instance of the application representing this running application. */
-    public static App APP;
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    /**
+     * Single instance of the application representing this running application.
+     */ public static App APP;
+	/**
+	 * Logger.
+	 */ private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     /**
      * Starts program.
@@ -188,45 +188,57 @@ public class App extends Application implements Configurable {
     }
 
 
-    /** Name of this application. */
-    public final String name = "PlayerFX";
-
-    /** Application code encoding. Useful for compilation during runtime. */
-    public final Charset encoding = StandardCharsets.UTF_8;
-    /** Uri for github website for project of this application. */
-    public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
-
-    /** Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile(). */
-    public final File DIR_APP = new File("").getAbsoluteFile();
-    /** Temporary directory of the os. */
-    public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
-    /** Home directory of the os. */
-    public final File DIR_HOME = new File(System.getProperty("user.home"));
-    /** Directory for application logging. */
-    public final File DIR_LOG = new File(DIR_APP, "log");
-    /** File for application logging configuration. */
-    public final File FILE_LOG_CONFIG = new File(DIR_LOG, "log_configuration.xml");
-    /** Directory containing widgets - source files, class files and widget's resources. */
-    public final File DIR_WIDGETS = new File(DIR_APP, "widgets");
-    /** Directory containing skins. */
-    public final File DIR_SKINS = new File(DIR_APP, "skins");
-    /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-    public final File DIR_USERDATA =  new File(DIR_APP, "user");
-    /** Directory containing library database. */
-    public final File DIR_LIBRARY = new File(DIR_USERDATA, "library");
-    public final File DIR_LAYOUTS = new File(DIR_USERDATA, "layouts");
-    /** Directory containing playlists. */
-    public final File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
-    /** Directory containing application resources. */
-    public final File DIR_RESOURCES = new File(DIR_APP, "resources");
-    /** File for application configuration. */
-    public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
+    /**
+     * Name of this application.
+     */ public final String name = "PlayerFX";
 
     /**
-     * File mime type map.
-     * Initialized with the built-in mime types definitions.
-     */
-    public final MimeTypes mimeTypes = MimeTypes.standard();
+     * Application code encoding. Useful for compilation during runtime.
+     */ public final Charset encoding = StandardCharsets.UTF_8;
+    /**
+     * Uri for github website for project of this application.
+     */ public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
+
+    /**
+     * Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile().
+     */ public final File DIR_APP = new File("").getAbsoluteFile();
+    /**
+     * Temporary directory of the os.
+     */ public final File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
+    /**
+     * Home directory of the os.
+     */ public final File DIR_HOME = new File(System.getProperty("user.home"));
+    /**
+     * Directory for application logging.
+     */ public final File DIR_LOG = new File(DIR_APP, "log");
+    /**
+     * File for application logging configuration.
+     */ public final File FILE_LOG_CONFIG = new File(DIR_LOG, "log_configuration.xml");
+    /**
+     * Directory containing widgets - source files, class files and widget's resources.
+     */ public final File DIR_WIDGETS = new File(DIR_APP, "widgets");
+    /**
+     * Directory containing skins.
+     */ public final File DIR_SKINS = new File(DIR_APP, "skins");
+    /**
+     * Directory containing user data created by application usage, such as customizations, song library, etc.
+     */ public final File DIR_USERDATA =  new File(DIR_APP, "user");
+    /**
+     * Directory containing library database.
+     */ public final File DIR_LIBRARY = new File(DIR_USERDATA, "library");
+	/**
+	 * Directory containing user gui state.
+	 */ public final File DIR_LAYOUTS = new File(DIR_USERDATA, "layouts");
+    /**
+     * Directory containing playlists.
+     */ public final File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
+    /**
+     * Directory containing application resources.
+     */ public final File DIR_RESOURCES = new File(DIR_APP, "resources");
+    /**
+     * File for application configuration.
+     */ public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
+
 
     /**
      * Event source and stream for executed actions, providing their name. Use
@@ -238,18 +250,28 @@ public class App extends Application implements Configurable {
      * and get notified if the expected action was executed.
      * <p/>
      * Running an {@link Action} always fires an event.
-     * Supports custom actions. Simply push a String value into the stream.
-     */
-    public final EventSource<String> actionStream = new EventSource<>();
-    public final AppInstanceComm appCommunicator = new AppInstanceComm();
-    public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-    public final AppSerializer serializators = new AppSerializer(encoding);
-    public final Configuration configuration = new Configuration();
-    public final MouseCapture mouseCapture = new MouseCapture();
-    /** {@link System#out} provider. Allows multiple parties to observe it.. */
-    public final SystemOutListener systemout = new SystemOutListener();
+     * <p/>
+     * Usage: simply push a String value into the stream.
+     */ public final EventSource<String> actionStream = new EventSource<>();
+	/**
+	 * Allows sending and receiving {@link java.lang.String} messages to and from other instances of this application.
+	 */ public final AppInstanceComm appCommunicator = new AppInstanceComm();
+	/**
+	 * Handles application parameters as commands
+	 */ public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
+	/**
+	 * Serializators and deserializators, e.g., to save object into a file.
+	 */ public final AppSerializer serializators = new AppSerializer(encoding);
+	/**
+	 * Configurable state, i.e., the settings of the application.
+	 */ public final Configuration configuration = new Configuration();
+	/**
+	 * System mouse monitor.
+	 */ public final MouseCapture mouseCapture = new MouseCapture();
+    /**
+     * Observable {@link System#out}
+     */ public final SystemOutListener systemout = new SystemOutListener();
 
-    public Window windowOwner;
     public final TaskBar taskbarIcon = new TaskBar();
     public final ActionPane actionPane = new ActionPane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
@@ -264,22 +286,33 @@ public class App extends Application implements Configurable {
      * has not started yet. However, this assumption is valid only for operations on fx thread.
      * Simply put, do not run any more background tasks, as the application will begin closing in
      * the meantime and be in inconsistent state.
-     */
-    public final SetƑ onStop = new SetƑ();
+     */ public final SetƑ onStop = new SetƑ();
     @IsConfig(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
 	public boolean normalLoad = true;
     public boolean initialized = false;
     private boolean close_prematurely = false;
 
-    public final WindowManager windowManager = new WindowManager();
-    public final WidgetManager widgetManager = new WidgetManager(windowManager);
-    public final ServiceManager services = new ServiceManager();
-    public final PluginMap plugins = new PluginMap();
+	/**
+	 * Manages windows.
+	 */ public final WindowManager windowManager = new WindowManager();
+	/**
+	 * Manages widgets.
+	 */ public final WidgetManager widgetManager = new WidgetManager(windowManager);
+	/**
+	 * Manages services.
+	 */ public final ServiceManager services = new ServiceManager();
+	/**
+	 * Manages plugins.
+	 */ public final PluginMap plugins = new PluginMap();
 
     public final ClassName className = new ClassName();
     public final InstanceName instanceName = new InstanceName();
     public final InstanceInfo instanceInfo = new InstanceInfo();
     public final ObjectFieldMap classFields = new ObjectFieldMap();
+	/**
+	 * File mime type map.
+	 * Initialized with the built-in mime types definitions.
+	 */ public final MimeTypes mimeTypes = MimeTypes.standard();
 
     @IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
     public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
@@ -370,10 +403,9 @@ public class App extends Application implements Configurable {
         x.registerConverter(new IntegerPropertyConverter(xm));  // -||-
         x.registerConverter(new ObjectPropertyConverter(xm));   // -||-
 	    x.registerConverter(new ObservableListConverter(xm));   // -||-
-	    x.registerConverter(new PlaylistConverter(xm));
         x.registerConverter(new VConverter(xm));
-        x.registerConverter(windowManager.new WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
+	    x.registerConverter(new PlaylistConverter(xm));
         x.registerConverter(new PlaylistItemConverter());
         x.alias("Component", Component.class);
         x.alias("Playlist", Playlist.class);
@@ -618,9 +650,9 @@ public class App extends Application implements Configurable {
                 }
             });
 
-            // create window owner - all 'top' windows are owned by it
-            windowOwner = windowManager.createWindowOwner();
-            windowOwner.show();
+            // create window owner
+	        windowManager.windowOwner = windowManager.createWindowOwner();
+	        windowManager.windowOwner.show();
 
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
@@ -633,6 +665,11 @@ public class App extends Application implements Configurable {
             services.addService(new Notifier());
             services.addService(new PlaycountIncrementer());
             services.addService(new ClickEffect());
+
+	        // gather actions
+	        stream(this, windowManager, guide)
+				.flatMap(Action::gatherActions)
+				.forEach(Action.getActions()::add);
 
             // gather configs
             configuration.rawAdd(FILE_SETTINGS);
@@ -692,6 +729,7 @@ public class App extends Application implements Configurable {
     }
 
     /** Starts this application normally if not yet started that way, otherwise has no effect. */
+    @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded. Has only effect once.")
 	public void startNormally() {
 		if(!normalLoad) {
 			normalLoad = true;
@@ -722,6 +760,7 @@ public class App extends Application implements Configurable {
     }
 
     /** Closes this app normally. Invokes {@link #stop()} as a result. */
+    @IsAction(name = "Close app", desc = "Closes this application.")
     public void close() {
 	    // javaFX bug fix - must close all popups before windows (new list avoids ConcurrentModificationError)
 	    list(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
@@ -736,6 +775,8 @@ public class App extends Application implements Configurable {
 	 * Closes this app abnormally, so next time this app does not start normally.
 	 * Invokes {@link #close()} and then {@link #stop()} as a result.
 	 */
+	@IsAction(name = "Close app abnormally", desc = "Closes this application so next time it loads it does not loads" +
+		                                            " its state. The state is saved and can be loaded manually at any time.")
     public void closeAbnormally() {
         normalLoad = false;
 	    close();
@@ -947,22 +988,6 @@ public class App extends Application implements Configurable {
     @IsActionable
     public interface Actions {
 
-	    @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded. Has only effect once.")
-	    static void startAppNormally() {
-		    APP.startNormally();
-	    }
-
-	    @IsAction(name = "Close app", desc = "Closes this application.")
-	    static void closeApp() {
-		    APP.close();
-	    }
-
-	    @IsAction(name = "Close app abnormally", desc = "Closes this application so next time it loads it does not loads" +
-                                            " its state. The state is saved and can be loaded manually at any time.")
-	    static void closeAppAbnormally() {
-		    APP.closeAbnormally();
-	    }
-
 	    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
 	    static void openAppGithubPage() {
 		    browse(APP.GITHUB_URI);
@@ -1076,11 +1101,6 @@ public class App extends Application implements Configurable {
 	    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
 	    static void openLayoutManager() {
 		    APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
-	    }
-
-	    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
-	    static void openGuide() {
-		    APP.guide.open();
 	    }
 
 	    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
@@ -1241,24 +1261,7 @@ public class App extends Application implements Configurable {
 		    new ConfigSearch(tf, APP.configSearchHistory,
 			    () -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
                 () -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
-                () -> Gui.skin.stream().map(s -> new ConfigSearch.Entry() {
-	                @Override
-	                public String getName() {
-		                return "Open skin: " + s;
-	                }
-	                @Override
-	                public String getInfo() {
-		                return "Open skin: " + s;
-	                }
-	                @Override
-	                public Node getGraphics() {
-		                return new Icon(MaterialIcon.BRUSH);
-	                }
-	                @Override
-	                public void run() {
-		                Gui.skin.setNapplyValue(s);
-	                }
-                })
+                () -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		    );
 		    PopOver<TextField> p = new PopOver<>(tf);
 		    p.title.set("Search for an action or option");
@@ -1285,11 +1288,8 @@ public class App extends Application implements Configurable {
 		    p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
 		    p.getContentNode().focusFirstConfigField();
 		    p.getContentNode().hideOnOk.setValue(true);
-		    if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
-			    run(200, () -> {
-				    p.getOwnerWindow().requestFocus();
-			    });
-		    }
+		    if (!isFocused)   // TODO: remove this by incorporating it into PopOver#show()
+			    run(200, () -> p.getOwnerWindow().requestFocus());
 	    }
 
 	    static void printAllImageFileMetadata(File file) {

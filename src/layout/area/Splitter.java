@@ -257,7 +257,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
      */
     @FXML
     public void switchChildren() {
-        container.switchCildren();
+        container.switchChildren();
     }
     public void toggleCollapsed() {
         int c = getCollapsed();

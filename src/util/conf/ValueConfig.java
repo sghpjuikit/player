@@ -1,26 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package util.conf;
 
-import java.util.Objects;
 import java.util.function.Consumer;
-
 import util.conf.Config.ConfigBase;
+import static util.dev.Util.noØ;
 
 /**
- * {@link Config} wrapper for a standalone object. This is the only implementation
+ * {@link util.conf.Config} wrapper for a standalone object. This is the only implementation
  * of the Config that can be instantiated.
  * <p/>
  * The aim is to create custom Configs that are not associated with any field and
  * are not a part of the automated configuration framework. Instead they simply
  * wrap an Object value.
  * <p/>
- * The sole use case of this class is for {@link ValueConfigurable}. Normally
- * a {@link Configurable} exports object's properties and attributes by introspection
+ * The sole use case of this class is for {@link util.conf.ValueConfig}. Normally
+ * a {@link util.conf.Configurable} exports object's properties and attributes by introspection
  * and reflection. Because Configurable provides standard to accessing and configuring
  * itself from outside transparently, sometimes it is desirable to wrap an object
  * into a Config and construct a Configurable around it. This Configurable could
@@ -40,7 +33,7 @@ import util.conf.Config.ConfigBase;
  * Basically, this class can be used to pass an object somewhere to modify its
  * value and then provide the result.
  *
- * @param V - type of value - wrapped object
+ * @param <V> - type of value - wrapped object
  *
  * @author Martin Polakovic
  */
@@ -82,7 +75,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      * <p/>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
      * the returned object reference will most likely be entirely new one.
-     * Dont store the old object in order to avoid using this getter and directly
+     * Do not store the old object in order to avoid using this getter and directly
      * access the value with the expectation it will have changed. What is changing
      * is the object itself not its value (if you wish to only change the value
      * use {@link PropertyConfig}). After the change the result can only be
@@ -101,7 +94,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      * <p/>
      * Note that if the value changed see {@link #setValue(java.lang.Object)},
      * the returned object reference will most likely be entirely new one.
-     * Dont store the old object in order to avoid using this getter and directly
+     * Do not store the old object in order to avoid using this getter and directly
      * access the value with the expectation it will have changed. What is changing
      * is the object itself not its value (if you wish to only change the value
      * use {@link PropertyConfig}). After the change the result can only be
@@ -113,7 +106,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      */
     @Override
     public void setValue(V val) {
-        Objects.requireNonNull(val);
+	    noØ(val);
         value = val;
     }
 
@@ -153,8 +146,6 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 
     /**
      * Equivalent to this==o
-     * @param o
-     * @return
      */
     @Override
     public boolean equals(Object o) {
@@ -163,10 +154,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        return hash;
+	    return 7;
     }
-
-
 
 }

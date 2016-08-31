@@ -501,9 +501,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                         // handle cover separately
                         Cover c = m.getCover(TAG);
                         if (i==0 && !c.isEmpty())
-                            { coverI = 1; CovS = c; covDesS = c.getDestription(); }
+                            { coverI = 1; CovS = c; covDesS = c.getDescription(); }
                         if (coverI == 0 && i != 0 && !c.isEmpty())
-                            { coverI = 2; CovS = c; covDesS = c.getDestription(); }
+                            { coverI = 2; CovS = c; covDesS = c.getDescription(); }
                         if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
                             coverI = 2;
                     }

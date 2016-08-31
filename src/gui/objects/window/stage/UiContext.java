@@ -23,7 +23,6 @@ import layout.widget.Widget;
 import layout.widget.WidgetFactory;
 import main.App;
 import util.conf.Configurable;
-import util.conf.IsConfigurable;
 import util.file.Util;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
@@ -37,7 +36,6 @@ import static util.graphics.Util.getScreen;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable
 public final class UiContext {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
@@ -103,7 +101,7 @@ public final class UiContext {
                   e.consume();
               });
         // build popup
-        PopOver p = new PopOver(w.load());
+        PopOver p = new PopOver<>(w.load());
                 p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
@@ -121,7 +119,7 @@ public final class UiContext {
         String name = c instanceof Widget ? ((Widget)c).getName() : "";
         Configurator sc = new Configurator(true);
                      sc.configure(c);
-        PopOver p = new PopOver(sc);
+        PopOver p = new PopOver<>(sc);
                 p.title.set((name==null ? "" : name+" ") + " Settings");
                 p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
                 p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
@@ -133,7 +131,7 @@ public final class UiContext {
         noØ(content);
         noØ(title);  // we could use null, but disallow
 
-        PopOver p = new PopOver(content);
+        PopOver p = new PopOver<>(content);
                 p.title.set(title);
                 p.setAutoFix(false);
                 p.show(windowManager.getActive().get().getStage(),getX(),getY());
@@ -153,9 +151,9 @@ public final class UiContext {
     private static void launchComponent(Component w) {
         if (w!=null) {
             if (APP.windowManager.windows.isEmpty()) {
-                APP.windowManager.getActiveOrDefault().setContent(w);
+                APP.windowManager.getActiveOrNew().setContent(w);
             } else {
-                showWindow(w);
+	            APP.windowManager.createWindow(w);
             }
         }
     }

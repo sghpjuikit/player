@@ -41,7 +41,7 @@ public class PluginMap{
         List<Class> pcs = m.get(p);
         if (pcs==null) throw new IllegalArgumentException(p + " is not a registered plugin type.");
         else {
-            List<T> ps = new ArrayList();
+            List<T> ps = new ArrayList<>();
             pcs.forEach(c -> {
                 try {
                     ps.add((T)c.newInstance());

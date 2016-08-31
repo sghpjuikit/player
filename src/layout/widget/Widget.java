@@ -463,7 +463,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     static class IO {
         public final Widget widget;
         public final String input_name;
-        public final List<Output.Id> outputs_ids = new ArrayList();
+        public final List<Output.Id> outputs_ids = new ArrayList<>();
 
         IO(Widget widget, String name, String outputs) {
             this.widget = widget;

@@ -3,7 +3,6 @@ package util.conf;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -19,10 +18,10 @@ import javafx.collections.ObservableList;
 import org.reactfx.Subscription;
 
 import util.access.ApplicableValue;
-import util.access.fieldvalue.EnumerableValue;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.Vo;
+import util.access.fieldvalue.EnumerableValue;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
@@ -31,13 +30,11 @@ import util.type.Util;
 
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
-import static util.type.Util.getValueFromFieldMethodHandle;
-import static util.type.Util.isEnum;
-import static util.type.Util.unPrimitivize;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
+import static util.type.Util.*;
 
 /**
  * Object representation of a configurable value.
@@ -264,7 +261,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public final List<Config<T>> getFields() {
-        return Collections.singletonList(this);
+        return list(this);
     }
 
 

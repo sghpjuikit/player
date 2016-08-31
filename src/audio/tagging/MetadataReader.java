@@ -4,7 +4,6 @@ package audio.tagging;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 
@@ -40,9 +39,8 @@ import static util.dev.Util.noØ;
 public class MetadataReader{
 
     private static Task<List<Metadata>> buildReadMetadata(Collection<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
-        Objects.requireNonNull(items);
-        Objects.requireNonNull(onEnd);
-
+	    noØ(items);
+	    noØ(onEnd);
         return new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd){
             private final int all = items.size();
             private int completed = 0;
@@ -180,15 +178,15 @@ public class MetadataReader{
      * @throws NullPointerException if any parameter null
      */
     public static Task<Metadata> create(Item item, BiConsumer<Boolean, Metadata> onFinish){
-        Objects.requireNonNull(item);
-        Objects.requireNonNull(onFinish);
+	    noØ(item);
+	    noØ(onFinish);
 
-        Task<Metadata> task = new Task(){
+        Task<Metadata> task = new Task<>(){
             @Override protected Metadata call() throws Exception {
                 return create(item);
             }
         };
-        task.setOnSucceeded( e -> {
+        task.setOnSucceeded( e ->
             Platform.runLater(() -> {
                 try {
                     onFinish.accept(true, task.get());
@@ -196,14 +194,14 @@ public class MetadataReader{
                     log(MetadataReader.class).error("Reading metadata failed for: {}",item);
                     onFinish.accept(false, null);
                 }
-            });
-        });
-        task.setOnFailed( e -> {
+            })
+        );
+        task.setOnFailed( e ->
             Platform.runLater(() -> {
                 log(MetadataReader.class).error("Reading metadata failed for: {}", item);
                 onFinish.accept(false, null);
-            });
-        });
+            })
+        );
 
         // run immediately and return task
         runNew(task);

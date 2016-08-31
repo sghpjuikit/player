@@ -2,6 +2,7 @@ package gui.objects.window.stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import audio.playback.PLAYBACK;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
@@ -97,41 +99,48 @@ public class Window extends WindowBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
     static final ObservableList<Window> WINDOWS = observableArrayList();
 
-    /** Pseudoclass active when this window is focused. Applied on root as '.window'. */
-    public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
-    /** Pseudoclass active when this window is resized. Applied on root as '.window'. */
-    public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
-    /** Pseudoclass active when this window is moved. Applied on root as '.window'. */
-    public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
-    /** Pseudoclass active when this window is fullscreen. Applied on root as '.window'. */
-    public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
+    /**
+     * Pseudoclass active when this window is focused. Applied on root as '.window'.
+     */ public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
+    /**
+     * Pseudoclass active when this window is resized. Applied on root as '.window'.
+     */ public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
+    /**
+     * Pseudoclass active when this window is moved. Applied on root as '.window'.
+     */ public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
+    /**
+     * Pseudoclass active when this window is fullscreen. Applied on root as '.window'.
+     */ public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
 
 
-    /** Scene root. Assigned '.window' styleclass. */
-    @FXML public AnchorPane root = new AnchorPane();
-    /** Single child of the root. */
-    @FXML public StackPane subroot;
+    /**
+     * Scene root. Assigned '.window' styleclass.
+     */ @FXML public AnchorPane root = new AnchorPane();
+    /**
+     * Single child of the root.
+     */ @FXML public StackPane subroot;
     @FXML public StackPane back, backimage;
     @FXML public AnchorPane bordersVisual;
     @FXML public AnchorPane front, content;
     @FXML HBox rightHeaderBox;
 
-    /** Disposables ran when window closes. For example you may put here listeners. */
-    public final List<Subscription> disposables = new ArrayList<>();
+    /**
+     * Disposables ran when window closes. For example you may put here listeners.
+     */ public final List<Subscription> disposables = new ArrayList<>();
     /**
      * Denotes whether this window is main window. Main window has altered behavior:
      * <ul>
      * <li> Closing it causes application to close as well
      * </ul>
-     */
-    public final V<Boolean> isMain = new V<>(false);
+     */ public final V<Boolean> isMain = new V<>(false);
+	final Set<Subscription> isMainDisposables = set();
 
     Window() {
         this(null,UNDECORATED);
     }
 
     Window(Stage owner, StageStyle style) {
-	super(owner,style);
+		super(owner,style);
         s.getProperties().put("window", this);
     }
 
@@ -344,17 +353,23 @@ public class Window extends WindowBase {
         Icon fullsB = new Icon(null, 17, "Fullscreen\n\nExpand window to span whole screen and "
                 + "put it on top", this::toggleFullscreen);
         maintain(fullscreen, mapB(FULLSCREEN_EXIT,FULLSCREEN), fullsB::icon);
-        Icon minimB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
-//        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
-        Icon maximB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
+        Icon minB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
+//        maintain(minB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minB::icon);
+        Icon maxB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
                 this::toggleMaximize);
-//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
+//        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
         Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is is main, "
                 + "application closes as well.", this::close);
-//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
+//        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
+	    Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, 5)
+		             .onClick(() -> APP.windowManager.setAsMain(this));
+	    maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
+	    maintain(isMain, v -> mainB.tooltip(v
+            ? "Main window\n\nThis window is main app window\nClosing it will close application."
+            : "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 
         // right header
-	    rightHeaderBox.getChildren().addAll(miniB, onTopB, fullsB, minimB, maximB, closeB);
+	    rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, minB, maxB, closeB);
     }
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
@@ -565,7 +580,7 @@ public class Window extends WindowBase {
 
     @Override
     public void close() {
-        LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? " main" : "",WINDOWS.size());
+        LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? " main" : "", WINDOWS.size());
 	    if (isMain.get()) {
             APP.close();
 	    } else {

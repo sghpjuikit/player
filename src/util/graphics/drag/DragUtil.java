@@ -289,7 +289,7 @@ public final class DragUtil {
      */
     public static List<Item> getAudioItems(DragEvent e) {
         Dragboard d = e.getDragboard();
-        ArrayList<Item> o = new ArrayList();
+        ArrayList<Item> o = new ArrayList<>();
 
         if (hasItemList(e)) {
             o.addAll(getItemsList(e));

@@ -668,7 +668,7 @@ public interface Functors {
     class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
 
         final PƑ<I,O> pf;
-        private final List<Config<Object>> cs = new ArrayList();
+        private final List<Config<Object>> cs = new ArrayList<>();
 
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;

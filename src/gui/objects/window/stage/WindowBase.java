@@ -1,3 +1,4 @@
+
 package gui.objects.window.stage;
 
 import java.util.List;
@@ -54,22 +55,29 @@ public class WindowBase {
 
     Stage s = new Stage();
 
-    /** Indicates whether the window has focus. Read-only. Use {@link #focus()}. */
-    public final ReadOnlyBooleanProperty focused = s.focusedProperty();
-    /** Indicates whether this window is always on top. Window always on top
-      * will not hide behind other windows. */
-    public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
-    /** Indicates whether this window is in fullscreen. */
-    public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
-    /** Indicates whether this window is maximized. */
-    public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
-    /** Indicates whether the window is being moved. */
-    public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
-    /** Indicates whether and how the window is being resized. */
-    public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
-    /** Defines whether this window is resizable. Programatically it is still
-      * possible to change the size of the Stage. */
-    public final BooleanProperty resizable = s.resizableProperty();
+    /**
+     * Indicates whether the window has focus. Read-only. Use {@link #focus()}.
+     */ public final ReadOnlyBooleanProperty focused = s.focusedProperty();
+    /**
+     * Indicates whether this window is always on top. Window always on top
+     * will not hide behind other windows.
+     */ public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
+    /**
+     * Indicates whether this window is in fullscreen.
+     */ public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
+    /**
+     * Indicates whether this window is maximized.
+     */ public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
+    /**
+     * Indicates whether the window is being moved.
+     */ public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
+    /**
+     * Indicates whether and how the window is being resized.
+     */ public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
+    /**
+     * Defines whether this window is resizable. Programmatically it is still
+     * possible to change the size of the Stage.
+     */ public final BooleanProperty resizable = s.resizableProperty();
 
 
 
@@ -87,7 +95,7 @@ public class WindowBase {
     /**
      * Returns to last remembered state.
      * Needed during window initialization.
-     * Doesnt affect content of the window.
+     * Does not affect content of the window.
      */
     public void update() {
         s.setWidth(W.get());
@@ -448,8 +456,9 @@ public class WindowBase {
 
     /** Centers this window on ita screen. */
     public void setXYScreenCenter() {
-        double x = screen.getBounds().getWidth()/2 - getWidth()/2;
-        double y = screen.getBounds().getHeight()/2 - getHeight()/2;
+    	Rectangle2D b = screen.getBounds();
+        double x = (b.getMinX() + b.getMaxX())/2 - getWidth()/2;
+        double y = (b.getMinY() + b.getMaxY())/2 - getHeight()/2;
         setXY(x, y);
     }
 

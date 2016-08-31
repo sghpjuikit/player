@@ -3,7 +3,6 @@ package layout.area;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -14,11 +13,12 @@ import javafx.scene.layout.StackPane;
 import layout.Component;
 import layout.container.Container;
 import layout.widget.Widget;
-import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import util.graphics.Util;
 
 import static javafx.css.PseudoClass.getPseudoClass;
+import static main.App.APP;
+import static util.dev.Util.noØ;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchor;
 
@@ -59,7 +59,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
      */
     public Area(T c, Integer i) {
         // init final 1:1 container-area relationship
-        Objects.requireNonNull(c);
+	    noØ(c);
         container = c;
         index = i;
 
@@ -117,9 +117,6 @@ public abstract class Area<T extends Container> implements ContainerNode {
     /**
      * Detaches the content into standalone content. Opens new window.
      * <p/>
-     * Implementation decides specifics of the operation. {@link PolyArea} could
-     * detach only some components or itself or only active component.
-     * <p/>
      * Default implementation detaches the first active component. Does nothing
      * if no active component available.
      */
@@ -128,7 +125,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         if (c==null) return;
         c.getParent().addChild(c.indexInParent(),null);
         // detach into new window
-        Window w = UiContext.showWindow(c);
+        Window w = APP.windowManager.createWindow(c);
         // set size to that of a source (also add header & border space)
         w.setSize(root.getWidth()+10, root.getHeight()+30);
     }

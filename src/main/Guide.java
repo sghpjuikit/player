@@ -26,6 +26,7 @@ import layout.container.switchcontainer.SwitchContainer;
 import layout.widget.Widget;
 import util.access.V;
 import util.action.Action;
+import util.action.IsAction;
 import util.animation.Anim;
 import util.conf.Configurable;
 import util.conf.IsConfig;
@@ -60,10 +61,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 @IsConfigurable
 public final class Guide implements Configurable {
 
-    @IsConfig(name = "Show guide on app start", info = "Show guide when application "
-            + "starts. Default true, but when guide is shown, it is set to false "
-            + "so the guide will never appear again on its own.")
-    public final V<Boolean> first_time = new V<>(true);
     private static final String STYLECLASS_TEXT = "guide-text";
     private final double ICON_SIZE = 40; // use css style instead
 
@@ -75,6 +72,11 @@ public final class Guide implements Configurable {
     private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));
     private Subscription action_monitoring;
     private final Label infoL = new Label();
+
+	@IsConfig(name = "Show guide on app start", info = "Show guide when application "
+		                                             + "starts. Default true, but when guide is shown, it is set to false "
+		                                             + "so the guide will never appear again on its own.")
+	public final V<Boolean> first_time = new V<>(true);
 
     public Guide() {
         text.setWrappingWidth(350);
@@ -116,7 +118,7 @@ public final class Guide implements Configurable {
              "\n\nBut first let's play some music.",
              new Icon(MUSIC, ICON_SIZE, null, e -> {
                 // find spot
-                SwitchContainer la = APP.windowManager.getActiveOrDefault().getSwitchPane().container;
+                SwitchContainer la = APP.windowManager.getActiveOrNew().getSwitchPane().container;
                 // prepare container
                 BiContainer bc = new BiContainer(VERTICAL);
                 la.addChild(la.getEmptySpot(), bc);
@@ -262,7 +264,7 @@ public final class Guide implements Configurable {
            + "\n\t• Left click: go 'down' - visit children"
            + "\n\n Try out container navigation:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window w = APP.windowManager.getActiveOrDefault();
+                 Window w = APP.windowManager.getActiveOrNew();
                  int i = w.getTopContainer().getEmptySpot();
                  w.getTopContainer().ui.alignTab(i);
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
@@ -333,7 +335,7 @@ public final class Guide implements Configurable {
            + "the mouse within the area can still activate different area (child area)."
            + "\n\nYou can start the tutorial below:",
              new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
-                 Window wd = APP.windowManager.getActiveOrDefault();
+                 Window wd = APP.windowManager.getActiveOrNew();
                  int i = wd.getTopContainer().getEmptySpot();
                  wd.getTopContainer().ui.alignTab(i);
 
@@ -452,6 +454,7 @@ public final class Guide implements Configurable {
         }
     }
 
+	@IsAction(name = "Open guide", desc = "Resume or start the guide.")
     public void open() {
         APP.actionStream.push("Guide opening");
         if (action_monitoring==null) start();

@@ -45,6 +45,7 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.*;
+import static util.file.Util.listFiles;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 
@@ -283,8 +284,8 @@ public final class WidgetManager {
             monitorStart();
         }
 
-        File[] getSrcFiles() {
-            return widgetdir.listFiles(f -> f.getPath().endsWith(".java"));
+        Stream<File> getSrcFiles() {
+            return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".java"));
         }
     }
 
@@ -294,13 +295,12 @@ public final class WidgetManager {
      *
      * @param srcFiles .java files to compile
      */
-    private static void compile(File... srcFiles) {
-        File[] files = srcFiles;
+    private static void compile(Stream<File> srcFiles) {
         // Compiler defaults to system encoding, we:
         // - consistent encoding that does not depend on system
         // - need UTF-8
         Stream<String> options = stream("-encoding",APP.encoding.name());
-        Stream<String> paths = stream(files).map(File::getPath);
+        Stream<String> paths = srcFiles.map(File::getPath);
         String[] arguments = stream(options,paths).toArray(String[]::new);
         LOGGER.info("Compiling with command: {} ", (Object[])arguments);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -312,12 +312,12 @@ public final class WidgetManager {
         }
     }
 
-    private static Class<?> loadClass(String widgetname, File classFile) {
+    private static Class<?> loadClass(String widgetName, File classFile) {
         try {
             File dir = classFile.getParentFile();
-            String classname = widgetname + "." + Util.getName(classFile);
+            String classname = widgetName + "." + Util.getName(classFile);
 
-            ClassLoader controllerClassloader = createControllerClassLoader(dir, widgetname);
+            ClassLoader controllerClassloader = createControllerClassLoader(dir, widgetName);
 
             // debug - checks if the classloader can load the same class multiple times
             // boolean isDifferentClassInstance =
@@ -686,8 +686,7 @@ public final class WidgetManager {
             return;
         }
         // find layout files
-        File[] files;
-        files = dir.listFiles((File pathname) -> pathname.getName().endsWith(".l"));
+        File[] files = listFiles(dir).filter(f -> f.getName().endsWith(".l")).toArray(File[]::new);
         // load layouts
         layouts.clear();
         if (files.length == 0) return;

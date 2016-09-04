@@ -69,7 +69,7 @@ public class FileTree extends TreeView<File>{
             TransferMode tm = e.isShiftDown() ? MOVE : COPY;
             Dragboard db = tree.startDragAndDrop(tm);
             List<File> files = tree.getSelectionModel().getSelectedItems().stream()
-                                            .map(tc->tc.getValue())
+                                            .map(TreeItem::getValue)
                                             .collect(Collectors.toList());
             ClipboardContent cont = new ClipboardContent();
                              cont.putFiles(files);
@@ -125,8 +125,7 @@ public class FileTree extends TreeView<File>{
 
             private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> i) {
                 // we want to sort the items : directories first
-                // we make use of the fact that listFiles() gives us already
-                // sorted list
+                // we make use of the fact that listFiles() gives us already sorted list
                 ObservableList<TreeItem<File>> dirs = FXCollections.observableArrayList();
                 List<TreeItem<File>> fils = new ArrayList<>();
                 listFiles(i.getValue()).forEach(f -> {

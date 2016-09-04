@@ -11,6 +11,8 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.animation.Loop;
 
+import static javafx.util.Duration.seconds;
+
 /**
  * Shows audio frequency bars. Animated at 60 fps.
  *
@@ -34,35 +36,37 @@ public class Spectrum extends ClassController  {
         n.heightProperty().bind(heightProperty());
         n.widthProperty().bind(widthProperty());
 
-        n.startListening();
+        n.start();
     }
 
     @Override
     public void onClose() {
-        n.stopListening();
+        n.stop();
     }
 
     private static class SpectrumNode extends Canvas implements AudioSpectrumListener {
-        private static final double SPECTRUM_INTERVAL = 100; // seconds(0.1).toMillis();
-        private static final double FRAMES = SPECTRUM_INTERVAL*60; // SPECTRUM_INTERVAL at 60 fps
-        double[] heights = new double[128];
-        double[] heights_target = new double[128];
-        long lastUpdate = 0;
-        Loop loop = new util.animation.Loop(this::draw);
+        private static final double FPS = 60; // Hz
+        private static final double SPECTRUM_INTERVAL = seconds(0.1).toMillis(); // ms
+        private static final double FRAMES = SPECTRUM_INTERVAL*FPS;
+
+        private final double[] heights = new double[128];
+        private final double[] heights_target = new double[128];
+        private long lastUpdate = 0;
+        private final Loop loop = new Loop(this::draw);
 
         /** Starts listening to the playback */
-        public void startListening() {
+        public void start() {
             loop.start();
             PLAYBACK.spectrumListeners.add(this);
         }
 
         /** Stops listening to the playback */
-        public void stopListening() {
+        public void stop() {
             loop.stop();
             PLAYBACK.spectrumListeners.remove(this);
         }
 
-        void draw() {
+        private void draw() {
             // causes bars to go to 0 when paused, instead of standing still
             // cool effect(makes it feel more alive) + more natural
             if (System.currentTimeMillis()- lastUpdate > SPECTRUM_INTERVAL)

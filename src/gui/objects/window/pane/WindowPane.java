@@ -37,7 +37,7 @@ public class WindowPane {
     private double _y = 100;
     private double _w = 0;
     private double _h = 0;
-    protected final ReadOnlyObjectWrapper<Resize> _resizing = new ReadOnlyObjectWrapper(Resize.NONE);
+    protected final ReadOnlyObjectWrapper<Resize> _resizing = new ReadOnlyObjectWrapper<>(Resize.NONE);
     protected final ReadOnlyBooleanWrapper _moving = new ReadOnlyBooleanWrapper(false);
     private final ReadOnlyBooleanWrapper _focused = new ReadOnlyBooleanWrapper(false);
     protected final ReadOnlyBooleanWrapper _fullscreen = new ReadOnlyBooleanWrapper(false);
@@ -94,16 +94,21 @@ public class WindowPane {
     public final DoubleProperty h = root.prefHeightProperty();
     public final BooleanProperty visible = root.visibleProperty();
     public final DoubleProperty opacity = root.opacityProperty();
-    /** Indicates whether this window is maximized. */
-    public final ObjectProperty<Maximized> maximized = new SimpleObjectProperty(Maximized.NONE);
-    /** Defines whether this window is resizable. */
-    public final BooleanProperty movable = new SimpleBooleanProperty(true);
-    /** Indicates whether the window is being moved. */
-    public final ReadOnlyBooleanProperty moving = _moving.getReadOnlyProperty();
-    /** Indicates whether and how the window is being resized. */
-    public final ReadOnlyObjectProperty<Resize> resizing = _resizing.getReadOnlyProperty();
-    /** Defines whether this window is resizable. */
-    public final BooleanProperty resizable = new SimpleBooleanProperty(true);
+    /**
+     * Indicates whether this window is maximized.
+     */ public final ObjectProperty<Maximized> maximized = new SimpleObjectProperty<>(Maximized.NONE);
+    /**
+     * Defines whether this window is resizable.
+     */ public final BooleanProperty movable = new SimpleBooleanProperty(true);
+    /**
+     * Indicates whether the window is being moved.
+     */ public final ReadOnlyBooleanProperty moving = _moving.getReadOnlyProperty();
+    /**
+     * Indicates whether and how the window is being resized.
+     */ public final ReadOnlyObjectProperty<Resize> resizing = _resizing.getReadOnlyProperty();
+    /**
+     * Defines whether this window is resizable.
+     */ public final BooleanProperty resizable = new SimpleBooleanProperty(true);
     public final BooleanProperty snappable = new SimpleBooleanProperty(true);
     public final DoubleProperty snapDistance = new SimpleDoubleProperty(5);
     public final BooleanProperty offscreenFixOn = new SimpleBooleanProperty(true);
@@ -113,15 +118,12 @@ public class WindowPane {
     
     public WindowPane(AnchorPane own) {
         owner = own;
-        
-        root.addEventFilter(MOUSE_PRESSED, e -> {
-            root.toFront();
-        });        
+        root.addEventFilter(MOUSE_PRESSED, e -> root.toFront());
     }
     
     private final ListChangeListener<Node> focusListener = (Change<? extends Node> c) -> {
         int i = c.getList().size();
-        _focused.set(i==0 ? false : c.getList().get(i-1)==root);
+        _focused.set(i!=0 && c.getList().get(i - 1)==root);
     };
     
     /** Opens this window. Must not be invoked when already open. */

@@ -270,7 +270,7 @@ public final class Guide implements Configurable {
                  runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
                      1000, () -> Gui.setLayoutMode(true)
                  );
-             }).withText("Test")
+             }).withText("voronoi")
         );
         hint("Layout lock", () -> "Because automatic layout mode can be intrusive, the layout can be "
            + "locked. Locked layout will enter layout mode only with shortcut."
@@ -364,7 +364,7 @@ public final class Guide implements Configurable {
                         e -> {}
                     );
                  });
-             }).withText("Test"),
+             }).withText("voronoi"),
              new Icon(DICE_2,ICON_SIZE){{
                  setOnDragDetected(e -> {
                      Dragboard db = this.startDragAndDrop(TransferMode.COPY);

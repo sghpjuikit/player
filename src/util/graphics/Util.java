@@ -416,6 +416,21 @@ public interface Util {
 
 /**************************************************************************************************/
 
+	static void installDragByMouse(Node n) {
+		class P { double x=0, y=0;}
+		P start = new P();
+		n.addEventHandler(DRAG_DETECTED, e -> {
+			start.x = n.getLayoutX() - e.getSceneX();
+			start.y = n.getLayoutY() - e.getSceneY();
+			e.consume();
+		});
+		n.addEventHandler(MOUSE_DRAGGED, e -> {
+			n.setLayoutX(start.x + e.getSceneX());
+			n.setLayoutY(start.y + e.getSceneY());
+			e.consume();
+		});
+	}
+
     @Deprecated
     static Subscription hovered(Node n, Consumer<? super Boolean> handler) {
         EventSource<Boolean> events = new EventSource<>();
@@ -484,6 +499,8 @@ public interface Util {
             log(Util.class).warn("Aborted customizing tooltip behavior",e);
         }
     }
+
+/* ---------- TABLE ------------------------------------------------------------------------------------------------- */
 
     /**
      * Creates column that indexes rows from 1 and is right aligned. The column
@@ -606,6 +623,8 @@ public interface Util {
     EventHandler<MouseEvent> consumeOnSecondaryButton = e-> {
         if (e.getButton()== MouseButton.SECONDARY) e.consume();
     };
+
+/* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
     static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
         MenuItem i = new MenuItem(text);

@@ -666,15 +666,11 @@ public interface Util {
     static void removeDir(File dir) {
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
-            if (files != null && files.length > 0) {
-                for (File aFile : files) {
+            if (files != null && files.length > 0)
+                for (File aFile : files)
                     removeDir(aFile);
-                }
-            }
-            dir.delete();
-        } else {
-            dir.delete();
         }
+        dir.delete();
     }
 
     /**

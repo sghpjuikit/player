@@ -63,6 +63,7 @@ import static util.Util.emptyOr;
 import static util.Util.localDateTimeFromMillis;
 import static util.dev.Util.log;
 import static util.file.Util.EMPTY_URI;
+import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.type.Util.mapEnumConstantName;
 
@@ -831,26 +832,24 @@ public final class Metadata extends MetaItem<Metadata> {
         if (!isFileBased()) return null;
 
         File dir = getFile().getParentFile();
-        if (!Util.isValidDirectory(dir)) return null;
-
-        File[] files;
-        files = dir.listFiles( f -> {
-            String filename = f.getName();
-            int i = filename.lastIndexOf('.');
-            if (i == -1) return false;
-            String name = filename.substring(0, i);
-            return (ImageFileFormat.isSupported(f.toURI()) && (
-                        name.equalsIgnoreCase("cover") ||
-                        name.equalsIgnoreCase("folder") ||
-                        name.equalsIgnoreCase(getFilenameFull()) ||
-                        name.equalsIgnoreCase(getFilename()) ||
-                        name.equalsIgnoreCase(getTitle()) ||
-                        name.equalsIgnoreCase(getAlbum())
-                ));
-        });
-
-        if (files.length == 0) return null;
-        else return files[0];
+        return listFiles(dir)
+            .filter(f -> {
+                 String filename = f.getName();
+                 int i = filename.lastIndexOf('.');
+                 if (i == -1) return false;
+                 String name = filename.substring(0, i);
+	            // TODO: fix logic, this should be chained as suppliers of Optional.orElse()
+	            // this way the predicate priorities do no work if multiple files match some of the predicates!
+                 return ImageFileFormat.isSupported(f.toURI()) && (
+                             name.equalsIgnoreCase("cover") ||
+                             name.equalsIgnoreCase("folder") ||
+                             name.equalsIgnoreCase(getFilenameFull()) ||
+                             name.equalsIgnoreCase(getFilename()) ||
+                             name.equalsIgnoreCase(getTitle()) ||
+                             name.equalsIgnoreCase(getAlbum())
+                     );
+            })
+            .findFirst().orElse(null);
     }
 
     /** @return the rating or -1 if empty. */

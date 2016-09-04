@@ -810,6 +810,14 @@ public interface Util {
     }
 
     /** Returns sum of squares of all numbers. */
+    static double sqrΣ(double number) {
+        return number*number;
+    }
+
+    static double sqrΣ(double number1, double number2) {
+        return number1*number1 + number2*number2;
+    }
+
     static double sqrΣ(double... numbers) {
         double Σ = 0;
         for (double x : numbers)

@@ -879,8 +879,6 @@ public class App extends Application implements Configurable {
 
 
 
-    // jobs
-
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
 //           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
@@ -907,14 +905,6 @@ public class App extends Application implements Configurable {
                       .use(action, FX).run();
        }
     }
-
-//    public static Metadata itemToMeta(Item i) {
-//       if (i.same(Player.playingItem.get()))
-//           return Player.playingItem.get();
-//
-//       Metadata m = DB.items_byId.get(i.getId());
-//       return m==null ? MetadataReader.create(i) : m;
-//    }
 
     public static void openImageFullscreen(File image, Screen screen) {
         // find appropriate widget

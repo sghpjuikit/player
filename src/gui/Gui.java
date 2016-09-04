@@ -59,6 +59,7 @@ import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
+import static util.file.Util.listFiles;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
 
@@ -346,15 +347,15 @@ public class Gui {
 
         // find skins
         Set<String> skins = new HashSet<>();
-        File[] dirs = dir.listFiles(File::isDirectory);
-        for (File d: dirs) {
-            String name = d.getName();
-            File css = new File(d, name + ".css");
-            if (Util.isValidFile(css)) {
-                skins.add(name);
-                LOGGER.info("Registering skin: " + name);
-            }
-        }
+        listFiles(dir).filter(File::isDirectory)
+	        .forEach(d -> {
+	            String name = d.getName();
+	            File css = new File(d, name + ".css");
+	            if (Util.isValidFile(css)) {
+	                skins.add(name);
+	                LOGGER.info("Registering skin: " + name);
+	            }
+        });
 
         skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
         skins.add(capitalizeStrong(STYLESHEET_MODENA));

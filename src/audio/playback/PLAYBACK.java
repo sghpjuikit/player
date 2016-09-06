@@ -196,25 +196,31 @@ public final class PLAYBACK implements Configurable {
         seek(0);
     }
 
-    /** Seek forward by specified duration */
-    @IsAction(name = "Seek forward", desc = "Seek forward playback.", keys = "ALT+D", repeat = true, global = true)
-    public static void seekForward() {
-        if (seekPercent) {
-            double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
-            seek(min(d, 1));
-        } else
-            seek(getCurrentTime().add(seekUnitT));
+    /** Seek forward by small duration unit. */
+    @IsAction(name = "Seek forward", desc = "Seek forward playback by small duration unit.", keys = "ALT+D", repeat = true, global = true)
+    public static void seekForwardAbsolute() {
+        seek(getCurrentTime().add(seekUnitT));
     }
 
-    /** Seek backward by specified duration */
-    @IsAction(name = "Seek backward", desc = "Seek backward playback.", keys = "ALT+A", repeat = true, global = true)
-    public static void seekBackward() {
-        if (seekPercent) {
-            double d = getCurrentTime().toMillis()/getTotalTime().toMillis() - seekUnitP;
-            seek(max(d, 0));
-        } else
-            seek(getCurrentTime().subtract(seekUnitT));
-    }
+	/** Seek forward by small fraction unit. */
+	@IsAction(name = "Seek forward (%)", desc = "Seek forward playback by fraction.", keys = "CTRL+ALT+D", repeat = true, global = true)
+	public static void seekForwardRelative() {
+		double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
+		seek(min(d, 1));
+	}
+
+	/** Seek backward by small duration unit. */
+	@IsAction(name = "Seek backward", desc = "Seek backward playback by small duration unit.", keys = "ALT+A", repeat = true, global = true)
+	public static void seekBackwardAbsolute() {
+		seek(getCurrentTime().subtract(seekUnitT));
+	}
+
+	/** Seek backward by small fraction unit. */
+	@IsAction(name = "Seek backward (%)", desc = "Seek backward playback by fraction.", keys = "CTRL+ALT+A", repeat = true, global = true)
+	public static void seekBackwardRelative() {
+		double d = getCurrentTime().toMillis()/getTotalTime().toMillis() - seekUnitP;
+		seek(max(d, 0));
+	}
 
     /** Seek forward by specified duration */
     @IsAction(name = "Seek to end", desc = "Seek playback to end.", keys = "", global = true)

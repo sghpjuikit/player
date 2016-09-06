@@ -85,11 +85,11 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     @FXML Label titleL, artistL, bitrateL, sampleRateL, channelsL;
     @FXML HBox infoBox, playButtons;
     Seeker seeker = new Seeker();
-    Icon f1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(PLAYBACK::seekBackward),
+    Icon f1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(PLAYBACK::seekBackwardAbsolute),
          f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
          f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
          f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
-         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(PLAYBACK::seekForward),
+         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(PLAYBACK::seekForwardAbsolute),
          f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
          muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
          addB  = new GlowIcon(PLUS_SQUARE_ALT,10),

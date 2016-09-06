@@ -2,7 +2,6 @@ package voronoi;
 
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -15,13 +14,13 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import kn.uni.voronoitreemap.j2d.Site;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
+import one.util.streamex.StreamEx;
 import util.animation.Loop;
 
-import static java.util.stream.Collectors.toList;
-import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static util.Util.sqrΣ;
+import static java.lang.Math.sqrt;
+import static javafx.scene.input.MouseEvent.*;
+import static util.Util.clip;
+import static util.Util.pyth;
 import static util.functional.Util.by;
 
 /**
@@ -56,10 +55,13 @@ public class Voronoi extends ClassController  {
 
 	private static class RenderNode extends Canvas {
 		static Random rand = new Random();
-		Loop loop = new util.animation.Loop(this::draw);
-		GraphicsContext gc = getGraphicsContext2D();
-		List<Cell> cells;
-		Cell draggedCell = null;
+		final Loop loop = new util.animation.Loop(this::draw);
+		final GraphicsContext gc = getGraphicsContext2D();
+		List<Cell> cells;       // delayed initialization
+		P draggedCell = null;   // null if none
+		P selectedCell = null;  // null if none
+		P mousePos = null;      // null if outside
+		long loopId = 0;        // loop id, autoincrement, used for simple loop control
 
 		public RenderNode() {
 			// cell mouse dragging
@@ -68,20 +70,48 @@ public class Voronoi extends ClassController  {
 					draggedCell.x = e.getX();
 					draggedCell.y = e.getY();
 				}
+				mousePos = new P(e.getX(), e.getY());
 			});
-			addEventHandler(MOUSE_PRESSED, e ->
-				draggedCell = cells.stream().sorted(by(c -> sqrΣ(c.x-e.getX(), c.y-e.getY()))).findFirst().orElse(null)
-			);
-			addEventHandler(MOUSE_RELEASED, e ->
-				draggedCell = null
-			);
+			addEventHandler(MOUSE_PRESSED, e -> draggedCell = selectedCell );
+			addEventHandler(MOUSE_RELEASED, e -> draggedCell = null );
+			// mouse position
+			addEventHandler(MOUSE_MOVED, e -> {
+				mousePos = new P(e.getX(), e.getY());
+				selectedCell = cells.stream().sorted(by(c -> c.distance(mousePos))).findFirst().orElse(null);
+			});
+			addEventHandler(MOUSE_EXITED, e -> {
+				mousePos = null;
+				selectedCell = null;
+			});
 		}
 
 		void draw() {
 			int width = (int) getWidth();
 			int height = (int) getHeight();
 			if (width<=0 || height<=0) return;
-			if (cells == null) cells = Stream.generate(() -> randomCell(width, height, .5)).limit(100).collect(toList());
+
+			loopId++;
+//			if (loopId>1) return;
+
+			// generate cells (runs only once, we need to do it here to make sure width & height is initialized)
+			int cellCount = 4;
+			if (cells == null) {
+				// random
+				cells = StreamEx.generate(() -> Cell.random(width, height, .5)).limit(cellCount).toList();
+				// circle
+//				double wh = min(width,height);
+//				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+//			                          .mapToObj(a -> new Cell(wh/2+wh/10*cos(a), wh/2+wh/10*sin(a)))
+//			                          .toList();
+//				cells.add(new Cell(wh/2+10, wh/2+10));
+//				cells.add(new Cell(wh/2+10, wh/2-10));
+//				cells.add(new Cell(wh/2-10, wh/2-10));
+//				cells.add(new Cell(wh/2-10, wh/2+10));
+				// horizontal sequence
+//				cells = IntStream.range(0,cellCount)
+//						         .mapToObj(a -> new Cell(width*0.1+width*0.8/cellCount*a, height/2))
+//						         .toList();
+            }
 
 			cells.forEach(c -> {
 				double x = c.x+c.dx;
@@ -110,65 +140,94 @@ public class Voronoi extends ClassController  {
 			gc.setStroke(Color.AQUA);
 			gc.clearRect(0,0,width,height);
 
-			PowerDiagram diagram = new PowerDiagram();
-
-			// normal list based on an array
 			OpenList sites = new OpenList();
+			cells.forEach(c -> sites.add(new Site(c.x, c.y)));
 
-			// create a root polygon which limits the voronoi diagram.
-			//  here it is just a rectangle.
+			// create a root polygon which limits the voronoi diagram. Here it is just a rectangle.
 			PolygonSimple rootPolygon = new PolygonSimple();
 			rootPolygon.add(0, 0);
 			rootPolygon.add(width, 0);
 			rootPolygon.add(width, height);
 			rootPolygon.add(0, height);
 
-			cells.forEach(c -> sites.add(new Site(c.x, c.y)));
-			double r = 2;
-			cells.forEach(c -> gc.fillOval(c.x-r,c.y-r,2*r,2*r));
-			double rd = 4;
-			if (draggedCell!=null) gc.fillOval(draggedCell.x-rd,draggedCell.y-rd,2*rd,2*rd);
-			if (draggedCell!=null) gc.fillOval(draggedCell.x-rd,draggedCell.y-rd,2*rd,2*rd);
-
-			gc.setEffect(new GaussianBlur(15));
-
-			// set the list of points (sites), necessary for the power diagram
+			PowerDiagram diagram = new PowerDiagram();
 			diagram.setSites(sites);
-			// set the clipping polygon, which limits the power voronoi diagram
 			diagram.setClipPoly(rootPolygon);
 
 			// do the computation
-			diagram.computeDiagram();
-			// for each site we can no get the resulting polygon of its cell.
-			// note that the cell can also be empty, in this case there is no polygon for the corresponding site.
-			for (int i=0;i< sites.size; i++){
-				Site site = sites.array[i];
-				PolygonSimple polygon=site.getPolygon();
-
-				if (polygon!=null && polygon.getNumPoints()>1)
-//					StreamEx.of(polygon.iterator()).forPairs((p1, p2) -> {
-//						if (p1!=null && p2!=null)
-//							drawLine(p1.x, p2.x, p1.y, p2.y);
-//					});
-				gc.strokePolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
+			// unfortunately it can fail under some conditions, so we recover -> cancel this & all fture loops
+			// we could just stop this loop and continue with the next one, but once the computation fails, it
+			// will most probably fail again, at which point it can quickly crash the entire VM.
+			try {
+				diagram.computeDiagram();
+			} catch (Exception e) {
+				e.printStackTrace();
+				loop.stop();
+				return;
 			}
+
+			// draw cells
+			gc.save();
+			gc.setEffect(new GaussianBlur(15));
+			for (Site site : sites) {
+				// for each site we can now get the resulting polygon of its cell.
+				// note that the cell can also be empty, in which case there is no polygon for the corresponding site.
+				PolygonSimple polygon = site.getPolygon();
+				if (polygon!=null && polygon.getNumPoints()>1) {
+					boolean isSelected = selectedCell != null && site.x == selectedCell.x && site.y == selectedCell.y;
+					boolean isDragged = draggedCell==null;
+					if (isSelected) {
+						gc.save();
+						gc.setGlobalAlpha(isDragged ? 0.1 : 0.2);
+						gc.fillPolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
+						gc.restore();
+					}
+					gc.strokePolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
+				}
+			}
+			gc.restore();
+
+			// draw lines
+			if (mousePos!=null) {
+				gc.save();
+				double distMin = 0;
+				double distMax = 0.2*pyth(width, height);
+				double distDiff = distMax-distMin;
+				for (Cell c : cells) {
+					double dist = mousePos.distance(c.x, c.y);
+					double distNormalized = 1-(clip(distMin, dist, distMax) - distMin)/distDiff;
+					double opacity = 0.8*sqrt(distNormalized);
+					gc.setGlobalAlpha(opacity);
+					drawLine(c.x,c.y,mousePos.x,mousePos.y);
+				}
+				gc.restore();
+			}
+
+			// draw cell seeds
+			gc.save();
+			double r = 2;
+			cells.forEach(c -> gc.fillOval(c.x-r,c.y-r,2*r,2*r));
+			double rd = 4;
+			if (selectedCell!=null) gc.fillOval(selectedCell.x-rd,selectedCell.y-rd,2*rd,2*rd);
+			gc.restore();
 
 		}
 
 		void drawLine(double x, double y, double tox, double toy) {
 //			not working? why
-//			gc.moveTo(10, 10);
-//			gc.lineTo(50, 50);
+//			gc.moveTo(x, y);
+//			gc.lineTo(tox, toy);
+//			gc.stroke();
 
 			// imitate using dotted line algorithm
-			double dist = Math.sqrt((x-tox)*(x-tox)+(y-toy)*(y-toy));
-			double cos = (x-tox)/dist;
-			double sin = (y-toy)/dist;
+			double dist = sqrt((x-tox)*(x-tox)+(y-toy)*(y-toy));
+			double cos = (tox-x)/dist;
+			double sin = (toy-y)/dist;
 			drawLine(x, y, dist, cos, sin);
 		}
 
 		void drawLine(double x, double y, double length, double dirCos, double dirSin) {
-			for (double i=0; i<length; i+=1)
+			for (double i=0; i<length; i+=2)
 				gc.fillOval(x+i*dirCos, y+i*dirSin, 1,1);
 		}
 
@@ -178,17 +237,35 @@ public class Voronoi extends ClassController  {
 			return ds;
 		}
 
-		static class Cell {
-			double x, y, dx, dy;
-		}
+		static class P {
+			double x=0,y=0;
 
-		static Cell randomCell(double width, double height, double speed) {
-			Cell c = new Cell();
-			c.x = rand0N(width);
-			c.y = rand0N(height);
-			c.dx = rand0N(speed) - speed/2;
-			c.dy = rand0N(speed) - speed/2;
-			return c;
+			P(double x, double y) {
+				this.x = x;
+				this.y = y;
+			}
+
+			double distance(P p) {
+				return distance(p.x,p.y);
+			}
+
+			double distance(double x, double y) {
+				return sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y));
+			}
+		}
+		static class Cell extends P{
+			double dx=0, dy=0;
+
+			public Cell(double x, double y) {
+				super(x, y);
+			}
+
+			static Cell random(double width, double height, double speed) {
+				Cell c = new Cell(rand0N(width),rand0N(height));
+				c.dx = rand0N(speed) - speed/2;
+				c.dy = rand0N(speed) - speed/2;
+				return c;
+			}
 		}
 		static double rand0N(double n) {
 			return rand.nextDouble()*n;

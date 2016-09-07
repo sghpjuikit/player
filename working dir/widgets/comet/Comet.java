@@ -21,6 +21,7 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.transform.Affine;
 import javafx.util.Duration;
 
 import comet.Comet.Ship.Disruptor.DisruptorField;
@@ -46,6 +47,7 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.reactive.SetƑ;
 
+import static comet.Comet.Constants.*;
 import static comet.Utils.AbilityKind.SHIELD;
 import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
@@ -173,7 +175,7 @@ public class Comet extends ClassController {
                     game.nextMission();
                 });
                 if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).map(p -> p.rocket).forEach(game.humans::sendShuttle);
-                if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).apply().enhance(r));
+                if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).enhance(r));
                 if (cc==DIGIT7) ;
                 if (cc==DIGIT8) ;
                 if (cc==DIGIT9) ;
@@ -198,91 +200,100 @@ public class Comet extends ClassController {
         game.stop();
     }
 
-    static double FPS = 60; // frames per second (locked)
-    static double FPS_KEY_PRESSED = 40; // frames per second
-    static double FPS_KEY_PRESSED_PERIOD = 1000/FPS_KEY_PRESSED; // ms
+    interface Constants {
+	    double FPS = 60; // frames per second (locked)
+	    double FPS_KEY_PRESSED = 40; // frames per second
+	    double FPS_KEY_PRESSED_PERIOD = 1000 / FPS_KEY_PRESSED; // ms
 
-    static int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
-    static int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
-    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000/(4*a.radius); }
+	    int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
+	    int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
 
-	static double SCORE_UFO = 250;
-    static double SCORE_UFO_DISC = 100;
-    static double BONUS_MOBILITY_MULTIPLIER = 1.25; // coeficient
-    static double BONUS_LASER_MULTIPLIER_LENGTH = 400; // px
-    static Duration PLAYER_RESPAWN_TIME = seconds(3); // die -> respawn time
-    static double ROTATION_SPEED = 1.3*PI/FPS; // 540 deg/sec.
-    static double RESISTANCE = 0.98; // slow down factor
-    static int ROT_LIMIT = 70; // smooths rotation at small scale, see use
-    static int ROT_DEL = 7; // smooths rotation at small scale, see use
+	    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000 / (4 * a.radius); }
 
-    static double PLAYER_BULLET_SPEED = 420/FPS; // bullet speed in px/s/fps
-    static double PLAYER_BULLET_TTL = durToTtl(seconds(0.7)); // bullet time of living
-    static double PLAYER_BULLET_RANGE = PLAYER_BULLET_SPEED*PLAYER_BULLET_TTL;
-    static double PLAYER_BULLET_OFFSET = 10; // px
-    static double PLAYER_ENERGY_INITIAL = 5000;
-    static double PLAYER_E_BUILDUP = 1; // energy/frame
-    static double PLAYER_HIT_RADIUS = 13; // energy/frame
-    static Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
-    static AbilityKind PLAYER_ABILITY_INITIAL = SHIELD; // rocket fire-fire time period
-    static double PLAYER_GRAPHICS_ANGLE_OFFSET = D45;
-    static double ROCKET_GUN_TURRET_ANGLE_GAP = D360/180;
+	    double SCORE_UFO = 250;
+	    double SCORE_UFO_DISC = 100;
+	    double BONUS_MOBILITY_MULTIPLIER = 1.25; // coeficient
+	    double BONUS_LASER_MULTIPLIER_LENGTH = 400; // px
+	    Duration PLAYER_RESPAWN_TIME = seconds(3); // die -> respawn time
+	    double ROTATION_SPEED = 1.3 * PI / FPS; // 540 deg/sec.
+	    double RESISTANCE = 0.98; // slow down factor
+	    int ROT_LIMIT = 70; // smooths rotation at small scale, see use
+	    int ROT_DEL = 7; // smooths rotation at small scale, see use
 
-    static double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
-    static double ROCKET_ENGINE_DEBRIS_TTL = durToTtl(millis(20));
-    static double PULSE_ENGINE_PULSEPERIOD_TTL = durToTtl(millis(20));
-    static double PULSE_ENGINE_PULSE_TTL = durToTtl(millis(400));
-    static double PULSE_ENGINE_PULSE_TTL1 = 1/PULSE_ENGINE_PULSE_TTL; // saves us computation
+	    double PLAYER_BULLET_SPEED = 420 / FPS; // bullet speed in px/s/fps
+	    double PLAYER_BULLET_TTL = durToTtl(seconds(0.7)); // bullet time of living
+	    double PLAYER_BULLET_RANGE = PLAYER_BULLET_SPEED * PLAYER_BULLET_TTL;
+	    double PLAYER_BULLET_OFFSET = 10; // px
+	    double PLAYER_ENERGY_INITIAL = 5000;
+	    double PLAYER_E_BUILDUP = 1; // energy/frame
+	    double PLAYER_HIT_RADIUS = 13; // energy/frame
+	    Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
+	    AbilityKind PLAYER_ABILITY_INITIAL = SHIELD; // rocket fire-fire time period
+	    double PLAYER_GRAPHICS_ANGLE_OFFSET = D45;
+	    double ROCKET_GUN_TURRET_ANGLE_GAP = D360 / 180;
 
-    static double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coeficient
-    static Duration KINETIC_SHIELD_RECHARGE_TIME = minutes(4);
-    static double ROCKET_KINETIC_SHIELD_RADIUS = 25; // px
-    static double ROCKET_KINETIC_SHIELD_ENERGYMAX = 5000; // energy
-    static double KINETIC_SHIELD_LARGE_E_RATE = 50; // 50 times
-    static double KINETIC_SHIELD_LARGE_RADIUS_INC = 15; // by 10 px
-    static double KINETIC_SHIELD_LARGE_E_MAX_INC = 1; // by 100%
-    static double SHUTTLE_KINETIC_SHIELD_RADIUS = 180; // px
-    static double SHUTTLE_KINETIC_SHIELD_ENERGYMAX = 1000000; // energy
-    static double SHIELD_E_ACTIVATION = 0; // energy
-    static double SHIELD_E_RATE = 30; // energy/frame
-    static Duration SHIELD_ACTIVATION_TIME = millis(0);
-    static Duration SHIELD_PASSIVATION_TIME = millis(0);
-    static double HYPERSPACE_E_ACTIVATION = 1500; // energy
-    static double HYPERSPACE_E_RATE = 0; // energy/frame
-    static Duration HYPERSPACE_ACTIVATION_TIME = millis(200);
-    static Duration HYPERSPACE_PASSIVATION_TIME = millis(200);
-    static double DISRUPTOE_E_ACTIVATION = 0; // energy
-    static double DISRUPTOR_E_RATE = 4; // energy/frame
-    static Duration DISRUPTOR_ACTIVATION_TIME = millis(0);
-    static Duration DISRUPTOR_PASSIVATION_TIME = millis(0);
+	    double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
+	    double ROCKET_ENGINE_DEBRIS_TTL = durToTtl(millis(20));
+	    double PULSE_ENGINE_PULSEPERIOD_TTL = durToTtl(millis(20));
+	    double PULSE_ENGINE_PULSE_TTL = durToTtl(millis(400));
+	    double PULSE_ENGINE_PULSE_TTL1 = 1 / PULSE_ENGINE_PULSE_TTL; // saves us computation
 
-    static double UFO_ENERGY_INITIAL = 3000;
-    static double UFO_E_BUILDUP = 1; // energy/frame
-    static double UFO_HIT_RADIUS = 15; // energy/frame
-    static double UFO_ENGINE_THRUST = 0.021*150/FPS; // ufo speed in px/s/fps
-    static Duration UFO_GUN_RELOAD_TIME = seconds(2); // ufo fire-fire time period
-    static double UFO_BULLET_SPEED = 380/FPS; // bullet speed in px/s/fps
-    static double UFO_BULLET_TTL = 0.8*FPS; // bullet time to live == 1s
-    static double UFO_BULLET_RANGE = PLAYER_BULLET_SPEED*PLAYER_BULLET_TTL;
-    static double UFO_BULLET_OFFSET = 10; // pc
-    static double UFO_RADAR_RADIUS = 75;
-    static double UFO_DISC_RADIUS = 3;
-    static double UFO_DISC_HIT_RADIUS = 9;
-    static int UFO_DISC_DECISION_TIME_TTL = (int) durToTtl(millis(500));
-    static double UFO_EXPLOSION_RADIUS = 100;
-    static double UFO_DISC_EXPLOSION_RADIUS = 15;
-    static double UFO_TTL() { return durToTtl(seconds(randMN(30,80))); }
-    static double UFO_SQUAD_TTL() { return durToTtl(seconds(randMN(200,500))); }
-    static double UFO_DISCSPAWN_TTL() { return durToTtl(seconds(randMN(60,180))); }
-    static double SATELLITE_RADIUS = 15; // energy/frame
-    static double SATELLITE_SPEED = 200/FPS; // ufo speed in px/s/fps
-    static double SATELLITE_TTL() { return durToTtl(seconds(randMN(10,25))); }
-    static double SHUTTLE_TTL() { return durToTtl(seconds(randMN(10,11))); }
+	    double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coeficient
+	    Duration KINETIC_SHIELD_RECHARGE_TIME = minutes(4);
+	    double ROCKET_KINETIC_SHIELD_RADIUS = 25; // px
+	    double ROCKET_KINETIC_SHIELD_ENERGYMAX = 5000; // energy
+	    double KINETIC_SHIELD_LARGE_E_RATE = 50; // 50 times
+	    double KINETIC_SHIELD_LARGE_RADIUS_INC = 15; // by 10 px
+	    double KINETIC_SHIELD_LARGE_E_MAX_INC = 1; // by 100%
+	    double SHUTTLE_KINETIC_SHIELD_RADIUS = 180; // px
+	    double SHUTTLE_KINETIC_SHIELD_ENERGYMAX = 1000000; // energy
+	    double SHIELD_E_ACTIVATION = 0; // energy
+	    double SHIELD_E_RATE = 30; // energy/frame
+	    Duration SHIELD_ACTIVATION_TIME = millis(0);
+	    Duration SHIELD_PASSIVATION_TIME = millis(0);
+	    double HYPERSPACE_E_ACTIVATION = 1500; // energy
+	    double HYPERSPACE_E_RATE = 0; // energy/frame
+	    Duration HYPERSPACE_ACTIVATION_TIME = millis(200);
+	    Duration HYPERSPACE_PASSIVATION_TIME = millis(200);
+	    double DISRUPTOE_E_ACTIVATION = 0; // energy
+	    double DISRUPTOR_E_RATE = 4; // energy/frame
+	    Duration DISRUPTOR_ACTIVATION_TIME = millis(0);
+	    Duration DISRUPTOR_PASSIVATION_TIME = millis(0);
 
-    static Image KINETIC_SHIELD_PIECE_GRAPHICS = graphics(MaterialDesignIcon.MINUS,13, Color.AQUA, new DropShadow(GAUSSIAN, Color.DODGERBLUE.deriveColor(1,1,1,0.6), 8,0.3,0,0));
-    static double INKOID_SIZE_FACTOR = 50;
-    static double ENERG_SIZE_FACTOR = 50;
-    static double BLACKHOLE_PARTICLES_MAX = 4000;
+	    double UFO_ENERGY_INITIAL = 3000;
+	    double UFO_E_BUILDUP = 1; // energy/frame
+	    double UFO_HIT_RADIUS = 15; // energy/frame
+	    double UFO_ENGINE_THRUST = 0.021 * 150 / FPS; // ufo speed in px/s/fps
+	    Duration UFO_GUN_RELOAD_TIME = seconds(2); // ufo fire-fire time period
+	    double UFO_BULLET_SPEED = 380 / FPS; // bullet speed in px/s/fps
+	    double UFO_BULLET_TTL = 0.8 * FPS; // bullet time to live == 1s
+	    double UFO_BULLET_RANGE = PLAYER_BULLET_SPEED * PLAYER_BULLET_TTL;
+	    double UFO_BULLET_OFFSET = 10; // pc
+	    double UFO_RADAR_RADIUS = 75;
+	    double UFO_DISC_RADIUS = 3;
+	    double UFO_DISC_HIT_RADIUS = 9;
+	    int UFO_DISC_DECISION_TIME_TTL = (int) durToTtl(millis(500));
+	    double UFO_EXPLOSION_RADIUS = 100;
+	    double UFO_DISC_EXPLOSION_RADIUS = 15;
+
+	    static double UFO_TTL() { return durToTtl(seconds(randMN(30, 80))); }
+
+	    static double UFO_SQUAD_TTL() { return durToTtl(seconds(randMN(200, 500))); }
+
+	    static double UFO_DISCSPAWN_TTL() { return durToTtl(seconds(randMN(60, 180))); }
+
+	    double SATELLITE_RADIUS = 15; // energy/frame
+	    double SATELLITE_SPEED = 200 / FPS; // ufo speed in px/s/fps
+
+	    static double SATELLITE_TTL() { return durToTtl(seconds(randMN(10, 25))); }
+
+	    static double SHUTTLE_TTL() { return durToTtl(seconds(randMN(10, 11))); }
+
+	    Image KINETIC_SHIELD_PIECE_GRAPHICS = graphics(MaterialDesignIcon.MINUS, 13, Color.AQUA, new DropShadow(GAUSSIAN, Color.DODGERBLUE.deriveColor(1, 1, 1, 0.6), 8, 0.3, 0, 0));
+	    double INKOID_SIZE_FACTOR = 50;
+	    double ENERG_SIZE_FACTOR = 50;
+	    double BLACKHOLE_PARTICLES_MAX = 4000;
+    }
 
     @IsConfig
     final V<Color> ccolor = new V<>(Color.BLACK, c -> game.mission.color_canvasFade = new Color(c.getRed(), c.getGreen(), c.getBlue(), game.mission.color_canvasFade.getOpacity()));
@@ -428,7 +439,7 @@ public class Comet extends ClassController {
         boolean isMissionScheduled = false;
         MissionInfoButton mission_button;
         final MapSet<Integer,Mission> missions = new MapSet<>(m -> m.id,
-            new Mission(1, "The strange world", "10⁻⁴m", "gfdgfdgsgfdsgds",
+            new Mission(1, "The strange world", "10⁻⁴m", "",
                 null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
             ), //new Glow(0.3)
             new Mission(2, "Sumi-e","10⁻¹⁵","",
@@ -466,53 +477,46 @@ public class Comet extends ClassController {
             )
         );
 
-        // we need specific instance
-        final Ƒ0<RocketEnhancer> SHUTTLE_CALL_ENHANCER = () -> new RocketEnhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
-            r -> humans.sendShuttle(r), r -> {},
-            "- Calls in supply shuttle",
-            "- provides large and powerful stationary kinetic shield",
-            "- provides upgrade supply"
-        );
-        final Set<Ƒ0<RocketEnhancer>> ROCKET_ENHANCERS = set(
+        final Set<RocketEnhancer> ROCKET_ENHANCERS = set(
 
             // fire upgrades
-            () -> new RocketEnhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
-                r -> r.gun.turrets.inc(), r -> {/**r.gun.turrets.dec()*/},
+            new RocketEnhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
+                r -> r.gun.turrets.inc(), r -> {/*r.gun.turrets.dec()*/},
                 "- Mounts additional gun turret",
                 "- Increases chance of hitting the target",
                 "- Increases maximum possible target damage by 100%"
             ),
-            () -> new RocketEnhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidfire.inc(), r -> r.rapidfire.dec(),
+            new RocketEnhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidfire.inc(), r -> r.rapidfire.dec(),
                 " - Largely increases rate of fire temporarily. Fires constant stream of bullets",
                 " - Improved hit efficiency due to bullet spam",
                 " - Improved mobility due to less danger of being hit",
                 "Tip: Hold the fire button. Be on the move. Let the decimating power of countless bullets"
-              + " be your shield. The upgrade lasts only a while, but being static is a disadvatage."
+              + " be your shield. The upgrade lasts only a while, but being static is a disadvantage."
             ),
-            () -> new RocketEnhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(25), r -> r.powerfire.inc(), r -> r.powerfire.dec(),
+            new RocketEnhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(25), r -> r.powerfire.inc(), r -> r.powerfire.dec(),
                 "- Increases bullet speed",
                 "- Increases bullet range",
                 "Tip: Aim closer to target. Faster bullet will reach target sooner."
             ),
-            () -> new RocketEnhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyfire.inc(), r -> r.energyfire.dec(),
+            new RocketEnhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyfire.inc(), r -> r.energyfire.dec(),
                 "- Bullets penetrate the target",
                 "- Increases bullet damage, 1 hit kill",
                 "- Multiple target damage",
                 "Tip: Try lining up targets into a line or move to space with more higher density. "
             ),
-            () -> new RocketEnhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitfire.inc(), r -> r.splitfire.dec(),
+            new RocketEnhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitfire.inc(), r -> r.splitfire.dec(),
                 "- Bullets split into 2 bullets on hit",
                 "- Multiple target damage",
                 "Tip: Strategic weapon. The damage potential raises exponentially"
               + " with the number of targets. Annihilate the most dense enemy area with ease. "
             ),
-            () -> new RocketEnhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
+            new RocketEnhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
                 "- Fires a bullet generating a black hole",
                 "- Lethal to everything, including players",
                 "- Player receives partial score for all damage caused by the black hole",
                 "Tip: Strategic weapon. Do not endanger yourself or your allies."
             ),
-            () -> new RocketEnhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(35),
+            new RocketEnhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(35),
                 r -> {
                     Ship.LaserSight ls = r.new LaserSight();
                     game.runNext.add(seconds(35),ls::dispose);
@@ -521,28 +525,33 @@ public class Comet extends ClassController {
                 "- Displays bullet range"
             ),
 
-            () -> new RocketEnhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
+            new RocketEnhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
                 "- Increases propulsion efficiency, i.e., speed",
-                "- Increases meneuverability",
-                "Tip: If there is ever time to move, it is now. Dont idle around."
+                "- Increases maneuverability",
+                "Tip: If there is ever time to move, it is now. Don't idle around."
             ),
-            () -> new RocketEnhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  humans.intelOn.inc(), r -> humans.intelOn.dec(),
+            new RocketEnhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  humans.intelOn.inc(), r -> humans.intelOn.dec(),
                 "- Reports incoming ufo time & location",
                 "- Reports incoming upgrade time & location",
                 "- Reports exact upgrade type",
                 "- Displays bullet range",
                 "Tip: This upgrade is shared."
             ),
-            () -> new RocketEnhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
+            new RocketEnhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
                 r -> humans.share_enhancers=true, r -> humans.share_enhancers=false,
                 "- Applies upgrades to all allies",
                 "Tip: The more allies, the bigger the gain. Beware of strategic weapons in a team - "
               + "they can do more harm than good."
             ),
-            SHUTTLE_CALL_ENHANCER,
+	        new RocketEnhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
+                r -> humans.sendShuttle(r), r -> {},
+                "- Calls in supply shuttle",
+                "- provides large and powerful stationary kinetic shield",
+                "- provides upgrade supply"
+	        ),
 
             // kinetic shield upgrades
-            () -> new RocketEnhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
+            new RocketEnhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
                 r -> {
                     r.kinetic_shield.KSenergy_max *= 1.1;
                     r.kinetic_shield.changeKSenergyToMax();
@@ -550,7 +559,7 @@ public class Comet extends ClassController {
                 "- Sets kinetic shield energy to max",
                 "- Increases maximum kinetic shield energy by 10%"
             ),
-            () -> new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(),r -> r.kinetic_shield.large.dec(),
+            new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(),r -> r.kinetic_shield.large.dec(),
                 "- Increases kinetic shield range by " + KINETIC_SHIELD_LARGE_RADIUS_INC + "px",
                 "- Increases maximum kinetic shield energy by " + (KINETIC_SHIELD_LARGE_E_MAX_INC*100)+"%",
                 "- Increases kinetic shield energy accumulation " + (KINETIC_SHIELD_LARGE_E_RATE)+" times",
@@ -558,25 +567,26 @@ public class Comet extends ClassController {
             ),
 
             // energy upgrades
-            () -> new RocketEnhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
+            new RocketEnhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
                 "- Increases energy accumulation by 10%"
             ),
-            () -> new RocketEnhancer("Energizer", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
+            new RocketEnhancer("Energizer", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
                 "- Increases maximum energy by 10%"
             ),
-            () -> new RocketEnhancer("Baterry (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
+            new RocketEnhancer("Battery (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
                 r -> r.energy = min(r.energy+2000,r.energy_max),
                 "- Increases energy by up to 2000"
             ),
-            () -> new RocketEnhancer("Baterry (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
+            new RocketEnhancer("Battery (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
                 r -> r.energy = min(r.energy+5000,r.energy_max),
                 "- Increases energy by up to 5000"
             ),
-            () -> new RocketEnhancer("Baterry (large)", MaterialDesignIcon.BATTERY, seconds(5),
+            new RocketEnhancer("Battery (large)", MaterialDesignIcon.BATTERY, seconds(5),
                 r -> r.energy = min(r.energy+10000,r.energy_max),
                 "- Increases energy by up to 10000"
             )
         );
+	    final Set<RocketEnhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
 
         public Game() {}
 
@@ -1027,7 +1037,7 @@ public class Comet extends ClassController {
             alive = false;
             rocket.dead = true;
             if (lives.getValue()>0) {
-                game.grid.applyExplosiveForce(100, new Vec2(rocket.x,rocket.y), 50);
+                game.grid.applyExplosiveForce(100, new Vec(rocket.x,rocket.y), 50);
                 run(PLAYER_RESPAWN_TIME.toMillis(),this::spawn);
             } else {
                 if (game.players.stream().filter(p -> p.alive).count()==0)
@@ -1046,7 +1056,8 @@ public class Comet extends ClassController {
             rocket.dy = 0;
             rocket.dir = spawning.get().computeStartingAngle(game.players.size(),id);
             rocket.energy = PLAYER_ENERGY_INITIAL;
-            rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behaviot
+            rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
+	        new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(),r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
             createHyperSpaceAnim(rocket.graphics).playClose();
         }
 
@@ -1072,7 +1083,7 @@ public class Comet extends ClassController {
         double dx = 0;
         double dy = 0;
         boolean isin_hyperspace = false; // other dimension, implies near-zero interactivity
-        boolean dead = false; // flags signaling disaposal on next cycle
+        boolean dead = false; // flags signaling disposal on next cycle
         double g_potential = 1; // 1-gravitational potential, 0-1, 1 == no gravity, 0 == event horizon
         double radius = 0;
 
@@ -1566,7 +1577,7 @@ public class Comet extends ClassController {
                         };
 
                         double strength = 17 - 2*cache_speed;
-                        game.grid.applyExplosiveForce((float)strength, new Vec2(x,y), 60);
+                        game.grid.applyExplosiveForce((float)strength, new Vec(x,y), 60);
                     }
                 }
             }
@@ -1582,10 +1593,10 @@ public class Comet extends ClassController {
             void onActivateStart() {
                 isin_hyperspace = true;
                 playfield.getChildren().add(graphicsA);
-                game.grid.applyExplosiveForce(90f, new Vec2(x,y), 70);
+                game.grid.applyExplosiveForce(90f, new Vec(x,y), 70);
             }
             void onPassivateStart() {
-                game.grid.applyExplosiveForce(90f, new Vec2(x,y), 70);
+                game.grid.applyExplosiveForce(90f, new Vec(x,y), 70);
             }
             void onPassivateEnd() {
                 isin_hyperspace = false;
@@ -1601,7 +1612,7 @@ public class Comet extends ClassController {
 
                 if (isActivated()) {
                     double strength = 6 + cache_speed/4;
-                    game.grid.applyImplosiveForce((float)strength, new Vec2(x,y), 30);
+                    game.grid.applyImplosiveForce((float)strength, new Vec(x,y), 30);
                 }
             }
         }
@@ -1706,13 +1717,13 @@ public class Comet extends ClassController {
                 // accummulation rate. The short lived shield damagee will thus be transparent.
                 boolean energy_full = energy_fullness>0.99;
                 gc.setGlobalAlpha(energy_fullness);
+	            gc.setStroke(COLOR_DB);
+	            gc.setLineWidth(2);
                 for (int i=0; i<syncs_amount; i++) {
                     double angle = dir+i*syncs_angle;
                     double acos = cos(angle);
                     double asin = sin(angle);
                     double alen = 0.3*r*syncs[Math.floorMod(i*syncs_len/syncs_amount+sync_index_real,syncs_len)];
-                    gc.setStroke(COLOR_DB);
-                    gc.setLineWidth(2);
                     gc.strokeLine(x+r*acos,y+r*asin,x+(r-alen)*acos,y+(r-alen)*asin);
                     // draw a 'ring' to signal full shield to the player
                     // note drawing opacity will always be approximately 1 here
@@ -2275,7 +2286,7 @@ public class Comet extends ClassController {
                 s instanceof Shuttle ? 0.2*sin(DIR) : s.dy,
                 SATELLITE_RADIUS/2, new Icon(MaterialDesignIcon.SATELLITE_VARIANT,20)
             );
-            e = s instanceof Shuttle ? randomOfExcept(game.ROCKET_ENHANCERS,game.SHUTTLE_CALL_ENHANCER).apply() : ((Satellite)s).e;
+            e = s instanceof Shuttle ? randOf(game.ROCKET_ENHANCERS_NO_SHUTTLE) : ((Satellite)s).e;
             children = new HashSet<>(2);
             if (game.humans.intelOn.is()) ((Icon)graphics).icon(e.icon);
             isLarge = false;
@@ -2292,7 +2303,7 @@ public class Comet extends ClassController {
                 SATELLITE_RADIUS, new Icon(MaterialDesignIcon.SATELLITE_VARIANT,40)
             );
             children = new HashSet<>(2);
-            e = randOf(game.ROCKET_ENHANCERS).apply();
+            e = randOf(game.ROCKET_ENHANCERS);
             if (game.humans.intelOn.is()) new REIndicator(this,e);
             isLarge = true;
         }
@@ -2351,7 +2362,7 @@ public class Comet extends ClassController {
 
             if (isBlackHole) {
                 double strength = 10; //speed();
-                game.grid.applyImplosiveForce((float)strength, new Vec2(x,y), 40);
+                game.grid.applyImplosiveForce((float)strength, new Vec(x,y), 40);
             }
         }
 
@@ -2526,7 +2537,7 @@ public class Comet extends ClassController {
             super.doLoop();
 
             double strength = 10;
-            game.grid.applyExplosiveForce((float)strength, new Vec2(x,y), 55);
+            game.grid.applyExplosiveForce((float)strength, new Vec(x,y), 55);
         }
 
     }
@@ -2699,11 +2710,9 @@ public class Comet extends ClassController {
             gc.setStroke(color);
             gc.setLineWidth(2);
             if (rect) {
-                gc.save();
-                rotate(gc, 360*ttl/3, x,y);
+	            Affine a = rotate(gc, 360*ttl/3, x,y);
                 gc.strokeRect(x-radius,y-radius, 2*radius,2*radius);
-                gc.restore();
-                gc.rotate(0);
+	            gc.setTransform(a);
             } else {
                 gc.strokeOval(x-radius,y-radius, 2*radius,2*radius);
             }
@@ -2996,6 +3005,7 @@ public class Comet extends ClassController {
             );
         }
         private class InkoidGraphics extends Particle implements Draw2 {
+        	private final Color COLOR = new Color(0,.1,.1, 1);
             double r;
 
             public InkoidGraphics(double x, double y, double RADIUS) {
@@ -3020,11 +3030,12 @@ public class Comet extends ClassController {
                 double rr = max(0,r - (1-ttl)*2);
                 double d = rr*2;
     //            gc_bgr.setFill(Color.BLACK);
-                gc_bgr.setFill(new Color(0,.1,.1, 1));
+                gc_bgr.setFill(COLOR);
                 gc_bgr.fillOval(x-rr,y-rr,d,d);
             }
         }
         private class InkoidDebris extends InkoidGraphics {
+	        private final Color COLOR = new Color(0,.1,.1, 1);
             public InkoidDebris(double x, double y, double dx, double dy, double RADIUS, Duration time) {
                 super(x,y,dx,dy,RADIUS,time);
             }
@@ -3040,7 +3051,7 @@ public class Comet extends ClassController {
                 double rr = max(2,r - (1-ttl)*2);
                 double d = rr*2;
     //            gc_bgr.setFill(Color.BLACK);
-                gc_bgr.setFill(new Color(0,.1,.1, 1));
+                gc_bgr.setFill(COLOR);
                 gc_bgr.fillOval(x-rr,y-rr,d,d);
             }
         }
@@ -3380,7 +3391,7 @@ public class Comet extends ClassController {
 
         public void die() {
             dead = true;
-            game.grid.applyExplosiveForce(200, new Vec2(x,y), 100);
+            game.grid.applyExplosiveForce(200, new Vec(x,y), 100);
         }
 
         @Override
@@ -3498,13 +3509,13 @@ public class Comet extends ClassController {
             // space-time warping
             // High strength produces 'quantum space-time' effect. We use that when near death.
             double grid_warp_strength = 10+70*(1-life);
-            game.grid.applyImplosiveForce(grid_warp_strength, new Vec2(x,y), 25);
+            game.grid.applyImplosiveForce(grid_warp_strength, new Vec(x,y), 25);
 
             // gravitational waves
             double gwave_strength = 20*(1-life)*(1-life);
             double gwave_originDist = 70;
-            game.grid.applyExplosiveForce(gwave_strength, new Vec2(x+gwave_originDist*cos(dir),y+gwave_originDist*sin(dir)), 40);
-            game.grid.applyExplosiveForce(gwave_strength, new Vec2(x+gwave_originDist*cos(dir+PI),y+gwave_originDist*sin(dir+PI)), 40);
+            game.grid.applyExplosiveForce(gwave_strength, new Vec(x+gwave_originDist*cos(dir),y+gwave_originDist*sin(dir)), 40);
+            game.grid.applyExplosiveForce(gwave_strength, new Vec(x+gwave_originDist*cos(dir+PI),y+gwave_originDist*sin(dir+PI)), 40);
 
 
             // hawking radiation + magnetic particle acceleration

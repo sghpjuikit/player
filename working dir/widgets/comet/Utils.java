@@ -25,6 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
@@ -45,12 +46,12 @@ import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.reactive.SetƑ;
 
-import static comet.Comet.FPS;
-import static comet.Comet.ROCKET_GUN_TURRET_ANGLE_GAP;
+import static comet.Comet.Constants.FPS;
+import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
-import static java.lang.Double.min;
 import static java.lang.Math.*;
+import static java.lang.Math.min;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
@@ -203,9 +204,11 @@ class Utils {
      * @param px the x pivot co-ordinate for the rotation (in canvas co-ordinates).
      * @param py the y pivot co-ordinate for the rotation (in canvas co-ordinates).
      */
-    static void rotate(GraphicsContext gc, double angle, double px, double py) {
-        Rotate r = new Rotate(angle, px, py);
+    static Affine rotate(GraphicsContext gc, double angle, double px, double py) {
+        Affine a = gc.getTransform();
+    	Rotate r = new Rotate(angle, px, py);
         gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
+	    return a;
     }
     /**
      * Draws an image on a graphics context.
@@ -219,10 +222,9 @@ class Utils {
      * @param tlpy the top left y co-ordinate where the image will be plotted (in canvas co-ordinates).
      */
     static void drawRotatedImage(GraphicsContext gc, Image i, double angle, double tlpx, double tlpy) {
-        gc.save();
-        rotate(gc, angle, tlpx + i.getWidth() / 2, tlpy + i.getHeight() / 2);
+	    Affine a = rotate(gc, angle, tlpx + i.getWidth() / 2, tlpy + i.getHeight() / 2);
         gc.drawImage(i, tlpx, tlpy);
-        gc.restore();
+	    gc.setTransform(a);
     }
     static void drawImage(GraphicsContext gc, Image i, double x, double y) {
         gc.drawImage(i, x+i.getWidth()/2, y+i.getHeight()/2, i.getWidth(), i.getHeight());
@@ -394,7 +396,6 @@ class Utils {
             // build rows
             R<Integer> i = new R<>(-1); // row index
             game.ROCKET_ENHANCERS.stream()
-                .map(Ƒ0::apply) // instantiate
                 .sorted(by(enhancer -> enhancer.name))
                 .forEach(enhancer -> {
                     i.setOf(v -> v+1);
@@ -471,16 +472,16 @@ class Utils {
         private final Ƒ1<Integer,T> valueCalc;
         private final Consumer<Integer> changeApplier;
 
-         InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
+        InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
             times = times_init;
             valueCalc = valueCalculator;
             changeApplier = onChange;
             value = valueCalc.apply(times);
         }
-         InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator) {
+        InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator) {
             this(times_init, valueCalculator, null);
         }
-         InEffectValue(Ƒ1<Integer,T> valueCalculator) {
+	    InEffectValue(Ƒ1<Integer,T> valueCalculator) {
             this(0, valueCalculator);
         }
 
@@ -496,17 +497,19 @@ class Utils {
             return value;
         }
 
-        void inc() {
+	    InEffectValue inc() {
             times++;
             value = valueCalc.apply(times);
             if (changeApplier!=null) changeApplier.accept(times);
+		    return this;
         }
 
-        void dec() {
-            if (times<=0) return;
+	    InEffectValue dec() {
+            if (times<=0) return this;
             times--;
             value = valueCalc.apply(times);
             if (changeApplier!=null) changeApplier.accept(times);
+		    return this;
         }
 
         void reset() {
@@ -793,25 +796,25 @@ class Utils {
     }
 
     /** 2d vector. Mutable. */
-    static class Vec2 {
-         double x;
-         double y;
+    static class Vec {
+        double x;
+        double y;
 
-         Vec2(double x, double y) {
+        Vec(double x, double y) {
             this.x = x;
             this.y = y;
         }
 
-         Vec2(Vec2 v) {
+        Vec(Vec v) {
             set(v);
         }
 
-         void set(Vec2 v) {
+        void set(Vec v) {
             this.x = v.x;
             this.y = v.y;
         }
 
-         void set(double x, double y, double z) {
+        void set(double x, double y, double z) {
             this.x = x;
             this.y = y;
         }
@@ -820,7 +823,7 @@ class Utils {
          * Multiplies this vector by the specified scalar value.
          * @param scale the scalar value
          */
-         void mul(double scale) {
+        void mul(double scale) {
             x *= scale;
             y *= scale;
         }
@@ -831,7 +834,7 @@ class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-         void setSub(Vec2 t1, Vec2 t2) {
+        void setSub(Vec t1, Vec t2) {
             this.x = t1.x - t2.x;
             this.y = t1.y - t2.y;
         }
@@ -841,7 +844,7 @@ class Utils {
          * itself and vector t1 (this = this - t1) .
          * @param t1 the other vector
          */
-         void sub(Vec2 t1) {
+        void sub(Vec t1) {
             this.x -= t1.x;
             this.y -= t1.y;
         }
@@ -852,12 +855,12 @@ class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-         void setAdd(Vec2 t1, Vec2 t2) {
+        void setAdd(Vec t1, Vec t2) {
             this.x = t1.x + t2.x;
             this.y = t1.y + t2.y;
         }
 
-         void setResult(DoubleUnaryOperator f) {
+        void setResult(DoubleUnaryOperator f) {
             this.x = f.applyAsDouble(x);
             this.y = f.applyAsDouble(y);
         }
@@ -867,11 +870,11 @@ class Utils {
          * itself and vector t1 (this = this + t1) .
          * @param t1 the other vector
          */
-         void add(Vec2 t1) {
+        void add(Vec t1) {
             this.x += t1.x;
             this.y += t1.y;
         }
-         void addMul(double s, Vec2 t1) {
+        void addMul(double s, Vec t1) {
             this.x += s*t1.x;
             this.y += s*t1.y;
         }
@@ -882,7 +885,7 @@ class Utils {
          * @param t1 the first vector
          * @param t2 the second vector
          */
-         void setMul(Vec2 t1, Vec2 t2) {
+        void setMul(Vec t1, Vec t2) {
             this.x = t1.x * t2.x;
             this.y = t1.y * t2.y;
         }
@@ -893,7 +896,7 @@ class Utils {
          * @param v vector
          * @param s scalar
          */
-         void setMul(double s, Vec2 v) {
+        void setMul(double s, Vec v) {
             this.x = s * v.x;
             this.y = s * v.y;
         }
@@ -902,7 +905,7 @@ class Utils {
          * Returns the length of this vector.
          * @return the length of this vector
          */
-         double length() {
+        double length() {
             return Math.sqrt(x*x + y*y);
         }
 
@@ -910,29 +913,37 @@ class Utils {
          * Returns the length of this vector squared.
          * @return the length of this vector squared
          */
-         double lengthSqr() {
+        double lengthSqr() {
             return x*x + y*y;
         }
 
-         double dist(Vec2 to) {
+	    double distX(Vec to) {
+		    return x>to.x ? x-to.x : to.x-x;
+	    }
+
+	    double distY(Vec to) {
+		    return y>to.y ? y-to.y : to.y-y;
+	    }
+
+        double dist(Vec to) {
             return sqrt((x-to.x)*(x-to.x) + (y-to.y)*(y-to.y));
         }
 
-         double distSqr(Vec2 to) {
+        double distSqr(Vec to) {
             return (x-to.x)*(x-to.x) + (y-to.y)*(y-to.y);
         }
 
-         Vec2 diff(Vec2 to) {
-            return new Vec2(x-to.x, y-to.y);
+        Vec diff(Vec to) {
+            return new Vec(x-to.x, y-to.y);
         }
 
-         void normalize() {
+        void normalize() {
             double norm = 1.0 / length();
             this.x = x * norm;
             this.y = y * norm;
         }
 
-         double dot(Vec2 v1) {
+        double dot(Vec v1) {
             return this.x * v1.x + this.y * v1.y;
         }
 
@@ -949,8 +960,8 @@ class Utils {
             if (obj == this) {
                 return true;
             }
-            if (obj instanceof Vec2) {
-                Vec2 v = (Vec2) obj;
+            if (obj instanceof Vec) {
+                Vec v = (Vec) obj;
             }
             return false;
         }
@@ -971,7 +982,7 @@ class Utils {
         Spring[] springs;
         PointMass[][] points;
         GraphicsContext gc;
-         Color color = Color.rgb(30, 30, 139, 0.85);
+	    Color color = Color.rgb(30, 30, 139, 0.85);
         double WIDTH;
         double HEIGHT;
         int thick_frequency = 5;
@@ -993,8 +1004,8 @@ class Utils {
             int column = 0, row = 0;
             for (float y = 0; y <= height; y += gap) {
                 for (float x = 0; x <= width; x += gap) {
-                    points[column][row] = new PointMass(new Vec2(x, y), 1);
-                    fixedPoints[column][row] = new PointMass(new Vec2(x, y), 0);
+                    points[column][row] = new PointMass(new Vec(x, y), 1);
+                    fixedPoints[column][row] = new PointMass(new Vec(x, y), 0);
                     column++;
                 }
                 row++;
@@ -1030,25 +1041,25 @@ class Utils {
                     p.update();
         }
 
-         void applyDirectedForce(Vec2 force, Vec2 position, double radius) {
+         void applyDirectedForce(Vec force, Vec position, double radius) {
             for (PointMass[] ps : points)
                 for (PointMass p : ps) {
                     double distsqr = position.distSqr(p.position);
                     double dist = sqrt(distsqr);
                     if (distsqr < radius*radius) {
-                        Vec2 f = new Vec2(force);
+                        Vec f = new Vec(force);
                              f.setResult(v -> 10*v / (10+dist));
                         p.applyForce(f);
                     }
                 }
         }
 
-         void applyImplosiveForce(double force, Vec2 position, double radius) {
+         void applyImplosiveForce(double force, Vec position, double radius) {
             for (PointMass[] ps : points)
                 for (PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
                 if (dist2 < radius*radius) {
-                    Vec2 f = new Vec2(position);
+                    Vec f = new Vec(position);
                          f.sub(p.position);
                          f.setResult(v -> 10*force*v / (100+dist2));
                     p.applyForce(f);
@@ -1057,12 +1068,12 @@ class Utils {
             }
         }
 
-         void applyExplosiveForce(double force, Vec2 position, double radius) {
+         void applyExplosiveForce(double force, Vec position, double radius) {
             for (PointMass[] ps : points)
                 for (PointMass p : ps) {
                 double dist2 = position.distSqr(p.position);
                 if (dist2 < radius*radius) {
-                    Vec2 f = new Vec2(p.position);
+                    Vec f = new Vec(p.position);
                          f.sub(position);
                          f.setResult(v -> 100*force*v / (10000+dist2));
                     p.applyForce(f);
@@ -1072,6 +1083,9 @@ class Utils {
         }
 
          void draw() {
+         	gc.save();
+	        gc.setStroke(color);
+
             int width = points.length;
             int height = points[0].length;
 
@@ -1080,40 +1094,41 @@ class Utils {
                     double px = points[x][y].position.x;
                     double py = points[x][y].position.y;
 
-                    // Im not sure why, but the opacity is not distributed uniformly across direction
-                    // multiples of 90deg (PI/2) have less opacity than in diagonal directions.
-                    double warp_factor = points[x][y].positionInitial.distSqr(points[x][y].position);
-                           warp_factor = warp_factor/1600;
-                           warp_factor = min(warp_factor,1);
-//                    double opacity = 0.02 + 0.6*warp_factor; // musst be 0-1, else Exception
-                    double opacity = 0.02 +warp_factor*warp_factor; // musst be 0-1, else Exception
+	                Vec p = points[x][y].position;
+	                Vec piInit = points[x][y].positionInitial;
+                    double warpDist = 1.5*p.distX(piInit)*p.distY(piInit);
+		                // for some reason mitigates warpDist for diagonals
+	                    // multiples of 90deg (PI/2) have less opacity than in diagonal directions.
+	                    // warpDist = piInit.distSqr(p);
+	                double warp_factor = min(warpDist/1600,1);
+//                    double opacity = 0.02 + 0.6*warp_factor; // must be 0-1, else Exception
+                    double opacity = 0.02 +warp_factor*warp_factor; // must be 0-1, else Exception
                     gc.setGlobalAlpha(opacity);
 
                     if (x > 1) {
-                        Vec2 left = points[x - 1][y].position;
+                        Vec left = points[x - 1][y].position;
                         float thickness = y % thick_frequency == 1 ? 1f : 0.5f;
-                        drawLine(left.x,left.y,px,py, color, thickness);
+                        drawLine(left.x,left.y,px,py, thickness);
                     }
                     if (y > 1) {
-                        Vec2 up =  points[x][y - 1].position;
+                        Vec up =  points[x][y - 1].position;
                         float thickness = x % thick_frequency == 1 ? 1f : 0.5f;
-                        drawLine(up.x,up.y,px,py, color, thickness);
+                        drawLine(up.x,up.y,px,py, thickness);
                     }
 
                     if (x > 1 && y > 1) {
-                        Vec2 left = points[x - 1][y].position;
-                        Vec2 up =  points[x][y - 1].position;
-                        Vec2 upLeft = points[x - 1][y - 1].position;
-                        drawLine(0.5*(upLeft.x + up.x),0.5*(upLeft.y + up.y), 0.5*(left.x + px),0.5*(left.y + py), color, 0.5f);   // vertical line
-                        drawLine(0.5*(upLeft.x + left.x),0.5*(upLeft.y + left.y), 0.5*(up.x + px),0.5*(up.y + py), color, 0.5f);   // horizontal line
+                        Vec left = points[x - 1][y].position;
+                        Vec up =  points[x][y - 1].position;
+                        Vec upLeft = points[x - 1][y - 1].position;
+                        drawLine(0.5*(upLeft.x + up.x),0.5*(upLeft.y + up.y), 0.5*(left.x + px),0.5*(left.y + py), 0.5f);   // vertical line
+                        drawLine(0.5*(upLeft.x + left.x),0.5*(upLeft.y + left.y), 0.5*(up.x + px),0.5*(up.y + py), 0.5f);   // horizontal line
                     }
                 }
             }
-            gc.setGlobalAlpha(1);
+            gc.restore();
         }
 
-        private void drawLine(double x1, double y1, double x2, double y2, Color c, double thickness) {
-            gc.setStroke(c);
+        private void drawLine(double x1, double y1, double x2, double y2, double thickness) {
             gc.setLineWidth(thickness);
             gc.strokeLine(x1, y1, x2, y2);
         }
@@ -1122,22 +1137,22 @@ class Utils {
 
             private static final double DAMPING_INIT = 0.97;
 
-            Vec2 position;
-            Vec2 positionInitial;
-            Vec2 velocity;
+            Vec position;
+            Vec positionInitial;
+            Vec velocity;
             double massI; // inverse mass == 1/mass
-            Vec2 acceleration;
+            Vec acceleration;
             double damping = DAMPING_INIT;
 
-             PointMass(Vec2 position, double inverse_mass) {
+             PointMass(Vec position, double inverse_mass) {
                 this.position = position;
-                this.positionInitial = new Vec2(position);
+                this.positionInitial = new Vec(position);
                 this.massI = inverse_mass;
-                this.velocity = new Vec2(0,0);
-                this.acceleration = new Vec2(0,0);
+                this.velocity = new Vec(0,0);
+                this.acceleration = new Vec(0,0);
             }
 
-             void applyForce(Vec2 force) {
+             void applyForce(Vec force) {
                acceleration.addMul(massI, force);
             }
 
@@ -1148,9 +1163,9 @@ class Utils {
              void update() {
                 velocity.add(acceleration);
                 position.add(velocity);
-                acceleration = new Vec2(0,0);
+                acceleration = new Vec(0,0);
                 if (velocity.lengthSqr() < 0.000001) // forbids small values, perf optimization
-                    velocity = new Vec2(0,0);
+                    velocity = new Vec(0,0);
 
                 velocity.mul(damping);
                 damping = DAMPING_INIT;
@@ -1172,17 +1187,17 @@ class Utils {
             }
 
             void update() {
-                Vec2 posDiff = end1.position.diff(end2.position);
+                Vec posDiff = end1.position.diff(end2.position);
                 double posDiffLen = posDiff.length();
                 if (posDiffLen <= length) // we will only pull, not push
                     return;
 
                 posDiff.setResult(v -> (v/posDiffLen) * (posDiffLen-length));
-                Vec2 velDiff = end2.velocity.diff(end1.velocity);
+                Vec velDiff = end2.velocity.diff(end1.velocity);
                      velDiff.mul(damping);
                 posDiff.mul(stiffness);
                 posDiff.setSub(posDiff,velDiff);
-                Vec2 force = posDiff;
+                Vec force = posDiff;
 //                force.mul(-1);
                 end2.applyForce(force);
                 force.mul(-1);

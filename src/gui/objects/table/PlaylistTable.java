@@ -64,7 +64,7 @@ import static util.reactive.Util.maintain;
  *
  * @author Martin Polakovic
  */
-@TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
+@TODO(purpose = READABILITY, note = "dragging duplicate code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
 
     private static final String STYLE_CORRUPT = "corrupt";

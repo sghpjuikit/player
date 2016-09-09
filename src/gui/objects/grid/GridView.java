@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -42,12 +43,14 @@ import javafx.collections.transformation.SortedList;
 import javafx.css.*;
 import javafx.event.Event;
 import javafx.scene.Node;
-import javafx.scene.control.Cell;
 import javafx.scene.control.Control;
-import javafx.scene.control.ListCell;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.util.Callback;
 
+import org.reactfx.EventStreams;
+
+import gui.objects.search.SearchCancelable;
 import util.access.V;
 import util.functional.Functors.Ƒ1;
 
@@ -55,6 +58,7 @@ import static gui.objects.grid.GridView.SelectionOn.KEY_PRESSED;
 import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.scene.input.KeyCode.ESCAPE;
 import static util.async.Async.runLater;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -62,8 +66,8 @@ import static util.functional.Util.stream;
 /**
  * A GridView is a virtualized control for displaying items in a
  * visual, scrollable, grid-like fashion. In other words, whereas a ListView
- * shows one {@link ListCell} per row, in a GridView there will be zero or more
- * {@link GridCell} instances on a single row.
+ * shows one {@link javafx.scene.control.ListCell} per row, in a GridView there will be zero or more
+ * {@link gui.objects.grid.GridCell} instances on a single row.
  * <p/>
  * This approach means that the number of GridCell instances
  * instantiated will be a significantly smaller number than the number of
@@ -71,15 +75,15 @@ import static util.functional.Util.stream;
  * the visible area of the GridView. This helps to improve performance and
  * reduce memory consumption.
  * <p/>
- * Because each {@link GridCell} extends from {@link Cell}, the same approach
+ * Because each {@link gui.objects.grid.GridCell} extends from {@link javafx.scene.control.Cell}, the same approach
  * of cell factories that is taken in other UI controls is also taken in GridView.
  * This has two main benefits:
  * <ol>
  *   <li>GridCells are created on demand and without user involvement,
  *   <li>GridCells can be arbitrarily complex. A simple GridCell may just have
- *   its {@link GridCell#textProperty() text property} set, whereas a more complex
+ *   its {@link gui.objects.grid.GridCell#textProperty() text property} set, whereas a more complex
  *   GridCell can have an arbitrarily complex scenegraph set inside its
- *   {@link GridCell#graphicProperty() graphic property} (as it accepts any Node).
+ *   {@link gui.objects.grid.GridCell#graphicProperty() graphic property} (as it accepts any Node).
  * </ol>
  *
  * @see GridCell
@@ -108,6 +112,9 @@ public class GridView<T,F> extends Control {
     public final V<T> selectedRow = new V<>(null);
 
     private boolean scrollFlag = true;
+
+	private F field;
+	public final Search search = new Search();
 
     /** Creates a default, empty GridView control. */
     public GridView(Class<F> type) {
@@ -167,6 +174,24 @@ public class GridView<T,F> extends Control {
                 });
             }
         });
+
+
+	    // search
+	    addEventHandler(KeyEvent.KEY_PRESSED, search::search);
+	    addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+		    if (e.getCode()==ESCAPE && search.isActive()) {
+			    search.cancel();
+			    e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+		    }
+	    });
+	    addEventFilter(Event.ANY, e -> {
+		    if (search.isActive())
+			    search.updateSearchStyles();
+	    });
+	    EventStreams.changesOf(getItemsShown()).subscribe(c -> {
+		    if (search.isActive())
+			    search.updateSearchStyles();
+	    });
     }
 
     @Override
@@ -187,6 +212,10 @@ public class GridView<T,F> extends Control {
     public ObservableList<T> getItemsShown() {
         return itemsSorted;
     }
+
+	public Stream<GridCell<T,F>> getCellsShown() {
+		return implGetSkin().getCells();
+	}
 
 	/**
 	 * Contains {@link gui.objects.grid.GridView.SelectionOn} constants, signaling when should the selection change.
@@ -493,4 +522,39 @@ public class GridView<T,F> extends Control {
 
 
     public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESSED }
+	private class Search extends SearchCancelable{
+		@Override
+		public void onSearch(String s) {
+			for (int i=0; i<getItemsShown().size(); i++) {
+				String item = filterByMapper.apply(getItemsShown().get(i)).toString();
+				if (matches(item,searchQuery.get())) {
+					implGetSkin().getFlow().scrollTo(i/implGetSkin().computeMaxCellsInRow());
+					updateSearchStyles();
+					break;
+				}
+			}
+		}
+
+		@Override
+		public void cancel() {
+			super.cancel();
+			updateSearchStyleRowsNoReset();
+		}
+
+		private void updateSearchStyles() {
+			if (isCancelable) searchAutocanceller.start(cancelActivityDelay);
+			updateSearchStyleRowsNoReset();
+		}
+
+		private void updateSearchStyleRowsNoReset() {
+			boolean searchOn = isActive();
+			getCellsShown().forEach(cell -> {
+				T t = cell.getItem();
+				String item = t==null ? null : filterByMapper.apply(t).toString();
+				boolean isMatch = item!=null && matches(item,searchQuery.get());
+				cell.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
+				cell.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch);
+			});
+		}
+	}
 }

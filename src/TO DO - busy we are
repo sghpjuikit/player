@@ -49,7 +49,6 @@
 - impl filter in Settings
 - DirViewer
     - conf gui header
-    - impl searching (as opposed to filtering), filtering really makes inability to search evident, follow Table impl
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
     - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1

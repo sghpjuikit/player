@@ -296,13 +296,13 @@ public class Converter extends ClassController implements SongWriter {
                 if (e.getCode()==KeyCode.V && e.isControlDown()) {
                     String pasted_text = Clipboard.getSystemClipboard().getString();
                     if (pasted_text!=null) {
-                        String[] arealines = textarea.getText().split("\\n");
-                        String[] pastedlines = pasted_text.split("\\n");
+                        String[] areaLines = textarea.getText().split("\\n");
+                        String[] pastedLines = pasted_text.split("\\n");
                         String text;
-                        int min = min(arealines.length,pastedlines.length);
-                        int max = max(arealines.length,pastedlines.length);
+                        int min = min(areaLines.length,pastedLines.length);
+                        int max = max(areaLines.length,pastedLines.length);
                         if (min==max) {
-                            text = streamBi(arealines,pastedlines, (a,p) -> a+p).collect(joining("\n"));
+                            text = streamBi(areaLines,pastedLines, (a,p) -> a+p).collect(joining("\n"));
                         } else {
                             // not implemented
                             text = "";

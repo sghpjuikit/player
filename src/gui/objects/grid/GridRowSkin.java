@@ -27,10 +27,13 @@
  */
 package gui.objects.grid;
 
+import java.util.stream.Stream;
+
 import javafx.scene.Node;
 import javafx.scene.control.skin.CellSkinBase;
 
 import gui.objects.grid.GridView.SelectionOn;
+import gui.objects.search.Search;
 
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.getAt;
@@ -83,6 +86,8 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
                     }
                     cell.updateIndex(-1);
                     cell.updateIndex(i);
+	                cell.pseudoClassStateChanged(Search.SEARCHMATCHPC, false);
+	                cell.pseudoClassStateChanged(Search.SEARCHMATCHNOTPC, false);
 //                    cell.forceUpdateIndex(i);
                 }
                 // we are going out of bounds -> exist the loop
@@ -124,6 +129,9 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
         }
     }
 
+    public Stream<GridCell<T,F>> getCells() {
+		return getChildren().stream().map(c -> (GridCell<T,F>)c);
+    }
 
     private GridCell<T,F> createCell() {
         GridView<T,F> grid = getSkinnable().gridViewProperty().get();
@@ -139,6 +147,8 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
             if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
                 getSkinnable().getGridView().implGetSkin().select(cell);
         });
+	    cell.pseudoClassStateChanged(Search.SEARCHMATCHPC, false);
+	    cell.pseudoClassStateChanged(Search.SEARCHMATCHNOTPC, false);
         return cell;
     }
 

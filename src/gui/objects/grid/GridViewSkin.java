@@ -29,6 +29,7 @@
 package gui.objects.grid;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -48,6 +49,7 @@ import gui.itemnode.FieldedPredicateItemNode;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridView.SelectionOn;
 import main.App;
+import one.util.streamex.IntStreamEx;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors;
@@ -170,6 +172,16 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         row.setGridView(getSkinnable());
         return row;
     }
+
+	public Stream<GridCell<T,F>> getCells() {
+		GridRow from = getFlow().getFirstVisibleCell();
+		GridRow to = getFlow().getLastVisibleCell();
+		if (from==null || to==null) return stream();
+		int fromI = from.getIndex();
+		int toI = to.getIndex();
+		if (fromI<=0 || toI<=0) return stream();
+		return IntStreamEx.rangeClosed(fromI,toI).mapToObj(i -> getFlow().getCell(i)).flatMap(r -> r.getSkinn().getCells());
+	}
 
     /**
      *  Returns the number of rows needed to display the whole set of cells

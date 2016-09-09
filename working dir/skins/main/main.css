@@ -4078,7 +4078,7 @@ check-icon-disabling:selected {
 /**
  * Cell in a grid view row.
  * inherits: .indexed-cell
- * pseudoclasses: selected
+ * pseudoclasses: selected, searchmatch, searchmatchnot
  */
 .grid-cell {
     -fx-border-width: 0;
@@ -4089,6 +4089,21 @@ check-icon-disabling:selected {
     -fx-background-insets: -8 -8 12 -8;
     -fx-background-color: black;
     -fx-padding: -4;
+}
+
+/*
+ * Quick search which scrolls to the item in the table can also highlight any
+ * while search is active all items have one of the following pseudoclasses
+ * matched items.
+ */
+.grid-cell:searchmatch,
+.grid-cell:searchmatch:selected {
+    /* We leave matched items are normal and instead use of unmatched items style. */
+}
+
+/* Unmatched items. */
+.grid-cell:searchmatchnot {
+    -fx-opacity: 0.4;
 }
 
 /**

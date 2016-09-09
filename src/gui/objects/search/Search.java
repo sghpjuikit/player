@@ -36,6 +36,7 @@ public abstract class Search {
 			searchQuery.set(k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get()+letter : letter);
 			searchTime = now;
 			onSearch(searchQuery.get());
+			e.consume();
 		}
 	}
 

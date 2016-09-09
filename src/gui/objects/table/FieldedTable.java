@@ -14,11 +14,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Pos;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
@@ -81,7 +78,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
     private TableColumnInfo columnState;
     private final Class<F> type;
-    public ContextMenu columnVisibleMenu;
+    public final Menu columnVisibleMenu = new Menu("Columns");
+    public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
     public FieldedTable(Class<F> type) {
         super();
@@ -93,10 +91,11 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
         // show the column control menu on right click ( + hide if shown )
         addEventHandler(MOUSE_CLICKED, e -> {
-            if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight())
-                columnVisibleMenu.show(this, e.getScreenX(), e.getScreenY());
-
-            else if (columnVisibleMenu.isShowing()) columnVisibleMenu.hide();
+            if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight()) {
+	            columnMenu.show(this, e.getScreenX(), e.getScreenY());
+            } else {
+            	if (columnMenu.isShowing()) columnMenu.hide();
+            }
         });
 
         // column control menu button not needed now (but still optionally usable)
@@ -214,11 +213,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
             columnState = defColInfo;
 
-
             // build new table column menu
-            columnVisibleMenu = new ContextMenu();
             defColInfo.columns.streamV()
-                    .sorted(by(c->c.name))
                     .map(c-> {
                         ObjectField<? super T> f =  nameToCF(c.name);
                         SelectionMenuItem m = new SelectionMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
@@ -226,15 +222,15 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
                         if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
                         return m;
                     })
+                    .sorted(by(MenuItem::getText))
                     .forEach(columnVisibleMenu.getItems()::add);
-            // update column menu check icons every time we show it
-            // the menu is rarely shown + no need to update it any other time
-            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
-                            .filtered(i -> i instanceof SelectionMenuItem)
-                            .forEach(i -> ((SelectionMenuItem)i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
+            // update columnVisibleMenu check icons every time we show it
+            // the menu is rarely shown + this way we do not need to update it any other time
+	        columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
+                    .forEach(i -> ((SelectionMenuItem)i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
 
             // link table column button to our menu instead of an old one
-            if (getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
+            if (getSkin()==null) setSkin(new TableViewSkin<>(this));    // make sure skin exists
             // TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow(); // java9 no longer supports this
             TableHeaderRow h = (TableHeaderRow)invokeMethodP0(getSkin(), "getTableHeaderRow");
 
@@ -245,7 +241,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
                 f.setAccessible(true);
                 // link to our custom menu
                 Pane columnB = (Pane) f.get(h);
-                     columnB.setOnMousePressed(e -> columnVisibleMenu.show(columnB, BOTTOM, 0, 0));
+                     columnB.setOnMousePressed(e -> columnMenu.show(columnB, BOTTOM, 0, 0));
                 f.setAccessible(false);
             } catch (Exception ex) {
                 Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
@@ -263,11 +259,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     public Optional<TableColumn<T,?>> getColumn(Predicate<TableColumn<T,?>> filter) {
-        for (TableColumn t : getColumns())
-            if (filter.test(t)) {
-                return Optional.of(t);
-            }
-        return Optional.empty();
+    	return getColumns().stream().filter(filter).findFirst();
     }
 
     public Optional<TableColumn<T,?>> getColumn(ObjectField<? super T> f) {

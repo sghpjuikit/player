@@ -188,7 +188,7 @@ public class LibraryView extends FXMLController {
         d(Player.playingItem.onUpdate(m -> table.updateStyleRules()));
 
 
-        // column context menu - add change field submenus
+        // column context menu - add change VALUE column menus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         m.getItems().addAll(
             buildSingleSelectionMenu(
@@ -199,7 +199,7 @@ public class LibraryView extends FXMLController {
             )
         );
         // refresh when menu opens
-        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
+        table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
             menuItem("Remove selected groups from library", () -> Db.removeItems(degroup(table.getSelectedItems()))),

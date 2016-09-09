@@ -74,7 +74,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     /**
      * @param main_field field that will denote main column. Must not be null.
-     * Also initializes {@link gui.objects.table.FilteredTable.Search#searchField}.
+     * Also initializes {@link gui.objects.table.FilteredTable.Search#field}.
      *
      * @param main_field be chosen as main and default search field
      * @param backing_list
@@ -100,7 +100,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
 	    // searching
-	    search.searchField = main_field;
+	    search.field = main_field;
 	    searchQueryLabel.textProperty().bind(search.searchQuery);
 
 	    // filtering
@@ -372,21 +372,24 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 		 * If the user types text to quick search content by scrolling table, the
 		 * text matching will be done by this field. Its column cell data must be
 		 * String (or search will be ignored) and column should be visible.
-		 */ private F searchField;
+		 */ private F field;
+		/**
+		 * Menu item for displaying and selecting {link {@link #field}}.
+		 */ private Menu menu = null;
 
 		/**
 		 * Starts search, searching for the specified string in the designated column.
-		 * This column is determined by {@link #searchField}).
+		 * This column is determined by {@link #field}).
 		 */
 		@Override
 		public void onSearch(String s) {
 			APP.actionStream.push("Table search");
 			searchQuery.set(s);
 			// scroll to first found item
-			TableColumn c = getColumn(searchField).orElse(null);
+			TableColumn c = getColumn(field).orElse(null);
 			if (!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
 				for (int i=0; i<getItems().size(); i++) {
-					String item = (String)searchField.getOf(getItems().get(i));
+					String item = (String) field.getOf(getItems().get(i));
 					if (matches(item,searchQuery.get())) {
 						scrollToCenter(i);
 						updateSearchStyles();
@@ -404,7 +407,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
 			// convenience), this time it plays against us.
 			// yes(field.getType()==String.class);
-			searchField = field;
+			this.field = field;
 		}
 
 
@@ -423,7 +426,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 			boolean searchOn = isActive();
 			for (TableRow<T> row : getRows()) {
 				T t = row.getItem();
-				Object o = t==null ? null : searchField.getOf(t);
+				Object o = t==null ? null : field.getOf(t);
 				boolean isMatch = o instanceof String && matches((String)o,searchQuery.get());
 				row.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
 				row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch));
@@ -483,18 +486,17 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     @Override
     public TableColumnInfo getDefaultColumnInfo() {
-        boolean needs_creating = columnVisibleMenu==null;
         TableColumnInfo tci = super.getDefaultColumnInfo();
+        boolean needs_creating = search.menu==null;
         if (needs_creating) {
-            columnVisibleMenu.getItems().add(
-                buildSingleSelectionMenu(
-                    "Search column",
-                    filter(getFields(),f -> isContainedIn(f.getType(),String.class,Object.class)), // objects too, they can be strings
-                    search.searchField,
-                    field -> field.name(),
-                    field -> search.searchField=field
-                )
-            );
+	        search.menu = buildSingleSelectionMenu(
+		        "Search column",
+		        filter(getFields(),f -> isContainedIn(f.getType(),String.class,Object.class)), // objects too, they can be strings // TODO
+		        search.field,
+		        field -> field.name(),
+		        field -> search.field =field
+	        );
+	        columnMenu.getItems().add(search.menu);
         }
         return tci;
     }

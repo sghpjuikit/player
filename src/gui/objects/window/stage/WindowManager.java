@@ -2,7 +2,6 @@ package gui.objects.window.stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -392,7 +391,7 @@ public class WindowManager implements Configurable<Object> {
 	    LOGGER.info("Serializing " + windows.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
-	    String sessionUniqueName = LocalDateTime.now().toString();
+	    String sessionUniqueName = System.currentTimeMillis()+"";
 	    boolean isError = false;
 	    Set<File> filesNew = new HashSet<>();
         for (int i=0; i<windows.size(); i++) {

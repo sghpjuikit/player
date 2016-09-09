@@ -17,9 +17,12 @@ import java.util.Map.Entry;
 
 import util.dev.Util;
 
-import static util.Util.hasNoText;
+import static java.util.stream.Collectors.toMap;
+import static util.Util.hasNoReadableText;
+import static util.Util.hasReadableText;
 import static util.dev.Util.noØ;
 import static util.functional.Util.byNC;
+import static util.functional.Util.stream;
 
 public interface Properties {
 
@@ -104,7 +107,23 @@ public interface Properties {
 		}
 	}
 
+	static void saveP(File file, String comments, Map<String,Property> keyValues) {
+		try(FileOutputStream os = new FileOutputStream(file)) {
+			saveP(os, comments, keyValues);
+		} catch (IOException e) {
+			Util.log(Properties.class).error("Could not save properties into file {}", file, e);
+		}
+	}
+
 	static void save(OutputStream out, String comments, Map<String,String> keyValues) {
+		try {
+			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, stream(keyValues).collect(toMap(e -> e.getKey(), e -> new Property("",e.getValue()))));
+		} catch (IOException e) {
+			Util.log(Properties.class).error("Could not save properties into output stream {}", out, e);
+		}
+	}
+
+	static void saveP(OutputStream out, String comments, Map<String,Property> keyValues) {
 		try {
 			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, keyValues);
 		} catch (IOException e) {
@@ -115,26 +134,31 @@ public interface Properties {
 	static void save(Writer writer, String comments, Map<String,String> keyValues) {
 		try {
 			BufferedWriter bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer);
-			store(bw, comments, false, keyValues);
+			store(bw, comments, false, stream(keyValues).collect(toMap(e -> e.getKey(), e -> new Property("",e.getValue()))));
 		} catch (IOException e) {
 			Util.log(Properties.class).error("Could not save properties with writer {}", writer, e);
 		}
 	}
 
-	private static void store(BufferedWriter bw, String comments, boolean escUnicode, Map<String,String> keyValues) throws IOException {
-		if (!hasNoText(comments))
+	private static void store(BufferedWriter bw, String comments, boolean escUnicode, Map<String,Property> keyValues) throws IOException {
+		if (!hasNoReadableText(comments))
 			writeComment(bw, comments);
 
+		String cc = "# ";
+		String cs = System.lineSeparator() + cc;
 		try {
 			keyValues.entrySet().stream()
 				.sorted(byNC(Entry::getKey))
 				.forEach(e -> {
-					String key = e.getKey();
-					String val = e.getValue();
-					key = saveConvert(key, true, escUnicode);
-					// No need to escape embedded and trailing spaces for value, hence pass false to flag
-					val = saveConvert(val, false, escUnicode);
+					boolean hasComment = hasReadableText(e.getValue().comment); // ignore useless comments, just in case
+					String comment = hasComment ? e.getValue().comment.replace("\n", cs) : null; // support multiline
+					String key = saveConvert(e.getKey(), true, escUnicode);
+					String val = saveConvert(e.getValue().value, false, escUnicode); // No need to escape embedded and trailing spaces -> false flag
 					try {
+						if (hasComment) {
+							bw.write(cc + comment);
+							bw.newLine();
+						}
 						bw.write(key + "=" + val);
 						bw.newLine();
 					} catch (IOException x) {
@@ -321,9 +345,7 @@ public interface Properties {
 	/**
 	 * A table of hex digits
 	 */
-	char[] hexDigit = {
-		'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
-	};
+	char[] hexDigit = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 	/**
 	 * Read in a "logical line" from an InputStream/Reader, skip all comment
@@ -461,6 +483,14 @@ public interface Properties {
 	class ExceptionWrapper extends RuntimeException {
 		ExceptionWrapper(Throwable e) {
 			super(e);
+		}
+	}
+	class Property {
+		public final String comment, value;
+
+		public Property(String comment, String value) {
+			this.comment = comment;
+			this.value = value;
 		}
 	}
 }

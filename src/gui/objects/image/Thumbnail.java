@@ -80,7 +80,7 @@ import static util.type.Util.getFieldValue;
  * <li> Aspect ratio aware. See {@link #ratioTHUMB} and {@link #ratioIMG}. Used
  * for layout.
  * <li> Resolution aware. The images are loaded only up to required size to
- * reduce memory. For details see {@link ImageNode#LOAD_COEFICIENT} and
+ * reduce memory. For details see {@link ImageNode#LOAD_COEFFICIENT} and
  * {@link ImageNode#calculateImageLoadSize(javafx.scene.layout.Region) }.
  * <li> Size aware. If this thumbnail is resized then the image will only resize up
  * to a certain maximum size to prevent blurry result of scaling small image

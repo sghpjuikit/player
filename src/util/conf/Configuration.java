@@ -24,6 +24,7 @@ import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
 import util.file.Properties;
+import util.file.Properties.Property;
 import util.functional.Functors.Ƒ1;
 
 import static util.dev.Util.noFinal;
@@ -100,12 +101,13 @@ public class Configuration {
         configs.addAll(_configs);
         _configs.stream()
                 .filter(Config::isEditable)
-                .filter(c -> c.getType().equals(Boolean.class))
+                .filter(c -> c.getType() == Boolean.class)
                 // .map(c -> (Config<Boolean>) c) // unnecessary, but safe
                 .forEach(c -> {
-                    String name = c.getGroup() + " " + c.getName() + " - toggle";
+                    String name = c.getGroup() + " " + c.getGuiName() + " - toggle";
+	                String description = "Toggles value " + c.getName() + " between true/false";
                     Runnable r = c::setNextNapplyValue;
-                    Action a = new Action(name, r, "Toggles value between yes and no", c.getGroup(), "", false, false);
+                    Action a = new Action(name, r, description, c.getGroup(), "", false, false);
                     Action.getActions().add(a);
                     configs.add(a);
                 });
@@ -142,18 +144,20 @@ public class Configuration {
 	        + " Last auto-modified: " + java.time.LocalDateTime.now() + "\n"
 	        + "\n"
 	        + " Properties are in the format: {property path}.{property.name}{separator}{property value}\n"
-	        + " \t{property path}  must be lowercase with period as path separator, e.g.: this.is.a.path\n"
+	        + " \t{property path}  must be lowercase with '.' as path separator, e.g.: this.is.a.path\n"
 	        + " \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"
 	        + " \t{separator}      must be ' = ' string\n"
 	        + " \t{property value} can be any string (even empty)\n"
-	        + " Properties must be separated by combination of '\\n', '\\r' characters\n"
+	        + " Properties must be separated by (any) combination of '\\n', '\\r' characters\n"
 	        + "\n"
 	        + " Ignored lines:\n"
 	        + " \tcomment lines (start with '#')\n"
 	        + " \tcomment lines (start with '!')\n"
-	        + " \tempty lines\n";
+	        + " \tempty lines\n"
+	        + "\n"
+	        + " Some properties are read-only. Such properties will ignore custom values";
 
-	    Properties.save(file, comment, stream(getFields()).toMap(configs.keyMapper, Config::getValueS));
+	    Properties.saveP(file, comment, stream(getFields()).toMap(configs.keyMapper, c -> new Property(c.getInfo(),c.getValueS())));
     }
 
     /**
@@ -169,7 +173,7 @@ public class Configuration {
     public void rawSet() {
 	    properties.forEach((key, value) -> {
             Config<?> c = configs.get(mapper.apply(key));
-            if (c!=null) c.setValueS(value);
+            if (c!=null && c.isEditable()) c.setValueS(value);
         });
     }
 

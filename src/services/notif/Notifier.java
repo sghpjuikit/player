@@ -65,15 +65,15 @@ public final class Notifier extends ServiceBase {
     public boolean notifAnimated = true;
     @IsConfig(name = "Animation duration")
     public Duration notifFadeTime = millis(500);
-    @IsConfig(name = "Hide on click anywhere", editable = false)
+    @IsConfig(name = "Hide on click anywhere", info = "Whether notification hides on mouse click anywhere within the application", editable = false)
     public boolean notifAutohide = false;
-    @IsConfig(name = "Screen Position")
+    @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
     public PopOver.ScreenPos notifPos = Screen_Bottom_Right;
-    @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
+    @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
     public PopOver.ScreenUse notifScr = APP_WINDOW;
-    @IsConfig(name = "On click left")
+    @IsConfig(name = "On click left", info = "Left click action")
     public final VarAction onClickL = new VarAction("Show application", null);
-    @IsConfig(name = "On click right")
+    @IsConfig(name = "On click right", info = "Right click action")
     public final VarAction onClickR = new VarAction("Notification hide", null);
 
     @IsConfig(name = "Playback change graphics")

@@ -330,11 +330,11 @@ public class App extends Application implements Configurable {
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
     public final V<Boolean> hoverRating = new V<>(true);
 
-    @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value"
+    @IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value "
             + "to control some application value manually.")
     public final V<Double> debug = new V<>(0d, () -> {});
 
-    @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value"
+    @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value "
             + "to control some application value manually.")
     public final V<Boolean> debug2 = new V<>(false,() -> {});
 

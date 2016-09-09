@@ -163,7 +163,7 @@ public interface Util {
     }
 
     /**
-     * Returns empty string if string meets is-empty criteria according to {@link #hasNoText(String)}
+     * Returns empty string if string meets is-empty criteria according to {@link #hasNoReadableText(String)}
      * <br>
      * More formally: {@code (hasNoText(str)) ? "" : str;}
      *
@@ -171,8 +171,15 @@ public interface Util {
      * @return "" if string should be empty or the string itself
      */
     static String emptyOr(String s) {
-        return hasNoText(s) ? "" : s;
+        return hasNoReadableText(s) ? "" : s;
     }
+
+	/**
+	 * Inverse version of {@link #hasNoReadableText(String)}
+	 */
+	static boolean hasReadableText(String s) {
+		return !hasNoReadableText(s);
+	}
 
     /**
      * Broader check for emptiness of String object.
@@ -186,7 +193,7 @@ public interface Util {
      * @param s string to check.
      * @return true iff any of the criteria is met.
      */
-    static boolean hasNoText(String s) {
+    static boolean hasNoReadableText(String s) {
     	if (s==null || s.isEmpty()) return true;
 
 	    for (int i=0; i<s.length(); i++)

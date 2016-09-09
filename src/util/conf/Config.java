@@ -355,7 +355,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.name = name;
             this.defaultValue = val;
             this.group = category;
-            this.info = info;
+            this.info = info==null || info.isEmpty() ? gui_name : info;
             this.editable = editable;
             this.min = min;
             this.max = max;

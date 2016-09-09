@@ -90,7 +90,7 @@ public final class Action extends Config<Action> implements Runnable {
     public Action(String name, Runnable action, String info, String group, String keys, boolean global, boolean continuous) {
         this.name = name;
         this.action = action;
-        this.info = info;
+        this.info = info==null || info.isEmpty() ? name : info;
         this.group = group.isEmpty() ? "Other" : group;
         this.continuous = continuous;
         this.global = global;
@@ -468,9 +468,9 @@ public final class Action extends Config<Action> implements Runnable {
 /* ---------- SHORTCUT HANDLING ON APP LEVEL ------------------------------------------------------------------------ */
 
     private static boolean isIntelliJSupported = JIntellitype.isJIntellitypeSupported();
-    @IsConfig(name = "Is global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this systme")
+    @IsConfig(name = "Is global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this system")
     private static boolean isGlobalShortcutsSupported = isIntelliJSupported;
-    @IsConfig(name = "Is media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this systme")
+    @IsConfig(name = "Is media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this system")
     private static boolean isMedialShortcutsSupported = isIntelliJSupported;
     private static boolean isRunning = false;
 

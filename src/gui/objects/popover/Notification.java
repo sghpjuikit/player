@@ -1,4 +1,3 @@
-
 package gui.objects.popover;
 
 import javafx.scene.Node;

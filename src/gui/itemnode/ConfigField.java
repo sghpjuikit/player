@@ -312,6 +312,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         public PasswordField(Config<Password> c) {
             super(c);
+	        passF.setPromptText(c.getGuiName());
             refreshItem();
         }
 
@@ -336,10 +337,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private StringField(Config c) {
             super(c);
-
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
-            n.setPromptText(c.getName());
+            n.setPromptText(c.getGuiName());
             n.setText(c.getValueS());
 
             n.focusedProperty().addListener((o,ov,nv) -> {
@@ -348,12 +348,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 } else {
                     n.pseudoClassStateChanged(editedPC, false);
                     refreshItem();
-                }
-            });
-            n.addEventHandler(KEY_RELEASED, e -> {
-                if (isAny(e.getCode(), BACK_SPACE,DELETE)) {
-                    boolean firsttime = !n.getPromptText().isEmpty();
-                    n.setPromptText(firsttime ? "" : config.getName());
                 }
             });
             n.addEventHandler(KEY_RELEASED, e -> {
@@ -408,7 +402,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
-            n.setPromptText(c.getName());
+            n.setPromptText(c.getGuiName());
             n.setText(c.getValueS());
 
             n.focusedProperty().addListener((o,ov,nv) -> {

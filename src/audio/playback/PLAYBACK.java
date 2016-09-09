@@ -59,8 +59,6 @@ public final class PLAYBACK implements Configurable {
     public static boolean continuePlaybackOnStart = true;
     @IsConfig(name="Pause playback on start", info = "Continue last remembered playback paused on application start.")
     public static boolean continuePlaybackPaused = false;
-    @IsConfig(name="Seek relative to length", info = "Seeks forward.backward by fraction of song's length instead of fixed time unit.")
-    public static boolean seekPercent = true;
     @IsConfig(name="Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
     public static Duration seekUnitT = millis(4000);
     @IsConfig(name="Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.", min=0, max=1)
@@ -196,6 +194,11 @@ public final class PLAYBACK implements Configurable {
         seek(0);
     }
 
+	public static void seekForward(Seek type) {
+		if (type==Seek.ABSOLUTE) seekForwardAbsolute();
+		else seekForwardRelative();
+	}
+
     /** Seek forward by small duration unit. */
     @IsAction(name = "Seek forward", desc = "Seek forward playback by small duration unit.", keys = "ALT+D", repeat = true, global = true)
     public static void seekForwardAbsolute() {
@@ -207,6 +210,11 @@ public final class PLAYBACK implements Configurable {
 	public static void seekForwardRelative() {
 		double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
 		seek(min(d, 1));
+	}
+
+	public static void seekBackward(Seek type) {
+		if (type==Seek.ABSOLUTE) seekBackwardAbsolute();
+		else seekBackwardRelative();
 	}
 
 	/** Seek backward by small duration unit. */
@@ -439,5 +447,9 @@ public final class PLAYBACK implements Configurable {
     public final static AudioSpectrumListener spectrumListenerDistributor = (double d, double d1, float[] floats, float[] floats1) -> {
         spectrumListeners.forEach(l -> l.spectrumDataUpdate(d, d1, floats, floats1));
     };
+
+    public enum Seek {
+    	ABSOLUTE, RELATIVE
+    }
 
 }

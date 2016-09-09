@@ -36,6 +36,7 @@ import util.access.V;
 import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
 
+import static audio.playback.PLAYBACK.Seek.RELATIVE;
 import static audio.tagging.Metadata.Field.BITRATE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FAST_FORWARD;
@@ -84,18 +85,10 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     @FXML Label currTime, totTime, realTime, status;
     @FXML Label titleL, artistL, bitrateL, sampleRateL, channelsL;
     @FXML HBox infoBox, playButtons;
-    Seeker seeker = new Seeker();
-    Icon f1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(PLAYBACK::seekBackwardAbsolute),
-         f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
-         f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
-         f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
-         f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(PLAYBACK::seekForwardAbsolute),
-         f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
-         muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
-         addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
-         loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
-    double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
+	Seeker seeker = new Seeker();
 
+	@IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
+	public final V<PLAYBACK.Seek> seekType = new V<>(RELATIVE);
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Open chapters", info = "Display pop up information for chapter marks on seeker.")
@@ -108,6 +101,17 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
+
+	Icon f1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(() -> PLAYBACK.seekBackward(seekType.get())),
+		f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
+		f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
+		f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
+		f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(() -> PLAYBACK.seekForward(seekType.get())),
+		f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
+		muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
+		addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
+		loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
+	double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
     @Override
     public void init() {

@@ -1,4 +1,3 @@
-
 package gui.objects.table;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import gui.Gui;
 import gui.objects.tablerow.ImprovedTableRow;
 import util.Util;
 
-import static java.lang.Math.floor;
+import static java.lang.Math.*;
 import static util.Util.zeroPad;
 import static util.graphics.Util.computeFontWidth;
 import static util.graphics.Util.selectRows;
@@ -216,7 +215,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	    return 0;
     }
 
-/********************************** SELECTION *********************************/
+/* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
     /** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); }*/
     public void selectAll() {
@@ -240,7 +239,7 @@ public class ImprovedTable<T> extends TableView<T> {
         getSelectionModel().clearSelection();
     }
 
-/************************************ DRAG ************************************/
+/* --------------------- DRAG --------------------------------------------------------------------------------------- */
 
     /**
      * Equivalent to {@link #setOnDragOver(javafx.event.EventHandler)}, but
@@ -260,7 +259,24 @@ public class ImprovedTable<T> extends TableView<T> {
         });
     }
 
-/************************************ SORT ************************************/
+/* --------------------- SCROLL --------------------------------------------------------------------------------------- */
+
+	/**
+	 * Scrolls to the item, so it is visible in the vertical center of the table.
+	 *
+	 * @param i index of the item, does nothing if index out of bounds
+	 */
+	public void scrollToCenter(int i) {
+		int items = getItems().size();
+		if (i<0 || i>=items) return;
+
+		double rows = getHeight()/getFixedCellSize();
+		i -= rows/2;
+		i = min(items-(int)rows+1,max(0,i));
+		scrollTo(i);
+	}
+
+/* --------------------- SORT --------------------------------------------------------------------------------------- */
 
     /**
      * Sorts items by changing the sort order.
@@ -282,14 +298,12 @@ public class ImprovedTable<T> extends TableView<T> {
     }
 
 
-/************************************* HELPER *********************************/
+/* --------------------- UTIL --------------------------------------------------------------------------------------- */
 
     @Deprecated
     final void resizeIndexColumn() {
         getColumnResizePolicy().call(new ResizeFeatures<>(this, columnIndex, 0d));
     }
-
-/***************************** UTIL + HELPER *******************************/
 
     /** Minimalistic value wrapper for POJO table view cell value factories. */
     public static class PojoV<T> implements ObservableValue<T> {

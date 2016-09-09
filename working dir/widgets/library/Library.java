@@ -58,7 +58,6 @@ import util.conf.IsConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
-import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -173,7 +172,7 @@ public class Library extends FXMLController implements SongReader {
         // table properties
         table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.searchSetColumn(TITLE);
+        table.search.setColumn(TITLE);
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -296,6 +295,28 @@ public class Library extends FXMLController implements SongReader {
         table.getSelectionModel().clearSelection();
     }
 
+	@Override
+	public Collection<Config<Object>> getFields() {
+		// serialize column state when requested
+		getWidget().properties.put("columns", table.getColumnState().toString());
+		return super.getFields();
+	}
+
+
+	/******************************** PUBLIC API **********************************/
+
+	/**
+	 * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
+	 * and displays them in the table.
+	 * <p/>
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void read(List<? extends Item> items) {
+		if (items==null) return;
+		table.setItemsRaw(map(items,Item::toMeta));
+	}
+
     @IsInput("To display")
     public void setItems(List<? extends Metadata> items) {
         if (items==null) return;
@@ -357,29 +378,6 @@ public class Library extends FXMLController implements SongReader {
     private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> hideInfo.start());
         taskInfo.showNbind(t);
-    }
-
-
-/******************************** PUBLIC API **********************************/
-
-    /**
-     * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
-     * and displays them in the table.
-     * <p/>
-     * {@inheritDoc}
-     */
-    @Override
-    public void read(List<? extends Item> items) {
-        table.setItemsRaw(map(items,Item::toMeta));
-    }
-
-/********************************* CONFIGS ************************************/
-
-    @Override
-    public Collection<Config<Object>> getFields() {
-        // serialize column state when requested
-        getWidget().properties.put("columns", table.getColumnState().toString());
-        return super.getFields();
     }
 
 /****************************** CONTEXT MENU **********************************/

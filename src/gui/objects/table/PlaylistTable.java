@@ -1,4 +1,3 @@
-
 package gui.objects.table;
 
 import java.util.ArrayList;
@@ -363,12 +362,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     private static final TableContextMenuR<PlaylistItem> contextMenu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu<>();
-            m.getItems().addAll(menuItem("Play items", e -> {
-                    PlaylistManager.use(p -> p.playItem(m.getValue().get(0)));
-                }),
-                menuItem("Remove items", e -> {
-                    PlaylistManager.use(p -> p.removeAll(m.getValue()));
-                }),
+            m.getItems().addAll(menuItem("Play items", e ->
+                    PlaylistManager.use(p -> p.playItem(m.getValue().get(0)))
+                ),
+                menuItem("Remove items", e ->
+                    PlaylistManager.use(p -> p.removeAll(m.getValue()))
+                ),
                 new Menu("Show in",null,
                     menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
                         f -> f,
@@ -381,18 +380,18 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                         f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
-                menuItem("Crop items", e -> {
-                    PlaylistManager.use(p -> p.retainAll(m.getValue()));
-                }),
-                menuItem("Duplicate items as group", e -> {
-                    PlaylistManager.use(p -> p.duplicateItemsAsGroup(m.getValue()));
-                }),
-                menuItem("Duplicate items individually", e -> {
-                    PlaylistManager.use(p -> p.duplicateItemsByOne(m.getValue()));
-                }),
-                menuItem("Explore items's directory", e -> {
-                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
-                }),
+                menuItem("Crop items", e ->
+                    PlaylistManager.use(p -> p.retainAll(m.getValue()))
+                ),
+                menuItem("Duplicate items as group", e ->
+                    PlaylistManager.use(p -> p.duplicateItemsAsGroup(m.getValue()))
+                ),
+                menuItem("Duplicate items individually", e ->
+                    PlaylistManager.use(p -> p.duplicateItemsByOne(m.getValue()))
+                ),
+                menuItem("Explore items's directory", e ->
+                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile))
+                ),
                 menuItem("Add items to library", e -> {
                     List<Metadata> items = m.getValue().stream()
                             .map(Item::toMeta)

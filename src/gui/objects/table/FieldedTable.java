@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.table;
 
 import java.lang.reflect.Field;
@@ -88,7 +83,6 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     private final Class<F> type;
     public ContextMenu columnVisibleMenu;
 
-
     public FieldedTable(Class<F> type) {
         super();
         if (!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
@@ -140,7 +134,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         return colFact;
     }
 
-    public void setColumnStateFacory(Ƒ1<F,ColumnInfo> columnStateFactory) {
+    public void setColumnStateFactory(Ƒ1<F,ColumnInfo> columnStateFactory) {
         colStateFact = columnStateFactory;
     }
 
@@ -148,8 +142,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         return colStateFact;
     }
 
-    public void setkeyNameColMapper(Ƒ1<String,String> columnNametoKeyMapper) {
-        keyNameColMapper = columnNametoKeyMapper;
+    public void setKeyNameColMapper(Ƒ1<String,String> columnNameToKeyMapper) {
+        keyNameColMapper = columnNameToKeyMapper;
     }
 
     public boolean isColumnVisible(ObjectField<? super T> f) {
@@ -190,6 +184,11 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         getColumns().setAll(visibleColumns);
         // restore sort order
         state.sortOrder.toTable(this);
+    }
+
+    @Deprecated
+    public TableColumnInfo impl_GetColumnState() {
+    	return columnState;
     }
 
     public TableColumnInfo getColumnState() {
@@ -253,9 +252,9 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
             }
 
             // install comparator updating part II
-            // we need this because sort order list changes dont reflect
+            // we need this because sort order list changes do not reflect
             // every sort change (when only ASCENDING-DESCENDING is changed
-            // theres no list change event.
+            // there is no list change event.
             h.setOnMouseReleased(this::updateComparator);
             h.setOnMouseClicked(this::updateComparator);
 
@@ -280,7 +279,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         getColumn(f).ifPresent(this::refreshColumn);
     }
 
-    public void refreshCoumns() {
+    public void refreshColumns() {
         if (!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
 

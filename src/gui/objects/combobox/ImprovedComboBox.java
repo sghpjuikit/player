@@ -37,7 +37,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
      */ public final String emptyText;
 	/**
 	 * Item search. Has no graphics.
-	 */ private final Search searcher = new Search() {
+	 */ private final Search search = new Search() {
 		@Override
 		public void onSearch(String s) {
 			searchQuery.set(s);
@@ -105,7 +105,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
         setButtonCell(getCellFactory().call(null));
         setValue(null);
 
-        addEventHandler(KEY_PRESSED, searcher::search);
+        addEventHandler(KEY_PRESSED, search::search);
     }
 
 }

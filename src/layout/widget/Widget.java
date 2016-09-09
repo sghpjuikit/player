@@ -299,8 +299,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
             c.close();
         }
 
-        // Not the best handling, but at least dev does not have to do this manually and concern
-        // himself
+        // Not the best handling, but at least dev does not have to do this manually and concern himself
         APP.widgetManager.standaloneWidgets.remove(this);
     }
 

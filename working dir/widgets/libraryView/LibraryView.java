@@ -142,7 +142,7 @@ public class LibraryView extends FXMLController {
         // table properties
         table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.searchSetColumn(VALUE);
+        table.search.setColumn(VALUE);
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -151,7 +151,7 @@ public class LibraryView extends FXMLController {
 
 
         // set up table columns
-        table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
+        table.setKeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
@@ -167,7 +167,8 @@ public class LibraryView extends FXMLController {
         });
         // maintain rating column cell style
         APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
-        table.getDefaultColumnInfo();
+
+	    table.getDefaultColumnInfo();
 
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
@@ -282,8 +283,12 @@ public class LibraryView extends FXMLController {
         return super.getFields();
     }
 
+	@Override
+	public void onClose() {
+		super.onClose();
+	}
 
-/******************************** PRIVATE API *********************************/
+	/******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
     @SuppressWarnings("unchecked")

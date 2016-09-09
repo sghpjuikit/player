@@ -111,7 +111,7 @@ public final class WidgetArea extends Area<Container> {
 
         // We load the widget, but uphold loading type settings. Only user can load widget manually.
         // If the widget is loaded already, we are safe. This is important since widget switching
-        // wouldnt load already loaded widget (if set to manual), but when it is loaded already
+        // would not load already loaded widget (if set to manual), but when it is loaded already
         // it makes no sense for the widget to not stay loaded.
         if (forceloading || widget.loadType.get()==AUTOMATIC || widget.isLoaded()) {
             // load widget

@@ -1,24 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.table;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -28,7 +20,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import javafx.util.Duration;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.infonode.InfoTable;
@@ -36,33 +27,24 @@ import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.icon.Icon;
-import util.Util;
-import util.access.V;
+import gui.objects.search.SearchCancelable;
 import util.access.fieldvalue.ObjectField;
-import util.async.executor.FxTimer;
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import util.dev.TODO;
 import util.functional.Functors;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
-import static gui.objects.table.FilteredTable.Search.CONTAINS;
-import static java.lang.Integer.max;
-import static java.lang.Integer.min;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.Util.removeLastChar;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.dev.TODO.Purpose.BUG;
@@ -72,7 +54,6 @@ import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
 import static util.type.Util.getEnumConstants;
-import static util.type.Util.mapEnumConstantName;
 
 /**
  *
@@ -80,7 +61,6 @@ import static util.type.Util.mapEnumConstantName;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable("Table")
 public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
 
     private final ObservableList<T> allitems;
@@ -94,14 +74,13 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 
     /**
      * @param main_field field that will denote main column. Must not be null.
-     * Also initializes {@link #searchField}.
+     * Also initializes {@link gui.objects.table.FilteredTable.Search#searchField}.
      *
      * @param main_field be chosen as main and default search field
      * @param backing_list
      */
     public FilteredTable(F main_field, ObservableList<T> backing_list) {
         super((Class<F>)main_field.getClass());
-        searchField = main_field;
 
         allitems = backing_list;
         filtereditems = new FilteredList<>(allitems);
@@ -120,6 +99,11 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         sizeOf(menuSelected.getItems(), size -> menuSelected.setDisable(size==0));
         sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
+	    // searching
+	    search.searchField = main_field;
+	    searchQueryLabel.textProperty().bind(search.searchQuery);
+
+	    // filtering
         filterPane = new Filter(filtereditems, main_field);
         filterPane.getNode().setVisible(false);
         filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
@@ -165,26 +149,18 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
             }
 
             // typing -> scroll to
-            if (k.isDigitKey() || k.isLetterKey() || k==SPACE || k==BACK_SPACE){
-                String letter = e.getText().toLowerCase();
-                // update scroll text
-                long now = System.currentTimeMillis();
-                boolean append = searchTime==-1 || now-searchTime<searchTimeMax.toMillis();
-                searchQuery.set(k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get()+letter : letter);
-                searchTime = now;
-                search(searchQuery.get());
-            }
+            search.search(e);
         });
 
         addEventFilter(KEY_PRESSED, e -> {
-            if (e.getCode()==ESCAPE && searchIsActive()) {
-                searchEnd();
+            if (e.getCode()==ESCAPE && search.isActive()) {
+                search.cancel();
                 e.consume(); // must cause all KEY_PRESSED handlers to be ignored
             }
         });
         // TODO: fix the overkill
-        addEventFilter(Event.ANY, e -> updateSearchStyles());
-        changesOf(getItems()).subscribe(c -> updateSearchStyles());
+        addEventFilter(Event.ANY, e -> search.updateSearchStyles());
+        changesOf(getItems()).subscribe(c -> search.updateSearchStyles());
         changesOf(getItems()).subscribe(c -> resizeIndexColumn());
 
         footerVisible.set(true);
@@ -384,124 +360,80 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         return showOriginalIndex.get() ? allitems.size() : getItems().size();
     }
 
-/************************************ SCROLL **********************************/
+/* --------------------- SEARCH ------------------------------------------------------------------------------------- */
 
-    public void scrollToCenter(int i) {
-        int items = getItems().size();
-        if (i<0 || i>=items) return;
+	/**
+	 * Item search. Has no graphics.
+	 */ public final Search search = new Search();
 
-        double rows = getHeight()/getFixedCellSize();
-        i -= rows/2;
-        i = min(items-(int)rows+1,max(0,i));
-        scrollTo(i);
-    }
 
-/************************************ SEARCH **********************************/
+	public class Search extends SearchCancelable {
+		/**
+		 * If the user types text to quick search content by scrolling table, the
+		 * text matching will be done by this field. Its column cell data must be
+		 * String (or search will be ignored) and column should be visible.
+		 */ private F searchField;
 
-    /**
-     * If the user types text to quick search content by scrolling table, the
-     * text matching will be done by this field. Its column cell data must be
-     * String (or search will be ignored) and column should be visible.
-     */
-    private F searchField;
-    private long searchTime = -1;
-    private final StringProperty searchQuery = searchQueryLabel.textProperty();
-    private final FxTimer searchAutocanceller = new FxTimer(3000,1,this::searchEnd);
-    private static final PseudoClass SEARCHMATCHPC = getPseudoClass("searchmatch");
-    private static final PseudoClass SEARCHMATCHNOTPC = getPseudoClass("searchmatchnot");
+		/**
+		 * Starts search, searching for the specified string in the designated column.
+		 * This column is determined by {@link #searchField}).
+		 */
+		@Override
+		public void onSearch(String s) {
+			APP.actionStream.push("Table search");
+			searchQuery.set(s);
+			// scroll to first found item
+			TableColumn c = getColumn(searchField).orElse(null);
+			if (!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
+				for (int i=0; i<getItems().size(); i++) {
+					String item = (String)searchField.getOf(getItems().get(i));
+					if (matches(item,searchQuery.get())) {
+						scrollToCenter(i);
+						updateSearchStyles();
+						break;
+					}
+				}
+			}
+		}
 
-    @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
-    private static Duration searchTimeMax = millis(500);
-    @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
-    private static boolean scrolFautocancel = true;
-    @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
-    private static Duration scrolFautocancelTime = millis(3000);
-    @IsConfig(name = "Search algorithm", info = "Algorithm for string matching.")
-    private static final  V<Search> searchAlg = new V<>(CONTAINS);
-    @IsConfig(name = "Search ignore case", info = "Algorithm for string matching will ignore case.")
-    private static boolean searchAlg_caseless = true;
 
-    /** Sets fields to be used in search. Default is main field. */
-    public void searchSetColumn(F field) {
-        searchField = field;
-    }
+		/** Sets fields to be used in search. Default is main field. */
+		public void setColumn(F field) {
+			// TODO
+			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
+			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
+			// convenience), this time it plays against us.
+			// yes(field.getType()==String.class);
+			searchField = field;
+		}
 
-    /**
-     * Returns whether search is active. Every search must be ended, either
-     * automatically {@link #scrolFautocancel}, or manually {@link #searchEnd()}.
-     */
-    public boolean searchIsActive() {
-        return !searchQuery.get().isEmpty();
-    }
 
-    /**
-     * Starts search, searching for the specified string in the designated
-     * column for field {@link #searchField} (column can be invisible).
-     */
-    public void search(String s) {
-        APP.actionStream.push("Table search");
-        searchQuery.set(s);
-        // scroll to first found item
-        TableColumn c = getColumn(searchField).orElse(null);
-        if (!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
-            for (int i=0; i<getItems().size(); i++) {
-                String item = (String)searchField.getOf(getItems().get(i));
-                if (matches(item,searchQuery.get())) {
-                    scrollToCenter(i);
-                    updateSearchStyles();
-                    break;
-                }
-            }
-        }
-    }
+		@Override
+		public void cancel() {
+			super.cancel();
+			updateSearchStyleRowsNoReset();
+		}
 
-    /**
-     * Ends search manually.
-     */
-    public void searchEnd() {
-        searchQuery.set("");
-        searchQueryLabel.setText(searchQuery.get());
-        updateSearchStyleRowsNoReset();
-    }
+		private void updateSearchStyles() {
+			if (isCancelable) searchAutocanceller.start(cancelActivityDelay);
+			updateSearchStyleRowsNoReset();
+		}
 
-    private void updateSearchStyles() {
-        if (scrolFautocancel) searchAutocanceller.start(scrolFautocancelTime);
-        updateSearchStyleRowsNoReset();
-    }
+		private void updateSearchStyleRowsNoReset() {
+			boolean searchOn = isActive();
+			for (TableRow<T> row : getRows()) {
+				T t = row.getItem();
+				Object o = t==null ? null : searchField.getOf(t);
+				boolean isMatch = o instanceof String && matches((String)o,searchQuery.get());
+				row.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
+				row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch));
+				row.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch);
+				row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch));
+			}
+		}
+	}
 
-    private void updateSearchStyleRowsNoReset() {
-        boolean searchOn = searchIsActive();
-        for (TableRow<T> row : getRows()) {
-            T t = row.getItem();
-            Object o = t==null ? null : searchField.getOf(t);
-            boolean isMatch = o instanceof String && matches((String)o,searchQuery.get());
-            row.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
-            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch));
-            row.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch);
-            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch));
-       }
-    }
-
-    private static boolean matches(String text, String query) {
-        String t = searchAlg_caseless ? text.toLowerCase() : text;
-        String q = searchAlg_caseless ? query.toLowerCase() : query;
-        return searchAlg.getValue().predicate.test(t,q);
-    }
-
-    public enum Search {
-        CONTAINS(String::contains),
-        STARTS_WITH(String::startsWith),
-        ENDS_WITH(String::endsWith);
-
-        final BiPredicate<String,String> predicate;
-
-        Search(BiPredicate<String,String> p) {
-            mapEnumConstantName(this, Util::enumToHuman);
-            predicate = p;
-        }
-    }
-
-/************************************* SORT ***********************************/
+/* --------------------- SORT --------------------------------------------------------------------------------------- */
 
     @Override
     public void sortBy(F field) {
@@ -519,11 +451,11 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         allitems.sort(comparator);
     }
 
-/*********************************** HELPER ***********************************/
+/* --------------------- HELPER ------------------------------------------------------------------------------------- */
 
     @TODO(purpose = BUG)
     @Override
-    protected Callback<TableColumn<T, Void>, TableCell<T, Void>> buildIndexColumnCellFactory() {
+    protected Callback<TableColumn<T,Void>,TableCell<T,Void>> buildIndexColumnCellFactory() {
         return (column -> new TableCell<>() {
             {
                 setAlignment(Pos.CENTER_RIGHT);
@@ -538,7 +470,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                     int j = getIndex();
                     String txt;
                     if (zeropadIndex.get()) {
-                        int i = showOriginalIndex.get() ? filtereditems.getSourceIndex(j) : j;      // BUG HERE
+                        int i = showOriginalIndex.get() ? filtereditems.getSourceIndex(j) : j;      // BUG HERE  // TODO: ?
                         txt = zeroPad(i + 1, getMaxIndex(), '0');
                     } else
                         txt = String.valueOf(j + 1);
@@ -558,9 +490,9 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 buildSingleSelectionMenu(
                     "Search column",
                     filter(getFields(),f -> isContainedIn(f.getType(),String.class,Object.class)), // objects too, they can be strings
-                    searchField,
+                    search.searchField,
                     field -> field.name(),
-                    field -> searchField=field
+                    field -> search.searchField=field
                 )
             );
         }

@@ -155,7 +155,8 @@ public class Configuration {
 	        + " \tcomment lines (start with '!')\n"
 	        + " \tempty lines\n"
 	        + "\n"
-	        + " Some properties are read-only. Such properties will ignore custom values";
+	        + " Some properties are read-only or have additional value constraints. Such properties will ignore "
+		    + "custom or unfit values";
 
 	    Properties.saveP(file, comment, stream(getFields()).toMap(configs.keyMapper, c -> new Property(c.getInfo(),c.getValueS())));
     }

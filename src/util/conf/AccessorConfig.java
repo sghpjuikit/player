@@ -54,8 +54,8 @@ public class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleV
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(Class<T> type, String name, Consumer<T> setter, Supplier<T> getter, String info) {
-        super(type, name, name, getter.get(), "", info, true, Double.NaN, Double.NaN);
+    public AccessorConfig(Class<T> type, String name, String description, Consumer<T> setter, Supplier<T> getter) {
+        super(type, name, name, getter.get(), "", description, true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
     }

@@ -67,117 +67,118 @@ public class FunctorPool {
              * add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
              */
 
-		Class<Boolean> BOOL = Boolean.class;
+		Class<Boolean> B = Boolean.class;
+		Class<String> S = String.class;
 
-		add("Is null",      Object.class, BOOL, ISØ);
+		add("Is null",      Object.class, B, ISØ);
 		//  add("Isn't null", Object.class, BOOL, ISNTØ);
 		add("As String",    Object.class, String.class, Objects::toString);
-		add("As Boolean",   String.class, BOOL, Boolean::parseBoolean);
+		add("As Boolean",   String.class, B, Boolean::parseBoolean);
 
-		add("Is true",  BOOL, BOOL, IS);
+		add("Is true",  B, B, IS);
 		//  add("Is false", BOOL, BOOL, ISNT);
-		add("Negate",   BOOL, BOOL, b -> !b);
-		add("And",      BOOL, BOOL, Boolean::logicalAnd, BOOL, true);
-		add("Or",       BOOL, BOOL, Boolean::logicalOr,  BOOL, true);
-		add("Xor",      BOOL, BOOL, Boolean::logicalXor, BOOL, true);
+		add("Negate",   B, B, b -> !b);
+		add("And",      B, B, Boolean::logicalAnd, B, true);
+		add("Or",       B, B, Boolean::logicalOr,  B, true);
+		add("Xor",      B, B, Boolean::logicalXor, B, true);
 
-		add("'_' -> ' '",   String.class, String.class, s -> s.replace("_", " "));
-		add("-> file name", String.class, String.class, util.Util::filenamizeString);
-		add("Anime",        String.class, String.class, util.Util::renameAnime);
-		add("To upper case",       String.class, String.class, String::toUpperCase);
-		add("To lower case",       String.class, String.class, String::toLowerCase);
-		add("Plural",              String.class, String.class, English::plural);
-		add("Replace 1st (regex)", String.class, String.class, util.Util::replace1st, Pattern.class, String.class, Pattern.compile(""), "");
-		add("Remove 1st (regex)",  String.class, String.class, util.Util::remove1st, Pattern.class, Pattern.compile(""));
-		add("Replace all",         String.class, String.class, util.Util::replaceAll, String.class, String.class, "", "");
-		add("Replace all (regex)", String.class, String.class, util.Util::replaceAllRegex, Pattern.class, String.class, Pattern.compile(""), "");
-		add("Remove all",          String.class, String.class, util.Util::removeAll, String.class, "");
-		add("Remove all (regex)",  String.class, String.class, util.Util::removeAllRegex, Pattern.class, Pattern.compile(""));
-		add("Text",                String.class, String.class, (s, r) -> r, String.class, "");
-		add("Text",                String.class, String.class, (s, c1, c2) -> new String(s.getBytes(c1), c2), Charset.class, Charset.class, UTF_8, UTF_8);
-		add("Add text",            String.class, String.class, util.Util::addText, String.class, StringDirection.class, "", FROM_START);
-		add("Remove chars",        String.class, String.class, util.Util::removeChars, Integer.class, StringDirection.class, 0, FROM_START);
-		add("Retain chars",        String.class, String.class, util.Util::retainChars, Integer.class, StringDirection.class, 0, FROM_START);
-		add("Trim",                String.class, String.class, String::trim);
-		add("Split",               String.class, SplitData.class, util.Util::split, StringSplitParser.class, new StringSplitParser("%all%"));
-		add("Split-join",          String.class, String.class, util.Util::splitJoin, StringSplitParser.class, StringSplitParser.class, new StringSplitParser("%all%"), new StringSplitParser("%all%"));
-		add("Is",            String.class, BOOL, util.Util::equalsNoCase, String.class, BOOL, "", true);
-		add("Contains",      String.class, BOOL, util.Util::containsNoCase, String.class, BOOL, "", true, false, false, true);
-		add("Ends with",     String.class, BOOL, util.Util::endsWithNoCase, String.class, BOOL, "", true);
-		add("Starts with",   String.class, BOOL, util.Util::startsWithNoCase, String.class, BOOL, "", true);
-		add("Matches regex", String.class, BOOL, (text, r) -> r.matcher(text).matches(), Pattern.class, Pattern.compile(""));
-		add("More",          String.class, BOOL, (x, y) -> x.compareTo(y) > 0, String.class, "");
-		add("Less",          String.class, BOOL, (x, y) -> x.compareTo(y) < 0, String.class, "");
-		add("Char at",       String.class, Character.class, util.Util::charAt, Integer.class, StringDirection.class, 0, FROM_START);
-		add("Length",        String.class, Integer.class, String::length);
-		add("Length >",      String.class, BOOL, (x, l) -> x.length() > l, Integer.class, 0);
-		add("Length <",      String.class, BOOL, (x, l) -> x.length() < l, Integer.class, 0);
-		add("Length =",      String.class, BOOL, (x, l) -> x.length() == l, Integer.class, 0);
-		add("Is empty",      String.class, BOOL, String::isEmpty);
-		add("Is palindrome", String.class, BOOL, util.Util::isNonEmptyPalindrome);
+		add("'_' -> ' '",   S, S, s -> s.replace("_", " "));
+		add("-> file name", S, S, util.Util::filenamizeString);
+		add("Anime",        S, S, util.Util::renameAnime);
+		add("To upper case",       S, S, String::toUpperCase);
+		add("To lower case",       S, S, String::toLowerCase);
+		add("Plural",              S, S, English::plural);
+		add("Replace 1st (regex)", S, S, util.Util::replace1st, Pattern.class, S, Pattern.compile(""), "");
+		add("Remove 1st (regex)",  S, S, util.Util::remove1st, Pattern.class, Pattern.compile(""));
+		add("Replace all",         S, S, util.Util::replaceAll, S, S, "", "");
+		add("Replace all (regex)", S, S, util.Util::replaceAllRegex, Pattern.class, S, Pattern.compile(""), "");
+		add("Remove all",          S, S, util.Util::removeAll, S, "");
+		add("Remove all (regex)",  S, S, util.Util::removeAllRegex, Pattern.class, Pattern.compile(""));
+		add("Text",                S, S, (s, r) -> r, S, "");
+		add("Re-encode",           S, S, (s, c1, c2) -> new String(s.getBytes(c1), c2), Charset.class, Charset.class, UTF_8, UTF_8);
+		add("Add text",            S, S, util.Util::addText, S, StringDirection.class, "", FROM_START);
+		add("Remove chars",        S, S, util.Util::removeChars, Integer.class, StringDirection.class, 0, FROM_START);
+		add("Retain chars",        S, S, util.Util::retainChars, Integer.class, StringDirection.class, 0, FROM_START);
+		add("Trim",                S, S, String::trim);
+		add("Split",               S, SplitData.class, util.Util::split, StringSplitParser.class, new StringSplitParser("%all%"));
+		add("Split-join",          S, S, util.Util::splitJoin, StringSplitParser.class, StringSplitParser.class, new StringSplitParser("%all%"), new StringSplitParser("%all%"));
+		add("Is",            S, B, util.Util::equalsNoCase, S, B, "", true);
+		add("Contains",      S, B, util.Util::containsNoCase, S, B, "", true, false, false, true);
+		add("Ends with",     S, B, util.Util::endsWithNoCase, S, B, "", true);
+		add("Starts with",   S, B, util.Util::startsWithNoCase, S, B, "", true);
+		add("Matches regex", S, B, (text, r) -> r.matcher(text).matches(), Pattern.class, Pattern.compile(""));
+		add("After",         S, B, (x, y) -> x.compareTo(y) > 0, S, "");
+		add("Before",        S, B, (x, y) -> x.compareTo(y) < 0, S, "");
+		add("Char at",       S, Character.class, util.Util::charAt, Integer.class, StringDirection.class, 0, FROM_START);
+		add("Length",        S, Integer.class, String::length);
+		add("Length >",      S, B, (x, l) -> x.length() > l, Integer.class, 0);
+		add("Length <",      S, B, (x, l) -> x.length() < l, Integer.class, 0);
+		add("Length =",      S, B, (x, l) -> x.length() == l, Integer.class, 0);
+		add("Is empty",      S, B, String::isEmpty);
+		add("Is palindrome", S, B, util.Util::isNonEmptyPalindrome);
 
-		add("to ASCII", Character.class, Integer.class, x -> (int) x);
+		add("to ASCII",     Character.class, Integer.class, x -> (int) x);
 
-		add("Path",       File.class,String.class, File::getAbsolutePath);
-		add("Size",       File.class,FileSize.class, FileSize::new);
-		add("Name",       File.class,String.class, Util::getName, true,true,true);
-		add("Name.Suffix",File.class,String.class, File::getName);
-		add("Suffix",     File.class,String.class, Util::getSuffix);
-		add("MimeType",   File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
-		add("MimeGroup",  File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
-		add("Shortcut target",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
+		add("Path",         File.class,String.class, File::getAbsolutePath);
+		add("Size",         File.class,FileSize.class, FileSize::new);
+		add("Name",         File.class,String.class, Util::getName, true,true,true);
+		add("Name.Suffix",  File.class,String.class, File::getName);
+		add("Suffix",       File.class,String.class, Util::getSuffix);
+		add("MimeType",     File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
+		add("MimeGroup",    File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
+		add("Shortcut of",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
 
-		add("Group",      MimeType.class,String.class, MimeType::getGroup);
-		add("Extensions", MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
+		add("Group",        MimeType.class,String.class, MimeType::getGroup);
+		add("Extensions",   MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
 
-		add("Less",      Bitrate.class,BOOL,(x, y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
-		add("Is",        Bitrate.class,BOOL,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
-		add("More",      Bitrate.class,BOOL,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
-		add("Is good",   Bitrate.class,BOOL, x -> x.getValue()>=320);
-		add("Is bad",    Bitrate.class,BOOL, x -> x.getValue()<=128);
-		add("Is unknown",Bitrate.class,BOOL, x -> x.getValue()==-1);
-		add("Is known",  Bitrate.class,BOOL, x -> x.getValue()>-1);
+		add("Less",         Bitrate.class,B,(x, y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
+		add("Is",           Bitrate.class,B,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
+		add("More",         Bitrate.class,B,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
+		add("Is good",      Bitrate.class,B, x -> x.getValue()>=320);
+		add("Is bad",       Bitrate.class,B, x -> x.getValue()<=128);
+		add("Is unknown",   Bitrate.class,B, x -> x.getValue()==-1);
+		add("Is known",     Bitrate.class,B, x -> x.getValue()>-1);
 
-		add("Less",      FormattedDuration.class,BOOL,(x, y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
-		add("Is",        FormattedDuration.class,BOOL,(x,y) -> x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
-		add("More",      FormattedDuration.class,BOOL,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
+		add("Less",         FormattedDuration.class,B,(x, y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
+		add("Is",           FormattedDuration.class,B,(x,y) -> x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
+		add("More",         FormattedDuration.class,B,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
 
-		add("<  Less",      NofX.class,BOOL, (x, y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
-		add("=  Is",        NofX.class,BOOL, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
-		add(">  More",      NofX.class,BOOL, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
-		add(">= Not less",  NofX.class,BOOL, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
-		add("<> Is not",    NofX.class,BOOL, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
-		add("<= Not more",  NofX.class,BOOL, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
+		add("<  Less",      NofX.class,B, (x, y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
+		add("=  Is",        NofX.class,B, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
+		add(">  More",      NofX.class,B, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
+		add(">= Not less",  NofX.class,B, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
+		add("<> Is not",    NofX.class,B, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
+		add("<= Not more",  NofX.class,B, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
 
-		add("<  Less",      FileSize.class,BOOL, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
-		add("=  Is",        FileSize.class,BOOL, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
-		add(">  More",      FileSize.class,BOOL, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
-		add("Is unknown",   FileSize.class,BOOL, x -> x.inBytes()==-1);
-		add("Is known",     FileSize.class,BOOL, x -> x.inBytes()>-1);
+		add("<  Less",      FileSize.class,B, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
+		add("=  Is",        FileSize.class,B, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
+		add(">  More",      FileSize.class,B, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
+		add("Is unknown",   FileSize.class,B, x -> x.inBytes()==-1);
+		add("Is known",     FileSize.class,B, x -> x.inBytes()>-1);
 
-		add("Is after",     Year.class,BOOL, (x, y) -> x.compareTo(y)> 0, Year.class,Year.now());
-		add("Is",           Year.class,BOOL, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
-		add("Is before",    Year.class,BOOL, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
-		add("Is in the future",  Year.class,BOOL, x -> x.compareTo(Year.now())> 0);
-		add("Is now",            Year.class,BOOL, x -> x.compareTo(Year.now())==0);
-		add("Is in the past",    Year.class,BOOL, x -> x.compareTo(Year.now())< 0);
-		add("Is leap",      Year.class,BOOL, Year::isLeap);
+		add("Is after",     Year.class,B, (x, y) -> x.compareTo(y)> 0, Year.class,Year.now());
+		add("Is",           Year.class,B, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
+		add("Is before",    Year.class,B, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
+		add("Is in the future",  Year.class,B, x -> x.compareTo(Year.now())> 0);
+		add("Is now",            Year.class,B, x -> x.compareTo(Year.now())==0);
+		add("Is in the past",    Year.class,B, x -> x.compareTo(Year.now())< 0);
+		add("Is leap",      Year.class,B, Year::isLeap);
 
-		add("Contains year",RangeYear.class,BOOL, RangeYear::contains, Year.class,Year.now());
-		add("Is after",     RangeYear.class,BOOL, RangeYear::isAfter,  Year.class,Year.now());
-		add("Is before",    RangeYear.class,BOOL, RangeYear::isBefore, Year.class,Year.now());
-		add("Is in the future",  RangeYear.class,BOOL, x -> x.contains(Year.now()));
-		add("Is now",            RangeYear.class,BOOL, x -> x.isAfter(Year.now()));
-		add("Is in the past",    RangeYear.class,BOOL, x -> x.isBefore(Year.now()));
+		add("Contains year",RangeYear.class,B, RangeYear::contains, Year.class,Year.now());
+		add("Is after",     RangeYear.class,B, RangeYear::isAfter,  Year.class,Year.now());
+		add("Is before",    RangeYear.class,B, RangeYear::isBefore, Year.class,Year.now());
+		add("Is in the future",  RangeYear.class,B, x -> x.contains(Year.now()));
+		add("Is now",            RangeYear.class,B, x -> x.isAfter(Year.now()));
+		add("Is in the past",    RangeYear.class,B, x -> x.isBefore(Year.now()));
 
-		add("After",   LocalDateTime.class,BOOL, LocalDateTime::isAfter,  LocalDateTime.class,LocalDateTime.now());
-		add("Before",  LocalDateTime.class,BOOL, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
-		add("Is",      LocalDateTime.class,BOOL, LocalDateTime::isEqual,  LocalDateTime.class,LocalDateTime.now());
+		add("After",   LocalDateTime.class,B, LocalDateTime::isAfter,  LocalDateTime.class,LocalDateTime.now());
+		add("Before",  LocalDateTime.class,B, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
+		add("Is",      LocalDateTime.class,B, LocalDateTime::isEqual,  LocalDateTime.class,LocalDateTime.now());
 
 		add("File",    Item.class,File.class, Item::getFile);
 
-		add("Is supported", AudioFileFormat.class,Boolean.class, x -> x.isSupported(APP));
-		add("Is playable", AudioFileFormat.class,Boolean.class, x -> x.isSupported(PLAYBACK));
+		add("Is supported", AudioFileFormat.class,B, x -> x.isSupported(APP));
+		add("Is playable", AudioFileFormat.class,B, x -> x.isSupported(PLAYBACK));
 		addPredicatesOf(AudioFileFormat.class);
 		addPredicatesOf(ImageFileFormat.class);
 
@@ -201,15 +202,27 @@ public class FunctorPool {
 	}
 
 	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
-		addF(new PƑ1<>(name,i,o,f,new Parameter<>(p1, p1def)));
+		add(name,i,o,f,new Parameter<>(p1, p1def));
+	}
+
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Parameter<P1> p1) {
+		addF(new PƑ1<>(name,i,o,f,p1));
 	}
 
 	public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
-		addF(new PƑ2<>(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def)));
+		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def));
+	}
+
+	public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
+		addF(new PƑ2<>(name,i,o,f,p1,p2));
 	}
 
 	public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
-		addF(new PƑ3<>(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def),new Parameter<>(p3, p3def)));
+		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def),new Parameter<>(p3, p3def));
+	}
+
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+		addF(new PƑ3<>(name,i,o,f,p1,p2,p3));
 	}
 
 	public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {

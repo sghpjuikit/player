@@ -27,18 +27,18 @@ import static util.functional.Util.*;
 /**
  * Value node containing function of one parameter {@link Ƒ1}.
  *
- * @param <IN> type of function input
- * @param <OUT> type of function output
+ * @param <I> type of function input
+ * @param <O> type of function output
  *
  * @author Martin Polakovic
  */
-public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
+public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList<>();
-    private final ComboBox<PƑ<IN,OUT>> fCB;
+    private final ComboBox<PƑ<I,O>> fCB;
 
-    public FItemNode(Supplier<PrefList<PƑ<IN,OUT>>> functionPool) {
+    public FItemNode(Supplier<PrefList<PƑ<I,O>>> functionPool) {
         fCB = new ImprovedComboBox<>(f -> f.name);
         fCB.getItems().setAll(functionPool.get());
         fCB.getItems().sort(byNC(f -> f.name));
@@ -46,8 +46,8 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
             configs.clear();
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
-                V a = new V(p.defaultValue, v -> generateValue());
-                Config cg = new AccessorConfig(p.type,"",a::setNapplyValue,a::getValue);
+                V a = new V<>(p.defaultValue, v -> generateValue());
+                Config cg = new AccessorConfig(p.type,p.name,p.description,a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);
                 paramB.getChildren().add(cf.getNode());
@@ -77,17 +77,17 @@ public class FItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
     }
 
     private void generateValue() {
-        PƑ<IN,OUT> f = fCB.getValue();
+        PƑ<I,O> f = fCB.getValue();
         changeValue(f.toƑ1(configs.stream().map(ConfigField::getValue).toArray()));
     }
 
     public Class getTypeIn() {
-        PƑ<IN,OUT> f = fCB.getValue();
+        PƑ<I,O> f = fCB.getValue();
         return f==null ? Void.class : f.in;
     }
 
     public Class getTypeOut() {
-        PƑ<IN,OUT> f = fCB.getValue();
+        PƑ<I,O> f = fCB.getValue();
         return f==null ? Void.class : f.out;
     }
 

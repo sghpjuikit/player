@@ -500,13 +500,19 @@ public interface Functors {
 
         public Parameter(Class<P> type, P defaultValue) {
             this("", "", type, defaultValue);
+	        noØ(type, defaultValue);
         }
 
         public Parameter(String name, String description, Class<P> type, P defaultValue) {
-            this.name = name;
-            this.description = description;
+            this.name = name.isEmpty() ? "<value>" : name;
+            this.description = description.isEmpty() ? this.name : description;
             this.type = unPrimitivize(type);
             this.defaultValue = defaultValue;
+	        noØ(type, description, type, defaultValue);
+        }
+
+        public static <P> Parameter<P> p(String name, String description, Class<P> type, P defaultValue) {
+        	return new Parameter<>(name, description, type, defaultValue);
         }
     }
     interface Parameterized<P> {

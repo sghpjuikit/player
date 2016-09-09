@@ -32,6 +32,10 @@ public interface Util {
         if (v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
+	static <T> void no(Predicate<? super T> condition,  T... os) {
+		for (T o : os) if (condition.test(o)) throw new IllegalStateException("Forbidden constraint");
+	}
+
     static void yes(boolean v) {
         if (!v) throw new IllegalStateException("Requirement condition not met");
     }
@@ -40,9 +44,9 @@ public interface Util {
         if (!v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
-    static <T> void yes(T t, Predicate<T> cond) {
-        if (!cond.test(t)) throw new IllegalStateException("Requirement condition not met");
-    }
+	static <T> void yes(Predicate<? super T> condition,  T... os) {
+		for (T o : os) if (!condition.test(o)) throw new IllegalStateException("Forbidden constraint");
+	}
 
     static void noØ(Object o) {
         if (o==null) throw new IllegalStateException("Null forbidden");

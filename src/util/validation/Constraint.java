@@ -12,9 +12,6 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static util.dev.Util.noØ;
 
-/**
- * Created by Plutonium_ on 9/10/2016.
- */
 public interface Constraint<T> {
 
 	boolean validate(T t);

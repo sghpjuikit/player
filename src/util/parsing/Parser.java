@@ -79,7 +79,7 @@ public abstract class Parser {
     }
 
     public <T> StringConverter<T> toConverter(Class<T> c) {
-        return new StringConverter<T>() {
+        return new StringConverter<>() {
             @Override
             public String toS(T object) {
                 return Parser.this.toS(object);

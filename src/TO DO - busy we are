@@ -80,12 +80,6 @@
   Configurable (but using which convention?)
 - remove artwork caching?
 - improve table performance
-- impl Void config which does not serialize and has Runnable action executing when
-  gui is clicked, the action may open some kind of manager for the section
-  config belongs to
-  I think this actually solves the Q of Action being Config<Action>. Should not it be Config<Void> ? I not, what
-  difference would be between the two and why should not runnable Config<Void> have keys and become Action instead?
-  do not show up in filter ComboBox
 - reimplement playcount, chapters tags as custom tags
 - FieldedValue hasField predicates
 - layout manager + mock widgets
@@ -97,7 +91,6 @@
 - config field add checkbox list config field, implement for fileInfo
 - volume add linear vs logarithmic option
 - Inspector implement 'preview'/info pane
-- seeker option to show chapters as they are passing
 - make generic rater control, use in FileInfo
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
@@ -112,7 +105,6 @@
   menu item for on/off auto-resize columns option
 - refactor
     - DirViewer's GridView Cell implementation
-    - GridView constructors
     - Icon - Extract custom stuff to separate Icon classes and clean up generic Icon class.
            - Add selectedProperty for easy control and observation.
     - main.ImageThumbIconTest

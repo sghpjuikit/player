@@ -50,6 +50,8 @@ import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.type.Util;
+import util.validation.Constraint;
+import util.validation.Constraint.NumberMinMax;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.nio.charset.StandardCharsets.*;
@@ -254,9 +256,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 /******************************************************************************/
 
-    private static Map<Class<?>,Ƒ1<Config,ConfigField>> m = new HashMap<>();
+    private static Map<Class<?>,Ƒ1<Config,ConfigField>> builders = new HashMap<>();
 
     static {
+        Map<Class<?>,Ƒ1<Config,ConfigField>> m = builders;
         m.put(boolean.class, BooleanField::new);
         m.put(Boolean.class, BooleanField::new);
         m.put(String.class, GeneralField::new);
@@ -284,13 +287,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         ConfigField cf;
         if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
         else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
-        else if (c.isMinMax()) cf = new SliderField(c);
-        else cf = m.getOrDefault(c.getType(), GeneralField::new).apply(c);
+        else if (isMinMax(c)) cf = new SliderField(c);
+        else cf = builders.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
         cf.setEditable(c.isEditable());
 
         return cf;
     }
+
+	public static boolean isMinMax(Config<?> c) {
+		return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
+	}
 
     public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
         return create(Config.forProperty(type, name, property));
@@ -384,11 +391,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private GeneralField(Config c) {
             super(c);
-
-            // does not work because of CustomTextField instead f TextField
-            // restrict input
-//            if (c.isTypeNumber())
-//                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
@@ -527,21 +529,20 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         HBox box;
         private SliderField(Config<Number> c) {
             super(c);
+
             double v = c.getValue().doubleValue();
+	        NumberMinMax range = stream(c.getConstraints()).select(NumberMinMax.class).findAny().get();
 
-            min = new Label(String.valueOf(c.getMin()));
-            max = new Label(String.valueOf(c.getMax()));
+            min = new Label(String.valueOf(range.min));
+            max = new Label(String.valueOf(range.max));
 
-            slider = new Slider(c.getMin(),c.getMax(),v);
+            slider = new Slider(range.min,range.max,v);
             cur = new Label(get().toString());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
-            // there is a slight bug where isValueChanging is false even if it
-            // shouldnt. It appears when mouse clicks NOT on the thumb but on
-            // the slider track instead and keeps dragging. valueChanging doesn
-            // activate
+            // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
+	        // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
             slider.valueProperty().addListener((o,ov,nv) -> {
-                // also bug with snap to tick, which does not work on mouse drag
-                // so we use get() which returns correct value
+                // also bug with snap to tick, which does not work on mouse drag so we use get() which returns correct value
                 cur.setText(get().toString());
                 if (!slider.isValueChanging())
                     apply(false);
@@ -549,11 +550,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setOnMouseReleased(e -> {
                 if (applyOnChange) apply(false);
             });
-            slider.setBlockIncrement((c.getMax()-c.getMin())/20);
+            slider.setBlockIncrement((range.max-range.min)/20);
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
             slider.setMaxWidth(-1);
-
 
             box = new HBox(min,slider,max);
             box.setAlignment(CENTER_LEFT);
@@ -787,14 +787,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class FileField extends ConfigField<File> {
-        FileItemNode editor = new FileItemNode();
+        FileItemNode editor;
         boolean observable;
 
         public FileField(Config<File> c) {
             super(c);
             ObservableValue<File> v = getObservableValue(c);
             observable = v!=null;
+	        Constraint.FileActor constraint = stream(c.getConstraints()).select(Constraint.FileActor.class).findFirst().orElse(Constraint.FileActor.ANY);
+
+	        editor = new FileItemNode(constraint);
             editor.setValue(config.getValue());
+
             if (observable) v.addListener((o,ov,nv) -> editor.setValue(nv));
             editor.setOnItemChange((ov,nv) -> apply(false));
         }

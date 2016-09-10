@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package util;
+package util.validation;
 
 import javafx.event.EventHandler;
 import javafx.scene.control.TextInputControl;

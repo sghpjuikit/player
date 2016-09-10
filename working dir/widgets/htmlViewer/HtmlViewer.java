@@ -30,7 +30,7 @@ import static util.graphics.Util.setAnchor;
 )
 public class HtmlViewer extends ClassController {
 
-	HTMLEditor editor = new HTMLEditor();
+	public final HTMLEditor editor = new HTMLEditor();
 
     @IsConfig(name = "Last visited address", info = "Last visited address", editable = false)
     final V<String> text = new V<>("", editor::setHtmlText);

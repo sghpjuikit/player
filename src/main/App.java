@@ -132,6 +132,7 @@ import util.type.InstanceInfo;
 import util.type.InstanceName;
 import util.type.ObjectFieldMap;
 import util.units.FileSize;
+import util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
@@ -318,7 +319,8 @@ public class App extends Application implements Configurable {
     public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
             () -> plugins.getPlugins(RatingCellFactory.class));
 
-    @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
+    @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")
+    @Constraint.MinMax(min=0, max=10)
     public final V<Integer> maxRating = new V<>(5);
 
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
@@ -336,11 +338,11 @@ public class App extends Application implements Configurable {
 
     @IsConfig(name = "Debug value (boolean)", info = "For application testing. Generic yes/false value "
             + "to control some application value manually.")
-    public final V<Boolean> debug2 = new V<>(false,() -> {});
+    public final V<Boolean> debug2 = new V<>(false, () -> {});
 
     @IsConfig(name = "Enabled", group = "Taskbar", info = "Show taskbar icon. Disabling taskbar will"
             + "also disable ALT+TAB functionality.")
-    public final V<Boolean> taskbarEnabled = new V<>(true,taskbarIcon::setVisible);
+    public final V<Boolean> taskbarEnabled = new V<>(true, taskbarIcon::setVisible);
 
     @IsConfig(info = "Preferred text when no tag value for field. This value can be overridden.")
     public String TAG_NO_VALUE = "<none>";

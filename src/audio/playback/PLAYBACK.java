@@ -34,6 +34,7 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
 import util.reactive.SetƑ;
+import util.validation.Constraint;
 
 import static audio.playback.PlayTimeHandler.at;
 import static java.lang.Double.max;
@@ -61,7 +62,8 @@ public final class PLAYBACK implements Configurable {
     public static boolean continuePlaybackPaused = false;
     @IsConfig(name="Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
     public static Duration seekUnitT = millis(4000);
-    @IsConfig(name="Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.", min=0, max=1)
+	@Constraint.MinMax(min=0, max=1)
+    @IsConfig(name="Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
     public static double seekUnitP = 0.05;
 
     public static final PlaybackState state = Player.state.playback;

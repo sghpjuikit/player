@@ -45,6 +45,7 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
+import util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.io.File.separator;
@@ -91,7 +92,8 @@ public class WindowManager implements Configurable<Object> {
 	 */ public Window miniWindow;
 	private static volatile boolean canBeMainTemp = false; // TODO: remove hack
 
-    @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
+    @IsConfig(name = "Opacity", info = "Window opacity.")
+    @Constraint.MinMax(min=0, max=1)
     public final V<Double> windowOpacity = new V<>(1d);
 
     @IsConfig(name = "Borderless", info = "Hides borders.")

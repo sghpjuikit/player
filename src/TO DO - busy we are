@@ -1,6 +1,12 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- config warn button support validations
+- parser use Try for error messages
+- implement more config validation annotations
+- converter transform off when just typing
+- converter default area !set
+- native support of configs in configs > flatMap
 - handle licences properly
 - implement custom skinnable cursor (load it with skin, btw it must respect skin extension/overriding)
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
@@ -29,19 +35,15 @@
   The most difficult part is to figure out how automatic and manual service start/stop should interplay
 - component name in center rather then top_center ?
 - ConfigSearch should open Settings and look up the property
-- function nodes should support custom name/icon for function parameters. This is probably best done
-  by ParameterToNodeStrategy, where
+- add name/icon for parametric function's parameters
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
 - try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
 - GridView selectDown scroll bug due to cells not ready
-- logback could monitor its configuration file
 - Configuration config MapSet should error out when config is added twice to same key + add keymap function for lower case
-- standalone widgets  impl better launching, add OverlayPane display strategy
-- type safe File (FileFile, DirFile and AnyFile?) for type safe Configs, alternatively make File<FileType>
-- widget i/o
+- standalone widgets  impl better launching, add
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
       This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
@@ -52,10 +54,6 @@
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
     - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1
-- FileDownloader widget
-  - display progress
-  - overwrite file if exist option
-  - support image tag writing on download to tag images immediately and conveniently
 - all ConfigFields must support observable Configs, im awed they do not!!
 - when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
 - implement 'use embedded thumbnail' for all image formats, not just psd

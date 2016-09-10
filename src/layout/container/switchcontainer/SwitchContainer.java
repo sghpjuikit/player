@@ -10,11 +10,12 @@ import java.util.Map;
 
 import javafx.scene.Node;
 
-import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import layout.Component;
 import layout.container.Container;
 import util.access.V;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.validation.Constraint;
 
 import static util.reactive.Util.maintain;
 
@@ -26,7 +27,7 @@ import static util.reactive.Util.maintain;
 public class SwitchContainer extends Container<SwitchPane> {
 
     @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
-            + " Tabs are always aligned. Seamless mode alows any tab position.")
+            + " Tabs are always aligned. Seamless mode allows any tab position.")
     public static final V<Boolean> ALIGN = new V<>(false);
 
     @IsConfig(name = "Switch drag distance (D)", info = "Required length of drag at"
@@ -34,21 +35,24 @@ public class SwitchContainer extends Container<SwitchPane> {
             + " at least one condition is fulfilled min distance or min fraction.")
     private static final V<Double> MIN_SWITCH_DIST_ABS = new V<>(150.0);
 
-    @IsConfig(name = "Switch drag distance coeficient (D)", info = "Defines distance from edge in "
-            + "percent of tab's width in which the tab switches.", min = 0, max = 1)
+    @IsConfig(name = "Switch drag distance coefficient (D)", info = "Defines distance from edge in "
+            + "percent of tab's width in which the tab switches.")
+    @Constraint.MinMax(min=0, max=1)
     private static final V<Double> MIN_SWITCH_DIST_REL = new V<>(0.15);
 
     @IsConfig(name = "Drag inertia (S)", info = "Inertia of the tab switch animation. "
-            + "Defines distance the dragging will travel after input has been stopped. Only when ", min = 0, max = 10)
+            + "Defines distance the dragging will travel after input has been stopped. Only when ")
+    @Constraint.MinMax(min=0, max=10)
     private static final V<Double> DRAG_INERTIA = new V<>(1.5);
 
     @IsConfig(name = "Snap tabs (S)", info = "Align tabs when close to edge.")
     public static final V<Boolean> SNAP = new V<>(true);
 
-    @IsConfig(name = "Snap distance coeficient (S)", info = "Defines distance from edge in "
+    @IsConfig(name = "Snap distance coefficient (S)", info = "Defines distance from edge in "
             + "percent of tab's width in which the tab autoalignes. Setting to maximum "
             + "(0.5) has effect of always snapping the tabs, while setting to minimum"
-            + " (0) has effect of disabling tab snapping.", min = 0, max = 0.5)
+            + " (0) has effect of disabling tab snapping.")
+    @Constraint.MinMax(min=0, max=0.5)
     private static final V<Double> SNAP_TRESHOLD_REL = new V<>(0.05);
 
     @IsConfig(name = "Snap distance (S)", info = "Required distance from edge at"
@@ -56,7 +60,8 @@ public class SwitchContainer extends Container<SwitchPane> {
             + " at least one condition is fulfilled min distance or min fraction.")
     public static final V<Double> SNAP_TRESHOLD_ABS = new V<>(25.0);
 
-    @IsConfig(name = "Zoom", info = "Zoom factor.", min=0.2, max=1)
+    @IsConfig(name = "Zoom", info = "Zoom factor")
+    @Constraint.MinMax(min=0.2, max=1)
     public static final V<Double> ZOOM = new V<>(0.7);
 
 

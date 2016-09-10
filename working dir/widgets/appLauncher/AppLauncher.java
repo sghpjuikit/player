@@ -35,9 +35,9 @@ import util.conf.Config.VarList;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.FileSort;
-import util.file.FileType;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
+import util.validation.Constraint;
 
 import static appLauncher.AppLauncher.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static appLauncher.AppLauncher.CellSize.NORMAL;
@@ -51,6 +51,7 @@ import static util.Sort.ASCENDING;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
 import static util.file.Environment.chooseFile;
+import static util.validation.Constraint.FileActor.DIRECTORY;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.FILE;
 import static util.file.Util.getName;
@@ -72,6 +73,7 @@ public class AppLauncher extends ClassController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
 
+	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Add program")
     final VarList<File> files = new VarList<>(() -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
 
@@ -319,12 +321,12 @@ public class AppLauncher extends ClassController {
 
     private static class FItem extends Item {
 
-        public FItem(Item parent, File value, FileType type) {
+        public FItem(Item parent, File value, util.file.FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected FItem createItem(Item parent, File value, FileType type) {
+        protected FItem createItem(Item parent, File value, util.file.FileType type) {
             return new FItem(parent, value, type);
         }
 

@@ -40,7 +40,6 @@ import util.graphics.drag.DragUtil;
 import static audio.tagging.Metadata.EMPTY;
 import static audio.tagging.Metadata.Field.*;
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
-import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
@@ -143,8 +142,7 @@ public class FileInfo extends FXMLController implements SongReader {
     public boolean allowNoContent = false;
     // generate show {field} configs
     private final Map<String,Config> fieldConfigs = fields.stream()
-            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig,
-                    "FileInfo","Show this field",true,NaN,NaN))
+            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field",true))
             .collect(toMap(c -> c.getName(), c -> c));
 
     @Override

@@ -41,6 +41,7 @@ import util.conf.IsConfigurable;
 import util.dev.Dependency;
 import util.file.FileMonitor;
 import util.file.Util;
+import util.validation.Constraint;
 
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.io.File.separator;
@@ -96,9 +97,11 @@ public class Gui {
     public static boolean blur_layoutMode = false;
     @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
     public static boolean opacity_layoutMode = true;
-    @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.", min=0.0, max=1.0)
+    @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.")
+	@Constraint.MinMax(min=0, max=1)
     public static double opacity_LM = 1;
-    @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=20.0)
+    @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
+	@Constraint.MinMax(min=0, max=20)
     public static double blur_LM = 4;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static Duration duration_LM = millis(250);

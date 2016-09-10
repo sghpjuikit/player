@@ -47,7 +47,7 @@ import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
 import services.database.Db;
 import services.notif.Notifier;
-import util.InputConstraints;
+import util.validation.InputConstraints;
 import util.access.V;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;

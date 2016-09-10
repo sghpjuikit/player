@@ -15,8 +15,10 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;
+import util.validation.Constraint;
 
 import static main.App.APP;
+import static util.validation.Constraint.FileActor.DIRECTORY;
 import static util.functional.Util.listRO;
 
 /**
@@ -30,10 +32,12 @@ public class PlaylistManager implements Configurable {
     public static UUID active = null;
     public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
-    /** Last selected item on playlist or null if none. */
-    public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
-    /** Selected items on playlist or empty list if none. */
-    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(listRO());
+    /**
+     * Last selected item on playlist or null if none.
+     */ public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
+    /**
+     * Selected items on playlist or empty list if none.
+     */ public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(listRO());
 
     public static void use(Consumer<Playlist> action) {
         Playlist p = null;
@@ -50,10 +54,10 @@ public class PlaylistManager implements Configurable {
     }
 
     @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
+    @Constraint.FileType(DIRECTORY)
     public static File browse = APP.DIR_APP;
     @IsConfig(name = "File search depth", info = "Depth for recursive search within directories. 0 denotes specified directory.")
     public static int folder_depth = 1;
-
 
     /** Plays first item on playlist.*/
     @IsAction(name = "Play first", desc = "Plays first item on playlist.", keys = "ALT+W", global = true)

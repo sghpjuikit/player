@@ -36,9 +36,9 @@ import util.conf.Config.VarList;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.FileSort;
-import util.file.FileType;
 import util.functional.Functors.PƑ0;
 import util.graphics.drag.Placeholder;
+import util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static dirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
@@ -82,6 +82,7 @@ public class DirViewer extends ClassController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
 
+	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
@@ -112,6 +113,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final V<FileField> sortBy = new V<>(NAME, this::resort);
 
+	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = false)
     File lastVisited = null;
     Item item = null;   // item, children of which are displayed
@@ -409,12 +411,12 @@ public class DirViewer extends ClassController {
 
     private class FItem extends Item {
 
-        public FItem(Item parent, File value, FileType type) {
+        public FItem(Item parent, File value, util.file.FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected Item createItem(Item parent, File value, FileType type) {
+        protected Item createItem(Item parent, File value, util.file.FileType type) {
             return new FItem(parent, value, type);
         }
 

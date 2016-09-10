@@ -5,6 +5,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -17,16 +18,14 @@ import javafx.collections.ObservableList;
 
 import org.reactfx.Subscription;
 
-import util.access.ApplicableValue;
-import util.access.TypedValue;
-import util.access.V;
-import util.access.Vo;
+import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 import util.type.Util;
+import util.validation.Constraint;
 
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -104,24 +103,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     abstract public boolean isEditable();
 
-    /**
-     * Minimum allowable value. Applicable only for numbers. In double.
-     */
-    abstract public double getMin();
-
-    /**
-     * Maximum allowable value. Applicable only for numbers. In double.
-     */
-    abstract public double getMax();
-
-    /**
-     * Use to determine whether min and max fields dont dontain illegal value.
-     * If they dont, they can be used to query minimal and maximal number value.
-     * Otherwise Double not a number is returned and should not be used.
-     * @return true if and only if value is a number and both min and max value
-     * are specified.
-     */
-    abstract public boolean isMinMax();
+	abstract public Set<Constraint<? super T>> getConstraints();
 
 /******************************* default value ********************************/
 
@@ -264,9 +246,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         return list(this);
     }
 
-
-
-
 /********************************* CREATING ***********************************/
 
     /**
@@ -310,6 +289,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * so standard javafx properties will all work. If not instance of any of
      * the above, runtime exception will be thrown.
      */
+    @SuppressWarnings("unchecked")
     public static <T> Config<T> forProperty(Class<T> type, String name, Object property) {
         if (property instanceof Config)
             return (Config<T>)property;
@@ -324,6 +304,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
     }
 
+	@SuppressWarnings("unchecked")
     public static Collection<Config<?>> configs(Object o) {
         return (Collection) configsOf(o.getClass(), o, false, true);
     }
@@ -338,10 +319,9 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         private final String group;
         private final String info;
         private final boolean editable;
-        private final double min;
-        private final double max;
         @util.dev.Dependency("DO NOT RENAME - accessed using reflection")
         private final T defaultValue;
+		Set<Constraint<? super T>> constraints;
 
         /**
          *
@@ -349,7 +329,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * no be null.
          */
         @TODO(note = "make static map for valueEnumerators")
-        ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
+        ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, boolean editable) {
             this.type = unPrimitivize(type);
             this.gui_name = gui_name;
             this.name = name;
@@ -357,8 +337,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.group = category;
             this.info = info==null || info.isEmpty() ? gui_name : info;
             this.editable = editable;
-            this.min = min;
-            this.max = max;
         }
 
         /**
@@ -372,8 +350,13 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * no be null.
          */
         ConfigBase(Class<T> type, String name, IsConfig c, T val, String category) {
-            this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable(), c.min(), c.max());
+	        this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable());
         }
+
+		ConfigBase(Class<T> type, String name, IsConfig c, Set<Constraint<? super T>> constraints, T val, String category) {
+			this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable());
+			this.constraints = constraints;
+		}
 
         @Override
         public final String getGuiName() {
@@ -405,27 +388,17 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             return editable;
         }
 
-        @Override
-        public final double getMin() {
-            return min;
-        }
+		@Override
+		public Set<Constraint<? super T>> getConstraints() {
+			return constraints==null ? setRO() : constraints;
+		}
 
-        @Override
-        public final double getMax() {
-            return max;
-        }
-
-        @Override
-        public boolean isMinMax() {
-            return !(Double.compare(min, Double.NaN)==0 || Double.compare(max, Double.NaN)==0) &&
-                    Number.class.isAssignableFrom(getType());
-        }
-
-        @Override
+		@Override
         public T getDefaultValue() {
             return defaultValue;
         }
     }
+
     /** {@link Config} wrapping {@link java.lang.reflect.Field}. Can wrap both static or instance fields. */
     public static class FieldConfig<T> extends ConfigBase<T> {
 
@@ -441,8 +414,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param instance owner of the field or null if static
          */
         @SuppressWarnings("unchecked")
-        FieldConfig(String name, IsConfig c, Object instance, String category, MethodHandle getter, MethodHandle setter) {
-            super((Class)getter.type().returnType(), name, c, getValueFromFieldMethodHandle(getter, instance), category);
+        FieldConfig(String name, IsConfig c, Set<Constraint<? super T>> constraints, Object instance, String category, MethodHandle getter, MethodHandle setter) {
+            super((Class)getter.type().returnType(), name, c, constraints, getValueFromFieldMethodHandle(getter, instance), category);
             this.getter = getter;
             this.setter = setter;
             this.instance = instance;
@@ -513,8 +486,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param category
          * @throws IllegalStateException if the property field is not final
          */
-        public PropertyConfig(Class<T> property_type, String name, IsConfig c, WritableValue<T> property, String category) {
-            super(property_type, name, c, property.getValue(), category);
+        public PropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
+            super(property_type, name, c, constraints, property.getValue(), category);
             value = property;
 
             // support enumeration by delegation if property supports is
@@ -528,12 +501,10 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param category category, for generating config groups
          * @param info description, for tooltip for example
          * @param editable
-         * @param min use in combination with max if value is Number
-         * @param max use in combination with min if value is Number
          * @throws IllegalStateException if the property field is not final
          */
-        public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
-            super(property_type, name, gui_name, property.getValue(), category, info, editable, min, max);
+        public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable) {
+            super(property_type, name, gui_name, property.getValue(), category, info, editable);
             value = property;
 
             // support enumeration by delegation if property supports is
@@ -547,7 +518,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property) {
-            this(property_type, name, name, property, "", "", true, Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", "", true);
         }
 
         /**
@@ -557,7 +528,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property, String info) {
-            this(property_type, name, name, property, "", info, true, Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", info, true);
         }
 
         @Override
@@ -616,8 +587,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param category
          * @throws IllegalStateException if the property field is not final
          */
-        ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, ObservableValue<T> property, String category) {
-            super(property_type, name, c, property.getValue(), category);
+        ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
+            super(property_type, name, c, constraints, property.getValue(), category);
             value = property;
 
             // support enumeration by delegation if property supports is
@@ -630,12 +601,10 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param property WritableValue to wrap. Mostly a {@link Property}.
          * @param category category, for generating config groups
          * @param info description, for tooltip for example
-         * @param min use in combination with max if value is Number
-         * @param max use in combination with min if value is Number
          * @throws IllegalStateException if the property field is not final
          */
-        public ReadOnlyPropertyConfig(Class<T> property_type, String name, String gui_name, ObservableValue<T> property, String category, String info, double min, double max) {
-            super(property_type, name, gui_name, property.getValue(), category, info, false, min, max);
+        public ReadOnlyPropertyConfig(Class<T> property_type, String name, String gui_name, ObservableValue<T> property, String category, String info) {
+            super(property_type, name, gui_name, property.getValue(), category, info, false);
             value = property;
 
             if (value instanceof EnumerableValue)
@@ -648,7 +617,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public ReadOnlyPropertyConfig(Class<T> property_type, String name, ObservableValue<T> property) {
-            this(property_type, name, name, property, "", "", Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", "");
         }
 
         /**
@@ -658,7 +627,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public ReadOnlyPropertyConfig(Class<T> property_type, String name, ObservableValue<T> property, String info) {
-            this(property_type, name, name, property, "", info, Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", info);
         }
 
         @Override
@@ -667,8 +636,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         @Override
-        public void setValue(T val) {
-        }
+        public void setValue(T val) {}
 
         @Override
         public void applyValue() {}
@@ -701,22 +669,22 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public static class OverridablePropertyConfig<T> extends PropertyConfig<T> {
         private final boolean defaultOverride_value;
 
-        public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Vo<T> property, String category) {
-            super(property_type, name, c, property, category);
+        public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, Vo<T> property, String category) {
+            super(property_type, name, c, constraints, property, category);
             Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
 
         public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property) {
-            this(property_type, name, name, property, "", "", true, Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", "", true);
         }
 
         public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property, String info) {
-            this(property_type, name, name, property, "", info, true, Double.NaN, Double.NaN);
+            this(property_type, name, name, property, "", info, true);
         }
 
-        public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, boolean editable, double min, double max) {
-            super(property_type, name, gui_name, property, category, info, editable, min, max);
+        public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, boolean editable) {
+            super(property_type, name, gui_name, property, category, info, editable);
             Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
         }
@@ -801,13 +769,13 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         @SuppressWarnings("ubnchecked")
-        public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable, double min, double max) {
-            super((Class)ObservableList.class, name, gui_name, val.getValue(), category, info, editable, min, max);
+        public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable) {
+            super((Class)ObservableList.class, name, gui_name, val.getValue(), category, info, editable);
             a = val;
         }
 
         public ListConfig(String name, VarList<T> val) {
-            this(name, name, val, "", "", true, Double.NaN, Double.NaN);
+            this(name, name, val, "", "", true);
         }
 
         @Override
@@ -941,4 +909,77 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             return () -> list.removeListener(listener);
         }
     }
+
+	/**
+	 * Functional implementation of {@link util.conf.Config} that does not store nor wrap the
+	 * value, instead contains the getter and setter which call the code that
+	 * provides the actual value. This can be thought of some kind of intermediary.
+	 * See {@link util.access.FunctAccessor} which this config implements.
+	 * <p/>
+	 * Use when wrapping the value is not desired, rather it is defined by a means
+	 * of accessing it.
+	 *
+	 * @author Martin Polakovic
+	 */
+	public static class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleValue<T> {
+
+	    private final Consumer<T> setter;
+	    private final Supplier<T> getter;
+
+	    /**
+	     * @param setter defines how the value will be set
+	     * @param getter defines how the value will be accessed
+	     */
+	    public AccessorConfig(Class<T> type, String name, String gui_name, Consumer<T> setter, Supplier<T> getter, String category, String info, boolean editable) {
+	        super(type, name, gui_name, getter.get(), name, info, editable);
+	        this.getter = getter;
+	        this.setter = setter;
+	    }
+
+	    /**
+	     * @param setter defines how the value will be set
+	     * @param getter defines how the value will be accessed
+	     */
+	    public AccessorConfig(Class<T> type, String name, Consumer<T> setter, Supplier<T> getter) {
+	        super(type, name, name, getter.get(), "", "", true);
+	        this.getter = getter;
+	        this.setter = setter;
+	    }
+
+	    /**
+	     * @param setter defines how the value will be set
+	     * @param getter defines how the value will be accessed
+	     */
+	    public AccessorConfig(Class<T> type, String name, String description, Consumer<T> setter, Supplier<T> getter) {
+	        super(type, name, name, getter.get(), "", description, true);
+	        this.getter = getter;
+	        this.setter = setter;
+	    }
+
+	    @Override
+	    public Consumer<T> getSetter() {
+	        return setter;
+	    }
+
+	    @Override
+	    public Supplier<T> getGetter() {
+	        return getter;
+	    }
+
+	    @Override
+	    public T getValue() {
+	        return getter.get();
+	    }
+
+	    @Override
+	    public void setValue(T val) {
+	        setter.accept(val);
+	    }
+
+	    @Override
+	    public void applyValue(T val) {
+	        // do nothing
+	    }
+
+	}
 }

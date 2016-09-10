@@ -46,6 +46,7 @@ import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.reactive.SetƑ;
+import util.validation.Constraint;
 
 import static comet.Comet.Constants.*;
 import static comet.Utils.AbilityKind.SHIELD;
@@ -297,7 +298,7 @@ public class Comet extends ClassController {
 
     @IsConfig
     final V<Color> ccolor = new V<>(Color.BLACK, c -> game.mission.color_canvasFade = new Color(c.getRed(), c.getGreen(), c.getBlue(), game.mission.color_canvasFade.getOpacity()));
-    @IsConfig(min=0,max=0.1)
+    @IsConfig @Constraint.MinMax(min=0, max=0.1)
     final V<Double> copac = new V<>(0.05, c -> game.mission.color_canvasFade = new Color(game.mission.color_canvasFade.getRed(), game.mission.color_canvasFade.getGreen(), game.mission.color_canvasFade.getBlue(), c));
     @IsConfig final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
     @IsConfig final V<PlayerSpawners> spawning = new V<>(PlayerSpawners.CIRCLE);

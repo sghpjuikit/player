@@ -32,6 +32,7 @@ public interface Util {
         if (v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
+    @SafeVarargs
 	static <T> void no(Predicate<? super T> condition,  T... os) {
 		for (T o : os) if (condition.test(o)) throw new IllegalStateException("Forbidden constraint");
 	}
@@ -44,16 +45,19 @@ public interface Util {
         if (!v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
 
+    @SafeVarargs
 	static <T> void yes(Predicate<? super T> condition,  T... os) {
 		for (T o : os) if (!condition.test(o)) throw new IllegalStateException("Forbidden constraint");
 	}
 
-    static void noØ(Object o) {
+    static <T> T noØ(T o) {
         if (o==null) throw new IllegalStateException("Null forbidden");
+	    return o;
     }
 
-    static void noØ(Object o, String message) {
+    static <T> T noØ(T o, String message) {
         if (o==null) throw new IllegalStateException("Null forbidden: " + message);
+	    return o;
     }
 
     static void noØ(Object o1, Object o2) {
@@ -119,7 +123,7 @@ public interface Util {
     }
 
     /**
-     * Returns all running threads. Incurrs performance penalty, do not use
+     * Returns all running threads. Incurs performance penalty, do not use
      * besides debugging purposes.
      */
     static Stream<Thread> activeThreads() {

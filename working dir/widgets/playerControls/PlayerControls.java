@@ -103,14 +103,14 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     public boolean playDropped = false;
 
 	Icon f1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25).onClick(() -> PLAYBACK.seekBackward(seekType.get())),
-		f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
-		f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
-		f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
-		f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(() -> PLAYBACK.seekForward(seekType.get())),
-		f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
-		muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
-		addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
-		loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
+		 f2    = new GlowIcon(FAST_BACKWARD,25).onClick(PlaylistManager::playPreviousItem),
+		 f3    = new GlowIcon(PLAY,25).onClick(PLAYBACK::pause_resume),
+		 f4    = new GlowIcon(FAST_FORWARD,25).onClick(PlaylistManager::playNextItem),
+		 f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(() -> PLAYBACK.seekForward(seekType.get())),
+		 f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
+		 muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
+		 addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
+		 loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
 	double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
     @Override

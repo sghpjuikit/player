@@ -1025,6 +1025,20 @@ public interface Util {
         return elements;
     }
 
+	/**
+	 * Equivalent, but optimized version of {@link #setRO(Object[])}
+	 */
+	static <T> Set<T> setRO() {
+		return EMPTY_SET;
+	}
+
+	/**
+	 * Equivalent, but optimized version of {@link #setRO(Object[])}
+	 */
+	static <T> Set<T> setRO(T t) {
+		return singleton(t);
+	}
+
     /**
      * Returns unmodifiable set containing specified elements.
      * Optimized:

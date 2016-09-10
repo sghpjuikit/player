@@ -16,16 +16,17 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import main.App;
 import util.access.V;
-import util.conf.Config;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.Util;
 import util.graphics.drag.DragUtil;
+import util.validation.Constraint;
 
 import static javafx.geometry.Pos.CENTER;
 import static main.App.APP;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.async.future.Fut.fut;
+import static util.validation.Constraint.FileActor.DIRECTORY;
 import static util.graphics.Util.*;
 
 /**
@@ -44,9 +45,9 @@ import static util.graphics.Util.*;
 )
 public class FileDownloader extends ClassController  {
 
+	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Download directory", info = "Destination for the files")
     private final V<File> downloadDir = new V<>(APP.DIR_TEMP);
-    private final Config<File> downloadDirConfig = Config.forProperty(File.class, "Download directory", downloadDir);
     private final ProgressIndicator progress = App.Build.appProgressIndicator();
     private final ExecutorService downloader = newSingleDaemonThreadExecutor();
 
@@ -60,7 +61,7 @@ public class FileDownloader extends ClassController  {
                     new Icon<>(MaterialIcon.GET_APP)
                             .tooltip("Open download directory")
                             .onClick(() -> Environment.open(downloadDir.get())),
-                    ConfigField.create(downloadDirConfig).getNode()
+                    ConfigField.create(getField("downloadDir")).getNode()
                 ),
                 new Pane()
             ),

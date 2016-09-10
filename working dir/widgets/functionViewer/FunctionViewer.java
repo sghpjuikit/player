@@ -65,7 +65,6 @@ public class FunctionViewer extends ClassController  {
         plot.plot(x->x);
     }
 
-
     private static class Axes extends Pane {
         private NumberAxis xAxis;
         private NumberAxis yAxis;

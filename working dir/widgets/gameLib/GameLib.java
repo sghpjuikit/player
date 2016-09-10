@@ -32,9 +32,11 @@ import util.async.executor.FxTimer;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
-import util.file.*;
+import util.file.Environment;
+import util.file.ImageFileFormat;
 import util.file.Properties;
 import util.functional.Functors.Ƒ1;
+import util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
@@ -52,6 +54,7 @@ import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.async.Async.runFX;
+import static util.validation.Constraint.FileActor.DIRECTORY;
 import static util.file.Util.*;
 import static util.functional.Util.by;
 
@@ -91,6 +94,7 @@ public class GameLib extends FXMLController {
     @FXML Label infoL;
     FxTimer infoLHider = new FxTimer(7000, 1, () -> infoL.setText(null));
 
+	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Location of the library.")
     final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 

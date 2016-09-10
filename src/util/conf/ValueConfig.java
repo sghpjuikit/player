@@ -42,30 +42,30 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     private V value;
     private Consumer<V> applier;
 
-    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, boolean editable, double min, double max, Consumer<V> applier) {
-        super(type, name, gui_name, value, category, info, editable, min, max);
+    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, boolean editable, Consumer<V> applier) {
+        super(type, name, gui_name, value, category, info, editable);
         this.value = value;
         this.applier = applier;
     }
 
     public ValueConfig(Class<V> type, String name, V value) {
-        super(type, name, name, value, "", "", true, Double.NaN, Double.NaN);
+        super(type, name, name, value, "", "", true);
         this.value = value;
     }
 
     public ValueConfig(Class<V> type, String name, V value, Consumer<V> applier) {
-        super(type, name, name, value, "", "", true, Double.NaN, Double.NaN);
+        super(type, name, name, value, "", "", true);
         this.value = value;
         this.applier = applier;
     }
 
     public ValueConfig(Class<V> type, String name, V value, String info) {
-        super(type, name, name, value, "", info, true, Double.NaN, Double.NaN);
+        super(type, name, name, value, "", info, true);
         this.value = value;
     }
 
     public ValueConfig(Class<V> type, String name, V value, String info, Consumer<V> applier) {
-        super(type, name, name, value, "", info, true, Double.NaN, Double.NaN);
+        super(type, name, name, value, "", info, true);
         this.value = value;
         this.applier = applier;
     }

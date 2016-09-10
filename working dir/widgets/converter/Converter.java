@@ -119,7 +119,6 @@ public class Converter extends ClassController implements SongWriter {
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
 
-
     public Converter() {
         inputs.create("Input", Object.class, this::setData);
 

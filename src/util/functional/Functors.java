@@ -8,8 +8,8 @@ import javafx.util.Callback;
 
 import util.SwitchException;
 import util.access.V;
-import util.conf.AccessorConfig;
 import util.conf.Config;
+import util.conf.Config.AccessorConfig;
 import util.conf.Configurable;
 
 import static util.dev.Util.noØ;
@@ -680,7 +680,7 @@ public interface Functors {
             this.pf = pf;
 	        pf.getParameters().forEach(p -> {
 		        V<Object> a = new V<>(p.defaultValue);
-		        cs.add(new AccessorConfig(p.type, "", a::setValue, a::getValue));   // TODO: do away with raw type
+		        cs.add(new AccessorConfig(p.type, p.name, p.description, a::setValue, a::getValue));
 	        });
         }
 

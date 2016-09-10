@@ -12,12 +12,12 @@ import java.util.function.Supplier;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 
-import util.conf.AccessorConfig;
 import util.conf.Config;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import util.access.V;
 import util.collections.list.PrefList;
+import util.conf.Config.AccessorConfig;
 import util.functional.Functors.PƑ;
 import util.functional.Functors.Ƒ1;
 

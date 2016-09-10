@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
@@ -35,6 +36,7 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
+import util.validation.Constraint;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -388,20 +390,10 @@ public final class Action extends Config<Action> implements Runnable {
         return true;
     }
 
-    @Override
-    public boolean isMinMax() {
-        return false;
-    }
-
-    @Override
-    public double getMin() {
-        return Double.NaN;
-    }
-
-    @Override
-    public double getMax() {
-        return Double.NaN;
-    }
+	@Override
+	public Set<Constraint<? super Action>> getConstraints() {
+		return setRO();
+	}
 
 /* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
 

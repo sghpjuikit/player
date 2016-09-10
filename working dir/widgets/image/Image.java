@@ -5,18 +5,20 @@ import java.io.File;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 
-import util.conf.IsConfig;
+import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.ImageDisplayFeature;
-import gui.objects.image.Thumbnail;
 import util.async.future.Fut;
+import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
+import util.validation.Constraint;
 
-import static layout.widget.Widget.Group.OTHER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
+import static layout.widget.Widget.Group.OTHER;
 import static util.async.Async.FX;
+import static util.validation.Constraint.FileActor.FILE;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
@@ -41,9 +43,9 @@ public class Image extends FXMLController implements ImageDisplayFeature {
     @FXML AnchorPane root;
     private final Thumbnail thumb = new Thumbnail();
 
+	@Constraint.FileType(FILE)
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private File img = new File("");
-
 
     @Override
     public void init() {

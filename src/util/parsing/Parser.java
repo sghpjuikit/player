@@ -98,10 +98,12 @@ public abstract class Parser {
     private static final String DELIMITER_CONFIG_NAME = ":";
     private static final String CONSTANT_NULL = "<NULL>";
 
-    /** Default to string parser, which calls objects toString() or returns null constant. */
-    public static final Function<Object,String> DEFAULT_TOS = o -> o==null ? CONSTANT_NULL : o.toString();
-    /** Default from string parser. Always returns null. */
-    public static final Function<String,Object> DEFAULT_FROM = o -> null;
+    /**
+     * Default to string parser, which calls objects toString() or returns null constant.
+     */ public static final Function<Object,String> DEFAULT_TOS = o -> o==null ? CONSTANT_NULL : o.toString();
+    /**
+     * Default from string parser. Always returns null.
+     */ public static final Function<String,Object> DEFAULT_FROM = o -> null;
     /**
      * Fx parser.
      * Used when {@link StringParseStrategy.To#FX} or {link StringParseStrategy.From#FX}.
@@ -112,8 +114,7 @@ public abstract class Parser {
      * setting the bean values in the string to respective javafx beans of the object.
      * <p/>
      * The exact string format is subject to change. Dont rely on it.
-     */
-    public static final Parser FX = new Parser() {
+     */ public static final Parser FX = new Parser() {
 
         @Override
         public <T> T fromS(Class<T> type, String text) {
@@ -154,8 +155,9 @@ public abstract class Parser {
         }
 
     };
-    /** Default to/from string parser with get-go support for several classes. */
-    public static final DefaultParser DEFAULT = new DefaultParser();
+    /**
+     * Default to/from string parser with get-go support for several classes.
+     */ public static final DefaultParser DEFAULT = new DefaultParser();
 
     static {
         Class<? extends Throwable> nfe = NumberFormatException.class;
@@ -199,7 +201,7 @@ public abstract class Parser {
         DEFAULT.addParserFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         DEFAULT.addParserToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
         DEFAULT.addParser(Effect.class, FX::toS, text -> FX.fromS(Effect.class, text));
-//        DEFAULT.addParser(Class.class, c -> c.getName(), noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler does not like this!?
+//        DEFAULT.addParser(Class.class, Class::getName, noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class)); // compiler does not like this!?
         DEFAULT.addParser(Class.class, Class::getName, noEx(text -> {
             try {
                 return Class.forName(text);

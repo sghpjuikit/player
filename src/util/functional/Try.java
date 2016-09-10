@@ -35,8 +35,18 @@ public interface Try<R,E> {
 	Try<R,E> ifOk(Consumer<? super R> action);
 	Try<R,E> ifError(Consumer<? super E> action);
 
-	default <T> Try<T,E> map(Function<? super R, ? extends T> mapper) {
+	default Try<R,E> ifAny(Consumer<? super R> actionOk, Consumer<? super E> actionError) {
+		if (isOk()) actionOk.accept(get());
+		else actionError.accept(getError());
+		return this;
+	}
+
+	default <S> Try<S,E> map(Function<? super R, ? extends S> mapper) {
 		return isOk() ? ok(mapper.apply(get())) : error(getError());
+	}
+
+	default <S,F> Try<S,F> map(Function<? super R, ? extends S> mapperOk, Function<? super E, ? extends F> mapperError) {
+		return isOk() ? ok(mapperOk.apply(get())) : error(mapperError.apply(getError()));
 	}
 
 	class Ok<R,E> implements Try<R,E> {

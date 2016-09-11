@@ -4,24 +4,62 @@ import java.io.File;
 import java.lang.annotation.*;
 import java.util.function.Predicate;
 
+import javafx.util.Duration;
+
+import org.atteo.classindex.ClassIndex;
+import org.atteo.classindex.IndexAnnotated;
+
+import one.util.streamex.StreamEx;
+import util.Password;
+import util.collections.map.ClassListMap;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
+import util.functional.Try;
+import util.type.Util;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static util.dev.Util.noØ;
+import static util.dev.Util.yes;
+import static util.functional.Try.error;
+import static util.functional.Try.ok;
+import static util.type.Util.instantiateOrThrow;
+import static util.validation.Constraint.DeclarationType.Declaration.IMPLICIT;
 
 public interface Constraint<T> {
 
-	boolean validate(T t);
+	boolean isValid(T t);
 	String message();
+	default Try<Void,String> validate(T t) {
+		return isValid(t) ? ok(null) : error(message());
+	}
 
 /* ---------- ANNOTATION -> IMPLEMENTATION MAPPING ------------------------------------------------------------------ */
 
 	ClassMap<Ƒ1<? extends Annotation,? extends Constraint>> MAPPER = new ClassMap<>() {{
 		put(FileType.class, (FileType constraint) -> constraint.value());
 		put(MinMax.class, (MinMax constraint) -> new NumberMinMax(constraint.min(), constraint.max()));
+		put(NonEmpty.class, (NonEmpty constraint) -> new StringNonEmpty());
+		put(Length.class, (Length constraint) -> new StringLength(constraint.min(), constraint.max()));
+		put(ConstrainsBy.class, (ConstrainsBy constraint) -> instantiateOrThrow(constraint.value()));
+	}};
+	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> util.type.Util.getGenericInterface(o.getClass(),0,0)) {{
+		ClassIndex.getAnnotated(DeclarationType.class);
+		accumulate(
+			StreamEx.of(ClassIndex.getAnnotated(DeclarationType.class).iterator())
+				// report programming errors
+				.map(c -> {
+					if (!Constraint.class.isAssignableFrom(c))
+						throw new RuntimeException("Only subclasses of " + Constraint.class + " can be annotated by " + DeclarationType.class);
+					return (Class<Constraint>)c;
+				})
+				// only implicit
+				.filter(c -> c.getAnnotation(DeclarationType.class).value()==IMPLICIT)
+				// instantiate constraints
+				.map(Util::instantiateOrThrow)
+				.toList()
+		);
 	}};
 
 	@SuppressWarnings("unchecked")
@@ -29,11 +67,18 @@ public interface Constraint<T> {
 		return ((Ƒ1<A,Constraint<X>>)noØ(MAPPER.get(a.annotationType()))).apply(a);
 	}
 
-/* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
-//	abstract class C_Base<T> implements Constraint<T> {
-//		private
-//	}
+	@Documented
+	@IndexAnnotated
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.TYPE)
+	@interface DeclarationType {
+		Declaration value() default Declaration.EXPLICIT;
+
+		enum Declaration { IMPLICIT, EXPLICIT }
+	}
+
+/* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
 	/**
 	 * Denotes type of [java.io.File] an actor can produce/consume.
@@ -54,7 +99,7 @@ public interface Constraint<T> {
 
 
 		@Override
-		public boolean validate(File file) {
+		public boolean isValid(File file) {
 			return condition.test(file);
 		}
 
@@ -63,17 +108,17 @@ public interface Constraint<T> {
 			return message;
 		}
 	}
-
 	class NumberMinMax implements Constraint<Number> {
 		public final double min, max;
 
 		public NumberMinMax(double min, double max) {
 			this.min = min;
 			this.max = max;
+			yes(max>min, "Max value must be greater than min value");
 		}
 
 		@Override
-		public boolean validate(Number d) {
+		public boolean isValid(Number d) {
 			double n = d.doubleValue();
 			return min<=n && n<=max;
 		}
@@ -83,6 +128,60 @@ public interface Constraint<T> {
 			return "Number must be in range " + min + " - " + max;
 		}
 	}
+	class StringNonEmpty implements Constraint<String> {
+		@Override
+		public boolean isValid(String s) {
+			return s!=null && !s.isEmpty();
+		}
+
+		@Override
+		public String message() {
+			return "String must not be empty";
+		}
+	}
+	class PasswordNonEmpty implements Constraint<Password> {
+		@Override
+		public boolean isValid(Password s) {
+			return s!=null && s.get()!=null && !s.get().isEmpty();
+		}
+
+		@Override
+		public String message() {
+			return "Password must not be empty";
+		}
+	}
+	class StringLength implements Constraint<String> {
+		public final int min, max;
+
+		public StringLength(int min, int max) {
+			this.min = min;
+			this.max = max;
+			yes(max > min, "Max value must be greater than min value");
+		}
+
+		@Override
+		public boolean isValid(String str) {
+			double n = str.length();
+			return min <= n && n <= max;
+		}
+
+		@Override
+		public String message() {
+			return "Text must be at least " + min + " and at most" + max + " characters long";
+		}
+	}
+	@DeclarationType(IMPLICIT)
+	class DurationNonNegative implements Constraint<Duration> {
+		@Override
+		public boolean isValid(Duration duration) {
+			return duration==null || duration.greaterThanOrEqualTo(Duration.ZERO);
+		}
+
+		@Override
+		public String message() {
+			return "Duration can not be negative";
+		}
+	}
 
 /* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
 
@@ -90,7 +189,15 @@ public interface Constraint<T> {
 	@Target(ANNOTATION_TYPE)
 	@Retention(RUNTIME)
 	@interface IsConstraint {
-		Class<?>value();
+		Class<?> value();
+	}
+
+	@Documented
+	@Target(FIELD)
+	@Retention(RUNTIME)
+	@IsConstraint(Object.class)
+	@interface ConstrainsBy {
+		Class<? extends Constraint> value();
 	}
 
 	@Documented
@@ -125,4 +232,20 @@ public interface Constraint<T> {
 		double min();
 		double max();
 	}
+
+	@Documented
+	@Target(FIELD)
+	@Retention(RUNTIME)
+	@IsConstraint(String.class)
+	@interface NonEmpty {}
+
+	@Documented
+	@Target(FIELD)
+	@Retention(RUNTIME)
+	@IsConstraint(String.class)
+	@interface Length {
+		int min();
+		int max();
+	}
+
 }

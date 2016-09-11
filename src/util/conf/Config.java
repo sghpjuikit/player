@@ -1,11 +1,7 @@
-
 package util.conf;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -22,16 +18,19 @@ import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
+import util.functional.Try;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 import util.type.Util;
 import util.validation.Constraint;
 
-import static java.util.stream.Collectors.joining;
+import static java.util.Arrays.asList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
+import static util.functional.Try.error;
+import static util.functional.Try.ok;
 import static util.functional.Util.*;
 import static util.type.Util.*;
 
@@ -105,6 +104,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	abstract public Set<Constraint<? super T>> getConstraints();
 
+	abstract public Config<T> constraints(Constraint<? super T>... constraints);
+
 /******************************* default value ********************************/
 
     /**
@@ -133,14 +134,13 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
 
     /**
-     * Sets value converted from string.
-     * Equivalent to: return setValue(fromS(str));
-     * @param str string to parse
+     * Sets value converted from string. Does nothing if conversion fails.
+     * Equivalent to: {@code fromS(str).ifOk(this::setValue);}
+     *
+     * @param s string to parse
      */
-    @TODO(note = "Make this behave consistently for null values")
-    public void setValueS(String str) {
-        T v = fromS(str);
-        if (v!=null) setValue(v);
+    public void setValueS(String s) {
+    	ofS(s).ifOk(this::setValue);
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * {@inheritDoc}
      */
     @Override
-    public T fromS(String str) {
+    public Try<T,String> ofS(String s) {
         if (isTypeEnumerable()) {
             // 1 Notice we are traversing all enumarated values to look up the one which we want to
             //   deserialize.
@@ -178,12 +178,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             //   by having OverridableConfig provide its own implementation, but I dont want to
             //   spread problematic code such as this around. Not till 1 gets fixed up.
             for (T v : enumerateValues())
-                if (Parser.DEFAULT.toS(v).equalsIgnoreCase(str)) return v;
+                if (Parser.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
 
-            log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", str,getGuiName());
-            return getDefaultValue();
+            log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s,getGuiName());
+            return error("Value does not correspond to any value of the enumeration.");
         } else {
-            return Parser.DEFAULT.fromS(getType(), str);
+            return Parser.DEFAULT.ofS(getType(), s);
         }
     }
 
@@ -391,6 +391,14 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		@Override
 		public Set<Constraint<? super T>> getConstraints() {
 			return constraints==null ? setRO() : constraints;
+		}
+
+		@SafeVarargs
+		@Override
+		public final ConfigBase<T> constraints(Constraint<? super T>... constraints) {
+			if (this.constraints==null) this.constraints = new HashSet<>(constraints.length);
+			this.constraints.addAll(asList(constraints));
+			return this;
 		}
 
 		@Override
@@ -719,11 +727,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /**
          * Sets value converted from string.
          * Equivalent to: return setValue(fromS(str));
-         * @param str
+         * @param s
          */
         @Override
-        public void setValueS(String str) {
-            getProperty().real.setValue(fromS(str));
+        public void setValueS(String s) {
+	        ofS(s).ifOk(getProperty().real::setValue);
         }
 
         /**
@@ -744,7 +752,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * {@inheritDoc}
          */
         @Override
-        public T fromS(String str) {
+        public Try<T,String> ofS(String str) {
             String s = str;
             if (s.contains("overrides:true, ")) {
                 getProperty().override.setValue(true);
@@ -754,7 +762,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
                 getProperty().override.setValue(false);
                 s = s.replace("overrides:false, ", "");
             }
-            return super.fromS(s);
+            return super.ofS(s);
         }
 
     }
@@ -812,40 +820,36 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         @Override
-        public void setValueS(String str) {
-            List<T> v = fromS(str);
-            a.list.setAll(v);
+        public void setValueS(String s) {
+	        ofS(s).ifOk(a.list::setAll);
         }
 
         @Override
         public String toS(ObservableList<T> v) {
             // we convert every item of the list to string joining with ';;' delimiter
             // we convert items by converting all their fields, joining with ';' delimiter
-            return v.stream().map(t ->
-                a.toConfigurable.apply(t).getFields().stream().map(Config::getValueS).collect(joining(";"))
-            ).collect(joining(";;"));
+            return stream(v)
+                   .map(t -> stream(a.toConfigurable.apply(t).getFields()).map(Config::getValueS).joining(";"))
+                   .joining(";;");
         }
 
         @Override
-        public ObservableList<T> fromS(String str) {
+        public Try<ObservableList<T>,String> ofS(String str) {
             ObservableList<T> l = observableArrayList();
             split(str, ";;", x->x).stream()
                 .map(s -> {
                     T t = a.factory.get();
-                    List<Config<Object>> configs = (List)list(a.toConfigurable.apply(t).getFields());
+                    List<Config<T>> configs = (List)list(a.toConfigurable.apply(t).getFields());
                     List<String> vals = split(s, ";");
                     if (configs.size()==vals.size())
                          // its important to apply the values too
-                        forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));
+                        forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.ofS(v).getOr(null))); // TODO: wtf
 
-                    if (t.getClass().equals(configs.get(0).getType()))
-                        return (T)configs.get(0).getValue();
-                    else
-                    return t;
+                    return t.getClass() == configs.get(0).getType() ? configs.get(0).getValue() : t;
                 })
                 .forEach(l::add);
 
-            return l;
+            return ok(l);
         }
 
 

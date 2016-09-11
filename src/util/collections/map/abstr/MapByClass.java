@@ -35,7 +35,7 @@ public interface MapByClass<E> {
      * </ul>
      * or empty list if no such mapping exists.
      */
-    default List<E> getElementsOfSuper(Class key) {
+    default List<E> getElementsOfSuper(Class<?> key) {
         List<Class> keys = getSuperClassesInc(key);
         List<E> o = getElementsOf(keys);
         return o;
@@ -54,7 +54,7 @@ public interface MapByClass<E> {
      * Note: Void.class is useful for mapping objects based on their generic
      * type.
      */
-    default List<E> getElementsOfSuperV(Class key) {
+    default List<E> getElementsOfSuperV(Class<?> key) {
         List<Class> keys = getSuperClassesInc(key);
                     if (!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
@@ -71,7 +71,7 @@ public interface MapByClass<E> {
      * </ul>
      * or null if no such mapping exists.
      */
-    default E getElementOfSuper(Class key) {
+    default E getElementOfSuper(Class<?> key) {
         List<Class> keys = getSuperClassesInc(key);
         for (Class c : keys) {
             List<E> es = getElementsOf(c);
@@ -91,7 +91,7 @@ public interface MapByClass<E> {
      * </ul>
      * or null if no such mapping exists.
      */
-    default E getElementOfSuperV(Class key) {
+    default E getElementOfSuperV(Class<?> key) {
         List<Class> keys = getSuperClassesInc(key);
                     if (!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);

@@ -366,7 +366,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
     }
 
     private F nameToF(String name) {
-        return ColumnField.INDEX.name().equals(name) ? null : Parser.DEFAULT.fromS(type, keyNameColMapper.apply(name));
+        return ColumnField.INDEX.name().equals(name) ? null : Parser.DEFAULT.ofS(type, keyNameColMapper.apply(name)).getOr(null);
     }
     private ObjectField<? super T> nameToCF(String name) {
         return ColumnField.INDEX.name().equals(name) ? ColumnField.INDEX : nameToF(name);

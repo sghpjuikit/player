@@ -133,6 +133,7 @@ import util.type.InstanceName;
 import util.type.ObjectFieldMap;
 import util.units.FileSize;
 import util.validation.Constraint;
+import util.validation.Constraint.StringNonEmpty;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
@@ -1191,7 +1192,7 @@ public class App extends Application implements Configurable {
 	    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
 	    static void runCommand() {
 		    SimpleConfigurator sc = new SimpleConfigurator<>(
-		    	new ValueConfig<>(String.class, "Command", ""),
+		    	new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
                 (Consumer<String>) Environment::runCommand);
 		    PopOver p = new PopOver<>(sc);
 				    p.title.set("Run system command ");
@@ -1202,7 +1203,7 @@ public class App extends Application implements Configurable {
 		                                           "the command as a parameter.")
 	    static void runAppCommand() {
 		    SimpleConfigurator sc = new SimpleConfigurator<>(
-		    	new ValueConfig<>(String.class, "Command", ""),
+		    	new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
                 (String command) -> APP.parameterProcessor.process(list(command)));
 		    PopOver p = new PopOver<>(sc);
 				    p.title.set("Run app command");
@@ -1272,7 +1273,7 @@ public class App extends Application implements Configurable {
 	    static void openDictionary() {
 		    boolean isFocused = APP.windowManager.getFocused().isPresent();
 		    PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
-                  new ValueConfig<>(String.class, "Word", ""),
+                  new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
                   (String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
 		    ));
 		    p.title.set("Look up in dictionary...");

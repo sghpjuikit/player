@@ -66,7 +66,7 @@ public final class Guide implements Configurable {
 
     private final List<Hint> hints = new ArrayList<>();
     private int prev_at = -1;
-    @IsConfig(name = "Position")
+    @IsConfig(name = "Hint", editable = false)
     private int at = -1;
     private final Text text = new Text();
     private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));

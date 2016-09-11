@@ -133,7 +133,7 @@ public class Gui {
     public static final  V<Boolean> table_show_header = new V<>(true);
     @IsConfig(name = "Show table controls", group = "Table",
             info = "Show table controls at the bottom of the table. Displays menubar and table items information")
-    public static final  V<Boolean> table_show_footer = new V<>(true);
+    public static final V<Boolean> table_show_footer = new V<>(true);
 
 
     static {

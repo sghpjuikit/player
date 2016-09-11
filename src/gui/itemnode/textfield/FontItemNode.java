@@ -13,7 +13,7 @@ import util.parsing.Parser;
 public class FontItemNode extends TextFieldItemNode<Font> {
 
     public FontItemNode() {
-        super(Parser.DEFAULT.toConverter(Font.class));
+        super(Parser.DEFAULT.toConverterOf(Font.class));
     }
 
     @Override

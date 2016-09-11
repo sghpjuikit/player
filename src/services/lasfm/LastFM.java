@@ -26,6 +26,8 @@ import util.conf.IsConfigurable;
 import util.conf.MapConfigurable;
 import util.conf.ValueConfig;
 import util.dev.TODO;
+import util.validation.Constraint.PasswordNonEmpty;
+import util.validation.Constraint.StringNonEmpty;
 
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.Util.log;
@@ -122,12 +124,12 @@ public class LastFM {
     public static SimpleConfigurator getLastFMconfig(){
         return new SimpleConfigurator<String>(
             new MapConfigurable<>(
-                new ValueConfig<>(String.class, "name", acquireUserName()),
-                new ValueConfig<>(Password.class, "pwd", acquirePassword())
+                new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
+                new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
             ),
             c -> saveLogin(
-                c.getField("name").getValue(),
-                new Password(c.getField("pwd").getValue())
+                c.getField("Username").getValue(),
+                new Password(c.getField("Password").getValue())
             )
         );
 

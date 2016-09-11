@@ -1,33 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package util.parsing;
+
+import util.functional.Try;
 
 /**
  * String to Object converter.
- * 
+ *
+ * @param <T> type of object
  * @author Martin Polakovic
  */
-@FunctionalInterface
 public interface FromStringConverter<T> {
     
     /** Converts String into object. */
-    T fromS(String source);
-    
-    /** 
-     * Converts String into object or supplied value if not parsable.
-     * Use this version if source is not guaranteed to be parsable.
-     */
-    default T fromS(String source, T def) {
-        T t = fromS(source);
-        return t==null ? def : t;
-    }
-    
-    /** Returns whether string can be parsed. Equivalent to {@code fromS(s)!=null}. */
+    Try<T,String> ofS(String s);
+
+    /** Returns whether string can be parsed. Equivalent to {@code ofS(s).isOk()}. */
     default boolean isParsable(String s) {
-        return fromS(s)!=null;
+        return ofS(s).isOk();
     }
 }

@@ -38,6 +38,7 @@ import util.conf.IsConfig;
 import util.conf.ValueConfig;
 import util.type.Util;
 import util.units.FormattedDuration;
+import util.validation.Constraint.StringNonEmpty;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
@@ -243,7 +244,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         if (l.isEmpty()) return;
 
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", initialName);
+        Config<String> mc = new ValueConfig<>(String.class, "Name", initialName).constraints(new StringNonEmpty());
         SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);
@@ -259,7 +260,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         List<PlaylistItem> l = table.getSelectedItems();
         if (l.isEmpty()) return;
 
-        ValueConfig<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist");
+        Config<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist").constraints(new StringNonEmpty());
         SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
             Playlist p = new Playlist(UUID.randomUUID());
                      p.setAll(l);

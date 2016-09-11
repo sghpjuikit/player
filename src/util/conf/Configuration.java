@@ -1,6 +1,7 @@
 package util.conf;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -10,6 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
@@ -26,12 +28,12 @@ import util.functional.Functors.Ƒ1;
 import util.validation.Constraint;
 import util.validation.Constraint.IsConstraint;
 
+import static java.util.stream.Collectors.toSet;
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
+import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
-import static util.type.Util.getAllFields;
-import static util.type.Util.getGenericPropertyType;
-import static util.type.Util.unPrimitivize;
+import static util.type.Util.*;
 
 /**
  * Provides methods to access configs.
@@ -102,7 +104,7 @@ public class Configuration {
         _configs.stream()
                 .filter(Config::isEditable)
                 .filter(c -> c.getType() == Boolean.class)
-                // .map(c -> (Config<Boolean>) c) // unnecessary, but safe
+                .map(c -> (Config<Boolean>) c)
                 .forEach(c -> {
                     String name = c.getGroup() + " " + c.getGuiName() + " - toggle";
 	                String description = "Toggles value " + c.getName() + " between true/false";
@@ -213,17 +215,15 @@ public class Configuration {
         }
     }
 
+	@SuppressWarnings("unchecked")
     static List<Config<Object>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
         if (include_instance && instance==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
 
-        List<Config<Object>> out = new ArrayList<>();
-
-        for (Field f : getAllFields(clazz)) {
-            Config c = createConfig(clazz, f, instance, include_static, include_instance);
-            if (c!=null) out.add(c);
-        }
-        return out;
+	    return (List) stream(getAllFields(clazz))
+			.map(f -> createConfig(clazz, f, instance, include_static, include_instance))
+			.filter(ISNTØ)
+			.toList();
     }
 
     static Config<?> createConfig(Class<?> cl, Field f, Object instance, boolean include_static, boolean include_instance) {
@@ -233,35 +233,27 @@ public class Configuration {
             String group = a.group().isEmpty() ? getGroup(cl) : a.group();
             String name = f.getName();
             int modifiers = f.getModifiers();
-            if (include_static && Modifier.isStatic(modifiers))
+            if ((include_static && Modifier.isStatic(modifiers)) || (include_instance && !Modifier.isStatic(modifiers)))
                 c = createConfig(f, instance, name, a, group);
-
-            if (include_instance && !Modifier.isStatic(modifiers))
-                c = createConfig(f, instance, name, a, group);
-
         }
         return c;
     }
 
     @SuppressWarnings("unchecked")
     private static <T> Config<T> createConfig(Field f, T instance, String name, IsConfig annotation, String group) {
-        Class<? super T> type = (Class) f.getType();
-	    Set<Constraint<? super T>> constraints = (Set) stream(f.getAnnotations())
-			   // restrict to annotations marked to be constraint annotations
-              .filter(a -> Optional.ofNullable(a.annotationType().getAnnotation(IsConstraint.class))
-                                   .filter(c -> c.value().isAssignableFrom(unPrimitivize(f.getType()))).isPresent())
-              .map(Constraint::toConstraint).toSet();
+        Class<T> type = (Class) f.getType();
         if (Config.class.isAssignableFrom(type)) {
-            return newFromConfig(f, instance, constraints);
+            return newFromConfig(f, instance);
         } else
         if (WritableValue.class.isAssignableFrom(type) || ReadOnlyProperty.class.isAssignableFrom(type)) {
-            return newFromProperty(f, instance, name, annotation, constraints, group);
+            return newFromProperty(f, instance, name, annotation, group);
         } else {
             try {
                 noFinal(f);                // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
+	            Set<Constraint<? super T>> constraints = constraintsOf(type, f.getAnnotations());
                 return new FieldConfig(name, annotation, constraints, instance, group, getter, setter);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Unreflecting field " + f.getName() + " failed. " + e.getMessage());
@@ -270,7 +262,7 @@ public class Configuration {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, Set<Constraint<? super T>> constraints, String group) {
+    private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
         try {
             yesFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
@@ -279,16 +271,19 @@ public class Configuration {
             if (Vo.class.isAssignableFrom(f.getType())) {
                 Vo<T> property = (Vo)f.get(instance);
                 Class<T> property_type = getGenericPropertyType(f.getGenericType());
+	            Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
                 return new OverridablePropertyConfig<>(property_type, name, annotation, constraints, property, group);
             }
             if (WritableValue.class.isAssignableFrom(f.getType())) {
                 WritableValue<T> property = (WritableValue)f.get(instance);
                 Class<T> property_type = getGenericPropertyType(f.getGenericType());
+	            Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
                 return new PropertyConfig<>(property_type, name, annotation, constraints, property, group);
             }
             if (ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
                 ReadOnlyProperty<T> property = (ReadOnlyProperty)f.get(instance);
                 Class<T> property_type = getGenericPropertyType(f.getGenericType());
+	            Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
                 return new ReadOnlyPropertyConfig<>(property_type, name, annotation, constraints, property, group);
             }
             throw new IllegalArgumentException("Wrong class");
@@ -298,17 +293,30 @@ public class Configuration {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Config<T> newFromConfig(Field f, T instance, Set<Constraint<? super T>> constraints) {
+    private static <T> Config<T> newFromConfig(Field f, Object instance) {
         try {
             yesFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
 	        Config<T> config = (Config<T>)f.get(instance);
-	        if (config instanceof ConfigBase)
-	        	((ConfigBase)config).constraints = constraints; // set constraints if doable
+	        ((ConfigBase)config).constraints = constraintsOf(config.getType(), f.getAnnotations());
             return config;
         } catch (IllegalAccessException | SecurityException ex) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
+    }
+
+	@SuppressWarnings("unchecked")
+    private static <T> Set<Constraint<? super T>> constraintsOf(Class<T> type, Annotation[] annotations) {
+	    return (Set) Stream.concat(
+				stream(annotations)
+				    // restrict to annotations marked to be constraint annotations
+				    .filter(a -> Optional.ofNullable(a.annotationType().getAnnotation(IsConstraint.class))
+					                 .filter(c -> c.value().isAssignableFrom(unPrimitivize(type))).isPresent())
+				    .map(Constraint::toConstraint),
+			    Constraint.IMPLICIT_CONSTRAINTS.getElementsOfSuper(type).stream()
+				    .map(constraint -> (Constraint<T>) constraint)
+			    //		    .filter(constraint -> stream(annotations).noneMatch(annotation.))
+	    ).collect(toSet());
     }
 
 }

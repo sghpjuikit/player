@@ -2,7 +2,6 @@ package audio.playlist;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Objects;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -20,21 +19,21 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
 import audio.Item;
-import services.database.Db;
 import audio.tagging.Metadata;
-import util.file.AudioFileFormat;
-import util.file.AudioFileFormat.Use;
-import util.file.Util;
+import services.database.Db;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.async.Async;
+import util.file.AudioFileFormat;
+import util.file.AudioFileFormat.Use;
+import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.units.FormattedDuration;
 
-import static util.file.AudioFileFormat.Use.APP;
 import static util.Util.capitalizeStrong;
-import static util.type.Util.mapEnumConstantName;
 import static util.dev.Util.log;
+import static util.file.AudioFileFormat.Use.APP;
+import static util.type.Util.mapEnumConstantName;
 
 /**
  * Defines item in playlist.
@@ -333,12 +332,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 11 * hash + Objects.hashCode(this.uri);
-        hash = 11 * hash + Objects.hashCode(this.time);
-        hash = 11 * hash + Objects.hashCode(this.name);
-        hash = 11 * hash + (this.updated ? 1 : 0);
-        return hash;
+	    return System.identityHashCode(this);
     }
 
     /**

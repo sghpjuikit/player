@@ -1,9 +1,8 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- config warn button support validations
-- parser use Try for error messages
-- implement more config validation annotations
+- clean up ConfigField implementations, observability, validation, value correctness
+- Tagger reimplement validations trough Configs
 - converter transform off when just typing
 - converter default area !set
 - native support of configs in configs > flatMap
@@ -23,16 +22,12 @@
 - implement browse directory properly // java 9
 - refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
-- add properties to Config
 - implement configurable DirView cell size and shape
 - implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller
 - support widget main class lookup, remove name convention, make all widget packages' names lowercase
 - implement loading images properly using the twelve monkeys
-- make services lazy, requires better lifecycle handling, service subscriptions/observers/consumers,
-  improved config loading, extracting, applying values, widget service dependency reporting, etc
-  The most difficult part is to figure out how automatic and manual service start/stop should interplay
 - component name in center rather then top_center ?
 - ConfigSearch should open Settings and look up the property
 - add name/icon for parametric function's parameters
@@ -42,8 +37,7 @@
 - unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
 - GridView selectDown scroll bug due to cells not ready
-- Configuration config MapSet should error out when config is added twice to same key + add keymap function for lower case
-- standalone widgets  impl better launching, add
+- standalone widgets impl better launching, add
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
       This is not so simple. Gui needs to support user choice, support user determining main output and forbidding and
@@ -54,7 +48,6 @@
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
     - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1
-- all ConfigFields must support observable Configs, im awed they do not!!
 - when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
 - implement 'use embedded thumbnail' for all image formats, not just psd
 - impl layout refresh() pass so Widget.refresh() can run properly
@@ -94,8 +87,6 @@
 - make generic rater control, use in FileInfo
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
-- guide -> core service, finish guide hints to cover all the basics
-- LastFM -> service, implement properly
 - popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random play order

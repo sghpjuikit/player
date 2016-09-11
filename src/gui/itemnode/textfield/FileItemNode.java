@@ -24,7 +24,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
 	private FileType type;
 
     public FileItemNode(Constraint.FileActor fileActor) {
-        super(Parser.DEFAULT.toConverter(File.class));
+        super(Parser.DEFAULT.toConverterOf(File.class));
 	    this.fileActor = fileActor;
 	    this.type = fileActor== Constraint.FileActor.FILE ? FileType.FILE : FileType.DIRECTORY;
 

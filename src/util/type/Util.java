@@ -87,6 +87,16 @@ public interface Util {
 		return stream(ClassIndex.getAnnotated(annotation).iterator());
 	}
 
+/* ---------- REFLECTION - INSTANTIATION ---------------------------------------------------------------------------- */
+
+	static <T> T instantiateOrThrow(Class<T> type) throws RuntimeException {
+		try {
+			return type.getConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException  | NoSuchMethodException e) {
+			throw new RuntimeException("Could not instantiate " + type + " using default constructor. It must be declared and accessible.");
+		}
+	}
+
 /* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
 
     @SuppressWarnings("unchecked")

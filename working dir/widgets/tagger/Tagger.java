@@ -734,7 +734,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if (f==CUSTOM1) {
-                Color c = Parser.DEFAULT.fromS(Color.class,histogramS);
+                Color c = Parser.DEFAULT.ofS(Color.class,histogramS).getOr(null);
                 colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 colorF.setText("");
             }

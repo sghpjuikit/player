@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.collections.map;
 
 import java.util.ArrayList;
@@ -26,32 +21,31 @@ import java.util.function.Supplier;
  * @author Martin Polakovic
  */
 public class CollectionMap<E,K,C> extends HashMap<K,C> {
-    /** Extracts keys from elements. Determines the splitting parts of the caching 
-    strategy, e.g. using a predicate would split the original collection on
-    two parts - elements that test true, and elements that test false.*/
-    public Function<E,K> keyMapper;
-    /** Builds cache bucket/accumulation container when there is none for the
-    given key during accumulation.*/
-    public Supplier<C> cacheFactory;
-    /** Defines how the elements will be accumulated into the cache bucket.
-    If the bucket is a collection, you probably wish to use 
-    {@code (element, collection) -> collection.add(element);} but different 
-    reducing strategies can be used, for example {@code (element,sum) -> sum+number; }*/
-    public BiConsumer<E,C> cacheAccumulator;
+    /**
+     * Extracts keys from elements. Determines the splitting parts of the caching  strategy, e.g. using a predicate
+     * would split the original collection on two parts - elements that test true, and elements that test false.
+     */ public Function<? super E,? extends K> keyMapper;
+    /**
+     * Builds cache bucket/accumulation container when there is none for the given key during accumulation.
+     */ public Supplier<? extends C> cacheFactory;
+    /**
+     * Defines how the elements will be accumulated into the cache bucket.
+     * If the bucket is a collection, you probably wish to use {@code (element, collection) -> collection.add(element);},
+     * but different reducing strategies can be used, for example {@code (element,sum) -> sum+number;}
+     */ public BiConsumer<? super E,? super C> cacheAccumulator;
 
-    public CollectionMap(Function<E,K> keyMapper, Supplier<C> cacheFactory, BiConsumer<E,C> cacheAccumulator) {
+    public CollectionMap(Function<? super E,? extends K> keyMapper, Supplier<? extends C> cacheFactory, BiConsumer<? super E,? super C> cacheAccumulator) {
         this.keyMapper = keyMapper;
         this.cacheFactory = cacheFactory;
         this.cacheAccumulator = cacheAccumulator;
     }
     
-    /** Accumulates given collection into this cache map. The collection remains
-    unaffected. */
-    public void accumulate(Collection<E> es) {
+    /** Accumulates given collection into this cache map. The collection remains unaffected. */
+    public void accumulate(Iterable<? extends E> es) {
         for (E e : es) accumulate(e);
     }
     
-    public void accumulate(K k, Collection<E> es) {
+    public void accumulate(K k, Iterable<? extends E> es) {
         for (E e : es) accumulate(k,e);
     }
     

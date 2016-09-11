@@ -1,4 +1,3 @@
-
 package gui.itemnode;
 
 import java.io.File;
@@ -7,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ObservableValue;
@@ -48,7 +48,7 @@ import util.conf.Config.PropertyConfig;
 import util.conf.Config.ReadOnlyPropertyConfig;
 import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
-import util.parsing.Parser;
+import util.functional.Try;
 import util.type.Util;
 import util.validation.Constraint;
 import util.validation.Constraint.NumberMinMax;
@@ -66,6 +66,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.Build.appTooltip;
 import static util.Util.enumToHuman;
 import static util.async.Async.run;
+import static util.functional.Try.ok;
 import static util.functional.Util.*;
 import static util.reactive.Util.maintain;
 
@@ -91,10 +92,70 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip overTooltip = appTooltip("Override value"
             + "\n\nUses local value if true and global value if false.");
 
+	public static final String STYLECLASS_CONFIG_FIELD_PROCEED_BUTTON = "config-field-proceed-button";
+	public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
+	public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
+	public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
+
+	private static Map<Class<?>,Ƒ1<Config,ConfigField>> builders = new HashMap<>(){{
+		put(boolean.class, BooleanField::new);
+		put(Boolean.class, BooleanField::new);
+		put(String.class, GeneralField::new);
+		put(Action.class, ShortcutField::new);
+		put(Color.class, ColorField::new);
+		put(File.class, FileField::new);
+		put(Font.class, FontField::new);
+		put(Effect.class, config -> new EffectField(config, Effect.class));
+		put(Password.class, PasswordField::new);
+		put(Charset.class, charset -> new EnumerableField<Charset>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
+		put(KeyCode.class, KeyCodeField::new);
+		put(ObservableList.class, ListField::new);
+		EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type != null).forEach(et -> put(et.type, config -> new EffectField(config, et.type)));
+	}};
+
+	/**
+	 * Creates ConfigFfield best suited for the specified Field.
+	 *
+	 * @param config field for which the GUI will be created
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> ConfigField<T> create(Config<T> config) {
+		Config c = config;
+		ConfigField cf;
+		if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
+		else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
+		else if (isMinMax(c)) cf = new SliderField(c);
+		else cf = builders.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
+
+		cf.setEditable(c.isEditable());
+
+		return cf;
+	}
+
+	public static boolean isMinMax(Config<?> c) {
+		return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
+	}
+
+	public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
+		return create(Config.forProperty(type, name, property));
+	}
+
+	private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
+		return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
+			       ? (ObservableValue)((PropertyConfig)c).getProperty()
+			       : c instanceof ReadOnlyPropertyConfig
+				         ? ((ReadOnlyPropertyConfig)c).getProperty()
+				         : null;
+	}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
     protected final HBox root = new HBox();
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
     private Icon defB;
+	public Try<T,String> value = ok(null); // TODO: implement for all subclasses properly and init to null
+	public Consumer<? super Try<T,String>> observer;
 
     private ConfigField(Config<T> c) {
         super(c);
@@ -150,7 +211,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      * @return true if has value that has not been applied
      */
     public boolean hasUnappliedValue() {
-        return !config.getValue().equals(get());
+        return !config.getValue().equals(getValid());
     }
 
     /**
@@ -210,7 +271,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         getControl().requestFocus();
     }
 
-    protected abstract T get();
+    protected abstract Try<T,String> get();
+
+	public Try<T,String> getValid() {
+//		return get().errorIf(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(Try::and).orElse(ok()));
+		value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
+		if (observer!=null) observer.accept(value);
+		return value;
+	}
 
     /**
      * Refreshes the content of this config field. The content is read from the
@@ -228,7 +296,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if (!config.getValue().equals(t)) {
             config.setNapplyValue(t);
             refreshItem();
-            if (onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
+            if (onChange!=null) onChange.run();
         }
     }
 
@@ -240,170 +308,68 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected void apply(boolean user) {
         if (inconsistentState) return;
-        T t = get();
-        boolean erroneous = t==null;
+        Try<T,String> t = getValid();
+        boolean erroneous = t.isError();
         if (erroneous) return;
-        boolean needsapply = !Objects.equals(t, config.getValue());
+        boolean needsapply = !Objects.equals(t.get(), config.getValue());
         if (!needsapply) return;
 
         inconsistentState = true;
-        if (applyOnChange || user) config.setNapplyValue(t);
-        else config.setValue(t);
+        if (applyOnChange || user) config.setNapplyValue(t.get());
+        else config.setValue(t.get());
         refreshItem();
-        if (onChange!=null) onChange.run();//System.out.println("changed config " + config.getName());
+        if (onChange!=null) onChange.run();
         inconsistentState = false;
     }
 
-/******************************************************************************/
+/* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
-    private static Map<Class<?>,Ƒ1<Config,ConfigField>> builders = new HashMap<>();
+	private static class PasswordField extends ConfigField<Password> {
+		javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
 
-    static {
-        Map<Class<?>,Ƒ1<Config,ConfigField>> m = builders;
-        m.put(boolean.class, BooleanField::new);
-        m.put(Boolean.class, BooleanField::new);
-        m.put(String.class, GeneralField::new);
-        m.put(Action.class, ShortcutField::new);
-        m.put(Color.class, ColorField::new);
-        m.put(File.class, FileField::new);
-        m.put(Font.class, FontField::new);
-        m.put(Effect.class, config -> new EffectField(config,Effect.class));
-        m.put(Password.class, PasswordField::new);
-        m.put(Charset.class, charset -> new EnumerableField<Charset>(charset,list(ISO_8859_1,US_ASCII,UTF_8,UTF_16,UTF_16BE,UTF_16LE)));
-        m.put(String.class, StringField::new);
-        m.put(KeyCode.class, KeyCodeField::new);
-        m.put(ObservableList.class, ListField::new);
-        EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type!=null)
-                      .forEach(et -> m.put(et.type,config -> new EffectField(config,et.type)));
-    }
+		public PasswordField(Config<Password> c) {
+			super(c);
+			graphics.setPromptText(c.getGuiName());
+			refreshItem();
+		}
 
-    /**
-     * Creates ConfigFfield best suited for the specified Field.
-     * @param config field for which the GUI will be created
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> ConfigField<T> create(Config<T> config) {
-        Config c = config;
-        ConfigField cf;
-        if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
-        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
-        else if (isMinMax(c)) cf = new SliderField(c);
-        else cf = builders.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
+		@Override
+		Node getControl() {
+			return graphics;
+		}
 
-        cf.setEditable(c.isEditable());
+		@Override
+		public Try<Password,String> get() {
+			return ok(new Password(graphics.getText()));
+		}
 
-        return cf;
-    }
+		@Override
+		public void refreshItem() {
+			graphics.setText(config.getValue().get());
+		}
 
-	public static boolean isMinMax(Config<?> c) {
-		return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
 	}
+    private static class GeneralField<T> extends ConfigField<T> {
+        private final DecoratedTextField n = new DecoratedTextField();
+        private final Icon okI= new Icon();
+        private final Icon warnB = new Icon();
+        private final AnchorPane okB = new AnchorPane(okI);
 
-    public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
-        return create(Config.forProperty(type, name, property));
-    }
-
-    private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
-        return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
-                ? (ObservableValue)((PropertyConfig)c).getProperty()
-                : c instanceof ReadOnlyPropertyConfig
-                    ? ((ReadOnlyPropertyConfig)c).getProperty()
-                    : null;
-    }
-
-/***************************** IMPLEMENTATIONS ********************************/
-
-    private static class PasswordField extends ConfigField<Password>{
-
-        javafx.scene.control.PasswordField passF = new javafx.scene.control.PasswordField();
-
-        public PasswordField(Config<Password> c) {
-            super(c);
-	        passF.setPromptText(c.getGuiName());
-            refreshItem();
-        }
-
-        @Override
-        Node getControl() {
-            return passF;
-        }
-
-        @Override
-        public Password get() {
-            return new Password(passF.getText());
-        }
-
-        @Override
-        public void refreshItem() {
-            passF.setText(config.getValue().get());
-        }
-
-    }
-    private static class StringField extends ConfigField<String> {
-        private DecoratedTextField n = new DecoratedTextField();
-
-        private StringField(Config c) {
-            super(c);
-            n.getStyleClass().setAll("text-field","text-input");
-            n.getStyleClass().add("text-field-config");
-            n.setPromptText(c.getGuiName());
-            n.setText(c.getValueS());
-
-            n.focusedProperty().addListener((o,ov,nv) -> {
-                if (nv) {
-                    n.pseudoClassStateChanged(editedPC, true);
-                } else {
-                    n.pseudoClassStateChanged(editedPC, false);
-                    refreshItem();
-                }
-            });
-            n.addEventHandler(KEY_RELEASED, e -> {
-                if (e.getCode()==ESCAPE)
-                    root.requestFocus();
-            });
-            n.textProperty().addListener((o,ov,nv)-> apply(false));
-        }
-
-        @Override public Control getControl() {
-            return n;
-        }
-
-        @Override public void focus() {
-            n.requestFocus();
-            n.selectAll();
-        }
-
-        @Override public String get() {
-            return n.getText();
-        }
-
-        @Override public void refreshItem() {
-            if (inconsistentState) return;
-            n.setText(config.getValueS());
-        }
-
-    }
-    private static class GeneralField extends ConfigField<Object> {
-        DecoratedTextField n = new DecoratedTextField();
-        Icon okI= new Icon();
-        Icon warnB = new Icon();
-        AnchorPane okB = new AnchorPane(okI);
-
-        private GeneralField(Config c) {
+        private GeneralField(Config<T> c) {
             super(c);
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
-            okI.styleclass("config-field-ok-button");
+            okI.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
             okI.size(11);
             okI.tooltip(okTooltip);
             warnB.size(11);
-            warnB.styleclass("config-field-warn-button");
+            warnB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
             warnB.tooltip(warnTooltip);
 
             n.getStyleClass().setAll("text-field","text-input");
-            n.getStyleClass().add("text-field-config");
+            n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             n.setPromptText(c.getGuiName());
             n.setText(c.getValueS());
 
@@ -430,19 +396,32 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
-                Object i = get();
-                boolean erroneous = i==null;
-                boolean applicable = !config.getValue().equals(i);
+                Try<T,String> t = getValid();
+                boolean erroneous = t.isError();
+                boolean applicable = !config.getValue().equals(t);
                 showOkButton(!applyOnChange && applicable && !erroneous);
-                showWarnButton(erroneous);
+                showWarnButton(erroneous, erroneous ? t.getError() : null);
                 if (nv.isEmpty()) return;
                 if (applyOnChange) apply(false);
             });
-            okI.setOnMouseClicked( e -> apply(true));
-            n.setOnKeyPressed( e -> { if (e.getCode()==ENTER) apply(true); });
+            okI.setOnMouseClicked(e -> {
+            	apply(true);
+	            e.consume();
+            });
+            n.setOnKeyPressed(e -> {
+            	if (e.getCode()==ENTER) {
+            		apply(true);
+		            e.consume();
+	            }
+            });
+
+	        Try<T,String> t = getValid();
+	        boolean erroneous = t.isError();
+	        showWarnButton(erroneous, erroneous ? t.getError() : null);
         }
 
-        @Override public Control getControl() {
+        @Override
+        public Control getControl() {
             return n;
         }
 
@@ -452,75 +431,84 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.selectAll();
         }
 
-        @Override public Object get() {
-            return config.fromS(n.getText());
+        @Override
+        public Try<T,String> get() {
+            return config.ofS(n.getText());
         }
-        @Override public void refreshItem() {
+        @Override
+        public void refreshItem() {
             n.setText(config.getValueS());
             showOkButton(false);
-            showWarnButton(false);
+            showWarnButton(false, null);
         }
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
-            Object t = get();
-
-            boolean erroneous = t==null;
-            if (erroneous) return;
-            boolean applicable = !config.getValue().equals(t);
+	        Try<T,String> t = getValid();
+            if (t.isError()) return;
+            boolean applicable = !config.getValue().equals(t.get());
             if (!applicable) return;
 
             inconsistentState = true;
-            if (applyOnChange || user) config.setNapplyValue(t);
-            else config.setValue(t);
+            if (applyOnChange || user) config.setNapplyValue(t.get());
+            else config.setValue(t.get());
             inconsistentState = false;
         }
         private void showOkButton(boolean val) {
             n.setLeft(val ? okI : null);
             okI.setVisible(val);
         }
+        private void showWarnButton(boolean val, String message) {
+            n.setRight(val ? warnB : null);
+            warnB.setVisible(val);
+            if (val) warnTooltip.setText(message);
+        }
         private void showWarnButton(boolean val) {
             n.setRight(val ? warnB : null);
             warnB.setVisible(val);
-            if (val) warnTooltip.setText(Parser.DEFAULT.getError());
         }
 
     }
     private static class BooleanField extends ConfigField<Boolean> {
-        final CheckIcon cBox;
-        final boolean observable;
+        final CheckIcon graphics;
+        final boolean isObservable;
 
         private BooleanField(Config<Boolean> c) {
             super(c);
 
             ObservableValue<Boolean> v = getObservableValue(c);
-            observable = v!=null;
+	        isObservable = v!=null;
 
-            cBox = new CheckIcon();
-            cBox.styleclass("boolean-config-field");
-            cBox.selected.setValue(config.getValue());
+            graphics = new CheckIcon();
+            graphics.styleclass("boolean-config-field");
+            graphics.selected.setValue(config.getValue());
             // bind config -> config field (if possible)
-            if (observable) v.addListener((o,ov,nv) -> cBox.selected.setValue(nv));
+            if (isObservable) v.addListener((o,ov,nv) -> graphics.selected.setValue(nv));
             // bind config field -> config
-            cBox.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
+            graphics.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
         }
 
-        @Override public CheckIcon getControl() {
-            return cBox;
+        @Override
+        public CheckIcon getControl() {
+            return graphics;
         }
-        @Override public Boolean get() {
-            return cBox.selected.getValue();
+
+        @Override
+        public Try<Boolean,String> get() {
+            return ok(graphics.selected.getValue());
         }
-        @Override public void refreshItem() {
-            if (!observable)
-                cBox.selected.setValue(config.getValue());
+
+        @Override
+        public void refreshItem() {
+            if (!isObservable)
+                graphics.selected.setValue(config.getValue());
         }
     }
     private static class OverrideField extends BooleanField {
         private OverrideField(Config<Boolean> c) {
             super(c);
-            cBox.styleclass("override-config-field");
-            cBox.tooltip(overTooltip);
+            graphics.styleclass("override-config-field");
+            graphics.tooltip(overTooltip);
         }
     }
     private static class SliderField extends ConfigField<Number> {
@@ -537,13 +525,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             max = new Label(String.valueOf(range.max));
 
             slider = new Slider(range.min,range.max,v);
-            cur = new Label(get().toString());
+            cur = new Label(getValid().get().toString());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
 	        // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
             slider.valueProperty().addListener((o,ov,nv) -> {
                 // also bug with snap to tick, which does not work on mouse drag so we use get() which returns correct value
-                cur.setText(get().toString());
+                cur.setText(getValid().get().toString());
                 if (!slider.isValueChanging())
                     apply(false);
             });
@@ -567,20 +555,25 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             }
         }
 
-        @Override public Node getControl() {
+        @Override
+        public Node getControl() {
             return box;
         }
-        @Override public Number get() {
+
+        @Override
+        public Try<Number,String> get() {
             Double d = slider.getValue();
             Class type = config.getType();
-            if (Integer.class==type) return d.intValue();
-            if (Double.class==type) return d;
-            if (Float.class==type) return d.floatValue();
-            if (Long.class==type) return d.longValue();
-            if (Short.class==type) return d.shortValue();
+            if (Integer.class==type) return ok(d.intValue());
+            if (Double.class==type) return ok(d);
+            if (Float.class==type) return ok(d.floatValue());
+            if (Long.class==type) return ok(d.longValue());
+            if (Short.class==type) return ok(d.shortValue());
             throw new IllegalStateException("wrong number type: " + type);
         }
-        @Override public void refreshItem() {
+
+        @Override
+        public void refreshItem() {
             slider.setValue(config.getValue().doubleValue());
         }
     }
@@ -604,8 +597,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public T get() {
-            return n.getValue();
+        public Try<T,String> get() {
+            return ok(n.getValue());
         }
 
         @Override
@@ -707,17 +700,22 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             group.setPadding(Insets.EMPTY);
         }
 
-        @Override public Node getControl() {
+        @Override
+        public Node getControl() {
             return group;
         }
-        @Override public boolean hasUnappliedValue() {
+
+        @Override
+        public boolean hasUnappliedValue() {
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
-        @Override protected void apply(boolean b) {
+
+        @Override
+        protected void apply(boolean b) {
             // its pointless to make new Action just for this
             // config.applyValue(get());
             // rather operate on the Action manually
@@ -738,10 +736,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             }
             refreshItem();
         }
-        @Override public Action get() {
-            return a;
+
+        @Override
+        public Try<Action,String> get() {
+            return ok(a);
         }
-        @Override public void refreshItem() {
+
+        @Override
+        public void refreshItem() {
             Action a = config.getValue();
             txtF.setPromptText(a.getKeys());
             txtF.setText("");
@@ -760,8 +762,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return picker;
         }
-        @Override public Color get() {
-            return picker.getValue();
+        @Override public Try<Color,String> get() {
+            return ok(picker.getValue());
         }
         @Override public void refreshItem() {
             picker.setValue(config.getValue());
@@ -779,8 +781,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return txtF;
         }
-        @Override public Font get() {
-            return txtF.getValue();
+        @Override public Try<Font,String> get() {
+            return ok(txtF.getValue());
         }
         @Override public void refreshItem() {
             txtF.setValue(config.getValue());
@@ -788,29 +790,39 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class FileField extends ConfigField<File> {
         FileItemNode editor;
-        boolean observable;
+        boolean isObservable;
 
         public FileField(Config<File> c) {
             super(c);
             ObservableValue<File> v = getObservableValue(c);
-            observable = v!=null;
+	        isObservable = v!=null;
 	        Constraint.FileActor constraint = stream(c.getConstraints()).select(Constraint.FileActor.class).findFirst().orElse(Constraint.FileActor.ANY);
 
 	        editor = new FileItemNode(constraint);
             editor.setValue(config.getValue());
+	        editor.setOnKeyPressed(e -> {
+	        	if (e.getCode()==ENTER) {
+	        		e.consume();
+		        }
+	        });
 
-            if (observable) v.addListener((o,ov,nv) -> editor.setValue(nv));
+            if (isObservable) v.addListener((o,ov,nv) -> editor.setValue(nv));
             editor.setOnItemChange((ov,nv) -> apply(false));
         }
 
-        @Override public Control getControl() {
+        @Override
+        public Control getControl() {
             return editor;
         }
-        @Override public File get() {
-            return editor.getValue();
+
+        @Override
+        public Try<File,String> get() {
+            return ok(editor.getValue());
         }
-        @Override public void refreshItem() {
-            if (!observable)
+
+        @Override
+        public void refreshItem() {
+            if (!isObservable)
                 editor.setValue(config.getValue());
         }
     }
@@ -828,22 +840,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return editor;
         }
-        @Override public Effect get() {
-            return editor.getValue();
+        @Override public Try<Effect,String> get() {
+            return ok(editor.getValue());
         }
         @Override public void refreshItem() {
             editor.setValue(config.getValue());
         }
-        // The problem here is that officially Configs and ConfigFields do not support null value
-        // but obviously there are cases null makes sense, such as with Effect. For now we add
-        // support for null here
-        @Override
-        protected void apply(boolean user) {
-            Effect t = get();
-            if (applyOnChange || user) config.setNapplyValue(t);
-            else config.setValue(t);
-            refreshItem();
-            if (onChange!=null) onChange.run();
+        @Override protected void apply(boolean user) {
+            Try<Effect,String> t = getValid();
+	        if (applyOnChange || user) config.setNapplyValue(t.get());
+	        else config.setValue(t.get());
+	        refreshItem();
+	        if (onChange != null) onChange.run();
         }
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
@@ -870,13 +878,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected ObservableList<T> get() {
-            return config.getValue(); // return the ever-same observable list
+        protected Try<ObservableList<T>,String> get() {
+            return ok(config.getValue()); // return the ever-same observable list
         }
 
         @Override
         public void refreshItem() {}
-
 
         class ConfigurableField extends ValueNode<T> {
             ConfigPane<Object> p = new ConfigPane<>();
@@ -929,8 +936,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected T get() {
-            return config.getValue();
+        protected Try<T,String> get() {
+            return ok(config.getValue());
         }
 
         @Override

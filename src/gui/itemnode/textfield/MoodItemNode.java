@@ -22,7 +22,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
     private PopOver.NodePos pos = PopOver.NodePos.RightCenter;
 
     public MoodItemNode() {
-        super(Parser.DEFAULT.toConverter(String.class));
+        super(Parser.DEFAULT.toConverterOf(String.class));
         setEditable(true);
 	    autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocmplt_filter.apply(t,p.getUserText())));
     }

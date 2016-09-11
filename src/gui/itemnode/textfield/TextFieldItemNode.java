@@ -74,9 +74,9 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
     }
 
 
-    public TextFieldItemNode(StringConverter<T> parser) {
+    public TextFieldItemNode(StringConverter<T> converter) {
         this();
-        converter = parser;
+        this.converter = converter;
     }
 
     /** Behavior to be executed on dialog button click. Should cause an execution of an {@link #setValue(Object)}. */

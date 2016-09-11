@@ -905,7 +905,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
     /** @return the color value associated with the song from tag or null if none. */
     public Color getColor() {
-         return color.isEmpty() ? null : Parser.DEFAULT.fromS(Color.class,color);
+         return color.isEmpty() ? null : Parser.DEFAULT.ofS(Color.class,color).getOr(null);
     }
 
     /**  @return the tags, "" if empty. */

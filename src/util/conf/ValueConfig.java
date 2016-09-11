@@ -1,7 +1,9 @@
 package util.conf;
 
 import java.util.function.Consumer;
+
 import util.conf.Config.ConfigBase;
+
 import static util.dev.Util.noØ;
 
 /**
@@ -154,7 +156,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 
     @Override
     public int hashCode() {
-	    return 7;
+	    return System.identityHashCode(this);
     }
 
 }

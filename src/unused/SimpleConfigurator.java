@@ -6,21 +6,27 @@ import java.util.function.Consumer;
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import gui.itemnode.ConfigField;
+import gui.objects.icon.Icon;
 import util.access.V;
 import util.conf.Config;
 import util.conf.Configurable;
+import util.functional.Try;
 import util.graphics.fxml.ConventionFxmlLoader;
 
+import static gui.itemnode.ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON;
 import static javafx.scene.input.KeyCode.ENTER;
-import static util.dev.Util.noØ;
 import static util.functional.Util.byNC;
 import static util.functional.Util.stream;
 
@@ -46,23 +52,28 @@ public class SimpleConfigurator<T> extends AnchorPane {
     
     @FXML private GridPane fields;
     @FXML private BorderPane buttonPane;
+    @FXML private StackPane okPane;
     @FXML private ScrollPane fieldsPane;
-    
+	@FXML private Label warnLabel;
+
+	private final Icon okB = new Icon(OctIcon.CHECK, 25);
     private final double anchor;
     private final List<ConfigField<T>> configFields = new ArrayList<>();
-    private final Configurable<T> configurable;
+	public final Configurable<T> configurable;
     /**
      * Procedure executed when user finishes the configuring. 
      * Invoked when ok button is pressed.
      * Default implementation does nothing. Must not be null.
      * <p/>
      * For example one might want to close this control when no item is selected.
-     */
-    public final Consumer<? super Configurable<T>> onOK;
+     */ public final Consumer<? super Configurable<T>> onOK;
 	/**
-	 * Denotes whether parent window or popup should close immediately after {@link #onOK} executes. Default false.
-	 */
-	public final V<Boolean> hideOnOk = new V<>(false);
+	 * Denotes whether parent window or popup should close immediately after {@link #onOK} executes.
+	 * Default false.
+	 */ public final V<Boolean> hideOnOk = new V<>(false);
+	/**
+	 * Denotes whether there is action that user can execute.
+	 */ public final V<Boolean> hasAction = new V<>(false);
 
 	public SimpleConfigurator(Config<T> c, Consumer<? super T> on_OK) {
 		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
@@ -75,17 +86,17 @@ public class SimpleConfigurator<T> extends AnchorPane {
      */
     @SafeVarargs
     public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
-	    noØ(c);
-        
-        configurable = c;
+        configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
         onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));
+	    hasAction.set(on_OK!=null && on_OK.length>0);
 
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
 
+	    okPane.getChildren().add(okB);
         fieldsPane.setMaxHeight(Screen.getPrimary().getBounds().getHeight()*0.7);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
-        setOkButtonVisible(on_OK!=null);
+        setOkButtonVisible(hasAction.get());
         
         // set configs
         configFields.clear();
@@ -99,35 +110,58 @@ public class SimpleConfigurator<T> extends AnchorPane {
             fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
             fields.add(cf.getNode(), 1, configFields.size()-1);
         });
+	    Consumer<Try<T,String>> observer = v -> validate();
+	    configFields.forEach(f -> f.observer = observer);
         
 
 	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-	    	if (e.getCode()==ENTER)
+	    	if (e.getCode()==ENTER) {
 			    ok();
+			    e.consume();
+		    }
 	    });
         fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
+
+	    validate();
     }
 
     @FXML
     public void ok() {
-        // set and apply values and refresh if needed
-        configFields.forEach(ConfigField::apply);
-        onOK.accept(configurable);
-	    if (hideOnOk.get() && getScene()!=null && getScene().getWindow()!=null && getScene().getWindow().isShowing()) {
-		    if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
+    	if (!hasAction.get()) return;
+
+	    Try<T,String> validation = validate();
+	    if (validation.isOk()) {
+		    configFields.forEach(ConfigField::apply);
+		    onOK.accept(configurable);
+		    if (hideOnOk.get() && getScene() != null && getScene().getWindow() != null && getScene().getWindow().isShowing()) {
+			    if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
+		    }
 	    }
     }
+
+    private Try<T,String> validate() {
+	    Try<T,String> validation = configFields.stream()
+                           .map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
+	                       .reduce(Try::and).orElse(Try.ok(null));
+	    showWarnButton(validation);
+	    return validation;
+    }
+
+	private void showWarnButton(Try<T,String> validation) {
+		if (validation.isError()) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+		okB.icon(validation.isOk() ? OctIcon.CHECK : FontAwesomeIcon.EXCLAMATION_TRIANGLE);
+		okB.setMouseTransparent(validation.isError());
+		buttonPane.setBottom(validation.isOk() ? null : warnLabel);
+		// buttonPane.setPadding(validation.isOk() ? Insets.EMPTY : new Insets(10,0,10,0)); // TODO: popup !resize
+		if (validation.isError()) warnLabel.setText(validation.getError());
+	}
 
     public void focusFirstConfigField() {
     	if (!configFields.isEmpty())
     		configFields.get(0).focus();
     }
 
-    public Configurable getConfigurable() {
-        return configurable;
-    }
-    
-    public final void setOkButtonVisible(boolean val) {
+    private void setOkButtonVisible(boolean val) {
         buttonPane.setVisible(val);
         AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
     }

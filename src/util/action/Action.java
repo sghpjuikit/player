@@ -55,7 +55,7 @@ import static util.reactive.Util.listChangeHandler;
  * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
-@IsConfigurable
+@IsConfigurable("Shortcuts")
 public final class Action extends Config<Action> implements Runnable {
 
     /** Action that does nothing. Use where null inappropriate. */
@@ -395,7 +395,13 @@ public final class Action extends Config<Action> implements Runnable {
 		return setRO();
 	}
 
-/* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
+	@SafeVarargs
+	@Override
+	public final Config<Action> constraints(Constraint<? super Action>... constraints) {
+		return this;
+	}
+
+	/* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
 
     @Override
     public boolean equals(Object o) {
@@ -732,7 +738,7 @@ public final class Action extends Config<Action> implements Runnable {
 /* ---------- CONFIGURATION ----------------------------------------------------------------------------------------- */
 
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
-            + " application is not focused. Not all platforms supported.", group = "Shortcuts")
+            + " application is not focused. Not all platforms supported.")
     public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
         if (isGlobalShortcutsSupported()) {
             if (v){
@@ -756,7 +762,7 @@ public final class Action extends Config<Action> implements Runnable {
     });
 
 
-    @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
+    @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.")
     public static final V<Boolean> globalMediaShortcuts = new V<>(true, v -> {
         if (isGlobalShortcutsSupported()) {
             if (v) {
@@ -779,10 +785,10 @@ public final class Action extends Config<Action> implements Runnable {
 //        }
 //    });
 
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", group = "Shortcuts")
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.")
     public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
 
-    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", group = "Shortcuts", editable = false)
+    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";
 
 }

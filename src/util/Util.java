@@ -616,7 +616,7 @@ public interface Util {
         Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(suffix);
         if (readers.hasNext()) {
             ImageReader reader = readers.next();
-            try( ImageInputStream stream = ImageIO.createImageInputStream(f) ) {
+            try (ImageInputStream stream = ImageIO.createImageInputStream(f) ) {
                 reader.setInput(stream);
                 int ii = reader.getMinIndex(); // 1st image index
                 int width = reader.getWidth(ii);

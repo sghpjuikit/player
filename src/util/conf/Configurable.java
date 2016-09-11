@@ -1,4 +1,3 @@
-
 package util.conf;
 
 import java.lang.reflect.Field;
@@ -11,8 +10,9 @@ import javafx.beans.value.WritableValue;
 
 import util.type.Util;
 
-import static util.type.Util.forEachJavaFXProperty;
+import static java.util.Collections.EMPTY_LIST;
 import static util.conf.Configuration.configsOf;
+import static util.type.Util.forEachJavaFXProperty;
 
 /**
  * Defines object that can be configured.
@@ -63,6 +63,21 @@ import static util.conf.Configuration.configsOf;
  * @author Martin Polakovic
  */
 public interface Configurable<T> {
+
+	/**
+	 * Configurable with no fields.
+	 */
+	Configurable EMPTY_CONFIGURABLE = new Configurable() {
+		@Override public Collection<Config> getFields() { return EMPTY_LIST; }
+		@Override public Config getField(String name) { return null; }
+		@Override public Config getFieldOrThrow(String name) {
+			throw new IllegalArgumentException("Config field '" + name + "' not found.");
+		}
+		@Override public void setField(String name, Object v) {}
+		@Override public void setFieldOrThrow(String name, Object v) {
+			throw new IllegalArgumentException("Config field '" + name + "' not found.");
+		}
+	};
 
     /**
      * Get all configs of this configurable.

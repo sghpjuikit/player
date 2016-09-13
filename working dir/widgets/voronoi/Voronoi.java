@@ -55,7 +55,7 @@ public class Voronoi extends ClassController  {
 
 	private static class RenderNode extends Canvas {
 		static Random rand = new Random();
-		final Loop loop = new util.animation.Loop(this::draw);
+		final Loop loop = new util.animation.Loop(this::loop);
 		final GraphicsContext gc = getGraphicsContext2D();
 		List<Cell> cells;       // delayed initialization
 		P draggedCell = null;   // null if none
@@ -85,13 +85,13 @@ public class Voronoi extends ClassController  {
 			});
 		}
 
-		void draw() {
+		void loop() {
 			int width = (int) getWidth();
 			int height = (int) getHeight();
 			if (width<=0 || height<=0) return;
 
 			loopId++;
-//			if (loopId>1) return;
+			//			if (loopId>1) return;
 
 			// generate cells (runs only once, we need to do it here to make sure width & height is initialized)
 			int cellCount = 4;
@@ -99,41 +99,49 @@ public class Voronoi extends ClassController  {
 				// random
 				cells = StreamEx.generate(() -> Cell.random(width, height, .5)).limit(cellCount).toList();
 				// circle
-//				double wh = min(width,height);
-//				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-//			                          .mapToObj(a -> new Cell(wh/2+wh/10*cos(a), wh/2+wh/10*sin(a)))
-//			                          .toList();
-//				cells.add(new Cell(wh/2+10, wh/2+10));
-//				cells.add(new Cell(wh/2+10, wh/2-10));
-//				cells.add(new Cell(wh/2-10, wh/2-10));
-//				cells.add(new Cell(wh/2-10, wh/2+10));
+				//				double wh = min(width,height);
+				//				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+				//			                          .mapToObj(a -> new Cell(wh/2+wh/10*cos(a), wh/2+wh/10*sin(a)))
+				//			                          .toList();
+				//				cells.add(new Cell(wh/2+10, wh/2+10));
+				//				cells.add(new Cell(wh/2+10, wh/2-10));
+				//				cells.add(new Cell(wh/2-10, wh/2-10));
+				//				cells.add(new Cell(wh/2-10, wh/2+10));
 				// horizontal sequence
-//				cells = IntStream.range(0,cellCount)
-//						         .mapToObj(a -> new Cell(width*0.1+width*0.8/cellCount*a, height/2))
-//						         .toList();
-            }
+				//				cells = IntStream.range(0,cellCount)
+				//						         .mapToObj(a -> new Cell(width*0.1+width*0.8/cellCount*a, height/2))
+				//						         .toList();
 
-			cells.forEach(c -> {
-				double x = c.x+c.dx;
-				double y = c.y+c.dy;
-				if (x<0) {
-					c.dx = -c.dx;
-					c.x = -x;
-				} else if (x>width) {
-					c.dx = -c.dx;
-					c.x = 2*width-x;
-				} else
-					c.x = x;
+				// move cells
+				cells.forEach(c -> {
+					double x = c.x+c.dx;
+					double y = c.y+c.dy;
+					if (x<0) {
+						c.dx = -c.dx;
+						c.x = -x;
+					} else if (x>width) {
+						c.dx = -c.dx;
+						c.x = 2*width-x;
+					} else
+						c.x = x;
 
-				if (y<0) {
-					c.dy = -c.dy;
-					c.y = -y;
-				} else if (y>height) {
-					c.dy = -c.dy;
-					c.y = 2*height-y;
-				} else
-					c.y = y;
-			});
+					if (y<0) {
+						c.dy = -c.dy;
+						c.y = -y;
+					} else if (y>height) {
+						c.dy = -c.dy;
+						c.y = 2*height-y;
+					} else
+						c.y = y;
+				});
+			}
+
+			draw();
+		}
+
+		void draw() {
+			int width = (int) getWidth();
+			int height = (int) getHeight();
 
 			gc.setEffect(null);
 			gc.setFill(Color.AQUA);

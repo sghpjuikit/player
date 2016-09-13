@@ -519,6 +519,9 @@ public class App extends Application implements Configurable {
             )
         );
         actionPane.register(File.class,
+	        new FastAction<>("Recycle", "Prints all image metadata to console.",
+                MaterialIcon.DELETE,
+                Environment::deleteFileRecycle),
             new FastAction<>("Read metadata", "Prints all image metadata to console.",
                 MaterialIcon.IMAGE_ASPECT_RATIO,
 	            ImageFileFormat::isSupported,
@@ -1273,8 +1276,8 @@ public class App extends Application implements Configurable {
 	    static void openDictionary() {
 		    boolean isFocused = APP.windowManager.getFocused().isPresent();
 		    PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
-                  new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
-                  (String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
+			                                                                             new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
+			                                                                             (String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
 		    ));
 		    p.title.set("Look up in dictionary...");
 		    p.setAutoHide(true);

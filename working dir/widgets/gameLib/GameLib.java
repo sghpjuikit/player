@@ -96,7 +96,7 @@ public class GameLib extends FXMLController {
 
 	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Location of the library.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
+    final VarList<File> files = new VarList<>(File.class,() -> new File("C:\\"),f -> Config.forValue(File.class,"File",f));
 
     GameItem game;
     InfoType at;

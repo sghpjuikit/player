@@ -75,7 +75,7 @@ public class AppLauncher extends ClassController {
 
 	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Add program")
-    final VarList<File> files = new VarList<>(() -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
+    final VarList<File> files = new VarList<>(File.class, () -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width,NORMAL.height,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();

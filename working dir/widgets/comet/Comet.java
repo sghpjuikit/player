@@ -41,6 +41,8 @@ import util.animation.Anim;
 import util.animation.Loop;
 import util.async.executor.FxTimer;
 import util.collections.mapset.MapSet;
+import util.conf.Config.ConfigurableVarList;
+import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
@@ -123,10 +125,10 @@ public class Comet extends ClassController {
         // player stats
         double G = 10; // padding
         StackPane playerStats = layStack(
-            layHorizontally(G,TOP_LEFT,     createPlayerStat(PLAYERS.get(0)),createPlayerStat(PLAYERS.get(4))),TOP_LEFT,
-            layHorizontally(G,TOP_RIGHT,    createPlayerStat(PLAYERS.get(5)),createPlayerStat(PLAYERS.get(1))),TOP_RIGHT,
-            layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(PLAYERS.get(2)),createPlayerStat(PLAYERS.get(6))),BOTTOM_LEFT,
-            layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(PLAYERS.get(7)),createPlayerStat(PLAYERS.get(3))),BOTTOM_RIGHT
+            layHorizontally(G,TOP_LEFT,     createPlayerStat(PLAYERS.list.get(0)),createPlayerStat(PLAYERS.list.get(4))),TOP_LEFT,
+            layHorizontally(G,TOP_RIGHT,    createPlayerStat(PLAYERS.list.get(5)),createPlayerStat(PLAYERS.list.get(1))),TOP_RIGHT,
+            layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(PLAYERS.list.get(2)),createPlayerStat(PLAYERS.list.get(6))),BOTTOM_LEFT,
+            layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(PLAYERS.list.get(7)),createPlayerStat(PLAYERS.list.get(3))),BOTTOM_RIGHT
         );
         playerStats.setPadding(new Insets(G,0,G,G));
         playerStats.setMouseTransparent(true);
@@ -300,83 +302,21 @@ public class Comet extends ClassController {
     final V<Color> ccolor = new V<>(Color.BLACK, c -> game.mission.color_canvasFade = new Color(c.getRed(), c.getGreen(), c.getBlue(), game.mission.color_canvasFade.getOpacity()));
     @IsConfig @Constraint.MinMax(min=0, max=0.1)
     final V<Double> copac = new V<>(0.05, c -> game.mission.color_canvasFade = new Color(game.mission.color_canvasFade.getRed(), game.mission.color_canvasFade.getGreen(), game.mission.color_canvasFade.getBlue(), c));
-    @IsConfig final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
-    @IsConfig final V<PlayerSpawners> spawning = new V<>(PlayerSpawners.CIRCLE);
-    @IsConfig final V<String> p1name = new V<>("Player 1");
-    @IsConfig final V<String> p2name = new V<>("Player 2");
-    @IsConfig final V<String> p3name = new V<>("Player 3");
-    @IsConfig final V<String> p4name = new V<>("Player 4");
-    @IsConfig final V<String> p5name = new V<>("Player 5");
-    @IsConfig final V<String> p6name = new V<>("Player 6");
-    @IsConfig final V<String> p7name = new V<>("Player 7");
-    @IsConfig final V<String> p8name = new V<>("Player 8");
-    @IsConfig final V<Color> p1color = new V<>(Color.CORNFLOWERBLUE);
-    @IsConfig final V<Color> p2color = new V<>(Color.GREY);
-    @IsConfig final V<Color> p3color = new V<>(Color.GREEN);
-    @IsConfig final V<Color> p4color = new V<>(Color.RED);
-    @IsConfig final V<Color> p5color = new V<>(Color.SANDYBROWN);
-    @IsConfig final V<Color> p6color = new V<>(Color.YELLOW);
-    @IsConfig final V<Color> p7color = new V<>(Color.CADETBLUE);
-    @IsConfig final V<Color> p8color = new V<>(Color.MAGENTA);
-    @IsConfig final V<AbilityKind> p1ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p2ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p3ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p4ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p5ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p6ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p7ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<AbilityKind> p8ability_type = new V<>(PLAYER_ABILITY_INITIAL);
-    @IsConfig final V<KeyCode> p1fire = new V<>(KeyCode.W);
-    @IsConfig final V<KeyCode> p1thrust = new V<>(KeyCode.S);
-    @IsConfig final V<KeyCode> p1left = new V<>(KeyCode.A);
-    @IsConfig final V<KeyCode> p1right = new V<>(KeyCode.D);
-    @IsConfig final V<KeyCode> p1ability = new V<>(KeyCode.Q);
-    @IsConfig final V<KeyCode> p2fire = new V<>(KeyCode.M);
-    @IsConfig final V<KeyCode> p2thrust = new V<>(KeyCode.UP);
-    @IsConfig final V<KeyCode> p2left = new V<>(KeyCode.LEFT);
-    @IsConfig final V<KeyCode> p2right = new V<>(KeyCode.RIGHT);
-    @IsConfig final V<KeyCode> p2ability = new V<>(KeyCode.N);
-    @IsConfig final V<KeyCode> p3fire = new V<>(KeyCode.T);
-    @IsConfig final V<KeyCode> p3thrust = new V<>(KeyCode.G);
-    @IsConfig final V<KeyCode> p3left = new V<>(KeyCode.F);
-    @IsConfig final V<KeyCode> p3right = new V<>(KeyCode.H);
-    @IsConfig final V<KeyCode> p3ability = new V<>(KeyCode.R);
-    @IsConfig final V<KeyCode> p4fire = new V<>(KeyCode.I);
-    @IsConfig final V<KeyCode> p4thrust = new V<>(KeyCode.K);
-    @IsConfig final V<KeyCode> p4left = new V<>(KeyCode.J);
-    @IsConfig final V<KeyCode> p4right = new V<>(KeyCode.L);
-    @IsConfig final V<KeyCode> p4ability = new V<>(KeyCode.U);
-    @IsConfig final V<KeyCode> p5fire = new V<>(KeyCode.W);
-    @IsConfig final V<KeyCode> p5thrust = new V<>(KeyCode.S);
-    @IsConfig final V<KeyCode> p5left = new V<>(KeyCode.A);
-    @IsConfig final V<KeyCode> p5right = new V<>(KeyCode.D);
-    @IsConfig final V<KeyCode> p5ability = new V<>(KeyCode.Q);
-    @IsConfig final V<KeyCode> p6fire = new V<>(KeyCode.W);
-    @IsConfig final V<KeyCode> p6thrust = new V<>(KeyCode.S);
-    @IsConfig final V<KeyCode> p6left = new V<>(KeyCode.A);
-    @IsConfig final V<KeyCode> p6right = new V<>(KeyCode.D);
-    @IsConfig final V<KeyCode> p6ability = new V<>(KeyCode.Q);
-    @IsConfig final V<KeyCode> p7fire = new V<>(KeyCode.W);
-    @IsConfig final V<KeyCode> p7thrust = new V<>(KeyCode.S);
-    @IsConfig final V<KeyCode> p7left = new V<>(KeyCode.A);
-    @IsConfig final V<KeyCode> p7right = new V<>(KeyCode.D);
-    @IsConfig final V<KeyCode> p7ability = new V<>(KeyCode.Q);
-    @IsConfig final V<KeyCode> p8fire = new V<>(KeyCode.W);
-    @IsConfig final V<KeyCode> p8thrust = new V<>(KeyCode.S);
-    @IsConfig final V<KeyCode> p8left = new V<>(KeyCode.A);
-    @IsConfig final V<KeyCode> p8right = new V<>(KeyCode.D);
-    @IsConfig final V<KeyCode> p8ability = new V<>(KeyCode.Q);
-    final List<Player> PLAYERS = listRO(
-        new Player(1, p1name, p1color, p1fire, p1thrust, p1left, p1right, p1ability, p1ability_type),
-        new Player(2, p2name, p2color, p2fire, p2thrust, p2left, p2right, p2ability, p2ability_type),
-        new Player(3, p3name, p3color, p3fire, p3thrust, p3left, p3right, p3ability, p3ability_type),
-        new Player(4, p4name, p4color, p4fire, p4thrust, p4left, p4right, p4ability, p4ability_type),
-        new Player(5, p5name, p5color, p5fire, p5thrust, p5left, p5right, p5ability, p5ability_type),
-        new Player(6, p6name, p6color, p6fire, p6thrust, p6left, p6right, p6ability, p6ability_type),
-        new Player(7, p7name, p7color, p7fire, p7thrust, p7left, p7right, p7ability, p7ability_type),
-        new Player(8, p8name, p8color, p8fire, p8thrust, p8left, p8right, p8ability, p8ability_type)
+    @IsConfig
+    final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
+    @IsConfig
+    final V<PlayerSpawners> spawning = new V<>(PlayerSpawners.CIRCLE);
+    @IsConfig(name = "Players")
+    final ConfigurableVarList<Player> PLAYERS = new ConfigurableVarList<>(Player.class,
+	    new Player(1, Color.CORNFLOWERBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
+	    new Player(2, Color.GREY, KeyCode.M, KeyCode.UP, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.N, PLAYER_ABILITY_INITIAL),
+	    new Player(3, Color.GREEN, KeyCode.T, KeyCode.G, KeyCode.F, KeyCode.H, KeyCode.R, PLAYER_ABILITY_INITIAL),
+	    new Player(4, Color.SANDYBROWN, KeyCode.I, KeyCode.K, KeyCode.J, KeyCode.L, KeyCode.U, PLAYER_ABILITY_INITIAL),
+	    new Player(5, Color.RED, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
+	    new Player(6, Color.YELLOW, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
+	    new Player(7, Color.CADETBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
+	    new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
     );
-
 
     private static final Color HUD_COLOR = Color.AQUA;
     private static final double HUD_OPACITY = 0.25;
@@ -604,7 +544,7 @@ public class Comet extends ClassController {
             // delayed initialization
             if (grid==null) grid = new Grid(gc, playfield.getWidth(), playfield.getHeight(), 30);
 
-            players.addAll(listF(player_count,PLAYERS::get));
+            players.addAll(listF(player_count,PLAYERS.list::get));
             players.forEach(p -> {
                 p.alive = false;
                 p.score.setValue(0);
@@ -996,33 +936,33 @@ public class Comet extends ClassController {
     }
 
     /** Game player. Survives game sessions. */
-    class Player {
+    class Player implements Configurable {
         final int id;
-        V<String> name;
-        V<Color> color;
-        V<KeyCode> keyFire;
-        V<KeyCode> keyThrust;
-        V<KeyCode> keyLeft;
-        V<KeyCode> keyRight;
-        V<KeyCode> keyAbility;
+        @IsConfig final V<String> name = new V<>("");
+        @IsConfig final V<Color> color = new V<>(Color.WHITE);
+        @IsConfig final V<KeyCode> keyFire = new V<>(KeyCode.W);
+	    @IsConfig final V<KeyCode> keyThrust = new V<>(KeyCode.S);
+	    @IsConfig final V<KeyCode> keyLeft = new V<>(KeyCode.A);
+	    @IsConfig final V<KeyCode> keyRight = new V<>(KeyCode.D);
+	    @IsConfig final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
         boolean alive = false;
         final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
         final V<Integer> score = new V<>(0);
         final V<Double> energy = new V<>(0d);
         final V<Double> energyKS = new V<>(0d);
-        final V<AbilityKind> ability_type;
+        final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
         Rocket rocket;
 
-        public Player(int ID, V<String> NAME, V<Color> COLOR, V<KeyCode> kfire, V<KeyCode> kthrust, V<KeyCode> kleft, V<KeyCode>kright, V<KeyCode> kability, V<AbilityKind> ability_) {
+        public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
             id = ID;
-            name = NAME;
-            color = COLOR;
-            ability_type = ability_;
-            keyFire = kfire;
-            keyThrust = kthrust;
-            keyLeft = kleft;
-            keyRight = kright;
-            keyAbility = kability;
+            name.set("Player " + ID);
+            color.set(COLOR);
+            ability_type.set(ABILITY);
+            keyFire.set(kfire);
+            keyThrust.set(kthrust);
+            keyLeft.set(kleft);
+            keyRight.set(kright);
+            keyAbility.set(kability);
             ability_type.onChange(v -> {
                 if (rocket!=null) rocket.changeAbility(v);
             });

@@ -86,7 +86,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final VarList<File> files = new VarList<>(() -> new File("C:\\"), f -> Config.forValue(File.class, "File", f));
+    final VarList<File> files = new VarList<>(File.class, () -> new File("C:\\"), f -> Config.forValue(File.class, "File", f));
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width, NORMAL.height, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();

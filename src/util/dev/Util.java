@@ -78,12 +78,10 @@ public interface Util {
 
     static void noFinal(Field f) {
         if (Modifier.isFinal(f.getModifiers()))
-            throw new IllegalStateException("Final field forbidden.");
     }
 
     static void yesFinal(Field f) {
         if (!Modifier.isFinal(f.getModifiers()))
-            throw new IllegalStateException("Non final field forbidden.");
     }
 
 

@@ -2,6 +2,7 @@ package util.conf;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -26,6 +27,7 @@ import util.validation.Constraint;
 
 import static java.util.Arrays.asList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static util.conf.Config.VarList.NULL_SUPPLIER;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -836,9 +838,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public Try<ObservableList<T>,String> ofS(String str) {
             ObservableList<T> l = observableArrayList();
+	        boolean isInitialized = a.factory==NULL_SUPPLIER;
+	        AtomicInteger i = isInitialized ? new AtomicInteger(0) : null;
             split(str, ";;", x->x).stream()
                 .map(s -> {
-                    T t = a.factory.get();
+                    T t = isInitialized ? a.list.get(i.getAndIncrement()) : a.factory.get();
                     List<Config<T>> configs = (List)list(a.toConfigurable.apply(t).getFields());
                     List<String> vals = split(s, ";");
                     if (configs.size()==vals.size())
@@ -851,24 +855,36 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
             return ok(l);
         }
-
-
     }
 
     public static class VarList<T> extends V<ObservableList<T>> {
+    	static final Object[] EMPTY_ARRAY = {};
+        static final Supplier NULL_SUPPLIER = () -> null;
+
+    	public final Class<T> itemType;
         public final ObservableList<T> list;
-        public final Supplier<T> factory;
-        public final Ƒ1<T,Configurable<?>> toConfigurable;
+        public final Supplier<? extends T> factory;
+        public final Ƒ1<? super T, ? extends Configurable<?>> toConfigurable;
 
-        public VarList(Supplier<T> factory, Ƒ1<T,Configurable<?>> toConfigurable) {
-            // construct the list and inject it as value (by calling setValue)
-            super(observableArrayList());
-            // remember the reference
-            list = getValue();
+	    // Note: What a strange situation. We must overload varargs constructor for empty case or we run into
+	    // runtime problems (NoSuchMethodError) even though compilation succeeds. Compiler/JVM bug?
+	    // What's worse we can not
+	    // - call this(params...) with no array, or we get compilation error: recursive constructor call
+	    // - call this(params..., new T[0]) with empty array, compilation error: can not instantiate T directly
+	    public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable) {
+		    this(itemType, factory, toConfigurable, (T[])EMPTY_ARRAY);
+	    }
 
-            this.factory = factory;
-            this.toConfigurable = toConfigurable;
-        }
+	    public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, T...items) {
+		    // construct the list and inject it as value (by calling setValue)
+		    super(observableArrayList(items));
+		    // remember the reference
+		    list = getValue();
+
+		    this.itemType = itemType;
+		    this.factory = factory;
+		    this.toConfigurable = toConfigurable;
+	    }
 
         /** This method does nothing.*/
         @Deprecated
@@ -912,6 +928,16 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             list.addListener(listener);
             return () -> list.removeListener(listener);
         }
+    }
+    public static class ConfigurableVarList<T extends Configurable> extends VarList<T> {
+	    public ConfigurableVarList(Class<T> itemType, T...items) {
+		    super(
+		    	itemType,
+			    NULL_SUPPLIER,
+			    type -> type,
+			    items
+		    );
+	    }
     }
 
 	/**

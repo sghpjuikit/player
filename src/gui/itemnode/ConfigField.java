@@ -14,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.Effect;
@@ -28,6 +29,7 @@ import javafx.util.Duration;
 
 import com.sun.javafx.scene.traversal.Direction;
 
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
@@ -46,6 +48,7 @@ import util.conf.Config.ListConfig;
 import util.conf.Config.OverridablePropertyConfig;
 import util.conf.Config.PropertyConfig;
 import util.conf.Config.ReadOnlyPropertyConfig;
+import util.conf.Configurable;
 import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
@@ -68,6 +71,8 @@ import static util.Util.enumToHuman;
 import static util.async.Async.run;
 import static util.functional.Try.ok;
 import static util.functional.Util.*;
+import static util.graphics.Util.layHeaderTop;
+import static util.graphics.Util.layHorizontally;
 import static util.reactive.Util.maintain;
 
 /**
@@ -109,7 +114,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		put(Password.class, PasswordField::new);
 		put(Charset.class, charset -> new EnumerableField<Charset>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
 		put(KeyCode.class, KeyCodeField::new);
-		put(ObservableList.class, ListField::new);
+		put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
 		EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type != null).forEach(et -> put(et.type, config -> new EffectField(config, et.type)));
 	}};
 
@@ -856,15 +861,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
 
-        private final ListConfigField<T,ConfigurableField> chain;
         private final ListConfig<T> lc;
+        private final ListConfigField<T,ConfigurableField> chain;
 
         public ListField(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig)c;
 
             // create chain
-            chain = new ListConfigField<>(0,() -> new ConfigurableField(lc.a.factory.get()));
+            chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.factory.get()));
             // initialize chain - add existing list values to chain
             lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(v)));
             chain.growTo1();
@@ -907,6 +912,57 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             }
 
         }
+    }
+    private static class ListFieldPaginated extends ConfigField<ObservableList<Configurable>> {
+
+    	private int at = -1;
+	    private final ListConfig<Configurable> lc;
+    	Icon prevB = new Icon(OctIcon.ARROW_SMALL_LEFT, 12, "Previous item", this::prev);
+    	Icon nextB = new Icon(OctIcon.ARROW_SMALL_RIGHT, 12, "Next item", this::next);
+	    ConfigPane<Configurable> configPane = new ConfigPane<>();
+	    Node graphics = layHeaderTop(10, Pos.CENTER_RIGHT,
+		    layHorizontally(5, Pos.CENTER_RIGHT, prevB,nextB),
+		    configPane.getNode()
+	    );
+
+        public ListFieldPaginated(Config<ObservableList<Configurable>> c) {
+            super(c);
+            lc = (ListConfig<Configurable>)c;
+	        next();
+        }
+
+        private void prev() {
+        	int size = lc.a.list.size();
+	        if (size<=0) at=-1;
+	        if (size<=0) return;
+
+	        if (at==-1 || at==0) at = size-1;
+	        else at -= 1;
+        	configPane.configure(lc.a.list.get(at));
+        }
+
+        private void next() {
+	        int size = lc.a.list.size();
+	        if (size<=0) at=-1;
+	        if (size<=0) return;
+
+	        if (at==-1 || at==size-1) at = 0;
+	        else at += 1;
+	        configPane.configure(lc.a.list.get(at));
+        }
+
+        @Override
+        Node getControl() {
+            return graphics;
+        }
+
+        @Override
+        protected Try<ObservableList<Configurable>,String> get() {
+            return ok(config.getValue()); // return the ever-same observable list
+        }
+
+        @Override
+        public void refreshItem() {}
     }
     private static class OverridableField<T> extends ConfigField<T> {
         final FlowPane root = new FlowPane(5,5);

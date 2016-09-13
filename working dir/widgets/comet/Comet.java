@@ -33,6 +33,11 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
+import kn.uni.voronoitreemap.datastructure.OpenList;
+import kn.uni.voronoitreemap.diagram.PowerDiagram;
+import kn.uni.voronoitreemap.j2d.Point2D;
+import kn.uni.voronoitreemap.j2d.PolygonSimple;
+import kn.uni.voronoitreemap.j2d.Site;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.SwitchException;
@@ -707,7 +712,77 @@ public class Comet extends ClassController {
             oss.get(Particle.class).forEach(Particle::doLoop);
             stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawBack);
             stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
+
+
+			// EXPERIMENTAL
+	        {
+		        double width = getWidth(), height = getHeight();
+		        Set<? extends PO> cellsOrig = oss.get(Rocket.class);
+		        Set<Vec> cells = stream(cellsOrig).flatMap(c -> stream(new Vec(c.x, c.y), new Vec(c.x + width, c.y), new Vec(c.x, c.y + height), new Vec(c.x - width, c.y), new Vec(c.x, c.y - height))).toSet();
+		        Vec draggedCell = null, selectedCell = null;
+		        OpenList sites = new OpenList();
+		        cells.forEach(c -> sites.add(new Site(c.x, c.y)));
+
+		        // create a root polygon which limits the voronoi diagram. Here it is just a rectangle.
+		        PolygonSimple rootPolygon = new PolygonSimple();
+		        double edgeGap = 5;
+		        rootPolygon.add(-edgeGap, -edgeGap);
+		        rootPolygon.add(width + edgeGap, -edgeGap);
+		        rootPolygon.add(width + edgeGap, height + edgeGap);
+		        rootPolygon.add(-edgeGap, height + edgeGap);
+
+		        PowerDiagram diagram = new PowerDiagram();
+		        diagram.setSites(sites);
+		        diagram.setClipPoly(rootPolygon);
+
+		        // do the computation
+		        // unfortunately it can fail under some conditions, so we recover -> cancel this & all fture loops
+		        // we could just stop this loop and continue with the next one, but once the computation fails, it
+		        // will most probably fail again, at which point it can quickly crash the entire VM.
+		        try {
+			        diagram.computeDiagram();
+		        } catch (Exception e) {
+			        //		        e.printStackTrace();
+			        loop.stop();
+			        return;
+		        }
+
+		        // draw cells
+		        gc.save();
+		        gc.setStroke(humans.color);
+		        gc.setFill(humans.color);
+		        gc.setGlobalAlpha(0.4);
+		        //	        gc.setEffect(new GaussianBlur(15));
+		        for (Site site : sites) {
+			        // for each site we can now get the resulting polygon of its cell.
+			        // note that the cell can also be empty, in which case there is no polygon for the corresponding site.
+			        PolygonSimple polygon = site.getPolygon();
+			        if (polygon != null && polygon.getNumPoints() > 1) {
+				        //			        polygon.shrinkForBorder(0.95);
+				        Point2D c = polygon.getCentroid();
+				        gc.fillOval(c.getX() - 1, c.getY() - 1, 2, 2);
+				        boolean isSelected = selectedCell != null && site.x == selectedCell.x && site.y == selectedCell.y;
+				        boolean isDragged = draggedCell == null;
+				        if (isSelected) {
+					        gc.save();
+					        gc.setGlobalAlpha(isDragged ? 0.1 : 0.2);
+					        gc.fillPolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
+					        gc.restore();
+				        }
+				        gc.strokePolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
+			        }
+		        }
+		        gc.restore();
+
+	        }
+
         }
+
+	    double[] toDouble(int[] is) {
+		    double[] ds = new double[is.length];
+		    for (int x=0; x<is.length; x++) ds[x] = is[x];
+		    return ds;
+	    }
 
         void stop() {
             running.set(false);

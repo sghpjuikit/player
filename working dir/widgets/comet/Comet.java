@@ -1021,7 +1021,7 @@ public class Comet extends ClassController {
         final V<Integer> score = new V<>(0);
         final V<Double> energy = new V<>(0d);
         final V<Double> energyKS = new V<>(0d);
-        final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
+	    @IsConfig final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
         Rocket rocket;
 
         public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {

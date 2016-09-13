@@ -545,12 +545,8 @@ public class Comet extends ClassController {
             if (grid==null) grid = new Grid(gc, playfield.getWidth(), playfield.getHeight(), 30);
 
             players.addAll(listF(player_count,PLAYERS.list::get));
-            players.forEach(p -> {
-                p.alive = false;
-                p.score.setValue(0);
-                p.lives.setValue(PLAYER_LIVES_INITIAL);
-                p.spawn();
-            });
+	        players.forEach(Player::reset);
+            players.forEach(Player::spawn);
 
             running.set(true);
             loopid = 0;
@@ -991,6 +987,7 @@ public class Comet extends ClassController {
             alive = true;
             lives.setValueOf(lives -> lives-1);
             rocket = new Rocket(this);
+	        rocket.dead = false;
             rocket.x = spawning.get().computeStartingX(playfield.getWidth(),playfield.getHeight(),game.players.size(),id);
             rocket.y = spawning.get().computeStartingY(playfield.getWidth(),playfield.getHeight(),game.players.size(),id);
             rocket.dx = 0;
@@ -1000,6 +997,14 @@ public class Comet extends ClassController {
             rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
 	        new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(),r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
             createHyperSpaceAnim(rocket.graphics).playClose();
+        }
+
+        void reset() {
+	        alive = false;
+	        score.setValue(0);
+	        lives.setValue(PLAYER_LIVES_INITIAL);
+	        if (rocket!=null) rocket.dead = true; // just in case
+	        rocket = null;
         }
 
         double computeRotSpeed(long pressedMsAgo) {
@@ -1820,7 +1825,7 @@ public class Comet extends ClassController {
                 PLAYER_ENERGY_INITIAL,PLAYER_E_BUILDUP
             );
             player = PLAYER;
-            ((Icon)graphics).setFill(player.color.getValue());
+	        maintain(player.color, ((Icon)graphics).fillProperty()); // !work! why?
             kinetic_shield = new KineticShield(ROCKET_KINETIC_SHIELD_RADIUS,ROCKET_KINETIC_SHIELD_ENERGYMAX);
             changeAbility(player.ability_type.get());
             engine = random()<0.5 ? new RocketEngine() : new PulseEngine();
@@ -1859,6 +1864,8 @@ public class Comet extends ClassController {
 
         void draw() {
             super.draw();
+
+	        ((Icon)graphics).setFill(player.color.getValue()); // TODO: color doesn't set otherwise, remove
 
             // gravity space contraction effect
             // bug: interferes with hyperspace animation & graphics scaling

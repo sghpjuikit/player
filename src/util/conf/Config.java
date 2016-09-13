@@ -838,18 +838,18 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         @Override
         public Try<ObservableList<T>,String> ofS(String str) {
             ObservableList<T> l = observableArrayList();
-	        boolean isInitialized = a.factory==NULL_SUPPLIER;
-	        AtomicInteger i = isInitialized ? new AtomicInteger(0) : null;
+	        boolean isFixedSizeAndHasConfigurableItems = a.factory==NULL_SUPPLIER;
+	        AtomicInteger i = isFixedSizeAndHasConfigurableItems ? new AtomicInteger(0) : null;
             split(str, ";;", x->x).stream()
                 .map(s -> {
-                    T t = isInitialized ? a.list.get(i.getAndIncrement()) : a.factory.get();
-                    List<Config<T>> configs = (List)list(a.toConfigurable.apply(t).getFields());
-                    List<String> vals = split(s, ";");
-                    if (configs.size()==vals.size())
+                    T t = isFixedSizeAndHasConfigurableItems ? a.list.get(i.getAndIncrement()) : a.factory.get();
+                    List<Config> configs = list(a.toConfigurable.apply(t).getFields());
+                    List<String> values = split(s, ";");
+                    if (configs.size()==values.size())
                          // its important to apply the values too
-                        forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.ofS(v).getOr(null))); // TODO: wtf
+                        forEachBoth(configs, values, (c,v)-> c.setNapplyValue(c.ofS(v).getOr(null))); // TODO: wtf
 
-                    return t.getClass() == configs.get(0).getType() ? configs.get(0).getValue() : t;
+                    return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
                 })
                 .forEach(l::add);
 
@@ -934,7 +934,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		    super(
 		    	itemType,
 			    NULL_SUPPLIER,
-			    type -> type,
+			    configurable -> configurable,
 			    items
 		    );
 	    }

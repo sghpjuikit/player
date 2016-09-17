@@ -94,7 +94,7 @@ public class Voronoi extends ClassController  {
 			//			if (loopId>1) return;
 
 			// generate cells (runs only once, we need to do it here to make sure width & height is initialized)
-			int cellCount = 4;
+			int cellCount = 40;
 			if (cells == null) {
 				// random
 				cells = StreamEx.generate(() -> Cell.random(width, height, .5)).limit(cellCount).toList();
@@ -111,30 +111,31 @@ public class Voronoi extends ClassController  {
 				//				cells = IntStream.range(0,cellCount)
 				//						         .mapToObj(a -> new Cell(width*0.1+width*0.8/cellCount*a, height/2))
 				//						         .toList();
-
-				// move cells
-				cells.forEach(c -> {
-					double x = c.x+c.dx;
-					double y = c.y+c.dy;
-					if (x<0) {
-						c.dx = -c.dx;
-						c.x = -x;
-					} else if (x>width) {
-						c.dx = -c.dx;
-						c.x = 2*width-x;
-					} else
-						c.x = x;
-
-					if (y<0) {
-						c.dy = -c.dy;
-						c.y = -y;
-					} else if (y>height) {
-						c.dy = -c.dy;
-						c.y = 2*height-y;
-					} else
-						c.y = y;
-				});
 			}
+
+
+			// move cells
+			cells.forEach(c -> {
+				double x = c.x+c.dx;
+				double y = c.y+c.dy;
+				if (x<0) {
+					c.dx = -c.dx;
+					c.x = -x;
+				} else if (x>width) {
+					c.dx = -c.dx;
+					c.x = 2*width-x;
+				} else
+					c.x = x;
+
+				if (y<0) {
+					c.dy = -c.dy;
+					c.y = -y;
+				} else if (y>height) {
+					c.dy = -c.dy;
+					c.y = 2*height-y;
+				} else
+					c.y = y;
+			});
 
 			draw();
 		}

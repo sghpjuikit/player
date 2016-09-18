@@ -22,6 +22,7 @@ import layout.Component;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
 import main.App;
+import unused.SimpleConfigurator;
 import util.conf.Configurable;
 import util.file.Util;
 
@@ -111,21 +112,36 @@ public final class UiContext {
         return p;
     }
 
-    public static void showSettings(Configurable c, MouseEvent e) {
-        showSettings(c, (Node) e.getSource());
-    }
+	public static void showSettings(Configurable c, MouseEvent e) {
+		showSettings(c, (Node) e.getSource());
+	}
 
-    public static void showSettings(Configurable c, Node n) {
-        String name = c instanceof Widget ? ((Widget)c).getName() : "";
-        Configurator sc = new Configurator(true);
-                     sc.configure(c);
-        PopOver p = new PopOver<>(sc);
-                p.title.set((name==null ? "" : name+" ") + " Settings");
-                p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
-                p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
-                p.setAutoHide(true);
-                p.show(n);
-    }
+	public static void showSettings(Configurable c, Node n) {
+		String name = c instanceof Widget ? ((Widget)c).getName() : "";
+		Configurator sc = new Configurator(true);
+		sc.configure(c);
+		PopOver p = new PopOver<>(sc);
+		p.title.set((name==null ? "" : name+" ") + " Settings");
+		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
+		p.setAutoHide(true);
+		p.show(n);
+	}
+
+	public static void showSettingsSimple(Configurable c, MouseEvent e) {
+		showSettingsSimple(c, (Node) e.getSource());
+	}
+
+	public static void showSettingsSimple(Configurable c, Node n) {
+		String name = c instanceof Widget ? ((Widget)c).getName() : "";
+		SimpleConfigurator sc = new SimpleConfigurator(c);
+		PopOver p = new PopOver<>(sc);
+		p.title.set((name==null ? "" : name+" ") + " Settings");
+		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
+		p.setAutoHide(true);
+		p.show(n);
+	}
 
     public static PopOver showFloating(Node content, String title) {
         noØ(content);

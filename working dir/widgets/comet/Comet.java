@@ -155,7 +155,7 @@ public class Comet extends ClassController {
                 new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
                 new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
                 new Icon(null,16){{ maintain(game.paused,mapB(MaterialDesignIcon.PLAY,MaterialDesignIcon.PAUSE), this::setIcon); }}.onClick(() -> game.pause(!game.paused.get())),
-                new Icon<>(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> showSettings(getWidget(),e)),
+                new Icon<>(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> showSettingsSimple(new ListConfigurable(Configurable.configsFromFieldsOf(this)),e)),
                 new Icon<>(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
             ),
             0d,0d,null,0d,

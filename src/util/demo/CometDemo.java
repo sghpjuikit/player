@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import comet.Comet;
+import main.App;
 
 /**
  * Demo showcasing the comet game widget.
@@ -20,6 +21,7 @@ public class CometDemo extends Application{
 
 	@Override
 	public void start(Stage stage) throws Exception {
+		new App();
 		stage.setFullScreen(true);
 		stage.setFullScreenExitHint("");
 		stage.setScene(new Scene(new Comet()));

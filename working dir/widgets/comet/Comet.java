@@ -8,13 +8,13 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
 import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
@@ -23,6 +23,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.util.Duration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import comet.Comet.Ship.Disruptor.DisruptorField;
 import comet.Comet.Ship.Shield;
@@ -33,11 +36,6 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import kn.uni.voronoitreemap.datastructure.OpenList;
-import kn.uni.voronoitreemap.diagram.PowerDiagram;
-import kn.uni.voronoitreemap.j2d.Point2D;
-import kn.uni.voronoitreemap.j2d.PolygonSimple;
-import kn.uni.voronoitreemap.j2d.Site;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.SwitchException;
@@ -49,22 +47,25 @@ import util.collections.mapset.MapSet;
 import util.conf.Config.ConfigurableVarList;
 import util.conf.Configurable;
 import util.conf.IsConfig;
+import util.conf.ListConfigurable;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.reactive.SetƑ;
 import util.validation.Constraint;
 
+import static comet.Comet.Achievement.achievement1;
 import static comet.Comet.Constants.*;
-import static comet.Utils.AbilityKind.SHIELD;
+import static comet.Utils.AbilityKind.HYPERSPACE;
 import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
-import static gui.objects.window.stage.UiContext.showSettings;
+import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.lang.Math.*;
+import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.effect.BlendMode.*;
 import static javafx.scene.effect.BlurType.GAUSSIAN;
@@ -75,6 +76,7 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.*;
 import static util.Util.clip;
 import static util.async.Async.run;
+import static util.dev.Util.yes;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -87,17 +89,18 @@ import static util.reactive.Util.maintain;
     author = "Martin Polakovic",
     name = "Comet",
     description = "Port of the game Comet.",
-    howto = "",
-    notes = "",
+//    howto = "",
+//    notes = "",
     version = "0.6",
     year = "2015",
     group = Widget.Group.OTHER
 )
 public class Comet extends ClassController {
+	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
-    final Pane playfield = new Pane();  // playfield, contains scenegraph game graphics
-    final GraphicsContext gc; // draws canvas game graphics on canvas
-    GraphicsContext gc_bgr; // draws canvas game graphics on bgrcanvas
+    final Pane playfield = new Pane();  // play field, contains scenegraph game graphics
+    GraphicsContext gc; // draws canvas game graphics on canvas
+    GraphicsContext gc_bgr; // draws canvas game graphics on bgr canvas
     final Text message = new Text();
     final Game game = new Game();
     final SetƑ every200ms = new SetƑ();
@@ -121,11 +124,11 @@ public class Comet extends ClassController {
         canvas.widthProperty().bind(playfield.widthProperty());
         canvas.heightProperty().bind(playfield.heightProperty());
         canvas.setManaged(false);
-        Canvas canvas_bgr = new Canvas();
-        canvas_bgr.widthProperty().bind(playfield.widthProperty());
-        canvas_bgr.heightProperty().bind(playfield.heightProperty());
-        gc_bgr = canvas_bgr.getGraphicsContext2D();
-        canvas_bgr.setManaged(false);
+	    Canvas canvas_bgr = new Canvas();
+	    canvas_bgr.widthProperty().bind(playfield.widthProperty());
+	    canvas_bgr.heightProperty().bind(playfield.heightProperty());
+	    gc_bgr = canvas_bgr.getGraphicsContext2D();
+	    canvas_bgr.setManaged(false);
 
         // player stats
         double G = 10; // padding
@@ -137,11 +140,11 @@ public class Comet extends ClassController {
         );
         playerStats.setPadding(new Insets(G,0,G,G));
         playerStats.setMouseTransparent(true);
-        game.players.addListener((Change<? extends Player> change) -> {
+        game.players.addListener((Change<? extends Player> change) ->
             playerStats.getChildren().forEach(cc -> ((Pane)cc).getChildren().forEach(c ->
                 c.setVisible(game.players.stream().anyMatch(p -> p.id==(Integer)c.getUserData()))
-            ));
-        });
+            ))
+        );
 
         // layout
         setAnchor(this,
@@ -182,12 +185,8 @@ public class Comet extends ClassController {
                     game.oss.forEach(Asteroid.class,a -> a.dead=true);
                     game.nextMission();
                 });
-                if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).map(p -> p.rocket).forEach(game.humans::sendShuttle);
+                if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, Shuttle::new));
                 if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).enhance(r));
-                if (cc==DIGIT7) ;
-                if (cc==DIGIT8) ;
-                if (cc==DIGIT9) ;
-                if (cc==DIGIT0) ;
             }
         });
         playfield.addEventFilter(KEY_RELEASED, e -> {
@@ -213,7 +212,7 @@ public class Comet extends ClassController {
 	    double FPS_KEY_PRESSED = 40; // frames per second
 	    double FPS_KEY_PRESSED_PERIOD = 1000 / FPS_KEY_PRESSED; // ms
 
-	    int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
+	    int PLAYER_LIVES_INITIAL = 1; // lives at the beginning of the game
 	    int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
 
 	    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000 / (4 * a.radius); }
@@ -236,7 +235,7 @@ public class Comet extends ClassController {
 	    double PLAYER_E_BUILDUP = 1; // energy/frame
 	    double PLAYER_HIT_RADIUS = 13; // energy/frame
 	    Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
-	    AbilityKind PLAYER_ABILITY_INITIAL = SHIELD; // rocket fire-fire time period
+	    AbilityKind PLAYER_ABILITY_INITIAL = HYPERSPACE; // rocket fire-fire time period
 	    double PLAYER_GRAPHICS_ANGLE_OFFSET = D45;
 	    double ROCKET_GUN_TURRET_ANGLE_GAP = D360 / 180;
 
@@ -327,12 +326,12 @@ public class Comet extends ClassController {
     private static final double HUD_OPACITY = 0.25;
     private static final double HUD_DOT_GAP = 3;
     private static final double HUD_DOT_DIAMETER = 1;
-    void drawHudLine(double x, double y, double lengthstart, double length, double cosdir, double sindir, Color color) {
+    void drawHudLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
         gc.setFill(color);
         gc.setGlobalAlpha(HUD_OPACITY);
 
-        for (double i=lengthstart; i<length; i+=HUD_DOT_GAP)
-            gc.fillOval(modX(x+i*cosdir), modY(y+i*sindir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+        for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
+            gc.fillOval(modX(x+i*cosDir), modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
 
         gc.setGlobalAlpha(1);
     }
@@ -354,9 +353,35 @@ public class Comet extends ClassController {
     void drawHudCircle(double x, double y, double r, Color color) {
         drawHudCircle(x, y, r, 0, D360, color);
     }
+	void drawPolygon(double[] xs, double[] ys, long pointCount) {
+		// Degrades performance a lot (probably due to out of canvas drawing
+		// gc.strokePolygon(polygon.getXPoints(), polygon.getYPoints(), polygon.getNumPoints());
+		// for now use the below:
 
+		yes(xs.length==ys.length);
 
-
+		for (int j=0; j<pointCount; j++) {
+			int k = j==pointCount-1 ? 0 : j+1;
+			double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
+			if (playfield.contains(x1,y1) || playfield.contains(x2,y2))
+				drawLine(x1,y1,x2,y2);
+		}
+	}
+	void drawLine(double x, double y, double tox, double toy) {
+		double dist = sqrt((x-tox)*(x-tox)+(y-toy)*(y-toy));
+		double distX = tox-x, distY = toy-y;
+		double X = x, Y = y;
+		int pieces = (int)(dist/HUD_DOT_GAP);
+		double dx = distX/pieces, dy = distY/pieces;
+		for (double i=0; i<pieces; i++) {
+			gc.fillOval(X,Y, 1,1);
+			X += dx; Y += dy;
+		}
+	}
+	void drawLine(double x, double y, double length, double dirCos, double dirSin) {
+		for (double i=0; i<length; i+=10)
+			gc.fillOval(x+i*dirCos, y+i*dirSin, 1,1);
+	}
 
     /** Encompasses entire game. */
     class Game {
@@ -372,7 +397,7 @@ public class Comet extends ClassController {
         final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
 
         final Loop loop = new Loop(this::doLoop);
-        long loopid = 0;   // game loop id, starts at 0, incremented by 1
+        long loopId = 0;   // game loop id, starts at 0, incremented by 1
         final UfoFaction ufos = new UfoFaction();
         final PlayerFaction humans = new PlayerFaction();
         final TTLList runNext = new TTLList();
@@ -423,46 +448,46 @@ public class Comet extends ClassController {
             )
         );
 
-        final Set<RocketEnhancer> ROCKET_ENHANCERS = set(
+        final Set<Enhancer> ROCKET_ENHANCERS = set(
 
             // fire upgrades
-            new RocketEnhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
+            new Enhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
                 r -> r.gun.turrets.inc(), r -> {/*r.gun.turrets.dec()*/},
                 "- Mounts additional gun turret",
                 "- Increases chance of hitting the target",
                 "- Increases maximum possible target damage by 100%"
             ),
-            new RocketEnhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidfire.inc(), r -> r.rapidfire.dec(),
+            new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidfire.inc(), r -> r.rapidfire.dec(),
                 " - Largely increases rate of fire temporarily. Fires constant stream of bullets",
                 " - Improved hit efficiency due to bullet spam",
                 " - Improved mobility due to less danger of being hit",
-                "Tip: Hold the fire button. Be on the move. Let the decimating power of countless bullets"
-              + " be your shield. The upgrade lasts only a while, but being static is a disadvantage."
+                "Tip: Fire constantly. Be on the move. Let the decimating power of countless bullets"
+              + " be your shield. The upgrade lasts only a while - being static is a disadvantage."
             ),
-            new RocketEnhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(25), r -> r.powerfire.inc(), r -> r.powerfire.dec(),
+            new Enhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(50), r -> r.powerfire.inc(), r -> r.powerfire.dec(),
                 "- Increases bullet speed",
                 "- Increases bullet range",
                 "Tip: Aim closer to target. Faster bullet will reach target sooner."
             ),
-            new RocketEnhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyfire.inc(), r -> r.energyfire.dec(),
+            new Enhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyfire.inc(), r -> r.energyfire.dec(),
                 "- Bullets penetrate the target",
                 "- Increases bullet damage, 1 hit kill",
                 "- Multiple target damage",
-                "Tip: Try lining up targets into a line or move to space with more higher density. "
+                "Tip: Try lining up targets into a line. "
             ),
-            new RocketEnhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitfire.inc(), r -> r.splitfire.dec(),
+            new Enhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitfire.inc(), r -> r.splitfire.dec(),
                 "- Bullets split into 2 bullets on hit",
                 "- Multiple target damage",
                 "Tip: Strategic weapon. The damage potential raises exponentially"
               + " with the number of targets. Annihilate the most dense enemy area with ease. "
             ),
-            new RocketEnhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
+            new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
                 "- Fires a bullet generating a black hole",
                 "- Lethal to everything, including players",
                 "- Player receives partial score for all damage caused by the black hole",
                 "Tip: Strategic weapon. Do not endanger yourself or your allies."
             ),
-            new RocketEnhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(35),
+            new Enhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(35),
                 r -> {
                     Ship.LaserSight ls = r.new LaserSight();
                     game.runNext.add(seconds(35),ls::dispose);
@@ -471,33 +496,40 @@ public class Comet extends ClassController {
                 "- Displays bullet range"
             ),
 
-            new RocketEnhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
+            new Enhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
                 "- Increases propulsion efficiency, i.e., speed",
                 "- Increases maneuverability",
                 "Tip: If there is ever time to move, it is now. Don't idle around."
             ),
-            new RocketEnhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  humans.intelOn.inc(), r -> humans.intelOn.dec(),
+            new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  humans.intelOn.inc(), r -> humans.intelOn.dec(), false,
                 "- Reports incoming ufo time & location",
                 "- Reports incoming upgrade time & location",
-                "- Reports exact upgrade type",
+                "- Reveals exact upgrade type before it is picked up",
                 "- Displays bullet range",
-                "Tip: This upgrade is shared."
+                "- Displays player control area and marks the best area control position",
+                "Tip: This upgrade is automatically shared."
             ),
-            new RocketEnhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
+            new Enhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
                 r -> humans.share_enhancers=true, r -> humans.share_enhancers=false,
                 "- Applies upgrades to all allies",
-                "Tip: The more allies, the bigger the gain. Beware of strategic weapons in a team - "
-              + "they can do more harm than good."
+                "Tip: The more allies, the bigger the gain."
             ),
-	        new RocketEnhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
-                r -> humans.sendShuttle(r), r -> {},
+	        new Enhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
+                r -> humans.send(r,Shuttle::new), r -> {}, false,
                 "- Calls in supply shuttle",
-                "- provides large and powerful stationary kinetic shield",
-                "- provides upgrade supply"
+                "- Provides large and powerful stationary kinetic shield",
+                "- Provides additional upgrades",
+                "Tip: This upgrade can not be shared."
+	        ),
+	        new Enhancer("Super shield", FontAwesomeIcon.CIRCLE_THIN, seconds(5),
+                r -> humans.send(r,SuperShield::new), r -> {}, false,
+                "- Calls in support shield",
+                "- Provides large and powerful stationary kinetic shield",
+                "Tip: This upgrade can not be shared."
 	        ),
 
             // kinetic shield upgrades
-            new RocketEnhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
+            new Enhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
                 r -> {
                     r.kinetic_shield.KSenergy_max *= 1.1;
                     r.kinetic_shield.changeKSenergyToMax();
@@ -505,36 +537,62 @@ public class Comet extends ClassController {
                 "- Sets kinetic shield energy to max",
                 "- Increases maximum kinetic shield energy by 10%"
             ),
-            new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(),r -> r.kinetic_shield.large.dec(),
+            new Enhancer("Shield enhancer", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(), r -> r.kinetic_shield.large.dec(),
                 "- Increases kinetic shield range by " + KINETIC_SHIELD_LARGE_RADIUS_INC + "px",
-                "- Increases maximum kinetic shield energy by " + (KINETIC_SHIELD_LARGE_E_MAX_INC*100)+"%",
-                "- Increases kinetic shield energy accumulation " + (KINETIC_SHIELD_LARGE_E_RATE)+" times",
-                "Tip: You are not invincible, but anyone will think twice about colliding with you. Go on the offensive. Move."
+                "- Increases maximum kinetic shield energy by " + (KINETIC_SHIELD_LARGE_E_MAX_INC*100) + "%",
+                "- Increases kinetic shield energy accumulation " + (KINETIC_SHIELD_LARGE_E_RATE) +" times",
+                "Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
             ),
 
             // energy upgrades
-            new RocketEnhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
+            new Enhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
                 "- Increases energy accumulation by 10%"
             ),
-            new RocketEnhancer("Energizer", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
+            new Enhancer("Energizer", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
                 "- Increases maximum energy by 10%"
             ),
-            new RocketEnhancer("Battery (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
+            new Enhancer("Battery (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
                 r -> r.energy = min(r.energy+2000,r.energy_max),
                 "- Increases energy by up to 2000"
             ),
-            new RocketEnhancer("Battery (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
+            new Enhancer("Battery (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
                 r -> r.energy = min(r.energy+5000,r.energy_max),
                 "- Increases energy by up to 5000"
             ),
-            new RocketEnhancer("Battery (large)", MaterialDesignIcon.BATTERY, seconds(5),
+            new Enhancer("Battery (large)", MaterialDesignIcon.BATTERY, seconds(5),
                 r -> r.energy = min(r.energy+10000,r.energy_max),
                 "- Increases energy by up to 10000"
             )
         );
-	    final Set<RocketEnhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
-
-        public Game() {}
+	    final Set<Enhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
+	    final Set<Achievement> ACHIEVEMENTS = set(
+		    achievement1(
+		    	"Dominator", MaterialDesignIcon.DUMBBELL,
+                 game -> stream(game.players).max(by(p -> p.stats.controlAreaSize.getAverage())).get(),
+                 "Control the largest nearby area throughout the game"
+		    ),
+		    achievement1(
+		    	"Control freak", MaterialDesignIcon.ARROW_EXPAND,
+                 game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+                 "Control your nearby area most effectively"
+		    )
+	    );
+	    Voronoi voronoi = new Voronoi1(
+	        (rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
+	        (rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
+	        (centerX,centerY) -> {
+	            gc_bgr.fillOval(centerX - 1, centerY - 1, 3, 3);
+	            drawHudCircle(centerX, centerY, 10, humans.color);
+	        },
+	        (edges) -> edges.forEach(edge -> {
+	            gc_bgr.save();
+	            gc_bgr.setLineWidth(1);
+	            gc_bgr.setStroke(HUD_COLOR);
+	            gc_bgr.setGlobalAlpha(0.05);
+	            gc_bgr.strokeLine(edge.x1, edge.y1, edge.x2, edge.y2);
+	            gc_bgr.restore();
+	        })
+	    );
 
         void pause(boolean v) {
             if (!running.get() || paused.get()==v) return;
@@ -547,14 +605,14 @@ public class Comet extends ClassController {
             stop();
 
             // delayed initialization
-            if (grid==null) grid = new Grid(gc, playfield.getWidth(), playfield.getHeight(), 30);
+            if (grid==null) grid = new Grid(gc, playfield.getWidth(), playfield.getHeight(), 35);
 
             players.addAll(listF(player_count,PLAYERS.list::get));
 	        players.forEach(Player::reset);
             players.forEach(Player::spawn);
 
             running.set(true);
-            loopid = 0;
+            loopId = 0;
             mission_counter = 0;
             isMissionScheduled = false;
             ufos.init();
@@ -566,18 +624,15 @@ public class Comet extends ClassController {
             nextMission();
 
             runNext.add(() -> mission_button = new MissionInfoButton());
-//            ufos.activateSlipSpaceCannon();
-//            ufos.activateSlipSpaceCannon();
         }
 
         void doLoop() {
-            // debug
-             if (loopid%60==0) System.out.println("particle count: " + oss.get(Particle.class).size());
+            if (loopId%60==0) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
             // loop prep
-            loopid++;
+            loopId++;
             long now = System.currentTimeMillis();
-            boolean isThird = loopid%3==0;
+            boolean isThird = loopId %3==0;
 
             players.stream().filter(p -> p.alive).forEach(p -> {
                 if (pressedKeys.contains(p.keyLeft.get()))  p.rocket.dir -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
@@ -623,7 +678,7 @@ public class Comet extends ClassController {
             grid.draw();
 
             // update & redraw active objects
-            entities.forceFields.forEach(ff -> ff.doLoop());
+            entities.forceFields.forEach(ForceField::doLoop);
             os.forEach(PO::doLoop);
 
             // guns & firing
@@ -670,7 +725,7 @@ public class Comet extends ClassController {
                         r.player.die();
                     }
                     u.dead = true;
-                    ufos.onUfoDestroyed(u);
+                    ufos.onUfoDestroyed();
                 }
             });
             oss.forEach(Rocket.class,UfoDisc.class, (r,ud) -> {
@@ -700,89 +755,30 @@ public class Comet extends ClassController {
             });
             oss.forEach(Shuttle.class,Asteroid.class, (s,a) -> {
                 if (s.isHitDistance(a)) {
+                    a.onHit(s);
+                    onPlanetoidDestroyed();
+	                s.die(a);
+                }
+            });
+            oss.forEach(SuperShield.class,Asteroid.class, (s,a) -> {
+                if (s.isHitDistance(a)) {
                     if (s.kineticEto(a)<s.kinetic_shield.KSenergy) {
                         s.kinetic_shield.onShieldHit(a);
-                        a.onHit(s);
-                        onPlanetoidDestroyed();
+                    } else {
+	                    s.die(a);
                     }
+                    a.onHit(s);
+                    onPlanetoidDestroyed();
                 }
             });
 
-            // noninteracting stuff last
+            // non-interacting stuff last
             oss.get(Particle.class).forEach(Particle::doLoop);
             stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawBack);
             stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
 
-
-			// EXPERIMENTAL
-	        {
-		        double width = getWidth(), height = getHeight();
-		        Set<? extends PO> cellsOrig = oss.get(Rocket.class);
-		        Set<Vec> cells = stream(cellsOrig).flatMap(c -> stream(new Vec(c.x, c.y), new Vec(c.x + width, c.y), new Vec(c.x, c.y + height), new Vec(c.x - width, c.y), new Vec(c.x, c.y - height))).toSet();
-		        Vec draggedCell = null, selectedCell = null;
-		        OpenList sites = new OpenList();
-		        cells.forEach(c -> sites.add(new Site(c.x, c.y)));
-
-		        // create a root polygon which limits the voronoi diagram. Here it is just a rectangle.
-		        PolygonSimple rootPolygon = new PolygonSimple();
-		        double edgeGap = 5;
-		        rootPolygon.add(-edgeGap, -edgeGap);
-		        rootPolygon.add(width + edgeGap, -edgeGap);
-		        rootPolygon.add(width + edgeGap, height + edgeGap);
-		        rootPolygon.add(-edgeGap, height + edgeGap);
-
-		        PowerDiagram diagram = new PowerDiagram();
-		        diagram.setSites(sites);
-		        diagram.setClipPoly(rootPolygon);
-
-		        // do the computation
-		        // unfortunately it can fail under some conditions, so we recover -> cancel this & all fture loops
-		        // we could just stop this loop and continue with the next one, but once the computation fails, it
-		        // will most probably fail again, at which point it can quickly crash the entire VM.
-		        try {
-			        diagram.computeDiagram();
-		        } catch (Exception e) {
-			        //		        e.printStackTrace();
-			        loop.stop();
-			        return;
-		        }
-
-		        // draw cells
-		        gc.save();
-		        gc.setStroke(humans.color);
-		        gc.setFill(humans.color);
-		        gc.setGlobalAlpha(0.4);
-		        //	        gc.setEffect(new GaussianBlur(15));
-		        for (Site site : sites) {
-			        // for each site we can now get the resulting polygon of its cell.
-			        // note that the cell can also be empty, in which case there is no polygon for the corresponding site.
-			        PolygonSimple polygon = site.getPolygon();
-			        if (polygon != null && polygon.getNumPoints() > 1) {
-				        //			        polygon.shrinkForBorder(0.95);
-				        Point2D c = polygon.getCentroid();
-				        gc.fillOval(c.getX() - 1, c.getY() - 1, 2, 2);
-				        boolean isSelected = selectedCell != null && site.x == selectedCell.x && site.y == selectedCell.y;
-				        boolean isDragged = draggedCell == null;
-				        if (isSelected) {
-					        gc.save();
-					        gc.setGlobalAlpha(isDragged ? 0.1 : 0.2);
-					        gc.fillPolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
-					        gc.restore();
-				        }
-				        gc.strokePolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
-			        }
-		        }
-		        gc.restore();
-
-	        }
-
+	        voronoi.compute(oss.get(Rocket.class),playfield.getWidth(), playfield.getHeight(), Comet.this);
         }
-
-	    double[] toDouble(int[] is) {
-		    double[] ds = new double[is.length];
-		    for (int x=0; x<is.length; x++) ds[x] = is[x];
-		    return ds;
-	    }
 
         void stop() {
             running.set(false);
@@ -812,7 +808,12 @@ public class Comet extends ClassController {
             });
         }
         void over() {
-            runNext.add(seconds(5),this::stop);
+            runNext.add(seconds(5), () -> {
+	            Map<Player,List<Achievement>> as =  stream(ACHIEVEMENTS).flatMapToEntry(a -> stream(a.evaluator.apply(this)).toMap(player -> player, player -> a)).grouping();
+	            System.out.println(as);
+	            new EndGamePane().show(as);
+	            stop();
+            });
         }
 
         void message(String title) {
@@ -835,6 +836,7 @@ public class Comet extends ClassController {
         class PlayerFaction {
             final InEffect intelOn = new InEffect();
             final Color color = Color.DODGERBLUE;
+            final Color colorTech = Color.AQUAMARINE;
             boolean share_enhancers = false;
 
             void init() {
@@ -842,10 +844,10 @@ public class Comet extends ClassController {
                 runNext.addPeriodic(() -> SATELLITE_TTL()/sqrt(players.size()), humans::sendSatellite);
             }
 
-            void sendShuttle(Rocket r) {
+            void send(Rocket r, Consumer<? super Rocket> action) {
                 game.runNext.add(seconds(2),() -> pulseCall(r));
                 game.runNext.add(seconds(4),() -> pulseCall(r));
-                game.runNext.add(seconds(6),() -> new Shuttle(r));
+                game.runNext.add(seconds(6),() -> action.accept(r));
             }
             void sendSatellite() {
                 sendSatellite(randEnum(Side.class));
@@ -864,10 +866,10 @@ public class Comet extends ClassController {
             void pulseAlert(double x, double y) { pulseAlert(x,y,0,0); }
             void pulseAlert(PO o) { pulseAlert(o.x,o.y,o.dx,o.dy); }
             void pulseCall(double x, double y, double dx, double dy) {
-                new RadioWavePulse(x,y,dx,dy,4,color,false);
+                new RadioWavePulse(x,y,dx,dy,3,color,false);
             }
             void pulseAlert(double x, double y, double dx, double dy) {
-                new RadioWavePulse(x,y,dx,dy,-4,color,false);
+                new RadioWavePulse(x,y,dx,dy,-3,color,false);
             }
         }
         class UfoFaction {
@@ -888,7 +890,7 @@ public class Comet extends ClassController {
                 runNext.addPeriodic(() -> UFO_DISCSPAWN_TTL()/sqrt(players.size()), () -> canSpawnDiscs = true);
             }
 
-            void onUfoDestroyed(Ufo u) {
+            void onUfoDestroyed() {
                 losses++;
                 if (losses>losses_aggressive) {
                     aggressive = losses%2==0;
@@ -929,10 +931,10 @@ public class Comet extends ClassController {
             void pulseAlert(double x, double y) { pulseAlert(x,y,0,0); }
             void pulseAlert(PO o) { pulseAlert(o.x,o.y,o.dx,o.dy); }
             void pulseCall(double x, double y, double dx, double dy) {
-                new RadioWavePulse(x,y,dx,dy,4,color,true);
+                new RadioWavePulse(x,y,dx,dy,3,color,true);
             }
             void pulseAlert(double x, double y, double dx, double dy) {
-                new RadioWavePulse(x,y,dx,dy,-4,color,true);
+                new RadioWavePulse(x,y,dx,dy,-3,color,true);
             }
         }
         class Mission {
@@ -1023,6 +1025,7 @@ public class Comet extends ClassController {
         final V<Double> energyKS = new V<>(0d);
 	    @IsConfig final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
         Rocket rocket;
+	    final StatsPlayer stats = new StatsPlayer();
 
         public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
             id = ID;
@@ -1052,7 +1055,7 @@ public class Comet extends ClassController {
                 game.grid.applyExplosiveForce(100, new Vec(rocket.x,rocket.y), 50);
                 run(PLAYER_RESPAWN_TIME.toMillis(),this::spawn);
             } else {
-                if (game.players.stream().filter(p -> p.alive).count()==0)
+                if (game.players.stream().noneMatch(p -> p.alive))
                     game.over();
             }
         }
@@ -1070,8 +1073,8 @@ public class Comet extends ClassController {
             rocket.dir = spawning.get().computeStartingAngle(game.players.size(),id);
             rocket.energy = PLAYER_ENERGY_INITIAL;
             rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
-	        new RocketEnhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(),r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
-            createHyperSpaceAnim(rocket.graphics).playClose();
+	        new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
+	        createHyperSpaceAnimIn(game, rocket);
         }
 
         void reset() {
@@ -1146,26 +1149,31 @@ public class Comet extends ClassController {
             double sy = dy-o.dy;
             return sqrt(sx*sx+sy*sy);
         }
+
+        void die() {
+        	die(null);
+        }
+
+        void die(Object cause) {
+	        dead = true;
+        }
     }
     /** Object with physical properties. */
     abstract class PO extends SO {
         double mass = 0;
         Engine engine = null;
         Class type;
-        Node graphics;
+        Image graphics;
+	    double graphicsDir = 0;
+	    double graphicsScale = 1;
         Set<LO> children = null;
 
-        PO(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Node GRAPHICS) {
+        PO(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS) {
             type = TYPE;
             x = X; y = Y; dx = DX; dy = DY;
             radius = HIT_RADIUS;
             mass = 2*HIT_RADIUS*HIT_RADIUS; // 4/3d*PI*HIT_RADIUS*HIT_RADIUS*HIT_RADIUS;
             graphics = GRAPHICS;
-            if (graphics!=null) {
-                graphics.setManaged(false);
-                graphics.setCache(true);
-                graphics.setCacheHint(CacheHint.SPEED);
-            }
             init();
         }
 
@@ -1188,18 +1196,16 @@ public class Comet extends ClassController {
 
         void draw() {
             if (graphics!=null) {
-                relocateCenter(graphics,x,y);
+	            drawImageRotatedScaled(gc, graphics, deg(graphicsDir), x, y, graphicsScale);
             }
         }
 
         void init() {
-            if (graphics!=null) playfield.getChildren().add(graphics);
             game.os.add(this);
             game.oss.add(this);
         }
 
         public void dispose() {
-            if (graphics!=null) playfield.getChildren().remove(graphics);
             if (children!=null) list(children).forEach(LO::dispose);
         }
 
@@ -1208,7 +1214,8 @@ public class Comet extends ClassController {
             return mass;// * (dx*dy);
         }
 
-        double kineticEto(PO o) {
+        @SuppressWarnings("unused")
+        double kineticEto(SO o) {
 //            return 0.5 * mass * (dx*dx+dy*dy); // 0.5mv^2
             return mass;// * (dx*dy);
         }
@@ -1261,7 +1268,7 @@ public class Comet extends ClassController {
         double dx_old = 0; // allows calculating ddx (2nd derivation - acceleration)
         double dy_old = 0;
 
-        public Ship(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Node GRAPHICS, double E, double dE) {
+        public Ship(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS, double E, double dE) {
             super(TYPE, X, Y, DX, DY, HIT_RADIUS, GRAPHICS);
             energy = E;
             energy_buildup_rate = dE;
@@ -1283,7 +1290,7 @@ public class Comet extends ClassController {
             final GunControl control;
             final Ƒ0<Double> aimer; // determines bullet direction
             final Ƒ1<Double,Bullet> ammo_type; // bullet factory
-            final InEffectValue<Double[]> turrets = new InEffectValue<>(1, count -> calculateGunTurretAngles(count));
+            final InEffectValue<Double[]> turrets = new InEffectValue<>(1, Utils::calculateGunTurretAngles);
             final Duration time_reload;
             final InEffect blackhole = new InEffect();
             double fireTTL; // frames till next fire
@@ -1442,7 +1449,7 @@ public class Comet extends ClassController {
             void onKeyRelease(){
                 if (onHold) {
                     passivate();
-                } else {}
+                }
             }
             void activate() {
                 if (state==NO_CHANGE) {
@@ -1500,17 +1507,21 @@ public class Comet extends ClassController {
             }
         }
         class AbilityWithSceneGraphics extends Ability {
-            final Node graphicsA;
+            final Image graphicsA;
+	        double graphicsADir = 0;
+	        double graphicsAScale = 1;
 
-            public AbilityWithSceneGraphics(boolean ONHOLD, Duration timeToAct, Duration timeToPass, double E_ACT, double E_RATE, Node GRAPHICS) {
+            public AbilityWithSceneGraphics(boolean ONHOLD, Duration timeToAct, Duration timeToPass, double E_ACT, double E_RATE, Image GRAPHICS) {
                 super(ONHOLD, timeToAct, timeToPass, E_ACT, E_RATE);
                 graphicsA = GRAPHICS;
             }
+	        public void doLoop() {
+		        super.doLoop();
 
-            public void dispose() {
-                super.dispose();
-                playfield.getChildren().remove(graphicsA);
-            }
+		        if (graphicsA!=null) {
+			        drawImageRotatedScaled(gc, graphicsA, deg(graphicsADir), x, y, graphicsAScale);
+		        }
+	        }
         }
         class Disruptor extends Ability {
             final ForceField field = new DisruptorField();
@@ -1607,13 +1618,13 @@ public class Comet extends ClassController {
             Hyperspace() {
                 super(
                     false, HYPERSPACE_ACTIVATION_TIME,HYPERSPACE_PASSIVATION_TIME,HYPERSPACE_E_ACTIVATION,HYPERSPACE_E_RATE,
-                    new Icon(MaterialDesignIcon.PLUS,30)
+                    graphics(MaterialDesignIcon.PLUS,30,game.humans.color,null)
                 );
+	            graphicsAScale = 0;
             }
 
             void onActivateStart() {
                 isin_hyperspace = true;
-                playfield.getChildren().add(graphicsA);
                 game.grid.applyExplosiveForce(90f, new Vec(x,y), 70);
             }
             void onPassivateStart() {
@@ -1621,15 +1632,13 @@ public class Comet extends ClassController {
             }
             void onPassivateEnd() {
                 isin_hyperspace = false;
-                playfield.getChildren().remove(graphicsA);
             }
             void onActiveChanged(double activation) {
-                 setScaleXY(graphics,1-activation);
-                 setScaleXY(graphicsA,activation);
+            	graphicsScale = 1-activation;
+            	graphicsAScale = activation;
             }
             public void doLoop() {
                 super.doLoop();
-                relocateCenter(graphicsA, x, y);
 
                 if (isActivated()) {
                     double strength = 6 + cache_speed/4;
@@ -1652,6 +1661,7 @@ public class Comet extends ClassController {
             public void doLoop() {
                 super.doLoop();
             }
+	        @SuppressWarnings("unused")
             void onHit(Asteroid a) {
                 // makes shield hardly usable, instead we drain energy constantly while active
                 // energy -= min(energy,kineticEto(a));
@@ -1815,7 +1825,7 @@ public class Comet extends ClassController {
 
                     gc.setGlobalAlpha(max_opacity*ttl*ttl);
                     // gc.setGlobalBlendMode(ADD);
-                    drawRotatedImage(gc, KINETIC_SHIELD_PIECE_GRAPHICS, deg(D90+KSPdir), KSPx+x-KINETIC_SHIELD_PIECE_GRAPHICS.getWidth()/2, KSPy+y-KINETIC_SHIELD_PIECE_GRAPHICS.getHeight()/2);
+                    drawImageRotated(gc, KINETIC_SHIELD_PIECE_GRAPHICS, deg(D90+KSPdir), KSPx+x, KSPy+y);
                     gc.setGlobalAlpha(1);
 //                    gc.setGlobalBlendMode(SRC_OVER);
 
@@ -1891,25 +1901,21 @@ public class Comet extends ClassController {
         final InEffectValue<Double> powerfire = new InEffectValue<>(times -> pow(1.5,times));
         final InEffectValue<Double> energyfire = new InEffectValue<>(times -> pow(2,times));
         final InEffect splitfire = new InEffect();
+	    final double randomVoronoiTranslation = randOf(-1,1)*randMN(0.01,0.012);
 
         Rocket(Player PLAYER) {
             super(
                 Rocket.class,
                 playfield.getWidth()/2,playfield.getHeight()/2,0,0,PLAYER_HIT_RADIUS,
-                new Icon(null,40),
+                graphics(MaterialDesignIcon.ROCKET,34,PLAYER.color.get(),null),
+                // graphics(FontAwesomeIcon.ROCKET,40,PLAYER.color.get(),null), alternative
                 PLAYER_ENERGY_INITIAL,PLAYER_E_BUILDUP
             );
             player = PLAYER;
-	        maintain(player.color, ((Icon)graphics).fillProperty()); // !work! why?
+//	        maintain(player.color, ((Icon)graphics).fillProperty()); // change color on the fly
             kinetic_shield = new KineticShield(ROCKET_KINETIC_SHIELD_RADIUS,ROCKET_KINETIC_SHIELD_ENERGYMAX);
             changeAbility(player.ability_type.get());
             engine = random()<0.5 ? new RocketEngine() : new PulseEngine();
-            ((Icon)graphics).icon(engine instanceof RocketEngine ? MaterialDesignIcon.ROCKET : FontAwesomeIcon.ROCKET);
-            ((Icon)graphics).size(engine instanceof RocketEngine ? 40 : 34);
-
-            Image g = engine instanceof RocketEngine
-                    ? graphics(MaterialDesignIcon.ROCKET,40, player.color.getValue(), null)
-                    : graphics(FontAwesomeIcon.ROCKET,34, player.color.getValue(), null);
 
             gun = new Gun(
                 MANUAL,
@@ -1938,16 +1944,15 @@ public class Comet extends ClassController {
         }
 
         void draw() {
+	        // gravity space contraction effect
+	        // bug: interferes with hyperspace animation & graphics scaling
+	        // Its also increasing game mechanics complexity wastefully -> disabled for now
+	        // setScaleXY(graphics,0.4+0.6*(1-g_potential));
+
+	        graphicsDir = PLAYER_GRAPHICS_ANGLE_OFFSET + dir;
+
             super.draw();
 
-	        ((Icon)graphics).setFill(player.color.getValue()); // TODO: color doesn't set otherwise, remove
-
-            // gravity space contraction effect
-            // bug: interferes with hyperspace animation & graphics scaling
-            // Its also increasing game mechanics complexity wastefully -> disabled for now
-            // setScaleXY(graphics,0.4+0.6*(1-g_potential));
-
-            graphics.setRotate(deg(PLAYER_GRAPHICS_ANGLE_OFFSET + dir));
 
             if (game.humans.intelOn.is()) {
                 double bullet_range = calculateBulletRange();
@@ -1982,12 +1987,21 @@ public class Comet extends ClassController {
 //                 double sd = sin(d);
 //                 double dist = distance(r);
 //                 double f = dist<mid ? -8*pow((1-dist/mid),2) : 6*pow((dist-mid)/2000,2);
+//	                    f *= 0.01;
 //                 dx += f*cd;
 //                 dy += f*sd;
 //                 r.dx -= f*cd;
 //                 r.dy -= f*sd;
 //                 drawHudLine(x,y,20,dist-2*20,cd,sd,COLOR_DB);
 //             });
+
+	        // todo: force from centre
+//	        Set<Rocket> rs = game.oss.get(Rocket.class);
+//	        if (rs.isEmpty()) return;
+//	        Vec centre = new Vec(
+//		        rs.stream().mapToDouble(r -> r.x).average().getAsDouble(),
+//		        rs.stream().mapToDouble(r -> r.x).average().getAsDouble()
+//	        );
         }
         void changeAbility(AbilityKind type ){
             if (ability_main!=null) ability_main.dispose();
@@ -2042,7 +2056,7 @@ public class Comet extends ClassController {
                 Ufo.class,
                 (side==Side.RIGHT ? 1 : 0) * playfield.getWidth(),
                 random()*playfield.getHeight(),0,0,UFO_HIT_RADIUS,
-                new Icon(MaterialDesignIcon.BIOHAZARD,40){{ setFill(game.ufos.color); }},
+	            graphics(MaterialDesignIcon.BIOHAZARD,40,game.ufos.color,null),
                 UFO_ENERGY_INITIAL,UFO_E_BUILDUP
             );
             dir = x<playfield.getWidth()/2 ? 0 : PI; // left->right || left<-right
@@ -2112,7 +2126,6 @@ public class Comet extends ClassController {
         @Override
         public void doLoop() {
             super.doLoop();
-
         }
 
         void doLoopOutOfField() {
@@ -2178,7 +2191,7 @@ public class Comet extends ClassController {
             }
 
             // look for enemy actively (not every cycle though)
-            if (game.loopid%UFO_DISC_DECISION_TIME_TTL==0)
+            if (game.loopId %UFO_DISC_DECISION_TIME_TTL==0)
                 enemy = findClosestRocketTo(this);
 
             if (enemy==null || enemy.player.rocket != enemy || enemy.isin_hyperspace) {
@@ -2210,25 +2223,28 @@ public class Comet extends ClassController {
             }
         }
     }
-    /** Noninteractive mission info button. */
+    /** Non-interactive mission info button. */
     class MissionInfoButton extends PO {
 
         MissionInfoButton() {
-            super(MissionInfoButton.class, 0, 0, 0, 0, 0, new Icon(FontAwesomeIcon.INFO,15));
+            super(MissionInfoButton.class, 0, 0, 0, 0, 0, graphics(FontAwesomeIcon.INFO,15,game.humans.color,null));
             x = rand0N(playfield.getWidth());
             y = rand0N(playfield.getHeight());
-            graphics.setOnMouseClicked(e -> new MissionPane().show(game.mission));
+            // graphics.setOnMouseClicked(e -> new MissionPane().show(game.mission));
+	        if (playfield.getScene()!=null)
+	        playfield.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+	        	if ((x-e.getX())*(x-e.getX())+(y-e.getY())*(y-e.getY())<=10*10) {
+			        new MissionPane().show(game.mission);
+			        e.consume();
+		        }
+	        });
         }
 
         @Override
-        void init() {
-            playfield.getChildren().add(graphics);
-        }
+        void init() {}
 
         @Override
-        public void dispose() {
-            playfield.getChildren().remove(graphics);
-        }
+        public void dispose() {}
 
         @Override
         public void doLoop() {
@@ -2259,46 +2275,81 @@ public class Comet extends ClassController {
         new FermiGraphics(x, y, UFO_DISC_EXPLOSION_RADIUS).color = game.ufos.color;
     }
 
-    class Shuttle extends Ship {
-        double ttl = durToTtl(seconds(50));
-        final double rotationAngle = randOf(-1,1)*deg(D360/durToTtl(seconds(20)));
-        final Rocket owner;
+	class Shuttle extends Ship {
+		double ttl = durToTtl(seconds(50));
+		final double graphicsDirBy = randOf(-1,1)*D360/durToTtl(seconds(40));
+		final Rocket owner;
 
-        public Shuttle(Rocket r) {
-            super(
-                Shuttle.class, r.x+50,r.y-50,0,0,PLAYER_HIT_RADIUS,
-                new Icon(FontAwesomeIcon.SPACE_SHUTTLE,40), 0,0
-            );
-            owner = r;
-            kinetic_shield = new KineticShield(SHUTTLE_KINETIC_SHIELD_RADIUS,SHUTTLE_KINETIC_SHIELD_ENERGYMAX) {
-                // disables effect
-                @Override protected void scheduleActivation() {}
-            };
-            kinetic_shield.KSenergy = kinetic_shield.KSenergy_max;
-            createHyperSpaceAnim(graphics).playClose();
-            game.runNext.add(3*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(4*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(5*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(6*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(7*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(8*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
-            game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnim(graphics).playOpenDo(() -> dead=true); });
-        }
-        boolean isHitDistance(PO o) {
-            if (o instanceof Bullet)
-                return isDistanceLess(o,kinetic_shield.KSradius+PLAYER_BULLET_SPEED/2+o.radius);
-            if (o instanceof Asteroid && kineticEto(o)<kinetic_shield.KSenergy)
-                return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
-            return isDistanceLess(o,radius+o.radius);
-        }
-        void draw() {
-            super.draw();
-            graphics.setRotate(graphics.getRotate()+rotationAngle);
-        }
-    }
+		public Shuttle(Rocket r) {
+			super(
+				Shuttle.class, r.x+50,r.y-50,0,0,PLAYER_HIT_RADIUS,
+				graphics(FontAwesomeIcon.SPACE_SHUTTLE,40,game.humans.colorTech,null), 0,0
+			);
+			graphicsDir = randOf(-1,1)*deg(D360/durToTtl(seconds(20)));
+			graphicsScale = 0;
+			owner = r;
+			createHyperSpaceAnimIn(game, this);
+			game.runNext.add(3*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(4*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(5*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(6*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(7*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(8*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
+			game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnimOut(game, this); });
+			game.runNext.add(ttl + durToTtl(millis(200)), () -> dead=true);
+		}
+		@Override void draw() {
+			// dir += graphicsDir;   // produces interesting effect
+			graphicsDir += graphicsDirBy;
+			super.draw();
+		}
+		@Override void die(Object cause) {
+			super.die(cause);
+			new FermiGraphics(x, y, UFO_EXPLOSION_RADIUS).color = game.humans.color;
+		}
+	}
+	class SuperShield extends Ship {
+		double ttl = durToTtl(seconds(50));
+		final double graphicsDirBy = randOf(-1,1)*D360/durToTtl(seconds(40));
+		final Rocket owner;
+
+		public SuperShield(Rocket r) {
+			super(
+				SuperShield.class, r.x+50,r.y-50,0,0,10,
+				graphics(MaterialIcon.DETAILS,20,game.humans.colorTech,null), 0,0
+			);
+			graphicsDir = randOf(-1,1)*deg(D360/durToTtl(seconds(20)));
+			graphicsScale = 0;
+			owner = r;
+			kinetic_shield = new KineticShield(SHUTTLE_KINETIC_SHIELD_RADIUS,SHUTTLE_KINETIC_SHIELD_ENERGYMAX) {
+				// disables effect
+				@Override protected void scheduleActivation() {}
+			};
+			kinetic_shield.KSenergy = kinetic_shield.KSenergy_max;
+			createHyperSpaceAnimIn(game, this);
+			game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnimOut(game, this); });
+			game.runNext.add(ttl + durToTtl(millis(200)), () -> dead=true);
+		}
+		@Override boolean isHitDistance(SO o) {
+			if (o instanceof Bullet)
+				return isDistanceLess(o,kinetic_shield.KSradius+PLAYER_BULLET_SPEED/2+o.radius);
+			if (o instanceof Asteroid && kineticEto(o)<kinetic_shield.KSenergy)
+				return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
+			return isDistanceLess(o,radius+o.radius);
+		}
+		@Override void draw() {
+			// dir += graphicsDir;   // produces interesting effect
+			graphicsDir += graphicsDirBy;
+			super.draw();
+		}
+		@Override void die(Object cause) {
+			super.die(cause);
+			new FermiGraphics(x, y, UFO_EXPLOSION_RADIUS).color = game.humans.color;
+		}
+	}
     /** Represents defunct ship. Gives upgrades. */
     class Satellite extends PO {
-        final RocketEnhancer e;
+        final Enhancer e;
         final boolean isLarge;
 
         /** Creates small satellite out of Shuttle or large Satellite. */
@@ -2307,12 +2358,13 @@ public class Comet extends ClassController {
                 s.x,s.y,
                 s instanceof Shuttle ? 0.2*cos(DIR) : s.dx,
                 s instanceof Shuttle ? 0.2*sin(DIR) : s.dy,
-                SATELLITE_RADIUS/2, new Icon(MaterialDesignIcon.SATELLITE_VARIANT,20)
+                SATELLITE_RADIUS/2, null
             );
             e = s instanceof Shuttle ? randOf(game.ROCKET_ENHANCERS_NO_SHUTTLE) : ((Satellite)s).e;
             children = new HashSet<>(2);
-            if (game.humans.intelOn.is()) ((Icon)graphics).icon(e.icon);
+	        graphics = graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT,40,game.humans.colorTech,null);
             isLarge = false;
+	        graphicsScale = 0.5;
         }
         /** Creates large Satellite. */
         public Satellite() {
@@ -2323,12 +2375,13 @@ public class Comet extends ClassController {
             super(Satellite.class,
                 (dir==Side.LEFT ? 0 : 1)*playfield.getWidth(), random()*playfield.getHeight(),
                 (dir==Side.LEFT ? 1 : -1)*SATELLITE_SPEED, 0,
-                SATELLITE_RADIUS, new Icon(MaterialDesignIcon.SATELLITE_VARIANT,40)
+                SATELLITE_RADIUS, graphics(MaterialDesignIcon.SATELLITE_VARIANT,40,game.humans.colorTech,null)
             );
-            children = new HashSet<>(2);
             e = randOf(game.ROCKET_ENHANCERS);
-            if (game.humans.intelOn.is()) new REIndicator(this,e);
+            children = new HashSet<>(2);
+            if (game.humans.intelOn.is()) new EIndicator(this,e);
             isLarge = true;
+	        graphicsScale = 1;
         }
 
         void move() {}
@@ -2392,15 +2445,16 @@ public class Comet extends ClassController {
         @Override
         void draw() {
             // the classic point bullet
-//            gc.setFill(color);
-//            gc.fillOval(x-1,y-1,2,2);
+//	        double r = isHighEnergy ?  5 : 2;
+//          gc.setFill(color);
+//	        gc.fillOval(x-1,y-1,r,r);
 
 //            // line bullets
             GraphicsContext g = gc_bgr;
             g.setGlobalAlpha(0.4);
             g.setStroke(color);
-            g.setLineWidth(3);
-            g.strokeLine(x,y,x+dx,y+dy);
+            g.setLineWidth(isHighEnergy ?  5 : 3);
+            g.strokeLine(x,y,x+dx*0.9,y+dy*0.9);
             g.setStroke(null);
             g.setGlobalAlpha(1);
         }
@@ -2436,16 +2490,16 @@ public class Comet extends ClassController {
         boolean checkWithXY(PO e, double X, double Y) {
             if (dead || e.dead) return true;  // dead objects must not participate
 
-            SO past_state = new SO() {};
-               past_state.x = X;
-               past_state.y = Y;
+	        // hack, we temporarily set old co--ordinates, we must restore this before method returns
+	        double tempX = x, tempY = y;
+	        x = X; y = Y;
 
-            if (e.isHitDistance(past_state)) {
+            if (e.isHitDistance(this)) {
                 dead = true; // bullet always dies
                 if (e instanceof Rocket) {
                     Rocket r = (Rocket)e;
                     if (!game.deadly_bullets.get() && owner instanceof Rocket) {
-                        r.kinetic_shield.new KineticShieldPiece(r.dir(past_state));
+                        r.kinetic_shield.new KineticShieldPiece(r.dir(this));
                     }
                     if (game.deadly_bullets.get() || !(owner instanceof Rocket)) {
                         if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
@@ -2458,13 +2512,12 @@ public class Comet extends ClassController {
                 } else
                 if (e instanceof Asteroid) {
                     Asteroid a = (Asteroid)e;
-                    a.onHit(past_state);
+                    a.onHit(this);
 
                     if (owner instanceof Rocket)
                         ((Rocket)owner).player.score.setValueOf(s -> s + (int)SCORE_ASTEROID(a));
 
                     new FermiGraphics(e.x, e.y, e.radius*2.5);
-
 //                            gc_bgr.setGlobalAlpha(0.2);
 //                            gc_bgr.setFill(mission.color);
 //                            drawOval(gc_bgr,b.x,b.y,100);
@@ -2474,7 +2527,7 @@ public class Comet extends ClassController {
                     Ufo u = (Ufo)e;
                     if (!(owner instanceof Ufo)) {
                         u.dead = true;
-                        game.ufos.onUfoDestroyed(u);
+                        game.ufos.onUfoDestroyed();
                         drawUfoExplosion(u.x,u.y);
                     }
                     if (owner instanceof Rocket)
@@ -2487,13 +2540,17 @@ public class Comet extends ClassController {
                         ((Rocket)owner).player.score.setValueOf(s -> s + (int)SCORE_UFO_DISC);
                     }
                 } else
-                if (e instanceof Shuttle) { // we are assuming its kinetic shield is always active (by game design)
-                    // ignore bullets when allies | shooting from inside the shield
-                    if (owner instanceof Rocket || owner.distance(e)<((Ship)e).kinetic_shield.KSradius) {
-                        dead = false;
-                    } else {
-                        ((Ship)e).kinetic_shield.new KineticShieldPiece(e.dir(past_state));
-                    }
+                if (e instanceof Shuttle) {
+	                dead = false;   // shoot-through when allies
+                } else
+                if (e instanceof SuperShield) {
+                	// we are assuming its kinetic shield is always active (by game design)
+	                // ignore bullets when allies | shooting from inside the shield
+	                if (owner instanceof Rocket || owner.distance(e)<((Ship)e).kinetic_shield.KSradius) {
+		                dead = false;
+	                } else {
+		                ((Ship)e).kinetic_shield.new KineticShieldPiece(e.dir(this));
+	                }
                 } else
                 if (e instanceof Satellite) {
                     Satellite s = (Satellite)e;
@@ -2501,11 +2558,15 @@ public class Comet extends ClassController {
                     else dead = false; // small satellites are shoot-through
                 }
 
-                boolean washit = dead;
-                if (isHighEnergy) dead = false;
+                boolean wasHit = dead;
+                if (isHighEnergy) dead &= false;
                 if (dead) onExpire(e);
-                return washit;
+
+	            x = tempX; y = tempY;
+                return wasHit;
             }
+
+	        x = tempX; y = tempY;
             return false;
         }
     }
@@ -2604,7 +2665,7 @@ public class Comet extends ClassController {
             // bullet expires
             if (dead && ttl<=0)  {
                 dead = false; // needs to be set first
-                isin_hyperspace = target==null ? false : target.isin_hyperspace; // hyperspaced targets too
+                isin_hyperspace = target!=null && target.isin_hyperspace; // hyperspace targets too
                 super.checkCollision(e);
                 dead = true; // absolutely preserve the value
             }
@@ -2669,8 +2730,8 @@ public class Comet extends ClassController {
     private final ParticleEmitter ROCKET_ENGINE_DEBRIS_EMITTER = (x,y,dir,strength) -> {
         double dispersion_angle = D45;
         double d1 = dir + (random())*dispersion_angle;
-        double d4 = dir + .5*(random())*dispersion_angle;
-        double d2 = dir - (random())*dispersion_angle;
+//        double d4 = dir + .5*(random())*dispersion_angle;
+//        double d2 = dir - (random())*dispersion_angle;
         double d3 = dir - .5*(random())*dispersion_angle;
         game.runNext.add(() -> {
             new RocketEngineDebris(x+20*cos(dir), y+20*sin(dir), 1*cos(d1),1*sin(d1),strength);
@@ -2695,6 +2756,7 @@ public class Comet extends ClassController {
     }
     class UfoEngineDebris extends Particle {
 
+    	@SuppressWarnings("unused")
         public UfoEngineDebris(double x, double y, double radius) {
             super(x,y,0,0,durToTtl(seconds(0.5)));
         }
@@ -2718,9 +2780,9 @@ public class Comet extends ClassController {
         final Color color;
         final boolean inverse;
 
-        RadioWavePulse(double x, double y, double dx, double dy, double EPANSION_RATE, Color COLOR, boolean RECTANGULAR) {
+        RadioWavePulse(double x, double y, double dx, double dy, double EXPANSION_RATE, Color COLOR, boolean RECTANGULAR) {
             super(x,y,dx,dy,durToTtl(seconds(2)));
-            dxy = EPANSION_RATE;
+            dxy = EXPANSION_RATE;
             inverse = dxy<0;
             color = COLOR;
             rect = RECTANGULAR;
@@ -2729,17 +2791,17 @@ public class Comet extends ClassController {
 
         void draw() {
             radius += dxy;
-            gc.setGlobalAlpha(inverse ? 1-ttl : ttl);
-            gc.setStroke(color);
-            gc.setLineWidth(2);
+            gc_bgr.setGlobalAlpha(0.5*(inverse ? 1-ttl : ttl));
+            gc_bgr.setStroke(color);
+            gc_bgr.setLineWidth(2);
             if (rect) {
-	            Affine a = rotate(gc, 360*ttl/3, x,y);
-                gc.strokeRect(x-radius,y-radius, 2*radius,2*radius);
-	            gc.setTransform(a);
+	            Affine a = rotate(gc_bgr, 360*ttl/3, x,y);
+                gc_bgr.strokeRect(x-radius,y-radius, 2*radius,2*radius);
+	            gc_bgr.setTransform(a);
             } else {
-                gc.strokeOval(x-radius,y-radius, 2*radius,2*radius);
+                gc_bgr.strokeOval(x-radius,y-radius, 2*radius,2*radius);
             }
-            gc.setGlobalAlpha(1);
+            gc_bgr.setGlobalAlpha(1);
         }
     }
 
@@ -2921,7 +2983,6 @@ public class Comet extends ClassController {
             hits_max = splits;
         }
         void draw() {
-            double d = radius*2;
             gc.setGlobalBlendMode(DARKEN);
             gc.setFill(new RadialGradient(deg(dir),0.6,0.5,0.5,0.5,true,NO_CYCLE,new Stop(0,coloralive),new Stop(0.2,coloralive),new Stop(0.5,Color.BLACK),new Stop(1,Color.TRANSPARENT)));
             drawOval(gc,x,y,radius);
@@ -3084,7 +3145,7 @@ public class Comet extends ClassController {
         double circling_speed = 0.5*D360/durToTtl(seconds(0.5)); // times/sec
         double circling_mag = 0;
 
-        final PTTL trail = new PTTL(() -> durToTtl(seconds(0.5+rand0N(2))),() -> {
+        final PTtl trail = new PTtl(() -> durToTtl(seconds(0.5+rand0N(2))),() -> {
             if (0.9>size && size >0.4) {
                 new GenoidDebris(x+1.5*radius*cos(circling),y+1.5*radius*sin(circling),0,0,2,seconds(1.6));
                 new GenoidDebris(x+1.5*radius*cos(circling),y+1.5*radius*sin(circling),0,0,2,seconds(1.6));
@@ -3126,7 +3187,7 @@ public class Comet extends ClassController {
             new GenoidGraphics(x,y,radius);
         }
         void onHitParticles(SO o) {
-            double hitdir = dir(o);
+            // double hitDir = dir(o);
             int particles = (int)randMN(1,3);
             repeat(particles, i ->
                 new GenoidDebris(
@@ -3194,7 +3255,7 @@ public class Comet extends ClassController {
         }
     }
     private class Fermi extends Asteroid<OrganelleMover> {
-        final PTTL trail = new PTTL(() -> durToTtl(seconds(0.5+rand0N(2))), () -> new FermiDebris(x,y,0,0,5,seconds(0.6)));
+        final PTtl trail = new PTtl(() -> durToTtl(seconds(0.5+rand0N(2))), () -> new FermiDebris(x,y,0,0,5,seconds(0.6)));
         double ttlocillation = 0;
         FermiMove pseudomovement;
 
@@ -3209,8 +3270,8 @@ public class Comet extends ClassController {
             hits_max = splits>2 ? 1 : 0;
 
             if (size<=0.5 && randBoolean()) {
-                Ƒ0<FermiMove> m = randOf(StraightMove::new,WaveMove::new,FlowerMove::new,ZigZagMove::new,KnobMove::new,SpiralMove::new,SidespiralMove::new);
-                pseudomovement = m.apply();
+                Ƒ1<Fermi,FermiMove> m = randOf(FERMI_MOVES);
+                pseudomovement = m.apply(this);
             }
         }
 
@@ -3236,7 +3297,7 @@ public class Comet extends ClassController {
             new FermiGraphics(x,y,radius);
         }
         void onHitParticles(SO o) {
-            double hitdir = dir(o);
+            // double hitDir = dir(o);
             int particles = (int)randMN(1,3);
             repeat(particles, i ->
                 new FermiDebris(
@@ -3355,7 +3416,8 @@ public class Comet extends ClassController {
             }
         }
     }
-        private class FermiGraphics extends Particle implements Draw2 {
+    private static final Set<Ƒ1<Fermi,Fermi.FermiMove>> FERMI_MOVES = set(f -> f.new StraightMove(),f -> f.new WaveMove(),f -> f.new FlowerMove(),f -> f.new ZigZagMove(),f -> f.new KnobMove(),f -> f.new SpiralMove(),f -> f.new SidespiralMove());
+    private class FermiGraphics extends Particle implements Draw2 {
             double r;
             Color color = game.mission.color;
 
@@ -3389,6 +3451,7 @@ public class Comet extends ClassController {
                 gc_bgr.fillOval(x-rr,y-rr,d,d);
             }
         }
+
     /** Generates force field affecting objects. */
     abstract class ForceField extends SO {
         abstract void apply(PO o);
@@ -3427,11 +3490,11 @@ public class Comet extends ClassController {
             double dist = dist(distx,disty)+1; // +1 avoids /0 or /very_small_number);
             double f = force(o.mass,dist);
 
-            double gravity_potentiall_inv = computeForceInversePotential(dist,radius_gravity);
-            double gravity_potential = 1-gravity_potentiall_inv;
+            double gravity_potential_inv = computeForceInversePotential(dist,radius_gravity);
+	        // double gravity_potential = 1-gravity_potential_inv;
 
             // Used for gravity based effects. E.g. time/space dilatation.
-            o.g_potential *= gravity_potentiall_inv;
+            o.g_potential *= gravity_potential_inv;
 
             // Bullets are affected more & stop aging
             if (o instanceof Bullet && dist<220)
@@ -3543,12 +3606,12 @@ public class Comet extends ClassController {
 
             // hawking radiation + magnetic particle acceleration
             double d = rand0N(D360);
-            double speed_base = 4;
-            double magnetic_force = (abs(D90-(d%PI))/(D90)) < PI/10 ? 1 : 0;
-                   magnetic_force = 0;
-            double s = speed_base + 6*magnetic_force*magnetic_force*magnetic_force;
-//            new RocketEngineDebris(x+50*cos(d),y+50*sin(d), s*cos(d+0.1),s*sin(d+0.1), durToTtl(millis(500)));
-//            new RocketEngineDebris(x+100*cos(d),y+100*sin(d), 3*cos(d-D90+0.1),3*sin(d-D90+0.1), d urToTtl(millis(500)));
+            // double speed_base = 4;
+            // double magnetic_force = (abs(D90-(d%PI))/(D90)) < PI/10 ? 1 : 0;
+            //        magnetic_force = 0;
+            // double s = speed_base + 6*magnetic_force*magnetic_force*magnetic_force; // use somehow
+            // new RocketEngineDebris(x+50*cos(d),y+50*sin(d), s*cos(d+0.1),s*sin(d+0.1), durToTtl(millis(500)));
+            // new RocketEngineDebris(x+100*cos(d),y+100*sin(d), 3*cos(d-D90+0.1),3*sin(d-D90+0.1), d urToTtl(millis(500)));
 
             // forms acretion disc
             new RocketEngineDebris(x+50*cos(d),y+50*sin(d), 4*cos(d-D90+0.1),4*sin(d-D90+0.1), durToTtl(millis(500)));
@@ -3618,30 +3681,41 @@ public class Comet extends ClassController {
         }
     }
 
-    class RocketEnhancer {
-        final String name;
-        final String description;
-        final GlyphIcons icon;
+	static class Displayable {
+		final String name;
+		final String description;
+		final GlyphIcons icon;
+
+		public Displayable(String name, GlyphIcons icon, CharSequence... description) {
+			this.name = name;
+			this.description = String.join("\n", description);
+			this.icon = icon;
+		}
+	}
+	/**
+	 * A rocket ability. Enhances player's rocket in some way.
+	 */
+	class Enhancer extends Displayable {
         final Duration duration;
         final Consumer<Rocket> starter;
         final Consumer<Rocket> stopper;
+		final boolean isShareable;
 
-        RocketEnhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, String... DESCRIPTION) {
-            name = NAME;
-            icon = ICON;
-            duration = DURATION;
-            starter = STARTER;
-            stopper = STOPPER;
-            description = String.join("\n", DESCRIPTION);
-        }
+		Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, boolean ISSHAREABLE, CharSequence... DESCRIPTION) {
+			super(NAME, ICON, DESCRIPTION);
+			duration = DURATION;
+			starter = STARTER;
+			stopper = STOPPER;
+			isShareable = ISSHAREABLE;
+		}
 
-        RocketEnhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, String... DESCRIPTION) {
+		Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, CharSequence... DESCRIPTION) {
+			this(NAME, ICON, DURATION, STARTER, STOPPER, true, DESCRIPTION);
+		}
+
+        Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, CharSequence... DESCRIPTION) {
             this(NAME, ICON, DURATION, STARTER, r -> {}, DESCRIPTION);
         }
-
-//        RocketEnhancer(String NAME, GlyphIcons ICON, Duration DURATION, Ƒ1<Rocket,InEffect> effect_supplier, String... DESCRIPTION) {
-//            this(NAME, ICON, DURATION, r -> effect_supplier.apply(r).inc(), r -> effect_supplier.apply(r).dec(), DESCRIPTION);
-//        }
 
         void enhance(Rocket r) {
             start(r);
@@ -3649,32 +3723,33 @@ public class Comet extends ClassController {
         }
 
         void start(Rocket r) {
-            if (game.humans.share_enhancers) {
+            if (isShareable && game.humans.share_enhancers) {
                 game.oss.get(Rocket.class).forEach(starter);
-                game.oss.get(Rocket.class).forEach(rk -> new REIndicator(rk,this));
-            }
-            else {
+                game.oss.get(Rocket.class).forEach(rk -> new EIndicator(rk,this));
+            } else {
                 starter.accept(r);
-                new REIndicator(r,this);
+                new EIndicator(r,this);
             }
         }
 
         void stop(Rocket r) {
-            if (game.humans.share_enhancers) game.oss.get(Rocket.class).forEach(stopper);
+            if (isShareable && game.humans.share_enhancers) game.oss.get(Rocket.class).forEach(stopper);
             else stopper.accept(r);
         }
     }
-    /** Rocket enhancer indicator icon moving with player rocket to indicate active enhancers. */
-    class REIndicator implements LO {
+    /**
+     * Rocket enhancer indicator icon moving with player rocket to indicate active enhancers.
+     */
+    class EIndicator implements LO {
         double ttl;
         final PO owner;
         final Node graphics;
         final int index;
 
-        public REIndicator(PO OWNER, RocketEnhancer enhancer) {
+        public EIndicator(PO OWNER, Enhancer enhancer) {
             owner = OWNER;
             ttl = durToTtl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
-            index = findFirstInt(0, i -> stream(owner.children).select(REIndicator.class).noneMatch(o -> o.index==i));
+            index = findFirstInt(0, i -> stream(owner.children).select(EIndicator.class).noneMatch(o -> o.index==i));
             owner.children.add(this);
             graphics = new Icon(enhancer.icon,15);
             playfield.getChildren().add(graphics);
@@ -3692,8 +3767,31 @@ public class Comet extends ClassController {
         }
 
     }
+	/**
+	 *
+	 */
+	static class Achievement extends Displayable {
+		final Ƒ1<Game,Set<Player>> evaluator;
 
-/**************************************************************************************************/
+		private Achievement(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			super(NAME, ICON, DESCRIPTION);
+			evaluator = EVALUATOR;
+		}
+
+		static Achievement achievement1(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Player> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, game -> Collections.singleton(EVALUATOR.apply(game)), DESCRIPTION);
+		}
+
+		static Achievement achievement01(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Optional<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).stream().collect(toSet()), DESCRIPTION);
+		}
+
+		static Achievement achievement0N(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, EVALUATOR, DESCRIPTION);
+		}
+	}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 
     /** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.width)*/
     public double modX(double x) {

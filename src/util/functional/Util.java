@@ -522,7 +522,7 @@ public interface Util {
         return i -> {
             try {
                 return f.apply(i);
-            } catch(Exception e) {
+            } catch(Throwable e) {
                 for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                 throw new RuntimeException(e);
             }

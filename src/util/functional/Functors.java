@@ -39,7 +39,12 @@ public interface Functors {
             apply();
         }
     }
-    interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
+	/**
+	 * Supplier function
+	 *
+	 * @param <O> output type
+	 */
+	interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
         O apply();
 
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
@@ -60,6 +65,27 @@ public interface Functors {
             return this::apply;
         }
     }
+	/**
+	 * Supplier function throwing an exception.
+	 * <p/>
+	 * Due to the signature, it is impossible to extend {@link Consumer}
+	 *
+	 * @param <O> output type
+	 */
+	interface Ƒ0E<O,E extends Throwable> extends Λ, IO<Void,O> {
+		O apply() throws E;
+
+		default Ƒ0E<O,E> onEx(O or, Class<?>... ecs) {
+			return () -> {
+				try {
+					return apply();
+				} catch(Throwable e) {
+					for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
+					throw e;
+				}
+			};
+		}
+	}
     /**
      * Function. Provides additional methods.
      * <p/>
@@ -353,14 +379,14 @@ public interface Functors {
      * <p/>
      * Due to the signature, it is impossible to extend {@link Consumer}
      */
-    interface Ƒ1E<I,O,E extends Exception> extends Λ, IO<I,O> {
+    interface Ƒ1E<I,O,E extends Throwable> extends Λ, IO<I,O> {
         O apply(I i) throws E;
 
         default Ƒ1E<I,O,E> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
-                } catch(Exception e) {
+                } catch(Throwable e) {
                     for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
                     throw e;
                 }
@@ -376,7 +402,7 @@ public interface Functors {
     // this class is ~pointless, although now lambda does not have to return null like in case of F1E,
     // but now the some method takes parameter of this class. Which will prevent
     // other F1E from being used!
-    interface ƑEC<I,E extends Exception> extends Ƒ1E<I,Void,E> {
+    interface ƑEC<I,E extends Throwable> extends Ƒ1E<I,Void,E> {
 
         @Override
         default Void apply(I i) throws E{

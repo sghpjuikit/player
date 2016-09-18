@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import util.functional.Functors.Ƒ0E;
 import util.functional.Functors.Ƒ1;
 
 /**
@@ -38,11 +39,79 @@ public interface Try<R,E> {
 		return error(message == null ? "Unknown error" : message);
 	}
 
+	static <O,E extends Throwable> Try<O,Throwable> tryFE(Ƒ0E<? extends O,E> f, Iterable<Class<?>> ecs) {
+		try {
+			return ok(f.apply());
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static <O,E extends Throwable> Try<O,Throwable> tryFE(Ƒ0E<? extends O,E> f, Class<?>... ecs) {
+		try {
+			return ok(f.apply());
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static Try<Void,Throwable> tryR(Runnable f, Iterable<Class<?>> ecs) {
+		try {
+			f.run();
+			return ok(null);
+		} catch(Exception e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static Try<Void,Throwable> tryR(Runnable f, Class<?>... ecs) {
+		try {
+			f.run();
+			return ok(null);
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static <O> Try<O,Throwable> tryS(Supplier<? extends O> f, Iterable<Class<?>> ecs) {
+		try {
+			return ok(f.get());
+		} catch(Exception e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static <O> Try<O,Throwable> tryS(Supplier<? extends O> f, Class<?>... ecs) {
+		try {
+			return ok(f.get());
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
 	static <I,O> Ƒ1<I,Try<O,String>> tryF(Function<I,O> f, Iterable<Class<?>> ecs) {
 		return i -> {
 			try {
 				return ok(f.apply(i));
-			} catch(Exception e) {
+			} catch(Throwable e) {
 				for (Class<?> ec : ecs)
 					if (ec.isInstance(e))
 						return errorOf(e);
@@ -55,7 +124,7 @@ public interface Try<R,E> {
 		return i -> {
 			try {
 				return ok(f.apply(i));
-			} catch(Exception e) {
+			} catch(Throwable e) {
 				for (Class<?> ec : ecs)
 					if (ec.isInstance(e))
 						return errorOf(e);
@@ -84,6 +153,11 @@ public interface Try<R,E> {
 	Try<R,E> ifOk(Consumer<? super R> action);
 
 	Try<R,E> ifError(Consumer<? super E> action);
+
+	default <X extends Throwable> Try<R,E> ifErrorThrow(Function<? super E, ? extends X> exceptionSupplier) throws X {
+		if (isError()) throw exceptionSupplier.apply(getError());
+		return this;
+	}
 
 	default Try<R,E> ifAny(Consumer<? super R> actionOk, Consumer<? super E> actionError) {
 		if (isOk()) actionOk.accept(get());
@@ -134,6 +208,23 @@ public interface Try<R,E> {
 		else {
 			return constraint.isOk() ? ok(constraint.get()) : this;
 		}
+	}
+
+	default <E1 extends E> Try<R,E> recover(Class<E1> type, Function<? super E,? extends R> recoverValueSupplier) {
+		if (isError()) {
+			E e = getError();
+			if (type.isInstance(e)) return ok(recoverValueSupplier.apply(e));
+		}
+		return this;
+	}
+
+	default <E1 extends E, E2 extends E> Try<R,E> recover(Class<E1> type1, Class<E1> type2, Function<? super E,? extends R> supplier1, Function<? super E,? extends R> supplier2) {
+		if (isError()) {
+			E e = getError();
+			if (type1.isInstance(e)) return ok(supplier1.apply(e));
+			if (type2.isInstance(e)) return ok(supplier2.apply(e));
+		}
+		return this;
 	}
 
 	class Ok<R,E> implements Try<R,E> {

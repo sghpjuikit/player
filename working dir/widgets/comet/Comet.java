@@ -56,7 +56,7 @@ import util.validation.Constraint;
 
 import static comet.Comet.Achievement.achievement1;
 import static comet.Comet.Constants.*;
-import static comet.Utils.AbilityKind.HYPERSPACE;
+import static comet.Utils.AbilityKind.SHIELD;
 import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
@@ -99,8 +99,10 @@ public class Comet extends ClassController {
 	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
     final Pane playfield = new Pane();  // play field, contains scenegraph game graphics
-    GraphicsContext gc; // draws canvas game graphics on canvas
-    GraphicsContext gc_bgr; // draws canvas game graphics on bgr canvas
+	final Canvas canvas = new Canvas();
+	final Canvas canvas_bgr = new Canvas();
+	final GraphicsContext gc = canvas.getGraphicsContext2D(); // draws canvas game graphics on canvas
+    final GraphicsContext gc_bgr = canvas_bgr.getGraphicsContext2D(); // draws canvas game graphics on bgr canvas
     final Text message = new Text();
     final Game game = new Game();
     final SetƑ every200ms = new SetƑ();
@@ -119,15 +121,11 @@ public class Comet extends ClassController {
         playfield.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
         // canvas
-        Canvas canvas = new Canvas();
-        gc = canvas.getGraphicsContext2D();
         canvas.widthProperty().bind(playfield.widthProperty());
         canvas.heightProperty().bind(playfield.heightProperty());
         canvas.setManaged(false);
-	    Canvas canvas_bgr = new Canvas();
 	    canvas_bgr.widthProperty().bind(playfield.widthProperty());
 	    canvas_bgr.heightProperty().bind(playfield.heightProperty());
-	    gc_bgr = canvas_bgr.getGraphicsContext2D();
 	    canvas_bgr.setManaged(false);
 
         // player stats
@@ -212,16 +210,17 @@ public class Comet extends ClassController {
 	    double FPS_KEY_PRESSED = 40; // frames per second
 	    double FPS_KEY_PRESSED_PERIOD = 1000 / FPS_KEY_PRESSED; // ms
 
-	    int PLAYER_LIVES_INITIAL = 1; // lives at the beginning of the game
+	    Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
+	    AbilityKind PLAYER_ABILITY_INITIAL = SHIELD; // rocket fire-fire time period
+	    int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
 	    int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
 
 	    static double SCORE_ASTEROID(Asteroid a) { return 30 + 2000 / (4 * a.radius); }
 
 	    double SCORE_UFO = 250;
 	    double SCORE_UFO_DISC = 100;
-	    double BONUS_MOBILITY_MULTIPLIER = 1.25; // coeficient
+	    double BONUS_MOBILITY_MULTIPLIER = 1.25; // coefficient
 	    double BONUS_LASER_MULTIPLIER_LENGTH = 400; // px
-	    Duration PLAYER_RESPAWN_TIME = seconds(3); // die -> respawn time
 	    double ROTATION_SPEED = 1.3 * PI / FPS; // 540 deg/sec.
 	    double RESISTANCE = 0.98; // slow down factor
 	    int ROT_LIMIT = 70; // smooths rotation at small scale, see use
@@ -234,9 +233,7 @@ public class Comet extends ClassController {
 	    double PLAYER_ENERGY_INITIAL = 5000;
 	    double PLAYER_E_BUILDUP = 1; // energy/frame
 	    double PLAYER_HIT_RADIUS = 13; // energy/frame
-	    Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
-	    AbilityKind PLAYER_ABILITY_INITIAL = HYPERSPACE; // rocket fire-fire time period
-	    double PLAYER_GRAPHICS_ANGLE_OFFSET = D45;
+	    Duration PLAYER_RESPAWN_TIME = seconds(3); // die -> respawn time
 	    double ROCKET_GUN_TURRET_ANGLE_GAP = D360 / 180;
 
 	    double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
@@ -245,7 +242,7 @@ public class Comet extends ClassController {
 	    double PULSE_ENGINE_PULSE_TTL = durToTtl(millis(400));
 	    double PULSE_ENGINE_PULSE_TTL1 = 1 / PULSE_ENGINE_PULSE_TTL; // saves us computation
 
-	    double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coeficient
+	    double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coefficient
 	    Duration KINETIC_SHIELD_RECHARGE_TIME = minutes(4);
 	    double ROCKET_KINETIC_SHIELD_RADIUS = 25; // px
 	    double ROCKET_KINETIC_SHIELD_ENERGYMAX = 5000; // energy
@@ -309,7 +306,7 @@ public class Comet extends ClassController {
     @IsConfig
     final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
     @IsConfig
-    final V<PlayerSpawners> spawning = new V<>(PlayerSpawners.CIRCLE);
+    final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
     @IsConfig(name = "Players")
     final ConfigurableVarList<Player> PLAYERS = new ConfigurableVarList<>(Player.class,
 	    new Player(1, Color.CORNFLOWERBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
@@ -581,8 +578,10 @@ public class Comet extends ClassController {
 	        (rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
 	        (rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
 	        (centerX,centerY) -> {
-	            gc_bgr.fillOval(centerX - 1, centerY - 1, 3, 3);
-	            drawHudCircle(centerX, centerY, 10, humans.color);
+	        	if (humans.intelOn.is()) {
+			        gc_bgr.fillOval(centerX - 1, centerY - 1, 3, 3);
+			        drawHudCircle(centerX, centerY, 10, humans.color);
+		        }
 	        },
 	        (edges) -> edges.forEach(edge -> {
 	            gc_bgr.save();
@@ -1949,7 +1948,7 @@ public class Comet extends ClassController {
 	        // Its also increasing game mechanics complexity wastefully -> disabled for now
 	        // setScaleXY(graphics,0.4+0.6*(1-g_potential));
 
-	        graphicsDir = PLAYER_GRAPHICS_ANGLE_OFFSET + dir;
+	        graphicsDir = D45 + dir; // add 45 degrees due to the graphics , TODO: fix this
 
             super.draw();
 

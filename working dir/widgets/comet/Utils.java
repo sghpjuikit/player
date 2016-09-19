@@ -315,7 +315,7 @@ interface Utils {
     enum Relations {
         ALLY, NEUTRAL, ENEMY
     }
-    enum PlayerSpawners {
+    enum PlayerSpawn {
         CIRCLE,
         LINE,
         RECTANGLE;
@@ -942,7 +942,9 @@ interface Utils {
 		}
 	}
 
-    /** 2d vector. Mutable. */
+    /**
+     * 2d vector. Mutable.
+     */
     class Vec {
         double x;
         double y;
@@ -1119,7 +1121,9 @@ interface Utils {
             return "Vec[" + x + ", " + y + "]";
         }
     }
-	/** Line. 2 point connection. Mutable. */
+	/**
+	 * Line. 2 point connection. Mutable.
+	 */
 	class Lin {
 		double x1, y1, x2, y2;
 

@@ -1,6 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- support runtime widget library loading
 - clean up ConfigField implementations, observability, validation, value correctness
 - Tagger reimplement validations trough Configs
 - converter transform off when just typing

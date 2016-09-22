@@ -2,7 +2,6 @@ package comet;
 
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
@@ -48,6 +47,7 @@ import kn.uni.voronoitreemap.diagram.PowerDiagram;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import kn.uni.voronoitreemap.j2d.Site;
+import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import util.R;
 import util.SwitchException;
@@ -1211,6 +1211,7 @@ interface Utils {
 		}
 
 		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Comet game);
+
 	}
 	class Voronoi1 extends Voronoi {
 		public Voronoi1(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double,Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
@@ -1299,49 +1300,92 @@ interface Utils {
 		}
 	}
 	class Voronoi2 extends Voronoi {
+		Map<Coordinate,Tuple2<Rocket,Boolean>> inputOutputMap = new HashMap<>(8*9); // maps input (rockets) to polygons
+
 		public Voronoi2(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double, Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
 			super(areaAction, distAction, centerAction, edgesAction);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void doCompute(Set<Rocket> rockets, double W, double H, Comet game) {
-			List<Coordinate> cells = stream(rockets).flatMap(c -> stream(new Vec(c.x, c.y),
-				new Vec(c.x + W, c.y), new Vec(c.x, c.y + H), new Vec(c.x - W, c.y), new Vec(c.x, c.y - H),
-				new Vec(c.x + W, c.y + H), new Vec(c.x + W, c.y - H), new Vec(c.x - W, c.y + H), new Vec(c.x - W, c.y - H)))
-				                         .peek(c -> c.x += randMN(0.01, 0.012)).map(c -> new Coordinate(c.x, c.y))
-				                         .toList();
+			inputOutputMap.clear();
+			List<Coordinate> cells = stream(rockets)
+                .flatMap(rocket -> {
+	                Vec r = new Vec(rocket.x+rocket.randomVoronoiTranslation, rocket.y+rocket.randomVoronoiTranslation);
+                	Coordinate cMain = new Coordinate(r.x, r.y);
+	                inputOutputMap.put(cMain,tuple(rocket,true));
+                	return stream(
+	                        new Coordinate(r.x + W, r.y), new Coordinate(r.x, r.y + H), new Coordinate(r.x - W, r.y), new Coordinate(r.x, r.y - H),
+	                        new Coordinate(r.x + W, r.y + H), new Coordinate(r.x + W, r.y - H), new Coordinate(r.x - W, r.y + H), new Coordinate(r.x - W, r.y - H)
+		                )
+		                .peek(c -> inputOutputMap.put(c,tuple(rocket,false)))
+		                .append(cMain);
+	                }
+				)
+	            .toList();
 
 			VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
 			voronoi.setClipEnvelope(new Envelope(0, W, 0, H));
 			voronoi.setSites(cells);
 			Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
 				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g -> {
-					IntStream.range(0, g.getNumGeometries())
+				.ifOk(g ->
+					edgesAction.accept(IntStreamEx.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
-						.peek(polygon -> {
-							Point c = polygon.getCentroid();
-							centerAction.accept(c.getX(),c.getY());
-						})
-						.flatMap(polygon -> {
-							Coordinate[] cs = polygon.getCoordinates();
-							double[] xs = new double[cs.length];
-							double[] ys = new double[cs.length];
-							for (int j = 0; j < cs.length; j++) {
-								xs[j] = cs[j].x;
-								ys[j] = cs[j].y;
-							}
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+						.groupingBy(polygon -> ((Tuple2<Rocket, Boolean>) polygon.getUserData())._1)
+	                    .values().stream()
+						.flatMap(ss -> {
+							List<Lin> lines = stream(ss)
+								.peek(polygon -> {
+									Tuple2<Rocket,Boolean> data = (Tuple2<Rocket,Boolean>) polygon.getUserData();
+									Rocket rocket = data._1;
+									Boolean isMain = data._2;
+									if (isMain) {
+										Point c = polygon.getCentroid();
+										centerAction.accept(c.getX(), c.getY());
+										areaAction.accept(rocket, polygon.getArea());
+										distAction.accept(rocket, game.dist(c.getX(), c.getY(), rocket.x, rocket.y));
 
-							Stream.Builder s = Stream.builder();
-							for (int j=0; j<cs.length; j++) {
-								int k = j==cs.length-1 ? 0 : j+1;
-								double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
-								if ((x1>=0 && y1>=0 && x1<=W && y1<=H) || (x2>=0 && y2>=0 && x2<=W && y2<=H))
-									s.add(new Lin(x1,y1,x2,y2));
-							}
-							return s.build();
-						});
-				});
+										game.gc_bgr.setFill(rocket.player.color.get());
+										game.gc_bgr.fillOval(c.getX() - 1, c.getY() - 1, 9, 9);
+									}
+								})
+				                // optimization: return edges -> draw edges instead of polygons, we can improve performance
+								 .flatMap(polygon -> {
+									 Coordinate[] cs = polygon.getCoordinates();
+									 double[] xs = new double[cs.length];
+									 double[] ys = new double[cs.length];
+									 for (int j = 0; j < cs.length; j++) {
+										 xs[j] = cs[j].x;
+										 ys[j] = cs[j].y;
+									 }
+
+//									 game.drawPolygon(xs,ys,cs.length);
+									 Stream.Builder s = Stream.builder();
+		                             for (int j=0; j<cs.length; j++) {
+		                                int k = j==cs.length-1 ? 0 : j+1;
+		                                double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
+		                                if ((x1>=0 && y1>=0 && x1<=W && y1<=H) || (x2>=0 && y2>=0 && x2<=W && y2<=H))
+		                                    s.add(new Lin(x1,y1,x2,y2));
+		                             }
+									 return s.build();
+								 }).toList();
+//						        .groupingBy(x -> x, counting())
+//						        .entrySet().stream()
+//						        .peek(e -> System.out.println(e.getValue()))
+//						        .filter(e -> e.getValue()==1)
+//						        .map(Entry::getKey)
+							Set<Lin> linesUnique = new HashSet<>();
+							Set<Lin> linesDuplicate = stream(lines).filter(n -> !linesUnique.add(n)).toSet();
+							linesUnique.removeAll(linesDuplicate);
+							return linesUnique.stream();
+						})
+	                    // optimization: draw each edge only once by removing duplicates with Set and proper hashCode()
+						.distinct()
+					)
+				);
 		}
 	}
 

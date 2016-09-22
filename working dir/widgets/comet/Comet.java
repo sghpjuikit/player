@@ -569,12 +569,27 @@ public class Comet extends ClassController {
                  "Control the largest nearby area throughout the game"
 		    ),
 		    achievement1(
-		    	"Control freak", MaterialDesignIcon.ARROW_EXPAND,
-                 game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
-                 "Control your nearby area most effectively"
+			    "Control freak", MaterialDesignIcon.ARROW_EXPAND,
+			    game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+			    "Control your nearby area most effectively"
+		    ),
+		    achievement1(
+			    "Reaper's favourite", MaterialDesignIcon.ARROW_EXPAND,
+			    game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+			    "Be the first to die"
+		    ),
+		    achievement1(
+			    "Live and prosper", MaterialDesignIcon.ARROW_EXPAND,
+			    game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+			    "Live the longest"
+		    ),
+		    achievement1(
+			    "Invincible", MaterialDesignIcon.ARROW_EXPAND,
+			    game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+			    "Don't die"
 		    )
 	    );
-	    Voronoi voronoi = new Voronoi1(
+	    Voronoi voronoi = new Voronoi2(
 	        (rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
 	        (rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
 	        (centerX,centerY) -> {

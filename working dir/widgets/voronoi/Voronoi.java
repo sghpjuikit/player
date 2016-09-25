@@ -1,27 +1,40 @@
 package voronoi;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.function.BiConsumer;
 
+import javafx.event.Event;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.paint.Color;
 
-import kn.uni.voronoitreemap.datastructure.OpenList;
-import kn.uni.voronoitreemap.diagram.PowerDiagram;
-import kn.uni.voronoitreemap.j2d.PolygonSimple;
-import kn.uni.voronoitreemap.j2d.Site;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
+
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
+import one.util.streamex.DoubleStreamEx;
+import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
+import util.access.V;
 import util.animation.Loop;
+import util.functional.Try;
 
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import static javafx.scene.input.MouseEvent.*;
 import static util.Util.clip;
 import static util.Util.pyth;
 import static util.functional.Util.by;
+import static util.functional.Util.stream;
 
 /**
  * Displays animated Voronoi diagram.
@@ -31,14 +44,15 @@ import static util.functional.Util.by;
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Voronoi",
-	description = "Displays real time visualisation of voronoi diagram of moving points",
-	howto = "",
-	notes = "",
+	description = "Playground to experiment and visualize voronoi diagrams of moving points",
+	howto = "To configure the visualization edit the source code.",
+//	notes = "",
 	version = "1",
 	year = "2016",
 	group = Widget.Group.VISUALISATION
 )
 public class Voronoi extends ClassController  {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Voronoi.class);
 	private final RenderNode canvas = new RenderNode();
 
 	public Voronoi() {
@@ -46,6 +60,9 @@ public class Voronoi extends ClassController  {
 		canvas.heightProperty().bind(heightProperty());
 		canvas.widthProperty().bind(widthProperty());
 		canvas.loop.start();
+		setOnMouseClicked(e -> canvas.pause(false));
+		focusedProperty().addListener((o,ov,nv) -> canvas.pause(!nv));
+		addEventHandler(Event.ANY, Event::consume);
 	}
 
 	@Override
@@ -62,6 +79,8 @@ public class Voronoi extends ClassController  {
 		P selectedCell = null;  // null if none
 		P mousePos = null;      // null if outside
 		long loopId = 0;        // loop id, autoincrement, used for simple loop control
+		private final Map<Coordinate,Cell> inputOutputMap = new HashMap<>(); // maps inputs to polygons
+		final V<Boolean> running = new V<>(true);
 
 		public RenderNode() {
 			// cell mouse dragging
@@ -86,9 +105,9 @@ public class Voronoi extends ClassController  {
 		}
 
 		void loop() {
-			int width = (int) getWidth();
-			int height = (int) getHeight();
-			if (width<=0 || height<=0) return;
+			double W = getWidth();
+			double H = getHeight();
+			if (W<=0 || H<=0) return;
 
 			loopId++;
 			//			if (loopId>1) return;
@@ -97,117 +116,189 @@ public class Voronoi extends ClassController  {
 			int cellCount = 40;
 			if (cells == null) {
 				// random
-				cells = StreamEx.generate(() -> Cell.random(width, height, .5)).limit(cellCount).toList();
+				cells = StreamEx.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
 				// circle
-				//				double wh = min(width,height);
-				//				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-				//			                          .mapToObj(a -> new Cell(wh/2+wh/10*cos(a), wh/2+wh/10*sin(a)))
-				//			                          .toList();
-				//				cells.add(new Cell(wh/2+10, wh/2+10));
-				//				cells.add(new Cell(wh/2+10, wh/2-10));
-				//				cells.add(new Cell(wh/2-10, wh/2-10));
-				//				cells.add(new Cell(wh/2-10, wh/2+10));
+				double wh = min(W,H);
+				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/11).limit(11)
+                          .mapToObj(a -> new Cell(0,0) {
+                                double angle = a;
+                                {
+									moving = (w,h) -> {
+										angle += 0.001;
+										x = wh/2+wh/20*cos(angle);
+										y = wh/2+wh/20*sin(angle);
+										x += randOf(-1,1)*randMN(0.0005,0.00051);
+										y += randOf(-1,1)*randMN(0.0005,0.00051);
+									};
+                                }
+							})
+							.map(c -> (Cell)c)
+                            .toList();
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/3).limit(3)
+					             .mapToObj(a -> new Cell(0,0) {
+						             double angle = a;
+						             {
+							             moving = (w,h) -> {
+								             angle -= 0.002;
+								             x = wh/2+wh/10*cos(angle);
+								             y = wh/2+wh/10*sin(angle);
+								             x += randOf(-1,1)*randMN(0.0005,0.00051);
+								             y += randOf(-1,1)*randMN(0.0005,0.00051);
+							             };
+						             }
+					             })
+					             .map(c -> (Cell)c)
+					             .toList());
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+					             .mapToObj(a -> new Cell(0,0) {
+						             double angle = a;
+						             {
+							             moving = (w,h) -> {
+								             angle -= 0.002;
+								             x = wh-wh/6+wh/8*cos(angle);
+								             y = wh/6+wh/8*sin(angle);
+								             x += randOf(-1,1)*randMN(0.0005,0.00051);
+								             y += randOf(-1,1)*randMN(0.0005,0.00051);
+							             };
+						             }
+					             })
+					             .map(c -> (Cell)c)
+					             .toList());
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+					             .mapToObj(a -> new Cell(0,0) {
+						             double angle = a;
+						             {
+							             moving = (w,h) -> {
+								             angle -= 0.002;
+								             x = wh/2+wh/4*cos(angle);
+								             y = wh/2+wh/4*sin(angle);
+								             x += randOf(-1,1)*randMN(0.0005,0.00051);
+								             y += randOf(-1,1)*randMN(0.0005,0.00051);
+							             };
+						             }
+					             })
+					             .map(c -> (Cell)c)
+					             .toList());
 				// horizontal sequence
-				//				cells = IntStream.range(0,cellCount)
-				//						         .mapToObj(a -> new Cell(width*0.1+width*0.8/cellCount*a, height/2))
-				//						         .toList();
+//				cells = IntStreamEx.range(0,cellCount)
+//			         .mapToObj(a -> new Cell(W*0.1+W*0.8/cellCount*a, H/2))
+//			         .toList();
+
+				// add noise to avoid arithmetic problem
+				cells.forEach(cell -> {
+					cell.x += randOf(-1,1)*randMN(0.01,0.012);
+					cell.y += randOf(-1,1)*randMN(0.01,0.012);
+				});
+
+				cells.stream().filter(cell -> cell.moving==null)
+					.forEach(c -> c.moving = (w,h) -> {
+						double x = c.x+c.dx;
+						double y = c.y+c.dy;
+						if (x<0) {
+							c.dx = -c.dx;
+							c.x = -x;
+						} else if (x>w) {
+							c.dx = -c.dx;
+							c.x = 2*w-x;
+						} else
+							c.x = x;
+
+						if (y<0) {
+							c.dy = -c.dy;
+							c.y = -y;
+						} else if (y>h) {
+							c.dy = -c.dy;
+							c.y = 2*h-y;
+						} else
+							c.y = y;
+				});
 			}
 
-
 			// move cells
-			cells.forEach(c -> {
-				double x = c.x+c.dx;
-				double y = c.y+c.dy;
-				if (x<0) {
-					c.dx = -c.dx;
-					c.x = -x;
-				} else if (x>width) {
-					c.dx = -c.dx;
-					c.x = 2*width-x;
-				} else
-					c.x = x;
-
-				if (y<0) {
-					c.dy = -c.dy;
-					c.y = -y;
-				} else if (y>height) {
-					c.dy = -c.dy;
-					c.y = 2*height-y;
-				} else
-					c.y = y;
-			});
+			cells.stream().filter(cell -> cell.moving!=null).forEach(cell -> cell.moving.accept(W,H));
 
 			draw();
 		}
 
+		void pause(boolean v) {
+			if (running.get()==v) return;
+			if (v) loop.stop();
+			else loop.start();
+		}
+
 		void draw() {
-			int width = (int) getWidth();
-			int height = (int) getHeight();
+			inputOutputMap.clear();
+			int W = (int) getWidth();
+			int H = (int) getHeight();
 
 			gc.setEffect(null);
 			gc.setFill(Color.AQUA);
 			gc.setStroke(Color.AQUA);
-			gc.clearRect(0,0,width,height);
+			gc.clearRect(0,0,W,H);
 
-			OpenList sites = new OpenList();
-			cells.forEach(c -> sites.add(new Site(c.x, c.y)));
-
-			// create a root polygon which limits the voronoi diagram. Here it is just a rectangle.
-			PolygonSimple rootPolygon = new PolygonSimple();
-			rootPolygon.add(0, 0);
-			rootPolygon.add(width, 0);
-			rootPolygon.add(width, height);
-			rootPolygon.add(0, height);
-
-			PowerDiagram diagram = new PowerDiagram();
-			diagram.setSites(sites);
-			diagram.setClipPoly(rootPolygon);
-
-			// do the computation
-			// unfortunately it can fail under some conditions, so we recover -> cancel this & all fture loops
-			// we could just stop this loop and continue with the next one, but once the computation fails, it
-			// will most probably fail again, at which point it can quickly crash the entire VM.
-			try {
-				diagram.computeDiagram();
-			} catch (Exception e) {
-				e.printStackTrace();
-				loop.stop();
-				return;
-			}
+			List<Coordinate> cords = stream(cells)
+	             .map(cell -> {
+	                 Coordinate c = new Coordinate(cell.x, cell.y);
+	                 inputOutputMap.put(c,cell);
+	                 return c;
+	             })
+	             .toList();
+			VoronoiDiagramBuilder diagram = new VoronoiDiagramBuilder();
+			diagram.setClipEnvelope(new Envelope(0, W, 0, H));
+			diagram.setSites(cords);
 
 			// draw cells
 			gc.save();
-			gc.setEffect(new GaussianBlur(15));
-			for (Site site : sites) {
-				// for each site we can now get the resulting polygon of its cell.
-				// note that the cell can also be empty, in which case there is no polygon for the corresponding site.
-				PolygonSimple polygon = site.getPolygon();
-				if (polygon!=null && polygon.getNumPoints()>1) {
-					boolean isSelected = selectedCell != null && site.x == selectedCell.x && site.y == selectedCell.y;
-					boolean isDragged = draggedCell==null;
-					if (isSelected) {
-						gc.save();
-						gc.setGlobalAlpha(isDragged ? 0.1 : 0.2);
-						gc.fillPolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
-						gc.restore();
-					}
-					gc.strokePolygon(toDouble(polygon.getXpointsClosed()), toDouble(polygon.getYpointsClosed()), polygon.getNumPoints());
-				}
-			}
+
+			// Unfortunately the computation can fail under some circumstances, so lets defend against it with Try
+			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
+				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+				.ifOk(g ->
+					IntStreamEx.range(0, g.getNumGeometries())
+						.mapToObj(g::getGeometryN)
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+						.forEach(polygon -> {
+							Cell cell = (Cell) polygon.getUserData();
+		                    Coordinate[] cs = polygon.getCoordinates();
+		                    double[] xs = new double[cs.length];
+		                    double[] ys = new double[cs.length];
+		                    for (int j = 0; j < cs.length; j++) {
+			                    xs[j] = cs[j].x;
+			                    ys[j] = cs[j].y;
+		                    }
+
+							boolean isSelected = selectedCell != null && cell.x == selectedCell.x && cell.y == selectedCell.y;
+							boolean isDragged = draggedCell==null;
+							if (isSelected) {
+								gc.setGlobalAlpha(isDragged ? 0.1 : 0.2);
+								gc.fillPolygon(xs, ys, polygon.getNumPoints());
+								gc.setGlobalAlpha(1);
+							}
+
+							//		                    for (int j=0; j<cs.length; j++) {
+							//								int k = j==cs.length-1 ? 0 : j+1;
+							//								double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
+							//								if ((x1>=0 && y1>=0 && x1<=W && y1<=H) || (x2>=0 && y2>=0 && x2<=W && y2<=H))
+							//									gc.strokeLine(x1,y1,x2,y2);
+							//							}
+							gc.strokePolygon(xs, ys, polygon.getNumPoints());
+						})
+				);
+			gc.applyEffect(new GaussianBlur(15));
 			gc.restore();
 
 			// draw lines
 			if (mousePos!=null) {
 				gc.save();
 				double distMin = 0;
-				double distMax = 0.2*pyth(width, height);
+				double distMax = 0.2*pyth(W, H);
 				double distDiff = distMax-distMin;
 				for (Cell c : cells) {
 					double dist = mousePos.distance(c.x, c.y);
 					double distNormalized = 1-(clip(distMin, dist, distMax) - distMin)/distDiff;
 					double opacity = 0.8*sqrt(distNormalized);
 					gc.setGlobalAlpha(opacity);
-					drawLine(c.x,c.y,mousePos.x,mousePos.y);
+					gc.strokeLine(c.x,c.y,mousePos.x,mousePos.y);
 				}
 				gc.restore();
 			}
@@ -220,30 +311,6 @@ public class Voronoi extends ClassController  {
 			if (selectedCell!=null) gc.fillOval(selectedCell.x-rd,selectedCell.y-rd,2*rd,2*rd);
 			gc.restore();
 
-		}
-
-		void drawLine(double x, double y, double tox, double toy) {
-//			not working? why
-//			gc.moveTo(x, y);
-//			gc.lineTo(tox, toy);
-//			gc.stroke();
-
-			// imitate using dotted line algorithm
-			double dist = sqrt((x-tox)*(x-tox)+(y-toy)*(y-toy));
-			double cos = (tox-x)/dist;
-			double sin = (toy-y)/dist;
-			drawLine(x, y, dist, cos, sin);
-		}
-
-		void drawLine(double x, double y, double length, double dirCos, double dirSin) {
-			for (double i=0; i<length; i+=2)
-				gc.fillOval(x+i*dirCos, y+i*dirSin, 1,1);
-		}
-
-		double[] toDouble(int[] is) {
-			double[] ds = new double[is.length];
-			for (int x=0; x<is.length; x++) ds[x] = is[x];
-			return ds;
 		}
 
 		static class P {
@@ -262,11 +329,70 @@ public class Voronoi extends ClassController  {
 				return sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y));
 			}
 		}
+		/**
+		 * Line. 2 point connection. Mutable.
+		 */
+		class Lin {
+			double x1, y1, x2, y2;
+
+			public Lin(double x1, double y1, double x2, double y2) {
+				this.x1 = x1;
+				this.y1 = y1;
+				this.x2 = x2;
+				this.y2 = y2;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (!(o instanceof Lin)) return false;
+
+				Lin l = (Lin) o;
+				return (
+					       (Double.compare(l.x1, x1)==0 && Double.compare(l.x2, x2)==0 &&
+						        Double.compare(l.y1, y1)==0 && Double.compare(l.y2, y2)==0) ||
+						       (Double.compare(l.x1, x2)==0 && Double.compare(l.x2, x1)==0 &&
+							        Double.compare(l.y1, y2)==0 && Double.compare(l.y2, y1)==0)
+				);
+			}
+
+			@Override
+			public int hashCode() {
+				int result;
+				long temp;
+				if (x1<x2) {
+					temp = Double.doubleToLongBits(x1);
+					result = (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+				} else {
+					temp = Double.doubleToLongBits(x2);
+					result = (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+				}
+				return result;
+			}
+		}
 		static class Cell extends P{
-			double dx=0, dy=0;
+			public double dx=0, dy=0;
+			public BiConsumer<Double,Double> moving = null;
 
 			public Cell(double x, double y) {
 				super(x, y);
+			}
+
+			public Cell moving(BiConsumer<Double,Double> moving) {
+				this.moving = moving;
+				return this;
 			}
 
 			static Cell random(double width, double height, double speed) {
@@ -276,8 +402,17 @@ public class Voronoi extends ClassController  {
 				return c;
 			}
 		}
+		static boolean randBoolean() {
+			return rand.nextBoolean();
+		}
 		static double rand0N(double n) {
 			return rand.nextDouble()*n;
+		}
+		static <T> T randOf(T a, T b) {
+			return randBoolean() ? a : b;
+		}
+		static double randMN(double m, double n) {
+			return m+Math.random()*(n-m);
 		}
 	}
 }

@@ -26,23 +26,20 @@ import javafx.scene.layout.*;
 
 import org.reactfx.EventSource;
 
-import configurator.Configurator;
-import layout.container.bicontainer.BiContainer;
-import layout.widget.Widget;
 import gui.Gui;
-import gui.objects.picker.WidgetPicker;
-import gui.objects.popover.PopOver;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
+import gui.objects.picker.WidgetPicker;
+import gui.objects.popover.PopOver;
+import layout.container.bicontainer.BiContainer;
+import layout.widget.Widget;
+import unused.SimpleConfigurator;
 import util.SingleR;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
 
-import static layout.area.Area.DRAGGED_PSEUDOCLASS;
-import static layout.widget.Widget.LoadType.AUTOMATIC;
-import static layout.widget.Widget.LoadType.MANUAL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
@@ -57,6 +54,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static layout.widget.Widget.LoadType.AUTOMATIC;
+import static layout.widget.Widget.LoadType.MANUAL;
 import static main.App.APP;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.layScrollVText;
@@ -286,13 +286,16 @@ public final class AreaControls {
         } else
         if (Gui.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
-                Configurator sc = new Configurator(true);
-                             sc.configure(w);
-                sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-                sc.setOnMouseClicked(me->{ if (me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
-                area.root.getChildren().add(sc);
-                setAnchors(sc, 0d);
-                openAndDo(sc, null);
+	            // TODO: decide whether we use SimpleConfigurator or Configurator widget
+                // Configurator sc = new Configurator(true);
+                //              sc.configure(w);
+	            SimpleConfigurator sc = new SimpleConfigurator(w);
+
+	            sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
+	            sc.setOnMouseClicked(me->{ if (me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
+	            area.root.getChildren().add(sc);
+	            setAnchors(sc, 0d);
+	            openAndDo(sc, null);
             });
         }
     }

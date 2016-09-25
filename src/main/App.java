@@ -202,7 +202,8 @@ public class App extends Application implements Configurable {
      */ public final URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /**
-     * Absolute file of directory of this app. Equivalent to new File("").getAbsoluteFile().
+     * Absolute file of directory of this app. Working directory of the project.
+     * Equivalent to new File("").getAbsoluteFile().
      */ public final File DIR_APP = new File("").getAbsoluteFile();
     /**
      * Temporary directory of the os.

@@ -2,11 +2,9 @@
 package layout.widget;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.net.MalformedURLException;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +36,7 @@ import util.file.FileMonitor;
 import util.file.Util;
 
 import static java.nio.file.StandardWatchEventKinds.*;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static main.App.APP;
@@ -45,9 +44,7 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.*;
-import static util.file.Util.listFiles;
-import static util.functional.Util.ISNTØ;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 
 /**
  * Handles operations with Widgets.
@@ -192,7 +189,7 @@ public final class WidgetManager {
             classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> file.getPath().endsWith(".java"), (type,file) -> {
                 if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} source file changed {}", file,type);
-                    runNew(() -> compile(getSrcFiles()));
+                    runNew(() -> compile(getSrcFiles(),getLibFiles()));
                 }
             });
             // monitor class file (only the main class' one) & recreate factory on change
@@ -244,40 +241,35 @@ public final class WidgetManager {
         }
 
         void registerExternalFactory() {
-            File classfile = new File(widgetdir,widgetname + ".class");
-            File srcfile = new File(widgetdir,widgetname + ".java");
+            File classFile = new File(widgetdir, widgetname + ".class");
+            File srcFile = new File(widgetdir, widgetname + ".java");
 
             // Source file is available if exists
             // Class file is available if exists and source file does not. But if both do, classfile must
             // not be outdated, which we check by modification time. This avoids nasty class version
             // errors as consequently we recompile the source file.
-            boolean srcfile_available = srcfile.exists();
-            boolean classfile_available = classfile.exists() && (!srcfile_available || classfile.lastModified()>srcfile.lastModified());
+            boolean srcFile_available = srcFile.exists();
+            boolean classFile_available = classFile.exists() && (!srcFile_available || classFile.lastModified()>srcFile.lastModified());
 
             // If class file is available, we just create factory for it.
-            if (classfile_available) {
-                Class<?> controller_class = loadClass(getName(widgetdir), classfile);
+            if (classFile_available) {
+                Class<?> controller_class = loadClass(getName(widgetdir), classFile, getLibFiles());
                 constructFactory(controller_class, widgetdir);
             }
 
             // If only source file is available, compile
-            else if (srcfile_available) {
+            else if (srcFile_available) {
                 // If we are initialized, app is running and some widget has been added (its factory
                 // does not exist yet), so we compile in the bgr as we should.
                 // Else, we are initializing now, and we must be able to
                 // provide all factories before widgets start loading so we compile on this (ui/fx)
-                // thread. This blocks and delays startup, but that iss fine, how else are we going to
-                // load widgets if we do not have class files for them?
-                // We could in theory load he widgets lazily - provide a mock up and reload them after
-                // factories are ready (we finish compiling on bgr thread). Too much work for no real
-                // benefit - This is developer convenience feature anyway. We only need to compile
-                // once, then any subsequent app start will be compile-free.
-                if (initialized) runNew(() -> compile(getSrcFiles()));
+                // thread. This blocks and delays startup, but it is fine - it is necessary
+                if (initialized) runNew(() -> compile(getSrcFiles(),getLibFiles()));
                 else {
-                    compile(getSrcFiles());
+                    boolean isSuccess = compile(getSrcFiles(),getLibFiles());
                     // File monitoring is not and must not be running yet (as it creates factory
                     // asynchronously). We do it manually.
-                    registerExternalFactory();
+                    if (isSuccess) registerExternalFactory();
                 }
             }
 
@@ -287,6 +279,10 @@ public final class WidgetManager {
         Stream<File> getSrcFiles() {
             return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".java"));
         }
+
+        Stream<File> getLibFiles() {
+            return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".jar") && !f.getPath().contains("sources"));
+        }
     }
 
     /**
@@ -295,29 +291,36 @@ public final class WidgetManager {
      *
      * @param srcFiles .java files to compile
      */
-    private static void compile(Stream<File> srcFiles) {
-        // Compiler defaults to system encoding, we:
-        // - consistent encoding that does not depend on system
-        // - need UTF-8
-        Stream<String> options = stream("-encoding",APP.encoding.name());
-        Stream<String> paths = srcFiles.map(File::getPath);
-        String[] arguments = stream(options,paths).toArray(String[]::new);
-        LOGGER.info("Compiling with command: {} ", (Object[])arguments);
+    private static boolean compile(Stream<File> srcFiles, Stream<File> libFiles) {
+    	String classpath = System.getProperty("java.class.path");
+        Stream<String> options = stream(                            // Command-line options
+	        // Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
+			"-encoding",APP.encoding.name(),
+			// Includes information about each class loaded and each source file compiled.
+			// "-verbose"
+			"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
+        );
+        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
+        Stream<String> classes = stream();   // One or more classes to be processed for annotations
+        Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
+        String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+        LOGGER.info("Compiling with arguments: {} ", toS(", ", arguments));
         int success = compiler.run(null, null, null, arguments);
-        if (success == 0){
-            LOGGER.info("Compilation succeeded");
-        } else{
-            LOGGER.info("Compilation failed");
-        }
+	    boolean isSuccess = success==0;
+        if (isSuccess) LOGGER.info("Compilation succeeded");
+        else LOGGER.error("Compilation failed");
+
+	    return isSuccess;
     }
 
-    private static Class<?> loadClass(String widgetName, File classFile) {
+    private static Class<?> loadClass(String widgetName, File classFile, Stream<File> libFiles) {
         try {
             File dir = classFile.getParentFile();
             String classname = widgetName + "." + Util.getName(classFile);
 
-            ClassLoader controllerClassloader = createControllerClassLoader(dir, widgetName);
+            ClassLoader controllerClassloader = createControllerClassLoader(dir, libFiles);
 
             // debug - checks if the classloader can load the same class multiple times
             // boolean isDifferentClassInstance =
@@ -333,88 +336,24 @@ public final class WidgetManager {
     }
 
     /**
-     * Creates class loader which first tries to load the class in the provided directory and only
-     * delegates to its parent class loader if it fails.
+     * Creates class loader which first loads classes in the given directory.
      * <p/>
-     * This is not normal class loader behavior, since class loader first consults parent to avoid
-     * loading any class more than once. Thus, multiple instances of this class loader load
-     * different class even when loading the same class file!
-     * If the controller attempts to load the same class more than once it throws LinkageError
-     * (attempted duplicate class definition).
-     * <p/>
-     * Normally, this can be accomplished easily using different instances of URLClassLoader, but
-     * in case the loaded class is on the classpath this will not work because the parent class
-     * loader is consulted first and it will find the class (since it is on the classpath), load and
-     * cache it (and prevent loading it ever again, unless we use custom class loader).
-     * <p/>
-     * We care, because if we limit ourselves (with loading classes multiple times) to classes not
-     * on the classpath, all external widget classes must not be on the classpath, meaning we have
-     * to create separate project for every widget, since if they were part of this project,
-     * Netbeans (which can only put compiled class files into one place) would automatically put
-     * them on classpath. Yes, this is purely for developer convenience, to be able to develop
-     * application and widgets as one project.
-     * Now we dont need multiple projects (per widget) as we dont mind widget class files on
-     * the classpath since this class loader will load them from their widget location.
-     * <p/>
-     * To explain - yes, external widgets have 2 copies of compiled class files now. One where its
-     * source files (.java) are, where they are loaded from and the other in the application jar.
-     * The class files must be copied manually from classpath to widget's locations when they change.
+     * In order to support runtime class reloading, classes are not cached. Multiple instances of this class loader
+     * load different class even when loading the same class file!
      */
-    private static ClassLoader createControllerClassLoader(File widget_dir, String widget_name) {
-        // Note:
-        // The class (widget 'main' class, i.e., its controlelr class) should have a package
-        // declaration. We use the widge name as package name. Thus if we are about to load
-        // widget Abc represented by Abc.class as controller class, its full name will be
-        // Abc.Abc.class
-        //
-        // Now, because of this, we
-        // 1) load class not from widget directory, but one level higher, since the widget dir
-        //    serves as the package
-        File dir = widget_dir.getParentFile();
-        // 2) to obtain the class file to load from the class name, we change '.' into file
-        //    separators and resolve against the dir.
-        //    We cant hardcode the file from widget name (i.e., .../widgetname/widgetname), because
-        //    the class can contain inner classes, which will also need to be loaded (by this same
-        //    class loader).
-        //
-        //    Notice how we separate which classes should be loaded by parent class loader and
-        //    which by ours - startsWith(widgetname). All inner classes will start with the
-        //    same prefix (main class name), e.g., Abs.Abc$1
-        //
-        //    Lastly, this means only classes starting with the widgetname prefix can be reloaded.
-        //    Hence widget should either be single file - single class (plus inner/annonymous
-        //    classes). I do not think it even makes sense for it to be more than 1 top level class.
-
-        return new ClassLoader(){
-
-            @Override
-            public Class<?> loadClass(String name) throws ClassNotFoundException {
-                boolean needsReloadAbility = name.startsWith(widget_name);
-                return needsReloadAbility
-                        ? loadClassNoParent(name) // dont delegate to parent to avoid class caching
-                        : super.loadClass(name); // load normally (no reloading ability)
-            }
-
-            private Class<?> loadClassNoParent(final String name) throws ClassNotFoundException {
-                AccessControlContext acc = AccessController.getContext();
-                try {
-                    return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>)() -> {
-                        File classFile = new File(dir,name.replace(".", File.separator) + ".class");
-                        try ( FileInputStream fi = new FileInputStream(classFile) ) {
-                            byte[] classBytes = new byte[fi.available()];
-                            fi.read(classBytes);
-                            return defineClass(name, classBytes, 0, classBytes.length);
-                        } catch(Exception e ) {
-                            throw new ClassNotFoundException(name);
-                        }
-                    }, acc);
-                } catch (java.security.PrivilegedActionException pae) {
-                    throw new ClassNotFoundException(name);
-                }
-            }
-        };
+    private static ClassLoader createControllerClassLoader(File widget_dir, Stream<File> libFiles) {
+	    File dir = widget_dir.getParentFile();
+	    URL[] classpath = stream(dir).append(libFiles)
+		                 .map(f -> {
+			                 try {
+				                 return f.toURI().toURL();
+			                 } catch (MalformedURLException e) {
+				                 return null;
+			                 }
+		                 })
+		                 .filter(ISNTØ).toArray(URL[]::new);
+	    return new URLClassLoader(classpath);
     }
-
 
     /**
      * @return read only list of registered widget factories
@@ -496,13 +435,13 @@ public final class WidgetManager {
                 .filter(filter::test)
                 .filter(w -> !w.isIgnored())
                 .filter(f -> f.isPreferred())
-                .findAny().map(f->f.nameGui()).orElse("");
+                .findAny().map(f -> f.nameGui()).orElse("");
 
         // get viable widgets - widgets of the feature & of preferred type if any
         List<Widget<?>> widgets = findAll(source)
                 .filter(w -> filter.test(w.getInfo()))
                 .filter(w -> !w.forbid_use.getValue())
-                .filter(preferred.isEmpty() ? w->true : w->w.getInfo().nameGui().equals(preferred))
+                .filter(preferred.isEmpty() ? w -> true : w -> w.getInfo().nameGui().equals(preferred))
                 .collect(Collectors.toList());
 
         // get preferred widget or any if none preferred

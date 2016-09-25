@@ -39,28 +39,6 @@ public interface Try<R,E> {
 		return error(message == null ? "Unknown error" : message);
 	}
 
-	static <O,E extends Throwable> Try<O,Throwable> tryFE(Ƒ0E<? extends O,E> f, Iterable<Class<?>> ecs) {
-		try {
-			return ok(f.apply());
-		} catch(Throwable e) {
-			for (Class<?> ec : ecs)
-				if (ec.isInstance(e))
-					return error(e);
-			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
-		}
-	}
-
-	static <O,E extends Throwable> Try<O,Throwable> tryFE(Ƒ0E<? extends O,E> f, Class<?>... ecs) {
-		try {
-			return ok(f.apply());
-		} catch(Throwable e) {
-			for (Class<?> ec : ecs)
-				if (ec.isInstance(e))
-					return error(e);
-			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
-		}
-	}
-
 	static Try<Void,Throwable> tryR(Runnable f, Iterable<Class<?>> ecs) {
 		try {
 			f.run();
@@ -107,6 +85,28 @@ public interface Try<R,E> {
 		}
 	}
 
+	static <O,E extends Throwable> Try<O,Throwable> trySE(Ƒ0E<? extends O,E> f, Iterable<Class<?>> ecs) {
+		try {
+			return ok(f.apply());
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static <O,E extends Throwable> Try<O,Throwable> trySE(Ƒ0E<? extends O,E> f, Class<?>... ecs) {
+		try {
+			return ok(f.apply());
+		} catch(Throwable e) {
+			for (Class<?> ec : ecs)
+				if (ec.isInstance(e))
+					return error(e);
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
 	static <I,O> Ƒ1<I,Try<O,String>> tryF(Function<I,O> f, Iterable<Class<?>> ecs) {
 		return i -> {
 			try {
@@ -133,6 +133,21 @@ public interface Try<R,E> {
 		};
 	}
 
+	static <I,O,E extends Throwable> O tryWrapR(Ƒ0E<O,E> f) {
+		try {
+			return f.apply();
+		} catch(Throwable e) {
+			throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+		}
+	}
+
+	static <I,O,E extends Throwable> Try<O,Throwable> tryWrapE(Ƒ0E<O,E> f) {
+		try {
+			return ok(f.apply());
+		} catch(Throwable e) {
+			return error(e);
+		}
+	}
 
 	boolean isOk();
 

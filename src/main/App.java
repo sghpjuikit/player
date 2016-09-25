@@ -370,7 +370,7 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void init() {
-        // configure logging
+	    // configure logging
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
             JoranConfigurator jc = new JoranConfigurator();

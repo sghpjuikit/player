@@ -1,7 +1,6 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- support runtime widget library loading
 - clean up ConfigField implementations, observability, validation, value correctness
 - Tagger reimplement validations trough Configs
 - converter transform off when just typing
@@ -49,7 +48,6 @@
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
     - reload thumbnails when thumb size increase
     - allow visiting up if parent is only 1
-- when WidgetManager widget class file gives java.lang.NoClassDefFoundError app crashes
 - implement 'use embedded thumbnail' for all image formats, not just psd
 - impl layout refresh() pass so Widget.refresh() can run properly
 - parametric function state serialization

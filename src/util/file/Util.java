@@ -298,7 +298,7 @@ public interface Util {
     static File getCommonRoot(Collection<File> files) {
         int size = files.size();
         if (size==0) return null;
-        if (size==1) return files.stream().findFirst().get();
+        if (size==1) return files.stream().findFirst().map(f -> f.isDirectory() ? f : f.getParentFile()).get();
 
         File d = null;
         for (File f : files) {

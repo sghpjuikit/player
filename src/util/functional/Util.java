@@ -1138,8 +1138,8 @@ public interface Util {
         return EntryStream.of(map);
     }
 
-    static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
-        return Stream.concat(s1,s2);
+    static <T> StreamEx<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
+        return StreamEx.of(Stream.concat(s1,s2));
     }
 
     static <T> StreamEx<T> stream(T o, Stream<T> t) {

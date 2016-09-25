@@ -44,6 +44,7 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.*;
+import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 
 /**
@@ -281,7 +282,8 @@ public final class WidgetManager {
         }
 
         Stream<File> getLibFiles() {
-            return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".jar") && !f.getPath().contains("sources"));
+            return stream(listFiles(widgetdir),listFiles(widgetdir.getParentFile()))
+	                   .filter(f -> f.getPath().endsWith(".jar"));
         }
     }
 

@@ -64,7 +64,11 @@ import static comet.Utils.GunControl.MANUAL;
 import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
-import static java.lang.Math.*;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.pow;
+import static java.lang.Math.PI;
+import static java.lang.Math.atan;
+import static java.lang.Math.abs;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.effect.BlendMode.*;
@@ -109,9 +113,9 @@ public class Comet extends ClassController {
     final FxTimer timer200ms = new FxTimer(200,-1,every200ms);
 
     public Comet() {
-        // message
+	    // message
         message.setOpacity(0);
-        message.setFont(UI_FONT);
+	    message.setFont(new Font(UI_FONT.getName(), 50));
 
         // playfield
         Rectangle playfieldMask = new Rectangle();
@@ -227,7 +231,7 @@ public class Comet extends ClassController {
 	    int ROT_DEL = 7; // smooths rotation at small scale, see use
 
 	    double PLAYER_BULLET_SPEED = 420 / FPS; // bullet speed in px/s/fps
-	    double PLAYER_BULLET_TTL = durToTtl(seconds(0.7)); // bullet time of living
+	    double PLAYER_BULLET_TTL = ttl(seconds(0.7)); // bullet time of living
 	    double PLAYER_BULLET_RANGE = PLAYER_BULLET_SPEED * PLAYER_BULLET_TTL;
 	    double PLAYER_BULLET_OFFSET = 10; // px
 	    double PLAYER_ENERGY_INITIAL = 5000;
@@ -237,9 +241,9 @@ public class Comet extends ClassController {
 	    double ROCKET_GUN_TURRET_ANGLE_GAP = D360 / 180;
 
 	    double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
-	    double ROCKET_ENGINE_DEBRIS_TTL = durToTtl(millis(20));
-	    double PULSE_ENGINE_PULSEPERIOD_TTL = durToTtl(millis(20));
-	    double PULSE_ENGINE_PULSE_TTL = durToTtl(millis(400));
+	    double ROCKET_ENGINE_DEBRIS_TTL = ttl(millis(20));
+	    double PULSE_ENGINE_PULSEPERIOD_TTL = ttl(millis(20));
+	    double PULSE_ENGINE_PULSE_TTL = ttl(millis(400));
 	    double PULSE_ENGINE_PULSE_TTL1 = 1 / PULSE_ENGINE_PULSE_TTL; // saves us computation
 
 	    double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coefficient
@@ -276,22 +280,22 @@ public class Comet extends ClassController {
 	    double UFO_RADAR_RADIUS = 75;
 	    double UFO_DISC_RADIUS = 3;
 	    double UFO_DISC_HIT_RADIUS = 9;
-	    int UFO_DISC_DECISION_TIME_TTL = (int) durToTtl(millis(500));
+	    int UFO_DISC_DECISION_TIME_TTL = (int) ttl(millis(500));
 	    double UFO_EXPLOSION_RADIUS = 100;
 	    double UFO_DISC_EXPLOSION_RADIUS = 15;
 
-	    static double UFO_TTL() { return durToTtl(seconds(randMN(30, 80))); }
+	    static double UFO_TTL() { return ttl(seconds(randMN(30, 80))); }
 
-	    static double UFO_SQUAD_TTL() { return durToTtl(seconds(randMN(200, 500))); }
+	    static double UFO_SQUAD_TTL() { return ttl(seconds(randMN(200, 500))); }
 
-	    static double UFO_DISCSPAWN_TTL() { return durToTtl(seconds(randMN(60, 180))); }
+	    static double UFO_DISCSPAWN_TTL() { return ttl(seconds(randMN(60, 180))); }
 
 	    double SATELLITE_RADIUS = 15; // energy/frame
 	    double SATELLITE_SPEED = 200 / FPS; // ufo speed in px/s/fps
 
-	    static double SATELLITE_TTL() { return durToTtl(seconds(randMN(10, 25))); }
+	    static double SATELLITE_TTL() { return ttl(seconds(randMN(10, 25))); }
 
-	    static double SHUTTLE_TTL() { return durToTtl(seconds(randMN(10, 11))); }
+	    static double SHUTTLE_TTL() { return ttl(seconds(randMN(10, 11))); }
 
 	    Image KINETIC_SHIELD_PIECE_GRAPHICS = graphics(MaterialDesignIcon.MINUS, 13, Color.AQUA, new DropShadow(GAUSSIAN, Color.DODGERBLUE.deriveColor(1, 1, 1, 0.6), 8, 0.3, 0, 0));
 	    double INKOID_SIZE_FACTOR = 50;
@@ -407,9 +411,13 @@ public class Comet extends ClassController {
         boolean isMissionScheduled = false;
         MissionInfoButton mission_button;
         final MapSet<Integer,Mission> missions = new MapSet<>(m -> m.id,
-            new Mission(1, "The strange world", "10⁻⁴m", "",
-                null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
-            ), //new Glow(0.3)
+
+	                                                             new Mission(1, "Energetic fragility","10⁻¹⁵","",
+		                                                                        null, Color.DODGERBLUE,Color.rgb(10,10,25,0.08), null,Energ::new
+	                                                             ),
+//            new Mission(1, "The strange world", "10⁻⁴m", "",
+//                null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
+//            ), //new Glow(0.3)
             new Mission(2, "Sumi-e","10⁻¹⁵","",
                 null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, Inkoid::new
             ), //new Glow(0.3)
@@ -702,7 +710,7 @@ public class Comet extends ClassController {
                     ship.gun.fireTTL--;
                 }
                 if (ship.gun!=null && ship.gun.control==AUTO && ship.gun.fireTTL<0) {
-                    ship.gun.fireTTL = durToTtl(ship.gun.time_reload);
+                    ship.gun.fireTTL = ttl(ship.gun.time_reload);
                     runNext.add(() -> ship.gun.ammo_type.apply(ship.gun.aimer.apply()));
                 }
             });
@@ -836,7 +844,6 @@ public class Comet extends ClassController {
 
         void message(String title, String subtitle) {
             message.setText(title+"\n"+subtitle);
-            message.setFont(new Font(message.getFont().getName(), 50));
             Anim a = new Anim(millis(500),x -> message.setOpacity(x*x));
             a.playOpen();
             runNext.add(seconds(2),a::playClose);
@@ -928,7 +935,7 @@ public class Comet extends ClassController {
             void sendUfoSquadron() {
                 ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
                 Side side = randEnum(Side.class);
-                int count = (int)(2+random()*8);
+                int count = (int)(2+rand01()*8);
                 repeat(count, () -> runNext.add(seconds(rand0N(0.5)),() -> sendUfo(side)));
             }
             private void sendUfo(Side side) {
@@ -978,7 +985,7 @@ public class Comet extends ClassController {
 
                 double size = sqrt(playfield.getWidth()*playfield.getHeight())/1000;
                 int planetoids = 3 + (int)(2*(size-1)) + (mission_counter-1) + players.size()/2;
-                double delay = durToTtl(seconds(mission_counter==1 ? 2 : 5));
+                double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
                 runNext.add(delay/2, () -> message("Level " + mission_counter, name));
                 runNext.add(delay, () -> repeat(planetoids, i -> spawnPlanetoid()));
                 runNext.add(delay, () -> isMissionScheduled = false);
@@ -987,8 +994,8 @@ public class Comet extends ClassController {
             void spawnPlanetoid() {
                 boolean vertical = randBoolean();
                 planetoidConstructor.apply(
-                    vertical ? 0 : random()*playfield.getWidth(),
-                    vertical ? random()*playfield.getHeight() : 0,
+                    vertical ? 0 : rand01()*playfield.getWidth(),
+                    vertical ? rand01()*playfield.getHeight() : 0,
                     randMN(-1,1)*0.7,rand0N(D360), 1d
                 );
             }
@@ -1314,7 +1321,7 @@ public class Comet extends ClassController {
                 time_reload = TIME_RELOAD;
                 aimer = AIMER;
                 ammo_type = AMMO_TYPE;
-                fireTTL = durToTtl(time_reload);
+                fireTTL = ttl(time_reload);
             }
 
             void fire() {
@@ -1609,7 +1616,7 @@ public class Comet extends ClassController {
                         // radiation - visually shows disruptor in effect
                         double angle = rand0N(D360);
                         double dist = 30+rand0N(30);
-                        new Particle(x+dist*cos(angle),y+dist*sin(angle), dx,dy,durToTtl(millis(350))) {
+                        new Particle(x+dist*cos(angle),y+dist*sin(angle), dx,dy, ttl(millis(350))) {
 
                             @Override
                             void draw() {
@@ -1716,7 +1723,7 @@ public class Comet extends ClassController {
                 super(true, Duration.ZERO,Duration.ZERO,0,0);
                 KSenergy_maxInit = ENERGY_MAX;
                 KSenergy_max = KSenergy_maxInit;
-                KSenergy_rateInit = KSenergy_max/durToTtl(KINETIC_SHIELD_RECHARGE_TIME);
+                KSenergy_rateInit = KSenergy_max/ ttl(KINETIC_SHIELD_RECHARGE_TIME);
                 KSenergy_rate = KSenergy_rateInit;
                 KSenergy = KINETIC_SHIELD_INITIAL_ENERGY*KSenergy_max;
                 KSradiusInit = RADIUS;
@@ -1817,7 +1824,7 @@ public class Comet extends ClassController {
                 final double dirOffset;
                 double delay_ttl;
                 double ttl = 1;
-                double ttld = 1/durToTtl(seconds(1));
+                double ttld = 1/ ttl(seconds(1));
                 double max_opacity = 1;
 
                 KineticShieldPiece(double DIR) {
@@ -1825,7 +1832,7 @@ public class Comet extends ClassController {
                 }
                 KineticShieldPiece(boolean delayed, double DIR) {
                     super(true, Duration.ZERO,Duration.ZERO,0,0);
-                    delay_ttl = durToTtl(seconds(delayed ? 0.2 : 1));
+                    delay_ttl = ttl(seconds(delayed ? 0.2 : 1));
                     dirOffset = DIR-dir;
                     children.add(this);
                 }
@@ -1864,7 +1871,7 @@ public class Comet extends ClassController {
                 public void doLoop() {
                     ttl--;
                     if (ttl<0) {
-                        ttl = durToTtl(seconds(1+kinetic_shield.KSradius/100*0.7));
+                        ttl = ttl(seconds(1+kinetic_shield.KSradius/100*0.7));
                         ShieldPulse p = new ShieldPulse(Ship.this,x,y);
                                     p.dxy = 0.4;
                                     p.ttld = 1/(1.3*KSradius/0.4);
@@ -1929,7 +1936,7 @@ public class Comet extends ClassController {
 //	        maintain(player.color, ((Icon)graphics).fillProperty()); // change color on the fly
             kinetic_shield = new KineticShield(ROCKET_KINETIC_SHIELD_RADIUS,ROCKET_KINETIC_SHIELD_ENERGYMAX);
             changeAbility(player.ability_type.get());
-            engine = random()<0.5 ? new RocketEngine() : new PulseEngine();
+            engine = rand01()<0.5 ? new RocketEngine() : new PulseEngine();
 
             gun = new Gun(
                 MANUAL,
@@ -2069,7 +2076,7 @@ public class Comet extends ClassController {
             super(
                 Ufo.class,
                 (side==Side.RIGHT ? 1 : 0) * playfield.getWidth(),
-                random()*playfield.getHeight(),0,0,UFO_HIT_RADIUS,
+	            rand01()*playfield.getHeight(),0,0,UFO_HIT_RADIUS,
 	            graphics(MaterialDesignIcon.BIOHAZARD,40,game.ufos.color,null),
                 UFO_ENERGY_INITIAL,UFO_E_BUILDUP
             );
@@ -2077,14 +2084,14 @@ public class Comet extends ClassController {
             aggressive = AGGRESSIVE;
             engine = new Engine() {
                 double engineDirChangeTTL = 1;
-                double engineDirChangeTTLd = 1/((2+random()*2)*FPS);
+                double engineDirChangeTTLd = 1/((2+rand01()*2)*FPS);
 
                 @Override void onDoLoop() {
                     engineDirChangeTTL -= engineDirChangeTTLd;
                     if (engineDirChangeTTL<0) {
                         engineDirChangeTTL = 1;
                         // generate new direction
-                        double r = random();
+                        double r = rand01();
                         if (dir==0)            dir = r<0.5 ? D45 : -D45;
                         else if (dir==D45)    dir = r<0.5 ? 0 : -D45;
                         else if (dir==-D45)   dir = r<0.5 ? 0 : D45;
@@ -2133,8 +2140,8 @@ public class Comet extends ClassController {
                     dy + sin(dir)*UFO_BULLET_SPEED
                 )
             );
-            game.runNext.addPeriodic(() -> durToTtl(seconds(5)), radio);
-            game.runNext.addPeriodic(() -> durToTtl(seconds(5)), discs);
+            game.runNext.addPeriodic(() -> ttl(seconds(5)), radio);
+            game.runNext.addPeriodic(() -> ttl(seconds(5)), discs);
         }
 
         @Override
@@ -2290,8 +2297,8 @@ public class Comet extends ClassController {
     }
 
 	class Shuttle extends Ship {
-		double ttl = durToTtl(seconds(50));
-		final double graphicsDirBy = randOf(-1,1)*D360/durToTtl(seconds(40));
+		double ttl = ttl(seconds(50));
+		final double graphicsDirBy = randOf(-1,1)*D360/ ttl(seconds(40));
 		final Rocket owner;
 
 		public Shuttle(Rocket r) {
@@ -2299,7 +2306,7 @@ public class Comet extends ClassController {
 				Shuttle.class, r.x+50,r.y-50,0,0,PLAYER_HIT_RADIUS,
 				graphics(FontAwesomeIcon.SPACE_SHUTTLE,40,game.humans.colorTech,null), 0,0
 			);
-			graphicsDir = randOf(-1,1)*deg(D360/durToTtl(seconds(20)));
+			graphicsDir = randOf(-1,1)*deg(D360/ ttl(seconds(20)));
 			graphicsScale = 0;
 			owner = r;
 			createHyperSpaceAnimIn(game, this);
@@ -2310,7 +2317,7 @@ public class Comet extends ClassController {
 			game.runNext.add(7*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
 			game.runNext.add(8*ttl/10, () -> { if (!dead) new Satellite(this,rand0N(D360)); });
 			game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnimOut(game, this); });
-			game.runNext.add(ttl + durToTtl(millis(200)), () -> dead=true);
+			game.runNext.add(ttl + ttl(millis(200)), () -> dead=true);
 		}
 		@Override void draw() {
 			// dir += graphicsDir;   // produces interesting effect
@@ -2323,8 +2330,8 @@ public class Comet extends ClassController {
 		}
 	}
 	class SuperShield extends Ship {
-		double ttl = durToTtl(seconds(50));
-		final double graphicsDirBy = randOf(-1,1)*D360/durToTtl(seconds(40));
+		double ttl = ttl(seconds(50));
+		final double graphicsDirBy = randOf(-1,1)*D360/ ttl(seconds(40));
 		final Rocket owner;
 
 		public SuperShield(Rocket r) {
@@ -2332,7 +2339,7 @@ public class Comet extends ClassController {
 				SuperShield.class, r.x+50,r.y-50,0,0,10,
 				graphics(MaterialIcon.DETAILS,20,game.humans.colorTech,null), 0,0
 			);
-			graphicsDir = randOf(-1,1)*deg(D360/durToTtl(seconds(20)));
+			graphicsDir = randOf(-1,1)*deg(D360/ ttl(seconds(20)));
 			graphicsScale = 0;
 			owner = r;
 			kinetic_shield = new KineticShield(SHUTTLE_KINETIC_SHIELD_RADIUS,SHUTTLE_KINETIC_SHIELD_ENERGYMAX) {
@@ -2342,7 +2349,7 @@ public class Comet extends ClassController {
 			kinetic_shield.KSenergy = kinetic_shield.KSenergy_max;
 			createHyperSpaceAnimIn(game, this);
 			game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnimOut(game, this); });
-			game.runNext.add(ttl + durToTtl(millis(200)), () -> dead=true);
+			game.runNext.add(ttl + ttl(millis(200)), () -> dead=true);
 		}
 		@Override boolean isHitDistance(SO o) {
 			if (o instanceof Bullet)
@@ -2387,7 +2394,7 @@ public class Comet extends ClassController {
         /** Creates large Satellite. */
         public Satellite(Side dir) {
             super(Satellite.class,
-                (dir==Side.LEFT ? 0 : 1)*playfield.getWidth(), random()*playfield.getHeight(),
+                (dir==Side.LEFT ? 0 : 1)*playfield.getWidth(), rand01()*playfield.getHeight(),
                 (dir==Side.LEFT ? 1 : -1)*SATELLITE_SPEED, 0,
                 SATELLITE_RADIUS, graphics(MaterialDesignIcon.SATELLITE_VARIANT,40,game.humans.colorTech,null)
             );
@@ -2656,10 +2663,10 @@ public class Comet extends ClassController {
             if (target.dead) dead=true;
             else {
                 // move 1px per frame, each dimension separately
-                dx += 0.05*signum(target.x-x);
-                dy += 0.05*signum(target.y-y);
-//                x += 1*signum(target.x-x);
-//                y += 1*signum(target.y-y);
+                dx += 0.05*sign(target.x-x);
+                dy += 0.05*sign(target.y-y);
+//                x += 1*sign(target.x-x);
+//                y += 1*sign(target.y-y);
             }
 
             super.doLoop();
@@ -2729,7 +2736,7 @@ public class Comet extends ClassController {
     class RocketEngineDebris extends Particle {
 
         RocketEngineDebris(double x, double y, double dx, double dy, double ttlmultiplier) {
-            super(x,y,dx,dy,ttlmultiplier*durToTtl(millis(150)));
+            super(x,y,dx,dy,ttlmultiplier* ttl(millis(150)));
         }
 
         @Override
@@ -2743,10 +2750,10 @@ public class Comet extends ClassController {
     }
     private final ParticleEmitter ROCKET_ENGINE_DEBRIS_EMITTER = (x,y,dir,strength) -> {
         double dispersion_angle = D45;
-        double d1 = dir + (random())*dispersion_angle;
-//        double d4 = dir + .5*(random())*dispersion_angle;
-//        double d2 = dir - (random())*dispersion_angle;
-        double d3 = dir - .5*(random())*dispersion_angle;
+        double d1 = dir + (rand01())*dispersion_angle;
+//        double d4 = dir + .5*(rand01())*dispersion_angle;
+//        double d2 = dir - (rand01())*dispersion_angle;
+        double d3 = dir - .5*(rand01())*dispersion_angle;
         game.runNext.add(() -> {
             new RocketEngineDebris(x+20*cos(dir), y+20*sin(dir), 1*cos(d1),1*sin(d1),strength);
 //            new RocketEngineDebris(x+20*cos(dir), y+20*sin(dir), 1*cos(d2),1*sin(d2),strength);
@@ -2757,7 +2764,7 @@ public class Comet extends ClassController {
     class PulseEngineDebris extends Particle {
 
         PulseEngineDebris(double x, double y, double dx, double dy, double ttlmultiplier) {
-            super(x,y,dx,dy,ttlmultiplier*durToTtl(millis(250)));
+            super(x,y,dx,dy,ttlmultiplier* ttl(millis(250)));
         }
 
         void draw() {
@@ -2772,7 +2779,7 @@ public class Comet extends ClassController {
 
     	@SuppressWarnings("unused")
         public UfoEngineDebris(double x, double y, double radius) {
-            super(x,y,0,0,durToTtl(seconds(0.5)));
+            super(x,y,0,0, ttl(seconds(0.5)));
         }
 
         void draw() {
@@ -2795,7 +2802,7 @@ public class Comet extends ClassController {
         final boolean inverse;
 
         RadioWavePulse(double x, double y, double dx, double dy, double EXPANSION_RATE, Color COLOR, boolean RECTANGULAR) {
-            super(x,y,dx,dy,durToTtl(seconds(2)));
+            super(x,y,dx,dy, ttl(seconds(2)));
             dxy = EXPANSION_RATE;
             inverse = dxy<0;
             color = COLOR;
@@ -2891,8 +2898,8 @@ public class Comet extends ClassController {
             game.onPlanetoidDestroyed();
             game.runNext.add(() ->
                 repeat(splits, i -> {
-                    double h = random();
-                    double v = random();
+                    double h = rand01();
+                    double v = rand01();
                     double dxnew = spontaneous ? dx : dx+randMN(-1,1.1);
                     double dynew = spontaneous ? dy : dy+randMN(-1,1.1);
                     double speednew = sqrt(dxnew*dxnew+dynew*dynew);
@@ -2909,8 +2916,8 @@ public class Comet extends ClassController {
     }
     private static class OrganelleMover implements Mover {
             double dirchange = rand0N(D360)/5/FPS;
-            double ttldirchange = durToTtl(seconds(rand0N(12)));
-            double ttldirchanging = durToTtl(seconds(rand0N(3)));
+            double ttldirchange = ttl(seconds(rand0N(12)));
+            double ttldirchanging = ttl(seconds(rand0N(3)));
 
             public void calcSpeed(Asteroid o){
                 // rotate at random time for random duration by random angle
@@ -2919,8 +2926,8 @@ public class Comet extends ClassController {
                     o.dir += dirchange;
                     ttldirchanging--;
                     if (ttldirchanging<0) {
-                        ttldirchange = durToTtl(seconds(rand0N(10)));
-                        ttldirchanging = durToTtl(seconds(rand0N(3)));
+                        ttldirchange = ttl(seconds(rand0N(10)));
+                        ttldirchanging = ttl(seconds(rand0N(3)));
                     }
                 }
                 o.dx = o.speed*cos(o.dir);
@@ -2932,7 +2939,7 @@ public class Comet extends ClassController {
         Color colordead = Color.BLACK;
         Color coloralive;
         double heartbeat = 0;
-        double heartbeat_speed = 0.5*D360/durToTtl(seconds(1+rand0N(size/30))); // times/sec
+        double heartbeat_speed = 0.5*D360/ ttl(seconds(1+rand0N(size/30))); // times/sec
 
         public Energ(double X, double Y, double SPEED, double DIR, double LIFE) {
             super(X, Y, SPEED, DIR, LIFE);
@@ -2952,17 +2959,18 @@ public class Comet extends ClassController {
         }
 
         void draw() {
-//            gc_bgr.setGlobalBlendMode(DARKEN);
             gc_bgr.setStroke(null);
+	        // alternative looks (eye in the center), looks more organic and undoubtedly more creepy
 //            gc_bgr.setFill(new RadialGradient(0,0,0.5,0.5,0.5,true,NO_CYCLE,
 //                    new Stop(0,Color.BLACK),
 //                    new Stop(0.35 + 0.25 + 0.25 * sin(heartbeat),ffff),
-////                    new Stop(0.45,Color.BLACK),
 //                    new Stop(0.8 + 0.2*sin(heartbeat),Color.TRANSPARENT))
 //            );
-            gc_bgr.setFill(new RadialGradient(deg(dir),0.6,0.5,0.5,0.5,true,NO_CYCLE,new Stop(0+abs(0.3*sin(heartbeat)),colordead),new Stop(0.5,coloralive),new Stop(1,Color.TRANSPARENT)));
+            gc_bgr.setFill(new RadialGradient(deg(dir),0.6,0.5,0.5,0.5,true,NO_CYCLE,
+	                 new Stop(0+abs(0.3*sin(heartbeat)),colordead),
+	                 new Stop(0.5,coloralive),
+	                 new Stop(1,Color.TRANSPARENT)));
             drawOval(gc_bgr,x,y,radius);
-//            gc_bgr.setGlobalBlendMode(SRC_OVER);
         }
 
         void onHitParticles(SO o) {
@@ -2978,9 +2986,9 @@ public class Comet extends ClassController {
                 super(
                     Energ.this.x+Energ.this.radius*cos(hitdir),
                     Energ.this.y+Energ.this.radius*sin(hitdir),
-                    Energ.this.dx + randMN(-1,1) + 1.5*random()*cos(hitdir),
-                    Energ.this.dy + randMN(-1,1) + 1.5*random()*sin(hitdir),
-                    durToTtl(seconds(0.5+rand0N(1)+rand0N(size)))
+                    Energ.this.dx + randMN(-1,1) + 1.5*rand01()*cos(hitdir),
+                    Energ.this.dy + randMN(-1,1) + 1.5*rand01()*sin(hitdir),
+                    ttl(seconds(0.5+rand0N(1)+rand0N(size)))
                 );
             }
             void draw() {
@@ -3060,7 +3068,7 @@ public class Comet extends ClassController {
         void onHitParticles(SO o) {}
     }
     private class Inkoid extends Asteroid<OrganelleMover> {
-        double trail_ttl = durToTtl(seconds(0.5+rand0N(2)));
+        double trail_ttl = ttl(seconds(0.5+rand0N(2)));
 
         public Inkoid(double X, double Y, double SPEED, double DIR, double LIFE) {
             super(X, Y, SPEED, DIR, LIFE);
@@ -3077,7 +3085,7 @@ public class Comet extends ClassController {
             super.doLoop();
             trail_ttl--;
             if (trail_ttl<0) {
-                trail_ttl = durToTtl(seconds(0.5+rand0N(2)));
+                trail_ttl = ttl(seconds(0.5+rand0N(2)));
                 new InkoidDebris(x,y,0,0,5,seconds(2));
             }
         }
@@ -3097,7 +3105,7 @@ public class Comet extends ClassController {
                 new InkoidDebris(
                     x,y,
                     randMN(-2,2),randMN(-2,2),
-                    2 + random()*size_child*radius/4,
+                    2 + rand01()*size_child*radius/4,
                     seconds(0.5+rand0N(1)+rand0N(size))
                 )
             );
@@ -3110,7 +3118,7 @@ public class Comet extends ClassController {
                 this(x,y,0,0,RADIUS,seconds(0.4));
             }
             public InkoidGraphics(double x, double y, double dx, double dy, double RADIUS, Duration time) {
-                super(x,y,dx,dy,durToTtl(time));
+                super(x,y,dx,dy, ttl(time));
                 radius = RADIUS;
             }
 
@@ -3156,10 +3164,10 @@ public class Comet extends ClassController {
     }
     private class Genoid extends Asteroid<OrganelleMover> {
         double circling = 0;
-        double circling_speed = 0.5*D360/durToTtl(seconds(0.5)); // times/sec
+        double circling_speed = 0.5*D360/ ttl(seconds(0.5)); // times/sec
         double circling_mag = 0;
 
-        final PTtl trail = new PTtl(() -> durToTtl(seconds(0.5+rand0N(2))),() -> {
+        final PTtl trail = new PTtl(() -> ttl(seconds(0.5+rand0N(2))),() -> {
             if (0.9>size && size >0.4) {
                 new GenoidDebris(x+1.5*radius*cos(circling),y+1.5*radius*sin(circling),0,0,2,seconds(1.6));
                 new GenoidDebris(x+1.5*radius*cos(circling),y+1.5*radius*sin(circling),0,0,2,seconds(1.6));
@@ -3207,7 +3215,7 @@ public class Comet extends ClassController {
                 new GenoidDebris(
                     x,y,
                     randMN(-2,2),randMN(-2,2),
-                    2 + random()*size_child*radius/4,
+                    2 + rand01()*size_child*radius/4,
                     seconds(0.5+rand0N(1)+rand0N(size))
                 )
             );
@@ -3220,7 +3228,7 @@ public class Comet extends ClassController {
                 this(x,y,0,0,RADIUS,seconds(0.4));
             }
             public GenoidGraphics(double x, double y, double dx, double dy, double RADIUS, Duration time) {
-                super(x,y,dx,dy,durToTtl(time));
+                super(x,y,dx,dy, ttl(time));
                 radius = RADIUS;
             }
 
@@ -3269,7 +3277,7 @@ public class Comet extends ClassController {
         }
     }
     private class Fermi extends Asteroid<OrganelleMover> {
-        final PTtl trail = new PTtl(() -> durToTtl(seconds(0.5+rand0N(2))), () -> new FermiDebris(x,y,0,0,5,seconds(0.6)));
+        final PTtl trail = new PTtl(() -> ttl(seconds(0.5+rand0N(2))), () -> new FermiDebris(x,y,0,0,5,seconds(0.6)));
         double ttlocillation = 0;
         FermiMove pseudomovement;
 
@@ -3317,7 +3325,7 @@ public class Comet extends ClassController {
                 new FermiDebris(
                     x,y,
                     randMN(-2,2),randMN(-2,2),
-                    2 + random()*size_child*radius/4,
+                    2 + rand01()*size_child*radius/4,
                     seconds(0.5+rand0N(1)+rand0N(size))
                 )
             );
@@ -3388,9 +3396,9 @@ public class Comet extends ClassController {
         }
         class SidespiralMove extends FermiMove {
             double ttl = 1;
-            double ttld = 1/durToTtl(seconds(randMN(5,10)));
+            double ttld = 1/ ttl(seconds(randMN(5,10)));
             double dir;
-            double dird = 0.2 * randOf(-1,1) * D360/durToTtl(seconds(3));
+            double dird = 0.2 * randOf(-1,1) * D360/ ttl(seconds(3));
 
             double oscillationIncrement() {
                 return .18;
@@ -3439,7 +3447,7 @@ public class Comet extends ClassController {
                 this(x,y,0,0,RADIUS,seconds(0.3));
             }
             public FermiGraphics(double x, double y, double dx, double dy, double RADIUS, Duration time) {
-                super(x,y,dx,dy,durToTtl(time));
+                super(x,y,dx,dy, ttl(time));
                 radius = RADIUS;
             }
 
@@ -3486,7 +3494,7 @@ public class Comet extends ClassController {
         double magnetic_force_dir = rand0N(D360);
 
         public BlackHole(Player OWNER, Duration TTL, double X, double Y) {
-            x=X; y=Y; ttl=1; ttld=1/durToTtl(TTL); owner = OWNER;
+            x=X; y=Y; ttl=1; ttld=1/ ttl(TTL); owner = OWNER;
         }
 
         public void die() {
@@ -3628,7 +3636,7 @@ public class Comet extends ClassController {
             // new RocketEngineDebris(x+100*cos(d),y+100*sin(d), 3*cos(d-D90+0.1),3*sin(d-D90+0.1), d urToTtl(millis(500)));
 
             // forms acretion disc
-            new RocketEngineDebris(x+50*cos(d),y+50*sin(d), 4*cos(d-D90+0.1),4*sin(d-D90+0.1), durToTtl(millis(500)));
+            new RocketEngineDebris(x+50*cos(d),y+50*sin(d), 4*cos(d-D90+0.1),4*sin(d-D90+0.1), ttl(millis(500)));
 
             gc.setFill(Color.BLACK);
             drawOval(gc, x,y,radius_even_horizon);
@@ -3762,7 +3770,7 @@ public class Comet extends ClassController {
 
         public EIndicator(PO OWNER, Enhancer enhancer) {
             owner = OWNER;
-            ttl = durToTtl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
+            ttl = ttl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
             index = findFirstInt(0, i -> stream(owner.children).select(EIndicator.class).noneMatch(o -> o.index==i));
             owner.children.add(this);
             graphics = new Icon(enhancer.icon,15);

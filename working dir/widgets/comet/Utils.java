@@ -92,16 +92,37 @@ interface Utils {
     double D60 = PI/3;
     double D45 = PI/4;
     double D30 = PI/6;
-    double SIN45 = sin(PI/4);
+    double SIN45 = Math.sin(PI/4);
+	double[] degSinMemo = IntStreamEx.rangeClosed(-360,360).mapToDouble(angle -> Math.sin(rad(angle))).toArray();
+	double[] degCosMemo = IntStreamEx.rangeClosed(-360,360).mapToDouble(angle -> Math.cos(rad(angle))).toArray();
     Random RAND = new Random();
     // Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
     // platform it is packed with the widget.
     Font UI_FONT = Font.loadFont(Utils.class.getResourceAsStream("Tele-Marines.TTF"), 12.0);
 
-    /** Converts radians to degrees. */
-    static double deg(double rad) {
-        return Math.toDegrees(rad); //360*rad/(2*PI);
-    }
+	/** Converts radians to degrees, mathematically 360*rad/(2*PI). */
+	static double deg(double rad) {
+		return Math.toDegrees(rad);
+	}
+	/** Converts degrees to radians. */
+	static double rad(double deg) {
+		return Math.toRadians(deg);
+	}
+	static double sinD(double deg) {
+		return degSinMemo[((int)Math.round(deg))%360+360];
+	}
+	static double cosD(double deg) {
+		return degCosMemo[((int)Math.round(deg))%360+360];
+	}
+	static double sin(double rad) {
+		return degSinMemo[((int)Math.round(deg(rad)))%360+360];
+	}
+	static double cos(double rad) {
+		return degCosMemo[((int)Math.round(deg(rad)))%360+360];
+	}
+	static double sign(double number) {
+		return Math.signum(number);
+	}
     /** Returns angle in rad for given sin and cos. */
     static double dirOf(double x, double y, double dist) {
         double c = x/dist;
@@ -264,7 +285,7 @@ interface Utils {
         g.fillRect(x-r,y-r,d,d);
     }
 
-    static double durToTtl(Duration d) {
+    static double ttl(Duration d) {
         return d.toSeconds()*FPS;
     }
 
@@ -273,6 +294,9 @@ interface Utils {
     }
     static double rand0N(double n) {
         return RAND.nextDouble()*n;
+    }
+    static double rand01() {
+        return RAND.nextDouble();
     }
     static int rand0or1() {
         return randBoolean() ? 0 : 1;
@@ -766,7 +790,7 @@ interface Utils {
 
         /** Adds runnable that will run after specified time. */
         void add(Duration delay, Runnable r) {
-            lt.add(new Ttl(durToTtl(delay), r));
+            lt.add(new Ttl(ttl(delay), r));
         }
 
         /**
@@ -776,7 +800,7 @@ interface Utils {
          * The double is interpolated from 0 to 1 by pre-calculated step from duration.
          */
         void addAnim01(Duration dur, DoubleConsumer r) {
-            ltc.add(new TtlC(0,1,1/durToTtl(dur), r));
+            ltc.add(new TtlC(0,1,1/ ttl(dur), r));
         }
 
         /**
@@ -786,11 +810,11 @@ interface Utils {
          * The double is interpolated between specified values by pre-calculated step from duration.
          */
         void addAnim(double from, double to, Duration dur, DoubleConsumer r) {
-            ltc.add(new TtlC(from,to,(to-from)/durToTtl(dur), r));
+            ltc.add(new TtlC(from,to,(to-from)/ ttl(dur), r));
         }
 
         void addPeriodic(Duration delay, Runnable r) {
-            lpt.add(new PTtl(() -> durToTtl(delay), r));
+            lpt.add(new PTtl(() -> ttl(delay), r));
         }
         void addPeriodic(Ƒ0<Double> ttl, Runnable r) {
             lpt.add(new PTtl(ttl, r));

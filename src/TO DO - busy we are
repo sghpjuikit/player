@@ -26,15 +26,12 @@
 - implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller
-- support widget main class lookup, remove name convention, make all widget packages' names lowercase
 - implement loading images properly using the twelve monkeys
-- component name in center rather then top_center ?
 - ConfigSearch should open Settings and look up the property
 - add name/icon for parametric function's parameters
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
 - try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
-- unify Table & Grid Filter + instantiate it lazily
 - Configuration should implement Configurable
 - GridView selectDown scroll bug due to cells not ready
 - standalone widgets impl better launching, add
@@ -118,7 +115,7 @@
 - local shortcuts for complex characters (BACK_SLASH, etc) not working 
   solution: solved for some characters by manually rewriting them upon 
   shortcut registering, but that is only partial and incomplete workaround
-- popup window fullscreen or maximizing(any) breaks popup position                                   (minor, but should be fixed if possible)
+- popup window fullscreen or maximizing(any) breaks popup position                                  (minor, but should be fixed if possible)
 - some songs (happens to be album specific, but specific cause unknown) read                        (jaudiotagger bug?)
   length as twice of the real (note: Smile Precure OST)
 - sometimes not even suspending playback allows jaudiotagger renaming songs 

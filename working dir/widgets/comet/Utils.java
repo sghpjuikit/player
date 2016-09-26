@@ -93,8 +93,10 @@ interface Utils {
     double D45 = PI/4;
     double D30 = PI/6;
     double SIN45 = Math.sin(PI/4);
-	double[] degSinMemo = IntStreamEx.rangeClosed(-360,360).mapToDouble(angle -> Math.sin(rad(angle))).toArray();
-	double[] degCosMemo = IntStreamEx.rangeClosed(-360,360).mapToDouble(angle -> Math.cos(rad(angle))).toArray();
+	int precision = 100;
+	int UNITS = 360*precision;
+	double[] degSinMemo = IntStreamEx.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.sin(rad(angle))).toArray();
+	double[] degCosMemo = IntStreamEx.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
     Random RAND = new Random();
     // Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
     // platform it is packed with the widget.
@@ -109,16 +111,16 @@ interface Utils {
 		return Math.toRadians(deg);
 	}
 	static double sinD(double deg) {
-		return degSinMemo[((int)Math.round(deg))%360+360];
+		return degSinMemo[((int)Math.round(deg*precision))%UNITS+UNITS];
 	}
 	static double cosD(double deg) {
-		return degCosMemo[((int)Math.round(deg))%360+360];
+		return degCosMemo[((int)Math.round(deg*precision))%UNITS+UNITS];
 	}
 	static double sin(double rad) {
-		return degSinMemo[((int)Math.round(deg(rad)))%360+360];
+		return degSinMemo[((int)Math.round(deg(rad)*precision))%UNITS+UNITS];
 	}
 	static double cos(double rad) {
-		return degCosMemo[((int)Math.round(deg(rad)))%360+360];
+		return degCosMemo[((int)Math.round(deg(rad)*precision))%UNITS+UNITS];
 	}
 	static double sign(double number) {
 		return Math.signum(number);

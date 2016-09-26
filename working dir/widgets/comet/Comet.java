@@ -631,7 +631,6 @@ public class Comet extends ClassController {
 
             players.addAll(listF(player_count,PLAYERS.list::get));
 	        players.forEach(Player::reset);
-            players.forEach(Player::spawn);
 
             running.set(true);
             loopId = 0;
@@ -639,6 +638,8 @@ public class Comet extends ClassController {
             isMissionScheduled = false;
             ufos.init();
             humans.init();
+
+	        players.forEach(Player::spawn);
             loop.start();
 
             timer200ms.start();
@@ -861,6 +862,7 @@ public class Comet extends ClassController {
             boolean share_enhancers = false;
 
             void init() {
+	            share_enhancers = false;
                 intelOn.reset();
                 runNext.addPeriodic(() -> SATELLITE_TTL()/sqrt(players.size()), humans::sendSatellite);
             }

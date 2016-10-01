@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import gui.Gui;
 import main.App;
 
 /**
@@ -24,6 +25,7 @@ public class CometDemo extends Application{
 	public void start(Stage stage) throws Exception {
 		App app = new App();
 		app.widgetManager.initialize();
+		Gui.setSkin("Flow");
 		Node comet = app.widgetManager.getFactories().filter(f -> f.name().equals("Comet")).findFirst().get()
 			.create()
 			.load();

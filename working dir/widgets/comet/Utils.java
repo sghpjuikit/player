@@ -65,6 +65,8 @@ import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Math.*;
 import static java.lang.Math.min;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
@@ -208,10 +210,12 @@ interface Utils {
 	}
 
 	static void createHyperSpaceAnimIn(Game game, PO o) {
+		o.graphicsScale = 0;
 		game.runNext.addAnim01(millis(200), x -> o.graphicsScale = x*x);
 	}
 
 	static void createHyperSpaceAnimOut(Game game, PO o) {
+		o.graphicsScale = 1;
 		game.runNext.addAnim01(millis(200), x -> o.graphicsScale = 1-x*x);
 	}
 
@@ -306,6 +310,12 @@ interface Utils {
     static int randInt(int n) {
         return RAND.nextInt(n);
     }
+	static double randAngleRad() {
+		return rand0N(2*PI);
+	}
+	static double randAngleDeg() {
+		return rand0N(360);
+	}
     static boolean randBoolean() {
         return RAND.nextBoolean();
     }
@@ -336,7 +346,19 @@ interface Utils {
         ACTIVATING, PASSSIVATING, NO_CHANGE
     }
     enum AbilityKind {
-        HYPERSPACE,DISRUPTOR,SHIELD
+        HYPERSPACE,
+	    DISRUPTOR,
+	    SHIELD;
+
+	    Ship.Ability create(Ship s) {
+		    switch(this) {
+			    case DISRUPTOR : return s.new Disruptor();
+			    case HYPERSPACE : return s.new Hyperspace();
+			    case SHIELD : return s.new Shield();
+			    default: throw new SwitchException(this);
+		    }
+	    }
+
     }
     enum Relations {
         ALLY, NEUTRAL, ENEMY
@@ -381,6 +403,45 @@ interface Utils {
             throw new SwitchException(this);
         }
     }
+
+
+	class Displayable {
+		final String name;
+		final String description;
+		final GlyphIcons icon;
+
+		public Displayable(String name, GlyphIcons icon, CharSequence... description) {
+			this.name = name;
+			this.description = String.join("\n", description);
+			this.icon = icon;
+		}
+	}
+	class Achievement extends Displayable {
+		final Ƒ1<Game,Set<Player>> evaluator;
+		Predicate<? super Game> condition;
+
+		private Achievement(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			super(NAME, ICON, DESCRIPTION);
+			evaluator = EVALUATOR;
+		}
+
+		static Achievement achievement1(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Player> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, game -> singleton(EVALUATOR.apply(game)), DESCRIPTION);
+		}
+
+		static Achievement achievement01(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Optional<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).stream().collect(toSet()), DESCRIPTION);
+		}
+
+		static Achievement achievement0N(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, EVALUATOR, DESCRIPTION);
+		}
+
+		public Achievement onlyIf(Predicate<? super Game> CONDITION) {
+			this.condition = CONDITION;
+			return this;
+		}
+	}
 
     /** How to play help pane. */
     class HowToPane extends OverlayPane {
@@ -930,6 +991,12 @@ interface Utils {
 	    }
     }
 	class StatsGame implements Stats<Game> {
+		Player firstDead = null;
+
+		public void playerDied(Player p) {
+			if (firstDead!=null)
+				firstDead = p;
+		}
 
 		@Override
 		public void accumulate(Game game) {
@@ -1291,10 +1358,11 @@ interface Utils {
 									                  distAction.accept(rocket, game.dist(c.x, c.y, rocket.x, rocket.y));
 									                  centerAction.accept(c.x,c.y);
 								                  }
-								                  return game.game.humans.intelOn.is() ? polygon : null; // todo: refactor out
+								                  return polygon;
 							                  }
 							                  return null;
 						                  })
+						                  .filter(polygon -> game.game.humans.intelOn.is())
 						                  .filter(ISNTØ)
 						                  // optimization: return edges -> draw edges instead of polygons, we can improve performance
 						                  .flatMap(polygon -> {
@@ -1378,6 +1446,7 @@ interface Utils {
 										game.gc_bgr.fillOval(c.getX() - 1, c.getY() - 1, 9, 9);
 									}
 								})
+								.filter(polygon -> game.game.humans.intelOn.is())
 				                // optimization: return edges -> draw edges instead of polygons, we can improve performance
 								 .flatMap(polygon -> {
 									 Coordinate[] cs = polygon.getCoordinates();

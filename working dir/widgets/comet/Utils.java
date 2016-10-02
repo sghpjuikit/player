@@ -206,17 +206,17 @@ interface Utils {
     }
 
 	static Anim createHyperSpaceAnim(Node n) {
-		return new Anim(millis(200), x -> setScaleXY(n,1-x*x));
+		return new Anim(millis(300), x -> setScaleXY(n,1-x*x));
 	}
 
 	static void createHyperSpaceAnimIn(Game game, PO o) {
 		o.graphicsScale = 0;
-		game.runNext.addAnim01(millis(200), x -> o.graphicsScale = x*x);
+		game.runNext.addAnim01(millis(300), x -> o.graphicsScale = x*x);
 	}
 
 	static void createHyperSpaceAnimOut(Game game, PO o) {
 		o.graphicsScale = 1;
-		game.runNext.addAnim01(millis(200), x -> o.graphicsScale = 1-x*x);
+		game.runNext.addAnim01(millis(300), x -> o.graphicsScale = 1-x*x);
 	}
 
     /** Snapshot an image out of a node, consider transparency. */
@@ -449,7 +449,9 @@ interface Utils {
         private final Icon helpI = createInfoIcon("How to play");
 
         public HowToPane() {
-            ScrollPane sp = new ScrollPane();
+	        display.set(Display.WINDOW);
+
+	        ScrollPane sp = new ScrollPane();
                        sp.setOnScroll(Event::consume);
                        sp.setContent(layStack(g, CENTER));
                        sp.setFitToWidth(true);
@@ -518,6 +520,8 @@ interface Utils {
 	    private final Icon helpI = createInfoIcon("Mission details");
 
 	    public MissionPane() {
+		    display.set(Display.WINDOW);
+
 		    ScrollPane sp = new ScrollPane();
 		    sp.setOnScroll(Event::consume);
 		    sp.setContent(layStack(text, CENTER));
@@ -561,6 +565,8 @@ interface Utils {
 		private final Icon helpI = createInfoIcon("How to play");
 
 		public EndGamePane() {
+			display.set(Display.WINDOW);
+
 			ScrollPane sp = new ScrollPane();
 			sp.setOnScroll(Event::consume);
 			sp.setContent(layStack(g, CENTER));
@@ -1035,6 +1041,22 @@ interface Utils {
 		}
 	}
 
+	class GameSize {
+		double width=0, height=0, diagonal=0, area=0, length=0;
+
+		GameSize resize(double width, double height) {
+			this.width = width;
+			this.height = height;
+			diagonal = sqrt(width*width+height*height);
+			length = 2*(width+height);
+			area = width*height;
+			return this;
+		}
+
+		boolean contains(double x, double y) {
+			return x>=0 && y>=0 && x<=width && y<=height;
+		}
+	}
     /**
      * 2d vector. Mutable.
      */
@@ -1441,9 +1463,6 @@ interface Utils {
 										centerAction.accept(c.getX(), c.getY());
 										areaAction.accept(rocket, polygon.getArea());
 										distAction.accept(rocket, game.dist(c.getX(), c.getY(), rocket.x, rocket.y));
-
-										game.gc_bgr.setFill(rocket.player.color.get());
-										game.gc_bgr.fillOval(c.getX() - 1, c.getY() - 1, 9, 9);
 									}
 								})
 								.filter(polygon -> game.game.humans.intelOn.is())
@@ -1597,7 +1616,7 @@ interface Utils {
          void draw() {
             gc.save();
 	        gc.setStroke(color);
-	        double opacityMin = 0.02, opacityMax = 0.3;
+	        double opacityMin = 0.02, opacityMax = 0.5;
 
             int width = points.length;
             int height = points[0].length;
@@ -1628,13 +1647,13 @@ interface Utils {
                         drawLine(up.x,up.y,px,py, thickness);
                     }
 
-                    if (x > 1 && y > 1) {
-                        Vec left = points[x - 1][y].position;
-                        Vec up =  points[x][y - 1].position;
-                        Vec upLeft = points[x - 1][y - 1].position;
-                        drawLine(0.5*(upLeft.x + up.x),0.5*(upLeft.y + up.y), 0.5*(left.x + px),0.5*(left.y + py), 0.5f);   // vertical line
-                        drawLine(0.5*(upLeft.x + left.x),0.5*(upLeft.y + left.y), 0.5*(up.x + px),0.5*(up.y + py), 0.5f);   // horizontal line
-                    }
+//                    if (x > 1 && y > 1) {
+//                        Vec left = points[x - 1][y].position;
+//                        Vec up =  points[x][y - 1].position;
+//                        Vec upLeft = points[x - 1][y - 1].position;
+//                        drawLine(0.5*(upLeft.x + up.x),0.5*(upLeft.y + up.y), 0.5*(left.x + px),0.5*(left.y + py), 0.5f);   // vertical line
+//                        drawLine(0.5*(upLeft.x + left.x),0.5*(upLeft.y + left.y), 0.5*(up.x + px),0.5*(up.y + py), 0.5f);   // horizontal line
+//                    }
                 }
             }
             gc.restore();

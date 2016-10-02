@@ -14,7 +14,7 @@ import javafx.animation.AnimationTimer;
 public final class Loop {
 	private boolean active;
 	private final LongConsumer action;
-	private final AnimationTimer timer = new AnimationTimer () {
+	private final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long l) {
 			action.accept(l);

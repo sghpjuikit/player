@@ -636,8 +636,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (e.getEventType()==KEY_RELEASED) {
                     // conveniently traverse focus by simulating TAB behavior
                     // currently only hacks allow this
-                    //((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
-	                 n.impl_traverse(Direction.NEXT);
+                    // ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
+	                // n.traverse(Direction.NEXT); // !work since java 9 b135
+	                Util.invokeMethodP1(n, "traverse", Direction.class,Direction.NEXT);
                 }
                 e.consume();
             });

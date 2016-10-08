@@ -44,7 +44,6 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.*;
-import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 
 /**
@@ -250,7 +249,7 @@ public final class WidgetManager {
             // not be outdated, which we check by modification time. This avoids nasty class version
             // errors as consequently we recompile the source file.
             boolean srcFile_available = srcFile.exists();
-            boolean classFile_available = classFile.exists() && (!srcFile_available || classFile.lastModified()>srcFile.lastModified());
+            boolean classFile_available = classFile.exists() && (!srcFile_available || classFile.lastModified()>getSrcFiles().mapToLong(File::lastModified).max().orElseGet(srcFile::lastModified));
 
             // If class file is available, we just create factory for it.
             if (classFile_available) {
@@ -281,10 +280,15 @@ public final class WidgetManager {
             return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".java"));
         }
 
+	    Stream<File> getClassFiles() {
+		    return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".class"));
+	    }
+
         Stream<File> getLibFiles() {
             return stream(listFiles(widgetdir),listFiles(widgetdir.getParentFile()))
 	                   .filter(f -> f.getPath().endsWith(".jar"));
         }
+
     }
 
     /**

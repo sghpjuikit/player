@@ -26,6 +26,10 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
+import org.gamepad4j.Controllers;
+import org.gamepad4j.DpadDirection;
+import org.gamepad4j.IButton;
+import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -286,6 +290,9 @@ interface Utils {
 		double d = 2*r;
 		g.fillOval(x-r,y-r,d,d);
 	}
+	static void strokeLine(GraphicsContext g, double x, double y, double lenght, double angleRad) {
+		g.strokeLine(x,y,x+lenght*cos(angleRad),y+lenght*sin(angleRad));
+	}
 	static void drawRect(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;
 		g.fillRect(x-r,y-r,d,d);
@@ -343,7 +350,7 @@ interface Utils {
 		AUTO,MANUAL
 	}
 	enum AbilityState {
-		ACTIVATING, PASSSIVATING, NO_CHANGE
+		ACTIVATING, PASSSIVATING, OFF, ON
 	}
 	enum AbilityKind {
 		HYPERSPACE,
@@ -1328,6 +1335,13 @@ interface Utils {
 		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Comet game);
 
 	}
+
+	/**
+	 * Implementation based on kn.uni.voronoitreemap, which is based on
+	 * Arlind Nocaj, Ulrik Brandes, "Computing Voronoi Treemaps: Faster, Simpler, and Resolution-independent", Computer Graphics Forum, vol. 31, no. 3, June 2012, pp. 855-864
+	 *
+	 * https://github.com/ArlindNocaj/power-voronoi-diagram
+	 */
 	class Voronoi1 extends Voronoi {
 		public Voronoi1(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double,Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
 			super(areaAction, distAction, centerAction, edgesAction);
@@ -1628,7 +1642,7 @@ interface Utils {
 
 					Vec p = points[x][y].position;
 					Vec piInit = points[x][y].positionInitial;
-					double warpDist = 1.5*p.distX(piInit)*p.distY(piInit);
+					double warpDist = 0.1*p.distX(piInit)*p.distY(piInit);
 						// this method mitigates warpDist strength for diagonals for some reason,
 						// multiples of 90deg (PI/2) have less opacity than in diagonal directions.
 						// warpDist = piInit.distSqr(p);
@@ -1733,6 +1747,99 @@ interface Utils {
 				force.mul(-1);
 				end1.applyForce(force);
 			}
+		}
+	}
+
+	abstract class GamepadDevices {
+		private boolean isInitialized = false;
+
+		public void init() {
+			try {
+				Controllers.initialize();
+				isInitialized = true;
+			} catch (Throwable e) {
+				isInitialized = false;
+				LOGGER.error("Failed to initialize gamepad controllers", e);
+			}
+		}
+
+		public void doLoop() {
+			if (!isInitialized) return;
+			doLoopImpl();
+		}
+
+		abstract protected void doLoopImpl();
+
+		public void dispose() {
+			if (!isInitialized) return;
+			Controllers.shutdown();
+		}
+	}
+	class Gamepads extends GamepadDevices {
+		public Collection<Player> players;
+
+		public Gamepads(Collection<Player> players) {
+			this.players = players;
+		}
+
+		@Override
+		public void doLoopImpl() {
+			Controllers.checkControllers();
+			IController[] gamepads = Controllers.getControllers();
+
+//			Button discovery tool
+//			System.out.println("buttons=" + gamepads[0].getButtons().length);
+//			System.out.println("sticks=" + gamepads[0].getSticks().length);
+//			System.out.println("axes=" + gamepads[0].getAxes().length);
+//			System.out.println("triggers=" + gamepads[0].getTriggers().length);
+//			stream(gamepads[0].getButtons()).filter(ISNTØ).filter(b -> b.isPressed()).forEach(b -> {
+//				System.out.println("button.getID() = " + b.getID());
+//				System.out.println("button.getCode() = " + b.getCode());
+//				System.out.println("button.getLabelKey() = " + b.getLabelKey());
+//				System.out.println("button.getDefaultLabel() = " + b.getDefaultLabel());
+//			});
+//			stream(gamepads[0].getTriggers()).filter(ISNTØ).forEach(t -> {
+//				System.out.println("trigger.getID() = " + t.getID());
+//				System.out.println("trigger.getCode() = " + t.getCode());
+//				System.out.println("trigger.getLabelKey() = " + t.getLabelKey());
+//				System.out.println("trigger.getDefaultLabel() = " + t.getDefaultLabel());
+//				System.out.println("trigger.analogValue() = " + t.analogValue());
+//				System.out.println("trigger.getPercentage() = " + t.getPercentage());
+//			});
+//			stream(gamepads[0].getAxes()).filter(ISNTØ).forEach(a -> {
+//				System.out.println("trigger.getID() = " + a.getID());
+//				System.out.println("trigger.getNumber() = " + a.getNumber());
+//				System.out.println("trigger.getValue() = " + a.getValue());
+//			});
+//			System.out.println();
+
+			players.stream().filter(p -> p.alive).forEach(p -> {
+				IController g = gamepads[0];
+
+				// buttons
+				IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
+				IButton engine2B = g.getButton(10);
+				IButton engine3B = g.getButton(11);
+				IButton fireB = g.getButton(0); // g.getButton(ButtonID.FACE_LEFT);
+				IButton ability1B = g.getButton(4);
+				IButton ability2B = g.getButton(5);
+				IButton leftB = g.getButton(6);
+				IButton rightB = g.getButton(7);
+				boolean isEngine = (engine1B!=null && engine1B.isPressed()) || (engine2B!=null && engine2B.isPressed()) || (engine3B!=null && engine3B.isPressed());
+				boolean isAbility = (ability1B!=null && ability1B.isPressed()) || (ability2B!=null && ability2B.isPressed());
+				boolean isLeft = (leftB!=null && leftB.isPressed()) || g.getDpadDirection() == DpadDirection.LEFT;
+				boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
+
+				if (isEngine) p.rocket.engine.on(); else p.rocket.engine.off();
+				if (p.rocket.rapidfire.is()) {
+					if (fireB!=null && fireB.isPressed()) p.rocket.gun.fire();
+				} else {
+					if (fireB!=null && fireB.isPressedOnce()) p.rocket.gun.fire();
+				}
+				if (isLeft) p.inputRotateLeft();
+				if (isRight) p.inputRotateRight();
+				if (isAbility) p.rocket.ability_main.activate(); else p.rocket.ability_main.passivate();
+			});
 		}
 	}
 }

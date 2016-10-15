@@ -21,21 +21,14 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import com.melloware.jintellitype.HotkeyListener;
-import com.melloware.jintellitype.IntellitypeListener;
-import com.melloware.jintellitype.JIntellitype;
-
-import audio.playback.PLAYBACK;
-import audio.playlist.PlaylistManager;
-import main.App;
 import util.access.V;
 import util.async.Async;
-import util.async.executor.FxTimer;
 import util.collections.mapset.MapSet;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
+import util.hotkey.Hotkeys;
 import util.validation.Constraint;
 
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
@@ -201,17 +194,7 @@ public final class Action extends Config<Action> implements Runnable {
     /** Execute the action. Always executes on application thread. */
     @Override
     public void run() {
-
-        int id = getID();
-        boolean canRun = id!=lock;
-
-        if (!continuous) {
-            lock = id;
-            locker.start();
-        }
-
-        // run on appFX thread
-        if (canRun) Async.runFX(this::runUnsafe);
+    	Async.runFX(this::runUnsafe);
     }
 
     private void runUnsafe() {
@@ -242,23 +225,6 @@ public final class Action extends Config<Action> implements Runnable {
         boolean can_be_global = global && globalShortcuts.getValue() && isGlobalShortcutsSupported();
         if (can_be_global) registerGlobal();
         else registerLocal();
-
-        // In the past, there was a bug, I'm leaving this here in case of regression:
-        //
-        // runlater is bug fix, we delay local shortcut registering
-        // probably a javafx bug, as this was not always a problem
-        //
-        // for some unknown reason some shortcuts (F3,F4,
-        // F5,F6,F8,F12 confirmed) not getting registered when app starts, but
-        // other shortcuts register fine, even F9, F10 or F11...
-        //
-        // (1) The order in which shortcuts register does not seem to play a role.
-        // (2) The problem is certainly not shortcuts being consumed by gui.
-        // (3) This method always executes on fx thread, threading
-        // is not the problem, you can make sure by uncommenting:
-        // System.out.println("Registering shortcut: " + keys.getDisplayText() + ", is FX thread: " + Platform.isFxApplicationThread());
-        //
-        //    runLater(this::registerLocal);
     }
 
     public void unregister() {
@@ -314,15 +280,14 @@ public final class Action extends Config<Action> implements Runnable {
 
     private void registerGlobal() {
         if (!isActionListening()) return; // make sure there is no illegal state
-        JIntellitype.getInstance().registerHotKey(getID(), getKeys());
+	    hotkeys.register(this, getKeys());
     }
 
     private void unregisterGlobal() {
-        JIntellitype.getInstance().unregisterHotKey(getID());
+	    hotkeys.unregister(this);
     }
 
-
-    private int getID() {
+    public int getID() {
         return idOf(name);
     }
 
@@ -401,7 +366,7 @@ public final class Action extends Config<Action> implements Runnable {
 		return this;
 	}
 
-	/* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
+/* ---------- AS OBJECT --------------------------------------------------------------------------------------------- */
 
     @Override
     public boolean equals(Object o) {
@@ -465,12 +430,12 @@ public final class Action extends Config<Action> implements Runnable {
 
 /* ---------- SHORTCUT HANDLING ON APP LEVEL ------------------------------------------------------------------------ */
 
-    private static boolean isIntelliJSupported = JIntellitype.isJIntellitypeSupported();
-    @IsConfig(name = "Is global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this system")
-    private static boolean isGlobalShortcutsSupported = isIntelliJSupported;
-    @IsConfig(name = "Is media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this system")
-    private static boolean isMedialShortcutsSupported = isIntelliJSupported;
+    @IsConfig(name = "Global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this system")
+    private static boolean isGlobalShortcutsSupported = true;
+    @IsConfig(name = "Media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this system")
+    private static boolean isMedialShortcutsSupported = true;
     private static boolean isRunning = false;
+    private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
 
     /**
      * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
@@ -483,7 +448,7 @@ public final class Action extends Config<Action> implements Runnable {
     public static void startActionListening() {
         if (isRunning) throw new IllegalStateException("Action listening already running");
         startLocalListening();
-        startGlobalListening();
+	    startGlobalListening();
         isRunning = true;
     }
 
@@ -548,10 +513,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Does nothing if not supported.
      */
     private static void startGlobalListening() {
-        if (isIntelliJSupported) {
-            JIntellitype.getInstance().addHotKeyListener(global_listener);
-            JIntellitype.getInstance().addIntellitypeListener(media_listener);
-        }
+	    hotkeys.start();
     }
 
     /**
@@ -562,9 +524,7 @@ public final class Action extends Config<Action> implements Runnable {
      * because bgr listening thread will not close.
      */
     private static void stopGlobalListening() {
-        if (isIntelliJSupported) {
-            JIntellitype.getInstance().cleanUp();
-        }
+	    hotkeys.stop();
     }
 
     /**
@@ -574,7 +534,7 @@ public final class Action extends Config<Action> implements Runnable {
      * have no effect.
      */
     public static boolean isGlobalShortcutsSupported() {
-        return isIntelliJSupported;
+        return isGlobalShortcutsSupported;
     }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -587,6 +547,13 @@ public final class Action extends Config<Action> implements Runnable {
      */
     public static Collection<Action> getActions() {
         return actions;
+    }
+
+    public static Action get(int id) {
+	    Action a = actions.get(id);
+	    if (a==null) throw new IllegalArgumentException("No such action: '" + id + "'. Make sure the action is " +
+	                                                    "declared and annotation processing is enabled and functioning properly.");
+	    return a;
     }
 
     /**
@@ -707,51 +674,20 @@ public final class Action extends Config<Action> implements Runnable {
         return aa==null || aa.value().isEmpty() ? c.getSimpleName() : aa.value();
     }
 
-/* ---------- shortcut helper methods ------------------------------------------------------------------------------- */
-
-    // locking helps run continuously executed shortcuts vs. on-press shortcuts
-    private static int lock = -1;
-    private static final FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
-
-    //shortcut running
-    // this listener is running every 33ms when any registered shortcut is pressed
-    private static final HotkeyListener global_listener = id -> {
-        log(Action.class).debug("Global shortcut {} captured.", actions.get(id).getName());
-        actions.get(id).run();
-        locker.start();
-    };
-    private static final IntellitypeListener media_listener = i -> {
-        // run on appFX thread
-        Platform.runLater(() -> {
-            if     (i==JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK) PlaylistManager.playPreviousItem();
-            else if (i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
-            else if (i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
-            else if (i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
-            else if (i==JIntellitype.APPCOMMAND_LAUNCH_MEDIA_SELECT) App.Actions.openOpen();
-            else if (i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
-            else if (i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
-            else if (i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
-            else if (i==JIntellitype.APPCOMMAND_CLOSE) APP.close();
-        });
-    };
-
 /* ---------- CONFIGURATION ----------------------------------------------------------------------------------------- */
 
-    @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
-            + " application is not focused. Not all platforms supported.")
+    @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
     public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
         if (isGlobalShortcutsSupported()) {
             if (v){
-                // make sure we do not add the listener twice
-                JIntellitype.getInstance().removeHotKeyListener(global_listener);
-                JIntellitype.getInstance().addHotKeyListener(global_listener);
+                hotkeys.start();
                 // re-register shortcuts to switch from local
                 getActions().forEach(a -> {
                     a.unregister();
                     a.register();
                 });
             } else {
-                JIntellitype.getInstance().removeHotKeyListener(global_listener);
+            	hotkeys.stop();
                 // re-register shortcuts to switch to local
                 getActions().forEach(a -> {
                     a.unregister();
@@ -761,19 +697,8 @@ public final class Action extends Config<Action> implements Runnable {
         }
     });
 
-
-    @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.")
-    public static final V<Boolean> globalMediaShortcuts = new V<>(true, v -> {
-        if (isGlobalShortcutsSupported()) {
-            if (v) {
-                // make sure we dont add the listener twice
-                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
-                JIntellitype.getInstance().addIntellitypeListener(media_listener);
-            } else {
-                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
-            }
-        }
-    });
+    @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
+    public static final V<Boolean> globalMediaShortcuts = new V<>(true);
 
 //    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
 //    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
@@ -792,3 +717,12 @@ public final class Action extends Config<Action> implements Runnable {
     public static String Shortcut_COLAPSE = "Shift+C";
 
 }
+//            if     (i==JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK) PlaylistManager.playPreviousItem();
+//	            else if (i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
+//	            else if (i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
+//	            else if (i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
+//	            else if (i==JIntellitype.APPCOMMAND_LAUNCH_MEDIA_SELECT) App.Actions.openOpen();
+//	            else if (i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
+//	            else if (i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
+//	            else if (i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
+//	            else if (i==JIntellitype.APPCOMMAND_CLOSE) APP.close();

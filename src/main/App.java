@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.LogManager;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
@@ -242,7 +243,6 @@ public class App extends Application implements Configurable {
      * File for application configuration.
      */ public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
 
-
     /**
      * Event source and stream for executed actions, providing their name. Use
      * for notifications of running the action or executing additional behavior.
@@ -370,7 +370,12 @@ public class App extends Application implements Configurable {
      */
     @Override
     public void init() {
-	    // configure logging
+    	// disable java.util.logging logging
+	    // Im not sure this is really wise, but otherwise we get a lot of unwanted log content in console from
+	    // libraries
+	    LogManager.getLogManager().reset();
+
+	    // configure slf4 logging
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         try {
             JoranConfigurator jc = new JoranConfigurator();
@@ -1006,14 +1011,14 @@ public class App extends Application implements Configurable {
 		    GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
 		    grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESSED));
 		    grid.setCellFactory(view -> new GridCell<>() {
-			    Anim a;
+//			    Anim a;
 
 			    {
 				    getStyleClass().add("icon-grid-cell");
 			    }
 
 			    @Override
-			    protected void updateItem(GlyphIcons icon, boolean empty) {
+			    public void updateItem(GlyphIcons icon, boolean empty) {
 				    super.updateItem(icon, empty);
 				    IconInfo graphics;
 				    if (getGraphic() instanceof IconInfo)
@@ -1021,7 +1026,7 @@ public class App extends Application implements Configurable {
 				    else {
 					    graphics = new IconInfo(null,iconSize);
 					    setGraphic(graphics);
-					    a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
+//					    a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
 				    }
 				    graphics.setGlyph(empty ? null : icon);
 
@@ -1177,7 +1182,7 @@ public class App extends Application implements Configurable {
 		    );
 	    }
 
-	    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "?")
+	    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
 	    static void showShortcuts() {
 		    APP.shortcutPane.show();
 	    }
@@ -1277,8 +1282,8 @@ public class App extends Application implements Configurable {
 	    static void openDictionary() {
 		    boolean isFocused = APP.windowManager.getFocused().isPresent();
 		    PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
-			                                                                             new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
-			                                                                             (String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
+				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
+				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
 		    ));
 		    p.title.set("Look up in dictionary...");
 		    p.setAutoHide(true);

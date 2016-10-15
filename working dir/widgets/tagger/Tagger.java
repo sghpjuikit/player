@@ -791,7 +791,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                                 });
                             }
                             @Override
-                            protected void updateItem(Item item, boolean empty) {
+                            public void updateItem(Item item, boolean empty) {
                                 super.updateItem(item, empty);
                                 if (!empty) {
                                     int index = getIndex() + 1;

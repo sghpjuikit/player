@@ -46,7 +46,17 @@ public class Hotkeys {
 //				R<Boolean> shouldConsume = new R<>(false);
 				keyCombos.forEach((actionId, keyCombo) -> {
 					Action a = Action.get(actionId);
-					if (keyCombo.key.getCode()==e.getRawCode() && keyCombo.modifier==e.getModifiers()) {
+
+					// TODO: remove hack
+					// For some reason left BACK_SLASH key (left of the Z key) is not recognized, so we manually se it straight
+					if (e.getRawCode()==226) {
+						e.setKeyCode(43);
+						e.setKeyChar((char)43);
+					}
+
+					// Unfortunately, JavaFX key codes and the library raw codes do not match for some keys, so we also
+					// check key name. This combination should be enough for all but rare cases
+					if ((keyCombo.key.getCode()==e.getRawCode() || keyCombo.key.getName().equalsIgnoreCase(NativeKeyEvent.getKeyText(e.getKeyCode()))) && keyCombo.modifier==e.getModifiers()) {
 						keyCombo.press(a);
 //						shouldConsume.set(true);
 					}
@@ -65,7 +75,7 @@ public class Hotkeys {
 
 			@Override
 			public void nativeKeyReleased(NativeKeyEvent e) {
-				//LOGGER.info("Global key release event: " + e.paramString());
+				// LOGGER.info("Global key release event: " + e.paramString());
 				keyCombos.values().forEach(KeyCombo::release);
 			}
 

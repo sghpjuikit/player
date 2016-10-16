@@ -1,229 +1,132 @@
 package configurator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.scene.control.Accordion;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
 import gui.objects.tree.TreeItems;
 import gui.objects.tree.TreeItems.Name;
+import gui.pane.ConfigPane;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.feature.ConfiguringFeature;
-import util.access.V;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static javafx.geometry.HPos.LEFT;
-import static javafx.geometry.HPos.RIGHT;
-import static javafx.geometry.Pos.CENTER;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.SINGLE;
-import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
-import static util.functional.Util.*;
-import static util.graphics.Util.setAnchors;
+import static util.functional.Util.map;
 
 @Widget.Info(
-    author = "Martin Polakovic",
-    name = "Settings",
-    description = "Provides access to application settings",
-    howto = "Available actions:\n"
-    + "    Select category\n"
-    + "    Change setting value: Automatically takes change\n"
-    + "    OK : Applies any unapplied change\n"
-    + "    Default : Set default value for this setting\n",
-    notes = "To do: generate active widget settings, allow subcategories.",
-    version = "1",
-    year = "2015",
-    group = Widget.Group.APP
+	author = "Martin Polakovic",
+	name = "Settings",
+	description = "Provides access to application settings",
+	howto = "Available actions:\n"
+	+ "    Select category\n"
+	+ "    Change setting value: Automatically takes change\n"
+	+ "    Default : Set default value for this setting\n",
+	notes = "To do: generate active widget settings",
+	version = "1",
+	year = "2016",
+	group = Widget.Group.APP
 )
 public final class Configurator extends ClassController implements ConfiguringFeature {
 
-	@FXML
-	TreeView<Name> groups;
-    @FXML Pane controls;
-    @FXML Accordion accordion;
-    private final Map<String, ConfigGroup> groupsOld = new HashMap<>();
-    private final List<Config> configs = new ArrayList<>();
-    private final List<ConfigField> configFields = new ArrayList<>();
-    private final boolean isSimple;
+	@FXML TreeView<Name> groups;
+	@FXML Pane controls;
+	@FXML AnchorPane configsRootPane;
+	private final ConfigPane<Object> configsPane = new ConfigPane<>();
+	private final List<Config> configs = new ArrayList<>();
 
-    @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final V<HPos> alignment = new V<>(RIGHT, v -> groupsOld.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
-    @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
-    public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(CENTER);
-    @IsConfig(editable = false)
-    public final V<String> expanded = new V<>("", v -> {
-        if (groupsOld.containsKey(v))
-            accordion.setExpandedPane(groupsOld.get(v).pane);
-    });
+	@IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
+	public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(Pos.CENTER);
+	// TODO: reuires COnfigPane support for this, easy to do, just boring... someone do this pls
+	// @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
+	// public final V<HPos> alignment = new V<>(RIGHT, v -> groupsOld.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
+	// TODO: requires support for injectable widget factory configs to share configs between widget instances of same type
+	// @IsConfig(editable = false)
+	// public final V<String> expanded = new V<>("", v -> {});
 
-    public Configurator() {
-        // creating widget loads controller's no-arg constructor - this one,
-        // and we need widget to be in non-simple mode, hence we need param==false
-        this(false);
-    }
+	public Configurator() {
+		// create inputs/outputs
+		inputs.create("To configure", Configurable.class, this::configure);
 
-    /**
-     * @param isSimpleMode simple hides home button and categories
-     */
-    public Configurator(boolean isSimpleMode) {
-        inputs.create("To configure", Configurable.class, this::configure);
-        isSimple = isSimpleMode;
+		// load fxml part
+		new ConventionFxmlLoader(this).loadNoEx();
 
-        // load fxml part
-        new ConventionFxmlLoader(this).loadNoEx();
-
-	    groups.getSelectionModel().setSelectionMode(SINGLE);
-	    groups.setCellFactory(TreeItems::buildTreeCell);
-	    groups.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-	    	boolean isSelection = nv!=null;
-	    	boolean isValueSelected = isSelection && nv.getValue()!=null;
+		// set up graphics
+		configsRootPane.getChildren().setAll(configsPane.getNode());
+		groups.getSelectionModel().setSelectionMode(SINGLE);
+		groups.setCellFactory(TreeItems::buildTreeCell);
+		groups.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
+			boolean isSelection = nv!=null;
+			boolean isValueSelected = isSelection && nv.getValue()!=null;
 			if (isValueSelected)
 				populateConfigFields(configs.stream().filter(f -> f.getGroup().equals(nv.getValue().pathUp)));
-	    });
+		});
 
-        // header icons
-        Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields())),
-             reI  = new Icon(REFRESH,13,"Refresh all",this::refresh),
-             defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
+		// header icons
+		Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields())),
+			 reI  = new Icon(REFRESH,13,"Refresh all",this::refresh),
+			 defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
+		controls.getChildren().addAll(appI,new Label("    "),reI,defI);
 
-        controls.getChildren().addAll(appI,new Region(),reI,defI);
-        if (isSimpleMode) controls.getChildren().remove(appI);
+		// consume scroll event to prevent other scroll behavior // optional
+		setOnScroll(Event::consume);
+	}
 
-        // consume scroll event to prevent other scroll behavior // optional
-        setOnScroll(Event::consume);
-    }
+	/** Set and apply values and refresh if needed (no need for hard refresh). */
+	@FXML
+	public void ok() {
+		configsPane.getValuesC().forEach(ConfigField::apply);
+	}
 
-    /** Set and apply values and refresh if needed (no need for hard refresh) */
-    @FXML
-    public void ok() {
-        configFields.forEach(ConfigField::apply);
-    }
+	/** Set default app settings. */
+	@FXML
+	public void defaults() {
+		configsPane.getValuesC().forEach(ConfigField::setNapplyDefault);
+	}
 
-    /** Set default app settings. */
-    @FXML
-    public void defaults() {
-        configFields.forEach(ConfigField::setNapplyDefault);
-    }
+	@Override
+	public void refresh() {
+//		alignment.applyValue();
+//		expanded.applyValue();
+		refreshConfigs();
+	}
 
-    @Override
-    public void refresh() {
-        alignment.applyValue();
-        expanded.applyValue();
-        refreshConfigs();
-    }
+	@Override
+	public void configure(Collection<Config> c) {
+		if (c==null) return;
 
-    @Override
-    public void configure(Collection<Config> c) {
-        if (c==null) return;
+		configs.clear();
+		configs.addAll(c);
+		groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c,Config::getGroup))));
+		groups.getRoot().setExpanded(true);
+	}
 
-        // clear previous fields
-        configFields.clear();
-	    configs.clear();
-        accordion.getPanes().clear();
-	    groupsOld.values().forEach(ConfigGroup::dispose);
-	    groupsOld.clear();
+	private void populateConfigFields(Stream<Config> visibleConfigs) {
+		configsPane.configure(visibleConfigs.collect(toList()));
+	}
 
-	    // build groups
-	    groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c,Config::getGroup))));
-	    groups.getRoot().setExpanded(true);
-
-	    configs.addAll(c);
-		populateConfigFields(c.stream());
-    }
-
-    private void populateConfigFields(Stream<Config> visibleConfigs) {
-	    // clear previous fields
-	    configFields.clear();
-	    accordion.getPanes().clear();
-	    groupsOld.values().forEach(ConfigGroup::dispose);
-	    groupsOld.clear();
-
-	    // sort & populate fields
-	    ConfigGroup singleGroup = isSimple ? groupsOld.computeIfAbsent("",ConfigGroup::new) : null;
-	    visibleConfigs.sorted(byNC(Config::getGuiName)).forEach(f -> {
-		    // create graphics
-		    ConfigField cf = ConfigField.create(f);
-		    configFields.add(cf);
-
-		    // get group
-		    ConfigGroup g = isSimple ? singleGroup : groupsOld.computeIfAbsent(f.getGroup(),ConfigGroup::new);
-
-		    // add to grid
-		    g.grid.getRowConstraints().add(new RowConstraints());
-		    g.grid.add(cf.createLabel(), 0, g.grid.getRowConstraints().size()-1);
-		    g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size()-1);
-	    });
-
-	    // auto-expand
-	    boolean single = groupsOld.size()==1;
-	    accordion.setVisible(!single);
-	    ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
-	    if (single) {
-		    Pane t = list(groupsOld.values()).get(0).grid;
-		    ((AnchorPane)accordion.getParent()).getChildren().add(t);
-		    setAnchors(t,0d);
-	    } else {
-		    groupsOld.values().stream()
-			    .sorted(byNC(ConfigGroup::name))
-			    .forEach(g -> accordion.getPanes().add(g.pane));
-	    }
-
-	    alignment.applyValue();
-    }
-
-    public void refreshConfigs() {
-        configFields.forEach(ConfigField::refreshItem);
-    }
-
-    class ConfigGroup {
-
-        final TitledPane pane = new TitledPane();
-        final GridPane grid = new GridPane();
-
-        ConfigGroup(String name) {
-            pane.setText(name);
-            pane.setContent(grid);
-            pane.expandedProperty().addListener((o, ov, nv) -> {
-                if (nv) expanded.setValue(pane.getText());
-            });
-            pane.alignmentProperty().bind(title_align);
-
-            grid.setVgap(3);
-            grid.setHgap(5);
-
-            ColumnConstraints c1 = new ColumnConstraints(120,-1,-1,ALWAYS, alignment.get(),true);
-            ColumnConstraints gap = new ColumnConstraints(0);
-            ColumnConstraints c2 = new ColumnConstraints(50,-1,-1,ALWAYS,LEFT,true);
-            grid.getColumnConstraints().addAll(c1, gap, c2);
-        }
-
-        String name() {
-            return pane.getText();
-        }
-
-        void dispose() {
-            pane.alignmentProperty().unbind();
-        }
-
-//        void autoSize() {
-//            grid.getColumnConstraints().stream().mapToDouble(c->c.g)
-//        }
-    }
+	public void refreshConfigs() {
+		configsPane.getValuesC().forEach(ConfigField::refreshItem);
+	}
 
 }

@@ -30,7 +30,6 @@ import javafx.util.Duration;
 import com.sun.javafx.scene.traversal.Direction;
 
 import de.jensd.fx.glyphs.octicons.OctIcon;
-import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
 import gui.itemnode.textfield.EffectItemNode;
@@ -40,6 +39,7 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.textfield.DecoratedTextField;
+import gui.pane.ConfigPane;
 import util.Password;
 import util.access.Vo;
 import util.action.Action;
@@ -305,7 +305,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
 
-    Runnable onChange;
+    public Runnable onChange;
 
     public void apply() {
         apply(true);

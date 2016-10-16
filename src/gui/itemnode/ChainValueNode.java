@@ -1,13 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.itemnode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,23 +10,15 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import layout.widget.feature.ConfiguringFeature;
-import util.conf.Config;
-import util.conf.Configurable;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
@@ -42,7 +26,8 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.Build.appTooltip;
 import static util.dev.Util.yes;
-import static util.functional.Util.*;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.repeat;
 
 /**
  * {@link ValueNode} containing editable list of {@link ValueNode}.
@@ -294,61 +279,6 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         @Override
         protected V reduce(Stream<V> values) {
             throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-    }
-    public static class ConfigPane<T> implements ConfiguringFeature {
-        private final FlowPane root = new FlowPane(5,5);
-        private final List<ConfigField<T>> configs = new ArrayList<>();
-        Runnable onChange;
-
-        public ConfigPane() {}
-
-        public ConfigPane(Collection<Config<T>> configs) {
-            this.configs.clear();
-            configure((Collection)configs);
-        }
-
-        public ConfigPane(Configurable<T> configs) {
-            this(configs.getFields());
-        }
-
-        @Override
-        public final void configure(Collection<Config> configs) {
-            if (configs==null) return;
-
-            this.configs.clear();
-            stream(configs)
-	            .sorted(byNC(Config::getGuiName))
-	            .map(c -> {
-	                ConfigField cf = ConfigField.create(c);
-	                            cf.onChange = () -> { if (onChange!=null) onChange.run(); };
-	                this.configs.add(cf);
-	                Label l = cf.createLabel();
-	                      l.setMinWidth(300);
-	                      l.setPrefWidth(300);
-	                      l.setMaxWidth(300);
-	                      l.setAlignment(Pos.CENTER_RIGHT);
-	                      l.setTextAlignment(TextAlignment.RIGHT);
-	                      l.setPadding(new Insets(0, 0, 0, 5));
-	                HBox h = new HBox(20, l,cf.getNode());
-	                     h.setAlignment(CENTER_LEFT);
-	                HBox.setHgrow(cf.getNode(), ALWAYS);
-	                return h;
-                })
-	            .toListAndThen(root.getChildren()::setAll);
-        }
-
-        public Node getNode() {
-            return root;
-        }
-
-        public Stream<T> getValues() {
-            return configs.stream().map(ConfigField::getValue);
-        }
-
-        public List<ConfigField<T>> getValuesC() {
-            return configs;
         }
 
     }

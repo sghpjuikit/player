@@ -73,7 +73,7 @@ import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
 import gui.objects.spinner.Spinner;
 import gui.objects.tablecell.RatingCellFactory;
-import gui.objects.tablecell.TextStarRatingCellFactory;
+import gui.objects.tablecell.RatingRatingCellFactory;
 import gui.objects.textfield.DecoratedTextField;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.UiContext;
@@ -318,7 +318,7 @@ public class App extends Application implements Configurable {
 	 */ public final MimeTypes mimeTypes = MimeTypes.standard();
 
     @IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
-    public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new TextStarRatingCellFactory(),
+    public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new RatingRatingCellFactory(),
             () -> plugins.getPlugins(RatingCellFactory.class));
 
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")

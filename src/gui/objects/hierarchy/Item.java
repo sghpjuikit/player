@@ -10,11 +10,11 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 
 import gui.objects.image.Thumbnail;
-import util.Hierarchical;
-import util.graphics.IconExtractor;
 import unused.TriConsumer;
+import util.HierarchicalBase;
 import util.file.FileType;
 import util.file.ImageFileFormat;
+import util.graphics.IconExtractor;
 
 import static util.Util.loadImageFull;
 import static util.Util.loadImageThumb;
@@ -27,11 +27,9 @@ import static util.functional.Util.list;
  * File wrapper, content of Cell.
  * We cache various stuff in here, including the cover Image and children files.
  */
-public abstract class Item implements Hierarchical<Item> {
+public abstract class Item extends HierarchicalBase<File,Item> {
 
-    public final File val;
     public final FileType valtype;
-    public final Item parent;
     public Set<Item> children;              // filtered files
     public Set<String> all_children;        // all files, cache, use instead File.exists to reduce I/O
     public Image cover;                     // cover cache
@@ -42,9 +40,8 @@ public abstract class Item implements Hierarchical<Item> {
     public double last_gridposition;
 
     public Item(Item parent, File value, FileType valtype) {
-        this.val = value;
+    	super(value, parent);
         this.valtype = valtype;
-        this.parent = parent;
 	    init();
     }
 
@@ -199,11 +196,6 @@ public abstract class Item implements Hierarchical<Item> {
 
         return cover_file;
     }
-
-	@Override
-	public Item getHParent() {
-		return parent;
-	}
 
 	@Override
 	public List<Item> getHChildren() {

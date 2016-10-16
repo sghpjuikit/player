@@ -55,6 +55,7 @@ public abstract class Component {
 
     /**
      * Loads the graphical element this container wraps.
+     *
      * @return root node of the loaded container
      */
     abstract public Node load();
@@ -79,16 +80,18 @@ public abstract class Component {
     }
 
     /**
-     * Parent component. Root component (at the top of the hierarchy) has no parent. Component,
-     * which is not part of the hierarchy or is not loaded yet will have no parent either.
+     * Parent component. Root component (at the top of the hierarchy) has no parent. Every component aside from root
+     * must have a parent.
      * <p/>
      * Use to traverse hierarchy.
      *
-     * @return parent container of this container */
+     * @return parent container of this container
+     */
     abstract public Container<?> getParent();
 
     /**
      * Equivalent to nullsafe version of: getParent().indexOf(this)
+     *
      * @return parent.indexOf(this) or null if no parent
      */
     public final Integer indexInParent() {

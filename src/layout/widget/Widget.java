@@ -137,7 +137,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
     }
 
     /**
-     * Non null only if within container and loaded.
+     * Null if not loaded, otherwise never null - widgets can only reside within a {@link layout.container.Container}
+     * parent.
      * <p/>
      * {@inheritDoc}
      */

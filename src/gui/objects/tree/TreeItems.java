@@ -64,19 +64,19 @@ import static util.graphics.Util.menuItem;
  */
 public class TreeItems {
 
-    public static SimpleTreeItem<?> tree(Object o) {
-        if (o instanceof TreeItem)       return (SimpleTreeItem)o;  // purposefully, this will crash if TreeItem is not SimpleTreeItem, we don't want to wrap TreeItems
-        if (o instanceof Widget)         return new WidgetItem((Widget)o);
-        if (o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
-        if (o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
-        if (o instanceof WidgetSource)   return new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
-        if (o instanceof Feature)        return new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
-        if (o instanceof Container)      return new LayoutItem((Component)o);
-        if (o instanceof File)           return new FileTreeItem((File)o);
-        if (o instanceof Node)           return new NodeTreeItem((Node)o);
-        if (o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
-        if (o instanceof Name)           return new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> ((Name)o).getHChildren().isEmpty());
-        if (o instanceof HierarchicalBase)   return new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> true);
+    public static <T> SimpleTreeItem<T> tree(T o) {
+        if (o instanceof TreeItem)          return (SimpleTreeItem) o;  // purposefully, this will crash if TreeItem is not SimpleTreeItem, we don't want to wrap TreeItems
+        if (o instanceof Widget)            return (SimpleTreeItem) new WidgetItem((Widget)o);
+        if (o instanceof WidgetFactory)     return (SimpleTreeItem) new SimpleTreeItem<>(o);
+        if (o instanceof Widget.Group)      return (SimpleTreeItem) new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
+        if (o instanceof WidgetSource)      return (SimpleTreeItem) new STreeItem(o,()->APP.widgetManager.findAll((WidgetSource)o).sorted(by(w -> w.getName())));
+        if (o instanceof Feature)           return (SimpleTreeItem) new STreeItem(((Feature)o).name(), () -> APP.widgetManager.getFactories().filter(f -> f.hasFeature(((Feature)o))).sorted(by(f -> f.nameGui())));
+        if (o instanceof Container)         return (SimpleTreeItem) new LayoutItem((Component)o);
+        if (o instanceof File)              return (SimpleTreeItem) new FileTreeItem((File)o);
+        if (o instanceof Node)              return (SimpleTreeItem) new NodeTreeItem((Node)o);
+        if (o instanceof Window)            return (SimpleTreeItem) new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
+        if (o instanceof Name)              return (SimpleTreeItem) new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> ((Name)o).getHChildren().isEmpty());
+        if (o instanceof HierarchicalBase)  return (SimpleTreeItem) new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> true);
         return new SimpleTreeItem<>(o);
     }
 
@@ -410,7 +410,7 @@ public class TreeItems {
         return n;
     }
 
-	private static class Name extends HierarchicalBase<String,Name> {
+	public static class Name extends HierarchicalBase<String,Name> {
 		private static final char DELIMITER = '.';
 
 		public static Name treeOfPaths(String rootName, Collection<String> paths) {

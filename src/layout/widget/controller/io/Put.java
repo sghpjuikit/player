@@ -43,10 +43,15 @@ public class Put<T> implements XPut<T>, WritableValue<T> {
         monitors.forEach(m -> m.accept(v));
     }
 
-    public Subscription monitor(Consumer<? super T> action) {
-        monitors.add(action);
-        action.accept(getValue());
-        return () -> monitors.remove(action);
-    }
+	public Subscription monitor(Consumer<? super T> action) {
+		monitors.add(action);
+		action.accept(getValue());
+		return () -> monitors.remove(action);
+	}
+
+	public Subscription monitorInit(Consumer<? super T> action) {
+		monitors.add(action);
+		return () -> monitors.remove(action);
+	}
 
 }

@@ -29,7 +29,7 @@ public class Input<T> extends Put<T> {
     public Input(String name, Class<? super T> c, T init_val, Consumer<? super T> action) {
         super(c, init_val);
         this.name = name;
-        monitor(action);
+	    monitorInit(action);
 
 //        System.out.println("");
 //        System.out.println("class: " + new TypeToken<List<Integer>>(){}.getClass());

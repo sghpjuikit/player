@@ -51,9 +51,9 @@ public class ConfigPane<T> implements ConfiguringFeature {
 				cf.onChange = onChange;
 				this.configs.add(cf);
 				Label l = cf.createLabel();
-				l.setMinWidth(300);
-				l.setPrefWidth(300);
-				l.setMaxWidth(300);
+				l.setMinWidth(250);
+				l.setPrefWidth(250);
+				l.setMaxWidth(250);
 				l.setAlignment(Pos.CENTER_RIGHT);
 				l.setTextAlignment(TextAlignment.RIGHT);
 				l.setPadding(new Insets(0, 0, 0, 5));

@@ -155,13 +155,13 @@ public final class PLAYBACK implements Configurable {
     }
 
     /** Resumes player, if file is being played. Otherwise does nothing. */
-    @IsAction(name = "Resume", desc = "Resumes playback, if file is being played.", keys = "", global = true)
+    @IsAction(name = "Resume", desc = "Resumes playback, if file is being played.", global = true)
     public static void resume() {
         player.resume();
     }
 
     /** Pauses player, if already paused, does nothing. */
-    @IsAction(name = "Pause", desc = "Pauses playback, if file is being played.", keys = "", global = true)
+    @IsAction(name = "Pause", desc = "Pauses playback, if file is being played.", global = true)
     public static void pause() {
         player.pause();
     }

@@ -33,7 +33,7 @@ import static util.graphics.Util.setAnchors;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable
+@IsConfigurable("Mouse.Effect")
 public class ClickEffect extends ServiceBase {
 
     // configuration

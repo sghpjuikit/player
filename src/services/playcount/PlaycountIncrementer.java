@@ -28,7 +28,7 @@ import static util.functional.Util.max;
 import static util.functional.Util.min;
 
 /** Playcount incrementing service. */
-@IsConfigurable(value = "Playcount Incrementing")
+@IsConfigurable(value = "Playback.Playcount.Incrementing")
 public class PlaycountIncrementer extends ServiceBase {
 
     @IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")

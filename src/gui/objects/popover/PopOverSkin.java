@@ -77,7 +77,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private boolean tornOff;
 
-    final StackPane root;
+    public final StackPane root;
     private final Path path;
     private BorderPane content;
 
@@ -96,13 +96,16 @@ public class PopOverSkin implements Skin<PopOver> {
         root.setPickOnBounds(false);
         root.getStyleClass().add(ROOT_STYLECLASS);
 
-         //  min width and height equal 2 * corner radius + 2 * arrow indent +
-         // 2 * arrow size.
+         //  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size
         root.minHeightProperty().bind(root.minWidthProperty());
         root.minWidthProperty().bind(
                 add(multiply(2,p.arrowSizeProperty()),
                         add(multiply(2,p.cornerRadiusProperty()),
                             multiply(2,p.arrowIndentProperty()))));
+
+        // respect popover size
+        maintain(popover.prefWidthProperty(), root.prefWidthProperty());
+        maintain(popover.prefHeightProperty(), root.prefHeightProperty());
 
         // create header & its content
         title = new Label();

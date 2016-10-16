@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import javafx.application.Platform;
@@ -34,6 +33,7 @@ import util.validation.Constraint;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
+import static util.action.Action.CONFIG_GROUP;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.reactive.Util.doOnceIfNonNull;
@@ -48,11 +48,12 @@ import static util.reactive.Util.listChangeHandler;
  * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
-@IsConfigurable("Shortcuts")
+@IsConfigurable(CONFIG_GROUP)
 public final class Action extends Config<Action> implements Runnable {
 
     /** Action that does nothing. Use where null inappropriate. */
-    public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", "", false, false);
+    public static final Action EMPTY = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
+	public static final String CONFIG_GROUP = "Shortcuts";
 
     private final String name;
     private final Runnable action;
@@ -86,7 +87,7 @@ public final class Action extends Config<Action> implements Runnable {
         this.name = name;
         this.action = action;
         this.info = info==null || info.isEmpty() ? name : info;
-        this.group = group.isEmpty() ? "Other" : group;
+        this.group = group.isEmpty() ? CONFIG_GROUP : group;
         this.continuous = continuous;
         this.global = global;
         this.defaultGlobal = global;
@@ -127,7 +128,6 @@ public final class Action extends Config<Action> implements Runnable {
         String s = keys.getName();
         s = s.replaceAll("'", "");      // we need to replace ''' characters
         s = s.replaceAll(" ", "_");     // we need to replace ' ' characters
-        s = s.replaceAll(Matcher.quoteReplacement("\\"), "Back_Slash");
         return s;
     }
 

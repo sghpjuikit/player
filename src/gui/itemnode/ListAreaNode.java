@@ -3,6 +3,7 @@ package gui.itemnode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -105,7 +106,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
             List l = map(input,f);
             if (transforms.getTypeOut()!=String.class)   // prevents duplicate update
                 output.setAll(l);
-            textarea.setText(toS(l,toString,"\n"));     // update the text -> update the value
+            textarea.setText(toS(l,Objects::toString,"\n"));     // update the text -> update the value
         };
         textarea.textProperty().addListener((o,ov,nv) -> {
             List<String> newval = split(nv,"\n",x->x);

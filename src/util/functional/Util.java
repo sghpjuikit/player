@@ -210,16 +210,6 @@ public interface Util {
         for (int x=0; x<n; x++) action.accept(x);
     }
 
-
-    /** Runnable that does nothing.  () -> {}; */
-    Runnable do_NOTHING = () -> {};
-
-    /**
-     * Function transforming object into its string representation by invoking
-     * its toString() method or "null" if null.
-     */
-    Function<Object,String> toString = Objects::toString;
-
 /******************************************** COLLECTORS ******************************************/
 
     /** Simple Collector concatenating Strings to coma separated list (CSList)
@@ -625,9 +615,8 @@ public interface Util {
      * collection
      */
     static <T> String toS(Collection<T> c) {
-        return c.stream().map(toString).collect(toCSList);
+        return c.stream().map(Objects::toString).collect(toCSList);
     }
-
 
     static <C extends Comparable<? super C>> C min(C a, C b) {
         return a.compareTo(b)<0 ? a : b;

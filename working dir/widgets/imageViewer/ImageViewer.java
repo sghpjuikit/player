@@ -306,25 +306,25 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     }
 
     @Override
-    public void showImage(File img_file) {
-        if (img_file!=null && img_file.getParentFile()!=null) {
-            folder.set(img_file.getParentFile());
+    public void showImage(File imgFile) {
+        if (imgFile !=null && imgFile.getParentFile()!=null) {
+            folder.set(imgFile.getParentFile());
             // this resets the slideshow counter
             // notice that we query whether slideshow is running, not whether it is
             // supposed to run, which might not always be the same
             if (slideshow.isRunning()) slideshow.start();
             active_image = -1;
-            mainImage.loadImage(img_file);
+            mainImage.loadImage(imgFile);
         }
     }
 
     @Override
-    public void showImages(Collection<File> img_files) {
-        if (img_files.isEmpty()) return;
+    public void showImages(Collection<File> imgFiles) {
+        if (imgFiles.isEmpty()) return;
 
-        showImage(img_files.stream().findFirst().get());
+        showImage(imgFiles.stream().findFirst().get());
         active_image = 0;
-        img_files.forEach(this::addThumbnail);
+        imgFiles.forEach(this::addThumbnail);
     }
 
 /****************************** HELPER METHODS ********************************/

@@ -1,14 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package layout.widget.feature;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -26,13 +19,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface Feature {
-    /** Identifies the feature. Not necessarily unique. */
-    String name() default "";
-    /** Description of the feature.. */
-    String description() default "";
-    /**
-     * Identifies the feature exactly. Must be unique and must match the class of the annotated
-     * interface.
-     */
-    Class type() default Void.class;
+
+	/** Identifies the feature. Not necessarily unique. */
+	String name() default "";
+
+	/** Description of the feature. */
+	String description() default "";
+
+	/**
+	 * Identifies the feature exactly. Must be unique and must match the class of the annotated interface.
+	 */
+	Class type() default Void.class;
+
 }

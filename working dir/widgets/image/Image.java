@@ -75,9 +75,9 @@ public class Image extends FXMLController implements ImageDisplayFeature {
 
     @Override
     @IsInput("To display")
-    public void showImage(File img_file) {
-        thumb.loadImage(img_file);
-        img = img_file==null ? new File("") : img_file;
+    public void showImage(File imgFile) {
+        thumb.loadImage(imgFile);
+        img = imgFile ==null ? new File("") : imgFile;
     }
 
 }

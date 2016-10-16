@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package layout.widget.feature;
 
 import java.io.File;
@@ -14,16 +9,17 @@ import java.util.Collection;
  * @author Martin Polakovic
  */
 @Feature(
-  name = "Images display",
-  description = "Displays images",
-  type = ImagesDisplayFeature.class
+	name = "Images display",
+	description = "Displays images",
+	type = ImagesDisplayFeature.class
 )
 public interface ImagesDisplayFeature {
 
-    /**
-     * Displays the images.
-     *
-     * @param img_files
-     */
-    void showImages(Collection<File> img_files);
+	/**
+	 * Displays the images.
+	 *
+	 * @param imgFiles
+	 */
+	void showImages(Collection<File> imgFiles);
+
 }

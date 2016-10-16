@@ -1,4 +1,3 @@
-
 package layout.widget.feature;
 
 /**
@@ -7,8 +6,8 @@ package layout.widget.feature;
  * @author Martin Polakovic
  */
 @Feature(
-  name = "Song metadata writer", 
-  description = "Capable of writing data to song tags", 
-  type = SongWriter.class
+	name = "Song metadata writer",
+	description = "Capable of writing data to song tags",
+	type = SongWriter.class
 )
 public interface SongWriter extends SongReader {}

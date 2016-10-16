@@ -416,6 +416,7 @@ public class TreeItems {
 		public static Name treeOfPaths(String rootName, Collection<String> paths) {
 			Name root = new Name(rootName, "", null);
 			paths.stream().distinct().forEach(root::addPath);
+			root.sort();
 			return root;
 		}
 
@@ -453,6 +454,13 @@ public class TreeItems {
 							name.addPath(suffix);
 						}
 					);
+			}
+		}
+
+		public void sort() {
+			if (children!=null) {
+				children.sort(by(name -> name.val));
+				children.forEach(Name::sort);
 			}
 		}
 

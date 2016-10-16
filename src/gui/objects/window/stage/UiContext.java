@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import gui.objects.popover.PopOver;
 import layout.Component;
-import layout.area.WidgetArea;
 import layout.container.uncontainer.UniContainer;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
@@ -104,6 +103,7 @@ public final class UiContext {
 	    // parent (be inside container) or problems arise in widget manipulation (e.g. in widget reloading)
 	    AnchorPane root = new AnchorPane();
 	    UniContainer c = new UniContainer(root);
+	    c.isStandalone = true;
 	    c.load();
 
         // build popup
@@ -116,10 +116,6 @@ public final class UiContext {
 
         // load widget when graphics ready & shown
 	    c.setChild(w);
-
-	    // TODO: hack
-	    // Tweak style for popup
-	    if (w.areaTemp instanceof WidgetArea) ((WidgetArea)w.areaTemp).setStandaloneStyle();
 
 	    // TODO: hack
 		// make popup honor widget size

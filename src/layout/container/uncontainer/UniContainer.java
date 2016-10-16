@@ -28,6 +28,7 @@ import static util.graphics.Util.setAnchors;
 public class UniContainer extends Container<ContainerNode> {
 
     protected Component child;
+    public boolean isStandalone = false;
 
     public UniContainer() {}
 
@@ -48,6 +49,7 @@ public class UniContainer extends Container<ContainerNode> {
             if (!(ui instanceof WidgetArea)) {
                 removeGraphicsFromSceneGraph();
                 ui = new WidgetArea(this,1,(Widget)child);
+	            if (isStandalone) ((WidgetArea) ui).setStandaloneStyle();
             }
             out = ui.getRoot();
         } else {

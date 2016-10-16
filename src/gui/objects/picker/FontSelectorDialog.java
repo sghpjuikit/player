@@ -14,9 +14,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import javafx.util.Callback;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static util.dev.Util.log;
 
 public class FontSelectorDialog extends Dialog<Font> {
 
@@ -28,7 +28,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 
 		setResultConverter(dialogButton -> dialogButton == ButtonType.OK ? fontPanel.getFont() : null);
 
-		final DialogPane dialogPane = getDialogPane();
+		DialogPane dialogPane = getDialogPane();
 
 		setTitle("Select font");
 		dialogPane.setHeaderText("Select font");
@@ -130,7 +130,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 
 		@Override public int compareTo(FontStyle fs) {
 			int result = compareEnums(weight,fs.weight);
-			return ( result != 0 )? result: compareEnums(posture,fs.posture);
+			return (result != 0 )? result: compareEnums(posture,fs.posture);
 		}
 
 	}
@@ -149,10 +149,9 @@ public class FontSelectorDialog extends Dialog<Font> {
 				set.add(new FontStyle(f.replace(fontFamily, "")));
 			}
 
-			List<FontStyle> result =  new ArrayList<>(set);
+			List<FontStyle> result = new ArrayList<>(set);
 			Collections.sort(result);
 			return result;
-
 		}
 
 		private final FilteredList<String> filteredFontList = new FilteredList<>(observableArrayList(Font.getFamilies()), MATCH_ALL);
@@ -195,19 +194,16 @@ public class FontSelectorDialog extends Dialog<Font> {
 			//            fontSearch.setMinHeight(Control.USE_PREF_SIZE);
 			//            add( fontSearch, 0, 1);
 			add(fontListView, 0, 1);
-			fontListView.setCellFactory(new Callback<>() {
-				@Override public ListCell<String> call(ListView<String> listView) {
-					return new ListCell<>() {
-						@Override protected void updateItem(String family, boolean empty) {
-							super.updateItem(family, empty);
-							if (empty) {
-								setText(null);
-							} else {
-								setFont(Font.font(family));
-								setText(family);
-							}
-						}
-					};
+			fontListView.setCellFactory(stringListView -> new ListCell<>() {
+				@Override
+				public void updateItem(String family, boolean empty) {
+					super.updateItem(family, empty);
+					if (empty) {
+						setText(null);
+					} else {
+						setFont(Font.font(family));
+						setText(family);
+					}
 				}
 			});
 
@@ -255,18 +251,18 @@ public class FontSelectorDialog extends Dialog<Font> {
 		}
 
 		public void setFont(final Font font) {
-			final Font _font = font == null ? Font.getDefault() : font;
-			if (_font != null) {
-				selectInList(fontListView,  _font.getFamily() );
-				selectInList(styleListView, new FontStyle(_font));
-				selectInList(sizeListView, _font.getSize() );
+			Font f = font == null ? Font.getDefault() : font;
+			if (f != null) {
+				selectInList(fontListView, f.getFamily());
+				selectInList(styleListView, new FontStyle(f));
+				selectInList(sizeListView, f.getSize());
 			}
 		}
 
 		public Font getFont() {
 			try {
 				FontStyle style = listSelection(styleListView);
-				if ( style == null ) {
+				if (style == null) {
 					return Font.font(
 						listSelection(fontListView),
 						listSelection(sizeListView));
@@ -278,8 +274,8 @@ public class FontSelectorDialog extends Dialog<Font> {
 						style.getPosture(),
 						listSelection(sizeListView));
 				}
-
-			} catch(Throwable ex ) {
+			} catch(Throwable e) {
+				log(FontSelectorDialog.class).error("Failed to construct font", e);
 				return null;
 			}
 		}
@@ -288,7 +284,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 			sample.setFont(getFont());
 		}
 
-		private <T> void selectInList(final ListView<T> listView, final T selection ) {
+		private <T> void selectInList(final ListView<T> listView, final T selection) {
 			Platform.runLater(() -> {
 				listView.scrollTo(selection);
 				listView.getSelectionModel().select(selection);

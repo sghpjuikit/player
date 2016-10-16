@@ -49,7 +49,7 @@ import static util.reactive.Util.maintain;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable("Shortcut Viewer")
+@IsConfigurable("Shortcuts.Viewer")
 public class ShortcutPane extends OverlayPane {
 
     private static final String HE_TITLE = "Hide unassigned shortcuts";

@@ -10,20 +10,21 @@ import org.reactfx.Subscription;
 import audio.Player;
 import audio.playback.PLAYBACK;
 import audio.playback.PlayTimeHandler;
-import services.Service.ServiceBase;
-import services.notif.Notifier;
-import services.tray.TrayService;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
+import services.Service.ServiceBase;
+import services.notif.Notifier;
+import services.tray.TrayService;
+import util.access.V;
+import util.action.IsAction;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-import util.access.V;
 
-import static services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
 import static java.awt.TrayIcon.MessageType.INFO;
 import static javafx.util.Duration.seconds;
 import static main.App.APP;
+import static services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
 import static util.functional.Util.max;
 import static util.functional.Util.min;
 
@@ -46,6 +47,7 @@ public class PlaycountIncrementer extends ServiceBase {
             + "to a single operation. The writing happens when different song starts playing "
             + "(but the data in the application may update visually even later).")
     public final V<Boolean> delay = new V<>(true);
+
 
     private final Runnable incr = this::increment;
     private PlayTimeHandler incrHand;
@@ -99,6 +101,7 @@ public class PlaycountIncrementer extends ServiceBase {
      * Increments playcount of currently playing song. According to settings now or schedules it for
      * later. Also throws notifications if set.
      */
+    @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
     public void increment() {
         Metadata m = Player.playingItem.get();
         if (!m.isEmpty() && m.isFileBased() ) {

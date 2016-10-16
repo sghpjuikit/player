@@ -26,7 +26,6 @@ import audio.playlist.PlaylistManager;
 import audio.playlist.sequence.PlayingSequence;
 import audio.playlist.sequence.PlayingSequence.LoopMode;
 import audio.tagging.MetadataWriter;
-import services.playcount.PlaycountIncrementer;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.conf.Configurable;
@@ -44,7 +43,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
-import static main.App.APP;
 import static util.async.Async.runFX;
 
 /**
@@ -261,12 +259,6 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Balance left", desc = "Shift balance to left by elementary unit.", repeat = true)
     public static void balanceLeft() {
         state.balance.right();
-    }
-
-    /** Rises the number of times the song has been played by one and updates tag. */
-    @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates tag.")
-    private static void incrementPlayback() {
-        APP.use(PlaycountIncrementer.class, PlaycountIncrementer::increment);
     }
 
 	public static PlayingSequence.LoopMode getLoopMode() {

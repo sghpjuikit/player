@@ -679,7 +679,7 @@ public class App extends Application implements Configurable {
             services.addService(new ClickEffect());
 
 	        // gather actions
-	        stream(this, windowManager, guide)
+	        stream(this, windowManager, guide, services.getService(PlaycountIncrementer.class).get())
 				.flatMap(Action::gatherActions)
 				.forEach(Action.getActions()::add);
 

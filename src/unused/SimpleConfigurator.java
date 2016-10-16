@@ -103,7 +103,6 @@ public class SimpleConfigurator<T> extends AnchorPane {
         fields.getChildren().clear();
         c.getFields().stream()
          .sorted(byNC(Config::getGuiName))
-         .filter(Config::isEditable)
          .forEach(f -> {
             ConfigField cf = ConfigField.create(f);                 // create
             configFields.add(cf);                                   // add
@@ -112,7 +111,6 @@ public class SimpleConfigurator<T> extends AnchorPane {
         });
 	    Consumer<Try<T,String>> observer = v -> validate();
 	    configFields.forEach(f -> f.observer = observer);
-        
 
 	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
 	    	if (e.getCode()==ENTER) {

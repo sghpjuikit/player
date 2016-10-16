@@ -28,7 +28,7 @@ import static util.graphics.Util.setAnchors;
 public class UniContainer extends Container<ContainerNode> {
 
     protected Component child;
-    public boolean isStandalone = false;
+    public boolean isStandalone = false;    // !need to be serialized as standalone widgets die with app
 
     public UniContainer() {}
 

@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.tools.JavaCompiler;
@@ -452,7 +451,7 @@ public final class WidgetManager {
                 .filter(w -> filter.test(w.getInfo()))
                 .filter(w -> !w.forbid_use.getValue())
                 .filter(preferred.isEmpty() ? w -> true : w -> w.getInfo().nameGui().equals(preferred))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         // get preferred widget or any if none preferred
         for (Widget<?> w : widgets) {
@@ -490,11 +489,11 @@ public final class WidgetManager {
      * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
      */
     public <F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
-        return find(w -> w.hasFeature(feature), source, ignore).map(w->(F)w.getController());
+        return find(w -> w.hasFeature(feature), source, ignore).map(w -> (F)w.getController());
     }
 
     public <F> Optional<F> find(Class<F> feature, WidgetSource source) {
-        return find(w -> w.hasFeature(feature), source).map(w->(F)w.getController());
+        return find(w -> w.hasFeature(feature), source).map(w -> (F)w.getController());
     }
 
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */

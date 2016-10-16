@@ -10,14 +10,17 @@ import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
 import layout.Component;
+import layout.area.WidgetArea;
+import layout.container.uncontainer.UniContainer;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
 import main.App;
@@ -25,7 +28,6 @@ import unused.SimpleConfigurator;
 import util.conf.Configurable;
 import util.file.Util;
 
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
 import static util.dev.Util.noØ;
@@ -83,6 +85,8 @@ public final class UiContext {
      * @param widget non-null widget widget to open
      */
     public static Window showWindow(Component widget) {
+	    noØ(widget);
+
         Window w = windowManager.create();
                w.initLayout();
                w.setContent(widget);
@@ -95,20 +99,35 @@ public final class UiContext {
     public static PopOver showFloating(Widget w) {
         noØ(w);
 
-        // build popup content
-        Icon propB = new Icon(COGS,12,"Settings", e -> {
-                  showSettings(w, (Node)e.getSource());
-                  e.consume();
-              });
+        // build layout
+	    // We are building standalone widget here, one that is not part of the layout, but every widget must have a
+	    // parent (be inside container) or problems arise in widget manipulation (e.g. in widget reloading)
+	    AnchorPane root = new AnchorPane();
+	    UniContainer c = new UniContainer(root);
+	    c.load();
+
         // build popup
-        PopOver p = new PopOver<>(w.load());
+        PopOver p = new PopOver<>(root);
                 p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
-                p.getHeaderIcons().addAll(propB);
                 p.show(windowManager.getActive().get().getStage(),getX(),getY());
-                // unregister the widget from active widgets manually
+                // unregister the widget from active widgets manually on close
                 p.addEventFilter(WINDOW_HIDING, we -> APP.widgetManager.standaloneWidgets.remove(w));
-        return p;
+
+        // load widget when graphics ready & shown
+	    c.setChild(w);
+
+	    // TODO: hack
+	    // Tweak style for popup
+	    if (w.areaTemp instanceof WidgetArea) ((WidgetArea)w.areaTemp).setStandaloneStyle();
+
+	    // TODO: hack
+		// make popup honor widget size
+	    double prefW = ((Pane)w.load()).getPrefWidth();
+	    double prefH = ((Pane)w.load()).getPrefHeight();
+	    p.setPrefSize(prefW, prefH);
+
+	    return p;
     }
 
 	public static void showSettings(Configurable c, MouseEvent e) {

@@ -11,6 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -36,7 +37,9 @@ import layout.widget.WidgetManager.WidgetSource;
 import layout.widget.feature.ConfiguringFeature;
 import layout.widget.feature.Feature;
 import services.Service;
+import util.HierarchicalBase;
 import util.access.V;
+import util.conf.Config;
 import util.conf.Configurable;
 import util.file.Environment;
 import util.file.Util;
@@ -62,7 +65,7 @@ import static util.graphics.Util.menuItem;
 public class TreeItems {
 
     public static SimpleTreeItem<?> tree(Object o) {
-        if (o instanceof TreeItem)       return (SimpleTreeItem)o;
+        if (o instanceof TreeItem)       return (SimpleTreeItem)o;  // purposefully, this will crash if TreeItem is not SimpleTreeItem, we don't want to wrap TreeItems
         if (o instanceof Widget)         return new WidgetItem((Widget)o);
         if (o instanceof WidgetFactory)  return new SimpleTreeItem<>(o);
         if (o instanceof Widget.Group)   return new STreeItem(o,()->APP.widgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o).sorted(by(w -> w.getName())));
@@ -72,6 +75,8 @@ public class TreeItems {
         if (o instanceof File)           return new FileTreeItem((File)o);
         if (o instanceof Node)           return new NodeTreeItem((Node)o);
         if (o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
+        if (o instanceof Name)           return new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> ((Name)o).getHChildren().isEmpty());
+        if (o instanceof HierarchicalBase)   return new STreeItem(o, () -> ((HierarchicalBase)o).getHChildren().stream(), () -> true);
         return new SimpleTreeItem<>(o);
     }
 
@@ -112,7 +117,8 @@ public class TreeItems {
                    tree("Layouts", () -> APP.widgetManager.getLayouts().sorted(by(Layout::getName)))
                  ),
                  tree("Location", listFiles(APP.DIR_APP)),
-                 tree("File system", map(File.listRoots(),FileTreeItem::new))
+                 tree("File system", map(File.listRoots(),FileTreeItem::new)),
+	             tree(Name.treeOfPaths("Settings", stream(APP.configuration.getFields()).map(Config::getGroup).toList()))
                );
     }
 
@@ -131,7 +137,7 @@ public class TreeItems {
 /**************************************************************************************************/
 
     public static <T> TreeCell<T> buildTreeCell(TreeView<T> t) {
-        return new TreeCell<>(){
+        return new TreeCell<>() {
             {
                 setOnMouseClicked(e -> {
                     T o = getItem();
@@ -158,6 +164,8 @@ public class TreeItems {
                     else if (o instanceof File)      setText(Util.getNameFull((File)o));
                     else if (o instanceof Node)      setText(toS((Node)o));
                     else if (o instanceof Window)    setText(windowToName((Window)o));
+                    else if (o instanceof Name)    setText(((Name)o).val);
+                    else if (o instanceof HierarchicalBase)    setText(Objects.toString(((HierarchicalBase)o).val));
                     else setText(o.toString());
                 } else {
                     setGraphic(null);
@@ -168,16 +176,20 @@ public class TreeItems {
     }
 
     public static void doOnDoubleClick(Object o) {
-        if (o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
         if (o instanceof Node) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(o)));
-        if (o instanceof Window) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(((Window)o).getStage())));
-        if (o instanceof File) {
+        else if (o instanceof Window) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(((Window)o).getStage())));
+        else if (o instanceof File) {
             File f = (File)o;
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
         }
+        else if (o instanceof Configurable) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable)o));
+        else if (o instanceof Name) APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(stream(APP.configuration.getFields()).filter(f -> f.getGroup().equals(((Name)o).pathUp)).toList()));
+        else if (o instanceof HierarchicalBase) doOnDoubleClick(((HierarchicalBase) o).val);
     }
 
-    public static void doOnSingleClick(Object o) {}
+    public static void doOnSingleClick(Object o) {
+	    if (o instanceof HierarchicalBase) doOnSingleClick(((HierarchicalBase) o).val);
+    }
 
     // TODO: implement properly
     public static <T> void showMenu(T o, TreeView<T> t, Node n, MouseEvent e) {
@@ -196,11 +208,12 @@ public class TreeItems {
             m.setValue(files);
             m.show(n, e);
         }
-
-	    if (o instanceof Window) {
+        else if (o instanceof Window) {
 		    windowMenu.setValue((Window) o);
 		    windowMenu.show(n, e);
 	    }
+
+//	    if (o instanceof HierarchicalBase) showMenu(((HierarchicalBase)o).val, t, n, e); // requires mapping Hierarchical -> T
     }
 
     private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu<>(){{
@@ -260,40 +273,39 @@ public class TreeItems {
         }
     }
     public static class STreeItem<T> extends SimpleTreeItem<T> {
-        Supplier<Stream<T>> s;
+        private final Supplier<Stream<T>> childrenLazy;
+        private final Supplier<Boolean> isLeafLazy;
         private boolean isFirstTimeChildren = true;
-        private boolean isFirstTimeLeaf = true;
-        private boolean isLeaf; // cache
+        private Boolean isLeaf;
 
-        public STreeItem(T v, Supplier<Stream<T>> cs) {
+        public STreeItem(T v, Supplier<Stream<T>> childrenLazy) {
+            this(v, childrenLazy, null);
+        }
+
+        public STreeItem(T v, Supplier<Stream<T>> childrenLazy, Supplier<Boolean> isLeafLazy) {
             super(v);
-            s = cs;
+            this.isLeafLazy = isLeafLazy;
+            this.childrenLazy = childrenLazy;
         }
 
         @Override
         public ObservableList<TreeItem<T>> getChildren() {
             if (isFirstTimeChildren) {
                 isFirstTimeChildren = false;
-                super.getChildren().setAll((List)trees(s.get()));
+                super.getChildren().setAll((List)trees(childrenLazy.get()));
             }
             return super.getChildren();
         }
 
         @Override
         public boolean isLeaf() {
-//            if (isFirstTimeLeaf) {
-//                isFirstTimeLeaf = false;
-//                isLeaf = getValue().isFile();
-//            }
-//
-//            return isLeaf;
-            return false;
+	        return isLeafLazy==null ? false : isLeafLazy.get();
         }
     }
     public static class WidgetItem extends STreeItem<Object> {
 
         public WidgetItem(Widget v) {
-            super(v, () -> stream(v.areaTemp.getRoot()));
+            super(v, () -> stream(v.areaTemp.getRoot()), () -> true);
         }
 
     }
@@ -397,4 +409,57 @@ public class TreeItems {
         if (w==APP.windowManager.miniWindow) n += " (mini-docked)";
         return n;
     }
+
+	private static class Name extends HierarchicalBase<String,Name> {
+		private static final char DELIMITER = '.';
+
+		public static Name treeOfPaths(String rootName, Collection<String> paths) {
+			Name root = new Name(rootName, "", null);
+			paths.stream().distinct().forEach(root::addPath);
+			return root;
+		}
+
+		public final String pathUp;
+		private List<Name> children;
+
+		private Name(String value, Name parent) {
+			this(value, parent==null || parent.pathUp.isEmpty() ? value : parent.pathUp + DELIMITER + value, parent);
+		}
+
+		private Name(String value, String pathUp, Name parent) {
+			super(value, parent);
+			this.pathUp = pathUp;
+		}
+
+		public void addPath(String path) {
+			int i=path.indexOf(DELIMITER);
+			boolean isLeaf = i<0;
+
+			if (isLeaf) {
+				stream(getHChildren()).findFirst(name -> path.equals(name.val)).ifPresentOrElse(
+					name -> {},
+					() -> getHChildren().add(new Name(path, this))
+				);
+			} else {
+				String prefix = path.substring(0,i);
+				String suffix = path.substring(i+1);
+
+				stream(getHChildren()).findFirst(name -> prefix.equals(name.val))
+					.ifPresentOrElse(
+						name -> name.addPath(suffix),
+						() -> {
+							Name name = new Name(prefix, this);
+							getHChildren().add(name);
+							name.addPath(suffix);
+						}
+					);
+			}
+		}
+
+		@Override
+		public List<Name> getHChildren() {
+			if (children==null) children = new ArrayList<>();
+			return children;
+		}
+	}
 }

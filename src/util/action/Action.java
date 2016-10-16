@@ -471,12 +471,13 @@ public final class Action extends Config<Action> implements Runnable {
 
 /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
 
-    private static final ListChangeListener<Window> local_listener_registrator = listChangeHandler(
-        window -> doOnceIfNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))),
+    private static final ListChangeListener<Window> localListenerRegistrator = listChangeHandler(
+        window -> doOnceIfNonNull(window.sceneProperty(),
+	        scene -> getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.registerInScene(scene))),
         window -> {
             Scene scene = window.getScene();
             if (scene!=null)
-                Action.getActions().forEach(a -> a.unregisterInScene(scene));
+                Action.getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.unregisterInScene(scene));
         }
     );
 
@@ -487,7 +488,7 @@ public final class Action extends Config<Action> implements Runnable {
         // Stage.getWindows().forEach(window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))));
 
         // keep registering when new windows are showed
-        Stage.getWindows().addListener(local_listener_registrator);
+        Stage.getWindows().addListener(localListenerRegistrator);
 
         // Normally, we should also observe Actions and register/unregister on add/remove or we effectively
         // support only pre-created actions.
@@ -498,7 +499,7 @@ public final class Action extends Config<Action> implements Runnable {
      * Deactivates listening process for local hotkeys.
      */
     private static void stopLocalListening() {
-        Stage.getWindows().removeListener(local_listener_registrator);
+        Stage.getWindows().removeListener(localListenerRegistrator);
         Stage.getWindows().forEach(window -> {
             Scene scene = window.getScene();
             if (scene!=null)

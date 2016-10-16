@@ -987,7 +987,7 @@ public class App extends Application implements Configurable {
 
     }
 
-    @IsActionable
+    @IsActionable("Shortcuts")
     public interface Actions {
 
 	    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")

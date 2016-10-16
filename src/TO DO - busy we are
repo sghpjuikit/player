@@ -1,6 +1,7 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- clean up Action and its keys handling, including the ConfigField
 - clean up ConfigField implementations, observability, validation, value correctness
 - Tagger reimplement validations trough Configs
 - converter transform off when just typing
@@ -107,10 +108,6 @@
   area. It requires area resize call to initialize correct height/y-cord 
   use black bgr on the buttons pane to see the issue 
 - playlist item moving change order when moving fast even for just 1 block                          (minor)
-- backslash (\) shortcut not working for left backslash key (left from Z)                           (medium, since more stuff can be affected)
-  status: currently unsolvable, so far one of its kind 
-  problem: jIntellitype '\' works only for right '\' not left one (yes there are 
-  two '\' keys on the keyboard). 
 - starting paused playback plays the song for an instant                                            (medium)
 - local shortcuts for complex characters (BACK_SLASH, etc) not working 
   solution: solved for some characters by manually rewriting them upon 
@@ -204,15 +201,15 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
 - use the following VM parameters:
-    -Xmx1g -XaddExports:javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
-    -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
-    -XaddExports:javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
-    -XaddExports:javafx.web/com.sun.webkit=ALL-UNNAMED
+    -Xmx1g --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
 - use the following javac parameters:
-    -XaddExports:javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
-    -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
-    -XaddExports:javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
-    -XaddExports:javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
 - util.dev.TODO annotates also bugged code, CTRL+F it throughout the project
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory

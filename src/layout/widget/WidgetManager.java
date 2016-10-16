@@ -186,7 +186,11 @@ public final class WidgetManager {
             monitorOn = true;
 
             // monitor source files (any .java file) & recompile on change
-            classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> file.getPath().endsWith(".java"), (type,file) -> {
+	        // Because the widget may be skinned (.css), load from fxml (.fxml) or use any kind of resource
+	        // (.jar, .txt, etc.), we will rather monitor all of the files except for .class. This may lead to
+	        // unnecessary reloads when these resources are being edited, but its just for developer convenience and
+	        // its still more inconvenient to force developer to refresh manually
+            classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> !file.getPath().endsWith(".class"), (type,file) -> {
                 if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} source file changed {}", file,type);
                     runNew(() -> compile(getSrcFiles(),getLibFiles()));

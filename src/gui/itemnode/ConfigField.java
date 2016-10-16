@@ -687,7 +687,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setTooltip(appTooltip(a.getInfo()));
             txtF.focusedProperty().addListener((o,ov,nv) -> {
                 if (nv) {
-                    txtF.setText(txtF.getPromptText());
+                    txtF.setText(a.getKeys());
                 } else {
                     // prevent 'deselection' if we txtF lost focus because glob
                     // received click

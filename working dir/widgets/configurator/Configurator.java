@@ -1,6 +1,7 @@
 package configurator;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -10,15 +11,17 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.*;
 
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
+import gui.objects.tree.TreeItems;
+import gui.objects.tree.TreeItems.Name;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.feature.ConfiguringFeature;
 import util.access.V;
-import util.action.Action;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.conf.IsConfig;
@@ -28,10 +31,10 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.geometry.HPos.LEFT;
 import static javafx.geometry.HPos.RIGHT;
 import static javafx.geometry.Pos.CENTER;
+import static javafx.scene.control.SelectionMode.SINGLE;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
-import static util.functional.Util.byNC;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
 
 @Widget.Info(
@@ -50,20 +53,23 @@ import static util.graphics.Util.setAnchors;
 )
 public final class Configurator extends ClassController implements ConfiguringFeature {
 
+	@FXML
+	TreeView<Name> groups;
     @FXML Pane controls;
     @FXML Accordion accordion;
-    private final Map<String, ConfigGroup> groups = new HashMap<>();
+    private final Map<String, ConfigGroup> groupsOld = new HashMap<>();
+    private final List<Config> configs = new ArrayList<>();
     private final List<ConfigField> configFields = new ArrayList<>();
     private final boolean isSimple;
 
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final V<HPos> alignment = new V<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
+    public final V<HPos> alignment = new V<>(RIGHT, v -> groupsOld.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
     public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(CENTER);
     @IsConfig(editable = false)
     public final V<String> expanded = new V<>("", v -> {
-        if (groups.containsKey(v))
-            accordion.setExpandedPane(groups.get(v).pane);
+        if (groupsOld.containsKey(v))
+            accordion.setExpandedPane(groupsOld.get(v).pane);
     });
 
     public Configurator() {
@@ -81,6 +87,15 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
+
+	    groups.getSelectionModel().setSelectionMode(SINGLE);
+	    groups.setCellFactory(TreeItems::buildTreeCell);
+	    groups.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
+	    	boolean isSelection = nv!=null;
+	    	boolean isValueSelected = isSelection && nv.getValue()!=null;
+			if (isValueSelected)
+				populateConfigFields(configs.stream().filter(f -> f.getGroup().equals(nv.getValue().pathUp)));
+	    });
 
         // header icons
         Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields())),
@@ -119,43 +134,57 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
         // clear previous fields
         configFields.clear();
+	    configs.clear();
         accordion.getPanes().clear();
-        groups.values().forEach(ConfigGroup::dispose);
-        groups.clear();
+	    groupsOld.values().forEach(ConfigGroup::dispose);
+	    groupsOld.clear();
 
-        // sort & populate fields
-        ConfigGroup singleGroup = isSimple ? groups.computeIfAbsent("",ConfigGroup::new) : null;
-        c.stream().sorted(byNC(Config::getGuiName)).forEach(f -> {
-            // create graphics
-            ConfigField cf = ConfigField.create(f);
-            configFields.add(cf);
+	    // build groups
+	    groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c,Config::getGroup))));
+	    groups.getRoot().setExpanded(true);
 
-            // get group
-            String group = f instanceof Action ? "Shortcuts" : f.getGroup();
-            ConfigGroup g = isSimple ? singleGroup : groups.computeIfAbsent(group,ConfigGroup::new);
+	    configs.addAll(c);
+		populateConfigFields(c.stream());
+    }
 
-            // add to grid
-            g.grid.getRowConstraints().add(new RowConstraints());
-            g.grid.add(cf.createLabel(), 0, g.grid.getRowConstraints().size()-1);
-            g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size()-1);
-        });
+    private void populateConfigFields(Stream<Config> visibleConfigs) {
+	    // clear previous fields
+	    configFields.clear();
+	    accordion.getPanes().clear();
+	    groupsOld.values().forEach(ConfigGroup::dispose);
+	    groupsOld.clear();
 
-        // auto-expand
-        boolean single = groups.size()==1;
-        accordion.setVisible(!single);
-        ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
-        if (single) {
-            Pane t = list(groups.values()).get(0).grid;
-            ((AnchorPane)accordion.getParent()).getChildren().add(t);
-            setAnchors(t,0d);
-        } else {
-            groups.values().stream()
-                .sorted(byNC(ConfigGroup::name))
-                .forEach(g -> accordion.getPanes().add(g.pane));
-        }
+	    // sort & populate fields
+	    ConfigGroup singleGroup = isSimple ? groupsOld.computeIfAbsent("",ConfigGroup::new) : null;
+	    visibleConfigs.sorted(byNC(Config::getGuiName)).forEach(f -> {
+		    // create graphics
+		    ConfigField cf = ConfigField.create(f);
+		    configFields.add(cf);
 
-        alignment.applyValue();
+		    // get group
+		    ConfigGroup g = isSimple ? singleGroup : groupsOld.computeIfAbsent(f.getGroup(),ConfigGroup::new);
 
+		    // add to grid
+		    g.grid.getRowConstraints().add(new RowConstraints());
+		    g.grid.add(cf.createLabel(), 0, g.grid.getRowConstraints().size()-1);
+		    g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size()-1);
+	    });
+
+	    // auto-expand
+	    boolean single = groupsOld.size()==1;
+	    accordion.setVisible(!single);
+	    ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
+	    if (single) {
+		    Pane t = list(groupsOld.values()).get(0).grid;
+		    ((AnchorPane)accordion.getParent()).getChildren().add(t);
+		    setAnchors(t,0d);
+	    } else {
+		    groupsOld.values().stream()
+			    .sorted(byNC(ConfigGroup::name))
+			    .forEach(g -> accordion.getPanes().add(g.pane));
+	    }
+
+	    alignment.applyValue();
     }
 
     public void refreshConfigs() {

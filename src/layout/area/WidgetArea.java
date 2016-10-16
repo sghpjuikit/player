@@ -69,9 +69,6 @@ public final class WidgetArea extends Area<Container> {
         controls = new AreaControls(this);
         content_padding.getChildren().addAll(controls.root);
 
-        // support css styling -
-//        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
-
         // drag
         DragUtil.installDrag(
             root, EXCHANGE, "Switch components",
@@ -83,7 +80,6 @@ public final class WidgetArea extends Area<Container> {
         loadWidget();
         if (Gui.isLayoutMode()) show(); else hide();
     }
-
 
     /** @return widget in this area */
     @Override
@@ -167,6 +163,12 @@ public final class WidgetArea extends Area<Container> {
     public AnchorPane getContent() {
         return content;
     }
+
+	//TODO: implement properly through pseudoclasses
+	public void setStandaloneStyle() {
+		content.getStyleClass().clear();
+		content_padding.getStyleClass().clear();
+	}
 
     @Override
     public void close() {}

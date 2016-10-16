@@ -18,6 +18,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -316,21 +317,26 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         public final void configure(Collection<Config> configs) {
             if (configs==null) return;
 
-            root.getChildren().setAll(map(configs,c -> {
-                ConfigField cf = ConfigField.create(c);
-                            cf.onChange = () -> { if (onChange!=null) onChange.run(); };
-                this.configs.add(cf);
-                Label l = cf.createLabel();
-                      l.setMinWidth(100);
-                      l.setPrefWidth(100);
-                      l.setTextAlignment(TextAlignment.RIGHT);
-                      l.setPadding(new Insets(0, 0, 0, 5));
-                HBox h = new HBox(5, l,cf.getNode());
-                     if (l.getText().isEmpty()) h.getChildren().remove(l);
-                     h.setAlignment(CENTER_LEFT);
-                HBox.setHgrow(cf.getNode(), ALWAYS);
-                return h;
-            }));
+            this.configs.clear();
+            stream(configs)
+	            .sorted(byNC(Config::getGuiName))
+	            .map(c -> {
+	                ConfigField cf = ConfigField.create(c);
+	                            cf.onChange = () -> { if (onChange!=null) onChange.run(); };
+	                this.configs.add(cf);
+	                Label l = cf.createLabel();
+	                      l.setMinWidth(300);
+	                      l.setPrefWidth(300);
+	                      l.setMaxWidth(300);
+	                      l.setAlignment(Pos.CENTER_RIGHT);
+	                      l.setTextAlignment(TextAlignment.RIGHT);
+	                      l.setPadding(new Insets(0, 0, 0, 5));
+	                HBox h = new HBox(20, l,cf.getNode());
+	                     h.setAlignment(CENTER_LEFT);
+	                HBox.setHgrow(cf.getNode(), ALWAYS);
+	                return h;
+                })
+	            .toListAndThen(root.getChildren()::setAll);
         }
 
         public Node getNode() {

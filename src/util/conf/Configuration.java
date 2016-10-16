@@ -99,20 +99,26 @@ public class Configuration {
         });
     }
 
+    @SuppressWarnings("unchecked")
     private <C> void collectConfigs(Collection<? extends Config<C>> _configs) {
         configs.addAll(_configs);
+
+        // generate boolean toggle actions
         _configs.stream()
                 .filter(Config::isEditable)
                 .filter(c -> c.getType() == Boolean.class)
                 .map(c -> (Config<Boolean>) c)
                 .forEach(c -> {
-                    String name = c.getGroup() + " " + c.getGuiName() + " - toggle";
+                    String name = c.getGuiName() + " - toggle";
 	                String description = "Toggles value " + c.getName() + " between true/false";
                     Runnable r = c::setNextNapplyValue;
                     Action a = new Action(name, r, description, c.getGroup(), "", false, false);
                     Action.getActions().add(a);
                     configs.add(a);
                 });
+
+        // generate enumerable loopNext actions
+	    // TODO
     }
 
 	public <T> void drop(Config<T> config) {

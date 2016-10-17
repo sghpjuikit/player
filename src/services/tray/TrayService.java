@@ -77,7 +77,9 @@ public class TrayService extends ServiceBase {
               s.setOpacity(0);
               s.setScene(new Scene(new Region()));
         ContextMenu cm = new ContextMenu();
-                    cm.getItems().addAll(menuItem("Play/pause", PLAYBACK::pause_resume),
+                    cm.getItems().addAll(
+                        menuItem("New window", () -> APP.windowManager.createWindow()),
+                        menuItem("Play/pause", PLAYBACK::pause_resume),
                         menuItem("Exit", APP::close)
                     );
                     s.focusedProperty().addListener((o,ov,nv) -> {

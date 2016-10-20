@@ -487,19 +487,19 @@ public class App extends Application implements Configurable {
                     if (dir!=null) w.exportFxwlDefault(dir);
             })
         );
-        actionPane.register(Component.class,
-            new FastAction<>("Export","Creates a launcher "
+	    actionPane.register(Component.class,
+		    new FastAction<>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "component as if it were a standalone application.",
                 EXPORT, w -> {
-                    DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(DIR_LAYOUTS);
-                                     dc.setTitle("Export to...");
-                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-                    if (dir!=null) w.exportFxwl(dir);
-            })
-        );
+				    DirectoryChooser dc = new DirectoryChooser();
+				    dc.setInitialDirectory(DIR_LAYOUTS);
+				    dc.setTitle("Export to...");
+				    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
+				    if (dir!=null) w.exportFxwl(dir);
+		    })
+	    );
         actionPane.register(Item.class,
             new FastColAction<>("Add to new playlist",
                 "Add items to new playlist widget.",
@@ -522,7 +522,19 @@ public class App extends Application implements Configurable {
                 "Removes all specified items from library. After this library will contain none of these items.",
                 MaterialDesignIcon.DATABASE_MINUS,
                 Db::removeItems // this needs to be asynchronous
-            )
+            ),
+		    new FastColAction<>("Show",
+				"Shows items in a table.",
+				MaterialIcon.COLLECTIONS,
+				items -> widgetManager.find("Library", WidgetSource.NEW, false)
+						.ifPresent(w -> w.getController().getInputs().getInput("To display").setValue(items))
+			),
+		    new FastColAction<>("Show as Group",
+				"Group items in a table.",
+				MaterialIcon.COLLECTIONS,
+				items -> widgetManager.find("Library View", WidgetSource.NEW, false)
+						.ifPresent(w -> w.getController().getInputs().getInput("To display").setValue(items))
+			)
         );
         actionPane.register(File.class,
 	        new FastAction<>("Recycle", "Prints all image metadata to console.",

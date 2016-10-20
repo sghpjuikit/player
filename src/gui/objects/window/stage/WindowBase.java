@@ -20,7 +20,6 @@ import util.graphics.Util;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
-import static javafx.stage.StageStyle.UNDECORATED;
 import static main.App.APP;
 import static util.async.Async.run;
 import static util.async.Async.runLater;
@@ -78,12 +77,6 @@ public class WindowBase {
      * Defines whether this window is resizable. Programmatically it is still
      * possible to change the size of the Stage.
      */ public final BooleanProperty resizable = s.resizableProperty();
-
-
-
-    public WindowBase() {
-        this(null, UNDECORATED);
-    }
 
     public WindowBase(Stage owner, StageStyle style) {
         if (owner!=null) s.initOwner(owner);

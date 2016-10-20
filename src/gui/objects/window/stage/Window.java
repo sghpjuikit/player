@@ -65,7 +65,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
-import static javafx.stage.StageStyle.UNDECORATED;
 import static main.App.APP;
 import static util.access.SequentialValue.next;
 import static util.access.SequentialValue.previous;
@@ -134,10 +133,6 @@ public class Window extends WindowBase {
      * </ul>
      */ public final V<Boolean> isMain = new V<>(false);
 	final Set<Subscription> isMainDisposables = set();
-
-    Window() {
-        this(null,UNDECORATED);
-    }
 
     Window(Stage owner, StageStyle style) {
 		super(owner,style);

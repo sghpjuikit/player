@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import javafx.application.Platform;
@@ -584,7 +585,7 @@ public final class Action extends Config<Action> implements Runnable {
 	    return util.type.Util.getAnnotated(IsActionable.class)
 		    .flatMap(c -> gatherActions(c, null))
 	        .append(EMPTY)
-			.toCollection(() -> new MapSet<>(Action::getID));
+			.toCollection(() -> new MapSet<>(new ConcurrentHashMap<>(), Action::getID));
     }
 
     public static <T> Stream<Action> gatherActions(T object) {

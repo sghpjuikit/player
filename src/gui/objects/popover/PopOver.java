@@ -290,10 +290,11 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 
     private final ObjectProperty<N> contentNode = new SimpleObjectProperty<>(this, "contentNode") {
-        @Override public void setValue(N node) {
-	        noØ(node);
-            super.setValue(node);
-        }
+	    @Override
+	    public void setValue(N node) {
+            noØ(node);
+		    super.setValue(node);
+	    }
     };
 
     /**

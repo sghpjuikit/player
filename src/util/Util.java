@@ -438,7 +438,7 @@ public interface Util {
         if (file == null) return null;
 
         if (Platform.isFxApplicationThread())
-            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
 
         if (file.getPath().endsWith("psd")) {
            return loadImageFull(file, width, height, false);
@@ -451,7 +451,7 @@ public interface Util {
         if (file == null) return null;
 
         if (Platform.isFxApplicationThread())
-            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
 
         // negative values have same effect as 0, 0 loads image at its size
         int W = max(0,(int)width);
@@ -508,7 +508,7 @@ public interface Util {
         if (file == null) return null;
 
         if (Platform.isFxApplicationThread())
-            util.dev.Util.log(Util.class).warn("Loading image on FX thread!");
+            util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
 
         // negative values have same effect as 0, 0 loads image at its size
         int W = max(0,(int)width);

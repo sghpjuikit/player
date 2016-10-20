@@ -102,7 +102,7 @@ public class DirViewer extends ClassController {
     boolean initialized = false;
     private volatile long visitId = 0;
     private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to explore directory", () -> {
-        File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowManager.windowOwner.getStage());
+        File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage());
         if (dir != null) files.list.setAll(dir);
     });
     private final SingleR<PƑ0<File, Boolean>, ?> filterPredicate = new SingleR<>(this::buildFilter);

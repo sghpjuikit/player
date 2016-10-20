@@ -86,7 +86,7 @@ public class AppLauncher extends ClassController {
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
         () -> {
-            File dir = chooseFile("Choose program or file", FILE, APP.DIR_HOME, APP.windowManager.windowOwner.getStage());
+            File dir = chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindow().getStage());
             if (dir!=null) files.list.add(dir);
         }
     );

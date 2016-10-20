@@ -86,8 +86,7 @@ public class WindowBase {
     }
 
     public WindowBase(Stage owner, StageStyle style) {
-    	// TODO: wtf
-        if (s!=null) s.initOwner(owner);
+        if (owner!=null) s.initOwner(owner);
         if (style!=null) s.initStyle(style);
         s.setFullScreenExitHint("");
     }

@@ -117,6 +117,7 @@ public abstract class Component {
         }
     }
 
+    // TODO: use Optional<>
     /** Window containing this component. Null if not loaded or not in any window. */
     public Window getWindow() {
         Window w = null;

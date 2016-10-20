@@ -1,6 +1,9 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- make standalone widgets have Layout parent so they are auto-detected for layout-mode
+- remove standalone widget code from UnContainer
+- subclass WidgetArea for standalone widget to adjust graphics for popup
 - clean up Action and its keys handling, including the ConfigField
 - clean up ConfigField implementations, observability, validation, value correctness
 - Tagger reimplement validations trough Configs
@@ -58,14 +61,12 @@
   higher frequencies cut off
 - display window snap preview & snap only on mouse release
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
-- rater in tables displays shifted value (bad width calculation in a table cell?)
 - figure out gui error reporting method
 - figure out image animation auto-play def behavior & indicative play/pause mechanism
 - widget compilation - report errors back to user through gui (popup? notifications? else?)
 - widget manager monitor .fxml files too
 - LibraryView placeholder does not detect empty table correctly
 - explicit config for song enqueue order (Comparator)
-- make Configurator config field button single instance, use vertical animation
 - Configurator implement drag & drop of Configurables, support any object by turning it into
   Configurable (but using which convention?)
 - remove artwork caching?

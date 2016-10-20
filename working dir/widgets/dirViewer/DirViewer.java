@@ -1,6 +1,9 @@
 package dirViewer;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
@@ -37,6 +40,7 @@ import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.FileSort;
 import util.functional.Functors.PƑ0;
+import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.validation.Constraint;
 
@@ -58,8 +62,7 @@ import static util.async.Async.*;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getName;
-import static util.file.Util.listFiles;
+import static util.file.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchor;
 
@@ -87,6 +90,10 @@ public class DirViewer extends ClassController {
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
     final VarList<File> files = new VarList<>(File.class, () -> new File("C:\\"), f -> Config.forValue(File.class, "File", f));
+	@IsConfig(name = "Location merge", info = "Merges all locations into single union location")
+	final V<Boolean> filesJoin = new V<>(true, f -> revisitCurrent());
+	@IsConfig(name = "Location recursive", info = "Merges all location content recursively into single union location")
+	final V<Boolean> filesAll = new V<>(false, f -> revisitCurrent());
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width, NORMAL.height, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
@@ -94,7 +101,7 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
     private volatile long visitId = 0;
-    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to view directory", () -> {
+    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to explore directory", () -> {
         File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, APP.windowManager.windowOwner.getStage());
         if (dir != null) files.list.setAll(dir);
     });
@@ -142,7 +149,18 @@ public class DirViewer extends ClassController {
             if (e.getButton() == SECONDARY)
                 visitUp();
         });
-        setOnScroll(Event::consume);
+
+		// drag & drop
+		DragUtil.installDrag(
+			this, FOLDER_PLUS, "Explore directory",
+			DragUtil::hasFiles,
+			e -> files.list.setAll(
+				DragUtil.getFiles((e)).stream().allMatch(File::isDirectory)
+					? DragUtil.getFiles((e))
+					: list(getCommonRoot(DragUtil.getFiles((e))))
+			)
+		);
+		setOnScroll(Event::consume);
     }
 
     @Override
@@ -434,7 +452,16 @@ public class DirViewer extends ClassController {
 
         @Override
         protected Stream<File> children_files() {
-            return listFiles(files.list.stream());
+            return filesAll.get()
+	                ? listFiles(files.list.stream())
+		                  .flatMap(f -> {
+		                  	try {
+			                    return Files.walk(f.toPath(), Integer.MAX_VALUE);
+		                    } catch (IOException e) {
+		                    	return stream();
+		                    }
+		                  }).map(Path::toFile)
+	                : filesJoin.get() ? listFiles(files.list.stream()) : files.list.stream();
         }
 
         @Override
@@ -456,6 +483,8 @@ public class DirViewer extends ClassController {
     static {
         filters.add(new PƑ0<>("File - all", File.class, Boolean.class, file -> true));
         filters.add(new PƑ0<>("File - none", File.class, Boolean.class, file -> false));
+        filters.add(new PƑ0<>("File type - file", File.class, Boolean.class, File::isFile));
+        filters.add(new PƑ0<>("File type - directory", File.class, Boolean.class, File::isDirectory));
         APP.mimeTypes.setOfGroups().forEach(group -> {
             filters.add(new PƑ0<>("Mime - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(APP.mimeTypes.ofFile(file).getGroup())));
             filters.add(new PƑ0<>("Mime - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(APP.mimeTypes.ofFile(file).getGroup())));

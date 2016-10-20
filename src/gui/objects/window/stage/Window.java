@@ -268,11 +268,11 @@ public class Window extends WindowBase {
         root.addEventFilter(KeyEvent.ANY, e -> {
             if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
                 Gui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
-                    if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
-                        runLater(() ->{
-                            getSwitchPane().widget_io.layout();
-                            getSwitchPane().widget_io.drawGraph();
-                        });
+                if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
+                    runLater(() ->{
+                        getSwitchPane().widget_io.layout();
+                        getSwitchPane().widget_io.drawGraph();
+                    });
             }
             if (e.getEventType().equals(KEY_PRESSED)) {
                 if (cycleSMLeft.match(e)) {

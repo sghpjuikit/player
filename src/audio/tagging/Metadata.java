@@ -1263,7 +1263,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public double c_width() {
-            return this==PATH || this==TITLE ? 150 : 50;
+            return this==PATH || this==TITLE ? 160 : 60;
         }
     }
 }

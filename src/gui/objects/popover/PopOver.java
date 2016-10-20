@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2013, ControlsFX
+ * Impl based on ControlsFX
+ *
+ * Copyright (c) 2014, 2015, ControlsFX
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

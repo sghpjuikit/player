@@ -397,7 +397,10 @@ public class IOLayer extends StackPane {
             }
 
             i.addEventHandler(MOUSE_CLICKED, e -> {
-                selectNode(e.getButton()==SECONDARY ? null : this);
+            	if (e.getClickCount()==1)
+	                selectNode(e.getButton()==SECONDARY ? null : this);
+            	else if (e.getClickCount()==2 && output!=null && output.getValue()!=null)
+            		APP.actionPane.show(output.getValue());
                 e.consume();
             });
 

@@ -1,9 +1,10 @@
 package util.hotkey;
 
-import java.util.HashMap;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -11,6 +12,7 @@ import javafx.scene.input.KeyCode;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
+import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 import org.slf4j.Logger;
@@ -30,58 +32,11 @@ public class Hotkeys {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Hotkeys.class);
 
 	private final Consumer<Runnable> executor;
-	private final Map<Integer,KeyCombo> keyCombos = new HashMap<>();
+	private final Map<Integer,KeyCombo> keyCombos = new ConcurrentHashMap<>();
 	private NativeKeyListener keyListener;
 
 	public Hotkeys(Consumer<Runnable> executor) {
 		this.executor = executor;
-	}
-
-	private NativeKeyListener buildNativeKeyListener() {
-		return new NativeKeyListener() {
-			@Override
-			public void nativeKeyPressed(NativeKeyEvent e) {
-				// LOGGER.info("Global key press event: " + e.paramString());
-
-//				R<Boolean> shouldConsume = new R<>(false);
-				keyCombos.forEach((actionId, keyCombo) -> {
-					Action a = Action.get(actionId);
-
-					// TODO: remove hack
-					// For some reason left BACK_SLASH key (left of the Z key) is not recognized, so we manually se it straight
-					if (e.getRawCode()==226) {
-						e.setKeyCode(43);
-						e.setKeyChar((char)43);
-					}
-
-					// Unfortunately, JavaFX key codes and the library raw codes do not match for some keys, so we also
-					// check key name. This combination should be enough for all but rare cases
-					if ((keyCombo.key.getCode()==e.getRawCode() || keyCombo.key.getName().equalsIgnoreCase(NativeKeyEvent.getKeyText(e.getKeyCode()))) && keyCombo.modifier==e.getModifiers()) {
-						keyCombo.press(a);
-//						shouldConsume.set(true);
-					}
-				});
-
-//				if (shouldConsume.get())
-//					// consume native event
-//					try {
-//						Field f = NativeInputEvent.class.getDeclaredField("reserved");
-//						f.setAccessible(true);
-//						f.setShort(e, (short) 0x01);
-//					} catch (Exception x) {
-//						LOGGER.error("Failed to consume native key event.", e);
-//					}
-			}
-
-			@Override
-			public void nativeKeyReleased(NativeKeyEvent e) {
-				// LOGGER.info("Global key release event: " + e.paramString());
-				keyCombos.values().forEach(KeyCombo::release);
-			}
-
-			@Override
-			public void nativeKeyTyped(NativeKeyEvent e) {}
-		};
 	}
 
 	public void start() {
@@ -89,7 +44,7 @@ public class Hotkeys {
 			// Disable library logging.
 			java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
 			logger.setLevel(java.util.logging.Level.OFF);
-			logger.setUseParentHandlers(false); // Don't forget to disable the parent handlers.
+			logger.setUseParentHandlers(false);
 
 			try {
 				GlobalScreen.setEventDispatcher(new AbstractExecutorService() {
@@ -123,11 +78,44 @@ public class Hotkeys {
 
 					@Override
 					public void execute(Runnable action) {
-						executor.accept(action);
+//						executor.accept(action);
+						action.run();
 					}
 				});
 				GlobalScreen.registerNativeHook();
-				keyListener = buildNativeKeyListener();
+				keyListener = new NativeKeyListener() {
+					@Override
+					public void nativeKeyPressed(NativeKeyEvent e) {
+						// LOGGER.info("Global key press event: " + e.paramString());
+
+						keyCombos.forEach((actionId, keyCombo) -> {
+							Action a = Action.get(actionId);
+
+							// TODO: remove hack
+							// For some reason left BACK_SLASH key (left of the Z key) is not recognized, so we manually se it straight
+							if (e.getRawCode()==226) {
+								e.setKeyCode(43);
+								e.setKeyChar((char)43);
+							}
+
+							// Unfortunately, JavaFX key codes and the library raw codes do not match for some keys, so we also
+							// check key name. This combination should be enough for all but rare cases
+							boolean modifierMatches = keyCombo.modifier==e.getModifiers();
+							boolean keysMatch = keyCombo.key.getCode()==e.getRawCode() ||
+								                    keyCombo.key.getName().equalsIgnoreCase(NativeKeyEvent.getKeyText(e.getKeyCode()));
+							if (keysMatch && modifierMatches)
+								keyCombo.press(a, e);
+						});
+					}
+
+					@Override
+					public void nativeKeyReleased(NativeKeyEvent e) {
+						keyCombos.values().stream().filter(k -> k.isPressed).forEach(k -> k.release(e));
+					}
+
+					@Override
+					public void nativeKeyTyped(NativeKeyEvent e) {}
+				};
 				GlobalScreen.addNativeKeyListener(keyListener);
 			} catch (NativeHookException e) {
 				LOGGER.error("Failed to register global hotkeys", e);
@@ -171,7 +159,7 @@ public class Hotkeys {
 		keyCombos.remove(action.getID());
 	}
 
-	private static final class KeyCombo {
+	private final class KeyCombo {
 		public final KeyCode key;
 		public final KeyCode[] modifiers;
 		public final int modifier;
@@ -194,13 +182,24 @@ public class Hotkeys {
 			this.modifier = m;
 		}
 
-		public void press(Action a) {
+		public void press(Action a, NativeKeyEvent e) {
 			boolean isPressedFirst = !isPressed;
 			isPressed = true;
-			if (a.isContinuous() || isPressedFirst)
-				a.run();
+			if (a.isContinuous() || isPressedFirst) {
+
+				// consume event (must be on the jNativeHook thread)
+				try {
+					Field f = NativeInputEvent.class.getDeclaredField("reserved");
+					f.setAccessible(true);
+					f.setShort(e, (short) 0x01);
+				} catch (Exception x) {
+					LOGGER.error("Failed to consume native key event.", e);
+				}
+
+				executor.accept(a);
+			}
 		}
-		public void release() {
+		synchronized public void release(NativeKeyEvent e) {
 			isPressed = false;
 		}
 	}

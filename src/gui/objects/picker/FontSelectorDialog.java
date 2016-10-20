@@ -1,40 +1,85 @@
+/*
+ * Impl based on ControlsF:
+ *
+ * Copyright (c) 2014, 2015, ControlsFX
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *     * Neither the name of ControlsFX, any associated website, nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL CONTROLSFX BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package gui.objects.picker;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
+
 import static javafx.collections.FXCollections.observableArrayList;
-import static util.dev.Util.log;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layVertically;
 
-public class FontSelectorDialog extends Dialog<Font> {
+public class FontSelectorDialog extends PopOver<VBox> {
 
-	private FontPanel fontPanel;
+	private final FontPanel fontPanel;
+	private final Consumer<? super Font> onOk;
 
-	public FontSelectorDialog(Font defaultFont) {
+	public FontSelectorDialog(Font initialFont, Consumer<? super Font> onOk) {
+		this.onOk = onOk==null ? font -> {} : onOk;
+
 		fontPanel = new FontPanel();
-		fontPanel.setFont(defaultFont);
+		fontPanel.setFont(initialFont);
+		title.setValue("Select font");
 
-		setResultConverter(dialogButton -> dialogButton == ButtonType.OK ? fontPanel.getFont() : null);
-
-		DialogPane dialogPane = getDialogPane();
-
-		setTitle("Select font");
-		dialogPane.setHeaderText("Select font");
-		dialogPane.getStyleClass().add("font-selector-dialog");
-		dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-		dialogPane.setContent(fontPanel);
+		VBox layout = layVertically(10, Pos.CENTER,
+			fontPanel,
+			layHorizontally(15, Pos.CENTER,
+				new Icon<>(FontAwesomeIcon.CHECK, 22, "Select font", () -> {
+					hide();
+					onOk.accept(fontPanel.getFont());
+				}).withText("Use"),
+				new Icon<>(FontAwesomeIcon.TIMES, 22, "Select font", this::hide).withText("Cancel")
+			)
+		);
+		layout.setPadding(new Insets(15));
+		setContentNode(layout);
 	}
 
 /* ---------- HELPER CLASSES ---------------------------------------------------------------------------------------- */
@@ -140,10 +185,8 @@ public class FontSelectorDialog extends Dialog<Font> {
 		private static final double VGAP = 5;
 
 		private static final Predicate<Object> MATCH_ALL = t -> true;
-
 		private static final Double[] fontSizes = new Double[] {8d,9d,11d,12d,14d,16d,18d,20d,22d,24d,26d,28d,36d,48d,72d};
-
-		private static List<FontStyle> getFontStyles( String fontFamily ) {
+		private static List<FontStyle> getFontStyles(String fontFamily ) {
 			Set<FontStyle> set = new HashSet<>();
 			for (String f : Font.getFontNames(fontFamily)) {
 				set.add(new FontStyle(f.replace(fontFamily, "")));
@@ -211,7 +254,7 @@ public class FontSelectorDialog extends Dialog<Font> {
 			ChangeListener<Object> sampleRefreshListener = (o,ov,nv) -> refreshSample();
 
 			fontListView.selectionModelProperty().get().selectedItemProperty().addListener((o,ov,nv) -> {
-				String fontFamily = listSelection(fontListView);
+				String fontFamily = listSelection(fontListView, null);
 				styleListView.setItems(observableArrayList(getFontStyles(fontFamily)));
 				refreshSample();
 			});
@@ -250,33 +293,26 @@ public class FontSelectorDialog extends Dialog<Font> {
 			add(sampleStack, 0, 3, 1, 3);
 		}
 
-		public void setFont(final Font font) {
+		public void setFont(Font font) {
 			Font f = font == null ? Font.getDefault() : font;
-			if (f != null) {
-				selectInList(fontListView, f.getFamily());
-				selectInList(styleListView, new FontStyle(f));
-				selectInList(sizeListView, f.getSize());
-			}
+			selectInList(fontListView, f.getFamily());
+			selectInList(styleListView, new FontStyle(f));
+			selectInList(sizeListView, f.getSize());
 		}
 
 		public Font getFont() {
-			try {
-				FontStyle style = listSelection(styleListView);
-				if (style == null) {
-					return Font.font(
-						listSelection(fontListView),
-						listSelection(sizeListView));
+			FontStyle style = listSelection(styleListView, null);
+			if (style == null) {
+				return Font.font(
+					listSelection(fontListView, null),
+					listSelection(sizeListView, 12.0));
 
-				} else {
-					return Font.font(
-						listSelection(fontListView),
-						style.getWeight(),
-						style.getPosture(),
-						listSelection(sizeListView));
-				}
-			} catch(Throwable e) {
-				log(FontSelectorDialog.class).error("Failed to construct font", e);
-				return null;
+			} else {
+				return Font.font(
+					listSelection(fontListView, null),
+					style.getWeight(),
+					style.getPosture(),
+					listSelection(sizeListView, 12.0));
 			}
 		}
 
@@ -284,15 +320,13 @@ public class FontSelectorDialog extends Dialog<Font> {
 			sample.setFont(getFont());
 		}
 
-		private <T> void selectInList(final ListView<T> listView, final T selection) {
-			Platform.runLater(() -> {
-				listView.scrollTo(selection);
-				listView.getSelectionModel().select(selection);
-			});
+		private <T> void selectInList(ListView<T> listView, T selection) {
+			listView.scrollTo(selection);
+			listView.getSelectionModel().select(selection);
 		}
 
-		private <T> T listSelection(final ListView<T> listView) {
-			return listView.selectionModelProperty().get().getSelectedItem();
+		private <T> T listSelection(ListView<T> listView, T or) {
+			return listView.selectionModelProperty().get().isEmpty() ? or : listView.selectionModelProperty().get().getSelectedItem();
 		}
 	}
 }

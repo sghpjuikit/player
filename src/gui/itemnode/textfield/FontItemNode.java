@@ -2,7 +2,6 @@ package gui.itemnode.textfield;
 
 import javafx.scene.text.Font;
 
-import gui.Gui;
 import gui.objects.picker.FontSelectorDialog;
 import util.parsing.Parser;
 
@@ -18,8 +17,6 @@ public class FontItemNode extends TextFieldItemNode<Font> {
 
     @Override
     void onDialogAction() {
-        new FontSelectorDialog(Gui.font.get())
-	            .showAndWait()
-                .ifPresent(this::setValue);
+        new FontSelectorDialog(getValue(), this::setValue).show(this);
     }
 }

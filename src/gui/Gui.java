@@ -29,8 +29,10 @@ import com.sun.javafx.css.StyleManager;
 
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
+import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchPane;
+import layout.widget.Widget;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -58,9 +60,11 @@ import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.dev.Util.noØ;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
 import static util.file.Util.listFiles;
+import static util.functional.Util.ISNTØ;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
 
@@ -238,10 +242,12 @@ public class Gui {
         // This is important to maintain consistency. See documentation.
         if (val) {
             APP.widgetManager.getLayouts().forEach(Layout::show);
+            APP.widgetManager.standaloneWidgets.stream().map(Widget::getParent).filter(ISNTØ).forEach(Container::show);
             layout_mode.set(val);
         } else {
             layout_mode.set(val);
             APP.widgetManager.getLayouts().forEach(Layout::hide);
+            APP.widgetManager.standaloneWidgets.stream().map(Widget::getParent).filter(ISNTØ).forEach(Container::hide);
             setZoomMode(false);
         }
         if (val) APP.actionStream.push("Layout mode");
@@ -458,10 +464,11 @@ public class Gui {
     /*****************************  helper methods ********************************/
 
     private static void applyFont(Font f) {
+    	noØ(f);
         // apply only if application initialized correctly
         if (APP.initialized) {
             // we need to apply to each window separately
-            APP.windowManager.windows.forEach(w ->{
+            APP.windowManager.windows.forEach(w -> {
                 String tmp = f.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;

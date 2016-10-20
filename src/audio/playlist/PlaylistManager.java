@@ -84,32 +84,32 @@ public class PlaylistManager implements Configurable {
     }
 
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Files", desc = "Open file chooser to add files to playlist.")
+    @IsAction(name = "Enqueue files", desc = "Open file chooser to add files to playlist.")
     public static void chooseFilesToAdd() {
         use(p -> p.addOrEnqueueFiles(true));
     }
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Directory", desc = "Open file chooser to add files from directory to playlist.")
+    @IsAction(name = "Enqueue directory", desc = "Open file chooser to add files from directory to playlist.")
     public static void chooseFolderToAdd() {
         use(p -> p.addOrEnqueueFolder(true));
     }
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Url", desc = "Open file chooser to add url to playlist.")
+    @IsAction(name = "Enqueue url", desc = "Open file chooser to add url to playlist.")
     public static void chooseUrlToAdd() {
         use(p -> p.addOrEnqueueUrl(true));
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Files", desc = "Open file chooser to play files to playlist.")
+    @IsAction(name = "Play files", desc = "Open file chooser to play files to playlist.")
     public static void chooseFilesToPlay() {
         use(p -> p.addOrEnqueueFiles(false));
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Directory", desc = "Open file chooser to play files from directory to playlist.")
+    @IsAction(name = "Play directory", desc = "Open file chooser to play files from directory to playlist.")
     public static void chooseFolderToPlay() {
         use(p -> p.addOrEnqueueFolder(false));
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Url", desc = "Open file chooser to add url play playlist.")
+    @IsAction(name = "Play url", desc = "Open file chooser to add url play playlist.")
     public static void chooseUrlToPlay() {
         use(p -> p.addOrEnqueueUrl(false));
     }

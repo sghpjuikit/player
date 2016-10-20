@@ -63,7 +63,7 @@ public class RatingSkin extends SkinBase<Rating> {
     // and non-strong graphics, depending on the current rating value
     private HBox backgroundContainer = new HBox();
     private HBox foregroundContainer = new HBox();  // the container for the strong graphics, has mask
-    private Rectangle forgroundClipRect; // mask
+    private Rectangle foregroundClipRect; // mask
     private double old_rating;
     private final EventHandler<MouseEvent> mouseMoveHandler = e -> {
         if (!getSkinnable().updateOnHover.get() || !getSkinnable().editable.get())
@@ -120,8 +120,8 @@ public class RatingSkin extends SkinBase<Rating> {
         foregroundContainer.setMouseTransparent(true);
         getChildren().setAll(backgroundContainer, foregroundContainer);
 
-        forgroundClipRect = new Rectangle();
-        foregroundContainer.setClip(forgroundClipRect);
+        foregroundClipRect = new Rectangle();
+        foregroundContainer.setClip(foregroundClipRect);
         Node b = createButton(STAR_ALT);
         Node f = createButton(STAR);
         f.getStyleClass().add(SELECTED);
@@ -167,8 +167,8 @@ public class RatingSkin extends SkinBase<Rating> {
         double w = r.getWidth() - (snappedLeftInset() + snappedRightInset());
         double x = w*v;
 
-        forgroundClipRect.setWidth(x);
-        forgroundClipRect.setHeight(r.getHeight());
+        foregroundClipRect.setWidth(x);
+        foregroundClipRect.setHeight(r.getHeight());
 
         boolean is1 = v==1;
         foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,is1));

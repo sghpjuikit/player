@@ -83,8 +83,8 @@ public class RatingSkin extends SkinBase<Rating> {
         old_rating = v;
 
         // fire rating changed event
-        if (getSkinnable().ratingChanged != null)
-            getSkinnable().ratingChanged.accept(v);
+        if (getSkinnable().onRatingByUserChanged != null)
+            getSkinnable().onRatingByUserChanged.accept(v);
 
         e.consume();
     };

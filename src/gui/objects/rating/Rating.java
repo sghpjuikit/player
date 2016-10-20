@@ -1,18 +1,3 @@
-/**
- * Copyright (c) 2013, ControlsFX
- * All rights reserved.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL CONTROLSFX BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package gui.objects.rating;
 
 import java.util.function.Consumer;
@@ -102,80 +87,70 @@ import static util.Util.clip;
  */
 public class Rating extends Control {
 
-    /** Creates rating with 5 icons*/
-    public Rating() {
-        this(5);
-    }
+	/** Creates rating with 5 icons*/
+	public Rating() {
+		this(5);
+	}
 
-    /**
-     * @param icons number of icons.
-     */
-    public Rating(int icons) {
-        this(icons, 0);
-    }
+	/**
+	 * @param icons number of icons.
+	 */
+	public Rating(int icons) {
+		this(icons, 0);
+	}
 
-    /**
-     * Creates a Rating instance with a minimum rating of 0, a maximum rating
-     * as provided by the {@code icons} argument, and a current rating as provided
-     * by the {@code rating} argument.
-     *
-     * @param max The maximum allowed rating value.
-     * @param r
-     */
-    public Rating(int icons, double r) {
-        getStyleClass().setAll("rating");
+	/**
+	 * Creates a Rating instance with a minimum rating of 0, a maximum rating
+	 * as provided by the {@code icons} argument, and a current rating as provided
+	 * by the {@code rating} argument.
+	 *
+	 * @param max The maximum allowed rating value.
+	 * @param r
+	 */
+	public Rating(int icons, double r) {
+		getStyleClass().setAll("rating");
 
-        this.icons.set(icons);
-        rating.set(r);
-    }
+		this.icons.set(icons);
+		rating.set(r);
+	}
 
-    @Override protected Skin<?> createDefaultSkin() {
-        return new RatingSkin(this);
-    }
+	@Override
+	protected Skin<?> createDefaultSkin() {
+		return new RatingSkin(this);
+	}
 
-    /** Rating value in 0-1. Value will clipped to range. */
-    public final DoubleProperty rating = new SimpleDoubleProperty(this, "rating", 0) {
-        @Override public void set(double nv) {
-            super.set(clip(0,nv,1));
-        }
+	/**
+	 * Rating value in 0-1. Value will clipped to range.
+	 */ public final DoubleProperty rating = new SimpleDoubleProperty(this, "rating", 0) {
+		@Override public void set(double nv) {
+			super.set(clip(0,nv,1));
+		}
 
-        @Override
-        public void setValue(Number v) {
-            super.set(clip(0,v.doubleValue(),1));
-        }
-    };
-
-    /** The maximum-allowed rating value. */
-    public final IntegerProperty icons = new SimpleIntegerProperty(this, "icons", 5);
-
-    /**
-     * If true this allows for users to set a rating as a floating point value.
-     * In other words, the range of the rating 'stars' can be thought of as a
- range between [0, icons], and whereever the user clicks will be calculated
- as the new rating value. If this is false the more typical approach is used
- where the selected 'star' is used as the rating.
-     */
-    public final BooleanProperty partialRating = new SimpleBooleanProperty(this, "partialRating", false);
-
-    /**
-     * If true this allows for the rating property to be updated by the user
-     * hovering their mouse over the control. If
-     * false the user is required to click on their preferred rating to register
-     * the new rating with this control.
-     */
-    public final BooleanProperty updateOnHover = new SimpleBooleanProperty(this, "updateOnHover", false);
-
-    public final BooleanProperty editable = new SimpleBooleanProperty(this, "editable", true);
-
-    protected Consumer<Double> ratingChanged;
-
-    /**
-     * Fired when rating value of this control changes - more specifically on
-     * mouse click (after new rating value is set).
-     * @param handler
-     */
-    public void setOnRatingChanged(Consumer<Double> handler) {
-        ratingChanged = handler;
-    }
+		@Override
+		public void setValue(Number v) {
+			super.set(clip(0,v.doubleValue(),1));
+		}
+	};
+	/**
+	 * The maximum-allowed rating value.
+	 */ public final IntegerProperty icons = new SimpleIntegerProperty(this, "icons", 5);
+	/**
+	 * If true this allows for users to set a rating as a floating point value.
+	 * In other words, the range of the rating 'stars' can be thought of as a
+	 * range between [0, icons], and whereever the user clicks will be calculated
+	 * as the new rating value. If this is false the more typical approach is used
+	 * where the selected 'star' is used as the rating.
+	 */ public final BooleanProperty partialRating = new SimpleBooleanProperty(this, "partialRating", false);
+	/**
+	 * If true this allows for the rating property to be updated by the user
+	 * hovering their mouse over the control. If
+	 * false the user is required to click on their preferred rating to register
+	 * the new rating with this control.
+	 */
+	public final BooleanProperty updateOnHover = new SimpleBooleanProperty(this, "updateOnHover", false);
+	public final BooleanProperty editable = new SimpleBooleanProperty(this, "editable", true);
+	/**
+	 * Fired when rating value changes through user interaction - on mouse click (after new rating value is set).
+	 */ public Consumer<Double> onRatingByUserChanged;
 
 }

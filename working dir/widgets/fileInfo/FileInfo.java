@@ -201,7 +201,7 @@ public class FileInfo extends FXMLController implements SongReader {
         rater.updateOnHover.bind(APP.hoverRating);
         rater.editable.bind(APP.allowRatingChange);
         // write metadata on rating change
-        rater.setOnRatingChanged(r -> MetadataWriter.useToRate(data, r));
+        rater.onRatingByUserChanged = r -> MetadataWriter.useToRate(data, r);
 
         // drag & drop
         DragUtil.installDrag(

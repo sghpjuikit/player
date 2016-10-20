@@ -192,18 +192,17 @@ public final class Action extends Config<Action> implements Runnable {
         set(defaultGlobal, defaultKeys);
     }
 
-    /** Execute the action. Always executes on application thread. */
-    @Override
-    public void run() {
-    	Async.runFX(this::runUnsafe);
-    }
-
-    private void runUnsafe() {
-        log(Action.class).info("Shortcut {} executing, global: {}.", name,global);
-
-        action.run();
-        APP.actionStream.push(name);
-    }
+	/**
+	 * Execute the action. Always executes on application thread.
+	 */
+	@Override
+	public void run() {
+		Async.runFX(() -> {
+			log(Action.class).info("Executing action {}", name);
+			action.run();
+			APP.actionStream.push(name);
+		});
+	}
 
     /**
      * Activates shortcut. Only registered shortcuts can be invoked.

@@ -567,7 +567,7 @@ public interface Util {
      */
     @SafeVarargs
     static <T> String toS(String s, T... a) {
-        return stream(a).map(Object::toString).collect(joining(s));
+        return stream(a).map(Objects::toString).collect(joining(s));
     }
 
     /**

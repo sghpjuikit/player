@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -116,6 +117,14 @@ public class FunctorPool {
 		add("Length =",      S, B, (x, l) -> x.length() == l, Integer.class, 0);
 		add("Is empty",      S, B, String::isEmpty);
 		add("Is palindrome", S, B, util.Util::isNonEmptyPalindrome);
+		add("Base64 encode", S, S, s -> Base64.getEncoder().encodeToString(s.getBytes()));
+		add("Base64 decode", S, S, s -> {
+			try {
+				return new String(Base64.getDecoder().decode(s.getBytes()));
+			} catch (IllegalArgumentException e) {
+				return null;
+			}
+		});
 
 		add("to ASCII",     Character.class, Integer.class, x -> (int) x);
 

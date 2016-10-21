@@ -118,7 +118,8 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		configs.clear();
 		configs.addAll(c);
 		groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c,Config::getGroup))));
-		groups.getRoot().setExpanded(true);
+		groups.getRoot().setExpanded(true); // auto-expand for convenience
+		groups.getSelectionModel().select(groups.getRoot());    // select root & invoke #populateConfigFields
 	}
 
 	private void populateConfigFields(Stream<Config> visibleConfigs) {

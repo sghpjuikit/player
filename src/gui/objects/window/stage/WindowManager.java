@@ -12,8 +12,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.effect.BoxBlur;
-import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -101,9 +99,6 @@ public class WindowManager implements Configurable<Object> {
 
     @IsConfig(name = "Headerless", info = "Hides header.")
     public final V<Boolean> window_headerless = new V<>(false);
-
-    @IsConfig(name = "Bgr effect", info = "Effect applied on window background.")
-    public final V<Effect> window_bgr_effect = new V<>(new BoxBlur(11, 11, 4));
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
     public final V<Boolean> show_windows = new V<>(true, v -> {
@@ -194,7 +189,6 @@ public class WindowManager implements Configurable<Object> {
 
         // bind properties
         w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));
-        w.disposables.add(maintain(window_bgr_effect, w.backimage.effectProperty()));
         w.disposables.add(maintain(window_borderless, w::setBorderless));
         w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
 

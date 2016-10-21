@@ -212,15 +212,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /**
      * Simply compares the current value with the one obtained from Config.
-     * Equivalent to: !config.getValue().equals(get());
+     * Equivalent to: {@code !Objects.equals(config.getValue(), getValid())}
+     *
      * @return true if has value that has not been applied
      */
     public boolean hasUnappliedValue() {
-        return !config.getValue().equals(getValid());
+        return !Objects.equals(config.getValue(), getValid());
     }
 
     /**
      * Sets editability by disabling the Nodes responsible for value change
+     *
      * @param val
      */
     public void setEditable(boolean val) {
@@ -229,6 +231,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /**
      * Creates label with config field name and tooltip with config field description.
+     *
      * @return label describing this field
      */
     public Label createLabel() {
@@ -248,6 +251,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     /**
      * Use to get the control node for setting and displaying the value to
      * attach it to a scene graph.
+     *
      * @return setter control for this field
      */
     @Override
@@ -263,6 +267,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     /**
      * Use to get the control node for setting and displaying the value to
      * attach it to a scene graph.
+     *
      * @return setter control for this field
      */
     abstract Node getControl();
@@ -298,7 +303,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     public void setNapplyDefault() {
         T t = config.getDefaultValue();
-        if (!config.getValue().equals(t)) {
+        if (!Objects.equals(config.getValue(),t)) {
             config.setNapplyValue(t);
             refreshItem();
             if (onChange!=null) onChange.run();
@@ -403,7 +408,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.textProperty().addListener((o,ov,nv)-> {
                 Try<T,String> t = getValid();
                 boolean erroneous = t.isError();
-                boolean applicable = !config.getValue().equals(t);
+                boolean applicable = !erroneous && !Objects.equals(config.getValue(),t.get());
                 showOkButton(!applyOnChange && applicable && !erroneous);
                 showWarnButton(erroneous, erroneous ? t.getError() : null);
                 if (nv.isEmpty()) return;
@@ -450,8 +455,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         protected void apply(boolean user) {
             if (inconsistentState) return;
 	        Try<T,String> t = getValid();
-            if (t.isError()) return;
-            boolean applicable = !config.getValue().equals(t.get());
+	        boolean erroneous = t.isError();
+            if (erroneous) return;
+            boolean applicable = !Objects.equals(config.getValue(),t.get());
             if (!applicable) return;
 
             inconsistentState = true;
@@ -908,7 +914,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             @Override
             public T getValue() {
                 Object o = p.getValuesC().get(0).getValue();
-                if (value.getClass().equals(o.getClass())) return (T)o;
+                if (value.getClass()==o.getClass()) return (T)o;
                 else return super.getValue();
             }
 

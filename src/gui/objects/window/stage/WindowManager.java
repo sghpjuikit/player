@@ -73,7 +73,7 @@ import static util.reactive.Util.*;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable("Window")
+@IsConfigurable("Gui.Window")
 public class WindowManager implements Configurable<Object> {
 
 	private static final Logger LOGGER = log(WindowManager.class);

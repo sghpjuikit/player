@@ -54,6 +54,7 @@ import static main.App.APP;
 import static util.Util.emptyOr;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
+import static util.dev.Util.noØ;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
@@ -433,6 +434,8 @@ public class TreeItems {
 		}
 
 		public void addPath(String path) {
+			if (noØ(path).isEmpty()) return;
+
 			int i=path.indexOf(DELIMITER);
 			boolean isLeaf = i<0;
 

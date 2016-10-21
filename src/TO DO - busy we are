@@ -70,7 +70,6 @@
 - Configurator implement drag & drop of Configurables, support any object by turning it into
   Configurable (but using which convention?)
 - remove artwork caching?
-- improve table performance
 - reimplement playcount, chapters tags as custom tags
 - FieldedValue hasField predicates
 - layout manager + mock widgets
@@ -98,7 +97,7 @@
            - Add selectedProperty for easy control and observation.
     - main.ImageThumbIconTest
 - cleanups
-    - Parser, Var, Ref, ActionPane.ActionData, SwitchPane configs, Action, Autocomplete
+    - Var, Ref, ActionPane.ActionData, SwitchPane configs, Autocomplete
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
@@ -134,7 +133,6 @@
 - javafx player MediaException: system cant find media file when weird character                    (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
   Its patched so playback continues with next item, but that is not a solution. Fill a bug.
-- IntelliJ on 64-bit JRE !work. 64-bit dll problem?                                                 (major)
 - database throws exception when transaction begins and library is importing files
 com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
 	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]

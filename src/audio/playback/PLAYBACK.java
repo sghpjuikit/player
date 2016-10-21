@@ -206,7 +206,7 @@ public final class PLAYBACK implements Configurable {
     }
 
 	/** Seek forward by small fraction unit. */
-	@IsAction(name = "Seek forward (%)", desc = "Seek forward playback by fraction.", keys = "CTRL+ALT+D", repeat = true, global = true)
+	@IsAction(name = "Seek forward (%)", desc = "Seek forward playback by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
 	public static void seekForwardRelative() {
 		double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
 		seek(min(d, 1));
@@ -224,7 +224,7 @@ public final class PLAYBACK implements Configurable {
 	}
 
 	/** Seek backward by small fraction unit. */
-	@IsAction(name = "Seek backward (%)", desc = "Seek backward playback by fraction.", keys = "CTRL+ALT+A", repeat = true, global = true)
+	@IsAction(name = "Seek backward (%)", desc = "Seek backward playback by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
 	public static void seekBackwardRelative() {
 		double d = getCurrentTime().toMillis()/getTotalTime().toMillis() - seekUnitP;
 		seek(max(d, 0));

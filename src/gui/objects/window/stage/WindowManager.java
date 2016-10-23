@@ -196,8 +196,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
 	public Window createWindowOwner() {
-		Window w = new Window();
-		w.getStage().initStyle(UTILITY);
+		Window w = new Window(null, UTILITY);
 		w.s.setOpacity(0);
 		w.s.setScene(new Scene(new Region()));
 		((Region)w.s.getScene().getRoot()).setBackground(null);

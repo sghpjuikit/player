@@ -113,7 +113,7 @@ public class OverlayPane extends StackPane {
 /****************************************** ANIMATION *********************************************/
 
     // depth of field transition
-    private Display displayForHide; // prevents inconsistency, see use
+    private Display displayForHide; // prevents inconsistency in start() and stop(), see use
     private Anim animation = new Anim(30, this::animDo).dur(millis(250)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
     private Stage stg = null;
     private BoxBlur blurBack = new BoxBlur(0,0,3);  // we need best possible quality
@@ -177,7 +177,10 @@ public class OverlayPane extends StackPane {
 			            op.animation.playOpenDo(null);
 			            op.onShown.run();
 		            },
-		            () -> SCREEN_OF_MOUSE.animStart(op)
+		            () -> {
+			            op.displayForHide = SCREEN_OF_MOUSE;
+		            	SCREEN_OF_MOUSE.animStart(op);
+		            }
 	            );
             } else {
                 Screen screen = this==SCREEN_OF_WINDOW
@@ -249,7 +252,7 @@ public class OverlayPane extends StackPane {
             if (this==WINDOW) {
                 op.setVisible(false);
             } else {
-                op.stg.hide();
+                op.stg.close();
             }
         }
     }

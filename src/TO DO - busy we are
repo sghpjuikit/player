@@ -234,3 +234,9 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
 
   -Dprism.order=j2d
   -Dprism.order=sw
+
+// JavaFX JVM params
+ -Djavafx.pulseLogger=true // javafx pulse debug
+ -Djavafx.animation.fullspeed=true
+ -Djavafx.animation.framerate=120
+ -Djavafx.animation.pulse=120

@@ -75,6 +75,7 @@ import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.util.Duration.millis;
+import static javafx.util.Duration.seconds;
 import static util.Util.clip;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.no;
@@ -301,6 +302,12 @@ interface Utils {
 	static double ttl(Duration d) {
 		return d.toSeconds()*FPS;
 	}
+	static Duration time(long frames) {
+		return seconds(frames/FPS);
+	}
+	static Duration timeOfLoop(long loopIndex) {
+		return millis(loopIndex*FPS);
+	}
 
 	static double randMN(double m, double n) {
 		return m+random()*(n-m);
@@ -440,8 +447,8 @@ interface Utils {
 			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).stream().collect(toSet()), DESCRIPTION);
 		}
 
-		static Achievement achievement0N(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
-			return new Achievement(NAME, ICON, EVALUATOR, DESCRIPTION);
+		static Achievement achievement0N(String NAME, GlyphIcons ICON, Ƒ1<Game,Stream<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).collect(toSet()), DESCRIPTION);
 		}
 
 		public Achievement onlyIf(Predicate<? super Game> CONDITION) {
@@ -483,11 +490,6 @@ interface Utils {
 		public void show(Game game) {
 			super.show();
 			build(game);
-		}
-
-		@Override
-		public void hide() {
-			super.hide();
 		}
 
 		private void build(Game game) {
@@ -560,11 +562,6 @@ interface Utils {
 					mission.details
 			);
 		}
-
-		@Override
-		public void hide() {
-			super.hide();
-		}
 	}
 	/** How to play help pane. */
 	class EndGamePane extends OverlayPane {
@@ -599,11 +596,6 @@ interface Utils {
 		public void show(Map<Player,List<Achievement>> game) {
 			super.show();
 			build(game);
-		}
-
-		@Override
-		public void hide() {
-			super.hide();
 		}
 
 		private void build(Map<Player,List<Achievement>> game) {
@@ -651,10 +643,10 @@ interface Utils {
 
 	/** Weighted boolean - stores how many times it is. False if not once. True if at least once. */
 	class InEffect extends InEffectValue<Void> {
-		 InEffect() {
+		InEffect() {
 			super(t -> null);
 		}
-		 InEffect(Consumer<Integer> onChange) {
+		InEffect(Consumer<Integer> onChange) {
 			super(0, t -> null, onChange);
 		}
 	}
@@ -1027,24 +1019,74 @@ interface Utils {
 		}
 	}
 	class StatsPlayer implements Stats<Player> {
-		public DoubleSummaryStatistics controlAreaSize = new DoubleSummaryStatistics();
-		public DoubleSummaryStatistics controlAreaCenterDistance = new DoubleSummaryStatistics();
+		public long bulletFiredCount;
+		public long spawnCount;
+		public long deathCount;
+		public Duration fired1stTime;
+		public Duration hitEnemy1stTime;
+		public long killUfoCount;
+		public List<Duration> liveTimes;
+		private Duration lastSpawn;
+		private Duration longestAlive;
+		public DoubleSummaryStatistics controlAreaSize;
+		public DoubleSummaryStatistics controlAreaCenterDistance;
+
+		public StatsPlayer() {
+			clear();
+		}
+
+		public void accSpawn(long loopId) {
+			spawnCount++;
+			lastSpawn = timeOfLoop(loopId);
+			liveTimes.add(lastSpawn);
+			longestAlive = stream(liveTimes).max(Duration::compareTo).orElseThrow(AssertionError::new);
+		}
+
+		public void accDeath(long loopId) {
+			deathCount++;
+			Duration death = timeOfLoop(loopId);
+			liveTimes.add(death.subtract(lastSpawn));
+		}
+
+		public void accGameEnd(long loopId) {
+			Duration end = timeOfLoop(loopId);
+			liveTimes.add(lastSpawn==null ? end : end.subtract(lastSpawn));
+		}
+
+		public void accFiredBullet(long loopId) {
+			bulletFiredCount++;
+			if (fired1stTime==null) fired1stTime = timeOfLoop(loopId);
+		}
+
+		public void accHitEnemy(long loopId) {
+			if (hitEnemy1stTime==null) hitEnemy1stTime = timeOfLoop(loopId);
+		}
+
+		public void accKillUfo() {
+			killUfoCount++;
+		}
 
 		@Override
 		public void accumulate(Player player) {
-//			controlAreaSize.accept();
-//			controlAreaCenterDistance = new DoubleSummaryStatistics();
 		}
 
 		@Override
 		public void calculate() {
-//			controlAreaSize = controlAreaSizes.stream().mapToDouble()
 		}
 
 		@Override
 		public void clear() {
 			controlAreaSize = new DoubleSummaryStatistics();
 			controlAreaCenterDistance = new DoubleSummaryStatistics();
+			bulletFiredCount = 0;
+			fired1stTime = null;
+			hitEnemy1stTime = null;
+			killUfoCount = 0;
+			liveTimes = new ArrayList<>();
+			lastSpawn = null;
+			longestAlive = null;
+			spawnCount = 0;
+			deathCount = 0;
 		}
 	}
 
@@ -1352,7 +1394,7 @@ interface Utils {
 		protected void doCompute(Set<Rocket> rockets, double W, double H, Comet game) {
 			Set<Site> cells = stream(rockets)
 				.flatMap(rocket -> {
-					Vec r = new Vec(rocket.x+rocket.randomVoronoiTranslation, rocket.y+rocket.randomVoronoiTranslation);
+					Vec r = new Vec(rocket.x+rocket.cacheRandomVoronoiTranslation, rocket.y+rocket.cacheRandomVoronoiTranslation);
 					Site sMain = new Site(r.x, r.y);
 					sMain.setData(tuple(rocket,true));
 					return stream(new Site(r.x + W, r.y), new Site(r.x, r.y + H), new Site(r.x - W, r.y), new Site(r.x, r.y - H),
@@ -1442,7 +1484,7 @@ interface Utils {
 			inputOutputMap.clear();
 			List<Coordinate> cells = stream(rockets)
 				.flatMap(rocket -> {
-					Vec r = new Vec(rocket.x+rocket.randomVoronoiTranslation, rocket.y+rocket.randomVoronoiTranslation);
+					Vec r = new Vec(rocket.x+rocket.cacheRandomVoronoiTranslation, rocket.y+rocket.cacheRandomVoronoiTranslation);
 					Coordinate cMain = new Coordinate(r.x, r.y);
 					inputOutputMap.put(cMain,tuple(rocket,true));
 					return stream(
@@ -1765,7 +1807,7 @@ interface Utils {
 
 		public void doLoop() {
 			if (!isInitialized) return;
-			doLoopImpl();
+//			doLoopImpl();
 		}
 
 		abstract protected void doLoopImpl();
@@ -1831,7 +1873,7 @@ interface Utils {
 				boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
 
 				if (isEngine) p.rocket.engine.on(); else p.rocket.engine.off();
-				if (p.rocket.rapidfire.is()) {
+				if (p.rocket.rapidFire.is()) {
 					if (fireB!=null && fireB.isPressed()) p.rocket.gun.fire();
 				} else {
 					if (fireB!=null && fireB.isPressedOnce()) p.rocket.gun.fire();

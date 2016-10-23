@@ -75,6 +75,7 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.*;
 import static util.Util.clip;
+import static util.animation.Anim.mapTo01;
 import static util.async.Async.run;
 import static util.dev.Util.yes;
 import static util.functional.Util.*;
@@ -327,6 +328,11 @@ public class Comet extends ClassController {
 	private static final double HUD_OPACITY = 0.25;
 	private static final double HUD_DOT_GAP = 3;
 	private static final double HUD_DOT_DIAMETER = 1;
+	void drawDottedLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
+		gc.setFill(color);
+		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
+			gc.fillOval(modX(x+i*cosDir), modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+	}
 	void drawHudLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
 		gc.setFill(color);
 		gc.setGlobalAlpha(HUD_OPACITY);
@@ -383,6 +389,33 @@ public class Comet extends ClassController {
 		for (double i=0; i<length; i+=10)
 			gc.fillOval(x+i*dirCos, y+i*dirSin, 1,1);
 	}
+	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
+		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
+	}
+	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff, boolean noMove) {
+		double angle = rand0N(D360);
+		double dist = randMN(radiusMin,radiusMax);
+		return new Particle(ff.x+dist*cos(angle),ff.y+dist*sin(angle), ff.dx,ff.dy, ttl(millis(350))) {
+			@Override
+			void draw() {
+				GraphicsContext g = gc_bgr;
+				g.setGlobalAlpha(ttl);
+				g.setFill(game.humans.color);
+				g.fillOval(x-0.5,y-0.5,1,1);
+				g.setGlobalAlpha(1);
+			}
+
+			@Override
+			void doLoopBegin() {
+				super.doLoopBegin();
+				if (noMove) {
+//					dx = dy = 0;
+					dx *= 0.95;
+					dy *= 0.95;
+				}
+			}
+		};
+	}
 
 	/** Encompasses entire game. */
 	class Game {
@@ -419,13 +452,13 @@ public class Comet extends ClassController {
 		final StatsGame stats = new StatsGame();
 		final MapSet<Integer,Mission> missions = new MapSet<>(m -> m.id,
 
-			new Mission(1, "Energetic fragility","10⁻¹⁵","",
-				null, Color.RED,Color.rgb(255,255,255,0.015), null,Particler::new
-//				null, Color.RED,Color.rgb(0,0,0,0.08), null,Particler::new
-			).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
-//            new Mission(1, "The strange world", "10⁻⁴m", "",
-//                null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
-//            ), //new Glow(0.3)
+//			new Mission(1, "Energetic fragility","10⁻¹⁵","",
+//				null, Color.RED,Color.rgb(255,255,255,0.015), null,Particler::new
+////				null, Color.RED,Color.rgb(0,0,0,0.08), null,Particler::new
+//			).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
+            new Mission(1, "The strange world", "10⁻⁴m", "",
+                null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
+            ), //new Glow(0.3)
 			new Mission(2, "Sumi-e","10⁻¹⁵","",
 				null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, Inkoid::new
 			), //new Glow(0.3)
@@ -448,7 +481,7 @@ public class Comet extends ClassController {
 				null, Color.DODGERBLUE,Color.rgb(10,10,25,0.08), null,Energ::new
 			),
 			new Mission(9, "Planc's plancton","10⁻¹⁵","",
-				null,Color.GREEN,new Color(1,1,1,0.08),null,Energ2::new
+				null,Color.DARKCYAN,new Color(0,0.08,0.08,0.09),null,Linker::new
 			),
 			new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
 				null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
@@ -470,40 +503,42 @@ public class Comet extends ClassController {
 				"- Increases chance of hitting the target",
 				"- Increases maximum possible target damage by 100%"
 			),
-			new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidfire.inc(), r -> r.rapidfire.dec(),
+			new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidFire.inc(), r -> r.rapidFire.dec(),
 				" - Largely increases rate of fire temporarily. Fires constant stream of bullets",
 				" - Improved hit efficiency due to bullet spam",
 				" - Improved mobility due to less danger of being hit",
 				"Tip: Fire constantly. Be on the move. Let the decimating power of countless bullets"
 			  + " be your shield. The upgrade lasts only a while - being static is a disadvantage."
 			),
-			new Enhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(50), r -> r.powerfire.inc(), r -> r.powerfire.dec(),
+			new Enhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(60), r -> r.powerFire.inc(), r -> r.powerFire.dec(),
 				"- Increases bullet speed",
 				"- Increases bullet range",
 				"Tip: Aim closer to target. Faster bullet will reach target sooner."
 			),
-			new Enhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyfire.inc(), r -> r.energyfire.dec(),
+			new Enhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyFire.inc(), r -> r.energyFire.dec(),
 				"- Bullets penetrate the target",
 				"- Increases bullet damage, 1 hit kill",
 				"- Multiple target damage",
-				"Tip: Try lining up targets into a line. "
+				"Tip: Fire at bigger target or group of targets.",
+				"Tip: Try lining up targets into a line."
 			),
-			new Enhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitfire.inc(), r -> r.splitfire.dec(),
+			new Enhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitFire.inc(), r -> r.splitFire.dec(),
 				"- Bullets split into 2 bullets on hit",
 				"- Multiple target damage",
 				"Tip: Strategic weapon. The damage potential raises exponentially"
-			  + " with the number of targets. Annihilate the most dense enemy area with ease. "
+			  + " with the number of targets. Annihilate the most dense enemy area with ease."
 			),
-			new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
-				"- Fires a bullet generating a black hole",
-				"- Lethal to everything, including players",
-				"- Player receives partial score for all damage caused by the black hole",
-				"Tip: Strategic weapon. Do not endanger yourself or your allies."
-			),
-			new Enhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(35),
+			// TODO: make useful
+//			new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
+//				"- Fires a bullet generating a black hole",
+//				"- Lethal to everything, including players",
+//				"- Player receives partial score for all damage caused by the black hole",
+//				"Tip: Strategic weapon. Do not endanger yourself or your allies."
+//			),
+			new Enhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(45),
 				r -> {
 					Ship.LaserSight ls = r.new LaserSight();
-					game.runNext.add(seconds(35),ls::dispose);
+					game.runNext.add(seconds(45),ls::dispose);
 				},
 				"- Displays bullet path",
 				"- Displays bullet range"
@@ -540,6 +575,14 @@ public class Comet extends ClassController {
 				"- Provides large and powerful stationary kinetic shield",
 				"Tip: This upgrade can not be shared."
 			),
+			new Enhancer("Super disruptor", MaterialIcon.BLUR_ON, seconds(5),
+				r -> humans.send(r,SuperDisruptor::new), r -> {}, false,
+				"- Calls in support disruptor",
+				"- Provides large and powerful stationary force field that slows objects down",
+				"Tip: Hide inside and use as a form of shield.",
+				"Tip: Objects with active propulsion will still be able to move, albeit slowed down.",
+				"Tip: This upgrade can not be shared."
+			),
 
 			// kinetic shield upgrades
 			new Enhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
@@ -561,18 +604,18 @@ public class Comet extends ClassController {
 			new Enhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
 				"- Increases energy accumulation by 10%"
 			),
-			new Enhancer("Energizer", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
+			new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
 				"- Increases maximum energy by 10%"
 			),
-			new Enhancer("Battery (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
+			new Enhancer("Energy (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
 				r -> r.energy = min(r.energy+2000,r.energy_max),
 				"- Increases energy by up to 2000"
 			),
-			new Enhancer("Battery (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
+			new Enhancer("Energy (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
 				r -> r.energy = min(r.energy+5000,r.energy_max),
 				"- Increases energy by up to 5000"
 			),
-			new Enhancer("Battery (large)", MaterialDesignIcon.BATTERY, seconds(5),
+			new Enhancer("Energy (large)", MaterialDesignIcon.BATTERY, seconds(5),
 				r -> r.energy = min(r.energy+10000,r.energy_max),
 				"- Increases energy by up to 10000"
 			)
@@ -596,14 +639,35 @@ public class Comet extends ClassController {
 				).onlyIf(game -> game.players.size()>1),
 			achievement1(
 					"Live and prosper", MaterialDesignIcon.ARROW_EXPAND,
-					game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+					game -> stream(game.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).get())).get(),
 					"Live the longest"
 				).onlyIf(game -> game.players.size()>1),
 			achievement0N(
 					"Invincible", MaterialDesignIcon.ARROW_EXPAND,
-					game -> stream(game.players).filter(p -> p.lives.get()==PLAYER_LIVES_INITIAL).toSet(),
+					game -> stream(game.players).filter(p -> p.stats.deathCount==0),
 					"Don't die"
-				)
+				),
+			achievement01(
+					"Quickdraw", MaterialDesignIcon.ARROW_EXPAND,
+					game -> stream(game.players).filter(p -> p.stats.fired1stTime!=null).minBy(p -> p.stats.fired1stTime),
+					"Be the first to shoot"
+				).onlyIf(game -> game.players.size()>1),
+			achievement01(
+					"Rusher", MaterialDesignIcon.ARROW_EXPAND,
+					game -> stream(game.players).filter(p -> p.stats.hitEnemy1stTime!=null).minBy(p -> p.stats.hitEnemy1stTime),
+					"Be the first to deal damage"
+				).onlyIf(game -> game.players.size()>1),
+			achievement0N(
+					"Pacifist", MaterialDesignIcon.ARROW_EXPAND,
+					game -> stream(game.players).filter(p -> p.stats.fired1stTime==null),
+					"Never shoot"
+				),
+			// TODO: fix this for situations wher ekillCount is the same for multiple players
+			achievement01(
+					"Hunter", MaterialDesignIcon.CROSSHAIRS,
+					game -> stream(game.players).maxBy(p -> p.stats.killUfoCount),
+					"Kill most UFOs"
+				).onlyIf(game -> game.players.size()>1)
 		);
 		Voronoi voronoi = new Voronoi2(
 			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
@@ -666,7 +730,7 @@ public class Comet extends ClassController {
 		}
 
 		void doLoop() {
-			if (loopId%60==0) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
+			if (loopId%FPS==0) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
 			// loop prep
 			loopId++;
@@ -676,7 +740,7 @@ public class Comet extends ClassController {
 			players.stream().filter(p -> p.alive).forEach(p -> {
 				if (pressedKeys.contains(p.keyLeft.get()))  p.rocket.dir -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
 				if (pressedKeys.contains(p.keyRight.get())) p.rocket.dir += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(), 0L));
-				if (isThird && p.rocket.rapidfire.is() && pressedKeys.contains(p.keyFire.get()))  p.rocket.gun.fire();
+				if (isThird && p.rocket.rapidFire.is() && pressedKeys.contains(p.keyFire.get()))  p.rocket.gun.fire();
 			});
 			gamepads.doLoop();
 
@@ -722,9 +786,7 @@ public class Comet extends ClassController {
 			// update & redraw active objects
 			entities.forceFields.forEach(ForceField::doLoop);
 
-//	        gc_bgr.setEffect(eeeee);
 			os.forEach(PO::doLoop);
-//	        gc_bgr.setEffect(null);
 
 			// guns & firing
 			// todo: ship logic belongs to ship class...
@@ -1242,9 +1304,6 @@ public class Comet extends ClassController {
 			double ty = distYSigned(y,toy);
 			return (tx<0 ? 0 : PI) + atan(ty/tx);
 		}
-//	    boolean isInbound(SO o) {
-//	    	return !(sign(o.x-x)==-sign(o.dx) && sign(o.y-y)==-sign(o.dy));
-//	    }
 		double speed() {
 			return sqrt(dx*dx+dy*dy);
 		}
@@ -1423,7 +1482,7 @@ public class Comet extends ClassController {
 						} else {
 							for (Double fire_angle : turrets.value()) {
 								Bullet b = ammo_type.apply(aimer.apply()+fire_angle);
-									   b.isHighEnergy = Ship.this instanceof Rocket && ((Rocket)Ship.this).energyfire.is();
+									   b.isHighEnergy = Ship.this instanceof Rocket && ((Rocket)Ship.this).energyFire.is();
 							}
 						}
 					});
@@ -1680,11 +1739,11 @@ public class Comet extends ClassController {
 						o.dy *= deceleration;
 					} else
 					// shield pulls disruptor
-					// Makes discruptor vs shield battles more interesting
+					// Makes disruptor vs shield battles more interesting
 					if (o instanceof Rocket && ((Rocket)o).ability_main instanceof Shield && ((Rocket)o).ability_main.isActivated()) {
 						f *= -1;
 					} else
-					if (o instanceof Shuttle || o instanceof Satellite) {
+					if (o instanceof Shuttle || o instanceof SuperShield || o instanceof SuperDisruptor) {
 						noeffect = true;
 					}
 
@@ -1701,22 +1760,9 @@ public class Comet extends ClassController {
 					this.isin_hyperspace = Ship.this.isin_hyperspace; // must always match
 
 					if (activation==1 && !isin_hyperspace) {
-						// radiation - visually shows disruptor in effect
-						double angle = rand0N(D360);
-						double dist = 30+rand0N(30);
-						new Particle(x+dist*cos(angle),y+dist*sin(angle), dx,dy, ttl(millis(350))) {
-
-							@Override
-							void draw() {
-								GraphicsContext g = gc_bgr;
-								g.setGlobalAlpha(ttl);
-								g.setFill(game.humans.color);
-								g.fillOval(x-0.5,y-0.5,1,1);
-								g.setGlobalAlpha(1);
-							}
-
-						};
-
+						// radiate particles
+						createRandomDisruptorParticle(30,60,this);
+						// warp grid
 						double strength = 17 - 2*cache_speed;
 						game.grid.applyExplosiveForce(10*strength, new Vec(x,y), 60);
 					}
@@ -2005,12 +2051,12 @@ public class Comet extends ClassController {
 	class Rocket extends Ship {
 
 		final Player player;
-		final InEffect rapidfire = new InEffect();
-		final InEffectValue<Double> powerfire = new InEffectValue<>(0, times -> pow(1.5,times), times -> computeBulletRange());
-		final InEffectValue<Double> energyfire = new InEffectValue<>(0, times -> pow(2,times), times -> computeBulletRange());
+		final InEffect rapidFire = new InEffect();
+		final InEffectValue<Double> powerFire = new InEffectValue<>(0, times -> 1+0.5*times, times -> computeBulletRange());
+		final InEffect energyFire = new InEffect();
+		final InEffect splitFire = new InEffect();
 		double bulletRange = computeBulletRange();
-		final InEffect splitfire = new InEffect();
-		final double randomVoronoiTranslation = randOf(-1,1)*randMN(0.01,0.012);
+		final double cacheRandomVoronoiTranslation = randOf(-1,1)*randMN(0.01,0.012);
 
 		Rocket(Player PLAYER) {
 			super(
@@ -2029,13 +2075,13 @@ public class Comet extends ClassController {
 				MANUAL,
 				PLAYER_GUN_RELOAD_TIME,
 				() -> dir,
-				dir -> splitfire.is()
+				dir -> splitFire.is()
 					? new SplitBullet(
 							this,
 							x + PLAYER_BULLET_OFFSET*cos(dir),
 							y + PLAYER_BULLET_OFFSET*sin(dir),
-							dx + energyfire.value()*powerfire.value()*cos(dir)*PLAYER_BULLET_SPEED,
-							dy + energyfire.value()*powerfire.value()*sin(dir)*PLAYER_BULLET_SPEED,
+							dx + powerFire.value()*cos(dir)*PLAYER_BULLET_SPEED,
+							dy + powerFire.value()*sin(dir)*PLAYER_BULLET_SPEED,
 							0,
 							PLAYER_BULLET_TTL
 						)
@@ -2043,8 +2089,8 @@ public class Comet extends ClassController {
 							this,
 							x + PLAYER_BULLET_OFFSET*cos(dir),
 							y + PLAYER_BULLET_OFFSET*sin(dir),
-							dx + energyfire.value()*powerfire.value()*cos(dir)*PLAYER_BULLET_SPEED,
-							dy + energyfire.value()*powerfire.value()*sin(dir)*PLAYER_BULLET_SPEED,
+							dx + powerFire.value()*cos(dir)*PLAYER_BULLET_SPEED,
+							dy + powerFire.value()*sin(dir)*PLAYER_BULLET_SPEED,
 							0,
 							PLAYER_BULLET_TTL
 						)
@@ -2123,7 +2169,7 @@ public class Comet extends ClassController {
 		}
 
 		double computeBulletRange() {
-			return bulletRange = energyfire.value()*powerfire.value()*PLAYER_BULLET_RANGE;
+			return bulletRange = powerFire.value()*PLAYER_BULLET_RANGE;
 		}
 
 		@Override
@@ -2435,6 +2481,67 @@ public class Comet extends ClassController {
 		}
 		@Override void die(Object cause) {
 			super.die(cause);
+			new FermiGraphics(x, y, UFO_EXPLOSION_RADIUS).color = game.humans.color;
+		}
+	}
+	class SuperDisruptor extends Ship {
+		double ttl = ttl(seconds(50));
+		final double graphicsDirBy = randOf(-1,1)*D360/ ttl(seconds(40));
+		final SO owner;
+		final ForceField forceField;
+
+		public SuperDisruptor(SO OWNER) {
+			super(
+				SuperDisruptor.class, OWNER.x+50,OWNER.y-50,0,0,10,
+				graphics(MaterialIcon.DISC_FULL,20,game.humans.colorTech,null), 0,0
+			);
+			graphicsDir = randOf(-1,1)*deg(D360/ ttl(seconds(20)));
+			graphicsScale = 0;
+			owner = OWNER;
+			forceField = new ForceField() {
+				final double radius = SHUTTLE_KINETIC_SHIELD_RADIUS;
+				@Override void apply(PO o) {
+					if (isDistanceLess(o, radius)) {
+						o.dx *= 0.95;
+						o.dy *= 0.95;
+					}
+				}
+				@Override double force(double mass, double dist) {
+					return 0;
+				}
+
+				@Override
+				public void doLoop() {
+					super.doLoop();
+					x = SuperDisruptor.this.x;
+					y = SuperDisruptor.this.y;
+					this.isin_hyperspace = SuperDisruptor.this.isin_hyperspace; // must always match
+					// radiate particles
+					createRandomDisruptorParticle(30,radius,this); // radiation effect
+					// warp grid
+					double strength = 17 - 2*cache_speed;
+					game.grid.applyExplosiveForce(10*strength, new Vec(x,y), 60);
+				}
+			};
+			createHyperSpaceAnimIn(game, this);
+			game.entities.addForceField(forceField);
+			game.runNext.add(ttl, () -> { if (!dead) createHyperSpaceAnimOut(game, this); });
+			game.runNext.add(ttl + ttl(millis(200)), () -> {
+				game.entities.removeForceField(forceField);
+				dead=true;
+			});
+		}
+		@Override boolean isHitDistance(SO o) {
+			return isDistanceLess(o,radius+o.radius);
+		}
+		@Override void draw() {
+			// dir += graphicsDir;   // produces interesting effect
+			graphicsDir += graphicsDirBy;
+			super.draw();
+		}
+		@Override void die(Object cause) {
+			super.die(cause);
+			game.entities.removeForceField(forceField);
 			new FermiGraphics(x, y, UFO_EXPLOSION_RADIUS).color = game.humans.color;
 		}
 	}
@@ -2978,7 +3085,7 @@ public class Comet extends ClassController {
 			else size *= size_hitdecr;
 			onHitParticles(o);
 		}
-		final void split(SO o) {
+		void split(SO o) {
 			boolean spontaneous = o instanceof BlackHole;
 			dead = true;
 			game.onPlanetoidDestroyed();
@@ -3267,6 +3374,84 @@ public class Comet extends ClassController {
 					new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.mission.color;
 				})
 			);
+		}
+		@Override void explosion() {
+			new FermiGraphics(x,y,4+radius*1.3);
+		}
+	}
+	private class Linker extends Asteroid<OrganelleMover> {
+		double graphicsRadius;
+		double ineptTtl = ttl(seconds(1));
+		public Linker(double X, double Y, double SPEED, double DIR, double LIFE) {
+			super(X, Y, SPEED, DIR, LIFE);
+			size = LIFE;
+			radius = 10;
+			size_hitdecr = 1;
+			size_child = 0.5; // 1 * 1 -> (2-3) * 0.5 -> 2 * 0.25 -> 4 * 0.125
+			splits = size>0.5 ? randOf(3,2) : size>0.125 ? 4 : 0;
+			graphicsRadius = size>0.5 ? 8 : size>0.125 ? 4 : 2;
+			hits_max = 0;
+			createHyperSpaceAnimOut(game,this);
+		}
+
+		@Override
+		public void doLoop() {
+			super.doLoop();
+			ineptTtl--;
+		}
+
+		@Override void draw() {
+			double r = graphicsRadius;
+			gc.setFill(game.mission.color);
+			drawOval(gc, x,y,r);
+
+			double connectionDistMin = 20, connectionDistMax = 100;
+			double forceDistMin = 20, forceDistMax = 80, forceDistMid = (forceDistMax-forceDistMin)*2/3;
+			stream(game.oss.get(Asteroid.class)).select(Linker.class).forEach(l -> {
+				double dist = distance(l);
+				double dir = dir(l);
+				// link
+				if (dist>connectionDistMin && dist<connectionDistMax) {
+					gc.setGlobalAlpha(1-dist/connectionDistMax);
+					drawDottedLine(x,y,0,dist,cos(dir),sin(dir), game.mission.color);
+					gc.setGlobalAlpha(1);
+				}
+				// glue
+				if (dist<forceDistMax && ineptTtl<=0 && l.ineptTtl<=0) {
+
+					// Algorithm (1): adjusts relative speed of the nodes
+					// This causes nodes to form and move as part of net groups, as their speeds cancel each other out
+					// The unfortunate effect here is that eventually all groups stand still
+//					dx += (l.dx-dx)/1000;
+//					dy += (l.dy-dy)/1000;
+
+					// Algorithm (2): modification of (1), adjusts relative speed of the slower node
+					// This does not cause the net groups to slow down so much. Because now only one node is adjusted,
+					// we must make the effect twice as strong
+					// The unfortunate effect here is that eventually all groups move the same speed & direction
+//					if (speed() < l.speed()) {
+//						dx += (l.dx - dx)/500;
+//						dy += (l.dy - dy)/500;
+//					}
+
+					// Algorithm (3): uses repel-near-attract-distant forces at close distance
+					// This causes dynamic net groups with nodes often orbiting around the centre
+					// The downside is somewhat chaotic behavior as opposed to 1) & 2).
+					double force = dist<forceDistMid
+										? -mapTo01(dist, forceDistMin, forceDistMid)
+										:  mapTo01(dist, forceDistMid, forceDistMax);
+						   force /= 200;
+					dx += force*cos(dir);
+					dy += force*sin(dir);
+				}
+			});
+		}
+		@Override void onHitParticles(SO o) {
+			repeat((int)(size*4), i -> game.runNext.add(millis(randMN(100,300)), () -> {
+				  double r = 50+radius*2*Utils.rand01();
+				  double d = randAngleRad();
+				  new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.mission.color;
+			}));
 		}
 		@Override void explosion() {
 			new FermiGraphics(x,y,4+radius*1.3);
@@ -3689,7 +3874,7 @@ public class Comet extends ClassController {
 		abstract double force(double mass, double dist);
 	}
 	class BlackHole extends ForceField {
-		Player owner = null;
+		final Player owner;
 		double life;
 		double ttl = 1;
 		double ttld = 0;
@@ -3699,6 +3884,7 @@ public class Comet extends ClassController {
 		double radius_gravity = 1000;
 		double dir = 0;
 		double mass = 0;
+		double massCritical = 3000;
 		double magnetic_force_dir = rand0N(D360);
 
 		public BlackHole(Player OWNER, Duration TTL, double X, double Y) {
@@ -3810,7 +3996,7 @@ public class Comet extends ClassController {
 			// lifecycle
 			ttl -= ttld;
 			// life = ttl;              // time limit death
-			life = (4000-mass)/4000;    // death when mass==5000
+			life = (massCritical-mass)/massCritical;
 			if (life <= 0) {
 				die();
 				return;
@@ -3835,6 +4021,7 @@ public class Comet extends ClassController {
 //			double s = randMN(2,6);
 //			new BlackHoleDebris(x+50*cos(d),y+50*sin(d), s*cos(d+0.1),s*sin(d+0.1), ttl(millis(500)));
 //			new BlackHoleDebris(x+100*cos(d),y+100*sin(d), 3*cos(d-D90+0.1),3*sin(d-D90+0.1), ttl(millis(500)));
+			createRandomDisruptorParticle(30,radius_ergosphere/2,this, true); // radiation effect
 
 			// forms acretion disc
 			if (randBoolean())

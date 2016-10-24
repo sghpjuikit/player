@@ -75,7 +75,7 @@ public abstract class Component {
      *
      * @return true if parent not null
      */
-    public boolean hasParent() {
+    public final boolean hasParent() {
         return getParent() != null;
     }
 
@@ -109,12 +109,12 @@ public abstract class Component {
      * </ul>
      */
     public Container<?> getRootParent() {
-        if (hasParent())
-            return getParent().getRootParent();
-        else {
-            if (this instanceof Container) return (Container) this;
-            else return null;
-        }
+    	Container parent = getParent();
+        return parent!=null
+            ? parent.getRootParent()
+            : this instanceof Container
+	              ? (Container) this
+	              : null;
     }
 
     // TODO: use Optional<>
@@ -213,7 +213,7 @@ public abstract class Component {
         }
 
         // call when cosing component
-        public void close() {
+        public void dispose() {
             unbind();
         }
     }

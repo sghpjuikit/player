@@ -1,19 +1,19 @@
 
 package layout.container.uncontainer;
 
-import java.util.Collections;
 import java.util.Map;
 
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 
+import layout.Component;
 import layout.area.ContainerNode;
 import layout.area.Layouter;
 import layout.area.WidgetArea;
-import layout.Component;
 import layout.container.Container;
 import layout.widget.Widget;
 
+import static java.util.Collections.singletonMap;
 import static util.graphics.Util.setAnchors;
 
 
@@ -66,7 +66,7 @@ public class UniContainer extends Container<ContainerNode> {
 
     @Override
     public Map<Integer, Component> getChildren() {
-        return Collections.singletonMap(1, child);
+        return singletonMap(1, child);
     }
 
     /**

@@ -334,7 +334,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         if (parent!=null) {
             // remove from layout graph
             parent.removeChild(this);
-            lockedUnder.close();
+            lockedUnder.dispose();
             // remove from scene graph if attached to it
             removeGraphicsFromSceneGraph();
         } else {

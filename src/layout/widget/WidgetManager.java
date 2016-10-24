@@ -5,9 +5,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -23,7 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gui.objects.window.stage.UiContext;
+import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
+import layout.Component;
 import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
@@ -595,20 +595,22 @@ public final class WidgetManager {
 
 
 
-    private final List<String> layouts = new ArrayList<>();
-
+    private final List<String> layoutsAvailable = new ArrayList<>();
 
     public Layout getActive() {
         // If no window is focused no layout should be active as application
 	    // is either not focused or in an illegal state itself.
-        return windowManager.getFocused().map(w -> w.getLayout()).orElse(null);
+        return windowManager.getFocused().map(Window::getLayout).orElse(null);
     }
 
     /**
      * @return all Layouts in the application.
      */
     public Stream<Layout> getLayouts() {
-        return windowManager.windows.stream().map(w -> w.getLayout()).filter(ISNTØ);
+        return Stream.concat(
+        	windowManager.windows.stream().map(Window::getLayout).filter(ISNTØ),
+	        standaloneWidgets.stream().map(Component::getRootParent).filter(ISNTØ).map(c -> (Layout)c)
+        );
     }
 
     /**
@@ -619,7 +621,7 @@ public final class WidgetManager {
     public Stream<String> getAllLayoutsNames() {
         findLayouts();
         // get all windows and fetch their layouts
-        return Stream.concat(getLayouts().map(Layout::getName), layouts.stream()).distinct();
+        return Stream.concat(getLayouts().map(Layout::getName), layoutsAvailable.stream()).distinct();
     }
 
     /**
@@ -636,12 +638,11 @@ public final class WidgetManager {
         // find layout files
         File[] files = listFiles(dir).filter(f -> f.getName().endsWith(".l")).toArray(File[]::new);
         // load layouts
-        layouts.clear();
+	    layoutsAvailable.clear();
         if (files.length == 0) return;
         for (File f : files) {
-            layouts.add(Util.getName(f));
+	        layoutsAvailable.add(Util.getName(f));
         }
     }
-
 
 }

@@ -63,7 +63,7 @@ public final class Layouts extends ClassController {
                 infoT.setText("");
         });
         layoutsCB.setCellFactory( list -> new ListCell<>() {
-            @Override public void updateItem(String l, boolean empty) {
+            @Override protected void updateItem(String l, boolean empty) {
                 super.updateItem(l, empty);
                 if (empty)
                     setText("");

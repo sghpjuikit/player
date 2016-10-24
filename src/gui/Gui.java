@@ -29,10 +29,8 @@ import com.sun.javafx.css.StyleManager;
 
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
-import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchPane;
-import layout.widget.Widget;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -64,7 +62,6 @@ import static util.dev.Util.noØ;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
 import static util.file.Util.listFiles;
-import static util.functional.Util.ISNTØ;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
 
@@ -242,12 +239,10 @@ public class Gui {
         // This is important to maintain consistency. See documentation.
         if (val) {
             APP.widgetManager.getLayouts().forEach(Layout::show);
-            APP.widgetManager.standaloneWidgets.stream().map(Widget::getParent).filter(ISNTØ).forEach(Container::show);
             layout_mode.set(val);
         } else {
             layout_mode.set(val);
             APP.widgetManager.getLayouts().forEach(Layout::hide);
-            APP.widgetManager.standaloneWidgets.stream().map(Widget::getParent).filter(ISNTØ).forEach(Container::hide);
             setZoomMode(false);
         }
         if (val) APP.actionStream.push("Layout mode");

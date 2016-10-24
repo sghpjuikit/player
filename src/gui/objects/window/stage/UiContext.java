@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import gui.objects.popover.PopOver;
 import layout.Component;
-import layout.container.uncontainer.UniContainer;
+import layout.container.layout.Layout;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
 import main.App;
@@ -99,12 +99,11 @@ public final class UiContext {
         noØ(w);
 
         // build layout
-	    // We are building standalone widget here, one that is not part of the layout, but every widget must have a
-	    // parent (be inside container) or problems arise in widget manipulation (e.g. in widget reloading)
+	    // We are building standalone widget here, but every widget must be part of the layout
 	    AnchorPane root = new AnchorPane();
-	    UniContainer c = new UniContainer(root);
-	    c.isStandalone = true;
-	    c.load();
+	    Layout l = new Layout();
+	    l.isStandalone = true;
+	    l.load(root);
 
         // build popup
         PopOver p = new PopOver<>(root);
@@ -112,10 +111,10 @@ public final class UiContext {
                 p.setAutoFix(false);
                 p.show(windowManager.getActive().get().getStage(),getX(),getY());
                 // unregister the widget from active widgets manually on close
-                p.addEventFilter(WINDOW_HIDING, we -> APP.widgetManager.standaloneWidgets.remove(w));
+                p.addEventFilter(WINDOW_HIDING, we -> l.close());
 
         // load widget when graphics ready & shown
-	    c.setChild(w);
+	    l.setChild(w);
 
 	    // TODO: hack
 		// make popup honor widget size

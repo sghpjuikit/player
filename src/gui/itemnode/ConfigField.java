@@ -102,7 +102,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
 	public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
 
-	private static Map<Class<?>,Ƒ1<Config,ConfigField>> builders = new HashMap<>(){{
+	@SuppressWarnings("unchecked")
+	private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>(){{
 		put(boolean.class, BooleanField::new);
 		put(Boolean.class, BooleanField::new);
 		put(String.class, GeneralField::new);
@@ -112,7 +113,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		put(Font.class, FontField::new);
 		put(Effect.class, config -> new EffectField(config, Effect.class));
 		put(Password.class, PasswordField::new);
-		put(Charset.class, charset -> new EnumerableField<Charset>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
+		put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
 		put(KeyCode.class, KeyCodeField::new);
 		put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
 		EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type != null).forEach(et -> put(et.type, config -> new EffectField(config, et.type)));
@@ -130,7 +131,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
 		else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
 		else if (isMinMax(c)) cf = new SliderField(c);
-		else cf = builders.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
+		else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
 		cf.setEditable(c.isEditable());
 
@@ -159,7 +160,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
     private Icon defB;
-	public Try<T,String> value = ok(null); // TODO: implement for all subclasses properly and init to null
+	public Try<T,String> value = ok(null);
 	public Consumer<? super Try<T,String>> observer;
 
     private ConfigField(Config<T> c) {
@@ -943,8 +944,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	        if (size<=0) at=-1;
 	        if (size<=0) return;
 
-	        if (at==-1 || at==0) at = size-1;
-	        else at -= 1;
+	        at = at==-1 || at==0 ? size-1 : at-1;
         	configPane.configure(lc.a.list.get(at));
         }
 
@@ -953,8 +953,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	        if (size<=0) at=-1;
 	        if (size<=0) return;
 
-	        if (at==-1 || at==size-1) at = 0;
-	        else at += 1;
+	        at = at==-1 || at==size-1 ? 0 : at+1;
 	        configPane.configure(lc.a.list.get(at));
         }
 

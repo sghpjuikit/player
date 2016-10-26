@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.Stream;
 
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.HPos;
 import javafx.scene.Node;
@@ -26,10 +27,7 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
-import org.gamepad4j.Controllers;
-import org.gamepad4j.DpadDirection;
-import org.gamepad4j.IButton;
-import org.gamepad4j.IController;
+import org.gamepad4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +59,7 @@ import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
+import util.functional.Util;
 import util.reactive.SetƑ;
 
 import static comet.Comet.Constants.FPS;
@@ -1793,7 +1792,7 @@ interface Utils {
 	}
 
 	abstract class GamepadDevices {
-		private boolean isInitialized = false;
+		protected boolean isInitialized = false;
 
 		public void init() {
 			try {
@@ -1807,25 +1806,7 @@ interface Utils {
 
 		public void doLoop() {
 			if (!isInitialized) return;
-//			doLoopImpl();
-		}
 
-		abstract protected void doLoopImpl();
-
-		public void dispose() {
-			if (!isInitialized) return;
-			Controllers.shutdown();
-		}
-	}
-	class Gamepads extends GamepadDevices {
-		public Collection<Player> players;
-
-		public Gamepads(Collection<Player> players) {
-			this.players = players;
-		}
-
-		@Override
-		public void doLoopImpl() {
 			Controllers.checkControllers();
 			IController[] gamepads = Controllers.getControllers();
 
@@ -1853,35 +1834,20 @@ interface Utils {
 //				System.out.println("trigger.getNumber() = " + a.getNumber());
 //				System.out.println("trigger.getValue() = " + a.getValue());
 //			});
+//			stream(gamepads[0].getSticks()).filter(ISNTØ).forEach(a -> {
+//				System.out.println("trigger.getID() = " + a.getID());
+//				System.out.println("trigger.getNumber() = " + a.getPosition());
+//			});
 //			System.out.println();
 
-			players.stream().filter(p -> p.alive).forEach(p -> {
-				IController g = gamepads[0];
+			doLoopImpl(gamepads);
+		}
 
-				// buttons
-				IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
-				IButton engine2B = g.getButton(10);
-				IButton engine3B = g.getButton(11);
-				IButton fireB = g.getButton(0); // g.getButton(ButtonID.FACE_LEFT);
-				IButton ability1B = g.getButton(4);
-				IButton ability2B = g.getButton(5);
-				IButton leftB = g.getButton(6);
-				IButton rightB = g.getButton(7);
-				boolean isEngine = (engine1B!=null && engine1B.isPressed()) || (engine2B!=null && engine2B.isPressed()) || (engine3B!=null && engine3B.isPressed());
-				boolean isAbility = (ability1B!=null && ability1B.isPressed()) || (ability2B!=null && ability2B.isPressed());
-				boolean isLeft = (leftB!=null && leftB.isPressed()) || g.getDpadDirection() == DpadDirection.LEFT;
-				boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
+		abstract protected void doLoopImpl(IController[] gamepads);
 
-				if (isEngine) p.rocket.engine.on(); else p.rocket.engine.off();
-				if (p.rocket.rapidFire.is()) {
-					if (fireB!=null && fireB.isPressed()) p.rocket.gun.fire();
-				} else {
-					if (fireB!=null && fireB.isPressedOnce()) p.rocket.gun.fire();
-				}
-				if (isLeft) p.inputRotateLeft();
-				if (isRight) p.inputRotateRight();
-				if (isAbility) p.rocket.ability_main.activate(); else p.rocket.ability_main.passivate();
-			});
+		public void dispose() {
+			if (!isInitialized) return;
+			Controllers.shutdown();
 		}
 	}
 }

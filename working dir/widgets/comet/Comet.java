@@ -2,7 +2,9 @@ package comet;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
@@ -24,6 +26,7 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.util.Duration;
 
+import org.gamepad4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -431,7 +434,102 @@ public class Comet extends ClassController {
 		final Collection<PO> os = new ArrayDeque<>();
 		final EnumSet<KeyCode> pressedKeys = EnumSet.noneOf(KeyCode.class);
 		final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
-		final Gamepads gamepads = new Gamepads(players);
+		final GamepadDevices gamepads = new GamepadDevices() {
+			private IControllerListener listener;
+			@Override
+			public void init() {
+				super.init();
+				if (isInitialized) {
+					listener = new IControllerListener() {
+						@Override
+						public void connected(IController c) {
+							System.out.println("connected device " + c.getDeviceID());
+							System.out.println(Platform.isFxApplicationThread());
+							stream(players).sorted(by(p -> p.id)).findFirst(p -> p.gamepadId==null).ifPresent(p -> p.gamepadId = c.getDeviceID());
+						}
+
+						@Override
+						public void disConnected(IController c) {
+							System.out.println("disconnected device " + c.getDeviceID());
+							System.out.println(Platform.isFxApplicationThread());
+							stream(players).filter(p -> p.gamepadId!=null && p.gamepadId==c.getDeviceID()).forEach(p -> p.gamepadId = null);
+						}
+
+						@Override
+						public void buttonDown(IController iController, IButton iButton, ButtonID buttonID) {
+
+						}
+
+						@Override
+						public void buttonUp(IController iController, IButton iButton, ButtonID buttonID) {
+
+						}
+
+						@Override
+						public void moveStick(IController iController, StickID stickID) {
+							System.out.println("stick moved");
+						}
+					};
+					Controllers.instance().addListener(listener);
+				}
+			}
+
+			@Override
+			public void dispose() {
+				if (isInitialized)
+					Controllers.instance().removeListener(listener);
+				super.dispose();
+			}
+
+			@Override
+			protected void doLoopImpl(IController[] gamepads) {
+				if (gamepads.length > 0)
+					Stream.of(gamepads).forEach(g -> {
+						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId!=null && p.gamepadId==g.getDeviceID()).findFirst().ifPresent(p -> {
+							IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
+							IButton engine2B = g.getButton(10);
+							IButton engine3B = g.getButton(11);
+							IButton fireB = g.getButton(0); // g.getButton(ButtonID.FACE_LEFT);
+							IButton ability1B = g.getButton(4);
+							IButton ability2B = g.getButton(5);
+							IButton leftB = g.getButton(6);
+							IButton rightB = g.getButton(7);
+							boolean isEngine = (engine1B!=null && engine1B.isPressed()) || (engine2B!=null && engine2B.isPressed()) || (engine3B!=null && engine3B.isPressed());
+							boolean isAbility = (ability1B!=null && ability1B.isPressed()) || (ability2B!=null && ability2B.isPressed());
+							boolean isLeft = (leftB!=null && leftB.isPressed()) || g.getDpadDirection() == DpadDirection.LEFT;
+							boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
+
+							if (isLeft) {
+								boolean isFirstTime = pressedKeys.add(p.keyLeft.get());
+								if (isFirstTime) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
+							}
+							if (isRight) {
+								boolean isFirstTime = pressedKeys.add(p.keyRight.get());
+								if (isFirstTime) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
+							}
+
+							if (!isLeft) {
+								boolean isFirstTime = pressedKeys.remove(p.keyLeft.get());
+//								if (isFirstTime) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
+							}
+							if (!isRight) {
+								boolean isFirstTime = pressedKeys.remove(p.keyRight.get());
+//								if (isFirstTime) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
+							}
+
+							if (isEngine) p.rocket.engine.on(); else p.rocket.engine.off();
+							if (p.rocket.rapidFire.is()) {
+								if (fireB!=null && fireB.isPressed()) p.rocket.gun.fire();
+							} else {
+								if (fireB!=null && fireB.isPressedOnce()) p.rocket.gun.fire();
+							}
+//							if (isLeft) p.inputRotateLeft();
+//							if (isRight) p.inputRotateRight();
+							if (isAbility) p.rocket.ability_main.activate(); else p.rocket.ability_main.passivate();
+						});
+					});
+			}
+		};
 
 		final Loop loop = new Loop(this::doLoop);
 		long loopId = 0;   // game loop id, starts at 0, incremented by 1
@@ -738,8 +836,9 @@ public class Comet extends ClassController {
 			boolean isThird = loopId %3==0;
 
 			players.stream().filter(p -> p.alive).forEach(p -> {
-				if (pressedKeys.contains(p.keyLeft.get()))  p.rocket.dir -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
-				if (pressedKeys.contains(p.keyRight.get())) p.rocket.dir += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(), 0L));
+				if (pressedKeys.contains(p.keyLeft.get()))  p.rocket.direction -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
+				if (pressedKeys.contains(p.keyRight.get())) p.rocket.direction += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(), 0L));
+				if (pressedKeys.contains(p.keyLeft.get()) || pressedKeys.contains(p.keyRight.get())) p.rocket.ddirection = 0;
 				if (isThird && p.rocket.rapidFire.is() && pressedKeys.contains(p.keyFire.get()))  p.rocket.gun.fire();
 			});
 			gamepads.doLoop();
@@ -852,6 +951,10 @@ public class Comet extends ClassController {
 					} else {
 						if (r.kineticEto(a)<r.kinetic_shield.KSenergy) {
 							r.kinetic_shield.onShieldHit(a);
+
+//							r.dx += 0.8*a.dx;
+//							r.dy += 0.8*a.dy;
+							r.ddirection += randOf(-1,1)*randMN(0.3,0.5);
 						} else {
 							r.player.die();
 						}
@@ -922,7 +1025,7 @@ public class Comet extends ClassController {
 			if (isMissionScheduled) return;
 			isMissionScheduled = true;
 			if (mission!=null) mission.disposer.accept(this);
-			mission_counter = mission_counter==0 ? 1 : mission_counter+1;
+			mission_counter = mission_counter==0 ? 8 : mission_counter+1;
 			int id = mission_counter%missions.size();
 			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
 			mission = missions.get(mission_id);
@@ -1179,6 +1282,7 @@ public class Comet extends ClassController {
 		public final V<Double> energyKS = new V<>(0d);
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
+		public Integer gamepadId = null;
 
 		public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
 			id = ID;
@@ -1224,7 +1328,7 @@ public class Comet extends ClassController {
 			rocket.y = spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id);
 			rocket.dx = 0;
 			rocket.dy = 0;
-			rocket.dir = spawning.get().computeStartingAngle(game.players.size(),id);
+			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id);
 			rocket.energy = PLAYER_ENERGY_INITIAL;
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
 			new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
@@ -1240,10 +1344,12 @@ public class Comet extends ClassController {
 		}
 
 		void inputRotateRight() {
-			rocket.dir += computeRotSpeed(ROT_LIMIT);
+			rocket.direction += computeRotSpeed(ROT_LIMIT);
+			rocket.ddirection = 0;
 		}
 		void inputRotateLeft() {
-			rocket.dir -= computeRotSpeed(ROT_LIMIT);
+			rocket.direction -= computeRotSpeed(ROT_LIMIT);
+			rocket.ddirection = 0;
 		}
 		double computeRotSpeed(long pressedMsAgo) {
 			// Shooting at long distance becomes hard due to 'smallest rotation angle' being too big
@@ -1330,6 +1436,8 @@ public class Comet extends ClassController {
 		double graphicsDir = 0;
 		double graphicsScale = 1;
 		Set<LO> children = null;
+		double direction = -D90;
+		double ddirection = 0;
 
 		PO(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS) {
 			type = TYPE;
@@ -1354,8 +1462,8 @@ public class Comet extends ClassController {
 		@Override void move() {
 			dx *= RESISTANCE;
 			dy *= RESISTANCE;
-//            if (abs(dx)<1/FPS) dx = 0;
-//            if (abs(dy)<1/FPS) dy = 0;
+			ddirection *= RESISTANCE;
+			direction += ddirection;
 		}
 
 		@Override void draw() {
@@ -1418,7 +1526,6 @@ public class Comet extends ClassController {
 	}
 	/** Object with engine, gun and other space ship characteristics. */
 	abstract class Ship extends PO {
-		double dir = -D90; // up
 		double energy = 0;
 		double energy_buildup_rate;
 		double energy_max = 10000;
@@ -1442,8 +1549,8 @@ public class Comet extends ClassController {
 
 		@Override void doLoopBegin() {
 			cache_speed = speed();
-			cosdir = cos(dir);
-			sindir = sin(dir);
+			cosdir = cos(direction);
+			sindir = sin(direction);
 			dx_old = dx;
 			dy_old = dy;
 
@@ -1497,14 +1604,14 @@ public class Comet extends ClassController {
 
 			@Override
 			void onDoLoop() {
-				dx += cos(dir)*mobility.value()*thrust;
-				dy += sin(dir)*mobility.value()*thrust;
+				dx += cos(direction)*mobility.value()*thrust;
+				dy += sin(direction)*mobility.value()*thrust;
 
 				if (!isin_hyperspace) {
 					ttl--;
 					if (ttl<0) {
 						ttl = ROCKET_ENGINE_DEBRIS_TTL;
-						ROCKET_ENGINE_DEBRIS_EMITTER.emit(x,y,dir+PI, mobility.value());
+						ROCKET_ENGINE_DEBRIS_EMITTER.emit(x,y,direction+PI, mobility.value());
 					}
 				}
 			}
@@ -1535,9 +1642,9 @@ public class Comet extends ClassController {
 				private boolean debris_done = false; // prevents spawning debris multiple times
 
 				PulseEngineForceField() {
-					double direction = Ship.this.dir+PI;
-					x = Ship.this.x + shipDistance*cos(direction);
-					y = Ship.this.y + shipDistance*sin(direction);
+					double d = Ship.this.direction+PI;
+					x = Ship.this.x + shipDistance*cos(d);
+					y = Ship.this.y + shipDistance*sin(d);
 					isin_hyperspace = Ship.this.isin_hyperspace;
 				}
 
@@ -1887,7 +1994,7 @@ public class Comet extends ClassController {
 					if (largeTTL<0) {
 						largeTTL = 1;
 						largeLastPiece = largeLastPiece%pieces;
-						game.runNext.add(() -> new KineticShieldPiece(dir+largeLastPiece*piece_angle).max_opacity = 0.4);
+						game.runNext.add(() -> new KineticShieldPiece(direction+largeLastPiece*piece_angle).max_opacity = 0.4);
 						largeLastPiece++;
 					}
 				}
@@ -1906,7 +2013,7 @@ public class Comet extends ClassController {
 				gc.setStroke(COLOR_DB);
 				gc.setLineWidth(2);
 				for (int i=0; i<syncs_amount; i++) {
-					double angle = dir+i*syncs_angle;
+					double angle = direction+i*syncs_angle;
 					double acos = cos(angle);
 					double asin = sin(angle);
 					double alen = 0.3*r*syncs[Math.floorMod(i*syncs_len/syncs_amount+sync_index_real,syncs_len)];
@@ -1967,13 +2074,13 @@ public class Comet extends ClassController {
 				KineticShieldPiece(boolean delayed, double DIR) {
 					super(true, Duration.ZERO,Duration.ZERO,0,0);
 					delay_ttl = ttl(seconds(delayed ? 0.2 : 1));
-					dirOffset = DIR-dir;
+					dirOffset = DIR-direction;
 					children.add(this);
 				}
 
 				public void doLoop() {
 					super.doLoop();
-					double KSPdir = dir+dirOffset;
+					double KSPdir = direction+dirOffset;
 					double KSPx = cos(KSPdir)*KSradius;
 					double KSPy = sin(KSPdir)*KSradius;
 
@@ -2025,9 +2132,9 @@ public class Comet extends ClassController {
 				Rocket r = (Rocket)Ship.this;
 				drawHudLine(x,y, 40, r.bulletRange, cosdir, sindir, HUD_COLOR);
 				// drawHudCircle(x,y,r.bulletRange, HUD_COLOR); // nah drawing ranges is more cool
-				drawHudCircle(x,y,r.bulletRange,r.dir,D30, HUD_COLOR);
-				drawHudCircle(x,y,r.bulletRange,r.dir+D360/3,PI/8, HUD_COLOR);
-				drawHudCircle(x,y,r.bulletRange,r.dir-D360/3,PI/8, HUD_COLOR);
+				drawHudCircle(x,y,r.bulletRange,r.direction,D30, HUD_COLOR);
+				drawHudCircle(x,y,r.bulletRange,r.direction+D360/3,PI/8, HUD_COLOR);
+				drawHudCircle(x,y,r.bulletRange,r.direction-D360/3,PI/8, HUD_COLOR);
 			}
 		}
 		class Range extends Ability {
@@ -2074,7 +2181,7 @@ public class Comet extends ClassController {
 			gun = new Gun(
 				MANUAL,
 				PLAYER_GUN_RELOAD_TIME,
-				() -> dir,
+				() -> direction,
 				dir -> splitFire.is()
 					? new SplitBullet(
 							this,
@@ -2099,7 +2206,7 @@ public class Comet extends ClassController {
 
 		@Override
 		void draw() {
-			graphicsDir = D45 + dir; // add 45 degrees due to the graphics , TODO: fix this
+			graphicsDir = D45 + direction; // add 45 degrees due to the graphics TODO: fix this
 
 			super.draw();
 
@@ -2109,7 +2216,7 @@ public class Comet extends ClassController {
 
 			if (gun.blackhole.is()) {
 				gc.setFill(Color.BLACK);
-				drawHudCircle(modX(x+bulletRange*cos(dir)),modY(y+bulletRange*sin(dir)), 50, HUD_COLOR);
+				drawHudCircle(modX(x+bulletRange*cos(direction)),modY(y+bulletRange*sin(direction)), 50, HUD_COLOR);
 			}
 
 			// Draw rotation thrusters
@@ -2210,7 +2317,7 @@ public class Comet extends ClassController {
 				graphics(MaterialDesignIcon.BIOHAZARD,40,game.ufos.color,null),
 				UFO_ENERGY_INITIAL,UFO_E_BUILDUP
 			);
-			dir = x<game.field.width/2 ? 0 : PI; // left->right || left<-right
+			direction = x<game.field.width/2 ? 0 : PI; // left->right || left<-right
 			aggressive = AGGRESSIVE;
 			engine = new Engine() {
 				double engineDirChangeTTL = 1;
@@ -2222,20 +2329,20 @@ public class Comet extends ClassController {
 						engineDirChangeTTL = 1;
 						// generate new direction
 						double r = rand01();
-						if (dir==0)            dir = r<0.5 ? D45 : -D45;
-						else if (dir==D45)    dir = r<0.5 ? 0 : -D45;
-						else if (dir==-D45)   dir = r<0.5 ? 0 : D45;
-						else if (dir== PI)     dir = r<0.5 ? 3*D45 : 3*D45;
-						else if (dir== 3*D45) dir = r<0.5 ? PI : -3*D45;
-						else if (dir==-3*D45) dir = r<0.5 ? PI : 3*D45;
+						if (direction==0)            direction = r<0.5 ? D45 : -D45;
+						else if (direction==D45)     direction = r<0.5 ? 0 : -D45;
+						else if (direction==-D45)    direction = r<0.5 ? 0 : D45;
+						else if (direction== PI)     direction = r<0.5 ? 3*D45 : 3*D45;
+						else if (direction== 3*D45)  direction = r<0.5 ? PI : -3*D45;
+						else if (direction==-3*D45)  direction = r<0.5 ? PI : 3*D45;
 						// preserve speed
 						// this causes movements changes to be abrupt (game is more dificult)
 						double s = speed();
-						dx = s*cos(dir);
-						dy = s*sin(dir);
+						dx = s*cos(direction);
+						dy = s*sin(direction);
 					}
-					dx += cos(dir)*UFO_ENGINE_THRUST;
-					dy += sin(dir)*UFO_ENGINE_THRUST;
+					dx += cos(direction)*UFO_ENGINE_THRUST;
+					dy += sin(direction)*UFO_ENGINE_THRUST;
 
 
 					// shape formation using ufo-ufo force
@@ -2311,15 +2418,15 @@ public class Comet extends ClassController {
 
 		public UfoDisc(PO o, double DIR) {
 			super(UfoDisc.class, o.x,o.y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
-			dir = DIR;
+			direction = DIR;
 			engine = new Engine(){
 				{
 					enabled = true;
 				}
 				@Override
 				void onDoLoop() {
-					dx += cos(dir)*0.1;
-					dy += sin(dir)*0.1;
+					dx += cosdir*0.1;
+					dy += sindir*0.1;
 				}
 			};
 		}
@@ -2343,7 +2450,7 @@ public class Comet extends ClassController {
 				engine.off();   // no enemy -> no pursuit -> no movement
 			} else {
 				engine.on();   // an enemy -> a pursuit -> a movement
-				dir = dir(enemy); // pursuit
+				direction = dir(enemy); // pursuit
 			}
 
 			dx *= 0.96;
@@ -2721,8 +2828,9 @@ public class Comet extends ClassController {
 						// gc_bgr.strokeLine(r.x,r.y,r.x+200*cos(dirBulletOut),r.y+200*sin(dirBulletOut));
 
 
-//	                    r.dx += 0.8*dx;
-//	                    r.dy += 0.8*dy;
+	                    r.dx += 0.8*dx;
+	                    r.dy += 0.8*dy;
+	                    r.ddirection += randOf(-1,1)*rand0N(0.01);
 					}
 					if (game.deadly_bullets.get() || !(owner instanceof Rocket)) {
 						if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
@@ -3925,10 +4033,10 @@ public class Comet extends ClassController {
 				double ergo_potential = 1-ergo_potentiall_inv;
 				double dir = o.dir(this);
 				Rocket r = (Rocket)o;
-				double angle = r.dir-dir;
+				double angle = r.direction-dir;
 //                double angled = 0.1 * dist01*dist01 * sin(angle);
 				double angled = 0.06 * ergo_potential * sin(angle);
-				r.dir -= angled; // no idea why - and not +
+				r.direction -= angled; // no idea why - and not +
 			}
 
 			// Space resistance. Ether exists!

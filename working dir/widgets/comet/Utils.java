@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.HPos;
 import javafx.scene.Node;
@@ -27,7 +26,8 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
-import org.gamepad4j.*;
+import org.gamepad4j.Controllers;
+import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,6 @@ import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
-import util.functional.Util;
 import util.reactive.SetƑ;
 
 import static comet.Comet.Constants.FPS;
@@ -188,11 +187,7 @@ interface Utils {
 		installFont(energy, UI_FONT);
 		p.energy.maintain(e -> energy.setText("Energy: " + e.intValue()));
 
-		Label energyKS = new Label();
-		installFont(energyKS, UI_FONT);
-		p.energyKS.maintain(e -> energyKS.setText("Shield: " + e.intValue()));
-
-		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy,energyKS);
+		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy);
 		node.setMaxHeight(VBox.USE_PREF_SIZE); // fixes alignment in parent by not expanding this box
 		node.setPrefWidth(140); // fixes position changing on children resize
 		node.setUserData(p.id); // to recognize which belongs to which
@@ -289,6 +284,23 @@ interface Utils {
 	static void drawOval(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;
 		g.fillOval(x-r,y-r,d,d);
+	}
+	static void drawTriangle(GraphicsContext gc, double x, double y, double r, double dir, double angleOffset) {
+		gc.beginPath();
+		gc.moveTo(
+			x+r*cos(dir),
+			y+r*sin(dir)
+		);
+		gc.lineTo(
+			x+r*cos(dir+angleOffset),
+			y+r*sin(dir+angleOffset)
+		);
+		gc.lineTo(
+			x+r*cos(dir-angleOffset),
+			y+r*sin(dir-angleOffset)
+		);
+		gc.closePath();
+		gc.fill();
 	}
 	static void strokeLine(GraphicsContext g, double x, double y, double lenght, double angleRad) {
 		g.strokeLine(x,y,x+lenght*cos(angleRad),y+lenght*sin(angleRad));
@@ -918,7 +930,7 @@ interface Utils {
 			lr.clear();
 		}
 
-		 void clear() {
+		void clear() {
 			lt.clear();
 			lr.clear();
 			lpt.clear();
@@ -928,12 +940,12 @@ interface Utils {
 		double ttl;
 		final Runnable r;
 
-		 Ttl(double TTL, Runnable R) {
+		Ttl(double TTL, Runnable R) {
 			ttl = TTL;
 			r = R;
 		}
 
-		 public void run() {
+		public void run() {
 			r.run();
 		}
 	}
@@ -965,13 +977,13 @@ interface Utils {
 	class PTtl extends Ttl {
 		final Ƒ0<Double> ttlPeriod;
 
-		 PTtl(Ƒ0<Double> TTL, Runnable R) {
+		PTtl(Ƒ0<Double> TTL, Runnable R) {
 			super(0, R);
 			ttlPeriod = TTL;
 			ttl = TTL.apply();
 		}
 
-		 public void run() {
+		public void run() {
 			r.run();
 			ttl = ttlPeriod.apply();
 		}

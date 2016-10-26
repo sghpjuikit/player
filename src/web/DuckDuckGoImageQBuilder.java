@@ -16,13 +16,13 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 @StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "DuckDuckGo" )
 public class DuckDuckGoImageQBuilder implements SearchUriBuilder {
 
-    @ParsesFromString
-    public DuckDuckGoImageQBuilder() {}
+	@ParsesFromString
+	public DuckDuckGoImageQBuilder() {}
 
-    @Override
-    public URI apply(String term) {
-        String s =  "https://duckduckgo.com/?q=" + term.replace(" ", "%20") + "&iax=1&ia=images";
-        return URI.create(s);
-    }
+	@Override
+	public URI apply(String term) {
+		String s =  "https://duckduckgo.com/?q=" + term.replace(" ", "%20") + "&iax=1&ia=images";
+		return URI.create(s);
+	}
 
 }

@@ -1,7 +1,6 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- make standalone widgets have Layout parent so they are auto-detected for layout-mode
 - remove standalone widget code from UnContainer
 - subclass WidgetArea for standalone widget to adjust graphics for popup
 - clean up Action and its keys handling, including the ConfigField
@@ -11,11 +10,9 @@
 - converter default area !set
 - native support of configs in configs > flatMap
 - handle licences properly
-- implement custom skinnable cursor (load it with skin, btw it must respect skin extension/overriding)
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
   set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
-- Implement FontPicker properly
 - improve skinning support
   - disable bgr blur (or make optional)
   - implement apply/refresh skin properly
@@ -57,8 +54,6 @@
 - image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
 - saving multiple playlists is bugged
-- I think spectrum suffers from logarithmic band intensity distribution, maybe just needs its
-  higher frequencies cut off
 - display window snap preview & snap only on mouse release
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
 - figure out gui error reporting method

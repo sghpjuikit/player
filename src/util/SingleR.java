@@ -18,41 +18,41 @@ import java.util.function.Supplier;
  */
 public class SingleR<V,M> extends LazyR<V> {
 
-    private final BiConsumer<V,M> mutator;
+	private final BiConsumer<V,M> mutator;
 
-    /**
-     *
-     * @param builder produces the instance when it is requested.
-     */
-    public SingleR(Supplier<V> builder) {
-        this(builder, null);
-    }
+	/**
+	 *
+	 * @param builder produces the instance when it is requested.
+	 */
+	public SingleR(Supplier<V> builder) {
+		this(builder, null);
+	}
 
-    /**
-     *
-     * @param builder produces the instance when it is requested.
-     * @param mutator mutates instance's state for certain dependency object. use
-     * null if no mutation is desired.
-     */
-    public SingleR(Supplier<V> builder, BiConsumer<V,M> mutator) {
-        super(builder);
-        this.mutator = mutator;
-    }
+	/**
+	 *
+	 * @param builder produces the instance when it is requested.
+	 * @param mutator mutates instance's state for certain dependency object. use
+	 * null if no mutation is desired.
+	 */
+	public SingleR(Supplier<V> builder, BiConsumer<V,M> mutator) {
+		super(builder);
+		this.mutator = mutator;
+	}
 
-    /**
-     * Same as {@link #get()}, but mutates the value.
-     * @param mutation_source, use null when type Void
-     * @return the instance after applying mutation, ever null
-     */
-    public V getM(M mutation_source) {
-        V v = get();
-        if (mutator != null) mutator.accept(v, mutation_source);
-        return v;
-    }
+	/**
+	 * Same as {@link #get()}, but mutates the value.
+	 * @param mutation_source, use null when type Void
+	 * @return the instance after applying mutation, ever null
+	 */
+	public V getM(M mutation_source) {
+		V v = get();
+		if (mutator != null) mutator.accept(v, mutation_source);
+		return v;
+	}
 
-    @Override
-    public void set(V val) {
-        if (isSet) throw new IllegalArgumentException("Singleton instance already set.");
-        super.set(val);
-    }
+	@Override
+	public void set(V val) {
+		if (isSet) throw new IllegalArgumentException("Singleton instance already set.");
+		super.set(val);
+	}
 }

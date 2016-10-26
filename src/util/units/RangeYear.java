@@ -13,56 +13,61 @@ import static java.lang.Integer.min;
  * @author Martin Polakovic
  */
 public class RangeYear {
-    private int min = Integer.MAX_VALUE;
-    private int max = Integer.MIN_VALUE;
-    private boolean hasUnspecified = false;
+	private int min = Integer.MAX_VALUE;
+	private int max = Integer.MIN_VALUE;
+	private boolean hasUnspecified = false;
 
-    public void accumulate(int year) {
-        if (year==-1) {
-            hasUnspecified = true;
-        } else {
-            min = min(min,year);
-            max = max(max,year);
-        }
-    }
-    public boolean isAfter(Year y) {
-        return hasSpecific() && min>y.getValue();
-    }
-    public boolean isBefore(Year y) {
-        return hasSpecific() && max<y.getValue();
-    }
-    public boolean contains(Year y) {
-        return hasSpecific() && min<=y.getValue() && max>=y.getValue();
-    }
+	public void accumulate(int year) {
+		if (year==-1) {
+			hasUnspecified = true;
+		} else {
+			min = min(min,year);
+			max = max(max,year);
+		}
+	}
 
-    public boolean isEmpty() {
-        return !hasSpecific() && !hasUnSpecific();
-    }
-    public boolean hasUnSpecific() {
-        return hasUnspecified;
-    }
-    public boolean hasSpecific() {
-        return max!=Integer.MIN_VALUE;
-    }
+	public boolean isAfter(Year y) {
+		return hasSpecific() && min>y.getValue();
+	}
 
-    @Override
-    public String toString() {
-        // has no value
-        if (isEmpty()) return "<none>";
+	public boolean isBefore(Year y) {
+		return hasSpecific() && max<y.getValue();
+	}
 
-        // has 1 specific value
-        if (hasSpecific()) {
-            if (min==max)
-                return (hasUnspecified ? "? " : "") + max;
+	public boolean contains(Year y) {
+		return hasSpecific() && min<=y.getValue() && max>=y.getValue();
+	}
 
-        // has >1 specific value
-            else {
-                return min + (hasUnspecified ? " ? " : " - ") + max;
-            }
-        }
+	public boolean isEmpty() {
+		return !hasSpecific() && !hasUnSpecific();
+	}
 
-        // has no specific value
-        return "";
-    }
+	public boolean hasUnSpecific() {
+		return hasUnspecified;
+	}
+
+	public boolean hasSpecific() {
+		return max!=Integer.MIN_VALUE;
+	}
+
+	@Override
+	public String toString() {
+		// has no value
+		if (isEmpty()) return "<none>";
+
+		// has 1 specific value
+		if (hasSpecific()) {
+			if (min==max)
+				return (hasUnspecified ? "? " : "") + max;
+
+		// has >1 specific value
+			else {
+				return min + (hasUnspecified ? " ? " : " - ") + max;
+			}
+		}
+
+		// has no specific value
+		return "";
+	}
 
 }

@@ -16,13 +16,13 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 @StringParseStrategy( from = ANNOTATED_METHOD, to = CONSTANT, constant = "Google" )
 public class GoogleImageQBuilder implements SearchUriBuilder {
 
-    @ParsesFromString
-    public GoogleImageQBuilder() {}
+	@ParsesFromString
+	public GoogleImageQBuilder() {}
 
-    @Override
-    public URI apply(String term) {
-        String s = "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + term.replace(" ", "%20");
-        return URI.create(s);
-    }
+	@Override
+	public URI apply(String term) {
+		String s = "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + term.replace(" ", "%20");
+		return URI.create(s);
+	}
 
 }

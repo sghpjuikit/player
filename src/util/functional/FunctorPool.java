@@ -45,28 +45,28 @@ public class FunctorPool {
 	private final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 
 	{
-            /*
-             * (1) Negated predicates are disabled, user interface should provide negation ability
-             * or simply generate all the negations when needed (and reuse functors while at it).
-             *
-             * (2) Adding identity function here is impossible as its type is erased to Object -> Object
-             * and we need its proper type X -> X (otherwise it erases type in function chains). Single
-             * instance per class is required for Identity function.
-             * Unfortunately:
-             *     - we cant put it to functor pool, as we do not need which classes will need it
-             *     - we cant put it to functor pool on requests, as the returned functors for class X
-             *       return functors for X and all superclasses of X, which causes IDENTITY function
-             *       to be inserted multiple times, even worse, only one of them has proper signature!
-             *     - hence we cant even return Set to prevent duplicates, as the order of class
-             *       is undefined. In addition, functors are actually wrapped.
-             * Solution is to insert the proper IDENTITY functor into results, after they were
-             * collected. This guarantees single instance and correct signature. The downside is that
-             * the functor pool does not contain IDENTITY functor at all, meaning the pool must never
-             * be accessed directly. Additionally, question arises, whether IDENTITY functor should be
-             * inserted when no functors are returned.
-             *
-             * add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
-             */
+		/*
+		 * (1) Negated predicates are disabled, user interface should provide negation ability
+		 * or simply generate all the negations when needed (and reuse functors while at it).
+		 *
+		 * (2) Adding identity function here is impossible as its type is erased to Object -> Object
+		 * and we need its proper type X -> X (otherwise it erases type in function chains). Single
+		 * instance per class is required for Identity function.
+		 * Unfortunately:
+		 *     - we cant put it to functor pool, as we do not need which classes will need it
+		 *     - we cant put it to functor pool on requests, as the returned functors for class X
+		 *       return functors for X and all superclasses of X, which causes IDENTITY function
+		 *       to be inserted multiple times, even worse, only one of them has proper signature!
+		 *     - hence we cant even return Set to prevent duplicates, as the order of class
+		 *       is undefined. In addition, functors are actually wrapped.
+		 * Solution is to insert the proper IDENTITY functor into results, after they were
+		 * collected. This guarantees single instance and correct signature. The downside is that
+		 * the functor pool does not contain IDENTITY functor at all, meaning the pool must never
+		 * be accessed directly. Additionally, question arises, whether IDENTITY functor should be
+		 * inserted when no functors are returned.
+		 *
+		 * add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
+		 */
 
 		Class<Boolean> B = Boolean.class;
 		Class<String> S = String.class;

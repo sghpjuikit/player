@@ -17,25 +17,25 @@ import com.thoughtworks.xstream.mapper.Mapper;
  */
 public class ObjectPropertyConverter extends AbstractPropertyConverter<Object> implements Converter {
 
-    public ObjectPropertyConverter(Mapper mapper) {
-        super(ObjectProperty.class, mapper);
-    }
+	public ObjectPropertyConverter(Mapper mapper) {
+		super(ObjectProperty.class, mapper);
+	}
 
-    @Override
-    protected WritableValue<Object> createProperty() {
-        return new SimpleObjectProperty<>();
-    }
+	@Override
+	protected WritableValue<Object> createProperty() {
+		return new SimpleObjectProperty<>();
+	}
 
-    @Override
-    protected Class<?> readType(HierarchicalStreamReader reader) {
-        return mapper.realClass(reader.getAttribute("propertyClass"));
-    }
+	@Override
+	protected Class<?> readType(HierarchicalStreamReader reader) {
+		return mapper.realClass(reader.getAttribute("propertyClass"));
+	}
 
-    @Override
-    protected void writeValue(HierarchicalStreamWriter writer, MarshallingContext context, Object value) {
-        final Class<?> clazz = value.getClass();
-        final String propertyClass = mapper.serializedClass(clazz);
-        writer.addAttribute("propertyClass", propertyClass);
-        context.convertAnother(value);
-    }
+	@Override
+	protected void writeValue(HierarchicalStreamWriter writer, MarshallingContext context, Object value) {
+		final Class<?> clazz = value.getClass();
+		final String propertyClass = mapper.serializedClass(clazz);
+		writer.addAttribute("propertyClass", propertyClass);
+		context.convertAnother(value);
+	}
 }

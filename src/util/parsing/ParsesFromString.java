@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.parsing;
 
 import java.lang.annotation.Documented;
@@ -19,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * The annotated element must be:
  * <ul>
  * <li> constructor or static method
- * <li> return type same or subtype of class it was defined in - basically a factory method/consturctor.
+ * <li> return type same or subtype of class it was defined in - basically a factory method/constructor.
  * <ul> take either no parameter or single string parameter
  */
 @Documented

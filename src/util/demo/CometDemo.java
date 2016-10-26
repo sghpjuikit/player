@@ -29,7 +29,9 @@ public class CometDemo extends Application{
 		Node comet = app.widgetManager.getFactories().filter(f -> f.name().equals("Comet")).findFirst().get()
 			.create()
 			.load();
-		stage.setFullScreen(true);
+		stage.setWidth(1000);
+		stage.setHeight(800);
+//		stage.setFullScreen(true);
 		stage.setFullScreenExitHint("");
 		stage.setScene(new Scene(new StackPane(comet)));
 		stage.show();

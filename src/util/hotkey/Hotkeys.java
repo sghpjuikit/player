@@ -199,6 +199,8 @@ public class Hotkeys {
 				executor.accept(a);
 			}
 		}
+
+		@SuppressWarnings("unused")
 		synchronized public void release(NativeKeyEvent e) {
 			isPressed = false;
 		}

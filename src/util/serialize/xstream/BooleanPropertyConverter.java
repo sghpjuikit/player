@@ -15,17 +15,17 @@ import com.thoughtworks.xstream.mapper.Mapper;
  */
 public class BooleanPropertyConverter extends AbstractPropertyConverter<Boolean> implements Converter {
 
-    public BooleanPropertyConverter(Mapper mapper) {
-        super(BooleanProperty.class, mapper);
-    }
+	public BooleanPropertyConverter(Mapper mapper) {
+		super(BooleanProperty.class, mapper);
+	}
 
-    @Override
-    protected WritableValue<Boolean> createProperty() {
-        return new SimpleBooleanProperty();
-    }
+	@Override
+	protected WritableValue<Boolean> createProperty() {
+		return new SimpleBooleanProperty();
+	}
 
-    @Override
-    protected Class<? extends Boolean> readType(HierarchicalStreamReader reader) {
-        return Boolean.class;
-    }
+	@Override
+	protected Class<? extends Boolean> readType(HierarchicalStreamReader reader) {
+		return Boolean.class;
+	}
 }

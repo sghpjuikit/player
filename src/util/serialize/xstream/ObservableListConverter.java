@@ -9,19 +9,19 @@ import com.thoughtworks.xstream.mapper.Mapper;
 
 public class ObservableListConverter extends CollectionConverter implements Converter {
 
-    public ObservableListConverter(Mapper mapper) {
-        super(mapper);
-    }
+	public ObservableListConverter(Mapper mapper) {
+		super(mapper);
+	}
 
-    @Override
-    public boolean canConvert(Class type) {
-        return ObservableList.class.isAssignableFrom(type);
-    }
-    
-    @Override
-    protected Object createCollection(Class type) {
-        return ObservableList.class.isAssignableFrom(type)
-	        ? FXCollections.observableArrayList()
-	        : super.createCollection(type);
-    }
+	@Override
+	public boolean canConvert(Class type) {
+		return ObservableList.class.isAssignableFrom(type);
+	}
+
+	@Override
+	protected Object createCollection(Class type) {
+		return ObservableList.class.isAssignableFrom(type)
+			? FXCollections.observableArrayList()
+			: super.createCollection(type);
+	}
 }

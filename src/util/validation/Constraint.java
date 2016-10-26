@@ -27,6 +27,7 @@ import static util.functional.Try.ok;
 import static util.type.Util.instantiateOrThrow;
 import static util.validation.Constraint.DeclarationType.Declaration.IMPLICIT;
 
+@SuppressWarnings({"unchecked", "unused"})
 public interface Constraint<T> {
 
 	boolean isValid(T t);

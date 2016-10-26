@@ -8,12 +8,12 @@ package util;
  */
 public class SwitchException extends RuntimeException {
 
-    /**
-     * Constructs new switch exception.
-     *
-     * @param switchValue value of the switch case - the object passed into switch statement.
-     */
-    public SwitchException(Object switchValue) {
-        super("Illegal switch case (unimplemented or forbidden): " + switchValue);
-    }
+	/**
+	 * Constructs new switch exception.
+	 *
+	 * @param switchValue value of the switch case - the object passed into switch statement.
+	 */
+	public SwitchException(Object switchValue) {
+		super("Illegal switch case (unimplemented or forbidden): " + switchValue);
+	}
 }

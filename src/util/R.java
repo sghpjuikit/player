@@ -13,44 +13,44 @@ import java.util.function.UnaryOperator;
  */
 public class R<V> {
 
-    protected V v;
+	protected V v;
 
-    public R() {}
+	public R() {}
 
-    public R(V value) {
-        set(value);
-    }
+	public R(V value) {
+		set(value);
+	}
 
-    public V get() {
-        return v;
-    }
+	public V get() {
+		return v;
+	}
 
-    public V get(V or) {
-        return v;
-    }
+	public V get(V or) {
+		return v;
+	}
 
-    public V get(Supplier<V> or) {
-        return v;
-    }
+	public V get(Supplier<V> or) {
+		return v;
+	}
 
-    public boolean isØ() {
-        return v == null;
-    }
+	public boolean isØ() {
+		return v == null;
+	}
 
-    /** Sets value to null. */
-    public void setØ() {
-        set(null);
-    }
+	/** Sets value to null. */
+	public void setØ() {
+		set(null);
+	}
 
-    public void set(V val) {
-        v = val;
-    }
+	public void set(V val) {
+		v = val;
+	}
 
-    public void setOf(UnaryOperator<V> op) {
-        set(op.apply(get()));
-    }
+	public void setOf(UnaryOperator<V> op) {
+		set(op.apply(get()));
+	}
 
-    public void setOf(V v2, BinaryOperator<V> op) {
-        set(op.apply(get(), v2));
-    }
+	public void setOf(V v2, BinaryOperator<V> op) {
+		set(op.apply(get(), v2));
+	}
 }

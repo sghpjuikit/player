@@ -108,10 +108,8 @@ public class TypeToken<T> {
 	/**
 	 * Check if this type is assignable from the given class object.
 	 *
-	 * @deprecated this implementation may be inconsistent with javac for types
-	 *     with wildcards.
+	 * @implNote this implementation may be inconsistent with javac for types with wildcards.
 	 */
-	@Deprecated
 	public boolean isAssignableFrom(Class<?> cls) {
 		return isAssignableFrom((Type) cls);
 	}
@@ -119,10 +117,8 @@ public class TypeToken<T> {
 	/**
 	 * Check if this type is assignable from the given Type.
 	 *
-	 * @deprecated this implementation may be inconsistent with javac for types
-	 *     with wildcards.
+	 * @implNote this implementation may be inconsistent with javac for types with wildcards.
 	 */
-	@Deprecated
 	public boolean isAssignableFrom(Type from) {
 		if (from == null) {
 			return false;
@@ -135,24 +131,19 @@ public class TypeToken<T> {
 		if (type instanceof Class<?>) {
 			return rawType.isAssignableFrom($Gson$Types.getRawType(from));
 		} else if (type instanceof ParameterizedType) {
-			return isAssignableFrom(from, (ParameterizedType) type,
-				new HashMap<String, Type>());
+			return isAssignableFrom(from, (ParameterizedType) type, new HashMap<>());
 		} else if (type instanceof GenericArrayType) {
-			return rawType.isAssignableFrom($Gson$Types.getRawType(from))
-				       && isAssignableFrom(from, (GenericArrayType) type);
+			return rawType.isAssignableFrom($Gson$Types.getRawType(from)) && isAssignableFrom(from, (GenericArrayType) type);
 		} else {
-			throw buildUnexpectedTypeError(
-				type, Class.class, ParameterizedType.class, GenericArrayType.class);
+			throw buildUnexpectedTypeError(type, Class.class, ParameterizedType.class, GenericArrayType.class);
 		}
 	}
 
 	/**
 	 * Check if this type is assignable from the given type token.
 	 *
-	 * @deprecated this implementation may be inconsistent with javac for types
-	 *     with wildcards.
+	 * @implNote this implementation may be inconsistent with javac for types with wildcards.
 	 */
-	@Deprecated
 	public boolean isAssignableFrom(TypeToken<?> token) {
 		return isAssignableFrom(token.getType());
 	}
@@ -175,7 +166,7 @@ public class TypeToken<T> {
 				t = classType;
 			}
 			return isAssignableFrom(t, (ParameterizedType) toGenericComponentType,
-				new HashMap<String, Type>());
+				new HashMap<>());
 		}
 		// No generic defined on "to"; therefore, return true and let other
 		// checks determine assignability
@@ -199,14 +190,14 @@ public class TypeToken<T> {
 
 		// First figure out the class and any type information.
 		Class<?> clazz = $Gson$Types.getRawType(from);
-		ParameterizedType ptype = null;
+		ParameterizedType pType = null;
 		if (from instanceof ParameterizedType) {
-			ptype = (ParameterizedType) from;
+			pType = (ParameterizedType) from;
 		}
 
 		// Load up parameterized variable info if it was parameterized.
-		if (ptype != null) {
-			Type[] tArgs = ptype.getActualTypeArguments();
+		if (pType != null) {
+			Type[] tArgs = pType.getActualTypeArguments();
 			TypeVariable<?>[] tParams = clazz.getTypeParameters();
 			for (int i = 0; i < tArgs.length; i++) {
 				Type arg = tArgs[i];
@@ -219,20 +210,20 @@ public class TypeToken<T> {
 			}
 
 			// check if they are equivalent under our current mapping.
-			if (typeEquals(ptype, to, typeVarMap)) {
+			if (typeEquals(pType, to, typeVarMap)) {
 				return true;
 			}
 		}
 
-		for (Type itype : clazz.getGenericInterfaces()) {
-			if (isAssignableFrom(itype, to, new HashMap<String, Type>(typeVarMap))) {
+		for (Type iType : clazz.getGenericInterfaces()) {
+			if (isAssignableFrom(iType, to, new HashMap<>(typeVarMap))) {
 				return true;
 			}
 		}
 
 		// Interfaces didn't work, try the superclass.
 		Type sType = clazz.getGenericSuperclass();
-		return isAssignableFrom(sType, to, new HashMap<String, Type>(typeVarMap));
+		return isAssignableFrom(sType, to, new HashMap<>(typeVarMap));
 	}
 
 	/**
@@ -297,13 +288,13 @@ public class TypeToken<T> {
 	 * Gets type literal for the given {@code Type} instance.
 	 */
 	public static TypeToken<?> get(Type type) {
-		return new TypeToken<Object>(type);
+		return new TypeToken<>(type);
 	}
 
 	/**
 	 * Gets type literal for the given {@code Class} instance.
 	 */
 	public static <T> TypeToken<T> get(Class<T> type) {
-		return new TypeToken<T>(type);
+		return new TypeToken<>(type);
 	}
 }

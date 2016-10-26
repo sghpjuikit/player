@@ -59,8 +59,7 @@ public final class $Gson$Types {
 	 *
 	 * @return a {@link java.io.Serializable serializable} parameterized type.
 	 */
-	public static ParameterizedType newParameterizedTypeWithOwner(
-		                                                             Type ownerType, Type rawType, Type... typeArguments) {
+	public static ParameterizedType newParameterizedTypeWithOwner(Type ownerType, Type rawType, Type... typeArguments) {
 		return new ParameterizedTypeImpl(ownerType, rawType, typeArguments);
 	}
 
@@ -309,11 +308,9 @@ public final class $Gson$Types {
 	 * positions 0 and 1 respectively.
 	 */
 	public static Type[] getMapKeyAndValueTypes(Type context, Class<?> contextRawType) {
-    /*
-     * Work around a problem with the declaration of java.util.Properties. That
-     * class should extend Hashtable<String, String>, but it's declared to
-     * extend Hashtable<Object, Object>.
-     */
+		// Work around a problem with the declaration of java.util.Properties. That
+		// class should extend Hashtable<String, String>, but it's declared to
+		// extend Hashtable<Object, Object>.
 		if (context == Properties.class) {
 			return new Type[] { String.class, String.class }; // TODO: test subclasses of Properties!
 		}
@@ -517,8 +514,7 @@ public final class $Gson$Types {
 		}
 
 		@Override public boolean equals(Object o) {
-			return o instanceof GenericArrayType
-				       && $Gson$Types.equals(this, (GenericArrayType) o);
+			return o instanceof GenericArrayType && $Gson$Types.equals(this, (GenericArrayType) o);
 		}
 
 		@Override public int hashCode() {

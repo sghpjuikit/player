@@ -31,53 +31,53 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 public class IconExtractor {
 
 	private static final R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
-    private static final HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
+	private static final HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
 
-    private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
+	private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
 
-        // Windows
-        return helperFileSystemView.get().getSystemIcon(file);
+		// Windows
+		return helperFileSystemView.get().getSystemIcon(file);
 
-        // OS X
-        //final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-        //return icon = fc.getUI().getFileView(fc).getIcon(file);
-    }
+		// OS X
+		//final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+		//return icon = fc.getUI().getFileView(fc).getIcon(file);
+	}
 
-    public static Image getFileIcon(File file) {
-        String ext = Util.getSuffix(file.getPath()).toLowerCase();
+	public static Image getFileIcon(File file) {
+		String ext = Util.getSuffix(file.getPath()).toLowerCase();
 
-	    // Handle windows shortcut files (we need to resolve the target file)
-        if ("lnk".equals(ext))
-            return WindowsShortcut.targetedFile(file).map(IconExtractor::getFileIcon).orElse(null);
+		// Handle windows shortcut files (we need to resolve the target file)
+		if ("lnk".equals(ext))
+			return WindowsShortcut.targetedFile(file).map(IconExtractor::getFileIcon).orElse(null);
 
-	    // Handle windows executable files (we need to handle each individually)
-        String key = "exe".equals(ext) ? Util.getName(file) : ext;
+		// Handle windows executable files (we need to handle each individually)
+		String key = "exe".equals(ext) ? Util.getName(file) : ext;
 
-        return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
-            javax.swing.Icon swingIcon = null;
-            if (file.exists()) {
-                swingIcon = getJSwingIconFromFileSystem(file);
-            } else {
-                File tempFile = null;
-                try {
-                    tempFile = File.createTempFile("icon", ext);
-                    swingIcon = getJSwingIconFromFileSystem(tempFile);
-                } catch (IOException ignored) {
-                    // Cannot create temporary file.
-                } finally {
-                    if (tempFile != null) tempFile.delete();
-                }
-            }
-            return jswingIconToImage(swingIcon);
-        });
-    }
+		return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
+			javax.swing.Icon swingIcon = null;
+			if (file.exists()) {
+				swingIcon = getJSwingIconFromFileSystem(file);
+			} else {
+				File tempFile = null;
+				try {
+					tempFile = File.createTempFile("icon", ext);
+					swingIcon = getJSwingIconFromFileSystem(tempFile);
+				} catch (IOException ignored) {
+					// Cannot create temporary file.
+				} finally {
+					if (tempFile != null) tempFile.delete();
+				}
+			}
+			return jswingIconToImage(swingIcon);
+		});
+	}
 
-    private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
-	    if (jswingIcon==null) return null;
-        BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
-        jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
-        return SwingFXUtils.toFXImage(image, null);
-    }
+	private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
+		if (jswingIcon==null) return null;
+		BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
+		jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
+		return SwingFXUtils.toFXImage(image, null);
+	}
 
 /*  EXPERIMENTAL IMPLEMENTATION
 

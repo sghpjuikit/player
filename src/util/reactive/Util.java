@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.reactive;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,70 +29,67 @@ public interface Util {
 		return () -> o.removeListener(l);
 	}
 
-    /**  */
-    static <O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
-        u.accept(m.apply(o.getValue()));
-        return valuesOf(o).map(m).subscribe(u);
-    }
+	static <O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
+		u.accept(m.apply(o.getValue()));
+		return valuesOf(o).map(m).subscribe(u);
+	}
 
-    /***/
-    static <O> Subscription maintain(ObservableValue<O> o, Consumer<? super O> u) {
-        ChangeListener<O> l = (b,ov,nv) -> u.accept(nv);
-        u.accept(o.getValue());
-        o.addListener(l);
-        return () -> o.removeListener(l);
-    }
+	static <O> Subscription maintain(ObservableValue<O> o, Consumer<? super O> u) {
+		ChangeListener<O> l = (b,ov,nv) -> u.accept(nv);
+		u.accept(o.getValue());
+		o.addListener(l);
+		return () -> o.removeListener(l);
+	}
 
-    static <O,V> Subscription maintain(ObservableValue<O> o, Function<? super O, ? extends V> m, WritableValue<? super V> w) {
-        w.setValue(m.apply(o.getValue()));
-        ChangeListener<O> l = (x,ov,nv) -> w.setValue(m.apply(nv));
-        o.addListener(l);
-        return () -> o.removeListener(l);
-    }
+	static <O,V> Subscription maintain(ObservableValue<O> o, Function<? super O, ? extends V> m, WritableValue<? super V> w) {
+		w.setValue(m.apply(o.getValue()));
+		ChangeListener<O> l = (x,ov,nv) -> w.setValue(m.apply(nv));
+		o.addListener(l);
+		return () -> o.removeListener(l);
+	}
 
-    static <O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {
-        w.setValue(o.getValue());
-        ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);
-        o.addListener(l);
-        return () -> o.removeListener(l);
-    }
+	static <O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {
+		w.setValue(o.getValue());
+		ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);
+		o.addListener(l);
+		return () -> o.removeListener(l);
+	}
 
-    static <T> Subscription sizeOf(ObservableList<T> list, Consumer<? super Integer> action) {
-        ListChangeListener<T> l = change -> action.accept(list.size());
-        l.onChanged(null);
-        list.addListener(l);
-        return () -> list.removeListener(l);
-    }
+	static <T> Subscription sizeOf(ObservableList<T> list, Consumer<? super Integer> action) {
+		ListChangeListener<T> l = change -> action.accept(list.size());
+		l.onChanged(null);
+		list.addListener(l);
+		return () -> list.removeListener(l);
+	}
 
+	static <O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {
+		u.accept(o.getValue());
+		return o.subscribe(u);
+	}
 
-    static <O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {
-        u.accept(o.getValue());
-        return o.subscribe(u);
-    }
+	static <O> Subscription maintain(ValueStream<O> o, O initial, Consumer<? super O> u) {
+		u.accept(initial);
+		return o.subscribe(u);
+	}
 
-    static <O> Subscription maintain(ValueStream<O> o, O initial, Consumer<? super O> u) {
-        u.accept(initial);
-        return o.subscribe(u);
-    }
-
-    /**
-     * Runs action (consuming the property's value) immediately if value non null or sets a one-time
-     * listener which will run the action when the value changes to non null for the 1st time and
-     * remove itself.
-     * <p/>
-     * It is guaranteed:
-     * <ul>
-     * <li> action executes at most once
-     * <li> action never consumes null
-     * <li> action executes as soon as the property value is not null - now or in the future
-     * </ul>
-     * <p/>
-     * Used to execute some kind of initialization routine, which requires nonnull value (which is
-     * not guaranteed to be the case).
-     */
-    static <T> Subscription doOnceIfNonNull(ObservableValue<T> property, Consumer<T> action) {
-        return doOnceIf(property, v -> v!=null, action);
-    }
+	/**
+	 * Runs action (consuming the property's value) immediately if value non null or sets a one-time
+	 * listener which will run the action when the value changes to non null for the 1st time and
+	 * remove itself.
+	 * <p/>
+	 * It is guaranteed:
+	 * <ul>
+	 * <li> action executes at most once
+	 * <li> action never consumes null
+	 * <li> action executes as soon as the property value is not null - now or in the future
+	 * </ul>
+	 * <p/>
+	 * Used to execute some kind of initialization routine, which requires nonnull value (which is
+	 * not guaranteed to be the case).
+	 */
+	static <T> Subscription doOnceIfNonNull(ObservableValue<T> property, Consumer<T> action) {
+		return doOnceIf(property, Objects::nonNull, action);
+	}
 
 	static <T> Subscription doOnceIf(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
 		if (condition.test(property.getValue())) {
@@ -109,47 +102,47 @@ public interface Util {
 		}
 	}
 
-    static <T> ChangeListener<T> singletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
-        return new ChangeListener<>() {
-            @Override
-            public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
-                if (condition.test(nv)) {
-                    action.accept(nv);
-                    property.removeListener(this);
-                }
-            }
-        };
-    }
+	static <T> ChangeListener<T> singletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
+		return new ChangeListener<>() {
+			@Override
+			public void changed(ObservableValue<? extends T> observable, T ov, T nv) {
+				if (condition.test(nv)) {
+					action.accept(nv);
+					property.removeListener(this);
+				}
+			}
+		};
+	}
 
-    static <T> Subscription installSingletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
-	    ChangeListener<T> l = singletonListener(property, condition, action);
-        property.addListener(l);
-	    return () -> property.removeListener(l);
-    }
+	static <T> Subscription installSingletonListener(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
+		ChangeListener<T> l = singletonListener(property, condition, action);
+		property.addListener(l);
+		return () -> property.removeListener(l);
+	}
 
-    /** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */
-    static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onAdded, ListChangeListener<T> onRemoved) {
-        noØ(onAdded, onRemoved);
-        return change -> {
-            while(change.next()) {
-                if (!change.wasPermutated() && !change.wasUpdated()) {
-                    if (change.wasAdded()) onAdded.onChanged(change);
-                    if (change.wasAdded()) onRemoved.onChanged(change);
-                }
-            }
-        };
-    }
+	/** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */
+	static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onAdded, ListChangeListener<T> onRemoved) {
+		noØ(onAdded, onRemoved);
+		return change -> {
+			while(change.next()) {
+				if (!change.wasPermutated() && !change.wasUpdated()) {
+					if (change.wasAdded()) onAdded.onChanged(change);
+					if (change.wasAdded()) onRemoved.onChanged(change);
+				}
+			}
+		};
+	}
 
-    /** Creates list change listener which calls an action for every added or removed item. */
-    static <T> ListChangeListener<T> listChangeHandler(Consumer<T> addedHandler, Consumer<T> removedHandler) {
-        noØ(addedHandler, removedHandler);
-        return change -> {
-            while(change.next()) {
-                if (!change.wasPermutated() && !change.wasUpdated()) {
-                    if (change.wasAdded()) change.getRemoved().forEach(removedHandler);
-                    if (change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
-                }
-            }
-        };
-    }
+	/** Creates list change listener which calls an action for every added or removed item. */
+	static <T> ListChangeListener<T> listChangeHandler(Consumer<T> addedHandler, Consumer<T> removedHandler) {
+		noØ(addedHandler, removedHandler);
+		return change -> {
+			while(change.next()) {
+				if (!change.wasPermutated() && !change.wasUpdated()) {
+					if (change.wasAdded()) change.getRemoved().forEach(removedHandler);
+					if (change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
+				}
+			}
+		};
+	}
 }

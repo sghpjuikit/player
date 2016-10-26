@@ -1,15 +1,18 @@
 package logger;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.paint.Color;
+
+import com.terminalfx.TerminalBuilder;
+import com.terminalfx.TerminalTab;
+import com.terminalfx.config.TerminalConfig;
 
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
+import util.async.Async;
 import util.conf.IsConfig;
-
-import static main.App.APP;
-import static util.graphics.Util.setAnchors;
-import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
  * Logger widget controller.
@@ -35,15 +38,40 @@ public class Logger extends ClassController {
     public final BooleanProperty wrap_text = area.wrapTextProperty();
 
     public Logger() {
-        area.setEditable(false);
-	    area.setWrapText(false);
-        area.appendText("# This is redirected output (System.out) stream of this application.\n");
-        setMinPrefMaxSize(area, USE_COMPUTED_SIZE);
-        setMinPrefMaxSize(this, USE_COMPUTED_SIZE);
-        getChildren().add(area);
-        setAnchors(area, 0d);
+//        area.setEditable(false);
+//	    area.setWrapText(false);
+//        area.appendText("# This is redirected output (System.out) stream of this application.\n");
+//        setMinPrefMaxSize(area, USE_COMPUTED_SIZE);
+//        setMinPrefMaxSize(this, USE_COMPUTED_SIZE);
+//        getChildren().add(area);
+//        setAnchors(area, 0d);
+//
+//        d(APP.systemout.addListener(area::appendText));
 
-        d(APP.systemout.addListener(area::appendText));
+
+
+
+	    TerminalConfig darkConfig = new TerminalConfig();
+	    darkConfig.setBackgroundColor(Color.rgb(16, 16, 16));
+	    darkConfig.setForegroundColor(Color.rgb(240, 240, 240));
+	    darkConfig.setCursorColor(Color.rgb(255, 0, 0, 0.5));
+
+	    TerminalBuilder terminalBuilder = new TerminalBuilder(darkConfig);
+	    TerminalTab terminal = terminalBuilder.newTerminal();
+
+	    TabPane tabPane = new TabPane();
+	    tabPane.getTabs().add(terminal);
+	    getChildren().add(tabPane);
+	    Async.run(1000, () -> {
+		    try {
+		    	terminal.initialize();
+		    	terminal.focusCursor();
+//		    	terminal.onTerminalReady();
+//			    terminal.command("pwd");
+		    } catch(Throwable e) {
+			    System.out.println(e);
+		    }
+	    });
     }
 
 }

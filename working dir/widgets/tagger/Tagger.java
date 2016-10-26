@@ -232,7 +232,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         });
 
         // drag & drop content
-        root.setOnDragOver(DragUtil.audioDragAccepthandler);
+        root.setOnDragOver(DragUtil.audioDragAcceptHandler);
         root.setOnDragDropped(drag_dropped_handler);
 
         // remove cover on drag exit
@@ -812,7 +812,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                        // list will automatically update now
                        list.setItems(allItems);
                        // support same drag & drop as tagger
-                       list.setOnDragOver(DragUtil.audioDragAccepthandler);
+                       list.setOnDragOver(DragUtil.audioDragAcceptHandler);
                        list.setOnDragDropped(drag_dropped_handler);
 
 

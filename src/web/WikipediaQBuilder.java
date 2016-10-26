@@ -16,12 +16,12 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 @StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Wikipedia" )
 public class WikipediaQBuilder implements SearchUriBuilder {
 
-    @ParsesFromString
-    public WikipediaQBuilder() {}
+	@ParsesFromString
+	public WikipediaQBuilder() {}
 
-    @Override
-    public URI apply(String q) {
-        return URI.create("https://en.wikipedia.org/wiki/" + q.replace(" ", "%20"));
-    }
+	@Override
+	public URI apply(String q) {
+		return URI.create("https://en.wikipedia.org/wiki/" + q.replace(" ", "%20"));
+	}
 
 }

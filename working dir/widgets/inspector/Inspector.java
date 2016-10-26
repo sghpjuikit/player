@@ -75,7 +75,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
             }
         });
 
-        setOnDragOver(DragUtil.fileDragAccepthandler);
+        setOnDragOver(DragUtil.fileDragAcceptHandler);
         setOnDragDropped(e -> exploreFiles(DragUtil.getFiles(e)));
 
         // prevent scrolling event from propagating

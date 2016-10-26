@@ -7,10 +7,10 @@ package util.parsing;
  */
 public interface ToStringConverter<T> {
 
-    /**
-     * Converts object into string.
-     *
-     * @return String the object has been converted.
-     */
-    String toS(T object);
+	/**
+	 * Converts object into string.
+	 *
+	 * @return String the object has been converted.
+	 */
+	String toS(T object);
 }

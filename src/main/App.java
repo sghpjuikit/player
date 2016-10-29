@@ -813,10 +813,15 @@ public class App extends Application implements Configurable {
 /******************************************************************************/
 
     public List<String> fetchParameters() {
-        List<String> params = new ArrayList<>();
-        getParameters().getRaw().forEach(params::add);
-        getParameters().getUnnamed().forEach(params::add);
-        getParameters().getNamed().forEach((t,value) -> params.add(value) );
+    	// Note: Parameters are never null, but if the application is created manually from other class
+	    // it is possible and we don't want failure, hence the null check
+	    List<String> params = new ArrayList<>();
+        Parameters ps = getParameters();
+        if (ps!=null) {
+	        getParameters().getRaw().forEach(params::add);
+	        getParameters().getUnnamed().forEach(params::add);
+	        getParameters().getNamed().forEach((t, value) -> params.add(value));
+        }
         return params;
     }
 

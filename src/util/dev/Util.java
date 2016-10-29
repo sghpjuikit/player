@@ -13,6 +13,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import javafx.application.Platform;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +76,11 @@ public interface Util {
 
     static void noØ(Object... os) {
         for (Object o : os) if (o==null) throw new IllegalStateException("Null forbidden");
+    }
+
+    static void noFXThread() {
+	    if (Platform.isFxApplicationThread())
+		    throw new IllegalStateException("Loading image on FX thread!");
     }
 
     static void noFinal(Field f) {

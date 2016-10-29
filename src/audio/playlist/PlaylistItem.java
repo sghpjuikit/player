@@ -23,7 +23,6 @@ import audio.tagging.Metadata;
 import services.database.Db;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
-import util.async.Async;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Util;
@@ -31,7 +30,9 @@ import util.functional.Functors.Ƒ1;
 import util.units.FormattedDuration;
 
 import static util.Util.capitalizeStrong;
+import static util.async.Async.runFX;
 import static util.dev.Util.log;
+import static util.dev.Util.noFXThread;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.type.Util.mapEnumConstantName;
 
@@ -188,6 +189,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         if (updated || isCorrupt(APP)) return;
         updated = true;
 
+
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
         if (Db.items_byId.containsKey(getId())) {
@@ -196,6 +198,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         }
 
         if (isFileBased()) {
+		    noFXThread();
             // update as file based item
             try {
                 // read tag for data
@@ -208,7 +211,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
                 artist = t==null ? getArtist() : t.getFirst(FieldKey.ARTIST);
                 title = t==null ? getTitle() : t.getFirst(FieldKey.TITLE);
                 // set values always on fx thread
-                Async.runFX(() -> {
+                runFX(() -> {
                     setATN(artist, title);
                     time.set(new FormattedDuration(length));
                 });

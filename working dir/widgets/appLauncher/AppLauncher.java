@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -50,14 +49,15 @@ import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
+import static util.dev.Util.noFXThread;
 import static util.file.Environment.chooseFile;
-import static util.validation.Constraint.FileActor.DIRECTORY;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.FILE;
 import static util.file.Util.getName;
 import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
+import static util.validation.Constraint.FileActor.DIRECTORY;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -287,8 +287,7 @@ public class AppLauncher extends ClassController {
          * quality thumbnail in the bgr. Each phase uses its own executor.
          */
         private void setCoverNow(Item item) {
-	        if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
-
+	        noFXThread();
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
@@ -301,8 +300,7 @@ public class AppLauncher extends ClassController {
         }
 
 	    private void setCoverLater(Item item) {
-		    if (!Platform.isFxApplicationThread()) throw new IllegalStateException("Must be on FX thread");
-
+		    noFXThread();
 		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		    setCoverLater.push(item);
 	    }

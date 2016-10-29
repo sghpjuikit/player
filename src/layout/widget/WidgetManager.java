@@ -50,7 +50,7 @@ import static util.functional.Util.*;
  */
 public final class WidgetManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WindowManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WidgetManager.class);
 
     /**
      * Collection of valid widget factories by their name..

@@ -362,12 +362,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	}
     private static class GeneralField<T> extends ConfigField<T> {
         private final DecoratedTextField n = new DecoratedTextField();
+	    private final boolean isObservable;
         private final Icon okI= new Icon();
         private final Icon warnB = new Icon();
         private final AnchorPane okB = new AnchorPane(okI);
 
         private GeneralField(Config<T> c) {
             super(c);
+
+	        ObservableValue<T> v = getObservableValue(c);
+	        isObservable = v!=null;
+	        if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
@@ -482,8 +487,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     }
     private static class BooleanField extends ConfigField<Boolean> {
-        final CheckIcon graphics;
-        final boolean isObservable;
+        protected final CheckIcon graphics;
+        private final boolean isObservable;
 
         private BooleanField(Config<Boolean> c) {
             super(c);
@@ -494,9 +499,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             graphics = new CheckIcon();
             graphics.styleclass("boolean-config-field");
             graphics.selected.setValue(config.getValue());
-            // bind config -> config field (if possible)
             if (isObservable) v.addListener((o,ov,nv) -> graphics.selected.setValue(nv));
-            // bind config field -> config
             graphics.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
         }
 
@@ -524,19 +527,25 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class SliderField extends ConfigField<Number> {
-        Slider slider;
-        Label cur, min, max;
-        HBox box;
+        private final Slider slider;
+        private final Label cur, min, max;
+        private final HBox box;
+	    private final boolean isObservable;
+
         private SliderField(Config<Number> c) {
             super(c);
 
-            double v = c.getValue().doubleValue();
+	        ObservableValue<Number> v = getObservableValue(c);
+	        isObservable = v!=null;
+	        if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
+
+            double val = c.getValue().doubleValue();
 	        NumberMinMax range = stream(c.getConstraints()).select(NumberMinMax.class).findAny().get();
 
             min = new Label(String.valueOf(range.min));
             max = new Label(String.valueOf(range.max));
 
-            slider = new Slider(range.min,range.max,v);
+            slider = new Slider(range.min,range.max,val);
             cur = new Label(getValid().get().toString());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
@@ -666,15 +675,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setPromptText(a.getKeys());
             txtF.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
-                // handle substraction
+                // handle subtraction
                 if (c==BACK_SPACE || c==DELETE) {
                     txtF.setPromptText("");
                     if (!txtF.getText().isEmpty()) txtF.setPromptText(a.getKeys());
 
-
                     if (t.isEmpty()) {  // set back to empty
                         txtF.setPromptText(a.getKeys());
-                    } else {            // substract one key
+                    } else {            // subtract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
                         txtF.setText(t);

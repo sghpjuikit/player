@@ -183,7 +183,7 @@ public class Comet extends ClassController {
 				});
 				// cheats
 				if (cc==DIGIT1) game.runNext.add(() -> repeat(5, i -> game.mission.spawnPlanetoid()));
-				if (cc==DIGIT2) game.runNext.add(() -> repeat(5, i -> game.ufos.sendUfo()));
+				if (cc==DIGIT2) game.runNext.add(() -> repeat(5, i -> game.ufos.sendUfoSquadron()));
 				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
 				if (cc==DIGIT4) game.runNext.add(() -> {
 					game.oss.forEach(Asteroid.class,a -> a.dead=true);
@@ -443,14 +443,14 @@ public class Comet extends ClassController {
 						public void connected(IController c) {
 							System.out.println("connected device " + c.getDeviceID());
 							System.out.println(Platform.isFxApplicationThread());
-							stream(players).sorted(by(p -> p.id)).findFirst(p -> p.gamepadId==null).ifPresent(p -> p.gamepadId = c.getDeviceID());
+							stream(players).sorted(by(p -> p.id)).findFirst(p -> p.gamepadId.get()==null).ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
 						}
 
 						@Override
 						public void disConnected(IController c) {
 							System.out.println("disconnected device " + c.getDeviceID());
 							System.out.println(Platform.isFxApplicationThread());
-							stream(players).filter(p -> p.gamepadId!=null && p.gamepadId==c.getDeviceID()).forEach(p -> p.gamepadId = null);
+							stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID()).forEach(p -> p.gamepadId.set(null));
 						}
 
 						@Override
@@ -482,8 +482,8 @@ public class Comet extends ClassController {
 			@Override
 			protected void doLoopImpl(IController[] gamepads) {
 				if (gamepads.length > 0)
-					Stream.of(gamepads).forEach(g -> {
-						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId!=null && p.gamepadId==g.getDeviceID()).findFirst().ifPresent(p -> {
+					Stream.of(gamepads).forEach(g ->
+						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()).findFirst().ifPresent(p -> {
 							IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
 							IButton engine2B = g.getButton(10);
 							IButton engine3B = g.getButton(11);
@@ -524,8 +524,8 @@ public class Comet extends ClassController {
 //							if (isLeft) p.inputRotateLeft();
 //							if (isRight) p.inputRotateRight();
 							if (isAbility) p.rocket.ability_main.activate(); else p.rocket.ability_main.passivate();
-						});
-					});
+						})
+					);
 			}
 		};
 
@@ -1110,7 +1110,7 @@ public class Comet extends ClassController {
 			int losses_cannon = 20;
 			Rocket ufo_enemy = null;
 			boolean aggressive = false;
-			boolean canSpawnDiscs = true;
+			boolean canSpawnDiscs = false;
 			final Color color = Color.rgb(114,208,74);
 
 			void init() {
@@ -1147,7 +1147,10 @@ public class Comet extends ClassController {
 				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
 				Side side = randEnum(Side.class);
 				int count = (int)(2+rand01()*8);
-				repeat(count, () -> runNext.add(seconds(rand0N(0.5)),() -> sendUfo(side)));
+				if (randBoolean())
+					repeat(count, () -> runNext.add(seconds(rand0N(0.5)),() -> sendUfo(side)));
+				else
+					repeat(2*count, i -> runNext.add(millis(i*100),() -> new UfoDisc(0,100+i*20, D360).isActive = false));
 			}
 			private void sendUfo(Side side) {
 				Side s = side==null ? randEnum(Side.class) : side;
@@ -1274,13 +1277,13 @@ public class Comet extends ClassController {
 		@IsConfig public final V<KeyCode> keyRight = new V<>(KeyCode.D);
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
+		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
 		public boolean alive = false;
 		public final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
 		public final V<Integer> score = new V<>(0);
 		public final V<Double> energy = new V<>(0d);
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
-		public Integer gamepadId = null;
 
 		public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
 			id = ID;
@@ -2467,6 +2470,7 @@ public class Comet extends ClassController {
 	/** Ufo heavy projectiles. Autonomous rocket-seekers. */
 	class UfoDisc extends Ship {
 		Rocket enemy = null;
+		boolean isActive = true;
 
 		public UfoDisc(double X, double Y, double DIR) {
 			super(UfoDisc.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
@@ -2494,33 +2498,42 @@ public class Comet extends ClassController {
 				dx += (toRight ? 1 : -1) * f;
 				dy += (toBottom ? 1 : -1) * f;
 			}
-
-			// recalculate target - not every cycle, once in a while is enough
-			if (game.loopId % UFO_DISC_DECISION_TIME_TTL==0)
-				enemy = findClosestRocketTo(this);
-
-			boolean isPursuit = enemy==null || enemy.player.rocket != enemy || enemy.isin_hyperspace;
-			if (isPursuit) {
-				engine.off();
-			} else {
-				engine.on();
-
-				// Seeking algorithm
-				// 1) go directly towards enemy - works quite well
-				//    Behavior: can change direction instantaneously
-				//direction = dir(enemy);
-
-				// 2) turn to enemy with max rotation speed - looks very natural
-				//    Behavior: simulated turning with
-				double dirTarget = dir(enemy);
-				double dirDiff = dirDiff(direction,dirTarget);
-				double dRotationMax = ttlVal(D360,seconds(3));
-				double dRotationAbs = min(dRotationMax,abs(dirDiff));
-				direction += sign(dirDiff)*dRotationAbs;
-			}
-
+			seek();
 			dx *= 0.96;
 			dy *= 0.96;
+		}
+
+		private void seek() {
+			// recompute target if actively seeing one
+			// Note: Avoid unnecessary computation cheaply using n-th game loop strategy
+			if (isActive) {
+				if (isNth(game.loopId,UFO_DISC_DECISION_TIME_TTL))
+					enemy = findClosestRocketTo(this);
+			}
+
+			if (isActive) {
+				boolean isPursuit = !(enemy==null || enemy.player.rocket != enemy || enemy.isin_hyperspace);
+				if (isPursuit) {
+					engine.on();
+
+					// Seeking algorithm
+					// 1) go directly towards enemy - works quite well
+					//    Behavior: can change direction instantaneously
+					//direction = dir(enemy);
+
+					// 2) turn to enemy with max rotation speed - looks very natural
+					//    Behavior: simulated turning with
+					double dirTarget = dir(enemy);
+					double dirDiff = dirDiff(direction,dirTarget);
+					double dRotationMax = ttlVal(D360,seconds(3));
+					double dRotationAbs = min(dRotationMax,abs(dirDiff));
+					direction += sign(dirDiff)*dRotationAbs;
+				} else {
+					engine.off();
+				}
+			} else {
+				engine.on();
+			}
 		}
 
 		@Override void draw() {

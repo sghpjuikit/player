@@ -329,6 +329,10 @@ interface Utils {
 		return millis(loopIndex*FPS);
 	}
 
+	static boolean isNth(long loopId, long n) {
+		return loopId % n == 0;
+	}
+
 	static double randMN(double m, double n) {
 		return m+random()*(n-m);
 	}
@@ -437,7 +441,6 @@ interface Utils {
 			throw new SwitchException(this);
 		}
 	}
-
 
 	class Displayable {
 		final String name;
@@ -1000,20 +1003,7 @@ interface Utils {
 	}
 
 	interface Stats<T> {
-		void accumulate(T t);
-		void calculate();
 		void clear();
-	}
-	class StatSet<T> extends HashSet<T> {
-		private final ToDoubleFunction<? super T> valueExtractor;
-
-		public StatSet(ToDoubleFunction<? super T> valueExtractor) {
-			this.valueExtractor = valueExtractor;
-		}
-
-		public void avg() {
-			this.stream().mapToDouble(valueExtractor).average();
-		}
 	}
 	class StatsGame implements Stats<Game> {
 		Player firstDead = null;
@@ -1021,16 +1011,6 @@ interface Utils {
 		public void playerDied(Player p) {
 			if (firstDead!=null)
 				firstDead = p;
-		}
-
-		@Override
-		public void accumulate(Game game) {
-
-		}
-
-		@Override
-		public void calculate() {
-
 		}
 
 		@Override
@@ -1084,14 +1064,6 @@ interface Utils {
 
 		public void accKillUfo() {
 			killUfoCount++;
-		}
-
-		@Override
-		public void accumulate(Player player) {
-		}
-
-		@Override
-		public void calculate() {
 		}
 
 		@Override

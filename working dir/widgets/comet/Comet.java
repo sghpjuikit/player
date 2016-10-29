@@ -183,7 +183,7 @@ public class Comet extends ClassController {
 				});
 				// cheats
 				if (cc==DIGIT1) game.runNext.add(() -> repeat(5, i -> game.mission.spawnPlanetoid()));
-				if (cc==DIGIT2) game.runNext.add(() -> repeat(5, i -> game.ufos.sendUfoSquadron()));
+				if (cc==DIGIT2) game.runNext.add(() -> game.ufos.sendUfoSquadron());
 				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
 				if (cc==DIGIT4) game.runNext.add(() -> {
 					game.oss.forEach(Asteroid.class,a -> a.dead=true);
@@ -554,10 +554,10 @@ public class Comet extends ClassController {
 //			).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
             new Mission(1, "The strange world", "10⁻⁴m", "",
                 null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
-            ), //new Glow(0.3)
+            ),
 			new Mission(2, "Sumi-e","10⁻¹⁵","",
 				null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, Inkoid::new
-			), //new Glow(0.3)
+			),
 			new Mission(3, "Mol's molecule","","",
 				null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), null, Fermi::new
 			),
@@ -574,20 +574,20 @@ public class Comet extends ClassController {
 				null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), null, Genoid::new
 			),
 			new Mission(8, "Energetic fragility","10⁻¹⁵","",
-				null, Color.DODGERBLUE,Color.rgb(10,10,25,0.08), null,Energ::new
+				null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), null,Energ::new
 			),
 			new Mission(9, "Planc's plancton","10⁻¹⁵","",
-				null,Color.DARKCYAN,new Color(0,0.08,0.08,0.09),null,Linker::new
-			),
-			new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
-				null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
-			),
-			new Mission(11, "Informative xperience","10⁻¹⁵","",
-				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
-			),
-			new Mission(12, "Holographically principled","10⁻¹⁵","",
-				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
-			)
+				null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),null,Linker::new
+			)//,
+//			new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
+//				null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
+//			),
+//			new Mission(11, "Informative xperience","10⁻¹⁵","",
+//				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//			),
+//			new Mission(12, "Holographically principled","10⁻¹⁵","",
+//				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//			)
 		);
 
 		final Set<Enhancer> ROCKET_ENHANCERS = set(
@@ -1061,9 +1061,9 @@ public class Comet extends ClassController {
 
 		class PlayerFaction {
 			final InEffect intelOn = new InEffect();
-			final Color color = Color.DODGERBLUE;
-			final Color colorTech = Color.AQUAMARINE;
-			boolean share_enhancers = false;
+			Color color = Color.DODGERBLUE;
+			Color colorTech = Color.AQUAMARINE;
+			boolean share_enhancers;
 
 			void init() {
 				share_enhancers = false;
@@ -1111,7 +1111,7 @@ public class Comet extends ClassController {
 			Rocket ufo_enemy = null;
 			boolean aggressive = false;
 			boolean canSpawnDiscs = false;
-			final Color color = Color.rgb(114,208,74);
+			Color color = Color.rgb(114,208,74);
 
 			void init() {
 				losses = 0;
@@ -1147,10 +1147,12 @@ public class Comet extends ClassController {
 				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
 				Side side = randEnum(Side.class);
 				int count = (int)(2+rand01()*8);
-				if (randBoolean())
-					repeat(count, () -> runNext.add(seconds(rand0N(0.5)),() -> sendUfo(side)));
-				else
-					repeat(2*count, i -> runNext.add(millis(i*100),() -> new UfoDisc(0,100+i*20, D360).isActive = false));
+				if (randBoolean()) {
+					repeat(count, () -> runNext.add(seconds(rand0N(0.5)), () -> sendUfo(side)));
+				} else {
+					double y = rand0N(game.field.height);
+					repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoDisc(5, modY(y + i * 12), D360).isActive = false));
+				}
 			}
 			private void sendUfo(Side side) {
 				Side s = side==null ? randEnum(Side.class) : side;
@@ -1226,6 +1228,11 @@ public class Comet extends ClassController {
 				runNext.add(delay, () -> repeat(planetoids, i -> spawnPlanetoid()));
 				runNext.add(delay, () -> isMissionScheduled = false);
 				initializer.accept(Game.this);
+
+
+				game.humans.color=color;
+				game.humans.colorTech=color;
+				game.ufos.color = color;
 			}
 
 			void spawnPlanetoid() {
@@ -2474,6 +2481,7 @@ public class Comet extends ClassController {
 
 		public UfoDisc(double X, double Y, double DIR) {
 			super(UfoDisc.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
+			mass = 4;
 			direction = DIR;
 			engine = new Engine() {
 				double acceleration = 0.13;
@@ -2486,6 +2494,7 @@ public class Comet extends ClassController {
 					dy += acceleration*sin(direction);
 				}
 			};
+			createHyperSpaceAnimOut(game,this);
 		}
 
 		@Override void move() {
@@ -3543,7 +3552,7 @@ public class Comet extends ClassController {
 
 		@Override public void doLoop() {
 			super.doLoop();
-			applyPlayerRepulseForce(this,600);
+			applyPlayerRepulseForce(this,300);
 		}
 		@Override void draw() {
 			double d = radius*2;
@@ -4090,6 +4099,7 @@ public class Comet extends ClassController {
 		double mass = 0;
 		double massCritical = 3000;
 		double magnetic_force_dir = rand0N(D360);
+		int anti = 1; // attract-repulse
 
 		public BlackHole(Player OWNER, Duration TTL, double X, double Y) {
 			x=X; y=Y; ttl=1; ttld=1/ ttl(TTL); owner = OWNER;
@@ -4119,20 +4129,21 @@ public class Comet extends ClassController {
 			if (o instanceof Bullet && dist<220)
 				f = f*9; // add more force
 
-			boolean isRocket = o instanceof Rocket;
+			boolean isShip = o instanceof Ship;
+			boolean isRocket = isShip && o instanceof Rocket;
 
 			// Ergosphere. Rockets rotate towards force origin - black hole.
 			// This actually simplifies near-BH control (it allows orbiting BH using just 1 key)
 			// and its a nice effect.
-			if (isRocket && dist<radius_ergosphere) {
+			if (isShip && dist<radius_ergosphere) {
 				double ergo_potentiall_inv = computeForceInversePotential(dist,radius_ergosphere);
 				double ergo_potential = 1-ergo_potentiall_inv;
 				double dir = o.dir(this);
-				Rocket r = (Rocket)o;
-				double angle = r.direction-dir;
+				Ship s = (Ship)o;
+				double angle = s.direction-dir;
 //                double angled = 0.1 * dist01*dist01 * sin(angle);
 				double angled = 0.06 * ergo_potential * sin(angle);
-				r.direction -= angled; // no idea why - and not +
+				s.direction -= anti*angled; // no idea why - and not +
 			}
 
 			// Space resistance. Ether exists!
@@ -4182,8 +4193,8 @@ public class Comet extends ClassController {
 //            }
 
 			// apply force
-			o.dx += distx*f/dist;
-			o.dy += disty*f/dist;
+			o.dx += anti*distx*f/dist;
+			o.dy += anti*disty*f/dist;
 		}
 
 		@Override public double force(double mass, double dist) {
@@ -4463,7 +4474,7 @@ public class Comet extends ClassController {
 	}
 
 	/** Applies repulsive force from every player. */
-	void applyPlayerRepulseForce(PO o, double maxdist) {
+	void applyPlayerRepulseForce(PO o, double maxDist) {
 		double fx = 0;
 		double fy = 0;
 		for (Player p : game.players) {
@@ -4471,7 +4482,7 @@ public class Comet extends ClassController {
 				double distx = distXSigned(o.x,p.rocket.x);
 				double disty = distYSigned(o.y,p.rocket.y);
 				double dist = dist(distx,disty)+1;
-				double f = 1 - min(1,dist/maxdist);
+				double f = 1 - min(1,dist/maxDist);
 				fx += distx*f*f*f/dist;
 				fy += disty*f*f*f/dist;
 			}

@@ -5,7 +5,6 @@ working dir/user/*
 working dir/**/*class
 working dir/log/*zip
 working dir/log/*log
-extra/log
 private
 
 #####################

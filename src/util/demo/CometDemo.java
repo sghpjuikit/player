@@ -24,6 +24,7 @@ public class CometDemo extends Application{
 	@Override
 	public void start(Stage stage) throws Exception {
 		App app = new App();
+		app.init();
 		app.widgetManager.initialize();
 		Gui.setSkin("Flow");
 		Node comet = app.widgetManager.getFactories().filter(f -> f.name().equals("Comet")).findFirst().get()

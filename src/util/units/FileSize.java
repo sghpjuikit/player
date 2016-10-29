@@ -67,7 +67,7 @@ public final class FileSize implements Comparable<FileSize> {
 	 * @throws java.lang.RuntimeException if param smaller than -1
 	 */
 	public FileSize(long bytes) {
-		if (bytes<=-1) throw new IllegalArgumentException("File size value must be -1 or larger");
+		if (bytes<-1) throw new IllegalArgumentException("File size value must be -1 or larger");
 		v = bytes;
 	}
 

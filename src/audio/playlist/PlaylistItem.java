@@ -189,11 +189,11 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         if (updated || isCorrupt(APP)) return;
         updated = true;
 
-
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
-        if (Db.items_byId.containsKey(getId())) {
-            update(Db.items_byId.get(getId()));
+	    String id = getId();
+        if (Db.items_byId.containsKey(id)) {
+            update(Db.items_byId.get(id));
             return;
         }
 

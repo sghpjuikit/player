@@ -137,6 +137,12 @@ interface Utils {
 		if (c>0) return asin(s);
 		return (s<0) ? acos(c) : acos(c)+PI/2;
 	}
+	static double dirDiff(double dirFrom, double dirTo) {
+		double diff = dirTo%D360-dirFrom%D360;
+		if (diff>+PI) return diff-D360;
+		if (diff<-PI) return diff+D360;
+		return diff;
+	}
 
 	static double computeForceInversePotential(double distance, double maxDistance) {
 		return distance >= maxDistance ? 1 : distance/maxDistance;
@@ -312,6 +318,9 @@ interface Utils {
 
 	static double ttl(Duration d) {
 		return d.toSeconds()*FPS;
+	}
+	static double ttlVal(double val, Duration d) {
+		return val/ttl(d);
 	}
 	static Duration time(long frames) {
 		return seconds(frames/FPS);

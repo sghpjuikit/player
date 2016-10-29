@@ -192,6 +192,7 @@ public class Comet extends ClassController {
 				if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
 				if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).enhance(r));
 				if (cc==DIGIT7) game.entities.addForceField(new BlackHole(null, seconds(20),rand0N(game.field.width),rand0N(game.field.height)));
+				if (cc==DIGIT8) game.start(2);
 			}
 		});
 		playfield.addEventFilter(KEY_RELEASED, e -> {
@@ -1109,7 +1110,7 @@ public class Comet extends ClassController {
 			int losses_cannon = 20;
 			Rocket ufo_enemy = null;
 			boolean aggressive = false;
-			boolean canSpawnDiscs = false;
+			boolean canSpawnDiscs = true;
 			final Color color = Color.rgb(114,208,74);
 
 			void init() {
@@ -2336,11 +2337,13 @@ public class Comet extends ClassController {
 	/** Default enemy ship. */
 	class Ufo extends Ship {
 		boolean aggressive = false;
-		Runnable radio = () -> game.ufos.pulseCall(this);
-		Runnable discs = () -> {
+		private final Runnable radio = () -> game.ufos.pulseCall(this);
+		private final Runnable tryDiscs = () -> {
 			if (game.ufos.canSpawnDiscs) {
 				game.ufos.canSpawnDiscs = false;
-				repeat(5, i -> new UfoDisc(this,i*D360/5));
+				double spawnX = x, spawnY = y;
+				radio.run();
+				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoDisc(spawnX, spawnY, i*D360/5)));
 			}
 		};
 
@@ -2425,8 +2428,8 @@ public class Comet extends ClassController {
 					dy + sin(dir)*UFO_BULLET_SPEED
 				)
 			);
-			game.runNext.addPeriodic(() -> ttl(seconds(5)), radio);
-			game.runNext.addPeriodic(() -> ttl(seconds(5)), discs);
+			game.runNext.addPeriodic(() -> ttl(seconds(5)), tryDiscs);
+			tryDiscs.run();
 		}
 
 		@Override void doLoopOutOfField() {
@@ -2447,9 +2450,9 @@ public class Comet extends ClassController {
 			discpos += discdspeed;
 			double dist = 40+discpos*20;
 			double dir1 = -3*D30, dir2 = -7*D30, dir3 = -11*D30;
-			drawUfoDisc(x+dist*cos(dir1),y+dist*sin(dir1), dir1);
-			drawUfoDisc(x+dist*cos(dir2),y+dist*sin(dir2), dir2);
-			drawUfoDisc(x+dist*cos(dir3),y+dist*sin(dir3), dir3);
+			drawUfoDisc(x+dist*cos(dir1),y+dist*sin(dir1), dir1, false);
+			drawUfoDisc(x+dist*cos(dir2),y+dist*sin(dir2), dir2, false);
+			drawUfoDisc(x+dist*cos(dir3),y+dist*sin(dir3), dir3, false);
 
 			if (game.humans.intelOn.is())
 				drawHudCircle(x,y,UFO_BULLET_RANGE,game.ufos.color);
@@ -2458,48 +2461,62 @@ public class Comet extends ClassController {
 		@Override public void dispose() {
 			super.dispose();
 			game.runNext.remove(radio);
-			game.runNext.remove(discs);
+			game.runNext.remove(tryDiscs);
 		}
 	}
 	/** Ufo heavy projectiles. Autonomous rocket-seekers. */
 	class UfoDisc extends Ship {
 		Rocket enemy = null;
 
-		public UfoDisc(PO o, double DIR) {
-			super(UfoDisc.class, o.x,o.y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
+		public UfoDisc(double X, double Y, double DIR) {
+			super(UfoDisc.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
 			direction = DIR;
-			engine = new Engine(){
+			engine = new Engine() {
+				double acceleration = 0.13;
 				{
 					enabled = true;
 				}
 				@Override
 				void onDoLoop() {
-					dx += cosdir*0.1;
-					dy += sindir*0.1;
+					dx += acceleration*cos(direction);
+					dy += acceleration*sin(direction);
 				}
 			};
 		}
 
 		@Override void move() {
 			// prevents overlap using repulsion
-			for (UfoDisc ud : game.oss.get(UfoDisc.class)) {
-				if (ud==this) continue;
-				double f = interUfoDiscForce(ud);
-				boolean toright = x<ud.x;
-				boolean tobottom = y<ud.y;
-				dx += (toright ? 1 : -1) * f;
-				dy += (toright ? 1 : -1) * f;
+			for (UfoDisc u : game.oss.get(UfoDisc.class)) {
+				if (u==this) continue;
+				double f = interUfoDiscForce(u);
+				boolean toRight = x<u.x;
+				boolean toBottom = y<u.y;
+				dx += (toRight ? 1 : -1) * f;
+				dy += (toBottom ? 1 : -1) * f;
 			}
 
-			// look for enemy actively (not every cycle though)
+			// recalculate target - not every cycle, once in a while is enough
 			if (game.loopId % UFO_DISC_DECISION_TIME_TTL==0)
 				enemy = findClosestRocketTo(this);
 
-			if (enemy==null || enemy.player.rocket != enemy || enemy.isin_hyperspace) {
-				engine.off();   // no enemy -> no pursuit -> no movement
+			boolean isPursuit = enemy==null || enemy.player.rocket != enemy || enemy.isin_hyperspace;
+			if (isPursuit) {
+				engine.off();
 			} else {
-				engine.on();   // an enemy -> a pursuit -> a movement
-				direction = dir(enemy); // pursuit
+				engine.on();
+
+				// Seeking algorithm
+				// 1) go directly towards enemy - works quite well
+				//    Behavior: can change direction instantaneously
+				//direction = dir(enemy);
+
+				// 2) turn to enemy with max rotation speed - looks very natural
+				//    Behavior: simulated turning with
+				double dirTarget = dir(enemy);
+				double dirDiff = dirDiff(direction,dirTarget);
+				double dRotationMax = ttlVal(D360,seconds(3));
+				double dRotationAbs = min(dRotationMax,abs(dirDiff));
+				direction += sign(dirDiff)*dRotationAbs;
 			}
 
 			dx *= 0.96;
@@ -2507,12 +2524,13 @@ public class Comet extends ClassController {
 		}
 
 		@Override void draw() {
-			drawUfoDisc(x,y,direction);
+			drawUfoDisc(x,y,direction, true);
 		}
 
 		double interUfoDiscForce(UfoDisc ud) {
-			double d = distance(ud);
-			return d>15 ? 0 : -0.5*pow((1-d/15),2);
+			double distMax = 16;
+			double dist = distance(ud);
+			return dist>distMax ? 0 : -0.5*pow((1-dist/distMax),2);
 		}
 
 		void explode() {
@@ -2546,7 +2564,7 @@ public class Comet extends ClassController {
 		}
 	}
 
-	private void drawUfoDisc(double x, double y, double dir) {
+	private void drawUfoDisc(double x, double y, double dir, boolean isAutonomous) {
 		gc.setFill(game.ufos.color);
 //		gc.setGlobalAlpha(0.5);
 //		gc.setStroke(game.ufos.color);
@@ -2555,7 +2573,7 @@ public class Comet extends ClassController {
 //		gc.strokeOval(x-UFO_DISC_RADIUS,y-UFO_DISC_RADIUS,2*UFO_DISC_RADIUS,2*UFO_DISC_RADIUS);
 //		gc.setGlobalAlpha(1);
 //		gc.setStroke(null);
-		drawTriangle(gc, x,y,UFO_DISC_RADIUS, dir, 3*PI/4);
+		drawTriangle(gc, x,y,(isAutonomous ? 2 : 1)*UFO_DISC_RADIUS, dir, 3*PI/4);
 	}
 	private void drawUfoRadar(double x, double y) {
 		gc.setGlobalAlpha(0.3);

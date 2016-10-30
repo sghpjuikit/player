@@ -178,7 +178,6 @@ public class Comet extends ClassController {
 				game.keyPressTimes.put(cc,System.currentTimeMillis());
 				game.players.stream().filter(p -> p.alive).forEach(p -> {
 					if (cc==p.keyAbility.getValue()) p.rocket.ability_main.onKeyPress();
-					if (cc==p.keyThrust.getValue()) p.rocket.engine.on();
 					if (cc==p.keyFire.getValue()) p.rocket.gun.fire();
 				});
 				// cheats
@@ -198,7 +197,6 @@ public class Comet extends ClassController {
 		playfield.addEventFilter(KEY_RELEASED, e -> {
 			game.players.stream().filter(p -> p.alive).forEach(p -> {
 				if (e.getCode()==p.keyAbility.getValue()) p.rocket.ability_main.onKeyRelease();
-				if (e.getCode()==p.keyThrust.getValue()) p.rocket.engine.off();
 			});
 			game.pressedKeys.remove(e.getCode());
 		});
@@ -434,6 +432,7 @@ public class Comet extends ClassController {
 		final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
 		final GamepadDevices gamepads = new GamepadDevices() {
 			private IControllerListener listener;
+			boolean wasLeft = false, wasRight = false;
 			@Override
 			public void init() {
 				super.init();
@@ -496,34 +495,20 @@ public class Comet extends ClassController {
 							boolean isAbility = (ability1B!=null && ability1B.isPressed()) || (ability2B!=null && ability2B.isPressed());
 							boolean isLeft = (leftB!=null && leftB.isPressed()) || g.getDpadDirection() == DpadDirection.LEFT;
 							boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
+							boolean isFire = fireB!=null && fireB.isPressed();
+							boolean isFireOnce = fireB!=null && fireB.isPressedOnce();
 
-							if (isLeft) {
-								boolean isFirstTime = pressedKeys.add(p.keyLeft.get());
-								if (isFirstTime) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
-							}
-							if (isRight) {
-								boolean isFirstTime = pressedKeys.add(p.keyRight.get());
-								if (isFirstTime) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
-							}
+							if (isLeft && !wasLeft) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
+							if (isRight && !wasRight) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
+							wasLeft = isLeft;
+							wasRight = isRight;
 
-							if (!isLeft) {
-								boolean isFirstTime = pressedKeys.remove(p.keyLeft.get());
-//								if (isFirstTime) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
-							}
-							if (!isRight) {
-								boolean isFirstTime = pressedKeys.remove(p.keyRight.get());
-//								if (isFirstTime) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
-							}
-
-							if (isEngine) p.rocket.engine.on(); else p.rocket.engine.off();
-							if (p.rocket.rapidFire.is()) {
-								if (fireB!=null && fireB.isPressed()) p.rocket.gun.fire();
-							} else {
-								if (fireB!=null && fireB.isPressedOnce()) p.rocket.gun.fire();
-							}
-//							if (isLeft) p.inputRotateLeft();
-//							if (isRight) p.inputRotateRight();
-							if (isAbility) p.rocket.ability_main.activate(); else p.rocket.ability_main.passivate();
+							p.isInputThrust |= isEngine;
+							p.isInputLeft |= isLeft;
+							p.isInputRight |= isRight;
+							p.isInputFire |= isFire;
+							p.isInputFireOnce |= isFireOnce;
+							p.isInputAbility |= isAbility;
 						})
 					);
 			}
@@ -831,15 +816,17 @@ public class Comet extends ClassController {
 			// loop prep
 			loopId++;
 			long now = System.currentTimeMillis();
-			boolean isThird = loopId %3==0;
 
-			players.stream().filter(p -> p.alive).forEach(p -> {
-				if (pressedKeys.contains(p.keyLeft.get()))  p.rocket.direction -= p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyLeft.get(), 0L));
-				if (pressedKeys.contains(p.keyRight.get())) p.rocket.direction += p.computeRotSpeed(now-keyPressTimes.getOrDefault(p.keyRight.get(), 0L));
-				if (pressedKeys.contains(p.keyLeft.get()) || pressedKeys.contains(p.keyRight.get())) p.rocket.ddirection = 0;
-				if (isThird && p.rocket.rapidFire.is() && pressedKeys.contains(p.keyFire.get()))  p.rocket.gun.fire();
-			});
+			// collect and handle player inputs
 			gamepads.doLoop();
+			players.stream().filter(p -> p.alive).forEach(p -> {
+				if (pressedKeys.contains(p.keyLeft.get())) p.isInputLeft |= true;
+				if (pressedKeys.contains(p.keyRight.get())) p.isInputRight |= true;
+				if (pressedKeys.contains(p.keyThrust.get())) p.isInputThrust |= true;
+				if (pressedKeys.contains(p.keyFire.get())) p.isInputFire |= true;
+				if (pressedKeys.contains(p.keyAbility.get())) p.isInputAbility |= true;
+			});
+			players.forEach(Player::doInputs);
 
 			runNext.run();
 
@@ -1132,8 +1119,8 @@ public class Comet extends ClassController {
 				}
 			}
 			void activateSlipSpaceCannon() {
-				message("U.F.O. CANNON ALERT");
-				repeat(5, () -> runNext.add(seconds(rand0N(15)), this::fireSlipSpaceCannon));
+//				message("U.F.O. CANNON ALERT");
+//				repeat(5, () -> runNext.add(seconds(rand0N(15)), this::fireSlipSpaceCannon));
 			}
 			void fireSlipSpaceCannon() {
 				Player player = randOf(filter(players, p -> p.rocket!=null));
@@ -1285,6 +1272,7 @@ public class Comet extends ClassController {
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
 		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
+		boolean isInputLeft = false, isInputRight = false, isInputFire = false, isInputFireOnce = false, isInputThrust = false, isInputAbility = false;
 		public boolean alive = false;
 		public final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
 		public final V<Integer> score = new V<>(0);
@@ -1343,6 +1331,7 @@ public class Comet extends ClassController {
 			new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
 		}
+
 		void spawnMidGame() {
 			game.runNext.add(PLAYER_RESPAWN_TIME.divide(2), () -> new SuperDisruptor(
 				spawning.get().computeStartingX(game.field.width,game.field.height,game.players.size(),id),
@@ -1359,18 +1348,23 @@ public class Comet extends ClassController {
 			rocket = null;
 		}
 
-		void inputRotateRight() {
-			rocket.direction += computeRotSpeed(ROT_LIMIT);
-			rocket.ddirection = 0;
+		void doInputs() {
+			if (alive) {
+				long now = System.currentTimeMillis();
+				if (isInputLeft) rocket.direction -= computeRotSpeed(now-game.keyPressTimes.getOrDefault(keyLeft.get(), 0L));
+				if (isInputRight) rocket.direction += computeRotSpeed(now-game.keyPressTimes.getOrDefault(keyRight.get(), 0L));
+				if (isInputThrust) rocket.engine.on(); else rocket.engine.off();
+				if (isInputLeft && isInputRight) rocket.ddirection = 0;
+				if (isInputFireOnce || (isNth(game.loopId,3) && rocket.rapidFire.is() && isInputFire)) rocket.gun.fire();
+				if (isInputAbility) rocket.ability_main.activate(); else rocket.ability_main.passivate();
+			}
+			isInputLeft = isInputRight = isInputFire = isInputFireOnce = isInputThrust = isInputAbility = false;
 		}
-		void inputRotateLeft() {
-			rocket.direction -= computeRotSpeed(ROT_LIMIT);
-			rocket.ddirection = 0;
-		}
+
 		double computeRotSpeed(long pressedMsAgo) {
-			// Shooting at long distance becomes hard due to 'smallest rotation angle' being too big
+			// Shooting at long distance becomes hard due to 'smallest rotation angle' being too big so
 			// we slow down rotation within the first ROT_LIMIT ms after key press and reduce rotation
-			// limit without decreasing maneuverability.
+			// limit temporarily without decreasing maneuverability.
 			// The rotation decrease is nonlinear and continuous
 			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED/((ROT_LIMIT/ROT_DEL+1)-pressedMsAgo/ROT_DEL) : ROTATION_SPEED;
 			return rocket.engine.mobility.value()*r;

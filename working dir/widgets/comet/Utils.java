@@ -196,7 +196,7 @@ interface Utils {
 		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy);
 		node.setMaxHeight(VBox.USE_PREF_SIZE); // fixes alignment in parent by not expanding this box
 		node.setPrefWidth(140); // fixes position changing on children resize
-		node.setUserData(p.id); // to recognize which belongs to which
+		node.setUserData(p.id.get()); // to recognize which belongs to which
 		return node;
 	}
 
@@ -1030,6 +1030,7 @@ interface Utils {
 		private Duration longestAlive;
 		public DoubleSummaryStatistics controlAreaSize;
 		public DoubleSummaryStatistics controlAreaCenterDistance;
+		public double distanceTravelled;
 
 		public StatsPlayer() {
 			clear();
@@ -1066,6 +1067,10 @@ interface Utils {
 			killUfoCount++;
 		}
 
+		public void accTravel(double distance) {
+			distanceTravelled += distance;
+		}
+
 		@Override
 		public void clear() {
 			controlAreaSize = new DoubleSummaryStatistics();
@@ -1079,6 +1084,7 @@ interface Utils {
 			longestAlive = null;
 			spawnCount = 0;
 			deathCount = 0;
+			distanceTravelled = 0;
 		}
 	}
 

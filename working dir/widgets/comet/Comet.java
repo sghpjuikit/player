@@ -146,7 +146,7 @@ public class Comet extends ClassController {
 		playerStats.setMouseTransparent(true);
 		game.players.addListener((Change<? extends Player> change) ->
 			playerStats.getChildren().forEach(cc -> ((Pane)cc).getChildren().forEach(c ->
-				c.setVisible(game.players.stream().anyMatch(p -> p.id==(Integer)c.getUserData()))
+				c.setVisible(game.players.stream().anyMatch(p -> p.id.get()==(int)c.getUserData()))
 			))
 		);
 
@@ -442,7 +442,7 @@ public class Comet extends ClassController {
 						public void connected(IController c) {
 							System.out.println("connected device " + c.getDeviceID());
 							System.out.println(Platform.isFxApplicationThread());
-							stream(players).sorted(by(p -> p.id)).findFirst(p -> p.gamepadId.get()==null).ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
+							stream(players).sorted(by(p -> p.id.get())).findFirst(p -> p.gamepadId.get()==null).ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
 						}
 
 						@Override
@@ -711,41 +711,46 @@ public class Comet extends ClassController {
 			achievement1(
 					"Control freak", MaterialDesignIcon.ARROW_EXPAND,
 					game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
-					"Control your nearby area most effectively"
+					"Control your nearby area the most effectively"
 				).onlyIf(game -> game.players.size()>1),
 			achievement01(
-					"Reaper's favourite", MaterialDesignIcon.ARROW_EXPAND,
+					"Reaper's favourite", MaterialDesignIcon.HEART_BROKEN,
 					game -> Optional.ofNullable(game.stats.firstDead),
 					"Be the first to die"
 				).onlyIf(game -> game.players.size()>1),
 			achievement1(
-					"Live and prosper", MaterialDesignIcon.ARROW_EXPAND,
+					"Live and prosper", MaterialDesignIcon.HEART,
 					game -> stream(game.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).get())).get(),
 					"Live the longest"
 				).onlyIf(game -> game.players.size()>1),
 			achievement0N(
-					"Invincible", MaterialDesignIcon.ARROW_EXPAND,
+					"Invincible", MaterialDesignIcon.MARKER_CHECK,
 					game -> stream(game.players).filter(p -> p.stats.deathCount==0),
 					"Don't die"
 				),
 			achievement01(
-					"Quickdraw", MaterialDesignIcon.ARROW_EXPAND,
+					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
 					game -> stream(game.players).filter(p -> p.stats.fired1stTime!=null).minBy(p -> p.stats.fired1stTime),
 					"Be the first to shoot"
 				).onlyIf(game -> game.players.size()>1),
 			achievement01(
-					"Rusher", MaterialDesignIcon.ARROW_EXPAND,
+					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
 					game -> stream(game.players).filter(p -> p.stats.hitEnemy1stTime!=null).minBy(p -> p.stats.hitEnemy1stTime),
 					"Be the first to deal damage"
 				).onlyIf(game -> game.players.size()>1),
+			achievement01(
+					"Mobile", MaterialDesignIcon.RUN,
+					game -> stream(game.players).maxBy(p -> p.stats.distanceTravelled),
+					"Travel the greatest distance"
+				).onlyIf(game -> game.players.size()>1),
 			achievement0N(
-					"Pacifist", MaterialDesignIcon.ARROW_EXPAND,
+					"Pacifist", MaterialDesignIcon.NATURE_PEOPLE,
 					game -> stream(game.players).filter(p -> p.stats.fired1stTime==null),
 					"Never shoot"
 				),
 			// TODO: fix this for situations where killCount is the same for multiple players
 			achievement01(
-					"Hunter", MaterialDesignIcon.CROSSHAIRS,
+					"Hunter", MaterialDesignIcon.BIOHAZARD,
 					game -> stream(game.players).maxBy(p -> p.stats.killUfoCount),
 					"Kill most UFOs"
 				).onlyIf(game -> game.players.size()>1)
@@ -1262,7 +1267,7 @@ public class Comet extends ClassController {
 
 	/** Game player. Survives game sessions. */
 	public class Player implements Configurable {
-		public final int id;
+		@IsConfig(editable = false) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
 		@IsConfig public final V<KeyCode> keyFire = new V<>(KeyCode.W);
@@ -1281,7 +1286,7 @@ public class Comet extends ClassController {
 		public final StatsPlayer stats = new StatsPlayer();
 
 		public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
-			id = ID;
+			id.set(ID);
 			name.set("Player " + ID);
 			color.set(COLOR);
 			ability_type.set(ABILITY);
@@ -1321,11 +1326,11 @@ public class Comet extends ClassController {
 			lives.setValueOf(lives -> lives-1);
 			rocket = new Rocket(this);
 			rocket.dead = false;
-			rocket.x = spawning.get().computeStartingX(game.field.width,game.field.height,game.players.size(),id);
-			rocket.y = spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id);
+			rocket.x = spawning.get().computeStartingX(game.field.width,game.field.height,game.players.size(),id.get());
+			rocket.y = spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id.get());
 			rocket.dx = 0;
 			rocket.dy = 0;
-			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id);
+			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id.get());
 			rocket.energy = PLAYER_ENERGY_INITIAL;
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
 			new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
@@ -1334,8 +1339,8 @@ public class Comet extends ClassController {
 
 		void spawnMidGame() {
 			game.runNext.add(PLAYER_RESPAWN_TIME.divide(2), () -> new SuperDisruptor(
-				spawning.get().computeStartingX(game.field.width,game.field.height,game.players.size(),id),
-				spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id)
+				spawning.get().computeStartingX(game.field.width,game.field.height,game.players.size(),id.get()),
+				spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id.get())
 			));
 			game.runNext.add(PLAYER_RESPAWN_TIME, this::spawn);
 		}
@@ -1419,6 +1424,9 @@ public class Comet extends ClassController {
 			double tx = distXSigned(x,tox);
 			double ty = distYSigned(y,toy);
 			return (tx<0 ? 0 : PI) + atan(ty/tx);
+			// ???
+//			double a = atan2(tx,-ty);
+//			return a<0 ? a+D360 : a;
 		}
 		double speed() {
 			return sqrt(dx*dx+dy*dy);
@@ -1653,25 +1661,6 @@ public class Comet extends ClassController {
 				}
 			}
 		}
-//		class RocketEngine extends Engine {
-//			double ttl = 0;
-//			double thrust = ROCKET_ENGINE_THRUST;
-//			final double particle_speed = 1/1/FPS;
-//
-//			@Override
-//			void onDoLoop() {
-//				dx += cos(direction)*mobility.value()*thrust;
-//				dy += sin(direction)*mobility.value()*thrust;
-//
-//				if (!isin_hyperspace) {
-//					ttl--;
-//					if (ttl<0) {
-//						ttl = ROCKET_ENGINE_DEBRIS_TTL;
-//						ROCKET_ENGINE_DEBRIS_EMITTER.emit(x,y,direction+PI, mobility.value());
-//					}
-//				}
-//			}
-//		}
 		class PulseEngine extends Engine {
 			private double pulseTTL = 0;
 			private double shipDistance = 9;
@@ -1745,8 +1734,8 @@ public class Comet extends ClassController {
 		class Ability implements LO {
 			AbilityState state = OFF;
 			double activation = 0; // 0==passive, 1 == active, 0-1 == transition state
-			final double timeActivation; // seconds it takes to activate, 0 = instantanous
-			final double timePassivation; // seconds it takes to passivate, 0 = instantanous// seconds it takes to passivate, 0 = instantanous
+			final double timeActivation; // seconds it takes to activate, 0 = instantaneous
+			final double timePassivation; // seconds it takes to passivate, 0 = instantaneous// seconds it takes to passivate, 0 = instantaneous
 			final double e_act; // e needed to activate ability
 			final double e_rate; // e/frame consumption when activated
 			final boolean onHold; // true = press-release; false = press-press
@@ -2020,7 +2009,7 @@ public class Comet extends ClassController {
 				super(true, Duration.ZERO,Duration.ZERO,0,0);
 				KSenergy_maxInit = ENERGY_MAX;
 				KSenergy_max = KSenergy_maxInit;
-				KSenergy_rateInit = KSenergy_max/ ttl(KINETIC_SHIELD_RECHARGE_TIME);
+				KSenergy_rateInit = KSenergy_max/ttl(KINETIC_SHIELD_RECHARGE_TIME);
 				KSenergy_rate = KSenergy_rateInit;
 				KSenergy = KINETIC_SHIELD_INITIAL_ENERGY*KSenergy_max;
 				KSradiusInit = RADIUS;
@@ -2030,8 +2019,8 @@ public class Comet extends ClassController {
 				children.add(this);
 				scheduleActivation();
 
-				double sync_reps = Ship.this instanceof Rocket ? ((Rocket)Ship.this).player.id :
-								   Ship.this instanceof Shuttle ? ((Shuttle)Ship.this).owner.player.id :
+				double sync_reps = Ship.this instanceof Rocket ? ((Rocket)Ship.this).player.id.get() :
+								   Ship.this instanceof Shuttle ? ((Shuttle)Ship.this).owner.player.id.get() :
 								   1+randInt(5);
 				double syncs_range = sync_reps*D360;
 				double syncs_range_d = syncs_range/syncs_len;
@@ -2114,7 +2103,6 @@ public class Comet extends ClassController {
 				piece_angle = D360/pieces;
 				largeTTLd = 1/FPS/seconds(1/60/pieces).toSeconds();
 			}
-
 
 			/** Not an ability, simply a graphics for an ability. Extends Ability to avoid code duplicity. */
 			class KineticShieldPiece extends Ability {
@@ -2260,7 +2248,11 @@ public class Comet extends ClassController {
 			);
 		}
 
-
+		@Override
+		void doLoopBegin() {
+			super.doLoopBegin();
+			player.stats.accTravel(cache_speed);
+		}
 
 		@Override
 		void draw() {
@@ -2807,6 +2799,8 @@ public class Comet extends ClassController {
 		double ttl_d;
 		boolean isBlackHole = false;
 		boolean isHighEnergy = false;
+		private double tempX, tempY;    // cache for collision checking
+		private boolean bounced = false;    // prevents multiple bouncing off shield per loop
 
 		Bullet(Ship ship, double x, double y, double dx, double dy, double hit_radius, double TTL) {
 			super(Bullet.class,x,y,dx,dy,hit_radius,null);
@@ -2818,6 +2812,7 @@ public class Comet extends ClassController {
 
 		@Override
 		public void doLoop() {
+			bounced = false;
 			x += dx;
 			y += dy;
 			doLoopOutOfField();
@@ -2878,11 +2873,11 @@ public class Comet extends ClassController {
 			}
 		}
 
-		boolean checkWithXY(PO e, double X, double Y) {
+		private boolean checkWithXY(PO e, double X, double Y) {
 			if (dead || e.dead) return true;  // dead objects must not participate
 
 			// hack, we temporarily set old co--ordinates, we must restore this before method returns
-			double tempX = x, tempY = y;
+			tempX = x; tempY = y;
 			x = X; y = Y;
 
 			if (e.isHitDistance(this)) {
@@ -2890,32 +2885,11 @@ public class Comet extends ClassController {
 				if (e instanceof Rocket) {
 					Rocket r = (Rocket)e;
 					if (!game.deadly_bullets.get() && owner instanceof Rocket) {
-						double d = r.dir(this);
-						r.kinetic_shield.new KineticShieldPiece(d);
-
-						// bounce bullet
-						double dirBulletIn = r.dir(r.x-dx, r.y-dy); // opposite direction of incoming bullet from rocket perspective
-						double dirNormal = d; // direction of hit point from rocket perspective = axis of bullet bounce
-						double dirBulletOut = dirBulletIn+2*(dirNormal-dirBulletIn); // direction of bounced bullet from rocket perspective
-						double speed = speed();
-						dx = speed*cos(dirBulletOut);
-						dy = speed*sin(dirBulletOut);
-						x = tempX = r.x+r.kinetic_shield.KSradius*cos(dirNormal);
-						y = tempY = r.y+r.kinetic_shield.KSradius*sin(dirNormal);
-						ttl = 1;    // increase bullet range on shield bounce (cool & useful game mechanics)
-						dead = false;
-
-						// debug
-						// gc_bgr.setLineWidth(1);
-						// gc_bgr.setStroke(Color.RED);
-						// gc_bgr.strokeLine(x-20,y,x+20,y);
-						// gc_bgr.strokeLine(x,y-20,x,y+20);
-						// gc_bgr.setStroke(Color.YELLOW);
-						// gc_bgr.strokeLine(r.x,r.y,r.x+200*cos(dirBulletIn),r.y+200*sin(dirBulletIn));
-						// gc_bgr.strokeLine(r.x,r.y,r.x+300*cos(dirNormal),r.y+300*sin(dirNormal));
-						// gc_bgr.strokeLine(r.x,r.y,r.x+200*cos(dirBulletOut),r.y+200*sin(dirBulletOut));
+						r.kinetic_shield.new KineticShieldPiece(r.dir(this));
+						bounceOffShieldOf(r);
 
 						if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+							double speed = speed();
 							r.dx += 0.5 + 0.1 * dx / speed;
 							r.dy += 0.5 + 0.1 * dy / speed;
 							r.ddirection += randOf(-1, 1) * rand0N(0.01);
@@ -2923,6 +2897,8 @@ public class Comet extends ClassController {
 					}
 					if (game.deadly_bullets.get() || !(owner instanceof Rocket)) {
 						if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
+							bounceOffShieldOf(r);
 							r.dx = r.dy = 0;
 							r.engine.off();
 						} else {
@@ -2968,12 +2944,14 @@ public class Comet extends ClassController {
 					dead = false;   // shoot-through when allies
 				} else
 				if (e instanceof SuperShield) {
+					SuperShield ss = (SuperShield) e;
 					// we are assuming its kinetic shield is always active (by game design)
 					// ignore bullets when allies | shooting from inside the shield
-					if (owner instanceof Rocket || owner.distance(e)<((Ship)e).kinetic_shield.KSradius) {
+					if (owner instanceof Rocket || owner.distance(ss)<ss.kinetic_shield.KSradius) {
 						dead = false;
 					} else {
-						((Ship)e).kinetic_shield.new KineticShieldPiece(e.dir(this));
+						ss.kinetic_shield.new KineticShieldPiece(e.dir(this));
+						bounceOffShieldOf(ss);
 					}
 				} else
 				if (e instanceof Satellite) {
@@ -2992,6 +2970,35 @@ public class Comet extends ClassController {
 
 			x = tempX; y = tempY;
 			return false;
+		}
+
+		private void bounceOffShieldOf(Ship s) {
+			if (bounced) return;
+			double d = s.dir(this);
+			s.kinetic_shield.new KineticShieldPiece(d);
+
+			// bounce bullet
+			double dirBulletIn = s.dir(s.x-dx, s.y-dy); // opposite direction of incoming bullet from rocket perspective
+			double dirNormal = d; // direction of hit point from rocket perspective = axis of bullet bounce
+			double dirBulletOut = dirBulletIn+2*(dirNormal-dirBulletIn); // direction of bounced bullet from rocket perspective
+			double speed = speed();
+			dx = speed*cos(dirBulletOut);
+			dy = speed*sin(dirBulletOut);
+			x = tempX = s.x+s.kinetic_shield.KSradius*cos(dirNormal)+dx;
+			y = tempY = s.y+s.kinetic_shield.KSradius*sin(dirNormal)+dy;
+			ttl = 1;    // increase bullet range after shield bounce (cool & useful game mechanics)
+			dead = false;
+			bounced = true;
+
+			// debug
+//			gc_bgr.setLineWidth(1);
+//			gc_bgr.setStroke(Color.RED);
+//			gc_bgr.strokeLine(x-20,y,x+20,y);
+//			gc_bgr.strokeLine(x,y-20,x,y+20);
+//			gc_bgr.setStroke(Color.YELLOW);
+//			gc_bgr.strokeLine(s.x,s.y,s.x+200*cos(dirBulletIn),s.y+200*sin(dirBulletIn));
+//			gc_bgr.strokeLine(s.x,s.y,s.x+300*cos(dirNormal),s.y+300*sin(dirNormal));
+//			gc_bgr.strokeLine(s.x,s.y,s.x+200*cos(dirBulletOut),s.y+200*sin(dirBulletOut));
 		}
 	}
 	class SplitBullet extends Bullet {

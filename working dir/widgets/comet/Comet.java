@@ -2353,9 +2353,6 @@ public class Comet extends ClassController {
 			return 1*f;
 		}
 
-		Ufo() {
-			this(randEnum(Side.class),false);
-		}
 		Ufo(Side side, boolean AGGRESSIVE) {
 			super(
 				Ufo.class,
@@ -2496,6 +2493,14 @@ public class Comet extends ClassController {
 			seek();
 			dx *= 0.96;
 			dy *= 0.96;
+		}
+
+		@Override void doLoopOutOfField() {
+			if (isActive) {
+				if (y < 0) y = game.field.height;
+				if (y > game.field.height) y = 0;
+				if (x < 0 || x > game.field.width) dead = true;
+			}
 		}
 
 		private void seek() {

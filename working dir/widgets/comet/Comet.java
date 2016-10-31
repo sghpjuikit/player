@@ -53,6 +53,7 @@ import util.conf.ListConfigurable;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
+import util.functional.Util;
 import util.reactive.SetƑ;
 import util.validation.Constraint;
 
@@ -226,7 +227,6 @@ public class Comet extends ClassController {
 		double SCORE_UFO = 250;
 		double SCORE_UFO_DISC = 100;
 		double BONUS_MOBILITY_MULTIPLIER = 1.25; // coefficient
-		double BONUS_LASER_MULTIPLIER_LENGTH = 400; // px
 		double ROTATION_SPEED = 1.3 * PI / FPS; // 540 deg/sec.
 		double RESISTANCE = 0.98; // slow down factor
 		int ROT_LIMIT = 70; // smooths rotation at small scale, see use
@@ -243,8 +243,7 @@ public class Comet extends ClassController {
 		double ROCKET_GUN_TURRET_ANGLE_GAP = D360 / 180;
 
 		double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
-		double ROCKET_ENGINE_DEBRIS_TTL = ttl(millis(20));
-		double PULSE_ENGINE_PULSEPERIOD_TTL = ttl(millis(20));
+		double PULSE_ENGINE_PULSE_PERIOD_TTL = ttl(millis(20));
 		double PULSE_ENGINE_PULSE_TTL = ttl(millis(400));
 		double PULSE_ENGINE_PULSE_TTL1 = 1 / PULSE_ENGINE_PULSE_TTL; // saves us computation
 
@@ -258,14 +257,14 @@ public class Comet extends ClassController {
 		double SHUTTLE_KINETIC_SHIELD_RADIUS = 180; // px
 		double SHUTTLE_KINETIC_SHIELD_ENERGYMAX = 1000000; // energy
 		double SHIELD_E_ACTIVATION = 0; // energy
-		double SHIELD_E_RATE = 30; // energy/frame
+		double SHIELD_E_RATE = 25; // energy/frame
 		Duration SHIELD_ACTIVATION_TIME = millis(0);
 		Duration SHIELD_PASSIVATION_TIME = millis(0);
-		double HYPERSPACE_E_ACTIVATION = 1500; // energy
-		double HYPERSPACE_E_RATE = 0; // energy/frame
+		double HYPERSPACE_E_ACTIVATION = 150; // energy
+		double HYPERSPACE_E_RATE = 4; // energy/frame
 		Duration HYPERSPACE_ACTIVATION_TIME = millis(200);
 		Duration HYPERSPACE_PASSIVATION_TIME = millis(200);
-		double DISRUPTOE_E_ACTIVATION = 0; // energy
+		double DISRUPTOR_E_ACTIVATION = 0; // energy
 		double DISRUPTOR_E_RATE = 4; // energy/frame
 		Duration DISRUPTOR_ACTIVATION_TIME = millis(0);
 		Duration DISRUPTOR_PASSIVATION_TIME = millis(0);
@@ -1102,7 +1101,7 @@ public class Comet extends ClassController {
 			int losses_cannon = 20;
 			Rocket ufo_enemy = null;
 			boolean aggressive = false;
-			boolean canSpawnDiscs = false;
+			boolean canSpawnDiscs = true;
 			Color color = Color.rgb(114,208,74);
 
 			void init() {
@@ -1142,8 +1141,14 @@ public class Comet extends ClassController {
 				if (randBoolean()) {
 					repeat(count, () -> runNext.add(seconds(rand0N(0.5)), () -> sendUfo(side)));
 				} else {
-					double y = rand0N(game.field.height);
-					repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoDisc(5, modY(y + i * 12), D360).isActive = false));
+					double h = rand0N(game.field.height);
+					int swarm = Utils.randInt(Integer.MAX_VALUE);
+//					repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoDisc(5, modY(h + i * 12), D360).isActive = false));
+					Util.forEachOnCircleBy(300,300,15,8*count,(x,y,a) -> new UfoDisc(x,modY(y),D360))
+							.forEach(u -> {
+								u.isActive = false;
+								u.swarmId = swarm;
+							});
 				}
 			}
 			private void sendUfo(Side side) {
@@ -1673,7 +1678,7 @@ public class Comet extends ClassController {
 			void onDoLoop() {
 				pulseTTL--;
 				if (pulseTTL<0) {
-					pulseTTL = PULSE_ENGINE_PULSEPERIOD_TTL;
+					pulseTTL = PULSE_ENGINE_PULSE_PERIOD_TTL;
 					pulse();
 				}
 			}
@@ -1847,7 +1852,7 @@ public class Comet extends ClassController {
 			final ForceField field = new DisruptorField();
 
 			Disruptor() {
-				super(true, DISRUPTOR_ACTIVATION_TIME,DISRUPTOR_PASSIVATION_TIME,DISRUPTOE_E_ACTIVATION,DISRUPTOR_E_RATE );
+				super(true, DISRUPTOR_ACTIVATION_TIME,DISRUPTOR_PASSIVATION_TIME, DISRUPTOR_E_ACTIVATION,DISRUPTOR_E_RATE );
 			}
 
 			void onActivateStart() {
@@ -2443,9 +2448,9 @@ public class Comet extends ClassController {
 			discpos += discdspeed;
 			double dist = 40+discpos*20;
 			double dir1 = -3*D30, dir2 = -7*D30, dir3 = -11*D30;
-			drawUfoDisc(x+dist*cos(dir1),y+dist*sin(dir1), dir1, false);
-			drawUfoDisc(x+dist*cos(dir2),y+dist*sin(dir2), dir2, false);
-			drawUfoDisc(x+dist*cos(dir3),y+dist*sin(dir3), dir3, false);
+			drawUfoDisc(x+dist*cos(dir1),y+dist*sin(dir1), dir1, 1);
+			drawUfoDisc(x+dist*cos(dir2),y+dist*sin(dir2), dir2, 1);
+			drawUfoDisc(x+dist*cos(dir3),y+dist*sin(dir3), dir3, 1);
 
 			if (game.humans.intelOn.is())
 				drawHudCircle(x,y,UFO_BULLET_RANGE,game.ufos.color);
@@ -2461,6 +2466,8 @@ public class Comet extends ClassController {
 	class UfoDisc extends Ship {
 		Rocket enemy = null;
 		boolean isActive = true;
+		int swarmId = -1;
+		double dRotationMax = ttlVal(D360,seconds(3));
 
 		public UfoDisc(double X, double Y, double DIR) {
 			super(UfoDisc.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
@@ -2477,16 +2484,16 @@ public class Comet extends ClassController {
 					dy += acceleration*sin(direction);
 				}
 			};
-			createHyperSpaceAnimOut(game,this);
+			createHyperSpaceAnimIn(game,this);
 		}
 
 		@Override void move() {
 			// prevents overlap using repulsion
 			for (UfoDisc u : game.oss.get(UfoDisc.class)) {
-				if (u==this) continue;
+				if (u == this || swarmId==u.swarmId) continue;
 				double f = interUfoDiscForce(u);
-				boolean toRight = x<u.x;
-				boolean toBottom = y<u.y;
+				boolean toRight = x < u.x;
+				boolean toBottom = y < u.y;
 				dx += (toRight ? 1 : -1) * f;
 				dy += (toBottom ? 1 : -1) * f;
 			}
@@ -2496,11 +2503,8 @@ public class Comet extends ClassController {
 		}
 
 		@Override void doLoopOutOfField() {
-			if (isActive) {
-				if (y < 0) y = game.field.height;
-				if (y > game.field.height) y = 0;
-				if (x < 0 || x > game.field.width) dead = true;
-			}
+			if (!isActive && (x < 0 || x > game.field.width)) dead = true;
+			else super.doLoopOutOfField();
 		}
 
 		private void seek() {
@@ -2525,11 +2529,17 @@ public class Comet extends ClassController {
 					//    Behavior: simulated turning with
 					double dirTarget = dir(enemy);
 					double dirDiff = dirDiff(direction,dirTarget);
-					double dRotationMax = ttlVal(D360,seconds(3));
 					double dRotationAbs = min(dRotationMax,abs(dirDiff));
 					direction += sign(dirDiff)*dRotationAbs;
 				} else {
-					engine.off();
+					// Behavior
+					// 1) Do nothing - not bad, works pretty well
+					// engine.off();
+
+					// 2) Keep going straight - more natural than 1)
+					engine.on();
+					ddirection = dRotationMax;
+					direction += 2*ddirection;
 				}
 			} else {
 				engine.on();
@@ -2537,7 +2547,8 @@ public class Comet extends ClassController {
 		}
 
 		@Override void draw() {
-			drawUfoDisc(x,y,direction, true);
+			double makeBigger = 2;
+			drawUfoDisc(x,y,direction, graphicsScale*makeBigger);
 		}
 
 		double interUfoDiscForce(UfoDisc ud) {
@@ -2577,7 +2588,7 @@ public class Comet extends ClassController {
 		}
 	}
 
-	private void drawUfoDisc(double x, double y, double dir, boolean isAutonomous) {
+	private void drawUfoDisc(double x, double y, double dir, double scale) {
 		gc.setFill(game.ufos.color);
 //		gc.setGlobalAlpha(0.5);
 //		gc.setStroke(game.ufos.color);
@@ -2586,7 +2597,7 @@ public class Comet extends ClassController {
 //		gc.strokeOval(x-UFO_DISC_RADIUS,y-UFO_DISC_RADIUS,2*UFO_DISC_RADIUS,2*UFO_DISC_RADIUS);
 //		gc.setGlobalAlpha(1);
 //		gc.setStroke(null);
-		drawTriangle(gc, x,y,(isAutonomous ? 2 : 1)*UFO_DISC_RADIUS, dir, 3*PI/4);
+		drawTriangle(gc, x,y,scale*UFO_DISC_RADIUS, dir, 3*PI/4);
 	}
 	private void drawUfoRadar(double x, double y) {
 		gc.setGlobalAlpha(0.3);
@@ -2941,6 +2952,12 @@ public class Comet extends ClassController {
 
 					UfoDisc ud = (UfoDisc)e;
 					if (owner instanceof Rocket) {
+						game.oss.get(UfoDisc.class).stream()
+								.filter(u -> ud.swarmId==u.swarmId && !u.isActive)
+								.forEach(u -> {
+									u.enemy = (Rocket)owner;
+									u.isActive = true;
+								});
 						ud.explode();
 						((Rocket)owner).player.score.setValueOf(s -> s + (int)SCORE_UFO_DISC);
 					}

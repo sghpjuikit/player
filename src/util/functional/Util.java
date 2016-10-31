@@ -3,11 +3,11 @@ package util.functional;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
+import org.reactfx.util.TriFunction;
+
+import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.EntryStream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
@@ -15,6 +15,9 @@ import util.SwitchException;
 import util.collections.Tuple2;
 import util.functional.Functors.*;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -989,6 +992,30 @@ public interface Util {
 			i = operation.apply(i);
 		}
 		return b.build();
+	}
+
+	static <R> Stream<R> forEachInLine(double fromX, double fromY, double toX, double toY, long count, BiFunction<Double,Double,R> mapper) {
+		return forEachInLine((toX-fromX)/(count-1), (toY-fromY)/(count-1), count, mapper);
+	}
+
+	static <R> Stream<R> forEachInLine(double byX, double byY, long count, BiFunction<Double,Double,R> mapper) {
+		return IntStream.iterate(0, i-> i<=count, i -> i++)
+				.mapToObj(i -> mapper.apply(i*byX, i*byY));
+	}
+
+	static <R> StreamEx<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
+		return forEachOnCircle(0, 0, 1, count, mapper);
+	}
+
+	static <R> StreamEx<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
+		double circumference = by*count;
+		double radius = circumference/(2*PI);
+		return forEachOnCircle(x, y, radius, count, mapper);
+	}
+
+	static <R> StreamEx<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
+		return DoubleStreamEx.iterate(0, a-> a+2*PI/count).limit(count)
+				.mapToObj(a -> mapper.apply(x+radius*cos(a), y+radius*sin(a), a));
 	}
 
 /****************************** () -> collection ******************************/

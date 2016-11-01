@@ -228,8 +228,8 @@ public class Comet extends ClassController {
 		double BONUS_MOBILITY_MULTIPLIER = 1.25; // coefficient
 		double ROTATION_SPEED = 1.3 * PI / FPS; // 540 deg/sec.
 		double RESISTANCE = 0.98; // slow down factor
-		int ROT_LIMIT = 70; // smooths rotation at small scale, see use
-		int ROT_DEL = 7; // smooths rotation at small scale, see use
+		int ROT_LIMIT = 100; // smooths rotation at small scale, see use
+		int ROT_DEL = 10; // smooths rotation at small scale, see use
 
 		double PLAYER_BULLET_SPEED = 420 / FPS; // bullet speed in px/s/fps
 		double PLAYER_BULLET_TTL = ttl(seconds(0.7)); // bullet time of living
@@ -1366,7 +1366,8 @@ public class Comet extends ClassController {
 			// we slow down rotation within the first ROT_LIMIT ms after key press and reduce rotation
 			// limit temporarily without decreasing maneuverability.
 			// The rotation decrease is nonlinear and continuous
-			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED/((ROT_LIMIT/ROT_DEL+1)-pressedMsAgo/ROT_DEL) : ROTATION_SPEED;
+//			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED/((ROT_LIMIT/ROT_DEL+1)-pressedMsAgo/ROT_DEL) : ROTATION_SPEED;
+			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED*clip(0.1,pow(pressedMsAgo/ROT_LIMIT,2),1) : ROTATION_SPEED;
 			return rocket.engine.mobility.value()*r;
 		}
 

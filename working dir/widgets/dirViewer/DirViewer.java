@@ -58,7 +58,7 @@ import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
-import static util.dev.Util.noFXThread;
+import static util.dev.Util.throwIfNotFxThread;
 import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
@@ -389,7 +389,7 @@ public class DirViewer extends ClassController {
          * Must be called on FX thread.
          */
         private void setCoverNow(Item item) {
-	        noFXThread();
+	        throwIfNotFxThread();
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
@@ -407,7 +407,7 @@ public class DirViewer extends ClassController {
         }
 
 	    private void setCoverLater(Item item) {
-		    noFXThread();
+		    throwIfNotFxThread();
 		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		    setCoverLater.push(item);
 	    }

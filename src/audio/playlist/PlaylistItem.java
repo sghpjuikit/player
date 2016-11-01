@@ -32,7 +32,7 @@ import util.units.FormattedDuration;
 import static util.Util.capitalizeStrong;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
-import static util.dev.Util.noFXThread;
+import static util.dev.Util.throwIfFxThread;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.type.Util.mapEnumConstantName;
 
@@ -198,7 +198,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         }
 
         if (isFileBased()) {
-		    noFXThread();
+		    throwIfFxThread();
             // update as file based item
             try {
                 // read tag for data

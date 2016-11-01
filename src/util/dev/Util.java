@@ -78,9 +78,14 @@ public interface Util {
         for (Object o : os) if (o==null) throw new IllegalStateException("Null forbidden");
     }
 
-    static void noFXThread() {
+    static void throwIfFxThread() {
 	    if (Platform.isFxApplicationThread())
-		    throw new IllegalStateException("Loading image on FX thread!");
+		    throw new IllegalStateException("Must not be invoked on FX application thread!");
+    }
+
+    static void throwIfNotFxThread() {
+	    if (!Platform.isFxApplicationThread())
+		    throw new IllegalStateException("Must be invoked on FX application thread!");
     }
 
     static void noFinal(Field f) {

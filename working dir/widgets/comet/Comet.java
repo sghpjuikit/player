@@ -283,7 +283,7 @@ public class Comet extends ClassController {
 		double UFO_DISC_HIT_RADIUS = 9;
 		int UFO_DISC_DECISION_TIME_TTL = (int) ttl(millis(500));
 		double UFO_EXPLOSION_RADIUS = 100;
-		double UFO_DISC_EXPLOSION_RADIUS = 15;
+		double UFO_DISC_EXPLOSION_RADIUS = 8;
 
 		static double UFO_TTL() { return ttl(seconds(randMN(40, 100))); }
 
@@ -369,7 +369,7 @@ public class Comet extends ClassController {
 		for (int j=0; j<pointCount; j++) {
 			int k = j==pointCount-1 ? 0 : j+1;
 			double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
-			if (game.field.contains(x1,y1) || game.field.contains(x2,y2))
+			if (game.field.isInside(x1,y1) || game.field.isInside(x2,y2))
 				drawLine(x1,y1,x2,y2);
 		}
 	}
@@ -942,7 +942,7 @@ public class Comet extends ClassController {
 					ufos.onUfoDestroyed();
 				}
 			});
-			oss.forEach(Rocket.class,UfoDisc.class, (r,ud) -> {
+			oss.forEach(Rocket.class,UfoSwarmer.class, (r, ud) -> {
 				if (!r.isin_hyperspace && r.isHitDistance(ud)) {
 					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
 						r.dx = r.dy = 0;
@@ -1160,14 +1160,18 @@ public class Comet extends ClassController {
 				if (randBoolean()) {
 					repeat(count, () -> runNext.add(seconds(rand0N(0.5)), () -> sendUfo(side)));
 				} else {
-					double h = rand0N(game.field.height);
-					int swarm = Utils.randInt(Integer.MAX_VALUE);
-//					repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoDisc(5, modY(h + i * 12), D360).isActive = false));
-					Util.forEachOnCircleBy(300,300,15,8*count,(x,y,a) -> new UfoDisc(x,modY(y),D360))
-							.forEach(u -> {
-								u.isActive = false;
-								u.swarmId = swarm;
-							});
+					double w = 0, h = rand0N(game.field.height);
+					pulseAlert(w, h);
+					int swarmId = randInt(Integer.MAX_VALUE);
+					runNext.add(millis(500), () ->
+//						repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoSwarmer(5, modY(h + i * 12), D360).isActive = false));
+						Util.forEachOnCircleBy(w,h,15,8*count,(x,y,a) -> new UfoSwarmer(x,modY(y),D360))
+								.forEach(u -> {
+									u.isActive = false;
+									u.isInitialOutOfField = true;
+									u.swarmId = swarmId;
+								})
+					);
 				}
 			}
 			private void sendUfo(Side side) {
@@ -2367,7 +2371,7 @@ public class Comet extends ClassController {
 				game.ufos.canSpawnDiscs = false;
 				double spawnX = x, spawnY = y;
 				radio.run();
-				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoDisc(spawnX, spawnY, i*D360/5)));
+				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoSwarmer(spawnX, spawnY, i*D360/5)));
 			}
 		};
 
@@ -2486,14 +2490,17 @@ public class Comet extends ClassController {
 		}
 	}
 	/** Ufo heavy projectiles. Autonomous rocket-seekers. */
-	class UfoDisc extends Ship {
+	class UfoSwarmer extends Ship {
 		Rocket enemy = null;
+		/** True if actively looks for target to pursuit. */
 		boolean isActive = true;
+		/** Set to true if spawns outside of the field to prevent instant death. */
+		boolean isInitialOutOfField = false;
 		int swarmId = -1;
 		double dRotationMax = ttlVal(D360,seconds(3));
 
-		public UfoDisc(double X, double Y, double DIR) {
-			super(UfoDisc.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
+		public UfoSwarmer(double X, double Y, double DIR) {
+			super(UfoSwarmer.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
 			mass = 4;
 			direction = DIR;
 			engine = new Engine() {
@@ -2512,8 +2519,9 @@ public class Comet extends ClassController {
 
 		@Override void move() {
 			// prevents overlap using repulsion
-			for (UfoDisc u : game.oss.get(UfoDisc.class)) {
-				if (u == this || swarmId==u.swarmId) continue;
+			for (UfoSwarmer u : game.oss.get(UfoSwarmer.class)) {
+				boolean isInFormation = !u.isActive && swarmId==u.swarmId;
+				if (u == this || isInFormation) continue;
 				double f = interUfoDiscForce(u);
 				boolean toRight = x < u.x;
 				boolean toBottom = y < u.y;
@@ -2526,8 +2534,16 @@ public class Comet extends ClassController {
 		}
 
 		@Override void doLoopOutOfField() {
-			if (!isActive && (x < 0 || x > game.field.width)) dead = true;
-			else super.doLoopOutOfField();
+			if (isInitialOutOfField) {
+				if (game.field.isInside(x, y))
+					isInitialOutOfField = false;
+			} else {
+				if (!isActive) {
+					if (game.field.isOutsideX(x))
+						dead = true;
+				} else
+					super.doLoopOutOfField();
+			}
 		}
 
 		private void seek() {
@@ -2574,7 +2590,7 @@ public class Comet extends ClassController {
 			drawUfoDisc(x,y,direction, graphicsScale*makeBigger);
 		}
 
-		double interUfoDiscForce(UfoDisc ud) {
+		double interUfoDiscForce(UfoSwarmer ud) {
 			double distMax = 16;
 			double dist = distance(ud);
 			return dist>distMax ? 0 : -0.5*pow((1-dist/distMax),2);
@@ -2583,7 +2599,7 @@ public class Comet extends ClassController {
 		void explode() {
 			dead = true;
 			drawUfoDiscExplosion(x,y);
-			for (UfoDisc ud : game.oss.get(UfoDisc.class)) {
+			for (UfoSwarmer ud : game.oss.get(UfoSwarmer.class)) {
 				if (distance(ud)<=UFO_DISC_EXPLOSION_RADIUS)
 					game.runNext.add(millis(100),ud::explode);
 			}
@@ -2613,13 +2629,6 @@ public class Comet extends ClassController {
 
 	private void drawUfoDisc(double x, double y, double dir, double scale) {
 		gc.setFill(game.ufos.color);
-//		gc.setGlobalAlpha(0.5);
-//		gc.setStroke(game.ufos.color);
-//		gc.strokeOval(x-UFO_DISC_RADIUS,y-UFO_DISC_RADIUS,2*UFO_DISC_RADIUS,2*UFO_DISC_RADIUS);
-//		gc.strokeOval(x-UFO_DISC_RADIUS,y-UFO_DISC_RADIUS,2*UFO_DISC_RADIUS,2*UFO_DISC_RADIUS);
-//		gc.strokeOval(x-UFO_DISC_RADIUS,y-UFO_DISC_RADIUS,2*UFO_DISC_RADIUS,2*UFO_DISC_RADIUS);
-//		gc.setGlobalAlpha(1);
-//		gc.setStroke(null);
 		drawTriangle(gc, x,y,scale*UFO_DISC_RADIUS, dir, 3*PI/4);
 	}
 	private void drawUfoRadar(double x, double y) {
@@ -2969,13 +2978,13 @@ public class Comet extends ClassController {
 						drawUfoExplosion(u.x,u.y);
 					}
 				} else
-				if (e instanceof UfoDisc) {
+				if (e instanceof UfoSwarmer) {
 					if (owner instanceof Rocket)
 						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
 
-					UfoDisc ud = (UfoDisc)e;
+					UfoSwarmer ud = (UfoSwarmer)e;
 					if (owner instanceof Rocket) {
-						game.oss.get(UfoDisc.class).stream()
+						game.oss.get(UfoSwarmer.class).stream()
 								.filter(u -> ud.swarmId==u.swarmId && !u.isActive)
 								.forEach(u -> {
 									u.enemy = (Rocket)owner;
@@ -4309,20 +4318,20 @@ public class Comet extends ClassController {
 			for (Particle p : game.oss.get(Particle.class)) {
 				if (p.ignore_blackholes) continue;
 
-				double distx = distXSigned(x,p.x);
-				double disty = distYSigned(y,p.y);
-				double dist = dist(distx,disty)+1; // +1 avoids /0
+				double distX = distXSigned(x,p.x);
+				double distY = distYSigned(y,p.y);
+				double dist = dist(distX,distY)+1; // +1 avoids /0
 				double f = force(p.mass,dist);
 
 				p.dx *= 0.99;
 				p.dy *= 0.99;
-				p.dx += distx*f/dist;
-				p.dy += disty*f/dist;
+				p.dx += distX*f/dist;
+				p.dy += distY*f/dist;
 
 				// Overload effect
 				// Too many particles cause BH to erupt some.
 				// Two reasons:
-				//    1) BHs stop particle aging and cause particle count explotion (intended) and
+				//    1) BHs stop particle aging and cause particle count explosion (intended) and
 				//       if got out of hand, performance suffers significantly. This solves the
 				//       problem rather elegantly
 				//          a) system agnostic - no tuning is necessary except for PARTICLE LIMIT
@@ -4339,7 +4348,7 @@ public class Comet extends ClassController {
 					double gravity_potential_inv = computeForceInversePotential(dist,220);
 					double gravity_potential = 1-gravity_potential_inv;
 
-					// dont age near black hole
+					// don't age near black hole
 					p.g_potential *= gravity_potential_inv;
 
 					// ergosphere rotation effect
@@ -4525,12 +4534,12 @@ public class Comet extends ClassController {
 		double fy = 0;
 		for (Player p : game.players) {
 			if (p.rocket!=null) {
-				double distx = distXSigned(o.x,p.rocket.x);
-				double disty = distYSigned(o.y,p.rocket.y);
-				double dist = dist(distx,disty)+1;
+				double distX = distXSigned(o.x,p.rocket.x);
+				double distY = distYSigned(o.y,p.rocket.y);
+				double dist = dist(distX,distY)+1;
 				double f = 1 - min(1,dist/maxDist);
-				fx += distx*f*f*f/dist;
-				fy += disty*f*f*f/dist;
+				fx += distX*f*f*f/dist;
+				fy += distY*f*f*f/dist;
 			}
 		}
 		o.dx += fx;

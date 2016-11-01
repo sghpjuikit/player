@@ -58,8 +58,6 @@
 - remove appliers from all configs, its bad design. use maintain() and subscriptions
 - figure out gui error reporting method
 - figure out image animation auto-play def behavior & indicative play/pause mechanism
-- widget compilation - report errors back to user through gui (popup? notifications? else?)
-- widget manager monitor .fxml files too
 - LibraryView placeholder does not detect empty table correctly
 - explicit config for song enqueue order (Comparator)
 - Configurator implement drag & drop of Configurables, support any object by turning it into
@@ -72,7 +70,6 @@
 - ClassMaps should support concurrency if desired
 - Metadata cover caching causes outdated data if cover is set to tag
 - layout mode zoom animation use loop to increase smoothness
-- FileSize use unsigned long to support even larger units
 - config field add checkbox list config field, implement for fileInfo
 - volume add linear vs logarithmic option
 - Inspector implement 'preview'/info pane
@@ -178,10 +175,6 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   but the window does not cover whole screen - maybe its too soon 
   and the window is not really fully initialized 
   solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
-- some local shortcuts (F3,F4,F5,...) not registering as app shortcuts                              (major)
-  cause: unknown, so far affects only some F keys (some F keys are fine) 
-  solution: delay registering in runLater()                                                         (great)
-  details: see Action.class register() 
 - Icon does not support disabled style (opacity 0.4). Thus it was added in css.                     (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
   style gets applied twice! javafx apparently applies the disabled state on the
@@ -227,10 +220,13 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   with different behaviors. does not assume and consume. If the parent's behavior needs to run no matter 
   what its children do, then it should use event filters to bypass the consumption.
 
-  -Dprism.order=j2d
-  -Dprism.order=sw
-
-// JavaFX JVM params
+  some useful JVM params to know
+ -Dprism.order=j2d
+ -Dprism.order=sw
+ -Dprism.verbose="true"
+ -Dprism.allowhidpi="true"
+ -Dglass.win.minHiDPI=1
+ -Dglass.win.renderScale=1
  -Djavafx.pulseLogger=true // javafx pulse debug
  -Djavafx.animation.fullspeed=true
  -Djavafx.animation.framerate=120

@@ -22,6 +22,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
+import static util.dev.Util.no;
 import static util.dev.Util.noØ;
 import static util.dev.Util.yes;
 
@@ -995,26 +996,32 @@ public interface Util {
 	}
 
 	static <R> Stream<R> forEachInLine(double fromX, double fromY, double toX, double toY, long count, BiFunction<Double,Double,R> mapper) {
-		return forEachInLine((toX-fromX)/(count-1), (toY-fromY)/(count-1), count, mapper);
+		no(count<0);
+		return forEachInLineBy(fromX, fromY, count<=1 ? 0 : (toX-fromX)/(count-1), count<=1 ? 0 : (toY-fromY)/(count-1), count, mapper);
 	}
 
-	static <R> Stream<R> forEachInLine(double byX, double byY, long count, BiFunction<Double,Double,R> mapper) {
-		return IntStream.iterate(0, i-> i<=count, i -> i++)
-				.mapToObj(i -> mapper.apply(i*byX, i*byY));
+	static <R> Stream<R> forEachInLineBy(double x, double y, double byX, double byY, long count, BiFunction<Double,Double,R> mapper) {
+		no(count<0);
+		return IntStream.iterate(0, i -> i<=count, i -> i+1)
+				.mapToObj(i -> mapper.apply(x+i*byX, y+i*byY));
 	}
 
 	static <R> StreamEx<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
+		no(count<0);
 		return forEachOnCircle(0, 0, 1, count, mapper);
 	}
 
 	static <R> StreamEx<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
+		no(count<0);
 		double circumference = by*count;
 		double radius = circumference/(2*PI);
 		return forEachOnCircle(x, y, radius, count, mapper);
 	}
 
 	static <R> StreamEx<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
-		return DoubleStreamEx.iterate(0, a-> a+2*PI/count).limit(count)
+		no(count<0);
+		return DoubleStreamEx.iterate(0, a-> a+2*PI/count)
+				.limit(count)
 				.mapToObj(a -> mapper.apply(x+radius*cos(a), y+radius*sin(a), a));
 	}
 

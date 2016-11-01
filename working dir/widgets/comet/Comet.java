@@ -53,7 +53,6 @@ import util.conf.ListConfigurable;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
-import util.functional.Util;
 import util.reactive.SetƑ;
 import util.validation.Constraint;
 
@@ -330,14 +329,14 @@ public class Comet extends ClassController {
 	void drawDottedLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
 		gc.setFill(color);
 		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
-			gc.fillOval(modX(x+i*cosDir), modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+			gc.fillOval(game.field.modX(x+i*cosDir), game.field.modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
 	}
 	void drawHudLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
 		gc.setFill(color);
 		gc.setGlobalAlpha(HUD_OPACITY);
 
 		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
-			gc.fillOval(modX(x+i*cosDir), modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+			gc.fillOval(game.field.modX(x+i*cosDir), game.field.modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
 
 		gc.setGlobalAlpha(1);
 	}
@@ -351,7 +350,7 @@ public class Comet extends ClassController {
 		double angleBy = angleWidth/pieces;
 		for (int p=0; p<pieces; p++) {
 			double a = angleStart+p*angleBy;
-			gc.fillOval(modX(x+r*cos(a)), modY(y+r*sin(a)), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+			gc.fillOval(game.field.modX(x+r*cos(a)), game.field.modY(y+r*sin(a)), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
 		}
 
 		gc.setGlobalAlpha(1);
@@ -528,12 +527,11 @@ public class Comet extends ClassController {
 		};
 
 		final Loop loop = new Loop(this::doLoop);
+		final GameSize field = new GameSize();
 		final UfoFaction ufos = new UfoFaction();
 		final PlayerFaction humans = new PlayerFaction();
 		final TTLList runNext = new TTLList();
 		final Set<PO> removables = new HashSet<>();
-
-		final GameSize field = new GameSize();
 
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		boolean useGrid = true;
@@ -997,7 +995,7 @@ public class Comet extends ClassController {
 			stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawBack);
 			stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
 
-			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, Comet.this);
+			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
 
 //	        gc.setGlobalAlpha(1);
 //	        gc.setLineWidth(1);
@@ -1163,15 +1161,20 @@ public class Comet extends ClassController {
 					double w = 0, h = rand0N(game.field.height);
 					pulseAlert(w, h);
 					int swarmId = randInt(Integer.MAX_VALUE);
-					runNext.add(millis(500), () ->
-//						repeat(8 * count, i -> runNext.add(millis(i * 80), () -> new UfoSwarmer(5, modY(h + i * 12), D360).isActive = false));
-						Util.forEachOnCircleBy(w,h,15,8*count,(x,y,a) -> new UfoSwarmer(x,modY(y),D360))
-								.forEach(u -> {
+					runNext.add(millis(500), () -> {
+						if (randBoolean())
+							forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
 									u.isActive = false;
 									u.isInitialOutOfField = true;
 									u.swarmId = swarmId;
-								})
-					);
+								});
+						else
+							forEachOnCircleBy(w, h, 15, 8 * count, (x, y, a) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
+									u.isActive = false;
+									u.isInitialOutOfField = true;
+									u.swarmId = swarmId;
+								});
+					});
 				}
 			}
 			private void sendUfo(Side side) {
@@ -1434,16 +1437,14 @@ public class Comet extends ClassController {
 			draw();
 		}
 		void doLoopOutOfField() {
-			if (x<0) x = game.field.width;
-			else if (x>game.field.width) x = 0;
-			if (y<0) y = game.field.height;
-			else if (y>game.field.height) y = 0;
+			x = game.field.modX(x);
+			y = game.field.modY(y);
 		}
 		double distance(PO o) {
-			return dist(this.x,this.y,o.x,o.y);
+			return game.field.dist(this.x,this.y,o.x,o.y);
 		}
 		boolean isDistanceLess(SO o, double dist) {
-			return isDistLess(this.x,this.y,o.x,o.y, dist);
+			return game.field.isDistLess(this.x,this.y,o.x,o.y, dist);
 		}
 		boolean isHitDistance(SO o) {
 			return isDistanceLess(o,radius+o.radius);
@@ -1453,8 +1454,8 @@ public class Comet extends ClassController {
 			return dir(to.x, to.y);
 		}
 		double dir(double tox, double toy) {
-			double tx = distXSigned(x,tox);
-			double ty = distYSigned(y,toy);
+			double tx = game.field.distXSigned(x,tox);
+			double ty = game.field.distYSigned(y,toy);
 			return (tx<0 ? 0 : PI) + atan(ty/tx);
 			// ???
 //			double a = atan2(tx,-ty);
@@ -1747,14 +1748,14 @@ public class Comet extends ClassController {
 					if (!(o instanceof Rocket)) return;  // too much performance costs for no benefits
 					if (isin_hyperspace!=o.isin_hyperspace) return;
 
-					double distx = distXSigned(x,o.x);
-					double disty = distYSigned(y,o.y);
-					double dist = dist(distx,disty)+1; // +1 avoids /0 " + dist);
+					double distX = game.field.distXSigned(x,o.x);
+					double distY = game.field.distYSigned(y,o.y);
+					double dist = game.field.dist(distX,distY)+1; // +1 avoids /0 " + dist);
 					double f = force(o.mass,dist);
 
 					// apply force
-					o.dx += distx*f/dist;
-					o.dy += disty*f/dist;
+					o.dx += distX*f/dist;
+					o.dy += distY*f/dist;
 				}
 
 				public double force(double mass, double dist) {
@@ -1900,9 +1901,9 @@ public class Comet extends ClassController {
 					if (o==Ship.this) return; // must not affect itself
 					if (isin_hyperspace || o.isin_hyperspace) return;
 
-					double distx = distXSigned(x,o.x);
-					double disty = distYSigned(y,o.y);
-					double dist = dist(distx,disty)+1; // +1 avoids /0 " + dist);
+					double distX = game.field.distXSigned(x,o.x);
+					double distY = game.field.distYSigned(y,o.y);
+					double dist = game.field.dist(distX,distY)+1; // +1 avoids /0 " + dist);
 					double f = force(o.mass,dist);
 					boolean noeffect = false;
 
@@ -1933,8 +1934,8 @@ public class Comet extends ClassController {
 
 					// apply force
 					if (noeffect) return;
-					o.dx += distx*f/dist;
-					o.dy += disty*f/dist;
+					o.dx += distX*f/dist;
+					o.dy += distY*f/dist;
 				}
 
 				@Override
@@ -2224,7 +2225,7 @@ public class Comet extends ClassController {
 				gc.setFill(Color.AQUA);
 				gc.setGlobalAlpha(0.4);
 				for (int i=20; i<500; i+=5)
-					gc.fillOval(modX(x+i*cosdir), modY(y+i*sindir), 2,2);
+					gc.fillOval(game.field.modX(x+i*cosdir), game.field.modY(y+i*sindir), 2,2);
 				gc.setGlobalAlpha(1);
 			}
 		}
@@ -2304,7 +2305,7 @@ public class Comet extends ClassController {
 
 			if (gun.blackhole.is()) {
 				gc.setFill(Color.BLACK);
-				drawHudCircle(modX(x+bulletRange*cos(direction)),modY(y+bulletRange*sin(direction)), 50, HUD_COLOR);
+				drawHudCircle(game.field.modX(x+bulletRange*cos(direction)),game.field.modY(y+bulletRange*sin(direction)), 50, HUD_COLOR);
 			}
 
 			// rocket-rocket 'quark entanglement' formation force
@@ -2458,9 +2459,8 @@ public class Comet extends ClassController {
 		}
 
 		@Override void doLoopOutOfField() {
-			if (y<0) y = game.field.height;
-			if (y>game.field.height) y = 0;
-			if (x<0 || x>game.field.width) dead = true;
+			y = game.field.modY(y);
+			if (game.field.isOutsideX(x)) dead = true;
 		}
 
 		@Override void draw() {
@@ -2818,14 +2818,11 @@ public class Comet extends ClassController {
 
 		void move() {}
 		void doLoopOutOfField() {
-			if (y<0) y = game.field.height;
-			if (y>game.field.height) y = 0;
-			if (isLarge) {
-				if (x<0 || x>game.field.width) dead = true;
-			} else {
-				if (x<0) x = game.field.width;
-				if (x>game.field.width) x = 0;
-			}
+			y = game.field.modY(y);
+			if (isLarge)
+				if (game.field.isOutsideX(x)) dead = true;
+			else
+				x = game.field.modX(x);
 		}
 		void pickUpBy(Rocket r) {
 			e.enhance(r);
@@ -2864,7 +2861,9 @@ public class Comet extends ClassController {
 			x += dx;
 			y += dy;
 			doLoopOutOfField();
+
 			// draw(); must be called after collision checking
+
 			ttl -= g_potential*ttl_d;
 			if (ttl<0) {
 				dead = true;
@@ -2880,11 +2879,11 @@ public class Comet extends ClassController {
 		@Override
 		void draw() {
 			// the classic point bullet
-			double r = isHighEnergy ?  4 : 2;
-//            gc_bgr.setFill(color);
-//	        gc_bgr.fillOval(x-1,y-1,r,r);
+//			double r = isHighEnergy ?  4 : 2;
+//			gc_bgr.setFill(color);
+//			gc_bgr.fillOval(x-1,y-1,r,r);
 
-//            // line bullets
+			// line bullets
 			GraphicsContext g = gc_bgr;
 			g.setGlobalAlpha(0.4);
 			g.setStroke(color);
@@ -2909,9 +2908,9 @@ public class Comet extends ClassController {
 			// Fast bullets need interpolating (we check inter-frame collisions)
 			// Im still not sure this is the best implementation as far as performance goes and
 			// it may require some tuning, but otherwise helps a lot.
-			double speedsqr = dx*dx+dy*dy;
-			if (speedsqr>25) {// if speed > 5px/frame
-				int iterations = (int) speedsqr/25;
+			double speedSqr = dx*dx+dy*dy;
+			if (speedSqr>25) {// if speed > 5px/frame
+				int iterations = (int) speedSqr/25;
 				for (int i=-(iterations-1); i<=0; i++) {
 					boolean isHit = checkWithXY(e, x+dx*i/iterations, y+dy*i/iterations);
 					if (isHit) break;
@@ -4169,9 +4168,9 @@ public class Comet extends ClassController {
 			// Gravity affects all dimensions. Hyperspace is irrelevant.
 			// if (ff.isin_hyperspace!=o.isin_hyperspace) return;
 
-			double distx = distXSigned(x,o.x);
-			double disty = distYSigned(y,o.y);
-			double dist = dist(distx,disty)+1; // +1 avoids /0 or /very_small_number);
+			double distX = game.field.distXSigned(x,o.x);
+			double distY = game.field.distYSigned(y,o.y);
+			double dist = game.field.dist(distX,distY)+1; // +1 avoids /0 or /very_small_number);
 			double f = force(o.mass,dist);
 
 			double gravity_potential_inv = computeForceInversePotential(dist,radius_gravity);
@@ -4191,8 +4190,8 @@ public class Comet extends ClassController {
 			// This actually simplifies near-BH control (it allows orbiting BH using just 1 key)
 			// and its a nice effect.
 			if (isShip && dist<radius_ergosphere) {
-				double ergo_potentiall_inv = computeForceInversePotential(dist,radius_ergosphere);
-				double ergo_potential = 1-ergo_potentiall_inv;
+				double ergo_potential_inv = computeForceInversePotential(dist,radius_ergosphere);
+				double ergo_potential = 1-ergo_potential_inv;
 				double dir = o.dir(this);
 				Ship s = (Ship)o;
 				double angle = s.direction-dir;
@@ -4248,8 +4247,8 @@ public class Comet extends ClassController {
 //            }
 
 			// apply force
-			o.dx += anti*distx*f/dist;
-			o.dy += anti*disty*f/dist;
+			o.dx += anti*distX*f/dist;
+			o.dy += anti*distY*f/dist;
 		}
 
 		@Override public double force(double mass, double dist) {
@@ -4318,9 +4317,9 @@ public class Comet extends ClassController {
 			for (Particle p : game.oss.get(Particle.class)) {
 				if (p.ignore_blackholes) continue;
 
-				double distX = distXSigned(x,p.x);
-				double distY = distYSigned(y,p.y);
-				double dist = dist(distX,distY)+1; // +1 avoids /0
+				double distX = game.field.distXSigned(x,p.x);
+				double distY = game.field.distYSigned(y,p.y);
+				double dist = game.field.dist(distX,distY)+1; // +1 avoids /0
 				double f = force(p.mass,dist);
 
 				p.dx *= 0.99;
@@ -4442,86 +4441,6 @@ public class Comet extends ClassController {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.width)*/
-	public double modX(double x) {
-		if (x<0) return modX(game.field.width+x);
-		else if (x>game.field.width) return modX(x-game.field.width);
-		else return x;
-	}
-	/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.height)*/
-	public double modY(double y) {
-		if (y<0) return modY(game.field.height+y);
-		else if (y>game.field.height) return modY(y-game.field.height);
-		else return y;
-	}
-	public double distX(double x1, double x2) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return abs(x1-x2);
-
-		if (x1<x2) return min(x2-x1, x1+game.field.width-x2);
-		else return min(x1-x2, x2+game.field.width-x1);
-	}
-	public double distY(double y1, double y2) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return abs(y1-y2);
-
-		if (y1<y2) return min(y2-y1, y1+game.field.height-y2);
-		else return min(y1-y2, y2+game.field.height-y1);
-	}
-	public double distXSigned(double x1, double x2) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return x1-x2;
-
-		if (x1<x2) {
-			double d1 = x2-x1;
-			double d2 = x1+game.field.width-x2;
-			return d1<d2 ? -d1 : d2;
-		} else {
-			double d1 = x1-x2;
-			double d2 = x2+game.field.width-x1;
-			return d1<d2 ? d1 : -d2;
-		}
-	}
-	public double distYSigned(double y1, double y2) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return y1-y2;
-
-		if (y1<y2) {
-			double d1 = y2-y1;
-			double d2 = y1+game.field.height-y2;
-			return d1<d2 ? -d1 : d2;
-		} else {
-			double d1 = y1-y2;
-			double d2 = y2+game.field.height-y1;
-			return d1<d2 ? d1 : -d2;
-		}
-	}
-	public double dist(double x1, double y1, double x2, double y2) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-
-		double dx = distX(x1, x2);
-		double dy = distY(y1, y2);
-		return sqrt(dx*dx+dy*dy);
-	}
-	public double dist(double distX, double distY) {
-		return sqrt(distX*distX+distY*distY);
-	}
-	public boolean isDistLess(double x1, double y1, double x2, double y2, double as) {
-		// because we use modular coordinates (infinite field connected by borders), distance
-		// calculation needs a tweak
-		// return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2) < as*as;
-
-		double dx = distX(x1, x2);
-		double dy = distY(y1, y2);
-		return dx*dx+dy*dy < as*as;
-	}
-
 	/** Finds closest non-hyperspacing rocket to the obejct. */
 	Rocket findClosestRocketTo(SO to) {
 		return stream(game.oss.get(Rocket.class)).filter(r -> !r.isin_hyperspace)
@@ -4534,9 +4453,9 @@ public class Comet extends ClassController {
 		double fy = 0;
 		for (Player p : game.players) {
 			if (p.rocket!=null) {
-				double distX = distXSigned(o.x,p.rocket.x);
-				double distY = distYSigned(o.y,p.rocket.y);
-				double dist = dist(distX,distY)+1;
+				double distX = game.field.distXSigned(o.x,p.rocket.x);
+				double distY = game.field.distYSigned(o.y,p.rocket.y);
+				double dist = game.field.dist(distX,distY)+1;
 				double f = 1 - min(1,dist/maxDist);
 				fx += distX*f*f*f/dist;
 				fy += distY*f*f*f/dist;

@@ -1123,8 +1123,128 @@ interface Utils {
 			return this;
 		}
 
-		boolean contains(double x, double y) {
+		boolean isInside(double x, double y) {
 			return x>=0 && y>=0 && x<=width && y<=height;
+		}
+
+		boolean isInsideX(double x) {
+			return x>=0 && x<=width;
+		}
+
+		boolean isInsideY(double y) {
+			return y>=0 && y<=height;
+		}
+
+		boolean isOutside(double x, double y) {
+			return !isInside(x, y);
+		}
+
+		boolean isOutsideX(double x) {
+			return !isInsideX(x);
+		}
+
+		boolean isOutsideY(double y) {
+			return !isInsideY(y);
+		}
+
+		double clipInsideX(double x) {
+			if (x<0) return 0;
+			if (x>width) return width;
+			return x;
+		}
+
+		double clipInsideY(double y) {
+			if (y<0) return 0;
+			if (y>height) return height;
+			return y;
+		}
+
+		/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.width)*/
+		public double modX(double x) {
+			if (x<0) return modX(width+x);
+			else if (x>width) return modX(x-width);
+			else return x;
+		}
+
+		/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.height)*/
+		public double modY(double y) {
+			if (y<0) return modY(height+y);
+			else if (y>height) return modY(y-height);
+			else return y;
+		}
+
+		public double distX(double x1, double x2) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return abs(x1-x2);
+
+			if (x1<x2) return min(x2-x1, x1+width-x2);
+			else return min(x1-x2, x2+width-x1);
+		}
+
+		public double distY(double y1, double y2) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return abs(y1-y2);
+
+			if (y1<y2) return min(y2-y1, y1+height-y2);
+			else return min(y1-y2, y2+height-y1);
+		}
+
+		public double distXSigned(double x1, double x2) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return x1-x2;
+
+			if (x1<x2) {
+				double d1 = x2-x1;
+				double d2 = x1+width-x2;
+				return d1<d2 ? -d1 : d2;
+			} else {
+				double d1 = x1-x2;
+				double d2 = x2+width-x1;
+				return d1<d2 ? d1 : -d2;
+			}
+		}
+
+		public double distYSigned(double y1, double y2) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return y1-y2;
+
+			if (y1<y2) {
+				double d1 = y2-y1;
+				double d2 = y1+height-y2;
+				return d1<d2 ? -d1 : d2;
+			} else {
+				double d1 = y1-y2;
+				double d2 = y2+height-y1;
+				return d1<d2 ? d1 : -d2;
+			}
+		}
+
+		public double dist(double x1, double y1, double x2, double y2) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+
+			double dx = distX(x1, x2);
+			double dy = distY(y1, y2);
+			return sqrt(dx*dx+dy*dy);
+		}
+
+		public double dist(double distX, double distY) {
+			return sqrt(distX*distX+distY*distY);
+		}
+
+		public boolean isDistLess(double x1, double y1, double x2, double y2, double as) {
+			// because we use modular coordinates (infinite field connected by borders), distance
+			// calculation needs a tweak
+			// return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2) < as*as;
+
+			double dx = distX(x1, x2);
+			double dy = distY(y1, y2);
+			return dx*dx+dy*dy < as*as;
 		}
 	}
 	/**
@@ -1378,7 +1498,7 @@ interface Utils {
 			this.centerAction = centerAction;
 		}
 
-		public void compute(Set<Rocket> rockets, double W, double H, Comet game) {
+		public void compute(Set<Rocket> rockets, double W, double H, Game game) {
 			int size = rockets.size();
 			// has no solution for 0 points
 			if (size==0) return;
@@ -1395,7 +1515,7 @@ interface Utils {
 			}
 		}
 
-		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Comet game);
+		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Game game);
 
 	}
 
@@ -1412,7 +1532,7 @@ interface Utils {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected void doCompute(Set<Rocket> rockets, double W, double H, Comet game) {
+		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
 			Set<Site> cells = stream(rockets)
 				.flatMap(rocket -> {
 					Vec r = new Vec(rocket.x+rocket.cacheRandomVoronoiTranslation, rocket.y+rocket.cacheRandomVoronoiTranslation);
@@ -1454,14 +1574,14 @@ interface Utils {
 												  if (isMain) {
 													  Point2D c = polygon.getCentroid();
 													  areaAction.accept(rocket, polygon.getArea());
-													  distAction.accept(rocket, game.dist(c.x, c.y, rocket.x, rocket.y));
+													  distAction.accept(rocket, game.field.dist(c.x, c.y, rocket.x, rocket.y));
 													  centerAction.accept(c.x,c.y);
 												  }
 												  return polygon;
 											  }
 											  return null;
 										  })
-										  .filter(polygon -> game.game.humans.intelOn.is())
+										  .filter(polygon -> game.humans.intelOn.is())
 										  .filter(ISNTØ)
 										  // optimization: return edges -> draw edges instead of polygons, we can improve performance
 										  .flatMap(polygon -> {
@@ -1501,7 +1621,7 @@ interface Utils {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected void doCompute(Set<Rocket> rockets, double W, double H, Comet game) {
+		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
 			inputOutputMap.clear();
 			List<Coordinate> cells = stream(rockets)
 				.flatMap(rocket -> {
@@ -1539,10 +1659,10 @@ interface Utils {
 										Point c = polygon.getCentroid();
 										centerAction.accept(c.getX(), c.getY());
 										areaAction.accept(rocket, polygon.getArea());
-										distAction.accept(rocket, game.dist(c.getX(), c.getY(), rocket.x, rocket.y));
+										distAction.accept(rocket, game.field.dist(c.getX(), c.getY(), rocket.x, rocket.y));
 									}
 								})
-								.filter(polygon -> game.game.humans.intelOn.is())
+								.filter(polygon -> game.humans.intelOn.is())
 								// optimization: return edges -> draw edges instead of polygons, we can improve performance
 								 .flatMap(polygon -> {
 									 Coordinate[] cs = polygon.getCoordinates();

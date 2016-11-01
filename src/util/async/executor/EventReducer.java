@@ -112,7 +112,6 @@ public abstract class EventReducer<E> {
 
 
     private static class HandlerLast<E> extends EventReducer<E> {
-
         private final FxTimer t;
 
         public HandlerLast(double inter_period, Ƒ2<E, E, E> reduction, Consumer<E> handler) {
@@ -127,7 +126,6 @@ public abstract class EventReducer<E> {
 
     }
     private static class HandlerEvery<E> extends EventReducer<E> {
-
         private final FxTimer t;
         private long last = 0;
         boolean fired = false;
@@ -158,7 +156,6 @@ public abstract class EventReducer<E> {
 
     }
     private static class HandlerFirst<E> extends EventReducer<E> {
-
         private long last = 0;
 
         public HandlerFirst(double inter_period, Consumer<E> handler) {
@@ -196,15 +193,14 @@ public abstract class EventReducer<E> {
 
     }
     private static class HandlerFirstOfAtLeast<E> extends EventReducer<E> {
-
         private long first = 0;
         private long last = 0;
-        private final double atleast;
+        private final double atLeast;
         private boolean ran = false;
 
-        public HandlerFirstOfAtLeast(double inter_period, double atleast, Consumer<E> handler) {
+        public HandlerFirstOfAtLeast(double inter_period, double atLeast, Consumer<E> handler) {
             super(inter_period, null, handler);
-            this.atleast = atleast;
+            this.atLeast = atLeast;
         }
 
         @Override
@@ -218,7 +214,7 @@ public abstract class EventReducer<E> {
                 ran = false;
             }
 
-            boolean islongenough = now-first>=atleast;
+            boolean islongenough = now-first>= atLeast;
             if (islongenough && !ran) {
                 action.accept(e);
                 ran = true;

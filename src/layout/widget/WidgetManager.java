@@ -29,6 +29,7 @@ import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
 import util.SwitchException;
+import util.async.executor.EventReducer;
 import util.collections.mapset.MapSet;
 import util.dev.Idempotent;
 import util.file.FileMonitor;
@@ -170,6 +171,8 @@ public final class WidgetManager {
         FileMonitor srcMonitor;
         FileMonitor skinsMonitor;
         boolean monitorOn = false;
+        private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250, () -> runNew(() -> compile(getSrcFiles(),getLibFiles())));
+        private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500, () -> runFX(this::registerExternalFactory));
 
         WidgetDir(String name, File dir) {
             this.widgetname = name;
@@ -186,23 +189,26 @@ public final class WidgetManager {
 
             // monitor source files (any .java file) & recompile on change
 	        // Because the widget may be skinned (.css), load from fxml (.fxml) or use any kind of resource
-	        // (.jar, .txt, etc.), we will rather monitor all of the files except for .class. This may lead to
-	        // unnecessary reloads when these resources are being edited, but its just for developer convenience and
-	        // its still more inconvenient to force developer to refresh manually
+	        // (.jar, .txt, etc.), we will monitor all of the files except for .class, not just .java.
             classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> !file.getPath().endsWith(".class"), (type,file) -> {
                 if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} source file changed {}", file,type);
-                    runNew(() -> compile(getSrcFiles(),getLibFiles()));
+	                // Compile source files, but
+	                // - on new thread
+	                // - throttle subsequent events (multiple files may be changed at once, multiple events per file
+	                //   may be thrown at once (when applications create tmp files while saving)
+                    scheduleCompilation.push(null);
                 }
             });
             // monitor class file (only the main class' one) & recreate factory on change
             srcMonitor = FileMonitor.monitorFile(classfile, type -> {
                 if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} class file changed {}", widgetname,type);
-                    // run on fx thread & give the compilation some time to finish
-                    runFX(500, () ->
-                        registerExternalFactory()
-                    );
+                    // Register factory, but
+	                // - on fx thread
+	                // - throttle subsequent events to avoid inconsistent state & overloading ui thread
+	                // - give the compilation some time to finish
+                    scheduleRefresh.push(null);
                 }
             });
             // monitor skin file & reload factory on change
@@ -267,7 +273,8 @@ public final class WidgetManager {
                 // Else, we are initializing now, and we must be able to
                 // provide all factories before widgets start loading so we compile on this (ui/fx)
                 // thread. This blocks and delays startup, but it is fine - it is necessary
-                if (initialized) runNew(() -> compile(getSrcFiles(),getLibFiles()));
+                if (initialized)
+                	runNew(() -> compile(getSrcFiles(),getLibFiles()));
                 else {
                     boolean isSuccess = compile(getSrcFiles(),getLibFiles());
                     // File monitoring is not and must not be running yet (as it creates factory

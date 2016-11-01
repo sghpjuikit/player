@@ -175,7 +175,7 @@ public class Comet extends ClassController {
 			KeyCode cc = e.getCode();
 			boolean first_time = game.pressedKeys.add(cc);
 			if (first_time) {
-				game.keyPressTimes.put(cc,System.currentTimeMillis());
+				game.keyPressTimes.put(cc,game.loop.now);
 				game.players.stream().filter(p -> p.alive).forEach(p -> {
 					if (cc==p.keyAbility.getValue()) p.rocket.ability_main.onKeyPress();
 					if (cc==p.keyFire.getValue()) p.rocket.gun.fire();
@@ -430,7 +430,6 @@ public class Comet extends ClassController {
 		final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
 		final GamepadDevices gamepads = new GamepadDevices() {
 			private IControllerListener listener;
-			boolean wasLeft = false, wasRight = false;
 			@Override
 			public void init() {
 				super.init();
@@ -492,11 +491,10 @@ public class Comet extends ClassController {
 							boolean isFire = fireB!=null && fireB.isPressed();
 							boolean isFireOnce = fireB!=null && fireB.isPressedOnce();
 
-							// TODO: fix this causing very slow rotation when players.size()>1
-//							if (isLeft && !wasLeft) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
-//							if (isRight && !wasRight) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
-							wasLeft = isLeft;
-							wasRight = isRight;
+							if (isLeft && !p.wasGamepadLeft) keyPressTimes.put(p.keyLeft.get(),loop.now);
+							if (isRight && !p.wasGamepadRight) keyPressTimes.put(p.keyRight.get(),loop.now);
+							p.wasGamepadLeft = isLeft;
+							p.wasGamepadRight = isRight;
 
 							p.isInputThrust |= isEngine;
 							p.isInputLeft |= isLeft;
@@ -1274,6 +1272,7 @@ public class Comet extends ClassController {
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
 		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
 		boolean isInputLeft = false, isInputRight = false, isInputFire = false, isInputFireOnce = false, isInputThrust = false, isInputAbility = false;
+		boolean wasGamepadLeft = false, wasGamepadRight = false;
 		public boolean alive = false;
 		public final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
 		public final V<Integer> score = new V<>(0);
@@ -1351,7 +1350,7 @@ public class Comet extends ClassController {
 
 		void doInputs() {
 			if (alive) {
-				long now = System.currentTimeMillis();
+				long now = game.loop.now;
 				if (isInputLeft) rocket.direction -= computeRotSpeed(now-game.keyPressTimes.getOrDefault(keyLeft.get(), 0L));
 				if (isInputRight) rocket.direction += computeRotSpeed(now-game.keyPressTimes.getOrDefault(keyRight.get(), 0L));
 				if (isInputThrust) rocket.engine.on(); else rocket.engine.off();

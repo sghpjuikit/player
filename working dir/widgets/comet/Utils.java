@@ -82,7 +82,6 @@ import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
 /**
- *
  * @author Martin Polakovic
  */
 interface Utils {
@@ -308,8 +307,8 @@ interface Utils {
 		gc.closePath();
 		gc.fill();
 	}
-	static void strokeLine(GraphicsContext g, double x, double y, double lenght, double angleRad) {
-		g.strokeLine(x,y,x+lenght*cos(angleRad),y+lenght*sin(angleRad));
+	static void strokeLine(GraphicsContext g, double x, double y, double length, double angleRad) {
+		g.strokeLine(x,y,x+length*cos(angleRad),y+length*sin(angleRad));
 	}
 	static void drawRect(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;
@@ -327,10 +326,6 @@ interface Utils {
 	}
 	static Duration timeOfLoop(long loopIndex) {
 		return millis(loopIndex*FPS);
-	}
-
-	static boolean isNth(long loopId, long n) {
-		return loopId % n == 0;
 	}
 
 	static double randMN(double m, double n) {
@@ -372,6 +367,34 @@ interface Utils {
 		no(c.isEmpty());
 		int size = c.size();
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
+	}
+
+	class Loop extends util.animation.Loop {
+		/** Loop id, starts at 0, incremented by 1 every loop. */
+		public long id = 0;
+		/** The timestamp of the current loop given in milliseconds. */
+		public long now = 0;
+
+		public Loop(Runnable action) {
+			super(action);
+			reset();
+		}
+
+		public final void reset() {
+			id = 0;
+			now = 0;
+		}
+
+		@Override
+		protected void doLoop(long now) {
+			this.id++;
+			this.now = now/1000000;
+			super.doLoop(now);
+		}
+
+		boolean isNth(long n) {
+			return id % n == 0;
+		}
 	}
 
 	enum Side {

@@ -43,7 +43,6 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.access.V;
 import util.animation.Anim;
-import util.animation.Loop;
 import util.async.executor.FxTimer;
 import util.collections.mapset.MapSet;
 import util.conf.Config.ConfigurableVarList;
@@ -452,14 +451,10 @@ public class Comet extends ClassController {
 						}
 
 						@Override
-						public void buttonDown(IController iController, IButton iButton, ButtonID buttonID) {
-
-						}
+						public void buttonDown(IController iController, IButton iButton, ButtonID buttonID) {}
 
 						@Override
-						public void buttonUp(IController iController, IButton iButton, ButtonID buttonID) {
-
-						}
+						public void buttonUp(IController iController, IButton iButton, ButtonID buttonID) {}
 
 						@Override
 						public void moveStick(IController iController, StickID stickID) {
@@ -497,8 +492,9 @@ public class Comet extends ClassController {
 							boolean isFire = fireB!=null && fireB.isPressed();
 							boolean isFireOnce = fireB!=null && fireB.isPressedOnce();
 
-							if (isLeft && !wasLeft) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
-							if (isRight && !wasRight) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
+							// TODO: fix this causing very slow rotation when players.size()>1
+//							if (isLeft && !wasLeft) keyPressTimes.put(p.keyLeft.get(),System.currentTimeMillis());
+//							if (isRight && !wasRight) keyPressTimes.put(p.keyRight.get(),System.currentTimeMillis());
 							wasLeft = isLeft;
 							wasRight = isRight;
 
@@ -514,7 +510,6 @@ public class Comet extends ClassController {
 		};
 
 		final Loop loop = new Loop(this::doLoop);
-		long loopId = 0;   // game loop id, starts at 0, incremented by 1
 		final UfoFaction ufos = new UfoFaction();
 		final PlayerFaction humans = new PlayerFaction();
 		final TTLList runNext = new TTLList();
@@ -798,7 +793,7 @@ public class Comet extends ClassController {
 			players.forEach(Player::reset);
 
 			running.set(true);
-			loopId = 0;
+			loop.reset();
 			mission_counter = 0;
 			isMissionScheduled = false;
 			ufos.init();
@@ -815,11 +810,7 @@ public class Comet extends ClassController {
 		}
 
 		void doLoop() {
-			if (loopId%FPS==0) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
-
-			// loop prep
-			loopId++;
-			long now = System.currentTimeMillis();
+			if (loop.isNth((long)FPS)) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
 			// collect and handle player inputs
 			gamepads.doLoop();
@@ -1027,7 +1018,7 @@ public class Comet extends ClassController {
 			});
 		}
 		void over() {
-			players.forEach(p -> p.stats.accGameEnd(loopId));
+			players.forEach(p -> p.stats.accGameEnd(loop.id));
 			runNext.add(seconds(5), () -> {
 				Map<Player,List<Achievement>> as = stream(ACHIEVEMENTS)
 							.filter(a -> a.condition==null || a.condition.test(this))
@@ -1315,7 +1306,7 @@ public class Comet extends ClassController {
 			alive = false;
 			rocket.dead = true;
 			if (lives.getValue()>0) {
-				stats.accDeath(game.loopId);
+				stats.accDeath(game.loop.id);
 				game.grid.applyExplosiveForce(100, new Vec(rocket.x,rocket.y), 50);
 				spawnMidGame();
 			} else {
@@ -1326,7 +1317,7 @@ public class Comet extends ClassController {
 
 		void spawn() {
 			if (alive) return;
-			stats.accSpawn(game.loopId);
+			stats.accSpawn(game.loop.id);
 			alive = true;
 			lives.setValueOf(lives -> lives-1);
 			rocket = new Rocket(this);
@@ -1365,7 +1356,7 @@ public class Comet extends ClassController {
 				if (isInputRight) rocket.direction += computeRotSpeed(now-game.keyPressTimes.getOrDefault(keyRight.get(), 0L));
 				if (isInputThrust) rocket.engine.on(); else rocket.engine.off();
 				if (isInputLeft && isInputRight) rocket.ddirection = 0;
-				if (isInputFireOnce || (isNth(game.loopId,3) && rocket.rapidFire.is() && isInputFire)) rocket.gun.fire();
+				if (isInputFireOnce || (game.loop.isNth(3) && rocket.rapidFire.is() && isInputFire)) rocket.gun.fire();
 				if (isInputAbility) rocket.ability_main.activate(); else rocket.ability_main.passivate();
 			}
 			isInputLeft = isInputRight = isInputFire = isInputFireOnce = isInputThrust = isInputAbility = false;
@@ -1604,7 +1595,7 @@ public class Comet extends ClassController {
 			void fire() {
 				if (!isin_hyperspace) {
 					if (Ship.this instanceof Rocket)
-						((Rocket) Ship.this).player.stats.accFiredBullet(game.loopId);
+						((Rocket) Ship.this).player.stats.accFiredBullet(game.loop.id);
 
 					// for each turret, fire
 					game.runNext.add(() -> {
@@ -2511,7 +2502,7 @@ public class Comet extends ClassController {
 			// recompute target if actively seeing one
 			// Note: Avoid unnecessary computation cheaply using n-th game loop strategy
 			if (isActive) {
-				if (isNth(game.loopId,UFO_DISC_DECISION_TIME_TTL))
+				if (game.loop.isNth(UFO_DISC_DECISION_TIME_TTL))
 					enemy = findClosestRocketTo(this);
 			}
 
@@ -2924,7 +2915,7 @@ public class Comet extends ClassController {
 				} else
 				if (e instanceof Asteroid) {
 					if (owner instanceof Rocket)
-						((Rocket) owner).player.stats.accHitEnemy(game.loopId);
+						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
 
 					Asteroid a = (Asteroid)e;
 					a.onHit(this);
@@ -2935,7 +2926,7 @@ public class Comet extends ClassController {
 				if (e instanceof Ufo) {
 					if (owner instanceof Rocket) {
 						((Rocket) owner).player.score.setValueOf(s -> s + (int) SCORE_UFO);
-						((Rocket) owner).player.stats.accHitEnemy(game.loopId);
+						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
 						((Rocket) owner).player.stats.accKillUfo();
 					}
 
@@ -2948,7 +2939,7 @@ public class Comet extends ClassController {
 				} else
 				if (e instanceof UfoDisc) {
 					if (owner instanceof Rocket)
-						((Rocket) owner).player.stats.accHitEnemy(game.loopId);
+						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
 
 					UfoDisc ud = (UfoDisc)e;
 					if (owner instanceof Rocket) {

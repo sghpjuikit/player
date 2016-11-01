@@ -11,13 +11,13 @@ import javafx.animation.AnimationTimer;
  *
  * @author Martin Polakovic
  */
-public final class Loop {
+public class Loop {
 	private boolean active;
 	private final LongConsumer action;
 	private final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long l) {
-			action.accept(l);
+			doLoop(l);
 		}
 	};
 
@@ -51,5 +51,16 @@ public final class Loop {
 			timer.stop();
 			active = false;
 		}
+	}
+
+	/**
+	 * This method needs to be overridden by extending classes. It is going to be called in every frame while the
+	 * AnimationTimer is active.
+	 *
+	 * @param now The timestamp of the current frame given in nanoseconds. This value will be the same for all
+	 *               AnimationTimers called during one frame.
+	 */
+	protected void doLoop(long now) {
+		action.accept(now);
 	}
 }

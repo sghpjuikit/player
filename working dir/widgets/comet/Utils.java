@@ -1816,56 +1816,67 @@ interface Utils {
 	abstract class GamepadDevices {
 		protected boolean isInitialized = false;
 
-		public void init() {
+		public final void init() {
 			try {
 				Controllers.initialize();
 				isInitialized = true;
+				Controllers.checkControllers();
+				onInit(Controllers.getControllers());
 			} catch (Throwable e) {
 				isInitialized = false;
 				LOGGER.error("Failed to initialize gamepad controllers", e);
 			}
 		}
 
-		public void doLoop() {
+		public final void doLoop() {
 			if (!isInitialized) return;
 
-			Controllers.checkControllers();
-			IController[] gamepads = Controllers.getControllers();
+			try {
+				Controllers.checkControllers();
+				IController[] gamepads = Controllers.getControllers();
 
-//			Button discovery tool
-//			System.out.println("buttons=" + gamepads[0].getButtons().length);
-//			System.out.println("sticks=" + gamepads[0].getSticks().length);
-//			System.out.println("axes=" + gamepads[0].getAxes().length);
-//			System.out.println("triggers=" + gamepads[0].getTriggers().length);
-//			stream(gamepads[0].getButtons()).filter(ISNTØ).filter(b -> b.isPressed()).forEach(b -> {
-//				System.out.println("button.getID() = " + b.getID());
-//				System.out.println("button.getCode() = " + b.getCode());
-//				System.out.println("button.getLabelKey() = " + b.getLabelKey());
-//				System.out.println("button.getDefaultLabel() = " + b.getDefaultLabel());
-//			});
-//			stream(gamepads[0].getTriggers()).filter(ISNTØ).forEach(t -> {
-//				System.out.println("trigger.getID() = " + t.getID());
-//				System.out.println("trigger.getCode() = " + t.getCode());
-//				System.out.println("trigger.getLabelKey() = " + t.getLabelKey());
-//				System.out.println("trigger.getDefaultLabel() = " + t.getDefaultLabel());
-//				System.out.println("trigger.analogValue() = " + t.analogValue());
-//				System.out.println("trigger.getPercentage() = " + t.getPercentage());
-//			});
-//			stream(gamepads[0].getAxes()).filter(ISNTØ).forEach(a -> {
-//				System.out.println("trigger.getID() = " + a.getID());
-//				System.out.println("trigger.getNumber() = " + a.getNumber());
-//				System.out.println("trigger.getValue() = " + a.getValue());
-//			});
-//			stream(gamepads[0].getSticks()).filter(ISNTØ).forEach(a -> {
-//				System.out.println("trigger.getID() = " + a.getID());
-//				System.out.println("trigger.getNumber() = " + a.getPosition());
-//			});
-//			System.out.println();
+				//			Button discovery tool
+				//			System.out.println("buttons=" + gamepads[0].getButtons().length);
+				//			System.out.println("sticks=" + gamepads[0].getSticks().length);
+				//			System.out.println("axes=" + gamepads[0].getAxes().length);
+				//			System.out.println("triggers=" + gamepads[0].getTriggers().length);
+				//			stream(gamepads[0].getButtons()).filter(ISNTØ).filter(b -> b.isPressed()).forEach(b -> {
+				//				System.out.println("button.getID() = " + b.getID());
+				//				System.out.println("button.getCode() = " + b.getCode());
+				//				System.out.println("button.getLabelKey() = " + b.getLabelKey());
+				//				System.out.println("button.getDefaultLabel() = " + b.getDefaultLabel());
+				//			});
+				//			stream(gamepads[0].getTriggers()).filter(ISNTØ).forEach(t -> {
+				//				System.out.println("trigger.getID() = " + t.getID());
+				//				System.out.println("trigger.getCode() = " + t.getCode());
+				//				System.out.println("trigger.getLabelKey() = " + t.getLabelKey());
+				//				System.out.println("trigger.getDefaultLabel() = " + t.getDefaultLabel());
+				//				System.out.println("trigger.analogValue() = " + t.analogValue());
+				//				System.out.println("trigger.getPercentage() = " + t.getPercentage());
+				//			});
+				//			stream(gamepads[0].getAxes()).filter(ISNTØ).forEach(a -> {
+				//				System.out.println("trigger.getID() = " + a.getID());
+				//				System.out.println("trigger.getNumber() = " + a.getNumber());
+				//				System.out.println("trigger.getValue() = " + a.getValue());
+				//			});
+				//			stream(gamepads[0].getSticks()).filter(ISNTØ).forEach(a -> {
+				//				System.out.println("trigger.getID() = " + a.getID());
+				//				System.out.println("trigger.getNumber() = " + a.getPosition());
+				//			});
+				//			System.out.println();
 
-			doLoopImpl(gamepads);
+				doLoopImpl(gamepads);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				LOGGER.info("Library bug encountered. Caught as exception & moving on.", e);
+			}
 		}
 
+		abstract protected void onInit(IController[] gamepads);
 		abstract protected void doLoopImpl(IController[] gamepads);
+
+		public StreamEx<IController> getControllers() {
+			return stream(Controllers.getControllers()).nonNull();
+		}
 
 		public void dispose() {
 			if (!isInitialized) return;

@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
 import javafx.event.Event;
@@ -42,6 +42,7 @@ import gui.objects.icon.Icon;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.access.V;
+import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.collections.mapset.MapSet;
@@ -309,6 +310,7 @@ public class Comet extends ClassController {
 	final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
+	final ObservableList<Integer> gamepadIds = FXCollections.observableArrayList();
 	@IsConfig(name = "Players")
 	final ConfigurableVarList<Player> PLAYERS = new ConfigurableVarList<>(Player.class,
 		new Player(1, Color.CORNFLOWERBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
@@ -430,38 +432,52 @@ public class Comet extends ClassController {
 		final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
 		final GamepadDevices gamepads = new GamepadDevices() {
 			private IControllerListener listener;
+
 			@Override
-			public void init() {
-				super.init();
-				if (isInitialized) {
-					listener = new IControllerListener() {
-						@Override
-						public void connected(IController c) {
-							System.out.println("connected device " + c.getDeviceID());
-							System.out.println(Platform.isFxApplicationThread());
-							stream(players).sorted(by(p -> p.id.get())).findFirst(p -> p.gamepadId.get()==null).ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
-						}
+			protected void onInit(IController[] gamepads) {
+				listener = new IControllerListener() {
+					@Override
+					public void connected(IController c) {
+						System.out.println("connected device:");
+						System.out.println("DeviceID = " + c.getDeviceID());
+						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+						System.out.println("Description = " + c.getDescription());
+						System.out.println("ProductID = " + c.getProductID());
+						System.out.println("VendorID = " + c.getVendorID());
 
-						@Override
-						public void disConnected(IController c) {
-							System.out.println("disconnected device " + c.getDeviceID());
-							System.out.println(Platform.isFxApplicationThread());
-							stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID()).forEach(p -> p.gamepadId.set(null));
-						}
+						gamepadIds.add(c.getDeviceID());
+						stream(players).sorted(by(p -> p.id.get()))
+							.findFirst(p -> p.gamepadId.get()==null)
+							.ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
+					}
 
-						@Override
-						public void buttonDown(IController iController, IButton iButton, ButtonID buttonID) {}
+					@Override
+					public void disConnected(IController c) {
+						System.out.println("disconnected device:");
+						System.out.println("DeviceID = " + c.getDeviceID());
+						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+						System.out.println("Description = " + c.getDescription());
+						System.out.println("ProductID = " + c.getProductID());
+						System.out.println("VendorID = " + c.getVendorID());
 
-						@Override
-						public void buttonUp(IController iController, IButton iButton, ButtonID buttonID) {}
+						gamepadIds.remove(c.getDeviceID());
+						stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID())
+							.forEach(p -> p.gamepadId.set(null));
+					}
 
-						@Override
-						public void moveStick(IController iController, StickID stickID) {
-							System.out.println("stick moved");
-						}
-					};
-					Controllers.instance().addListener(listener);
-				}
+					@Override
+					public void buttonDown(IController iController, IButton iButton, ButtonID buttonID) {}
+
+					@Override
+					public void buttonUp(IController iController, IButton iButton, ButtonID buttonID) {}
+
+					@Override
+					public void moveStick(IController iController, StickID stickID) {
+						System.out.println("stick moved");
+					}
+				};
+				Controllers.instance().addListener(listener);
+				gamepadIds.addAll(stream(gamepads).map(g -> g.getDeviceID()).toList());
 			}
 
 			@Override
@@ -475,7 +491,7 @@ public class Comet extends ClassController {
 			protected void doLoopImpl(IController[] gamepads) {
 				if (gamepads.length > 0)
 					Stream.of(gamepads).forEach(g ->
-						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()).findFirst().ifPresent(p -> {
+						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()).forEach(p -> {
 							IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
 							IButton engine2B = g.getButton(10);
 							IButton engine3B = g.getButton(11);
@@ -489,12 +505,16 @@ public class Comet extends ClassController {
 							boolean isLeft = (leftB!=null && leftB.isPressed()) || g.getDpadDirection() == DpadDirection.LEFT;
 							boolean isRight = (rightB!=null && rightB.isPressed()) || g.getDpadDirection()==DpadDirection.RIGHT;
 							boolean isFire = fireB!=null && fireB.isPressed();
-							boolean isFireOnce = fireB!=null && fireB.isPressedOnce();
-
-							if (isLeft && !p.wasGamepadLeft) keyPressTimes.put(p.keyLeft.get(),loop.now);
-							if (isRight && !p.wasGamepadRight) keyPressTimes.put(p.keyRight.get(),loop.now);
+//							boolean isFireOnce = fireB!=null && fireB.isPressedOnce(); // !support multiple players per controller
+							boolean isFireOnce = isFire && !p.wasGamepadFire;
+							boolean isRihtOnce = isRight && !p.wasGamepadRight;
+							boolean isLeftOnce = isLeft && !p.wasGamepadLeft;
 							p.wasGamepadLeft = isLeft;
 							p.wasGamepadRight = isRight;
+							p.wasGamepadFire = isFire;
+
+							if (isLeftOnce) keyPressTimes.put(p.keyLeft.get(),loop.now);
+							if (isRihtOnce) keyPressTimes.put(p.keyRight.get(),loop.now);
 
 							p.isInputThrust |= isEngine;
 							p.isInputLeft |= isLeft;
@@ -789,6 +809,16 @@ public class Comet extends ClassController {
 
 			players.addAll(listF(player_count,PLAYERS.list::get));
 			players.forEach(Player::reset);
+
+
+
+			gamepads.getControllers()
+				.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
+				.sorted(by(g -> g.getDeviceID()))
+				.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
+					              .findFirst(p -> p.gamepadId.get()==null)
+					              .ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
+				);
 
 			running.set(true);
 			loop.reset();
@@ -1090,7 +1120,7 @@ public class Comet extends ClassController {
 			int losses_cannon = 20;
 			Rocket ufo_enemy = null;
 			boolean aggressive = false;
-			boolean canSpawnDiscs = true;
+			boolean canSpawnDiscs = false;
 			Color color = Color.rgb(114,208,74);
 
 			void init() {
@@ -1270,9 +1300,11 @@ public class Comet extends ClassController {
 		@IsConfig public final V<KeyCode> keyRight = new V<>(KeyCode.D);
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
-		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
+
+		@IsConfig final VarEnum<Integer> gamepadId = new VarEnum<Integer>(null, gamepadIds);
+//		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
 		boolean isInputLeft = false, isInputRight = false, isInputFire = false, isInputFireOnce = false, isInputThrust = false, isInputAbility = false;
-		boolean wasGamepadLeft = false, wasGamepadRight = false;
+		boolean wasGamepadLeft = false, wasGamepadRight = false, wasGamepadFire = false;
 		public boolean alive = false;
 		public final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
 		public final V<Integer> score = new V<>(0);
@@ -2807,7 +2839,7 @@ public class Comet extends ClassController {
 		boolean isBlackHole = false;
 		boolean isHighEnergy = false;
 		private double tempX, tempY;    // cache for collision checking
-		private boolean bounced = false;    // prevents multiple bouncing off shield per loop
+		private short bounced = 0;    // prevents multiple bouncing off shield per loop
 
 		Bullet(Ship ship, double x, double y, double dx, double dy, double hit_radius, double TTL) {
 			super(Bullet.class,x,y,dx,dy,hit_radius,null);
@@ -2819,7 +2851,7 @@ public class Comet extends ClassController {
 
 		@Override
 		public void doLoop() {
-			bounced = false;
+			if (bounced==1 || bounced==2) bounced++;
 			x += dx;
 			y += dy;
 			doLoopOutOfField();
@@ -2960,7 +2992,7 @@ public class Comet extends ClassController {
 					SuperShield ss = (SuperShield) e;
 					// we are assuming its kinetic shield is always active (by game design)
 					// ignore bullets when allies | shooting from inside the shield
-					if (owner instanceof Rocket || owner.distance(ss)<ss.kinetic_shield.KSradius) {
+					if (owner instanceof Rocket && owner.distance(ss)<ss.kinetic_shield.KSradius) {
 						dead = false;
 					} else {
 						ss.kinetic_shield.new KineticShieldPiece(e.dir(this));
@@ -2986,7 +3018,8 @@ public class Comet extends ClassController {
 		}
 
 		private void bounceOffShieldOf(Ship s) {
-			if (bounced) return;
+			dead = false;
+			if (bounced==1 || bounced==2) return;
 			double d = s.dir(this);
 			s.kinetic_shield.new KineticShieldPiece(d);
 
@@ -2997,11 +3030,10 @@ public class Comet extends ClassController {
 			double speed = speed();
 			dx = speed*cos(dirBulletOut);
 			dy = speed*sin(dirBulletOut);
-			x = tempX = s.x+s.kinetic_shield.KSradius*cos(dirNormal)+dx;
-			y = tempY = s.y+s.kinetic_shield.KSradius*sin(dirNormal)+dy;
+			x = tempX = s.x+s.kinetic_shield.KSradius*cos(dirNormal);
+			y = tempY = s.y+s.kinetic_shield.KSradius*sin(dirNormal);
 			ttl = 1;    // increase bullet range after shield bounce (cool & useful game mechanics)
-			dead = false;
-			bounced = true;
+			bounced = 1;
 
 			// debug
 //			gc_bgr.setLineWidth(1);

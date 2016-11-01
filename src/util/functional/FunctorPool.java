@@ -20,10 +20,8 @@ import gui.itemnode.StringSplitParser.SplitData;
 import main.App;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
-import util.file.AudioFileFormat;
-import util.file.ImageFileFormat;
+import util.file.*;
 import util.file.Util;
-import util.file.WindowsShortcut;
 import util.file.mimetype.MimeType;
 import util.functional.Functors.*;
 import util.units.*;
@@ -125,17 +123,20 @@ public class FunctorPool {
 				return null;
 			}
 		});
+		add("To file",      S, File.class, File::new);
 
 		add("to ASCII",     Character.class, Integer.class, x -> (int) x);
 
 		add("Path",         File.class,String.class, File::getAbsolutePath);
 		add("Size",         File.class,FileSize.class, FileSize::new);
-		add("Name",         File.class,String.class, Util::getName, true,true,true);
+		add("Name",   File.class,String.class, Util::getName, true,true,true);
 		add("Name.Suffix",  File.class,String.class, File::getName);
 		add("Suffix",       File.class,String.class, Util::getSuffix);
 		add("MimeType",     File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
 		add("MimeGroup",    File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
 		add("Shortcut of",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
+		add("Type",         File.class,FileType.class, FileType::of);
+		add("Exists",       File.class,B,File::exists);
 
 		add("Group",        MimeType.class,String.class, MimeType::getGroup);
 		add("Extensions",   MimeType.class,String.class, m -> toS(", ", m.getExtensions()));

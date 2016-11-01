@@ -29,7 +29,7 @@ import javafx.util.Duration;
 
 import com.sun.javafx.scene.traversal.Direction;
 
-import de.jensd.fx.glyphs.octicons.OctIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
 import gui.itemnode.textfield.EffectItemNode;
@@ -933,8 +933,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     	private int at = -1;
 	    private final ListConfig<Configurable> lc;
-    	Icon prevB = new Icon(OctIcon.ARROW_SMALL_LEFT, 12, "Previous item", this::prev);
-    	Icon nextB = new Icon(OctIcon.ARROW_SMALL_RIGHT, 12, "Next item", this::next);
+    	Icon prevB = new Icon(FontAwesomeIcon.ANGLE_LEFT, 16, "Previous item", this::prev);
+    	Icon nextB = new Icon(FontAwesomeIcon.ANGLE_RIGHT, 16, "Next item", this::next);
 	    ConfigPane<Configurable> configPane = new ConfigPane<>();
 	    Node graphics = layHeaderTop(10, Pos.CENTER_RIGHT,
 		    layHorizontally(5, Pos.CENTER_RIGHT, prevB,nextB),

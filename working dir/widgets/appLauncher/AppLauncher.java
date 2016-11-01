@@ -34,6 +34,7 @@ import util.conf.Config.VarList;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.FileSort;
+import util.file.FileType;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.validation.Constraint;
@@ -325,7 +326,10 @@ public class AppLauncher extends ClassController {
 
         @Override
         protected FItem createItem(Item parent, File value, util.file.FileType type) {
-            return new FItem(parent, value, type);
+        	if (isRootOfPortableApp(value, type))
+	            return new FItem(parent, getPortableAppExe(value, type), FileType.FILE);
+	        else
+	        	return new FItem(parent, value, type);
         }
 
     }
@@ -352,6 +356,15 @@ public class AppLauncher extends ClassController {
             if (id==visitId.get())
                 r.run();
         };
+    }
+
+    public static boolean isRootOfPortableApp(File f, FileType type) {
+    	if (type!=FileType.DIRECTORY) return false;
+    	if (getPortableAppExe(f, type).exists()) return true;
+    	return false;
+    }
+    public static File getPortableAppExe(File f, FileType type) {
+    	return type!=FileType.DIRECTORY ? null : new File(f, f.getName() + ".exe");
     }
 
     enum CellSize {

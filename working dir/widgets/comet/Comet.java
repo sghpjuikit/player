@@ -1679,6 +1679,7 @@ public class Comet extends ClassController {
 
 						// style3
 						double s = speed();
+						double d = deg(Ship.this.direction+PI/2);
 						new Particle(x+25*cos(direction+PI),y+25*sin(direction+PI),cos(dx-dx/s),sin(dy-dy/s),ttl(millis(250))) {
 							@Override
 							void draw() {
@@ -1688,6 +1689,7 @@ public class Comet extends ClassController {
 								gc.setGlobalAlpha(0.1+0.5*ttl);
 								double w = 10+30*(1-ttl), h=10+20*(1-ttl);
 								Affine a = Utils.rotate(gc, deg(Ship.this.direction+PI/2),x,y);
+								Affine a = Utils.rotate(gc, d,x,y);
 								gc.strokeOval(x-w/2,y-h/2,w,h);
 								gc.setTransform(a);
 								gc.restore();

@@ -2,6 +2,7 @@ package comet;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import javafx.collections.FXCollections;
@@ -256,7 +257,7 @@ public class Comet extends ClassController {
 		double SHUTTLE_KINETIC_SHIELD_RADIUS = 180; // px
 		double SHUTTLE_KINETIC_SHIELD_ENERGYMAX = 1000000; // energy
 		double SHIELD_E_ACTIVATION = 0; // energy
-		double SHIELD_E_RATE = 25; // energy/frame
+		double SHIELD_E_RATE = 20; // energy/frame
 		Duration SHIELD_ACTIVATION_TIME = millis(0);
 		Duration SHIELD_PASSIVATION_TIME = millis(0);
 		double HYPERSPACE_E_ACTIVATION = 150; // energy
@@ -288,12 +289,12 @@ public class Comet extends ClassController {
 
 		static double UFO_SQUAD_TTL() { return ttl(seconds(randMN(300, 600))); }
 
-		static double UFO_DISCSPAWN_TTL() { return ttl(seconds(randMN(60, 180))); }
+		static double UFO_DISCSPAWN_TTL() { return ttl(seconds(randMN(80, 200))); }
 
 		double SATELLITE_RADIUS = 15; // energy/frame
 		double SATELLITE_SPEED = 200 / FPS; // ufo speed in px/s/fps
 
-		static double SATELLITE_TTL() { return ttl(seconds(randMN(15, 30))); }
+		static double SATELLITE_TTL() { return ttl(seconds(randMN(25, 40))); }
 
 		Image KINETIC_SHIELD_PIECE_GRAPHICS = graphics(MaterialDesignIcon.MINUS, 13, Color.AQUA, new DropShadow(GAUSSIAN, Color.DODGERBLUE.deriveColor(1, 1, 1, 0.6), 8, 0.3, 0, 0));
 		double INKOID_SIZE_FACTOR = 50;
@@ -936,8 +937,7 @@ public class Comet extends ClassController {
 					} else {
 						r.player.die();
 					}
-					u.dead = true;
-					ufos.onUfoDestroyed();
+					u.die(r);
 				}
 			});
 			oss.forEach(Rocket.class,UfoSwarmer.class, (r, ud) -> {
@@ -947,7 +947,7 @@ public class Comet extends ClassController {
 					} else {
 						r.player.die();
 					}
-					ud.dead = true;
+					ud.explode();
 				}
 			});
 			oss.forEach(Rocket.class,Asteroid.class, (r,a) -> {
@@ -1244,11 +1244,14 @@ public class Comet extends ClassController {
 				playfield.setEffect(toplayereffect);
 				grid.color = color;
 
+				boolean isEasy = mission_counter<4;
 				double size = sqrt(game.field.height)/1000;
-				int planetoids = 3 + (int)(2*(size-1)) + (mission_counter-1) + players.size()/2;
+				int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + players.size()/2;
+				int planetoids = isEasy ? planetoidCount/2 : planetoidCount;
 				double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
 				runNext.add(delay/2, () -> message("Level " + mission_counter, name));
 				runNext.add(delay, () -> repeat(planetoids, i -> spawnPlanetoid()));
+				if (isEasy) runNext.add(delay, () -> game.oss.get(Asteroid.class).forEach(a -> a.split(null)));
 				runNext.add(delay, () -> isMissionScheduled = false);
 				initializer.accept(Game.this);
 
@@ -1792,6 +1795,10 @@ public class Comet extends ClassController {
 				children.remove(this);
 			}
 
+			<T extends Ability> boolean isActiveOfType(Class<T> type) {
+				return type.isInstance(this) && isActivated();
+			}
+
 			void onKeyPress(){
 				if (onHold) {
 					activate();
@@ -2001,10 +2008,18 @@ public class Comet extends ClassController {
 			public void doLoop() {
 				super.doLoop();
 			}
-			@SuppressWarnings("unused")
-			void onHit(Asteroid a) {
-				// makes shield hardly usable, instead we drain energy constantly while active
+			void onHit(PO a) {
+				// Makes for unbalanced game mechanics, because it is too predictable.
+				// Instead drain energy constantly while active. This makes for killer suspense when player holds
+				// shield active for a prolonged amount of time due to fear of death only to drain its power in vain.
 				// energy -= min(energy,kineticEto(a));
+
+				double dir = dir(a);
+				double speed = a.speed();
+				dx += 0.5 + 0.1*cos(-dir) + 0.1*a.dx/speed;
+				dy += 0.5 + 0.1*sin(-dir) + 0.1*a.dy/speed;
+				ddirection += randOf(-1, 1) * rand0N(0.01);
+				engine.off();
 			}
 
 		}
@@ -2376,6 +2391,11 @@ public class Comet extends ClassController {
 			}
 		};
 
+
+		boolean hasSwarmers = randBoolean();
+		boolean isSwarmActive = randBoolean();
+		double swarmA = 0, dswarmA = D360/1/FPS;
+
 		double discpos = 0; // 0-1, 0=close, 1=far
 		double discdspeed = 0;
 		double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // jump force
@@ -2463,24 +2483,52 @@ public class Comet extends ClassController {
 			if (game.field.isOutsideX(x)) dead = true;
 		}
 
+
 		@Override void draw() {
 			super.draw();
-
 			drawUfoRadar(x,y);
+			if (game.humans.intelOn.is()) drawHudCircle(x,y,UFO_BULLET_RANGE,game.ufos.color);
 
-			// Use jump force to make the disc bounce smoothly only on inner side and bounce
-			// instantly on the outer side. Standard force is more natural and 'biological', while
-			// jump force looks more mechanical and alien.
-			discdspeed += disc_forceJump(discpos);
-			discpos += discdspeed;
-			double dist = 40+discpos*20;
-			double dir1 = -3*D30, dir2 = -7*D30, dir3 = -11*D30;
-			drawUfoDisc(x+dist*cos(dir1),y+dist*sin(dir1), dir1, 1);
-			drawUfoDisc(x+dist*cos(dir2),y+dist*sin(dir2), dir2, 1);
-			drawUfoDisc(x+dist*cos(dir3),y+dist*sin(dir3), dir3, 1);
+			if (hasSwarmers) {
+				// Orbit mini swarmers
+				// Use jump force to make the disc bounce smoothly only on inner side and bounce
+				// instantly on the outer side. Standard force is more natural and 'biological', while
+				// jump force looks more mechanical and alien.
+				discdspeed += disc_forceJump(discpos);
+				discpos += discdspeed;
+				double dist = 40 + discpos * 20;
+				DoubleStream.of(-3*D30, -7*D30, -11*D30)
+					.forEach(dir -> drawUfoDisc(x + dist*cos(dir), y + dist*sin(dir), dir, 1));
+			}
 
-			if (game.humans.intelOn.is())
-				drawHudCircle(x,y,UFO_BULLET_RANGE,game.ufos.color);
+			if (hasSwarmers) {
+				// Orbit swarmers
+				swarmA += dswarmA;
+				double dist = 30;
+				double angleOffset = isSwarmActive ? PI/2 : PI;
+				DoubleStream.of(swarmA-D120, swarmA, swarmA+D120)
+					.forEach(dir -> drawUfoDisc(x + dist*cos(dir), y + dist*sin(dir), dir+angleOffset, 2));
+			}
+
+		}
+
+		@Override
+		void die(Object cause) {
+			super.die(cause);
+			game.ufos.onUfoDestroyed();
+			drawUfoExplosion(x,y);
+
+			if (hasSwarmers) {
+				// release swarmers
+				double dist = 30;
+				double angleOffset = isSwarmActive ? PI/2 : PI;
+				DoubleStream.of(swarmA-D120, swarmA, swarmA+D120)
+					.mapToObj(dir -> new UfoSwarmer(x + dist*cos(dir), y + dist*sin(dir), dir+angleOffset))
+					.forEach(u -> {
+						u.isActive = true;
+						u.isAggressive = isSwarmActive;
+					});
+			}
 		}
 
 		@Override public void dispose() {
@@ -2492,12 +2540,15 @@ public class Comet extends ClassController {
 	/** Ufo heavy projectiles. Autonomous rocket-seekers. */
 	class UfoSwarmer extends Ship {
 		Rocket enemy = null;
-		/** True if actively looks for target to pursuit. */
+		/** True if capable of pursuit. */
 		boolean isActive = true;
+		/** True if actively looks for target to pursuit if not in pursuit already. */
+		boolean isAggressive = true;
 		/** Set to true if spawns outside of the field to prevent instant death. */
 		boolean isInitialOutOfField = false;
+		/** Id of the formation swarm or -1 if standalone. */
 		int swarmId = -1;
-		double dRotationMax = ttlVal(D360,seconds(3));
+		double ddirectionMax = ttlVal(D360,seconds(3));
 
 		public UfoSwarmer(double X, double Y, double DIR) {
 			super(UfoSwarmer.class, X, Y,0,0, UFO_DISC_HIT_RADIUS, null, UFO_ENERGY_INITIAL,UFO_E_BUILDUP);
@@ -2547,9 +2598,9 @@ public class Comet extends ClassController {
 		}
 
 		private void seek() {
-			// recompute target if actively seeing one
+			// Find pursuit target
 			// Note: Avoid unnecessary computation cheaply using n-th game loop strategy
-			if (isActive) {
+			if (isActive && isAggressive) {
 				if (game.loop.isNth(UFO_DISC_DECISION_TIME_TTL))
 					enemy = findClosestRocketTo(this);
 			}
@@ -2568,17 +2619,21 @@ public class Comet extends ClassController {
 					//    Behavior: simulated turning with
 					double dirTarget = dir(enemy);
 					double dirDiff = dirDiff(direction,dirTarget);
-					double dRotationAbs = min(dRotationMax,abs(dirDiff));
+					double dRotationAbs = min(ddirectionMax,abs(dirDiff));
 					direction += sign(dirDiff)*dRotationAbs;
 				} else {
 					// Behavior
-					// 1) Do nothing - not bad, works pretty well
+					// 1) Do nothing - good for "inactive" swarmers
 					// engine.off();
 
-					// 2) Keep going straight - more natural than 1)
+					// 2) Keep going straight - good for "active dumb" swarmers
+					// engine.on();
+
+					// 3) Keep going straight - good for "active smart" swarmers
 					engine.on();
-					ddirection = dRotationMax;
-					direction += 2*ddirection;
+					ddirection = ddirectionMax;
+					double circleRadiusReducer = 2;
+					direction += circleRadiusReducer*ddirection;
 				}
 			} else {
 				engine.on();
@@ -2935,19 +2990,15 @@ public class Comet extends ClassController {
 						r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 						bounceOffShieldOf(r);
 
-						if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
-							double speed = speed();
-							r.dx += 0.5 + 0.1 * dx / speed;
-							r.dy += 0.5 + 0.1 * dy / speed;
-							r.ddirection += randOf(-1, 1) * rand0N(0.01);
+						if (r.ability_main.isActiveOfType(Shield.class)) {
+							((Shield)r.ability_main).onHit(this);
 						}
 					}
 					if (game.deadly_bullets.get() || !(owner instanceof Rocket)) {
-						if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+						if (r.ability_main.isActiveOfType(Shield.class)) {
 							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 							bounceOffShieldOf(r);
-							r.dx = r.dy = 0;
-							r.engine.off();
+							((Shield)r.ability_main).onHit(this);
 						} else {
 							r.player.die();
 						}
@@ -2972,9 +3023,7 @@ public class Comet extends ClassController {
 
 					Ufo u = (Ufo)e;
 					if (!(owner instanceof Ufo)) {
-						u.dead = true;
-						game.ufos.onUfoDestroyed();
-						drawUfoExplosion(u.x,u.y);
+						u.die(this);
 					}
 				} else
 				if (e instanceof UfoSwarmer) {
@@ -3353,7 +3402,7 @@ public class Comet extends ClassController {
 			onHitParticles(o);
 		}
 		void split(SO o) {
-			boolean spontaneous = o instanceof BlackHole;
+			boolean spontaneous = o==null || o instanceof BlackHole;
 			dead = true;
 			game.onPlanetoidDestroyed();
 			game.runNext.add(() ->

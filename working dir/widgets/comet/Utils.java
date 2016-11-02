@@ -90,12 +90,13 @@ interface Utils {
 	// subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
 	Logger LOGGER = LoggerFactory.getLogger(Utils.class);
-	double D360 = 2*PI;
-	double D180 = PI;
-	double D90 = PI/2;
-	double D60 = PI/3;
-	double D45 = PI/4;
 	double D30 = PI/6;
+	double D45 = PI/4;
+	double D60 = PI/3;
+	double D90 = PI/2;
+	double D120 = D90+D30;
+	double D180 = PI;
+	double D360 = 2*PI;
 	double SIN45 = Math.sin(PI/4);
 	int precision = 100;
 	int UNITS = 360*precision;

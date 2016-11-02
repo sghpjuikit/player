@@ -1569,7 +1569,7 @@ public class Comet extends ClassController {
 
 			void onOff(){}
 
-			final void doLoop(){
+			void doLoop(){
 				if (enabled) {
 					onDoLoop();
 				}
@@ -1657,12 +1657,51 @@ public class Comet extends ClassController {
 		class RocketEngine extends Engine {
 			double ttl = 0;
 			double thrust = ROCKET_ENGINE_THRUST;
-			final double particle_speed = 1/1/FPS;
+
+			double stage2ThrustMultiplier = 1.5;
+			double stage2TimeMin = ttl(seconds(5));
+			double stage2TimeCurrent = 0;
+			double stage2TimeBy = 1;
+
+			@Override
+			void doLoop() {
+				super.doLoop();
+				if (enabled) stage2TimeCurrent += stage2TimeBy;
+				else stage2TimeCurrent = 0;
+			}
 
 			@Override
 			void onDoLoop() {
-				dx += cos(direction)*mobility.value()*thrust;
-				dy += sin(direction)*mobility.value()*thrust;
+				boolean isStage2 = stage2TimeCurrent>stage2TimeMin;
+
+				if (isStage2 && stage2TimeCurrent-stage2TimeBy<=stage2TimeMin) {
+					dx *= 1.2;
+					dy *= 1.2;
+					ddirection /= 2;    // TODO: decrease max rotation speed instead
+					repeat(20, () -> new Particle(x,y,cos(Utils.randAngleRad()),sin(Utils.randAngleRad()),ttl(millis(400))));
+
+					double s = speed();
+					double d = deg(Ship.this.direction+PI/2);
+					new Particle(x+25*cos(direction+PI),y+25*sin(direction+PI),cos(dx-dx/s),sin(dy-dy/s),ttl(millis(400))) {
+						@Override
+						void draw() {
+							gc.save();
+							gc.setStroke(game.humans.color);
+							gc.setLineWidth(1+15*ttl);
+							gc.setGlobalAlpha(0.1+0.5*ttl);
+							double w = 30+180*(1-ttl), h=10+20*(1-ttl);
+							Affine a = Utils.rotate(gc, d,x,y);
+							gc.strokeOval(x-w/2,y-h/2,w,h);
+							gc.setTransform(a);
+							gc.restore();
+						}
+					};
+				}
+
+				double acc = mobility.value()*thrust;
+				if (isStage2) acc *= stage2ThrustMultiplier;
+				dx += acc*cos(direction);
+				dy += acc*sin(direction);
 
 				if (!isin_hyperspace) {
 					ttl--;
@@ -1688,7 +1727,6 @@ public class Comet extends ClassController {
 								gc.setLineWidth(1+3*ttl);
 								gc.setGlobalAlpha(0.1+0.5*ttl);
 								double w = 10+30*(1-ttl), h=10+20*(1-ttl);
-								Affine a = Utils.rotate(gc, deg(Ship.this.direction+PI/2),x,y);
 								Affine a = Utils.rotate(gc, d,x,y);
 								gc.strokeOval(x-w/2,y-h/2,w,h);
 								gc.setTransform(a);

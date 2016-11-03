@@ -250,7 +250,7 @@ public class Comet extends ClassController {
 		double ROCKET_KINETIC_SHIELD_RADIUS = 25; // px
 		double ROCKET_KINETIC_SHIELD_ENERGYMAX = 5000; // energy
 		double KINETIC_SHIELD_LARGE_E_RATE = 50; // 50 times
-		double KINETIC_SHIELD_LARGE_RADIUS_INC = 15; // by 10 px
+		double KINETIC_SHIELD_LARGE_RADIUS_INC = 5; // by 5 px
 		double KINETIC_SHIELD_LARGE_E_MAX_INC = 1; // by 100%
 		double SHUTTLE_KINETIC_SHIELD_RADIUS = 180; // px
 		double SHUTTLE_KINETIC_SHIELD_ENERGYMAX = 1000000; // energy
@@ -1061,7 +1061,7 @@ public class Comet extends ClassController {
 					double w = 0, h = rand0N(game.field.height);
 					pulseAlert(w, h);
 					int swarmId = randInt(Integer.MAX_VALUE);
-					runNext.add(millis(500), () -> {
+					runNext.add(millis(1000), () -> {
 						if (randBoolean())
 							forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
 									u.isActive = false;
@@ -1263,6 +1263,11 @@ public class Comet extends ClassController {
 				spawning.get().computeStartingY(game.field.width,game.field.height,game.players.size(),id.get())
 			));
 			game.runNext.add(PLAYER_RESPAWN_TIME, this::spawn);
+			// Avoid instant-death leading to possible instant-game-over
+			game.runNext.add(PLAYER_RESPAWN_TIME, () -> game.oss.forEach(o -> {
+				if (!(o instanceof Particle) && !(o instanceof Rocket) && rocket.isHitDistance(o))
+					o.dead = true;
+			}));
 		}
 
 		void reset() {
@@ -1434,17 +1439,18 @@ public class Comet extends ClassController {
 
 		class Engine {
 			boolean enabled = false;
+			boolean forceOff = false;
 			final InEffectValue<Double> mobility = new InEffectValue<>(times -> pow(BONUS_MOBILITY_MULTIPLIER,times));
 
 			final void on() {
-				if (!enabled) {
+				if (!enabled && !forceOff) {
 					enabled = true;
 					onOn();
 				}
 			}
 
 			final void off() {
-				if (enabled) {
+				if (enabled || forceOff) {
 					enabled = false;
 					onOff();
 				}
@@ -1454,7 +1460,7 @@ public class Comet extends ClassController {
 			void onOff(){}
 
 			void doLoop(){
-				if (enabled) {
+				if (enabled && !forceOff) {
 					onDoLoop();
 				}
 			}
@@ -1944,12 +1950,29 @@ public class Comet extends ClassController {
 				// shield active for a prolonged amount of time due to fear of death only to drain its power in vain.
 				// energy -= min(energy,kineticEto(a));
 
-				double dir = dir(a);
-				double speed = a.speed();
-				dx += 0.5 + 0.1*cos(-dir) + 0.1*a.dx/speed;
-				dy += 0.5 + 0.1*sin(-dir) + 0.1*a.dy/speed;
-				ddirection += randOf(-1, 1) * rand0N(0.01);
+//				double dir = dir(a);
+//				double dxΔ = dx-a.dx;
+//				double dyΔ = dy-a.dy;
+//				double speed = a.speed();
+//				dx = 5*cos(dir-PI);
+//				dy = 5*sin(dir-PI);
+//				ddirection += randOf(-1, 1) * randMN(0.03,0.05);
+//				engine.off();
+//				engine.forceOff = true;
+//				game.runNext.add(millis(300), () -> engine.forceOff = false);
+
+
+				double dir = direction+PI;
+				dx = 5*cos(dir);
+				dy = 5*sin(dir);
+				ddirection += randOf(-1, 1) * randMN(0.03,0.05);
 				engine.off();
+				engine.forceOff = true;
+				game.runNext.add(millis(300), () -> engine.forceOff = false);
+				gc_bgr.setGlobalAlpha(0.8);
+				gc_bgr.setFill(game.humans.color);
+				Utils.drawOval(gc_bgr, x,y,kinetic_shield.KSradius);
+				gc_bgr.setGlobalAlpha(1);
 			}
 
 		}

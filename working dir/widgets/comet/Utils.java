@@ -1431,25 +1431,43 @@ interface Utils {
 		public void pause(boolean v) {}
 
 		private void nextMission() {
+			// schedule
 			if (isMissionScheduled) return;
 			isMissionScheduled = true;
+
+			// get mission
 			if (game.mission!=null) game.mission.disposer.accept(game);
 			mission_counter = mission_counter==0 ? 1 : mission_counter+1;
 			int id = mission_counter%missions.size();
 			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
-			game.mission = missions.get(mission_id);
+			Mission mNew = missions.get(mission_id);
+			Mission mOld = game.mission==null ? mNew : game.mission;
 
+			// start mission
+			game.mission = mNew;
 			game.mission.start();
 			boolean isEasy = mission_counter<4;
 			double size = sqrt(game.field.height)/1000;
 			int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + game.players.size()/2;
 			int planetoids = isEasy ? planetoidCount/2 : planetoidCount;
 			double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
-			game.runNext.add(delay/2, () -> game.message("Level " + mission_counter, game.mission.name));
-			game.runNext.add(delay, () -> repeat(planetoids, i -> game.mission.spawnPlanetoid()));
+			game.runNext.add(delay/2, () -> game.message("Level " + mission_counter, mNew.name));
+			game.runNext.add(delay, () -> repeat(planetoids, i -> mNew.spawnPlanetoid()));
 			if (isEasy) game.runNext.add(delay, () -> game.oss.get(Asteroid.class).forEach(a -> a.split(null)));
 			game.runNext.add(delay, () -> isMissionScheduled = false);
 			game.mission.initializer.accept(game);
+
+			// transition color scheme
+			game.runNext.add(delay/2, () ->
+				game.runNext.addAnim01(millis(300), p -> {
+					game.color = mOld.color.interpolate(mNew.color, p);
+					game.color_canvasFade = mOld.colorCanvasFade.interpolate(mNew.colorCanvasFade, p);
+					game.humans.color = mOld.color.interpolate(mNew.color, p);
+					game.humans.colorTech = mOld.color.interpolate(mNew.color, p);
+					game.ufos.color = mOld.color.interpolate(mNew.color, p);
+					game.grid.color = mOld.color.interpolate(mNew.color, p);
+				})
+			);
 		}
 	}
 

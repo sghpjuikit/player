@@ -301,9 +301,9 @@ public class Comet extends ClassController {
 	}
 
 	@IsConfig
-	final V<Color> ccolor = new V<>(Color.BLACK, c -> game.mission.color_canvasFade = new Color(c.getRed(), c.getGreen(), c.getBlue(), game.mission.color_canvasFade.getOpacity()));
+	final V<Color> ccolor = new V<>(Color.BLACK, c -> game.color_canvasFade = new Color(c.getRed(), c.getGreen(), c.getBlue(), game.color_canvasFade.getOpacity()));
 	@IsConfig @Constraint.MinMax(min=0, max=0.1)
-	final V<Double> copac = new V<>(0.05, c -> game.mission.color_canvasFade = new Color(game.mission.color_canvasFade.getRed(), game.mission.color_canvasFade.getGreen(), game.mission.color_canvasFade.getBlue(), c));
+	final V<Double> copac = new V<>(0.05, c -> game.color_canvasFade = new Color(game.color_canvasFade.getRed(), game.color_canvasFade.getGreen(), game.color_canvasFade.getBlue(), c));
 	@IsConfig
 	final V<Effect> b1 = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig
@@ -533,6 +533,8 @@ public class Comet extends ClassController {
 		final TTLList runNext = new TTLList();
 		final Set<PO> removables = new HashSet<>();
 
+		Color color;
+		Color color_canvasFade; // normally null, canvas fade effect
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		boolean useGrid = true;
 
@@ -779,10 +781,10 @@ public class Comet extends ClassController {
 			// canvas clearing
 			// we use optional "fade" effect. Filling canvas with transparent color repeatedly
 			// will serve instead of clearing & spare drawing complex stuff & produce bgr & interesting effect
-			if (mission.color_canvasFade==null) {
+			if (color_canvasFade==null) {
 				gc_bgr.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 			} else {
-				gc_bgr.setFill(mission.color_canvasFade);
+				gc_bgr.setFill(color_canvasFade);
 				gc_bgr.fillRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 			}
 			gc.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
@@ -1115,7 +1117,7 @@ public class Comet extends ClassController {
 			final Background bgr;
 			final Ƒ5<Double,Double,Double,Double,Double,Asteroid> planetoidConstructor;
 			final Color color;
-			Color color_canvasFade; // normally null, canvas fade effect
+			Color colorCanvasFade; // normally null, canvas fade effect
 			final Effect toplayereffect;
 			Consumer<Game> initializer = game -> {};
 			Consumer<Game> disposer = game -> {};
@@ -1125,9 +1127,9 @@ public class Comet extends ClassController {
 				id = ID;
 				name = NAME; scale = SCALE; details = DETAILS;
 				bgr = BGR;
-				color = COLOR;
+				color = COLOR==null ? Color.TRANSPARENT : COLOR;
+				colorCanvasFade = CANVAS_REDRAW==null ? Color.TRANSPARENT : CANVAS_REDRAW;
 				planetoidConstructor = planetoidFactory;
-				color_canvasFade = CANVAS_REDRAW;
 				toplayereffect = effect;
 			}
 
@@ -1140,10 +1142,6 @@ public class Comet extends ClassController {
 			void start() {
 				((Pane)playfield.getParent()).setBackground(bgr);
 				playfield.setEffect(toplayereffect);
-				grid.color = color;
-				game.humans.color=color;
-				game.humans.colorTech=color;
-				game.ufos.color = color;
 			}
 
 			void spawnPlanetoid() {
@@ -1562,8 +1560,6 @@ public class Comet extends ClassController {
 				boolean wasStage2 = stage2TimeCurrent-stage2TimeBy>stage2TimeMin;
 				boolean wasStage2Activated = isStage2 && !wasStage2;
 				if (wasStage2Activated) {
-//					dx *= 1.2;
-//					dy *= 1.2;
 					dx += 200/FPS*cos(direction);
 					dy += 200/FPS*sin(direction);
 					ddirection /= 2;    // TODO: decrease max rotation speed instead
@@ -1590,9 +1586,6 @@ public class Comet extends ClassController {
 				boolean isRocket = Ship.this instanceof Rocket;
 				boolean isLeft = isRocket && ((Rocket)Ship.this).player.wasInputLeft;
 				boolean isRight = isRocket && ((Rocket)Ship.this).player.wasInputRight;
-				System.out.println("isRight = " + isRight);
-				System.out.println("isLeft = " + isLeft);
-
 				if (!(isLeft && isRight) || isStage2) {
 					double acc = mobility.value() * thrust;
 					if (isStage2) acc *= stage2ThrustMultiplier;
@@ -2843,7 +2836,7 @@ public class Comet extends ClassController {
 		Bullet(Ship ship, double x, double y, double dx, double dy, double hit_radius, double TTL) {
 			super(Bullet.class,x,y,dx,dy,hit_radius,null);
 			owner = ship;
-			color = game.mission.color;
+			color = game.color;
 			ttl = 1;
 			ttl_d = 1/TTL;
 		}
@@ -3195,8 +3188,8 @@ public class Comet extends ClassController {
 
 		@Override void draw() {
 			gc_bgr.setGlobalAlpha(ttl);
-//			gc_bgr.setFill(ttl<0.5 ? game.mission.color : game.humans.color);
-			gc_bgr.setFill(game.mission.color.interpolate(game.humans.color,ttl));
+//			gc_bgr.setFill(ttl<0.5 ? game.color : game.humans.color);
+			gc_bgr.setFill(game.color.interpolate(game.humans.color,ttl));
 			gc_bgr.fillOval(x-1,y-1,1,1);
 			gc_bgr.setGlobalAlpha(1);
 		}
@@ -3359,7 +3352,7 @@ public class Comet extends ClassController {
 			new FermiGraphics(x,y,radius*2.5);
 
 //			gc_bgr.setGlobalAlpha(0.2);
-//			gc_bgr.setFill(game.mission.color);
+//			gc_bgr.setFill(game.color);
 //			drawOval(gc_bgr,x,y,100);
 //			gc_bgr.setGlobalAlpha(1);
 		}
@@ -3597,7 +3590,7 @@ public class Comet extends ClassController {
 		}
 		@Override void draw() {
 			double d = radius*2;
-			gc_bgr.setFill(game.mission.color);
+			gc_bgr.setFill(game.color);
 			gc_bgr.fillOval(x-radius,y-radius,d,d);
 		}
 		@Override void onHitParticles(SO o) {}
@@ -3616,7 +3609,7 @@ public class Comet extends ClassController {
 
 		@Override void draw() {
 			double d = radius*2;
-			gc_bgr.setStroke(game.mission.color);
+			gc_bgr.setStroke(game.color);
 			gc_bgr.setLineWidth(3);
 			gc_bgr.strokeOval(x-radius,y-radius,d,d);
 		}
@@ -3625,7 +3618,7 @@ public class Comet extends ClassController {
 				game.runNext.add(millis(randMN(100,300)), () -> {
 					double r = 50+radius*2;
 					double d = randAngleRad();
-					new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.mission.color;
+					new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.color;
 				})
 			);
 		}
@@ -3656,7 +3649,7 @@ public class Comet extends ClassController {
 
 		@Override void draw() {
 			double r = graphicsRadius;
-			gc.setFill(game.mission.color);
+			gc.setFill(game.color);
 			drawOval(gc, x,y,r);
 
 			double connectionDistMin = 20, connectionDistMax = 100;
@@ -3667,7 +3660,7 @@ public class Comet extends ClassController {
 				// link
 				if (dist>connectionDistMin && dist<connectionDistMax) {
 					gc.setGlobalAlpha(1-dist/connectionDistMax);
-					drawDottedLine(x,y,0,dist,cos(dir),sin(dir), game.mission.color);
+					drawDottedLine(x,y,0,dist,cos(dir),sin(dir), game.color);
 					gc.setGlobalAlpha(1);
 				}
 				// glue
@@ -3704,7 +3697,7 @@ public class Comet extends ClassController {
 			repeat((int)(size*4), i -> game.runNext.add(millis(randMN(100,300)), () -> {
 				  double r = 50+radius*2*Utils.rand01();
 				  double d = randAngleRad();
-				  new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.mission.color;
+				  new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.color;
 			}));
 		}
 		@Override void explosion() {
@@ -3773,7 +3766,7 @@ public class Comet extends ClassController {
 			@Override public void drawBack() {
 				double rr = 2+r;
 				double d = rr*2;
-				gc_bgr.setFill(game.mission.color);
+				gc_bgr.setFill(game.color);
 				gc_bgr.fillOval(x-rr,y-rr,d,d);
 			}
 			@Override public void drawFront() {
@@ -3793,7 +3786,7 @@ public class Comet extends ClassController {
 	//            double r = radius*(1-ttl)/3+7+(radius-5)*ttl;
 				double rr = 2+r;
 				double d = rr*2;
-				gc_bgr.setFill(game.mission.color);
+				gc_bgr.setFill(game.color);
 				gc_bgr.fillOval(x-rr,y-rr,d,d);
 			}
 			@Override public void drawFront() {
@@ -3885,9 +3878,9 @@ public class Comet extends ClassController {
 				double d = rr*2;
 
 				// we are only interested in the border & strokeOval performs > fillOval
-				// gc_bgr.setFill(game.mission.color);
+				// gc_bgr.setFill(game.color);
 				// gc_bgr.fillOval(x-rr,y-rr,d,d);
-				gc_bgr.setStroke(game.mission.color);
+				gc_bgr.setStroke(game.color);
 				gc_bgr.setLineWidth(3);
 				gc_bgr.strokeOval(x-rr,y-rr,d,d);
 			}
@@ -3907,7 +3900,7 @@ public class Comet extends ClassController {
 	//            double r = radius*(1-ttl)/3+7+(radius-5)*ttl;
 				double rr = 2+r;
 				double d = rr*2;
-				gc_bgr.setFill(game.mission.color);
+				gc_bgr.setFill(game.color);
 				gc_bgr.fillOval(x-rr,y-rr,d,d);
 			}
 			@Override public void drawFront() {
@@ -4074,7 +4067,7 @@ public class Comet extends ClassController {
 	//            double r = radius*(1-ttl)/3+7+(radius-5)*ttl;
 				double rr = 2+r;
 				double d = rr*2;
-				gc_bgr.setFill(game.mission.color);
+				gc_bgr.setFill(game.color);
 				gc_bgr.fillOval(x-rr,y-rr,d,d);
 			}
 			public void drawFront() {
@@ -4089,7 +4082,7 @@ public class Comet extends ClassController {
 	private static final Set<Ƒ1<Fermi,Fermi.FermiMove>> FERMI_MOVES = set(f -> f.new StraightMove(),f -> f.new WaveMove(),f -> f.new FlowerMove(),f -> f.new ZigZagMove(),f -> f.new KnobMove(),f -> f.new SpiralMove(),f -> f.new SidespiralMove());
 	private class FermiGraphics extends Particle implements Draw2 {
 			double r;
-			Color color = game.mission.color;
+			Color color = game.color;
 
 			public FermiGraphics(double x, double y, double RADIUS) {
 				this(x,y,0,0,RADIUS,seconds(0.3));

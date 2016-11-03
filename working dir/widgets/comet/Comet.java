@@ -1314,6 +1314,7 @@ public class Comet extends ClassController {
 		@IsConfig final VarEnum<Integer> gamepadId = new VarEnum<Integer>(null, gamepadIds);
 //		@IsConfig(editable = false) final V<Integer> gamepadId = new V<>(null);
 		boolean isInputLeft = false, isInputRight = false, isInputFire = false, isInputFireOnce = false, isInputThrust = false, isInputAbility = false;
+		boolean wasInputLeft = false, wasInputRight = false, wasInputFire = false, wasInputFireOnce = false, wasInputThrust = false, wasInputAbility = false;
 		boolean wasGamepadLeft = false, wasGamepadRight = false, wasGamepadFire = false;
 		public boolean alive = false;
 		public final V<Integer> lives = new V<>(PLAYER_LIVES_INITIAL);
@@ -1400,6 +1401,12 @@ public class Comet extends ClassController {
 				if (isInputFireOnce || (game.loop.isNth(3) && rocket.rapidFire.is() && isInputFire)) rocket.gun.fire();
 				if (isInputAbility) rocket.ability_main.activate(); else rocket.ability_main.passivate();
 			}
+			wasInputLeft = isInputLeft;
+			wasInputRight = isInputRight;
+			wasInputThrust = isInputThrust;
+			wasInputAbility = isInputAbility;
+			wasInputFire = isInputFire;
+			wasInputFireOnce = isInputFireOnce;
 			isInputLeft = isInputRight = isInputFire = isInputFireOnce = isInputThrust = isInputAbility = false;
 		}
 
@@ -1673,16 +1680,19 @@ public class Comet extends ClassController {
 			@Override
 			void onDoLoop() {
 				boolean isStage2 = stage2TimeCurrent>stage2TimeMin;
-
-				if (isStage2 && stage2TimeCurrent-stage2TimeBy<=stage2TimeMin) {
-					dx *= 1.2;
-					dy *= 1.2;
+				boolean wasStage2 = stage2TimeCurrent-stage2TimeBy>stage2TimeMin;
+				boolean wasStage2Activated = isStage2 && !wasStage2;
+				if (wasStage2Activated) {
+//					dx *= 1.2;
+//					dy *= 1.2;
+					dx += 200/FPS*cos(direction);
+					dy += 200/FPS*sin(direction);
 					ddirection /= 2;    // TODO: decrease max rotation speed instead
 					repeat(20, () -> new Particle(x,y,cos(Utils.randAngleRad()),sin(Utils.randAngleRad()),ttl(millis(400))));
 
-					double s = speed();
-					double d = deg(Ship.this.direction+PI/2);
-					new Particle(x+25*cos(direction+PI),y+25*sin(direction+PI),cos(dx-dx/s),sin(dy-dy/s),ttl(millis(400))) {
+					double d = direction+PI;
+					double dr = deg(Ship.this.direction+PI/2);
+					new Particle(x+25*cos(d),y+25*sin(d),1*cos(d),1*sin(d),ttl(millis(400))) {
 						@Override
 						void draw() {
 							gc.save();
@@ -1690,7 +1700,7 @@ public class Comet extends ClassController {
 							gc.setLineWidth(1+15*ttl);
 							gc.setGlobalAlpha(0.1+0.5*ttl);
 							double w = 30+180*(1-ttl), h=10+20*(1-ttl);
-							Affine a = Utils.rotate(gc, d,x,y);
+							Affine a = Utils.rotate(gc, dr,x,y);
 							gc.strokeOval(x-w/2,y-h/2,w,h);
 							gc.setTransform(a);
 							gc.restore();
@@ -1698,10 +1708,18 @@ public class Comet extends ClassController {
 					};
 				}
 
-				double acc = mobility.value()*thrust;
-				if (isStage2) acc *= stage2ThrustMultiplier;
-				dx += acc*cos(direction);
-				dy += acc*sin(direction);
+				boolean isRocket = Ship.this instanceof Rocket;
+				boolean isLeft = isRocket && ((Rocket)Ship.this).player.wasInputLeft;
+				boolean isRight = isRocket && ((Rocket)Ship.this).player.wasInputRight;
+				System.out.println("isRight = " + isRight);
+				System.out.println("isLeft = " + isLeft);
+
+				if (!(isLeft && isRight) || isStage2) {
+					double acc = mobility.value() * thrust;
+					if (isStage2) acc *= stage2ThrustMultiplier;
+					dx += acc * cos(direction);
+					dy += acc * sin(direction);
+				}
 
 				if (!isin_hyperspace) {
 					ttl--;
@@ -1717,17 +1735,17 @@ public class Comet extends ClassController {
 //						ROCKET_ENGINE_DEBRIS_EMITTER.emit(x,y,direction+PI, mobility.value());
 
 						// style3
-						double s = speed();
-						double d = deg(Ship.this.direction+PI/2);
-						new Particle(x+25*cos(direction+PI),y+25*sin(direction+PI),cos(dx-dx/s),sin(dy-dy/s),ttl(millis(250))) {
+						double d = direction+PI;
+						double dr = deg(Ship.this.direction+PI/2);
+						new Particle(x+25*cos(d),y+25*sin(d),1*cos(d),1*sin(d),ttl(millis(250))) {
 							@Override
 							void draw() {
 								gc.save();
 								gc.setStroke(game.humans.color);
 								gc.setLineWidth(1+3*ttl);
 								gc.setGlobalAlpha(0.1+0.5*ttl);
-								double w = 10+30*(1-ttl), h=10+20*(1-ttl);
-								Affine a = Utils.rotate(gc, d,x,y);
+								double w = 10+30*(1-ttl), h=5+10*(1-ttl);
+								Affine a = Utils.rotate(gc, dr,this.x,this.y);
 								gc.strokeOval(x-w/2,y-h/2,w,h);
 								gc.setTransform(a);
 								gc.restore();
@@ -2914,10 +2932,11 @@ public class Comet extends ClassController {
 		void move() {}
 		void doLoopOutOfField() {
 			y = game.field.modY(y);
-			if (isLarge)
+			if (isLarge) {
 				if (game.field.isOutsideX(x)) dead = true;
-			else
+			} else {
 				x = game.field.modX(x);
+			}
 		}
 		void pickUpBy(Rocket r) {
 			e.enhance(r);

@@ -16,10 +16,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
@@ -56,6 +53,7 @@ import util.SwitchException;
 import util.animation.Anim;
 import util.collections.Tuple2;
 import util.collections.map.ClassMap;
+import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
@@ -63,6 +61,9 @@ import util.reactive.SetƑ;
 
 import static comet.Comet.Constants.FPS;
 import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
+import static comet.Utils.Achievement.achievement01;
+import static comet.Utils.Achievement.achievement0N;
+import static comet.Utils.Achievement.achievement1;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Math.*;
@@ -370,33 +371,6 @@ interface Utils {
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
 	}
 
-	class Loop extends util.animation.Loop {
-		/** Loop id, starts at 0, incremented by 1 every loop. */
-		public long id = 0;
-		/** The timestamp of the current loop given in milliseconds. */
-		public long now = 0;
-
-		public Loop(Runnable action) {
-			super(action);
-			reset();
-		}
-
-		public final void reset() {
-			id = 0;
-			now = 0;
-		}
-
-		@Override
-		protected void doLoop(long now) {
-			this.id++;
-			this.now = now/1000000;
-			super.doLoop(now);
-		}
-
-		boolean isNth(long n) {
-			return id % n == 0;
-		}
-	}
 
 	enum Side {
 		LEFT,RIGHT
@@ -1112,6 +1086,33 @@ interface Utils {
 		}
 	}
 
+	class Loop extends util.animation.Loop {
+		/** Loop id, starts at 0, incremented by 1 every loop. */
+		public long id = 0;
+		/** The timestamp of the current loop given in milliseconds. */
+		public long now = 0;
+
+		public Loop(Runnable action) {
+			super(action);
+			reset();
+		}
+
+		public final void reset() {
+			id = 0;
+			now = 0;
+		}
+
+		@Override
+		protected void doLoop(long now) {
+			this.id++;
+			this.now = now/1000000;
+			super.doLoop(now);
+		}
+
+		boolean isNth(long n) {
+			return id % n == 0;
+		}
+	}
 	class GameSize {
 		double width=0, height=0, diagonal=0, area=0, length=0;
 
@@ -1248,6 +1249,210 @@ interface Utils {
 			return dx*dx+dy*dy < as*as;
 		}
 	}
+	interface Events {
+		Object PLANETOID_DESTROYED = new Object();
+		Object PLAYER_NO_LIVES_LEFT = new Object();
+		Object COMMAND_NEXT_MISSION = new Object();
+	}
+	/** Loop object - object with per loop behavior. Executes once per loop. */
+	interface LO {
+		void doLoop();
+		default void dispose() {}
+	}
+	interface Play extends LO {
+		void init();
+		void start(int player_count);
+		void doLoop();
+		void handleEvent(Object event);
+		void stop();
+		void pause(boolean v);
+	}
+	abstract class GameMode implements Play {
+		protected Game game;
+
+		public GameMode(Game game) {
+			this.game = game;
+		}
+
+		public Set<Achievement> achievements() {
+			return set();
+		}
+	}
+	class ClassicMode extends GameMode {
+		final MapSet<Integer,Mission> missions;
+		int mission_counter = 0;   // mission counter, starts at 1, increments by 1
+		boolean isMissionScheduled = false;
+		final Set<Achievement> achievements;
+
+		public ClassicMode(Game game) {
+			super(game);
+			missions = new MapSet<>(m -> m.id,
+//				new Mission(
+//					1, "Energetic fragility","10⁻¹⁵","",
+//					null, Color.RED,Color.rgb(255,255,255,0.015), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
+////					null, Color.RED,Color.rgb(0,0,0,0.08), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
+//				).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
+				game.new Mission(
+					1, "The strange world", "10⁻⁴m", "",
+					null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+				),
+				game.new Mission(
+					2, "Sumi-e","10⁻¹⁵","",
+					null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+				),
+				game.new Mission(
+					3, "Mol's molecule","","",
+					null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+				),
+				game.new Mission(
+					4, "PartiCuLar elEment","10⁻¹⁵","",
+					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+				),
+				game.new Mission(
+					5, "Decay of the weak force","10⁻¹","",
+					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+				),
+				game.new Mission(
+					6, "String a string","10⁻¹⁵","",
+					null,Color.YELLOW, Color.rgb(10, 11, 1, 0.2),null, (a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
+				), //new Glow(0.3)
+				game.new Mission(
+					7, "Mother of all branes","10⁻¹⁵","",
+					null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), null, (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
+				),
+				game.new Mission(
+					8, "Energetic fragility","10⁻¹⁵","",
+					null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), null,(a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
+				),
+				game.new Mission(
+					9, "Planc's plancton","10⁻¹⁵","",
+					null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),null,(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
+				)//,
+//				new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
+//					null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
+//				),
+//				new Mission(11, "Informative xperience","10⁻¹⁵","",
+//					bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//				),
+//				new Mission(12, "Holographically principled","10⁻¹⁵","",
+//					bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//				)
+			);
+			achievements = set(
+				achievement1(
+					"Dominator", MaterialDesignIcon.DUMBBELL,
+					g -> stream(g.players).max(by(p -> p.stats.controlAreaSize.getAverage())).get(),
+					"Control the largest nearby area throughout the game"
+				).onlyIf(g -> g.players.size()>1),
+				achievement1(
+					"Control freak", MaterialDesignIcon.ARROW_EXPAND,
+					g -> stream(g.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+					"Control your nearby area the most effectively"
+				).onlyIf(g -> g.players.size()>1),
+				achievement01(
+					"Reaper's favourite", MaterialDesignIcon.HEART_BROKEN,
+					g -> Optional.ofNullable(g.stats.firstDead),
+					"Be the first to die"
+				).onlyIf(g -> g.players.size()>1),
+				achievement1(
+					"Live and prosper", MaterialDesignIcon.HEART,
+					g -> stream(g.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).get())).get(),
+					"Live the longest"
+				).onlyIf(g -> g.players.size()>1),
+				achievement0N(
+					"Invincible", MaterialDesignIcon.MARKER_CHECK,
+					g -> stream(g.players).filter(p -> p.stats.deathCount==0),
+					"Don't die"
+				),
+				achievement01(
+					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
+					g -> stream(g.players).filter(p -> p.stats.fired1stTime!=null).minBy(p -> p.stats.fired1stTime),
+					"Be the first to shoot"
+				).onlyIf(g -> g.players.size()>1),
+				achievement01(
+					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
+					g -> stream(g.players).filter(p -> p.stats.hitEnemy1stTime!=null).minBy(p -> p.stats.hitEnemy1stTime),
+					"Be the first to deal damage"
+				).onlyIf(g -> g.players.size()>1),
+				achievement01(
+					"Mobile", MaterialDesignIcon.RUN,
+					g -> stream(g.players).maxBy(p -> p.stats.distanceTravelled),
+					"Travel the greatest distance"
+				).onlyIf(g -> g.players.size()>1),
+				achievement0N(
+					"Pacifist", MaterialDesignIcon.NATURE_PEOPLE,
+					g -> stream(g.players).filter(p -> p.stats.fired1stTime==null),
+					"Never shoot"
+				),
+				// TODO: fix this for situations where killCount is the same for multiple players
+				achievement01(
+					"Hunter", MaterialDesignIcon.BIOHAZARD,
+					g -> stream(g.players).maxBy(p -> p.stats.killUfoCount),
+					"Kill most UFOs"
+				).onlyIf(g -> g.players.size()>1)
+			);
+		}
+
+		@Override
+		public void init() {}
+
+		@Override
+		public void start(int player_count) {
+			mission_counter = 0;
+			isMissionScheduled = false;
+			nextMission();
+		}
+
+		@Override
+		public void doLoop() {}
+
+		@Override
+		public void handleEvent(Object event) {
+			if (event==Events.PLANETOID_DESTROYED) {
+				// it may take a cycle or two for asteroids to get disposed, hence the delay
+				game.runNext.add(10, () -> {
+					if (game.oss.get(Asteroid.class).isEmpty())
+						nextMission();
+				});
+			}
+			if (event==Events.PLAYER_NO_LIVES_LEFT) {
+				if (game.players.stream().allMatch(p -> !p.alive && p.lives.get()<=0))
+					game.over();
+			}
+			if (event==Events.COMMAND_NEXT_MISSION) {
+				nextMission();
+			}
+		}
+
+		@Override
+		public void stop() {}
+
+		@Override
+		public void pause(boolean v) {}
+
+		private void nextMission() {
+			if (isMissionScheduled) return;
+			isMissionScheduled = true;
+			if (game.mission!=null) game.mission.disposer.accept(game);
+			mission_counter = mission_counter==0 ? 1 : mission_counter+1;
+			int id = mission_counter%missions.size();
+			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
+			game.mission = missions.get(mission_id);
+
+			game.mission.start();
+			boolean isEasy = mission_counter<4;
+			double size = sqrt(game.field.height)/1000;
+			int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + game.players.size()/2;
+			int planetoids = isEasy ? planetoidCount/2 : planetoidCount;
+			double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
+			game.runNext.add(delay/2, () -> game.message("Level " + mission_counter, game.mission.name));
+			game.runNext.add(delay, () -> repeat(planetoids, i -> game.mission.spawnPlanetoid()));
+			if (isEasy) game.runNext.add(delay, () -> game.oss.get(Asteroid.class).forEach(a -> a.split(null)));
+			game.runNext.add(delay, () -> isMissionScheduled = false);
+			game.mission.initializer.accept(game);
+		}
+	}
+
 	/**
 	 * 2d vector. Mutable.
 	 */
@@ -1519,7 +1724,6 @@ interface Utils {
 		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Game game);
 
 	}
-
 	/**
 	 * Implementation based on kn.uni.voronoitreemap, which is based on
 	 * Arlind Nocaj, Ulrik Brandes, "Computing Voronoi Treemaps: Faster, Simpler, and Resolution-independent", Computer Graphics Forum, vol. 31, no. 3, June 2012, pp. 855-864

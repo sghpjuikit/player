@@ -46,7 +46,6 @@ import util.access.V;
 import util.access.VarEnum;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
-import util.collections.mapset.MapSet;
 import util.conf.Config.ConfigurableVarList;
 import util.conf.Configurable;
 import util.conf.IsConfig;
@@ -60,7 +59,6 @@ import util.validation.Constraint;
 import static comet.Comet.Constants.*;
 import static comet.Utils.AbilityKind.SHIELD;
 import static comet.Utils.AbilityState.*;
-import static comet.Utils.Achievement.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
@@ -187,7 +185,7 @@ public class Comet extends ClassController {
 				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
 				if (cc==DIGIT4) game.runNext.add(() -> {
 					game.oss.forEach(Asteroid.class,a -> a.dead=true);
-					game.nextMission();
+					game.handleEvent(Events.COMMAND_NEXT_MISSION);
 				});
 				if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
 				if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).enhance(r));
@@ -417,7 +415,8 @@ public class Comet extends ClassController {
 	}
 
 	/** Encompasses entire game. */
-	class Game {
+	class Game implements Play {
+		final Comet owner = Comet.this;
 		final V<Boolean> paused = new V<>(false);
 		final V<Boolean> running = new V<>(false);
 		private boolean isInitialized = false;
@@ -537,54 +536,11 @@ public class Comet extends ClassController {
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		boolean useGrid = true;
 
-		int mission_counter = 0;   // mission counter, starts at 1, increments by 1
+		private GameMode mode = new ClassicMode(this);
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
-		boolean isMissionScheduled = false;
 		MissionInfoButton mission_button;
 		final StatsGame stats = new StatsGame();
-		final MapSet<Integer,Mission> missions = new MapSet<>(m -> m.id,
 
-//			new Mission(1, "Energetic fragility","10⁻¹⁵","",
-//				null, Color.RED,Color.rgb(255,255,255,0.015), null,Particler::new
-////				null, Color.RED,Color.rgb(0,0,0,0.08), null,Particler::new
-//			).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
-            new Mission(1, "The strange world", "10⁻⁴m", "",
-                null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, PlanetoDisc::new
-            ),
-			new Mission(2, "Sumi-e","10⁻¹⁵","",
-				null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, Inkoid::new
-			),
-			new Mission(3, "Mol's molecule","","",
-				null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), null, Fermi::new
-			),
-			new Mission(4, "PartiCuLar elEment","10⁻¹⁵","",
-				null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, Fermi::new
-			),
-			new Mission(5, "Decay of the weak force","10⁻¹","",
-				null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, Fermi::new
-			),
-			new Mission(6, "String a string","10⁻¹⁵","",
-				null,Color.YELLOW, Color.rgb(10, 11, 1, 0.2),null, Stringoid::new
-			), //new Glow(0.3)
-			new Mission(7, "Mother of all branes","10⁻¹⁵","",
-				null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), null, Genoid::new
-			),
-			new Mission(8, "Energetic fragility","10⁻¹⁵","",
-				null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), null,Energ::new
-			),
-			new Mission(9, "Planc's plancton","10⁻¹⁵","",
-				null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),null,Linker::new
-			)//,
-//			new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
-//				null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
-//			),
-//			new Mission(11, "Informative xperience","10⁻¹⁵","",
-//				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
-//			),
-//			new Mission(12, "Holographically principled","10⁻¹⁵","",
-//				bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
-//			)
-		);
 
 		final Set<Enhancer> ROCKET_ENHANCERS = set(
 
@@ -713,59 +669,6 @@ public class Comet extends ClassController {
 			)
 		);
 		final Set<Enhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
-		final Set<Achievement> ACHIEVEMENTS = set(
-			achievement1(
-					"Dominator", MaterialDesignIcon.DUMBBELL,
-					 game -> stream(game.players).max(by(p -> p.stats.controlAreaSize.getAverage())).get(),
-					 "Control the largest nearby area throughout the game"
-				).onlyIf(game -> game.players.size()>1),
-			achievement1(
-					"Control freak", MaterialDesignIcon.ARROW_EXPAND,
-					game -> stream(game.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
-					"Control your nearby area the most effectively"
-				).onlyIf(game -> game.players.size()>1),
-			achievement01(
-					"Reaper's favourite", MaterialDesignIcon.HEART_BROKEN,
-					game -> Optional.ofNullable(game.stats.firstDead),
-					"Be the first to die"
-				).onlyIf(game -> game.players.size()>1),
-			achievement1(
-					"Live and prosper", MaterialDesignIcon.HEART,
-					game -> stream(game.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).get())).get(),
-					"Live the longest"
-				).onlyIf(game -> game.players.size()>1),
-			achievement0N(
-					"Invincible", MaterialDesignIcon.MARKER_CHECK,
-					game -> stream(game.players).filter(p -> p.stats.deathCount==0),
-					"Don't die"
-				),
-			achievement01(
-					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
-					game -> stream(game.players).filter(p -> p.stats.fired1stTime!=null).minBy(p -> p.stats.fired1stTime),
-					"Be the first to shoot"
-				).onlyIf(game -> game.players.size()>1),
-			achievement01(
-					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
-					game -> stream(game.players).filter(p -> p.stats.hitEnemy1stTime!=null).minBy(p -> p.stats.hitEnemy1stTime),
-					"Be the first to deal damage"
-				).onlyIf(game -> game.players.size()>1),
-			achievement01(
-					"Mobile", MaterialDesignIcon.RUN,
-					game -> stream(game.players).maxBy(p -> p.stats.distanceTravelled),
-					"Travel the greatest distance"
-				).onlyIf(game -> game.players.size()>1),
-			achievement0N(
-					"Pacifist", MaterialDesignIcon.NATURE_PEOPLE,
-					game -> stream(game.players).filter(p -> p.stats.fired1stTime==null),
-					"Never shoot"
-				),
-			// TODO: fix this for situations where killCount is the same for multiple players
-			achievement01(
-					"Hunter", MaterialDesignIcon.BIOHAZARD,
-					game -> stream(game.players).maxBy(p -> p.stats.killUfoCount),
-					"Kill most UFOs"
-				).onlyIf(game -> game.players.size()>1)
-		);
 		Voronoi voronoi = new Voronoi2(
 			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
 			(rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
@@ -786,19 +689,15 @@ public class Comet extends ClassController {
 			})
 		);
 
-		void pause(boolean v) {
-			if (!running.get() || paused.get()==v) return;
-			paused.set(v);
-			if (v) loop.stop();
-			else loop.start();
-		}
-
-		private void init() {
+		@Override
+		public void init() {
 			grid = new Grid(gc, game.field.width, game.field.height, 20);
 			gamepads.init();
+			mode.init();
 		}
 
-		void start(int player_count) {
+		@Override
+		public void start(int player_count) {
 			stop();
 
 			if (!isInitialized) {
@@ -808,8 +707,6 @@ public class Comet extends ClassController {
 
 			players.addAll(listF(player_count,PLAYERS.list::get));
 			players.forEach(Player::reset);
-
-
 
 			gamepads.getControllers()
 				.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
@@ -821,22 +718,28 @@ public class Comet extends ClassController {
 
 			running.set(true);
 			loop.reset();
-			mission_counter = 0;
-			isMissionScheduled = false;
 			ufos.init();
 			humans.init();
 
 			players.forEach(Player::spawn);
 			loop.start();
-
 			timer200ms.start();
 			playfield.requestFocus();
-			nextMission();
+			mode.start(player_count);
 
 			runNext.add(() -> mission_button = new MissionInfoButton());
 		}
 
-		void doLoop() {
+		@Override
+		public void pause(boolean v) {
+			if (!running.get() || paused.get()==v) return;
+			paused.set(v);
+			if (v) loop.stop(); else loop.start();
+			mode.pause(v);
+		}
+
+		@Override
+		public void doLoop() {
 			if (loop.isNth((long)FPS)) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
 			// collect and handle player inputs
@@ -966,13 +869,13 @@ public class Comet extends ClassController {
 						}
 					}
 					a.onHit(r);
-					onPlanetoidDestroyed();
+					game.handleEvent(Events.PLANETOID_DESTROYED);
 				}
 			});
 			oss.forEach(Shuttle.class,Asteroid.class, (s,a) -> {
 				if (s.isHitDistance(a)) {
 					a.onHit(s);
-					onPlanetoidDestroyed();
+					game.handleEvent(Events.PLANETOID_DESTROYED);
 					s.die(a);
 				}
 			});
@@ -984,7 +887,7 @@ public class Comet extends ClassController {
 						s.die(a);
 					}
 					a.onHit(s);
-					onPlanetoidDestroyed();
+					game.handleEvent(Events.PLANETOID_DESTROYED);
 				}
 			});
 
@@ -996,6 +899,8 @@ public class Comet extends ClassController {
 			stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
 
 			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
+
+			mode.doLoop();
 
 //	        gc.setGlobalAlpha(1);
 //	        gc.setLineWidth(1);
@@ -1009,7 +914,8 @@ public class Comet extends ClassController {
 //	        gc.stroke();
 		}
 
-		void stop() {
+		@Override
+		public void stop() {
 			running.set(false);
 			timer200ms.stop();
 			loop.stop();
@@ -1019,34 +925,26 @@ public class Comet extends ClassController {
 			entities.clear();
 			runNext.clear();
 			playfield.getChildren().clear();
+			mode.stop();
 		}
 
 		/** Clears resources. No game session will occur after this. */
-		void dispose() {
+		@Override
+		public void dispose() {
 			stop();
 			gamepads.dispose();
+			mode.dispose();
 		}
 
-		void nextMission() {
-			if (isMissionScheduled) return;
-			isMissionScheduled = true;
-			if (mission!=null) mission.disposer.accept(this);
-			mission_counter = mission_counter==0 ? 1 : mission_counter+1;
-			int id = mission_counter%missions.size();
-			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
-			mission = missions.get(mission_id);
-			mission.start();
+		@Override
+		public void handleEvent(Object event) {
+			mode.handleEvent(event);
 		}
-		void onPlanetoidDestroyed() {
-			// it may take a cycle or two for asteroids to get disposed, hence the delay
-			runNext.add(10, () -> {
-				if (oss.get(Asteroid.class).isEmpty()) nextMission();
-			});
-		}
+
 		void over() {
 			players.forEach(p -> p.stats.accGameEnd(loop.id));
 			runNext.add(seconds(5), () -> {
-				Map<Player,List<Achievement>> as = stream(ACHIEVEMENTS)
+				Map<Player,List<Achievement>> as = stream(mode.achievements())
 							.filter(a -> a.condition==null || a.condition.test(this))
 							.flatMapToEntry(a -> stream(a.evaluator.apply(this)).toMap(player -> player, player -> a))
 							.grouping();
@@ -1243,19 +1141,6 @@ public class Comet extends ClassController {
 				((Pane)playfield.getParent()).setBackground(bgr);
 				playfield.setEffect(toplayereffect);
 				grid.color = color;
-
-				boolean isEasy = mission_counter<4;
-				double size = sqrt(game.field.height)/1000;
-				int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + players.size()/2;
-				int planetoids = isEasy ? planetoidCount/2 : planetoidCount;
-				double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
-				runNext.add(delay/2, () -> message("Level " + mission_counter, name));
-				runNext.add(delay, () -> repeat(planetoids, i -> spawnPlanetoid()));
-				if (isEasy) runNext.add(delay, () -> game.oss.get(Asteroid.class).forEach(a -> a.split(null)));
-				runNext.add(delay, () -> isMissionScheduled = false);
-				initializer.accept(Game.this);
-
-
 				game.humans.color=color;
 				game.humans.colorTech=color;
 				game.ufos.color = color;
@@ -1352,8 +1237,7 @@ public class Comet extends ClassController {
 				game.grid.applyExplosiveForce(100, new Vec(rocket.x,rocket.y), 50);
 				spawnMidGame();
 			} else {
-				if (game.players.stream().noneMatch(p -> p.alive))
-					game.over();
+				game.handleEvent(Events.PLAYER_NO_LIVES_LEFT);
 			}
 		}
 
@@ -1422,11 +1306,6 @@ public class Comet extends ClassController {
 
 	}
 
-	/** Loop object - object with per loop behavior. Executes once per loop. */
-	private interface LO {
-		void doLoop();
-		default void dispose() {}
-	}
 	private abstract class SO implements LO {
 		double x = 0;
 		double y = 0;
@@ -3463,7 +3342,7 @@ public class Comet extends ClassController {
 		void split(SO o) {
 			boolean spontaneous = o==null || o instanceof BlackHole;
 			dead = true;
-			game.onPlanetoidDestroyed();
+			game.handleEvent(Events.PLANETOID_DESTROYED);
 			game.runNext.add(() ->
 				repeat(splits, i -> {
 					double h = rand01();
@@ -3515,7 +3394,7 @@ public class Comet extends ClassController {
 				o.dy = o.speed*sin(o.dir);
 			}
 		}
-	private class Energ extends Asteroid<OrganelleMover> {
+	class Energ extends Asteroid<OrganelleMover> {
 		Color colordead = Color.BLACK;
 		Color coloralive = Color.DODGERBLUE;
 		double heartbeat = 0;
@@ -3587,7 +3466,7 @@ public class Comet extends ClassController {
 	}
 	private static final Color ccccc = Color.color(0.7,0.8,1,0.4);
 	private static final Effect eeeee = new Bloom(0);
-	private class Energ2 extends Energ {
+	class Energ2 extends Energ {
 		public Energ2(double X, double Y, double SPEED, double DIR, double RADIUS) {
 			super(X, Y, SPEED, DIR, RADIUS);
 			coloralive = Color.rgb(244,48,48);
@@ -3601,7 +3480,7 @@ public class Comet extends ClassController {
 			gc.setGlobalBlendMode(SRC_OVER);
 		}
 	}
-	private class Particler extends Asteroid<OrganelleMover> {
+	class Particler extends Asteroid<OrganelleMover> {
 		Color colordead = Color.BLACK;
 		Color coloralive = Color.RED;
 		double heartbeat = 0;
@@ -3701,7 +3580,7 @@ public class Comet extends ClassController {
 			}
 		}
 	}
-	private class PlanetoDisc extends Asteroid<OrganelleMover> {
+	class PlanetoDisc extends Asteroid<OrganelleMover> {
 		public PlanetoDisc(double X, double Y, double SPEED, double DIR, double LIFE) {
 			super(X, Y, SPEED, DIR, LIFE);
 			size = LIFE;
@@ -3723,7 +3602,7 @@ public class Comet extends ClassController {
 		}
 		@Override void onHitParticles(SO o) {}
 	}
-	private class Stringoid extends Asteroid<OrganelleMover> {
+	class Stringoid extends Asteroid<OrganelleMover> {
 		public Stringoid(double X, double Y, double SPEED, double DIR, double LIFE) {
 			super(X, Y, SPEED, DIR, LIFE);
 			size = LIFE;
@@ -3754,7 +3633,7 @@ public class Comet extends ClassController {
 			new FermiGraphics(x,y,4+radius*1.3);
 		}
 	}
-	private class Linker extends Asteroid<OrganelleMover> {
+	class Linker extends Asteroid<OrganelleMover> {
 		double graphicsRadius;
 		double ineptTtl = ttl(seconds(1));
 		public Linker(double X, double Y, double SPEED, double DIR, double LIFE) {
@@ -3832,7 +3711,7 @@ public class Comet extends ClassController {
 			new FermiGraphics(x,y,4+radius*1.3);
 		}
 	}
-	private class Inkoid extends Asteroid<OrganelleMover> {
+	class Inkoid extends Asteroid<OrganelleMover> {
 		double trail_ttl = ttl(seconds(0.5+rand0N(2)));
 
 		public Inkoid(double X, double Y, double SPEED, double DIR, double LIFE) {
@@ -3927,7 +3806,7 @@ public class Comet extends ClassController {
 			}
 		}
 	}
-	private class Genoid extends Asteroid<OrganelleMover> {
+	class Genoid extends Asteroid<OrganelleMover> {
 		double circling = 0;
 		double circling_speed = 0.5*D360/ ttl(seconds(0.5)); // times/sec
 		double circling_mag = 0;
@@ -4040,7 +3919,7 @@ public class Comet extends ClassController {
 			}
 		}
 	}
-	private class Fermi extends Asteroid<OrganelleMover> {
+	class Fermi extends Asteroid<OrganelleMover> {
 		final PTtl trail = new PTtl(() -> ttl(seconds(0.5+rand0N(2))), () -> new FermiDebris(x,y,0,0,5,seconds(0.6)));
 		double ttlocillation = 0;
 		FermiMove pseudomovement;

@@ -184,7 +184,7 @@ public class Comet extends ClassController {
 				if (cc==DIGIT2) game.runNext.add(() -> game.ufos.sendUfoSquadron());
 				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
 				if (cc==DIGIT4) game.runNext.add(() -> {
-					game.oss.forEach(Asteroid.class,a -> a.dead=true);
+					game.oss.forEachT(Asteroid.class, a -> a.dead=true);
 					game.handleEvent(Events.COMMAND_NEXT_MISSION);
 				});
 				if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
@@ -532,6 +532,8 @@ public class Comet extends ClassController {
 		final PlayerFaction humans = new PlayerFaction();
 		final TTLList runNext = new TTLList();
 		final Set<PO> removables = new HashSet<>();
+		final CollisionHandlers collisionStrategies = new CollisionHandlers();
+//		final Map2D<Class<? extends PO>,Class<? extends PO>,BiConsumer<? super PO,? super PO>> collisionStrategies = new Map2D<>();
 
 		Color color;
 		Color color_canvasFade; // normally null, canvas fade effect
@@ -696,6 +698,85 @@ public class Comet extends ClassController {
 			grid = new Grid(gc, game.field.width, game.field.height, 20);
 			gamepads.init();
 			mode.init();
+
+			collisionStrategies.add(Rocket.class,Rocket.class, (r1,r2) -> {
+				if (!r1.isin_hyperspace && !r2.isin_hyperspace && r1.isHitDistance(r2)) {
+					if (r1.ability_main instanceof Shield && r1.ability_main.isActivated()) {
+						r1.dx = r1.dy = 0;
+						r1.engine.off();
+						r2.engine.off();
+					} else {
+						r1.player.die();
+					}
+					if (r2.ability_main instanceof Shield && r2.ability_main.isActivated()) {
+						r2.dx = r2.dy = 0;
+					} else {
+						r2.player.die();
+					}
+				}
+			});
+			collisionStrategies.add(Rocket.class,Satellite.class, (r, s) -> {
+				if (!r.isin_hyperspace && r.isHitDistance(s)) {
+					s.pickUpBy(r);
+				}
+			});
+			collisionStrategies.add(Rocket.class,Ufo.class, (r, u) -> {
+				if (!r.isin_hyperspace && r.isHitDistance(u)) {
+					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+						r.dx = r.dy = 0;
+					} else {
+						r.player.die();
+					}
+					u.die(r);
+				}
+			});
+			collisionStrategies.add(Rocket.class,UfoSwarmer.class, (r, ud) -> {
+				if (!r.isin_hyperspace && r.isHitDistance(ud)) {
+					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+						r.dx = r.dy = 0;
+					} else {
+						r.player.die();
+					}
+					ud.explode();
+				}
+			});
+			collisionStrategies.add(Rocket.class,Asteroid.class, (r, a) -> {
+				if (!r.isin_hyperspace && r.isHitDistance(a)) {
+					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
+						((Shield)r.ability_main).onHit(a);
+					} else {
+						if (r.kineticEto(a)<r.kinetic_shield.KSenergy) {
+							r.kinetic_shield.onShieldHit(a);
+
+							r.dx += 0.2*a.dx;
+							r.dy += 0.2*a.dy;
+							r.ddirection += randOf(-1,1)*randMN(0.02,0.04);
+						} else {
+							r.player.die();
+						}
+					}
+					a.onHit(r);
+					game.handleEvent(Events.PLANETOID_DESTROYED);
+				}
+			});
+			collisionStrategies.add(Shuttle.class,Asteroid.class, (s, a) -> {
+				if (s.isHitDistance(a)) {
+					a.onHit(s);
+					game.handleEvent(Events.PLANETOID_DESTROYED);
+					s.die(a);
+				}
+			});
+			collisionStrategies.add(SuperShield.class,Asteroid.class, (s, a) -> {
+				if (s.isHitDistance(a)) {
+					if (s.kineticEto(a)<s.kinetic_shield.KSenergy) {
+						s.kinetic_shield.onShieldHit(a);
+					} else {
+						s.die(a);
+					}
+					a.onHit(s);
+					game.handleEvent(Events.PLANETOID_DESTROYED);
+				}
+			});
 		}
 
 		@Override
@@ -813,85 +894,7 @@ public class Comet extends ClassController {
 
 			// collisions
 			forEachPair(oss.get(Bullet.class),filter(os, e -> !(e instanceof Bullet)), Bullet::checkCollision);
-
-			oss.forEach(Rocket.class,Rocket.class, (r1,r2) -> {
-				if (!r1.isin_hyperspace && !r2.isin_hyperspace && r1.isHitDistance(r2)) {
-					if (r1.ability_main instanceof Shield && r1.ability_main.isActivated()) {
-						r1.dx = r1.dy = 0;
-						r1.engine.off();
-						r2.engine.off();
-					} else {
-						r1.player.die();
-					}
-					if (r2.ability_main instanceof Shield && r2.ability_main.isActivated()) {
-						r2.dx = r2.dy = 0;
-					} else {
-						r2.player.die();
-					}
-				}
-			});
-			oss.forEach(Rocket.class,Satellite.class, (r,s) -> {
-				if (!r.isin_hyperspace && r.isHitDistance(s)) {
-					s.pickUpBy(r);
-				}
-			});
-			oss.forEach(Rocket.class,Ufo.class, (r,u) -> {
-				if (!r.isin_hyperspace && r.isHitDistance(u)) {
-					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
-						r.dx = r.dy = 0;
-					} else {
-						r.player.die();
-					}
-					u.die(r);
-				}
-			});
-			oss.forEach(Rocket.class,UfoSwarmer.class, (r, ud) -> {
-				if (!r.isin_hyperspace && r.isHitDistance(ud)) {
-					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
-						r.dx = r.dy = 0;
-					} else {
-						r.player.die();
-					}
-					ud.explode();
-				}
-			});
-			oss.forEach(Rocket.class,Asteroid.class, (r,a) -> {
-				if (!r.isin_hyperspace && r.isHitDistance(a)) {
-					if (r.ability_main instanceof Shield && r.ability_main.isActivated()) {
-						((Shield)r.ability_main).onHit(a);
-					} else {
-						if (r.kineticEto(a)<r.kinetic_shield.KSenergy) {
-							r.kinetic_shield.onShieldHit(a);
-
-							r.dx += 0.2*a.dx;
-							r.dy += 0.2*a.dy;
-							r.ddirection += randOf(-1,1)*randMN(0.02,0.04);
-						} else {
-							r.player.die();
-						}
-					}
-					a.onHit(r);
-					game.handleEvent(Events.PLANETOID_DESTROYED);
-				}
-			});
-			oss.forEach(Shuttle.class,Asteroid.class, (s,a) -> {
-				if (s.isHitDistance(a)) {
-					a.onHit(s);
-					game.handleEvent(Events.PLANETOID_DESTROYED);
-					s.die(a);
-				}
-			});
-			oss.forEach(SuperShield.class,Asteroid.class, (s,a) -> {
-				if (s.isHitDistance(a)) {
-					if (s.kineticEto(a)<s.kinetic_shield.KSenergy) {
-						s.kinetic_shield.onShieldHit(a);
-					} else {
-						s.die(a);
-					}
-					a.onHit(s);
-					game.handleEvent(Events.PLANETOID_DESTROYED);
-				}
-			});
+			collisionStrategies.forEach(oss::forEachTE);
 
 			oss.get(Bullet.class).forEach(Bullet::draw);
 

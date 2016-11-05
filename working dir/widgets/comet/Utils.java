@@ -16,7 +16,10 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.*;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
@@ -48,11 +51,13 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import kn.uni.voronoitreemap.j2d.Site;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
+import unused.TriConsumer;
 import util.R;
 import util.SwitchException;
 import util.animation.Anim;
 import util.collections.Tuple2;
 import util.collections.map.ClassMap;
+import util.collections.map.Map2D;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
@@ -61,9 +66,7 @@ import util.reactive.SetƑ;
 
 import static comet.Comet.Constants.FPS;
 import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
-import static comet.Utils.Achievement.achievement01;
-import static comet.Utils.Achievement.achievement0N;
-import static comet.Utils.Achievement.achievement1;
+import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Math.*;
@@ -370,7 +373,6 @@ interface Utils {
 		int size = c.size();
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
 	}
-
 
 	enum Side {
 		LEFT,RIGHT
@@ -751,18 +753,18 @@ interface Utils {
 			m.values().forEach(Set::clear); m.clear();
 		}
 
-		@SuppressWarnings("unchecked")
-		<T extends O> void forEach(Class<T> c, Consumer<? super T> action) {
-			Set<T> l = (Set<T>) m.get(c);
-			if (l!=null) l.forEach(action);
-		}
-
 		void forEach(Consumer<? super O> action) {
 			m.forEach((k,set) -> set.forEach(action));
 		}
 
 		@SuppressWarnings("unchecked")
-		<T extends O,E extends O> void forEach(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
+		<T extends O> void forEachT(Class<T> c, Consumer<? super T> action) {
+			Set<T> l = (Set<T>) m.get(c);
+			if (l!=null) l.forEach(action);
+		}
+
+		@SuppressWarnings("unchecked")
+		<T extends O,E extends O> void forEachTE(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
 			if (t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
 			else forEachPair(get(t),get(e), action);
 		}
@@ -857,6 +859,19 @@ interface Utils {
 				for (int j=minJ; j<maxJ; j++)
 					for (PO e : a[i][j])
 						action.accept(o,e);
+		}
+	}
+	class CollisionHandlers {
+		private final Map2D<Class<? extends PO>,Class<? extends PO>,BiConsumer<? super PO,? super PO>> hs = new Map2D<>();
+
+		@SuppressWarnings("unchecked")
+		public <A extends PO, B extends PO> void add(Class<A> type1, Class <B> type2, BiConsumer<? super A,? super B> handler) {
+			hs.put(type1, type2, (BiConsumer)handler);
+		}
+
+		@SuppressWarnings("unchecked")
+		public <A extends PO, B extends PO> void forEach(TriConsumer<Class<A>,Class<B>,BiConsumer<? super A,? super B>> action) {
+			hs.forEach((TriConsumer)action);
 		}
 	}
 
@@ -1429,6 +1444,11 @@ interface Utils {
 
 		@Override
 		public void pause(boolean v) {}
+
+		@Override
+		public Set<Achievement> achievements() {
+			return achievements;
+		}
 
 		private void nextMission() {
 			// schedule

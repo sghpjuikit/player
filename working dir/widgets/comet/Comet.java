@@ -639,7 +639,7 @@ public class Comet extends ClassController {
 			)
 		);
 		final Set<Enhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
-		final Voronoi voronoi = new Voronoi2(
+		final Voronoi voronoi = new Voronoi(
 			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
 			(rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
 			(centerX,centerY) -> {

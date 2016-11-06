@@ -44,11 +44,6 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import gui.pane.OverlayPane;
-import kn.uni.voronoitreemap.datastructure.OpenList;
-import kn.uni.voronoitreemap.diagram.PowerDiagram;
-import kn.uni.voronoitreemap.j2d.Point2D;
-import kn.uni.voronoitreemap.j2d.PolygonSimple;
-import kn.uni.voronoitreemap.j2d.Site;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import unused.TriConsumer;
@@ -1794,11 +1789,12 @@ interface Utils {
 	 * @implNote  Class is abstract to abstracts away from the algorithm, which seems to not be implemented robustly
 	 * in libraries, so I wrap it in a class, which also provides optimization for number of points 0 and 1.
 	 */
-	abstract class Voronoi {
-		protected final BiConsumer<Rocket,Double> areaAction;
-		protected final BiConsumer<Rocket,Double> distAction;
-		protected final BiConsumer<Double,Double> centerAction;
-		protected final Consumer<Stream<Lin>> edgesAction;
+	class Voronoi {
+		private final BiConsumer<Rocket,Double> areaAction;
+		private final BiConsumer<Rocket,Double> distAction;
+		private final BiConsumer<Double,Double> centerAction;
+		private final Consumer<Stream<Lin>> edgesAction;
+		private final Map<Coordinate,Tuple2<Rocket,Boolean>> inputOutputMap = new HashMap<>(8*9); // maps input (rockets) to polygons
 
 		public Voronoi(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double,Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
 			this.areaAction = areaAction;
@@ -1824,111 +1820,7 @@ interface Utils {
 			}
 		}
 
-		protected abstract void doCompute(Set<Rocket> rockets, double W, double H, Game game);
-
-	}
-	/**
-	 * Implementation based on kn.uni.voronoitreemap, which is based on
-	 * Arlind Nocaj, Ulrik Brandes, "Computing Voronoi Treemaps: Faster, Simpler, and Resolution-independent", Computer Graphics Forum, vol. 31, no. 3, June 2012, pp. 855-864
-	 *
-	 * https://github.com/ArlindNocaj/power-voronoi-diagram
-	 */
-	class Voronoi1 extends Voronoi {
-		public Voronoi1(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double,Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
-			super(areaAction, distAction, centerAction, edgesAction);
-		}
-
 		@SuppressWarnings("unchecked")
-		@Override
-		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
-			Set<Site> cells = stream(rockets)
-				.flatMap(rocket -> {
-					Vec r = new Vec(rocket.x+rocket.cacheRandomVoronoiTranslation, rocket.y+rocket.cacheRandomVoronoiTranslation);
-					Site sMain = new Site(r.x, r.y);
-					sMain.setData(tuple(rocket,true));
-					return stream(new Site(r.x + W, r.y), new Site(r.x, r.y + H), new Site(r.x - W, r.y), new Site(r.x, r.y - H),
-						new Site(r.x + W, r.y + H), new Site(r.x + W, r.y - H), new Site(r.x - W, r.y + H), new Site(r.x - W, r.y - H))
-							   .peek(s -> s.setData(tuple(rocket,false)))
-							   .append(sMain);
-				})
-				.toSet();
-			OpenList sites = new OpenList();
-			cells.forEach(sites::add);
-
-			PolygonSimple clip = new PolygonSimple();
-			clip.add(-W, -H);
-			clip.add(2*W, -H);
-			clip.add(2*W, 2*H);
-			clip.add(-W, 2*H);
-			PowerDiagram diagram = new PowerDiagram();
-			diagram.setSites(sites);
-			diagram.setClipPoly(clip);
-
-			// Unfortunately the computation can fail under some circumstances, so lets defend against it with Try
-			Try.tryR(diagram::computeDiagram, Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(noValue ->
-					edgesAction.accept(
-						StreamEx.of(sites.iterator())
-							.groupingBy(site -> ((Tuple2<Comet.Rocket,Boolean>) site.getData())._1)
-							.values().stream()
-							.flatMap(ss -> {
-									List<Lin> lines = stream(ss)
-										  .map(site -> {
-											  Rocket rocket = ((Tuple2<Rocket,Boolean>) site.getData())._1;
-											  Boolean isMain = ((Tuple2<Rocket,Boolean>) site.getData())._2;
-											  PolygonSimple polygon = site.getPolygon();
-											  if (polygon != null && polygon.getNumPoints() > 1) {
-												  if (isMain) {
-													  Point2D c = polygon.getCentroid();
-													  areaAction.accept(rocket, polygon.getArea());
-													  distAction.accept(rocket, game.field.dist(c.x, c.y, rocket.x, rocket.y));
-													  centerAction.accept(c.x,c.y);
-												  }
-												  return polygon;
-											  }
-											  return null;
-										  })
-										  .filter(polygon -> game.humans.intelOn.is())
-										  .filter(ISNTØ)
-										  // optimization: return edges -> draw edges instead of polygons, we can improve performance
-										  .flatMap(polygon -> {
-											  Stream.Builder<Lin> s = Stream.builder();
-											  for (int j=0; j<polygon.getNumPoints(); j++) {
-												  int k = j==polygon.getNumPoints()-1 ? 0 : j+1;
-												  double x1 = polygon.getXPoints()[j], x2 = polygon.getXPoints()[k],
-														 y1 = polygon.getYPoints()[j], y2 = polygon.getYPoints()[k];
-												  if ((x1>=0 && y1>=0 && x1<=W && y1<=H) || (x2>=0 && y2>=0 && x2<=W && y2<=H))
-													  s.add(new Lin(x1,y1,x2,y2));
-											  }
-											  return s.build();
-										  }).toList();
-//								        .groupingBy(x -> x, counting())
-//								        .entrySet().stream()
-//								        .peek(e -> System.out.println(e.getValue()))
-//								        .filter(e -> e.getValue()==1)
-//								        .map(Entry::getKey)
-									Set<Lin> linesUnique = new HashSet<>();
-									Set<Lin> linesDuplicate = stream(lines).filter(n -> !linesUnique.add(n)).toSet();
-									linesUnique.removeAll(linesDuplicate);
-									return linesUnique.stream();
-								}
-							)
-							// optimization: draw each edge only once by removing duplicates with Set and proper hashCode()
-							.distinct()
-					)
-				);
-		}
-	}
-	class Voronoi2 extends Voronoi {
-		Map<Coordinate,Tuple2<Rocket,Boolean>> inputOutputMap = new HashMap<>(8*9); // maps input (rockets) to polygons
-
-		public Voronoi2(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double, Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
-			super(areaAction, distAction, centerAction, edgesAction);
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
 		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
 			inputOutputMap.clear();
 			List<Coordinate> cells = stream(rockets)

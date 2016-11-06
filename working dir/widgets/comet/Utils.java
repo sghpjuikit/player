@@ -64,8 +64,7 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.reactive.SetƑ;
 
-import static comet.Comet.Constants.FPS;
-import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
+import static comet.Comet.Constants.*;
 import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
@@ -79,8 +78,10 @@ import static javafx.scene.layout.Priority.NEVER;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.Util.clip;
+import static util.Util.pyth;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.no;
+import static util.dev.Util.yes;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -94,6 +95,7 @@ interface Utils {
 	// subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
 	Logger LOGGER = LoggerFactory.getLogger(Utils.class);
+	double PI = Math.PI;
 	double D30 = PI/6;
 	double D45 = PI/4;
 	double D60 = PI/3;
@@ -133,6 +135,12 @@ interface Utils {
 	}
 	static double sign(double number) {
 		return Math.signum(number);
+	}
+	static double sqr(double d) {
+		return d*d;
+	}
+	static double sqrt(double d) {
+		return Math.sqrt(d);
 	}
 	/** Returns angle in rad for given sin and cos. */
 	static double dirOf(double x, double y, double dist) {
@@ -262,6 +270,10 @@ interface Utils {
 		gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
 		return a;
 	}
+	/** Adjusts color opacity. */
+	static Color color(Color c, double opacity) {
+		return new Color(c.getRed(), c.getGreen(), c.getBlue(), opacity);
+	}
 	/**
 	 * Draws an image on a graphics context.
 	 *
@@ -319,14 +331,55 @@ interface Utils {
 		double d = 2*r;
 		g.fillRect(x-r,y-r,d,d);
 	}
-	static Color color(Color c, double opacity) {
-		return new Color(c.getRed(), c.getGreen(), c.getBlue(), opacity);
-	}
 	static void drawFading(Game g, DoubleConsumer drawCommand) {
 		g.runNext.addAnim01(millis(200), p -> drawCommand.accept(1-p));
 	}
 	static void drawFading(Game g, Duration ttl, DoubleConsumer drawCommand) {
 		g.runNext.addAnim01(ttl, p -> drawCommand.accept(1-p));
+	}
+	static void drawHudLine(GraphicsContext gc, GameSize field, double x, double y, double length, double dirCos, double dirSin) {
+		for (double i=0; i<length; i+=HUD_DOT_GAP)
+			gc.fillOval(field.modX(x+i*dirCos), field.modY(y+i*dirSin), 1,1);
+	}
+	static void drawHudLine(GraphicsContext gc, GameSize field, double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
+		gc.setFill(color);
+		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
+			gc.fillOval(field.modX(x+i*cosDir), field.modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+	}
+	static void drawHudLine(GraphicsContext gc, GameSize field, double x, double y, double tox, double toy) {
+		double dist = pyth(x-tox, y-toy);
+		double distX = tox-x, distY = toy-y;
+		double X = x, Y = y;
+		int pieces = (int)(dist/HUD_DOT_GAP);
+		double dx = distX/pieces, dy = distY/pieces;
+		for (double i=0; i<pieces; i++) {
+			gc.fillOval(field.modX(X),field.modY(Y), 1,1);
+			X += dx; Y += dy;
+		}
+	}
+	static void drawHudCircle(GraphicsContext gc, GameSize field, double x, double y, double r, double angle, double angleWidth, Color color) {
+		gc.setFill(color);
+		double length = angleWidth*r;
+		int pieces = (int)(length/HUD_DOT_GAP);
+		double angleStart = angle-angleWidth/2;
+		double angleBy = angleWidth/pieces;
+		for (int p=0; p<pieces; p++) {
+			double a = angleStart+p*angleBy;
+			gc.fillOval(field.modX(x+r*cos(a)), field.modY(y+r*sin(a)), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
+		}
+	}
+	static void drawHudCircle(GraphicsContext gc, GameSize field, double x, double y, double r, Color color) {
+		drawHudCircle(gc, field, x, y, r, 0, D360, color);
+	}
+	static void drawHudPolygon(GraphicsContext gc, GameSize field, double[] xs, double[] ys, long pointCount) {
+		yes(xs.length==ys.length);
+
+		for (int j=0; j<pointCount; j++) {
+			int k = j==pointCount-1 ? 0 : j+1;
+			double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
+			if (field.isInside(x1,y1) || field.isInside(x2,y2))
+				drawHudLine(gc, field, x1,y1,x2,y2);
+		}
 	}
 
 	static double ttl(Duration d) {
@@ -1320,7 +1373,8 @@ interface Utils {
 //				).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
 				game.new Mission(
 					1, "The strange world", "10⁻⁴m", "",
-					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+//					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+					null,Color.LIGHTGREEN, Color.rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 				),
 				game.new Mission(
 					2, "Sumi-e","10⁻¹⁵","",

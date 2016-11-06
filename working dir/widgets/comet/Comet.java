@@ -62,8 +62,10 @@ import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
+import static comet.Utils.PI;
 import static comet.Utils.cos;
 import static comet.Utils.sin;
+import static comet.Utils.sqrt;
 import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
@@ -77,8 +79,8 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.*;
 import static util.Util.clip;
+import static util.Util.pyth;
 import static util.animation.Anim.mapTo01;
-import static util.dev.Util.yes;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -298,6 +300,9 @@ public class Comet extends ClassController {
 		double INKOID_SIZE_FACTOR = 50;
 		double ENERG_SIZE_FACTOR = 50;
 		double BLACKHOLE_PARTICLES_MAX = 4000;
+
+		double HUD_DOT_GAP = 3;
+		double HUD_DOT_DIAMETER = 1;
 	}
 
 	@IsConfig
@@ -321,61 +326,6 @@ public class Comet extends ClassController {
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
 
-	private static final double HUD_DOT_GAP = 3;
-	private static final double HUD_DOT_DIAMETER = 1;
-	void drawDottedLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
-		gc.setFill(color);
-		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
-			gc.fillOval(game.field.modX(x+i*cosDir), game.field.modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
-	}
-	void drawHudLine(double x, double y, double lengthStart, double length, double cosDir, double sinDir, Color color) {
-		gc.setFill(color);
-		for (double i=lengthStart; i<length; i+=HUD_DOT_GAP)
-			gc.fillOval(game.field.modX(x+i*cosDir), game.field.modY(y+i*sinDir), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
-	}
-	void drawHudCircle(double x, double y, double r, double angle, double angleWidth, Color color) {
-		gc.setFill(color);
-		double length = angleWidth*r;
-		int pieces = (int)(length/HUD_DOT_GAP);
-		double angleStart = angle-angleWidth/2;
-		double angleBy = angleWidth/pieces;
-		for (int p=0; p<pieces; p++) {
-			double a = angleStart+p*angleBy;
-			gc.fillOval(game.field.modX(x+r*cos(a)), game.field.modY(y+r*sin(a)), HUD_DOT_DIAMETER,HUD_DOT_DIAMETER);
-		}
-	}
-	void drawHudCircle(double x, double y, double r, Color color) {
-		drawHudCircle(x, y, r, 0, D360, color);
-	}
-	void drawPolygon(double[] xs, double[] ys, long pointCount) {
-		// Degrades performance a lot (probably due to out of canvas drawing
-		// gc.strokePolygon(polygon.getXPoints(), polygon.getYPoints(), polygon.getNumPoints());
-		// for now use the below:
-
-		yes(xs.length==ys.length);
-
-		for (int j=0; j<pointCount; j++) {
-			int k = j==pointCount-1 ? 0 : j+1;
-			double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
-			if (game.field.isInside(x1,y1) || game.field.isInside(x2,y2))
-				drawLine(x1,y1,x2,y2);
-		}
-	}
-	void drawLine(double x, double y, double tox, double toy) {
-		double dist = sqrt((x-tox)*(x-tox)+(y-toy)*(y-toy));
-		double distX = tox-x, distY = toy-y;
-		double X = x, Y = y;
-		int pieces = (int)(dist/HUD_DOT_GAP);
-		double dx = distX/pieces, dy = distY/pieces;
-		for (double i=0; i<pieces; i++) {
-			gc.fillOval(X,Y, 1,1);
-			X += dx; Y += dy;
-		}
-	}
-	void drawLine(double x, double y, double length, double dirCos, double dirSin) {
-		for (double i=0; i<length; i+=10)
-			gc.fillOval(x+i*dirCos, y+i*dirSin, 1,1);
-	}
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
 		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
 	}
@@ -937,7 +887,7 @@ public class Comet extends ClassController {
 			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
 			mode.doLoop();
 		}
-		private final Effect cee = new BoxBlur(100,2,4);
+		private final Effect cee = new BoxBlur(100,2,2);
 		private final Effect cee2 = new Bloom(0.3);
 
 		@Override
@@ -1324,7 +1274,7 @@ public class Comet extends ClassController {
 			// limit temporarily without decreasing maneuverability.
 			// The rotation decrease is nonlinear and continuous
 //			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED/((ROT_LIMIT/ROT_DEL+1)-pressedMsAgo/ROT_DEL) : ROTATION_SPEED;
-			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED*clip(0.1,pow(pressedMsAgo/ROT_LIMIT,2),1) : ROTATION_SPEED;
+			double r = pressedMsAgo<ROT_LIMIT ? ROTATION_SPEED*clip(0.1,sqr(pressedMsAgo/ROT_LIMIT),1) : ROTATION_SPEED;
 			return rocket.engine.mobility.value()*r;
 		}
 
@@ -1994,10 +1944,8 @@ public class Comet extends ClassController {
 				engine.off();
 				engine.forceOff = true;
 				game.runNext.add(millis(300), () -> engine.forceOff = false);
-				gc_bgr.setGlobalAlpha(0.8);
-				gc_bgr.setFill(game.humans.color);
-				Utils.drawOval(gc_bgr, x,y,kinetic_shield.KSradius);
-				gc_bgr.setGlobalAlpha(1);
+				gc_bgr.setFill(color(game.humans.color, 0.8));
+				drawOval(gc_bgr, x,y,kinetic_shield.KSradius);
 			}
 
 		}
@@ -2220,11 +2168,11 @@ public class Comet extends ClassController {
 			@Override
 			public void doLoop() {
 				Rocket r = (Rocket)Ship.this;
-				drawHudLine(x,y, 40, r.bulletRange, cosdir, sindir, game.colorHud);
-				// drawHudCircle(x,y,r.bulletRange, HUD_COLOR); // nah drawing ranges is more cool
-				drawHudCircle(x,y,r.bulletRange,r.direction,D30, game.colorHud);
-				drawHudCircle(x,y,r.bulletRange,r.direction+D360/3,PI/8, game.colorHud);
-				drawHudCircle(x,y,r.bulletRange,r.direction-D360/3,PI/8, game.colorHud);
+				drawHudLine(gc, game.field, x,y, 40, r.bulletRange, cosdir, sindir, game.colorHud);
+				// drawHudCircle(gc, game.field, x,y,r.bulletRange, HUD_COLOR); // nah drawing ranges is more cool
+				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction,D30, game.colorHud);
+				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction+D360/3,PI/8, game.colorHud);
+				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction-D360/3,PI/8, game.colorHud);
 			}
 		}
 		class Range extends Ability {
@@ -2326,14 +2274,14 @@ public class Comet extends ClassController {
 
 			if (game.humans.intelOn.is() && bulletRange<game.field.diagonal) {
 				// drawHudCircle(x,y,bulletRange,game.colorHud);
-				drawHudCircle(x,y,bulletRange,direction,D30, game.colorHud);
-				drawHudCircle(x,y,bulletRange,direction+D360/3,PI/8, game.colorHud);
-				drawHudCircle(x,y,bulletRange,direction-D360/3,PI/8, game.colorHud);
+				drawHudCircle(gc, game.field, x,y,bulletRange,direction,D30, game.colorHud);
+				drawHudCircle(gc, game.field, x,y,bulletRange,direction+D360/3,PI/8, game.colorHud);
+				drawHudCircle(gc, game.field, x,y,bulletRange,direction-D360/3,PI/8, game.colorHud);
 			}
 
 			if (gun.blackhole.is()) {
 				gc.setFill(Color.BLACK);
-				drawHudCircle(game.field.modX(x+bulletRange*cos(direction)),game.field.modY(y+bulletRange*sin(direction)), 50, game.colorHud);
+				drawHudCircle(gc, game.field, x+bulletRange*cos(direction),y+bulletRange*sin(direction), 50, game.colorHud);
 			}
 
 			// rocket-rocket 'quark entanglement' formation force
@@ -2401,7 +2349,7 @@ public class Comet extends ClassController {
 				game.ufos.canSpawnDiscs = false;
 				double spawnX = x, spawnY = y;
 				radio.run();
-				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoSwarmer(spawnX, spawnY, i*D360/5)));
+				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoSwarmer(x, y, i*D360/5)));
 			}
 		};
 
@@ -2416,7 +2364,7 @@ public class Comet extends ClassController {
 		double disc_forceBio(double pos) { return pos<0.5 ? 0.01 : -0.01; } // standard force
 		double interUfoForce(Ufo u){
 			double d = distance(u);
-			double f = d<80 ? -pow(1-d/80,1) : d<160 ? 0.1 : 0;
+			double f = d<80 ? -(1-d/80) : d<160 ? 0.1 : 0;
 			return 1*f;
 		}
 
@@ -2661,7 +2609,7 @@ public class Comet extends ClassController {
 		double interUfoDiscForce(UfoSwarmer ud) {
 			double distMax = 16;
 			double dist = distance(ud);
-			return dist>distMax ? 0 : -0.5*pow((1-dist/distMax),2);
+			return dist>distMax ? 0 : -0.5*sqr(1-dist/distMax);
 		}
 
 		void explode() {
@@ -3444,7 +3392,7 @@ public class Comet extends ClassController {
 					double v = rand01();
 					double dxnew = spontaneous ? dx : dx+randMN(-1,1.1);
 					double dynew = spontaneous ? dy : dy+randMN(-1,1.1);
-					double speednew = sqrt(dxnew*dxnew+dynew*dynew);
+					double speednew = pyth(dxnew,dynew);
 					double dirnew = dirOf(dxnew,dynew,speednew);
 					game.mission.planetoidConstructor.apply(x+h*0.2*size,y+v*0.2*size,speednew,dirnew, size_child*size);
 				})
@@ -3699,6 +3647,7 @@ public class Comet extends ClassController {
 		}
 		@Override void draw() {
 			double d = radius*2;
+			gc_bgr.setGlobalAlpha(1);
 			gc_bgr.setFill(game.color);
 			gc_bgr.fillOval(x-radius,y-radius,d,d);
 		}
@@ -3769,7 +3718,7 @@ public class Comet extends ClassController {
 				// link
 				if (dist>connectionDistMin && dist<connectionDistMax) {
 					gc.setGlobalAlpha(1-dist/connectionDistMax);
-					drawDottedLine(x,y,0,dist,cos(dir),sin(dir), game.color);
+					drawHudLine(gc, game.field, x,y,0,dist,cos(dir),sin(dir), game.color);
 					gc.setGlobalAlpha(1);
 				}
 				// glue
@@ -4459,10 +4408,10 @@ public class Comet extends ClassController {
 			gc.setFill(Color.BLACK);
 			drawOval(gc, x,y,radius_even_horizon);
 
-			if (game.mission.id==4) {
+			{
+				// Aura effect
 				gc_bgr.setGlobalBlendMode(OVERLAY);
 				gc_bgr.setGlobalAlpha(1-life);
-//				gc_bgr.setGlobalAlpha(0.1*(1-ttl));
 				gc_bgr.setEffect(new BoxBlur(100,100,1));
 				gc_bgr.setFill(Color.AQUA);
 				drawOval(gc_bgr, x,y,20+(1-life)*40);

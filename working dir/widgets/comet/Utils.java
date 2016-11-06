@@ -319,6 +319,15 @@ interface Utils {
 		double d = 2*r;
 		g.fillRect(x-r,y-r,d,d);
 	}
+	static Color color(Color c, double opacity) {
+		return new Color(c.getRed(), c.getGreen(), c.getBlue(), opacity);
+	}
+	static void drawFading(Game g, DoubleConsumer drawCommand) {
+		g.runNext.addAnim01(millis(200), p -> drawCommand.accept(1-p));
+	}
+	static void drawFading(Game g, Duration ttl, DoubleConsumer drawCommand) {
+		g.runNext.addAnim01(ttl, p -> drawCommand.accept(1-p));
+	}
 
 	static double ttl(Duration d) {
 		return d.toSeconds()*FPS;
@@ -639,6 +648,8 @@ interface Utils {
 				.forEach(player -> {
 					i.setOf(v -> v+1);
 					g.add(new Label(player.name.get()), 0,i.get());
+					i.setOf(v -> v+1);
+					g.add(new Label(), 2,i.get()); // empty row
 
 					game.get(player).stream()
 						.sorted(by(achievement -> achievement.name))
@@ -1309,39 +1320,39 @@ interface Utils {
 //				).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
 				game.new Mission(
 					1, "The strange world", "10⁻⁴m", "",
-					null,Color.BLACK, Color.rgb(225,225,225, 0.2),null, (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 				),
 				game.new Mission(
 					2, "Sumi-e","10⁻¹⁵","",
-					null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1),null, (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+					null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					3, "Mol's molecule","","",
-					null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					4, "PartiCuLar elEment","10⁻¹⁵","",
-					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					5, "Decay of the weak force","10⁻¹","",
-					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), null, (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					6, "String a string","10⁻¹⁵","",
-					null,Color.YELLOW, Color.rgb(10, 11, 1, 0.2),null, (a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
+					null,Color.YELLOW, Color.rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
 				), //new Glow(0.3)
 				game.new Mission(
 					7, "Mother of all branes","10⁻¹⁵","",
-					null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), null, (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
+					null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					8, "Energetic fragility","10⁻¹⁵","",
-					null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), null,(a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
+					null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), (a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
 				),
 				game.new Mission(
 					9, "Planc's plancton","10⁻¹⁵","",
-					null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),null,(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
+					null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
 				)//,
 //				new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
 //					null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
@@ -1481,7 +1492,7 @@ interface Utils {
 			game.runNext.add(delay/2, () ->
 				game.runNext.addAnim01(millis(300), p -> {
 					game.color = mOld.color.interpolate(mNew.color, p);
-					game.color_canvasFade = mOld.colorCanvasFade.interpolate(mNew.colorCanvasFade, p);
+					game.colorCanvasFade = mOld.colorCanvasFade.interpolate(mNew.colorCanvasFade, p);
 					game.humans.color = mOld.color.interpolate(mNew.color, p);
 					game.humans.colorTech = mOld.color.interpolate(mNew.color, p);
 					game.ufos.color = mOld.color.interpolate(mNew.color, p);

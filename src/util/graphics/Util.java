@@ -530,32 +530,27 @@ public interface Util {
 	 * @param empty_value empty cell string value
 	 * @return cell factory
 	 */
-	static Callback<TableColumn<?,?>, TableCell<?,?>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
-		return new Callback<>() {
+	static <T,O> Callback<TableColumn<T,O>, TableCell<T,O>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
+		return param -> new TableCell<>() {
 			@Override
-			public TableCell<?,?> call(TableColumn<?, ?> param) {
-				return new TableCell<>() {
-					@Override
-					protected void updateItem(Object item, boolean empty) {
-						if (item == getItem()) return;
+			protected void updateItem(O item, boolean empty) {
+				if (item == getItem()) return;
 
-						super.updateItem(item, empty);
+				super.updateItem(item, empty);
 
-						if (item == null) {
-							super.setText(null);
-							super.setGraphic(null);
-						} else if ("".equals(item)) {
-							super.setText(empty_value);
-							super.setGraphic(null);
-						} else if (item instanceof Node) {
-							super.setText(null);
-							super.setGraphic((Node) item);
-						} else {
-							super.setText(item.toString());
-							super.setGraphic(null);
-						}
-					}
-				};
+				if (item == null) {
+					super.setText(null);
+					super.setGraphic(null);
+				} else if ("".equals(item)) {
+					super.setText(empty_value);
+					super.setGraphic(null);
+				} else if (item instanceof Node) {
+					super.setText(null);
+					super.setGraphic((Node) item);
+				} else {
+					super.setText(item.toString());
+					super.setGraphic(null);
+				}
 			}
 		};
 	}
@@ -587,7 +582,7 @@ public interface Util {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
-		Ƒ1<TableColumn<?,?>, TableCell<?,?>> f = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
+		Ƒ1<TableColumn<T,O>, TableCell<T,O>> f = Util.<T,O>EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
 		return (Ƒ1) f.andApply(cell -> cell.setAlignment(a));
 	}
 

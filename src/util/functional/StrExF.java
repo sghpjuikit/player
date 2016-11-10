@@ -27,7 +27,6 @@ public class StrExF implements Ƒ1<Double,Double> {
 		try {
 			ex = s;
 			e = new ExpressionBuilder(s).variables("x").build();
-			e.setVariable("x", 0).evaluate();
 		} catch(Exception e) {
 			throw new IllegalStateException(e);
 		}

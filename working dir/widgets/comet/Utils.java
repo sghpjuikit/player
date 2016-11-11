@@ -70,6 +70,7 @@ import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
+import static javafx.scene.paint.Color.rgb;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.Util.clip;
@@ -107,6 +108,8 @@ interface Utils {
 	// Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
 	// platform it is packed with the widget.
 	Font UI_FONT = Font.loadFont(Utils.class.getResourceAsStream("Tele-Marines.TTF"), 12.0);
+	double HUD_DOT_GAP = 3;
+	double HUD_DOT_DIAMETER = 1;
 
 	/** Converts radians to degrees, mathematically 360*rad/(2*PI). */
 	static double deg(double rad) {
@@ -1369,35 +1372,35 @@ interface Utils {
 				game.new Mission(
 					1, "The strange world", "10⁻⁴m", "",
 //					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
-					null,Color.LIGHTGREEN, Color.rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+					null,Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 				),
 				game.new Mission(
 					2, "Sumi-e","10⁻¹⁵","",
-					null,Color.LIGHTGREEN, Color.rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+					null,Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					3, "Mol's molecule","","",
-					null,Color.YELLOW, Color.rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.YELLOW, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					4, "PartiCuLar elEment","10⁻¹⁵","",
-					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					5, "Decay of the weak force","10⁻¹","",
-					null,Color.GREEN, Color.rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					null,Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					6, "String a string","10⁻¹⁵","",
-					null,Color.YELLOW, Color.rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
+					null,Color.YELLOW, rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
 				), //new Glow(0.3)
 				game.new Mission(
 					7, "Mother of all branes","10⁻¹⁵","",
-					null,Color.DODGERBLUE, Color.rgb(0, 0, 15, 0.08), (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
+					null,Color.DODGERBLUE, rgb(0, 0, 15, 0.08), (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					8, "Energetic fragility","10⁻¹⁵","",
-					null,Color.DODGERBLUE, Color.rgb(10,10,25,0.08), (a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
+					null,Color.DODGERBLUE, rgb(10,10,25,0.08), (a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
 				),
 				game.new Mission(
 					9, "Planc's plancton","10⁻¹⁵","",
@@ -1516,8 +1519,9 @@ interface Utils {
 			isMissionScheduled = true;
 
 			// get mission
+			int firstMissionId = 2;
 			if (game.mission!=null) game.mission.disposer.accept(game);
-			mission_counter = mission_counter==0 ? 1 : mission_counter+1;
+			mission_counter = mission_counter==0 ? firstMissionId : mission_counter+1;
 			int id = mission_counter%missions.size();
 			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
 			Mission mNew = missions.get(mission_id);
@@ -1910,7 +1914,7 @@ interface Utils {
 		Spring[] springs;
 		PointMass[][] points;
 		GraphicsContext gc;
-		Color color = Color.rgb(30, 30, 139, 0.85);
+		Color color = rgb(30, 30, 139, 0.85);
 		double WIDTH;
 		double HEIGHT;
 		int thick_frequency = 5;

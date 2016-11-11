@@ -302,6 +302,13 @@ public class Anim extends Transition {
         return (x-from)/(to-from);
     }
 
+	public static double map01To010(double x, double right) {
+		double left = 1-right;
+		if (x<=left) return mapTo01(x,0,left);
+		if (x>=right) return 1-mapTo01(x, right,1);
+		return 1;
+	}
+
     public static double mapConcave(double x) {
         return 1-abs(2*(x*x-0.5));
     }

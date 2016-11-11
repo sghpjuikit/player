@@ -25,6 +25,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 
 import org.gamepad4j.*;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import comet.Comet.Ship.Disruptor.DisruptorField;
+import comet.Comet.Ship.Hyperspace;
 import comet.Comet.Ship.Shield;
 import comet.Utils.*;
 import de.jensd.fx.glyphs.GlyphIcons;
@@ -80,6 +82,7 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.*;
 import static util.Util.clip;
 import static util.Util.pyth;
+import static util.animation.Anim.map01To010;
 import static util.animation.Anim.mapTo01;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
@@ -183,7 +186,7 @@ public class Comet extends ClassController {
 				});
 				// cheats
 				if (cc==DIGIT1) game.runNext.add(() -> repeat(5, i -> game.mission.spawnPlanetoid()));
-				if (cc==DIGIT2) game.runNext.add(() -> game.ufos.sendUfoSquadron());
+				if (cc==DIGIT2) game.runNext.add(() -> game.ufos.sendUfoSwarm());
 				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
 				if (cc==DIGIT4) game.runNext.add(() -> {
 					game.oss.forEachT(Asteroid.class, a -> a.dead=true);
@@ -250,7 +253,7 @@ public class Comet extends ClassController {
 		double KINETIC_SHIELD_INITIAL_ENERGY = 0.5; // 0-1 coefficient
 		Duration KINETIC_SHIELD_RECHARGE_TIME = minutes(4);
 		double ROCKET_KINETIC_SHIELD_RADIUS = 25; // px
-		double ROCKET_KINETIC_SHIELD_ENERGYMAX = 5000; // energy
+		double ROCKET_KINETIC_SHIELD_ENERGYMAX = 4000; // energy
 		double KINETIC_SHIELD_LARGE_E_RATE = 50; // 50 times
 		double KINETIC_SHIELD_LARGE_RADIUS_INC = 5; // by 5 px
 		double KINETIC_SHIELD_LARGE_E_MAX_INC = 1; // by 100%
@@ -260,12 +263,12 @@ public class Comet extends ClassController {
 		double SHIELD_E_RATE = 20; // energy/frame
 		Duration SHIELD_ACTIVATION_TIME = millis(0);
 		Duration SHIELD_PASSIVATION_TIME = millis(0);
-		double HYPERSPACE_E_ACTIVATION = 150; // energy
-		double HYPERSPACE_E_RATE = 4; // energy/frame
+		double HYPERSPACE_E_ACTIVATION = 200; // energy
+		double HYPERSPACE_E_RATE = 5; // energy/frame
 		Duration HYPERSPACE_ACTIVATION_TIME = millis(200);
 		Duration HYPERSPACE_PASSIVATION_TIME = millis(200);
 		double DISRUPTOR_E_ACTIVATION = 0; // energy
-		double DISRUPTOR_E_RATE = 4; // energy/frame
+		double DISRUPTOR_E_RATE = 6; // energy/frame
 		Duration DISRUPTOR_ACTIVATION_TIME = millis(0);
 		Duration DISRUPTOR_PASSIVATION_TIME = millis(0);
 
@@ -285,9 +288,9 @@ public class Comet extends ClassController {
 		double UFO_EXPLOSION_RADIUS = 100;
 		double UFO_DISC_EXPLOSION_RADIUS = 8;
 
-		static double UFO_TTL() { return ttl(seconds(randMN(30, 100))); }
+		static double UFO_TTL() { return ttl(seconds(randMN(30, 60))); }
 
-		static double UFO_SQUAD_TTL() { return ttl(seconds(randMN(300, 600))); }
+		static double UFO_SWARM_TTL() { return ttl(seconds(randMN(60, 120))); }
 
 		static double UFO_DISCSPAWN_TTL() { return ttl(seconds(randMN(80, 200))); }
 
@@ -301,8 +304,6 @@ public class Comet extends ClassController {
 		double ENERG_SIZE_FACTOR = 50;
 		double BLACKHOLE_PARTICLES_MAX = 4000;
 
-		double HUD_DOT_GAP = 3;
-		double HUD_DOT_DIAMETER = 1;
 	}
 
 	@IsConfig
@@ -342,7 +343,7 @@ public class Comet extends ClassController {
 //				g.setGlobalAlpha(1);
 
 				double opacity = ttl, x = this.x, y = this.y;
-				Utils.drawFading(game, millis(200), ttl -> {
+				drawFading(game, millis(200), ttl -> {
 					gc.setGlobalAlpha(ttl*ttl*opacity);
 					gc.setFill(game.humans.color);
 					gc.fillOval(x-0.5,y-0.5,1,1);
@@ -465,10 +466,10 @@ public class Comet extends ClassController {
 						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()).forEach(p -> {
 							IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
 							IButton engine2B = g.getButton(10);
-							IButton engine3B = g.getButton(11);
+							IButton engine3B = g.getButton(5);
 							IButton fireB = g.getButton(0); // g.getButton(ButtonID.FACE_LEFT);
 							IButton ability1B = g.getButton(4);
-							IButton ability2B = g.getButton(5);
+							IButton ability2B = g.getButton(11);
 							IButton leftB = g.getButton(6);
 							IButton rightB = g.getButton(7);
 							boolean isEngine = (engine1B!=null && engine1B.isPressed()) || (engine2B!=null && engine2B.isPressed()) || (engine3B!=null && engine3B.isPressed());
@@ -478,14 +479,14 @@ public class Comet extends ClassController {
 							boolean isFire = fireB!=null && fireB.isPressed();
 //							boolean isFireOnce = fireB!=null && fireB.isPressedOnce(); // !support multiple players per controller
 							boolean isFireOnce = isFire && !p.wasGamepadFire;
-							boolean isRihtOnce = isRight && !p.wasGamepadRight;
+							boolean isRightOnce = isRight && !p.wasGamepadRight;
 							boolean isLeftOnce = isLeft && !p.wasGamepadLeft;
 							p.wasGamepadLeft = isLeft;
 							p.wasGamepadRight = isRight;
 							p.wasGamepadFire = isFire;
 
 							if (isLeftOnce) keyPressTimes.put(p.keyLeft.get(),loop.now);
-							if (isRihtOnce) keyPressTimes.put(p.keyRight.get(),loop.now);
+							if (isRightOnce) keyPressTimes.put(p.keyRight.get(),loop.now);
 
 							p.isInputThrust |= isEngine;
 							p.isInputLeft |= isLeft;
@@ -505,7 +506,6 @@ public class Comet extends ClassController {
 		final TTLList runNext = new TTLList();
 		final Set<PO> removables = new HashSet<>();
 		final CollisionHandlers collisionStrategies = new CollisionHandlers();
-//		final Map2D<Class<? extends PO>,Class<? extends PO>,BiConsumer<? super PO,? super PO>> collisionStrategies = new Map2D<>();
 
 		Color color;
 		Color colorCanvasFade; // normally null, canvas fade effect
@@ -619,11 +619,13 @@ public class Comet extends ClassController {
 				"- Increases kinetic shield energy accumulation " + (KINETIC_SHIELD_LARGE_E_RATE) +" times",
 				"Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
 			),
-			new Enhancer("Charger", MaterialDesignIcon.BATTERY_CHARGING_100, seconds(5), r -> r.energy_buildup_rate *= 1.1,
+			new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5),
+				r -> {
+					r.energy_max *= 1.1;
+					r.energy_buildup_rate *= 1.1;
+				},
+				"- Increases maximum energy by 10%",
 				"- Increases energy accumulation by 10%"
-			),
-			new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5), r -> r.energy_max *= 1.1,
-				"- Increases maximum energy by 10%"
 			),
 			new Enhancer("Energy (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
 				r -> r.energy = min(r.energy+2000,r.energy_max),
@@ -658,7 +660,7 @@ public class Comet extends ClassController {
 				gc_bgr.restore();
 
 				double opacity = 0.2;
-				Utils.drawFading(this, millis(200), ttl -> {
+				drawFading(this, millis(200), ttl -> {
 					gc.setLineWidth(1);
 					gc.setStroke(game.colorHud);
 					gc.setGlobalAlpha(ttl*opacity);
@@ -688,7 +690,7 @@ public class Comet extends ClassController {
 				}
 			});
 			collisionStrategies.add(Rocket.class,Satellite.class, (r, s) -> {
-				if (!r.isin_hyperspace && r.isHitDistance(s)) {
+				 if ((!r.isin_hyperspace || r.ability_main.isActiveOfType(Hyperspace.class)) && r.isHitDistance(s)) {
 					s.pickUpBy(r);
 				}
 			});
@@ -940,6 +942,25 @@ public class Comet extends ClassController {
 			runNext.add(seconds(2),a::playClose);
 		}
 
+		void placeholder(String text, double x, double y) {
+			Font f = Font.font(UI_FONT.getName(), 12);
+			game.runNext.addAnim01(seconds(2), p -> {
+				double s = map01To010(p,0.9);
+				Scale c = new Scale(s,s);
+				Affine a = gc.getTransform();
+				//				gc.setTransform(c.getMxx(), c.getMyx(), c.getMxy(), c.getMyy(), c.getTx(), c.getTy());
+				gc.setFont(f);
+				gc.setFill(game.color);
+				gc.setGlobalAlpha(1);
+				gc.fillText(text,x,y);
+				gc_bgr.setFont(f);
+				gc_bgr.setFill(game.color);
+				gc_bgr.setGlobalAlpha(1);
+				gc_bgr.fillText(text,x,y);
+				//				gc.setTransform(a);
+			});
+		}
+
 
 		class PlayerFaction {
 			final InEffect intelOn = new InEffect();
@@ -1000,7 +1021,7 @@ public class Comet extends ClassController {
 				ufo_enemy = null;
 				aggressive = false;
 				runNext.addPeriodic(() -> UFO_TTL()/sqrt(players.size()), ufos::sendUfo);
-				runNext.addPeriodic(() -> UFO_SQUAD_TTL()/sqrt(players.size()), ufos::sendUfoSquadron);
+				runNext.addPeriodic(() -> UFO_SWARM_TTL()/sqrt(players.size()), ufos::sendUfoSwarm);
 				runNext.addPeriodic(() -> UFO_DISCSPAWN_TTL()/sqrt(players.size()), () -> canSpawnDiscs = true);
 			}
 
@@ -1017,7 +1038,7 @@ public class Comet extends ClassController {
 //				message("U.F.O. CANNON ALERT");
 //				repeat(5, () -> runNext.add(seconds(rand0N(15)), this::fireSlipSpaceCannon));
 			}
-			void fireSlipSpaceCannon() {
+			void fireSclipSpaceCannon() {
 				Player player = randOf(filter(players, p -> p.rocket!=null));
 				runNext.add(() -> new UfoSlipSpaceBullet(player.rocket));
 			}
@@ -1029,27 +1050,29 @@ public class Comet extends ClassController {
 				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
 				Side side = randEnum(Side.class);
 				int count = (int)(2+rand01()*8);
-				if (randBoolean()) {
-					repeat(count, () -> runNext.add(seconds(rand0N(0.5)), () -> sendUfo(side)));
-				} else {
-					double w = 0, h = rand0N(game.field.height);
-					pulseAlert(w, h);
-					int swarmId = randInt(Integer.MAX_VALUE);
-					runNext.add(millis(1000), () -> {
-						if (randBoolean())
-							forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
-									u.isActive = false;
-									u.isInitialOutOfField = true;
-									u.swarmId = swarmId;
-								});
-						else
-							forEachOnCircleBy(w, h, 15, 8 * count, (x, y, a) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
-									u.isActive = false;
-									u.isInitialOutOfField = true;
-									u.swarmId = swarmId;
-								});
-					});
-				}
+				repeat(count, () -> runNext.add(seconds(rand0N(0.5)), () -> sendUfo(side)));
+			}
+			void sendUfoSwarm() {
+				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
+				Side side = randEnum(Side.class);
+				int count = (int)(2+rand01()*8);
+				double w = 0, h = rand0N(game.field.height);
+				pulseAlert(w, h);
+				int swarmId = randInt(Integer.MAX_VALUE);
+				runNext.add(millis(1000), () -> {
+					if (randBoolean())
+						forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
+								u.isActive = false;
+								u.isInitialOutOfField = true;
+								u.swarmId = swarmId;
+							});
+					else
+						forEachOnCircleBy(w, h, 15, 8 * count, (x, y, a) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
+								u.isActive = false;
+								u.isInitialOutOfField = true;
+								u.swarmId = swarmId;
+							});
+				});
 			}
 			private void sendUfo(Side side) {
 				Side s = side==null ? randEnum(Side.class) : side;
@@ -1113,6 +1136,7 @@ public class Comet extends ClassController {
 
 			void start() {
 				((Pane)playfield.getParent()).setBackground(bgr);
+//				((Pane)playfield.getParent()).setBackground(Util.bgr(new Color(0.1F, 0.20F, 0.34509807F,1)));
 			}
 
 			void spawnPlanetoid() {
@@ -1840,7 +1864,7 @@ public class Comet extends ClassController {
 					// shield pulls disruptor
 					// Makes disruptor vs shield battles more interesting
 					if (o instanceof Rocket && ((Rocket)o).ability_main instanceof Shield && ((Rocket)o).ability_main.isActivated()) {
-						f *= -1.5;
+						f *= -3;
 					} else
 					if (o instanceof Shuttle || o instanceof SuperShield || o instanceof SuperDisruptor) {
 						hasNoEffect = true;
@@ -1951,6 +1975,7 @@ public class Comet extends ClassController {
 		}
 		class KineticShield extends Ability {
 			double KSenergy_maxInit;
+			double KSenergy_min;
 			double KSenergy_max;
 			double KSenergy;
 			double KSenergy_rateInit;
@@ -2086,10 +2111,17 @@ public class Comet extends ClassController {
 			}
 			void changeKSenergyBy(double e){
 				KSenergy = clip(0,KSenergy+e,KSenergy_max);
+				scheduleActivation();
 			}
 			void changeKSenergyToMax(){
 				if (KSenergy<KSenergy_max) {
 					KSenergy = KSenergy_max;
+					showActivation();
+				}
+			}
+			void changeKSenergyToMin(){
+				if (KSenergy>KSenergy_min) {
+					KSenergy = KSenergy_min;
 					showActivation();
 				}
 			}
@@ -2214,7 +2246,8 @@ public class Comet extends ClassController {
 			player = PLAYER;
 			kinetic_shield = new KineticShield(ROCKET_KINETIC_SHIELD_RADIUS,ROCKET_KINETIC_SHIELD_ENERGYMAX);
 			changeAbility(player.ability_type.get());
-			engine = rand01()<0.5 ? new RocketEngine() : new PulseEngine();
+//			engine = rand01()<0.5 ? new RocketEngine() : new PulseEngine();
+			engine = new RocketEngine();
 
 			gun = new Gun(
 				MANUAL,
@@ -2844,6 +2877,7 @@ public class Comet extends ClassController {
 		void pickUpBy(Rocket r) {
 			e.enhance(r);
 			dead = true;
+			game.placeholder(e.name, game.field.modX(this.x+15), game.field.modY(this.y-15));
 		}
 		void explode() {
 			if (isLarge) {
@@ -2909,7 +2943,7 @@ public class Comet extends ClassController {
 
 
 			double xFrom = this.x, yFrom = this.y, xTo = x+dx*0.7, yTo = y+dy*0.7, opacity = 0.4, w = isHighEnergy ?  5 : 3;
-			Utils.drawFading(game, ttl -> {
+			drawFading(game, ttl -> {
 				gc.setGlobalAlpha(ttl*opacity);
 				gc.setLineWidth(w);
 				gc.setStroke(game.colorHud);
@@ -2969,6 +3003,11 @@ public class Comet extends ClassController {
 							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 							bounceOffShieldOf(r);
 							((Shield)r.ability_main).onHit(this);
+						} else if (r.kinetic_shield.KSenergy>=r.kinetic_shield.KSenergy_max) {
+							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
+							bounceOffShieldOf(r);
+							r.kinetic_shield.onShieldHit(this);
+							r.kinetic_shield.changeKSenergyToMin();
 						} else {
 							r.player.die();
 						}
@@ -3507,11 +3546,15 @@ public class Comet extends ClassController {
 
 				double r = this.r, x = this.x, y = this.y;
 				Color color = ttl<0.5 ? colordead : coloralive;
-				Utils.drawFading(game, millis(200), ttl -> {
+				drawFading(game, millis(200), ttl -> {
 					gc_bgr.setGlobalAlpha(ttl*ttl);
 					gc_bgr.setFill(color);
 					gc_bgr.fillOval(x,y,r,r);
 					gc_bgr.setGlobalAlpha(1);
+					gc.setGlobalAlpha(ttl*ttl);
+					gc.setFill(color);
+					gc.fillOval(x,y,r,r);
+					gc.setGlobalAlpha(1);
 				});
 			}
 		}

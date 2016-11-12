@@ -731,6 +731,7 @@ public class Comet extends ClassController {
 					}
 					a.onHit(r);
 					game.handleEvent(Events.PLANETOID_DESTROYED);
+					r.player.stats.accRamAsteroid();
 				}
 			});
 			collisionStrategies.add(Shuttle.class,Asteroid.class, (s, a) -> {
@@ -942,7 +943,14 @@ public class Comet extends ClassController {
 			runNext.add(seconds(2),a::playClose);
 		}
 
+		void placeholder(String text, PO o) {
+			placeholder(text, o, 0, 0);
+		}
 		void placeholder(String text, double x, double y) {
+			placeholder(text, null, x, y);
+		}
+		void placeholder(String text, PO o, double x, double y) {
+			boolean isFollow = o!=null;
 			Font f = Font.font(UI_FONT.getName(), 12);
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = map01To010(p,0.9);
@@ -952,11 +960,11 @@ public class Comet extends ClassController {
 				gc.setFont(f);
 				gc.setFill(game.color);
 				gc.setGlobalAlpha(1);
-				gc.fillText(text,x,y);
+				gc.fillText(text, game.field.modX(isFollow ? o.x-15 : x), game.field.modY(isFollow ? o.y-15 : y));
 				gc_bgr.setFont(f);
 				gc_bgr.setFill(game.color);
 				gc_bgr.setGlobalAlpha(1);
-				gc_bgr.fillText(text,x,y);
+				gc_bgr.fillText(text, game.field.modX(isFollow ? o.x-15 : x), game.field.modY(isFollow ? o.y-15 : y));
 				//				gc.setTransform(a);
 			});
 		}
@@ -975,9 +983,13 @@ public class Comet extends ClassController {
 			}
 
 			void send(Rocket r, Consumer<? super Rocket> action) {
-				game.runNext.add(seconds(2),() -> pulseCall(r));
-				game.runNext.add(seconds(4),() -> pulseCall(r));
-				game.runNext.add(seconds(6),() -> action.accept(r));
+				game.runNext.add(seconds(2.0),() -> pulseCall(r));
+				game.runNext.add(seconds(2.2),() -> pulseCall(r));
+				game.runNext.add(seconds(2.4),() -> pulseCall(r));
+				game.runNext.add(seconds(4.0),() -> pulseCall(r));
+				game.runNext.add(seconds(4.2),() -> pulseCall(r));
+				game.runNext.add(seconds(4.4),() -> pulseCall(r));
+				game.runNext.add(seconds(6.0),() -> action.accept(r));
 			}
 			void sendSatellite() {
 				sendSatellite(randEnum(Side.class));
@@ -988,6 +1000,7 @@ public class Comet extends ClassController {
 				double x = s==Side.LEFT ? offset : game.field.width-offset;
 				double y = rand0N(game.field.height);
 				if (humans.intelOn.is()) pulseAlert(x,y);
+				if (humans.intelOn.is()) placeholder("Support", x,y);
 				runNext.add(seconds(2), () -> {
 					Satellite st = new Satellite(s);
 					st.x = x;
@@ -996,10 +1009,18 @@ public class Comet extends ClassController {
 				} );
 			}
 
-			void pulseCall(PO o) { pulseCall(o.x,o.y,o.dx,o.dy); }
-			void pulseCall(double x, double y) { pulseCall(x,y,0,0); }
-			void pulseAlert(double x, double y) { pulseAlert(x,y,0,0); }
-			void pulseAlert(PO o) { pulseAlert(o.x,o.y,o.dx,o.dy); }
+			void pulseCall(PO o) {
+				new RadioWavePulse(o,2.5,color,false);
+			}
+			void pulseCall(double x, double y) {
+				pulseCall(x,y,0,0);
+			}
+			void pulseAlert(PO o) {
+				new RadioWavePulse(o, 2.5,color,false);
+			}
+			void pulseAlert(double x, double y) {
+				pulseAlert(x,y,0,0);
+			}
 			void pulseCall(double x, double y, double dx, double dy) {
 				new RadioWavePulse(x,y,dx,dy,2.5,color,false);
 			}
@@ -1015,6 +1036,7 @@ public class Comet extends ClassController {
 			boolean aggressive = false;
 			boolean canSpawnDiscs = false;
 			Color color = Color.rgb(114,208,74);
+			private final double spawnEdgeOffsetX = 50;
 
 			void init() {
 				losses = 0;
@@ -1056,18 +1078,21 @@ public class Comet extends ClassController {
 				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
 				Side side = randEnum(Side.class);
 				int count = (int)(2+rand01()*8);
-				double w = 0, h = rand0N(game.field.height);
-				pulseAlert(w, h);
+				double w = side==Side.LEFT ? spawnEdgeOffsetX : game.field.width-spawnEdgeOffsetX;
+				double h = rand0N(game.field.height);
+				double d = side==Side.LEFT ? D0 : D180;
+				if (humans.intelOn.is()) pulseAlert(w, h);
+				if (humans.intelOn.is()) placeholder("Ufo", w,h);
 				int swarmId = randInt(Integer.MAX_VALUE);
-				runNext.add(millis(1000), () -> {
+				runNext.add(seconds(2), () -> {
 					if (randBoolean())
-						forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
+						forEachInLineBy(w, h, -15, -15, 8 * count, (x, y) -> new UfoSwarmer(x, game.field.modY(y), d)).forEach(u -> {
 								u.isActive = false;
 								u.isInitialOutOfField = true;
 								u.swarmId = swarmId;
 							});
 					else
-						forEachOnCircleBy(w, h, 15, 8 * count, (x, y, a) -> new UfoSwarmer(x, game.field.modY(y), D360)).forEach(u -> {
+						forEachOnCircleBy(w, h, 15, 8 * count, (x, y, a) -> new UfoSwarmer(x, game.field.modY(y), d)).forEach(u -> {
 								u.isActive = false;
 								u.isInitialOutOfField = true;
 								u.swarmId = swarmId;
@@ -1076,10 +1101,10 @@ public class Comet extends ClassController {
 			}
 			private void sendUfo(Side side) {
 				Side s = side==null ? randEnum(Side.class) : side;
-				double offset = 50;
-				double x = s==Side.LEFT ? offset : game.field.width-offset;
+				double x = s==Side.LEFT ? spawnEdgeOffsetX : game.field.width-spawnEdgeOffsetX;
 				double y = rand0N(game.field.height);
 				if (humans.intelOn.is()) pulseAlert(x,y);
+				if (humans.intelOn.is()) placeholder("Ufo", x,y);
 				runNext.add(seconds(2), () -> {
 					Ufo u = new Ufo(s,aggressive);
 					u.x = x;
@@ -1090,7 +1115,6 @@ public class Comet extends ClassController {
 
 			void pulseCall(PO o) {
 				pulseCall(o.x,o.y,o.dx,o.dy);
-				new RadioWavePulse(o,-2.5,color,true);
 			}
 			void pulseCall(double x, double y) {
 				pulseCall(x,y,0,0);
@@ -2877,7 +2901,8 @@ public class Comet extends ClassController {
 		void pickUpBy(Rocket r) {
 			e.enhance(r);
 			dead = true;
-			game.placeholder(e.name, game.field.modX(this.x+15), game.field.modY(this.y-15));
+			game.placeholder(e.name, x+15, this.y-15);
+//			game.placeholder(e.name, r);
 		}
 		void explode() {
 			if (isLarge) {
@@ -3310,8 +3335,8 @@ public class Comet extends ClassController {
 	}
 	/** Omnidirectional expanding wave. Represents active communication of the ship. */
 	class RadioWavePulse extends Particle {
-		final double dxy;
-		final boolean rect;
+		double dxy;
+		boolean rect;
 		double radius = 0;
 		final Color color;
 		final boolean inverse;
@@ -3340,10 +3365,11 @@ public class Comet extends ClassController {
 		}
 
 		@Override void draw() {
+			dxy = inverse ? dxy : dxy*0.985; // makes radius = f(ttl)
 			radius += dxy;
 			gc_bgr.setGlobalAlpha(0.5*(inverse ? 1-ttl : ttl));
 			gc_bgr.setStroke(color);
-			gc_bgr.setLineWidth(2);
+			gc_bgr.setLineWidth(2*ttl+2); // width = f(ttl) is pretty
 			if (rect) {
 				Affine a = rotate(gc_bgr, 360*ttl/3, x,y);
 				gc_bgr.strokeRect(x-radius,y-radius, 2*radius,2*radius);
@@ -3376,16 +3402,13 @@ public class Comet extends ClassController {
 			dx = 0.95*s.dx;
 			dy = 0.95*s.dy;
 		}
-
 		@Override void draw() {
 			if (s.dead) return;
-//            gc.setGlobalBlendMode(OVERLAY);
 			gc.setGlobalAlpha((s.kinetic_shield.KSenergy/s.kinetic_shield.KSenergy_max)*sqrt(ttl));
 			gc.setStroke(null);
 			gc.setFill(new RadialGradient(0,0,0.5,0.5,0.5,true,NO_CYCLE,new Stop(0.3,Color.TRANSPARENT),new Stop(0.85,COLOR_DB),new Stop(1,Color.TRANSPARENT)));
 			drawOval(gc,x,y,radius);
 			gc.setGlobalAlpha(1);
-//            gc.setGlobalBlendMode(SRC_OVER);
 		}
 	}
 

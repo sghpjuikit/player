@@ -40,6 +40,7 @@ import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
 import comet.Comet.*;
 import comet.Comet.Game.Mission;
 import de.jensd.fx.glyphs.GlyphIcons;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
@@ -66,6 +67,7 @@ import static java.lang.Double.max;
 import static java.lang.Math.*;
 import static java.lang.Math.min;
 import static java.util.Collections.singleton;
+import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -92,6 +94,7 @@ interface Utils {
 
 	Logger LOGGER = LoggerFactory.getLogger(Utils.class);
 	double PI = Math.PI;
+	double D0 = 0;
 	double D30 = PI/6;
 	double D45 = PI/4;
 	double D60 = PI/3;
@@ -1106,6 +1109,7 @@ interface Utils {
 		public DoubleSummaryStatistics controlAreaSize;
 		public DoubleSummaryStatistics controlAreaCenterDistance;
 		public double distanceTravelled;
+		public long asteroidRamCount;
 
 		public StatsPlayer() {
 			clear();
@@ -1146,6 +1150,10 @@ interface Utils {
 			distanceTravelled += distance;
 		}
 
+		public void accRamAsteroid() {
+			asteroidRamCount++;
+		}
+
 		@Override
 		public void clear() {
 			controlAreaSize = new DoubleSummaryStatistics();
@@ -1160,6 +1168,7 @@ interface Utils {
 			spawnCount = 0;
 			deathCount = 0;
 			distanceTravelled = 0;
+			asteroidRamCount = 0;
 		}
 	}
 
@@ -1444,18 +1453,23 @@ interface Utils {
 				),
 				achievement01(
 					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
-					g -> stream(g.players).filter(p -> p.stats.fired1stTime!=null).minBy(p -> p.stats.fired1stTime),
+					g -> stream(g.players).min(nullsLast(by(p -> p.stats.fired1stTime))),
 					"Be the first to shoot"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
-					g -> stream(g.players).filter(p -> p.stats.hitEnemy1stTime!=null).minBy(p -> p.stats.hitEnemy1stTime),
+					g -> stream(g.players).min(nullsLast(by(p -> p.stats.hitEnemy1stTime))),
 					"Be the first to deal damage"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Mobile", MaterialDesignIcon.RUN,
 					g -> stream(g.players).maxBy(p -> p.stats.distanceTravelled),
 					"Travel the greatest distance"
+				).onlyIf(g -> g.players.size()>1),
+				achievement01(
+					"Crusher", FontAwesomeIcon.TRUCK,
+					g -> stream(g.players).maxBy(p -> p.stats.asteroidRamCount),
+					"Destroy the most asteroids with your kinetic shield"
 				).onlyIf(g -> g.players.size()>1),
 				achievement0N(
 					"Pacifist", MaterialDesignIcon.NATURE_PEOPLE,

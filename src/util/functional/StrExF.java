@@ -2,6 +2,7 @@ package util.functional;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import net.objecthunter.exp4j.ValidationResult;
 import util.functional.Functors.Ƒ1;
 import util.parsing.ParsesFromString;
 import util.parsing.ParsesToString;
@@ -27,6 +28,9 @@ public class StrExF implements Ƒ1<Double,Double> {
 		try {
 			ex = s;
 			e = new ExpressionBuilder(s).variables("x").build();
+			ValidationResult v = e.validate(false);
+			if (!v.isValid())
+				throw new Exception(v.getErrors().get(0));
 		} catch(Exception e) {
 			throw new IllegalStateException(e);
 		}

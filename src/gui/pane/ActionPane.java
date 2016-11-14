@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -70,7 +71,7 @@ import static util.async.Async.FX;
 import static util.async.Async.sleeping;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
-import static util.dev.Util.no;
+import static util.dev.Util.throwIfNotFxThread;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -194,6 +195,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     @Override
     public void show() {
+	    throwIfNotFxThread();
         setData(data);
 
         // Bug fix. We need to initialize the layout before it is visible or it may visually
@@ -208,13 +210,13 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     @SuppressWarnings("unchecked")
     public final void show(Object value) {
+	    throwIfNotFxThread();
         value = collectionUnwrap(value);
         Class c = value==null ? Void.class : value.getClass();
         show(c, value);
     }
 
     public final <T> void show(Class<T> type, T value) {
-        no(value==null && (type!=Void.class || type!=void.class));
         show(type, value, false);
     }
 
@@ -233,9 +235,13 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         show();
     }
 
-    private void doneHide() {
-        if (closeOnDone.get()) hide();
-    }
+	private void doneHide() {
+		if (closeOnDone.get()) hide();
+	}
+
+	private void doneHide(ActionData action) {
+		if (!action.preventClosing) doneHide();
+	}
 
 /* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
 
@@ -256,6 +262,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     // set data to retrieve
     private void setData(Object d) {
+    	throwIfNotFxThread();
         // clear content
         setActionInfo(null);
         icons.clear();
@@ -270,11 +277,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         } else {
             setDataInfo(null, false);
             // obtain data & invoke again
-            Fut<Object> f = ((Fut)data)
+	        data = ((Fut)data)
                     .use(this::setData,FX)
                     .showProgress(dataProgress);
-            f.run();
-            data = f;
         }
     }
 
@@ -315,7 +320,6 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     private String getDataInfo(Object data, boolean computed) {
         Class<?> type = data==null ? Void.class : data.getClass();
-        if (Void.class.equals(type)) return "";
 
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
         String dName = computed ? APP.instanceName.get(d) : "n/a";
@@ -355,7 +359,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                   .onClick(e -> {
                       if (!action.isLong) {
                           action.apply(d);
-                          doneHide();
+                          doneHide(action);
                       } else {
                           futAfter(fut(d))
                             .then(() -> actionProgress.setProgress(-1),FX)
@@ -363,9 +367,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                             // 1) the actions may invoke some action on FX thread, so we give it some
                             // by waiting a bit
                             // 2) very short actions 'pretend' to run for a while
-                            .then(sleeping(millis(100)))
+                            .then(sleeping(millis(150)))
                             .then(() -> actionProgress.setProgress(1),FX)
-                            .then(this::doneHide,FX);
+                            .then(() -> doneHide(action),FX);
                       }
                    });
                  // Description is shown when mouse hovers
@@ -386,9 +390,11 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         // We do not want the total animation length be dependent on number of icons (by using
         // absolute icon delay), rather we calculate the delay so total length remains the same.
         Duration total = seconds(1);
-        double delay_abs = total.divide(icons.size()).toMillis(); // use for consistent total length
-        double delay_rel = 200; // use for consistent frequency
-        Anim.par(icons, (i,icon) -> new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(350+i*delay_abs))
+        double delayAbs = total.divide(icons.size()).toMillis(); // use for consistent total length
+        double delayRel = 200; // use for consistent frequency
+	    double delay = delayAbs;
+	    Interpolator intpl = new ElasticInterpolator();
+        Anim.par(icons, (i,icon) -> new Anim(at -> setScaleXY(icon,at*at)).dur(500).intpl(intpl).delay(350+i*delay))
             .play();
     }
 
@@ -413,7 +419,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
 
     /** Action. */
-    public static abstract class ActionData<C,T> implements Ƒ1<Object,Object>{
+    public static abstract class ActionData<C,T> implements Ƒ1<Object,Object> {
         public final String name;
         public final String description;
         public final GlyphIcons icon;
@@ -421,6 +427,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         public final GroupApply groupApply;
         private final Ƒ1<T,?> action;
         public final boolean isLong;
+        private boolean preventClosing = false;
 
         private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Ƒ1<T,?> action) {
             this.name = name;
@@ -430,6 +437,11 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             this.groupApply = group;
             this.isLong = isLong;
             this.action = action;
+        }
+
+        public ActionData<C,T> preventClosing() {
+        	preventClosing = true;
+        	return this;
         }
 
         @SuppressWarnings("unchecked")
@@ -532,9 +544,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     }
 
-    public  enum GroupApply {
-        FOR_EACH,
-        FOR_ALL,
-        NONE
+    public enum GroupApply {
+        FOR_EACH, FOR_ALL, NONE
     }
 }

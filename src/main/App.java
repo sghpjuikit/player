@@ -111,6 +111,7 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
+import util.async.Async;
 import util.async.future.Fut;
 import util.conf.*;
 import util.dev.TODO;
@@ -141,6 +142,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.popover.PopOver.ScreenPos.App_Center;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
@@ -430,6 +432,7 @@ public class App extends Application implements Configurable {
         classFields.add(File.class, set(getEnumConstants(FileField.class)));
 
         // add optional object class -> string converters
+        className.add(Void.class, "Nothing");
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
@@ -437,7 +440,7 @@ public class App extends Application implements Configurable {
         className.add(List.class, "List");
 
         // add optional object instance -> string converters
-        instanceName.add(Void.class, o -> "none");
+        instanceName.add(Void.class, o -> "<none>");
         instanceName.add(Item.class, Item::getPath);
         instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
         instanceName.add(Metadata.class, Metadata::getTitle);
@@ -451,6 +454,7 @@ public class App extends Application implements Configurable {
         });
 
         // add optional object instance -> info string converters
+	    instanceInfo.add(Void.class, (v,map) -> {});
         instanceInfo.add(File.class, (f,map) -> {
             FileSize fs = new FileSize(f);
             map.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
@@ -475,8 +479,8 @@ public class App extends Application implements Configurable {
 
         // register actions
         actionPane.register(Widget.class,
-            new FastAction<>("Create launcher (def)","Creates a launcher "
-                + "for this widget with default (no predefined) settings. \n"
+            new FastAction<>("Create launcher (def)",
+                "Creates a launcher for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "widget as if it were a standalone application.",
                 EXPORT, w -> {
@@ -488,10 +492,9 @@ public class App extends Application implements Configurable {
             })
         );
 	    actionPane.register(Component.class,
-		    new FastAction<>("Export","Creates a launcher "
-                + "for this component with current settings. \n"
-                + "Opening the launcher with this application will open this "
-                + "component as if it were a standalone application.",
+		    new FastAction<>("Export",
+			      "Creates a launcher for this component with current settings. \n"
+                + "Opening the launcher with this application will open this component as if it were a standalone application.",
                 EXPORT, w -> {
 				    DirectoryChooser dc = new DirectoryChooser();
 				    dc.setInitialDirectory(DIR_LAYOUTS);
@@ -537,7 +540,7 @@ public class App extends Application implements Configurable {
 			)
         );
         actionPane.register(File.class,
-	        new FastAction<>("Recycle", "Prints all image metadata to console.",
+	        new FastAction<>("Recycle", "Moves file to recycle bin.",
                 MaterialIcon.DELETE,
                 Environment::deleteFileRecycle),
             new FastAction<>("Read metadata", "Prints all image metadata to console.",
@@ -555,10 +558,18 @@ public class App extends Application implements Configurable {
                 Environment::browse),
             new FastColAction<>("Add to new playlist",
                 "Add items to new playlist widget.",
-                PLAYLIST_PLUS,
+                MaterialDesignIcon.PLAYLIST_PLUS,
                 f -> AudioFileFormat.isSupported(f, Use.APP),
-                f -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(f))
+                fs -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(fs))
             ),
+            new SlowColAction<File>("Search audio",
+                "Looks for audio files recursively in the files and directories of the data.",
+                MaterialDesignIcon.AUDIOBOOK,
+                fs -> {
+                	Object o = Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList());
+                	Async.runFX(() -> actionPane.show(o));
+                }
+            ).preventClosing(),
             new SlowColAction<>("Add to library",
                 "Add items to library if not yet contained.",
                 MaterialDesignIcon.DATABASE_PLUS,
@@ -566,7 +577,7 @@ public class App extends Application implements Configurable {
                 items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {}, false)
                                        .run()
             ),
-            new SlowColAction<>("Edit & Add to library",
+            new SlowColAction<>("Add to library & edit",
                 "Add items to library if not yet contained and edit added items in tag editor. If "
                 + "item already was in the database it will not be added or edited.",
                 MaterialDesignIcon.DATABASE_PLUS,

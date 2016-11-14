@@ -4,9 +4,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.atteo.evo.inflector.English;
@@ -32,8 +30,7 @@ import static util.Util.StringDirection.FROM_START;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.file.AudioFileFormat.Use.PLAYBACK;
 import static util.functional.Util.*;
-import static util.type.Util.getSuperClassesInc;
-import static util.type.Util.unPrimitivize;
+import static util.type.Util.*;
 
 public class FunctorPool {
 
@@ -41,6 +38,7 @@ public class FunctorPool {
 	private final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
 	private final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
 	private final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+	private final Set<Class> cacheStorage = new HashSet<>();
 
 	{
 		/*
@@ -151,7 +149,7 @@ public class FunctorPool {
 
 		add("Less",         FormattedDuration.class,B,(x, y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
 		add("Is",           FormattedDuration.class,B,(x,y) -> x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
-		add("More",         FormattedDuration.class,B,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
+		add("More",   FormattedDuration.class,B,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
 
 		add("<  Less",      NofX.class,B, (x, y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
 		add("=  Is",        NofX.class,B, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
@@ -160,7 +158,7 @@ public class FunctorPool {
 		add("<> Is not",    NofX.class,B, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
 		add("<= Not more",  NofX.class,B, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
 
-		add("<  Less",      FileSize.class,B, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
+		add("<  Less",FileSize.class,B, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
 		add("=  Is",        FileSize.class,B, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
 		add(">  More",      FileSize.class,B, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
 		add("Is unknown",   FileSize.class,B, x -> x.inBytes()==-1);
@@ -189,8 +187,6 @@ public class FunctorPool {
 
 		add("Is supported", AudioFileFormat.class,B, x -> x.isSupported(APP));
 		add("Is playable", AudioFileFormat.class,B, x -> x.isSupported(PLAYBACK));
-		addPredicatesOf(AudioFileFormat.class);
-		addPredicatesOf(ImageFileFormat.class);
 
 		addPredicatesComparable(Short.class, (short)0);
 		addPredicatesComparable(Integer.class, 0);
@@ -251,10 +247,6 @@ public class FunctorPool {
 		addF(new PƑ3<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
 	}
 
-	public <E extends Enum> void addPredicatesOf(Class<E> c) {
-		add("Is", c,Boolean.class, (a,b) -> a==b, c, c.getEnumConstants()[0], false,false,true);
-	}
-
 	public <C extends Comparable> void addPredicatesComparable(Class<C> c, C def_val) {
 		add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
 		add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
@@ -285,29 +277,37 @@ public class FunctorPool {
 		fsIO.deaccumulate(f);
 	}
 
-	private <T> void addSelfFunctor(PrefList l, Class<T> c) {
-		Object p = l.getPrefered();
-		// l.addPreferred(new PƑ0("As self", c, c, IDENTITY), p==null); // !working as it should?
-		l.add(0,new PƑ0("As self", c, c, IDENTITY));
+	@SuppressWarnings("unckeched")
+	private <T> void addSelfFunctor(Class<T> c) {
+		if (cacheStorage.contains(c)) return;
+		cacheStorage.add(c);
+
+		// add self functor
+		addF(new PƑ0("As self", c, c, IDENTITY));
+
+		// add enum is predicates
+		if (isEnum(c))
+			add("Is", c,Boolean.class, (a,b) -> a==b, c, (T)getEnumConstants(c)[0], false,false,true);
 	}
 
 	/** Returns all functions taking input I. */
 	public <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
-		PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
-		addSelfFunctor(l,i);
-		return l;
+		addSelfFunctor(i);
+		return (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
 	}
 
 	/** Returns all functions producing output O. */
 	public <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
+		addSelfFunctor(o);
 		List ll = fsO.get(unPrimitivize(o));
-		PrefList l =  ll==null ? new PrefList() : (PrefList) ll;
-		addSelfFunctor(l,o);
-		return l;
+		return ll==null ? new PrefList() : (PrefList) ll;
 	}
 
 	/** Returns all functions taking input I and producing output O. */
 	public <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
+		addSelfFunctor(i);
+		addSelfFunctor(o);
+
 		// this is rather messy, but works
 		// we accumulate result for all superclasses & retain first found preferred element, while
 		// keeping duplicate elements in check
@@ -330,7 +330,6 @@ public class FunctorPool {
 			pl.addPreferred(e);
 		}
 
-		if (i.equals(o)) addSelfFunctor(pl,o);
 		return pl;
 
 		// old impl, ignores super classes

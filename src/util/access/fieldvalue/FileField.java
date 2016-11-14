@@ -17,12 +17,14 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.xmp.XmpDirectory;
 
+import main.App;
+import util.file.FileType;
 import util.file.Util;
+import util.file.mimetype.MimeType;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 
 import static util.Util.localDateTimeFromMillis;
-import static util.file.Util.getSuffix;
 import static util.type.Util.mapEnumConstantName;
 
 /**
@@ -64,7 +66,9 @@ public enum FileField implements ObjectField<File> {
             return null;
         }
     }, FileTime.class),
-    TYPE("Type", f -> f.isDirectory() ? "Directory" : getSuffix(f), String.class);
+    TYPE("Type", FileType::of, FileType.class),
+    MIME("Mime Type", App.APP.mimeTypes::ofFile, MimeType.class),
+    MIME_GROUP("Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
 
     private final String description;
     private final Ƒ1<File,?> mapper;

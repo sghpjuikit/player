@@ -30,6 +30,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 
 	public ConfigPane() {}
 
+	@SuppressWarnings("unchecked")
 	public ConfigPane(Collection<Config<T>> configs) {
 		this.configs.clear();
 		configure((Collection)configs);
@@ -39,6 +40,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 		this(configs.getFields());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public final void configure(Collection<Config> configs) {
 		if (configs==null) return;

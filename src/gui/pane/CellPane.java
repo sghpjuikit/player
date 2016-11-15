@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.pane;
 
 import java.util.List;
@@ -29,58 +24,58 @@ import static util.graphics.Util.setAnchors;
  * @author Martin Polakovic
  */
 public class CellPane extends Pane {
-    double cellw = 100;
-    double cellh = 100;
-    double cellg = 5;
+	double cellW = 100;
+	double cellH = 100;
+	double cellG = 5;
 
-    /**
-     * @param cellw cell width
-     * @param cellh cell height
-     * @param gap cell gap. Vertically it will be altered as needed to maintain
-     * layout.
-     */
-    public CellPane(double cellw, double cellh, double gap) {
-        this.cellw = cellw;
-        this.cellh = cellh;
-        this.cellg = gap;
-    }
+	/**
+	 * @param cellWidth cell width
+	 * @param cellHeight cell height
+	 * @param cellGao cell gap. Vertically it will be altered as needed to maintain
+	 * layout.
+	 */
+	public CellPane(double cellWidth, double cellHeight, double cellGao) {
+		cellW = cellWidth;
+		cellH = cellHeight;
+		cellG = cellGao;
+	}
 
-    @Override
-    protected void layoutChildren() {
-        double width = getWidth();
-        List<Node> cells = getChildren();
+	@Override
+	protected void layoutChildren() {
+		double width = getWidth();
+		List<Node> cells = getChildren();
 
-        int elements = cells.size();
-        if (elements==0) return;
+		int elements = cells.size();
+		if (elements==0) return;
 
-        int c = (int) floor((width+cellg)/(cellw+cellg));
-        int columns = max(1,c);
-        double gapx = cellg+(width+cellg-columns*(cellw+cellg))/columns;
-        double gapy = cellg;
+		int c = (int) floor((width+cellG)/(cellW+cellG));
+		int columns = max(1,c);
+		double gapX = cellG +(width+cellG -columns*(cellW+cellG))/columns;
+		double gapY = cellG;
 
-        forEachWithI(cells, (i,n) -> {
-            double x = i%columns * (cellw+gapx);
-            double y = i/columns * (cellh+gapy);
-            n.relocate(x,y);
-            n.resize(cellw, cellh);
-        });
+		forEachWithI(cells, (i,n) -> {
+			double x = i%columns * (cellW+gapX);
+			double y = i/columns * (cellH+gapY);
+			n.relocate(x,y);
+			n.resize(cellW, cellH);
+		});
 
-        int rows = (int) ceil(elements/(double)columns);
+		int rows = (int) ceil(elements/(double)columns);
 
-        runLater(()->setPrefHeight(rows*(cellh+gapy)));
-    }
+		runLater(()->setPrefHeight(rows*(cellH+gapY)));
+	}
 
-    /** Puts this pane to scrollbar and returns it. */
-    public ScrollPane scrollable() {
-        ScrollPane s = new ScrollPane();
-        s.setContent(this);
-        s.setFitToWidth(true);
-        s.setFitToHeight(false);
-        s.setHbarPolicy(NEVER);
-        s.setVbarPolicy(AS_NEEDED);
-        getChildren().add(s);
-        setAnchors(s,0d);
-        return s;
-    }
+	/** Puts this pane to scrollbar and returns it. */
+	public ScrollPane scrollable() {
+		ScrollPane s = new ScrollPane();
+		s.setContent(this);
+		s.setFitToWidth(true);
+		s.setFitToHeight(false);
+		s.setHbarPolicy(NEVER);
+		s.setVbarPolicy(AS_NEEDED);
+		getChildren().add(s);
+		setAnchors(s,0d);
+		return s;
+	}
 
 }

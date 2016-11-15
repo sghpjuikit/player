@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.pane;
 
 import java.io.File;
@@ -11,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
@@ -38,6 +34,7 @@ import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
+import util.SwitchException;
 import util.access.V;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
@@ -50,7 +47,11 @@ import util.collections.map.ClassMap;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
+import util.functional.Functors;
 import util.functional.Functors.Ƒ1;
+import util.type.ClassName;
+import util.type.InstanceInfo;
+import util.type.InstanceName;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
@@ -65,7 +66,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static main.App.APP;
 import static util.async.Async.FX;
 import static util.async.Async.sleeping;
 import static util.async.future.Fut.fut;
@@ -85,6 +85,7 @@ import static util.type.Util.getEnumConstants;
 @IsConfigurable("Action Chooser")
 public class ActionPane extends OverlayPane implements Configurable<Object> {
 
+	// TODO: refactor out
     static final ClassMap<Class<?>> fieldMap = new ClassMap<>();
     static {
         fieldMap.put(PlaylistItem.class, PlaylistItem.Field.class);
@@ -98,21 +99,31 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     private static final String COD_TITLE = "Close when action ends";
     private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
-
     @IsConfig(name = COD_TITLE, info = COD_INFO)
     public final V<Boolean> closeOnDone = new V<>(false);
+	private final ClassName className;
+	private final InstanceName instanceName;
+	private final InstanceInfo instanceInfo;
 
-    public ActionPane() {
+    private boolean showIcons = true;
+    private Node insteadIcons = null;
+
+	public ActionPane(ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
+		this.className = className;
+		this.instanceName = instanceName;
+		this.instanceInfo = instanceInfo;
+
         getStyleClass().add(ROOT_STYLECLASS);
 
         // icons and descriptions
         ScrollPane descriptionFullPane = layScrollVTextCenter(descFull);
         StackPane infoPane = layStack(dataInfo,TOP_LEFT);
         VBox descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
-        HBox iconBox = layHorizontally(15,CENTER);
-        icons = iconBox.getChildren();
+        HBox iconPaneSimple = layHorizontally(15,CENTER);
+        icons = iconPaneSimple.getChildren();
 
         // content for icons and descriptions
+        StackPane iconBox = layStack(iconPaneComplex,CENTER, iconPaneSimple,CENTER);
         StackPane iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
         // Minimal and maximal height of the 3 layout components. The heights should add
         // up to full length (including the spacing of course). Sounds familiar? No, could not use
@@ -182,7 +193,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                                     .tooltip(COD_TITLE+"\n\n"+COD_INFO)
                                     .icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE);
     private final ProgressIndicator dataProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
-    private final ProgressIndicator actionProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
+    public final ProgressIndicator actionProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
     private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
@@ -235,11 +246,22 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     }
 
 	private void doneHide() {
-		if (closeOnDone.get()) hide();
+		if (closeOnDone.get()) {
+			showIcons = true;
+			insteadIcons = null;
+			hide();
+		}
 	}
 
 	private void doneHide(ActionData action) {
-		if (!action.preventClosing) doneHide();
+		if (action.isComplex) {
+			ComplexActionData complexAction = action.complexData;
+			showIcons = false;
+			insteadIcons = (Node) complexAction.gui.get();
+			show(complexAction.input.apply(action.prepInput(getData())));
+		} else {
+			doneHide();
+		}
 	}
 
 /* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
@@ -251,15 +273,30 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     private final DoubleProperty tableContentGap;
     private StackPane tablePane = new StackPane();
     private FilteredTable<?,?> table;
+	private final StackPane iconPaneComplex = new StackPane();
 
 /* ---------- HELPER ------------------------------------------------------------------------------------------------ */
 
-    // retrieve set data
-    private Object getData() {
-        return data instanceof Collection ? list(table.getItems()) : data;
+	/**
+	 * This is an advanced API. Use with caution.
+	 * <p/>
+	 * Returns input data or its subset if user selection is active.
+	 *
+	 * @return user selection of the data available
+	 */
+    public Object getData() {
+    	Object d = futureUnwrap(data);
+    	if (d instanceof Collection) {
+    		if (table!=null) {
+    			if (table.getSelectionModel().isEmpty()) return table.getItems();
+    			else return table.getSelectedItemsCopy();
+		    } else {
+		    	return collectionWrap(d);
+		    }
+	    } else
+	    	return d;
     }
 
-    // set data to retrieve
     private void setData(Object d) {
     	throwIfNotFxThread();
         // clear content
@@ -310,7 +347,10 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                 gap = 70;
                 table = t;
                 t.setItemsRaw(collection);
-                t.getSelectedItems().addListener((Change<?> c) -> showIcons(t.getSelectedOrAllItemsCopy()));
+                t.getSelectedItems().addListener((Change<?> c) -> {
+                	if (insteadIcons==null)
+	                    showIcons(t.getSelectedOrAllItemsCopy());
+                });
             }
         }
         tableContentGap.set(gap);
@@ -318,23 +358,25 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
     private String getDataInfo(Object data, boolean computed) {
         Class<?> type = data==null ? Void.class : data.getClass();
-
         Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
-        String dName = computed ? APP.instanceName.get(d) : "n/a";
-        String dKind = computed ? APP.className.get(type) : "n/a";
-        String dInfo = stream(APP.instanceInfo.get(d)).mapKeyValue((key,val) -> key + ": " + val).sorted().collect(joining("\n"));
-        if (!dInfo.isEmpty()) dInfo = "\n" + dInfo;
 
-        return "Data: " + dName + "\nType: " + dKind + dInfo ;
+        String dName = !computed ? "n/a" : instanceName.get(d);
+        String dKind = !computed ? "n/a" : className.get(type);
+        String dInfo = !computed ? "" : stream(instanceInfo.get(d))
+											.mapKeyValue((key,val) -> key + ": " + val)
+											.sorted().collect(joining("\n"));
+        return "Data: " + dName + "\n" +
+               "Type: " + dKind +
+               (dInfo.isEmpty() ? "" : "\n" + dInfo);
     }
 
     @SuppressWarnings("unchecked")
     private void showIcons(Object d) {
-        Class<?> dt = d==null ? Void.class : d instanceof Collection ? ((Collection)d).stream().findFirst().orElse(null).getClass() : d.getClass();
+        Class<?> dataType = getUnwrappedType(d);
         // get suitable actions
         actionsData.clear();
         actionsData.addAll(actionsIcons);
-        if (use_registered_actions) actionsData.addAll(actions.getElementsOfSuperV(dt));
+        if (use_registered_actions) actionsData.addAll(actions.getElementsOfSuperV(dataType));
         actionsData.removeIf(a -> {
             if (a.groupApply==FOR_ALL) {
                 return a.condition.test(collectionWrap(d));
@@ -350,26 +392,20 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             throw new RuntimeException("Illegal switch case");
         });
 
+	    if (!showIcons) {
+	    	showCustomActionUi();
+            insteadIcons = null;
+			showIcons = true;
+	    	return;
+	    } else {
+	    	hideCustomActionUi();
+	    }
+
         stream(actionsData).sorted(by(a -> a.name)).map(action -> {
             Icon i = new Icon<>()
                   .icon(action.icon)
                   .styleclass(ICON_STYLECLASS)
-                  .onClick(e -> {
-                      if (!action.isLong) {
-                          action.apply(d);
-                          doneHide(action);
-                      } else {
-                          futAfter(fut(d))
-                            .then(() -> actionProgress.setProgress(-1),FX)
-                            .use(action) // run action and obtain output
-                            // 1) the actions may invoke some action on FX thread, so we give it some
-                            // by waiting a bit
-                            // 2) very short actions 'pretend' to run for a while
-                            .then(sleeping(millis(150)))
-                            .then(() -> actionProgress.setProgress(1),FX)
-                            .then(() -> doneHide(action),FX);
-                      }
-                   });
+                  .onClick(e -> runAction(action, d));
                  // Description is shown when mouse hovers
                  i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
                  i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
@@ -396,11 +432,43 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             .play();
     }
 
+    private void runAction(ActionData action, Object data) {
+	    if (!action.isLong) {
+		    action.apply(data);
+		    doneHide(action);
+	    } else {
+		    futAfter(fut(data))
+			    .then(() -> actionProgress.setProgress(-1),FX)
+			    .use(action) // run action and obtain output
+			    // 1) the actions may invoke some action on FX thread, so we give it some
+			    // by waiting a bit
+			    // 2) very short actions 'pretend' to run for a while
+			    .then(sleeping(millis(150)))
+			    .then(() -> actionProgress.setProgress(1),FX)
+			    .then(() -> doneHide(action),FX);
+	    }
+    }
 
+    private void hideCustomActionUi() {
+	    iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(true));
+	    iconPaneComplex.getChildren().clear();
+    }
+    private void showCustomActionUi() {
+	    iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(false));
+	    iconPaneComplex.setVisible(true);
+	    iconPaneComplex.getChildren().setAll(insteadIcons);
+    }
+
+    private static Class<?> getUnwrappedType(Object d) {
+    	return d==null ? Void.class
+		           : d instanceof Collection
+			             ? getCollectionType((Collection)d)
+			             : d.getClass();
+    }
 
 	private static Class<?> getCollectionType(Collection<?> c) {
 		// TODO: improve collection element type recognition
-		return c.stream().findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
+		return stream(c).nonNull().findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
 	}
 
 	private static Collection<?> collectionWrap(Object o) {
@@ -417,10 +485,20 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
     }
 
     private static Object futureUnwrap(Object o) {
+    	if (o instanceof Fut && !((Fut)o).isDone()) throw new IllegalStateException("Future not done yet");
         return o instanceof Fut ? ((Fut)o).getDone() : o;
     }
 
 
+	public static class ComplexActionData<R,T> {
+		public final Supplier<Node> gui;
+		public final Functors.Ƒ1<? super R, ? extends Object> input;
+
+		public ComplexActionData(Supplier<Node> gui, Ƒ1<? super R, ? extends Object> input) {
+			this.gui = gui;
+			this.input = input;
+		}
+	}
     /** Action. */
     public static abstract class ActionData<C,T> implements Ƒ1<Object,Object> {
         public final String name;
@@ -430,7 +508,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         public final GroupApply groupApply;
         public final boolean isLong;
         private final Ƒ1<T,?> action;
-        private boolean preventClosing = false;
+        private boolean isComplex = false;
+        private ComplexActionData<?,?> complexData = null;
 
         private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Ƒ1<T,?> action) {
             this.name = name;
@@ -442,8 +521,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             this.action = action;
         }
 
-        public ActionData<C,T> preventClosing() {
-        	preventClosing = true;
+        public ActionData<C,T> preventClosing(ComplexActionData<T,?> action) {
+        	isComplex = true;
+        	complexData = action;
         	return this;
         }
 
@@ -452,7 +532,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         public Object apply(Object data) {
             boolean isCollection = data instanceof Collection;
             if (groupApply==FOR_ALL) {
-                return action.apply(isCollection ? (T) data : (T) collectionWrap(data));
+                return action.apply((T) collectionWrap(data));
             } else
             if (groupApply==FOR_EACH) {
                 if (isCollection) {
@@ -466,9 +546,25 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                 if (isCollection) throw new RuntimeException("Action can not use collection");
                 return action.apply((T)data);
             } else {
-                throw new util.SwitchException(groupApply);
+                throw new SwitchException(groupApply);
             }
         }
+
+	    public T prepInput(Object data) {
+		    boolean isCollection = data instanceof Collection;
+		    if (groupApply==FOR_ALL) {
+			    return (T) collectionWrap(data);
+		    } else
+		    if (groupApply==FOR_EACH) {
+			    throw new AssertionError("not a good idea...");
+		    } else
+		    if (groupApply==NONE) {
+			    if (isCollection) throw new RuntimeException("Action can not use collection");
+			    return (T)data;
+		    } else {
+			    throw new SwitchException(groupApply);
+		    }
+	    }
     }
 
     /** Action that executes synchronously - simply consumes the input. */

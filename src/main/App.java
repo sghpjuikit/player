@@ -19,6 +19,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -81,6 +82,7 @@ import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
 import gui.objects.window.stage.WindowManager;
 import gui.pane.ActionPane;
+import gui.pane.ActionPane.ComplexActionData;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
@@ -101,6 +103,7 @@ import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
 import unused.SimpleConfigurator;
+import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
@@ -111,7 +114,6 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.Async;
 import util.async.future.Fut;
 import util.conf.*;
 import util.dev.TODO;
@@ -277,8 +279,13 @@ public class App extends Application implements Configurable {
      * Observable {@link System#out}
      */ public final SystemOutListener systemout = new SystemOutListener();
 
+	public final ClassName className = new ClassName();
+	public final InstanceName instanceName = new InstanceName();
+	public final InstanceInfo instanceInfo = new InstanceInfo();
+	public final ObjectFieldMap classFields = new ObjectFieldMap();
+
     public final TaskBar taskbarIcon = new TaskBar();
-    public final ActionPane actionPane = new ActionPane();
+    public final ActionPane actionPane = new ActionPane(className, instanceName, instanceInfo);
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final InfoPane infoPane = new InfoPane();
     public final Guide guide = new Guide();
@@ -309,11 +316,6 @@ public class App extends Application implements Configurable {
 	/**
 	 * Manages plugins.
 	 */ public final PluginMap plugins = new PluginMap();
-
-    public final ClassName className = new ClassName();
-    public final InstanceName instanceName = new InstanceName();
-    public final InstanceInfo instanceInfo = new InstanceInfo();
-    public final ObjectFieldMap classFields = new ObjectFieldMap();
 	/**
 	 * File mime type map.
 	 * Initialized with the built-in mime types definitions.
@@ -432,7 +434,7 @@ public class App extends Application implements Configurable {
         classFields.add(File.class, set(getEnumConstants(FileField.class)));
 
         // add optional object class -> string converters
-        className.add(Void.class, "Nothing");
+        className.addNoLookup(Void.class, "Nothing");
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
@@ -456,9 +458,11 @@ public class App extends Application implements Configurable {
         // add optional object instance -> info string converters
 	    instanceInfo.add(Void.class, (v,map) -> {});
         instanceInfo.add(File.class, (f,map) -> {
-            FileSize fs = new FileSize(f);
-            map.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
-            map.put("Format", Util.getSuffix(f));
+            String suffix = Util.getSuffix(f);
+        	FileSize fs = new FileSize(f);
+            String fsBytes = fs.isUnknown() ? "" : " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)";
+            map.put("Size", fs.toString() + fsBytes);
+            map.put("Format", suffix.isEmpty() ? "n/a" : suffix);
 
             ImageFileFormat iff = ImageFileFormat.of(f.toURI());
             if (iff.isSupported()) {
@@ -503,6 +507,8 @@ public class App extends Application implements Configurable {
 				    if (dir!=null) w.exportFxwl(dir);
 		    })
 	    );
+	    SingleR<Widget,Void> cachedTagger = new SingleR<>(() ->
+                      (Widget) stream(APP.widgetManager.factories).findFirst(f -> f.name().equals("Tagger")).get().create());
         actionPane.register(Item.class,
             new FastColAction<>("Add to new playlist",
                 "Add items to new playlist widget.",
@@ -562,31 +568,38 @@ public class App extends Application implements Configurable {
                 f -> AudioFileFormat.isSupported(f, Use.APP),
                 fs -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(fs))
             ),
-            new SlowColAction<File>("Search audio",
-                "Looks for audio files recursively in the files and directories of the data.",
-                MaterialDesignIcon.AUDIOBOOK,
-                fs -> {
-                	Object o = Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList());
-                	Async.runFX(() -> actionPane.show(o));
-                }
-            ).preventClosing(),
-            new SlowColAction<>("Add to library",
-                "Add items to library if not yet contained.",
-                MaterialDesignIcon.DATABASE_PLUS,
-                f -> AudioFileFormat.isSupported(f, Use.APP),
-                items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {}, false)
-                                       .run()
-            ),
-            new SlowColAction<>("Add to library & edit",
+//            new SlowColAction<File>("Search audio",
+//                "Looks for audio files recursively in the files and directories of the data.",
+//                MaterialDesignIcon.AUDIOBOOK,
+//                fs -> {
+//                	Object o = Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList());
+//                	Async.runFX(() -> actionPane.show(o));
+//                }
+//            ).preventClosing(),
+            new SlowColAction<File>("Add to library",
                 "Add items to library if not yet contained and edit added items in tag editor. If "
                 + "item already was in the database it will not be added or edited.",
                 MaterialDesignIcon.DATABASE_PLUS,
-                f -> AudioFileFormat.isSupported(f, Use.APP),
-                items -> MetadataReader.readAaddMetadata(map(items,SimpleItem::new), (ok,added) -> {
-                            if (ok && !added.isEmpty())
-                                 APP.widgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
-                        }, false).run()
-            ),
+                items -> {}
+            ).preventClosing(new ComplexActionData<Collection<File>,List<File>>(
+                () -> layHorizontally(50, Pos.CENTER,
+	                new Icon(FontAwesomeIcon.CHECK,25).onClick(() -> {
+			                Fut.fut((List<File>)actionPane.getData())
+								.map(files -> map(files, SimpleItem::new))
+								.use(items ->
+									MetadataReader.readAaddMetadata(items, (ok,added) -> {
+										if (ok)
+											((SongReader) cachedTagger.get().getController()).read(added);
+									}, false).run()
+								)
+								.showProgress(actionPane.actionProgress)
+								.then(() -> services.getService(Notifier.class)
+									            .ifPresent(n -> n.showTextNotification("Complete", "Tagging")), FX);
+	                }).withText("Do"),
+	                cachedTagger.get().load()
+                ),
+				files -> Fut.fut(files).map(fs ->  Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
+            )),
             new FastColAction<>("Add to existing playlist",
                 "Add items to existing playlist widget if possible or to a new one if not.",
                 PLAYLIST_PLUS,

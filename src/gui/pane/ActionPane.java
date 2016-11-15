@@ -58,7 +58,6 @@ import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.pane.ActionPane.GroupApply.*;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -293,11 +292,10 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         tablePane.getChildren().clear();
         double gap = 0;
         if (data instanceof Collection && !((Collection)data).isEmpty()) {
-            Collection<?> collection = (Collection) data;
-            // TODO: improve collection element type recognition
-            Class<?> coltype = collection.stream().findFirst().map(Object::getClass).orElse(Void.class);
-            if (fieldMap.containsKey(coltype)) {
-                FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldMap.get(coltype))[0]);
+            Collection<Object> collection = (Collection) data;
+            Class<?> colType = getCollectionType(collection);
+            if (fieldMap.containsKey(colType)) {
+                FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldMap.get(colType))[0]);
                 t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
                 t.getSelectionModel().setSelectionMode(MULTIPLE);
                 t.setColumnFactory(f -> {
@@ -352,7 +350,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
             throw new RuntimeException("Illegal switch case");
         });
 
-        icons.setAll(actionsData.stream().sorted(by(a -> a.name)).map(action -> {
+        stream(actionsData).sorted(by(a -> a.name)).map(action -> {
             Icon i = new Icon<>()
                   .icon(action.icon)
                   .styleclass(ICON_STYLECLASS)
@@ -384,7 +382,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
                      e.consume();
                  });
             return i.withText(action.name);
-        }).collect(toList()));
+        }).toListAndThen(icons::setAll);
 
         // Animate - pop icons in parallel, but with increasing delay
         // We do not want the total animation length be dependent on number of icons (by using
@@ -400,7 +398,12 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
 
 
-    private static Collection<?> collectionWrap(Object o) {
+	private static Class<?> getCollectionType(Collection<?> c) {
+		// TODO: improve collection element type recognition
+		return c.stream().findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
+	}
+
+	private static Collection<?> collectionWrap(Object o) {
         return o instanceof Collection ? (Collection)o : listRO(o);
     }
 
@@ -425,8 +428,8 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
         public final GlyphIcons icon;
         public final Predicate<? super T> condition;
         public final GroupApply groupApply;
-        private final Ƒ1<T,?> action;
         public final boolean isLong;
+        private final Ƒ1<T,?> action;
         private boolean preventClosing = false;
 
         private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Ƒ1<T,?> action) {

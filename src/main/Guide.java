@@ -13,6 +13,7 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import org.reactfx.Subscription;
 
@@ -28,6 +29,7 @@ import util.access.V;
 import util.action.Action;
 import util.action.IsAction;
 import util.animation.Anim;
+import util.async.Async;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -73,9 +75,8 @@ public final class Guide implements Configurable {
     private Subscription action_monitoring;
     private final Label infoL = new Label();
 
-	@IsConfig(name = "Show guide on app start", info = "Show guide when application "
-		                                             + "starts. Default true, but when guide is shown, it is set to false "
-		                                             + "so the guide will never appear again on its own.")
+	@IsConfig(name = "Show guide on app start", info = "Show guide when application starts. Default true, but when " +
+					"guide is shown, it is set to false so the guide will never appear again on its own.")
 	public final V<Boolean> first_time = new V<>(true);
 
     public Guide() {
@@ -104,6 +105,10 @@ public final class Guide implements Configurable {
         );
         p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton()==PRIMARY)   goToNext();
+            if (e.getButton()==SECONDARY && hints.get(at).action.equals("Navigation")) {
+            	Async.run(proceedAnimLength.multiply(3), this::goToNext);
+            	Async.run(proceedAnimLength.multiply(6), this::goToNext);
+            }
             if (e.getButton()==SECONDARY) goToPrevious();
             e.consume();
         });
@@ -131,34 +136,16 @@ public final class Guide implements Configurable {
                 APP.actionStream.push("Intro");
             }
         ));
-        hint("Guide hints", "Guide consists of hints. You can proceed manually or by completing the "
+        hint("Guide hints", "Guide consists of hints. You can proceed manually or by completing a "
            + "hint. To navigate, use left and right mouse button."
            + "\n\nClick anywhere on this guide.");
-        Icon<?> ni = new Icon(DEBUG_STEP_OVER,ICON_SIZE);
-        Icon<?> pi = new Icon(DEBUG_STEP_OVER,ICON_SIZE){{setScaleX(-1);}};
-             pi.setOpacity(0.5);
-             ni.onClick(e -> {
-                 if (e.getButton()==PRIMARY) {
-                     ni.setOpacity(0.5);
-                     pi.setOpacity(1);
-                 }
-                 e.consume();
-             });
-             pi.onClick(e -> {
-                 if (e.getButton()==SECONDARY) {
-                     pi.setOpacity(0.5);
-                     ni.setOpacity(1);
-                 }
-                 e.consume();
-             });
         hint("Navigation", "Navigation with mouse buttons is used across the entire app. Remember:\n"
            + "\n\t• Left click: go next"
            + "\n\t• Right click: go back"
-           + "\n\nTry it out below:",
-           ni,pi
+           + "\n\nTry going back by right-clicking anywhere on this guide"
         );
         hint("Guide closing", "Know your ESCAPEs. It will help you. With what? Completing this guide. "
-           + "And closing windows. And table selections. And searching... You get the idea."
+           + "And closing windows. And canceling table selections, filtering and searching and... You get the idea."
            + "\n\nClose guide to proceed (the guide will continue after you close it). Use close "
            + "button or ESC key."
         );
@@ -393,7 +380,8 @@ public final class Guide implements Configurable {
     }
 
     private final EventHandler<Event> consumer = Event::consume;
-    private final Anim proceed_anim = new Anim(millis(400),x -> p.getContentNode().setOpacity(-(x*x-1)));
+    private final Duration proceedAnimLength = millis(400);
+    private final Anim proceed_anim = new Anim(proceedAnimLength, x -> p.getContentNode().setOpacity(-(x*x-1)));
 
     private void proceed() {
         if (hints.isEmpty()) return;
@@ -416,8 +404,8 @@ public final class Guide implements Configurable {
 
         // the condition has 2 reasons
         // - avoids unneeded show() call
-        // - avoids relocating the popups a result of alignment with different popup size
-        // - the popup size depends on the text
+        // - avoids relocating the popups as a result of alignment with different popup size
+        // the popup size depends on the text
         if (!p.isShowing()) p.show(PopOver.ScreenPos.App_Center);
         // progress
         infoL.setText((at+1) + "/" + hints.size());

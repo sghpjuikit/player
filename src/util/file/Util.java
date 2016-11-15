@@ -202,7 +202,7 @@ public interface Util {
         if (dir.isDirectory()) {
             try {
                 return Files.walk(dir.toPath(),depth).map(Path::toFile)
-                            .filter(f->AudioFileFormat.isSupported(f,use));
+                            .filter(f -> AudioFileFormat.isSupported(f,use));
             } catch (IOException ex) {
                 return Stream.empty();
             }
@@ -216,7 +216,7 @@ public interface Util {
         return Stream.empty();
     }
 
-    static Stream<File> getFilesAudio(List<File> files, Use use, int depth) {
+    static Stream<File> getFilesAudio(Collection<File> files, Use use, int depth) {
         return files.stream().flatMap(f -> getFilesAudio(f, use, depth));
     }
 

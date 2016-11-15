@@ -655,7 +655,7 @@ public interface Util {
      */
     static String getSuffix(String path) {
         int p = path.lastIndexOf('.');
-        return (p < -1) ? "" : path.substring(p + 1);
+        return (p <= -1) ? "" : path.substring(p + 1);
     }
 
     /**

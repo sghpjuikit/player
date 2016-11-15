@@ -51,6 +51,7 @@ import util.async.executor.FxTimer;
 import util.conf.Config.ConfigurableVarList;
 import util.conf.Configurable;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.conf.ListConfigurable;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
@@ -1203,7 +1204,7 @@ public class Comet extends ClassController {
 
 	/** Game player. Survives game sessions. */
 	public class Player implements Configurable {
-		@IsConfig(editable = false) public final V<Integer> id = new V<>(null);
+		@IsConfig(editable = EditMode.APP) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
 		@IsConfig public final V<KeyCode> keyFire = new V<>(KeyCode.W);

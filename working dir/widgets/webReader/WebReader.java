@@ -11,6 +11,7 @@ import javafx.scene.web.WebView;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.dev.Dependency;
 import util.file.Util;
 
@@ -43,7 +44,7 @@ public class WebReader extends FXMLController {
     private WebView webView;
     private WebEngine engine;
 
-    @IsConfig(name = "Last visited address", info = "Last visited address", editable = false)
+    @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     public String url = "http://duckduckgo.com/";
 
     @Override

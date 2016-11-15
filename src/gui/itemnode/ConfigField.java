@@ -133,7 +133,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		else if (isMinMax(c)) cf = new SliderField(c);
 		else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
-		cf.setEditable(c.isEditable());
+		cf.setEditable(c.isEditable().isByUser());
 
 		return cf;
 	}
@@ -175,7 +175,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         // display default button when hovered for certain time
         root.addEventFilter(MOUSE_ENTERED, e -> {
-            if (!config.isEditable()) return;
+            if (config.isEditable().isByNone()) return;
             // wait delay
             run(270, () -> {
                 // no need to do anything if hover ended

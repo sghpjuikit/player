@@ -55,6 +55,7 @@ import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -152,7 +153,7 @@ public class Library extends FXMLController implements SongReader {
     public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
-    @IsConfig(editable = false)
+    @IsConfig(editable = EditMode.APP)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
     private final Property<Boolean> editOnAdd = editOnAdd_menuItem.selected;

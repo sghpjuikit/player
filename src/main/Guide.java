@@ -32,6 +32,7 @@ import util.animation.Anim;
 import util.async.Async;
 import util.conf.Configurable;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
 
@@ -68,7 +69,7 @@ public final class Guide implements Configurable {
 
     private final List<Hint> hints = new ArrayList<>();
     private int prev_at = -1;
-    @IsConfig(name = "Hint", editable = false)
+    @IsConfig(name = "Hint", editable = EditMode.APP)
     private int at = -1;
     private final Text text = new Text();
     private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));

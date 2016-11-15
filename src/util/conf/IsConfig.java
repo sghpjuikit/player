@@ -66,5 +66,21 @@ public @interface IsConfig {
      * @return the intended editability of the configuration field by the user.
      * Should be adhered to by the graphical user interface for example by not
      * displaying this config. Default true.
-     */ boolean editable() default true;
+     */ EditMode editable() default EditMode.USER;
+
+     enum EditMode {
+     	USER, APP, NONE;
+
+	     public boolean isByNone() {
+		     return this==NONE;
+	     }
+
+	     public boolean isByApp() {
+		     return this!=NONE;
+	     }
+
+	     public boolean isByUser() {
+		     return this==USER;
+	     }
+     }
 }

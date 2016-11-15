@@ -17,6 +17,7 @@ import org.reactfx.Subscription;
 
 import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
+import util.conf.IsConfig.EditMode;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
@@ -102,7 +103,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * Indicates editability. Use arbitrarily. Most often sets whether this
      * config should be editable by user via graphical user interface.
      */
-    abstract public boolean isEditable();
+    abstract public EditMode isEditable();
 
 	abstract public Set<Constraint<? super T>> getConstraints();
 
@@ -320,7 +321,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         private final String name;
         private final String group;
         private final String info;
-        private final boolean editable;
+        private final EditMode editable;
         @util.dev.Dependency("DO NOT RENAME - accessed using reflection")
         private final T defaultValue;
 		Set<Constraint<? super T>> constraints;
@@ -331,7 +332,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * no be null.
          */
         @TODO(note = "make static map for valueEnumerators")
-        ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, boolean editable) {
+        ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
             this.type = unPrimitivize(type);
             this.gui_name = gui_name;
             this.name = name;
@@ -386,7 +387,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         @Override
-        public final boolean isEditable() {
+        public final EditMode isEditable() {
             return editable;
         }
 
@@ -513,7 +514,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @param editable
          * @throws IllegalStateException if the property field is not final
          */
-        public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable) {
+        public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, EditMode editable) {
             super(property_type, name, gui_name, property.getValue(), category, info, editable);
             value = property;
 
@@ -528,7 +529,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property) {
-            this(property_type, name, name, property, "", "", true);
+            this(property_type, name, name, property, "", "", EditMode.USER);
         }
 
         /**
@@ -538,7 +539,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property, String info) {
-            this(property_type, name, name, property, "", info, true);
+            this(property_type, name, name, property, "", info, EditMode.USER);
         }
 
         @Override
@@ -614,7 +615,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws IllegalStateException if the property field is not final
          */
         public ReadOnlyPropertyConfig(Class<T> property_type, String name, String gui_name, ObservableValue<T> property, String category, String info) {
-            super(property_type, name, gui_name, property.getValue(), category, info, false);
+            super(property_type, name, gui_name, property.getValue(), category, info, EditMode.NONE);
             value = property;
 
             if (value instanceof EnumerableValue)
@@ -686,14 +687,14 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property) {
-            this(property_type, name, name, property, "", "", true);
+            this(property_type, name, name, property, "", "", EditMode.USER);
         }
 
         public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property, String info) {
-            this(property_type, name, name, property, "", info, true);
+            this(property_type, name, name, property, "", info, EditMode.USER);
         }
 
-        public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, boolean editable) {
+        public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, EditMode editable) {
             super(property_type, name, gui_name, property, category, info, editable);
             Util.setField(this, "defaultValue", property.real.getValue());
             defaultOverride_value = property.override.getValue();
@@ -779,13 +780,13 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         }
 
         @SuppressWarnings("ubnchecked")
-        public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable) {
+        public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, EditMode editable) {
             super((Class)ObservableList.class, name, gui_name, val.getValue(), category, info, editable);
             a = val;
         }
 
         public ListConfig(String name, VarList<T> val) {
-            this(name, name, val, "", "", true);
+            this(name, name, val, "", "", EditMode.USER);
         }
 
         @Override
@@ -960,7 +961,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	     * @param setter defines how the value will be set
 	     * @param getter defines how the value will be accessed
 	     */
-	    public AccessorConfig(Class<T> type, String name, String gui_name, Consumer<T> setter, Supplier<T> getter, String category, String info, boolean editable) {
+	    public AccessorConfig(Class<T> type, String name, String gui_name, Consumer<T> setter, Supplier<T> getter, String category, String info, EditMode editable) {
 	        super(type, name, gui_name, getter.get(), name, info, editable);
 	        this.getter = getter;
 	        this.setter = setter;
@@ -971,7 +972,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	     * @param getter defines how the value will be accessed
 	     */
 	    public AccessorConfig(Class<T> type, String name, Consumer<T> setter, Supplier<T> getter) {
-	        super(type, name, name, getter.get(), "", "", true);
+	        super(type, name, name, getter.get(), "", "", EditMode.USER);
 	        this.getter = getter;
 	        this.setter = setter;
 	    }
@@ -981,7 +982,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	     * @param getter defines how the value will be accessed
 	     */
 	    public AccessorConfig(Class<T> type, String name, String description, Consumer<T> setter, Supplier<T> getter) {
-	        super(type, name, name, getter.get(), "", description, true);
+	        super(type, name, name, getter.get(), "", description, EditMode.USER);
 	        this.getter = getter;
 	        this.setter = setter;
 	    }

@@ -35,6 +35,7 @@ import util.async.executor.EventReducer;
 import util.conf.Config;
 import util.conf.Config.PropertyConfig;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
 
 import static audio.tagging.Metadata.EMPTY;
@@ -142,7 +143,7 @@ public class FileInfo extends FXMLController implements SongReader {
     public boolean allowNoContent = false;
     // generate show {field} configs
     private final Map<String,Config> fieldConfigs = fields.stream()
-            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field",true))
+            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
             .collect(toMap(c -> c.getName(), c -> c));
 
     @Override

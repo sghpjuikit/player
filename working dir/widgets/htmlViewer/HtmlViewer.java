@@ -8,6 +8,7 @@ import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
 import util.access.V;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 
 import static javafx.util.Duration.seconds;
 import static util.async.Async.runPeriodic;
@@ -32,7 +33,7 @@ public class HtmlViewer extends ClassController {
 
 	public final HTMLEditor editor = new HTMLEditor();
 
-    @IsConfig(name = "Last visited address", info = "Last visited address", editable = false)
+    @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     final V<String> text = new V<>("", editor::setHtmlText);
 
     @Override

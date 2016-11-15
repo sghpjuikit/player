@@ -3,6 +3,7 @@ package util.conf;
 import java.util.function.Consumer;
 
 import util.conf.Config.ConfigBase;
+import util.conf.IsConfig.EditMode;
 
 import static util.dev.Util.noØ;
 
@@ -44,30 +45,30 @@ public final class ValueConfig<V> extends ConfigBase<V> {
     private V value;
     private Consumer<V> applier;
 
-    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, boolean editable, Consumer<V> applier) {
+    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, EditMode editable, Consumer<V> applier) {
         super(type, name, gui_name, value, category, info, editable);
         this.value = value;
         this.applier = applier;
     }
 
     public ValueConfig(Class<V> type, String name, V value) {
-        super(type, name, name, value, "", "", true);
+        super(type, name, name, value, "", "", EditMode.USER);
         this.value = value;
     }
 
     public ValueConfig(Class<V> type, String name, V value, Consumer<V> applier) {
-        super(type, name, name, value, "", "", true);
+        super(type, name, name, value, "", "", EditMode.USER);
         this.value = value;
         this.applier = applier;
     }
 
     public ValueConfig(Class<V> type, String name, V value, String info) {
-        super(type, name, name, value, "", info, true);
+        super(type, name, name, value, "", info, EditMode.USER);
         this.value = value;
     }
 
     public ValueConfig(Class<V> type, String name, V value, String info, Consumer<V> applier) {
-        super(type, name, name, value, "", info, true);
+        super(type, name, name, value, "", info, EditMode.USER);
         this.value = value;
         this.applier = applier;
     }

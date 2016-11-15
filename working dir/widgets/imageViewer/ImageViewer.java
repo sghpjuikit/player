@@ -37,6 +37,7 @@ import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
@@ -159,7 +160,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     public int folderTreeDepth = 2;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
     public int thumbsLimit = 50;
-    @IsConfig(name = "Displayed image", editable = false)
+    @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
     @Override

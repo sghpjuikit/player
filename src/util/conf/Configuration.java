@@ -105,7 +105,7 @@ public class Configuration {
 
         // generate boolean toggle actions
         _configs.stream()
-                .filter(Config::isEditable)
+                .filter(c -> c.isEditable().isByUser())
                 .filter(c -> c.getType() == Boolean.class)
                 .map(c -> (Config<Boolean>) c)
                 .forEach(c -> {
@@ -180,7 +180,7 @@ public class Configuration {
     public void rawSet() {
 	    properties.forEach((key, value) -> {
             Config<?> c = configs.get(mapper.apply(key));
-            if (c!=null && c.isEditable()) c.setValueS(value);
+            if (c!=null && c.isEditable().isByApp()) c.setValueS(value);
         });
     }
 

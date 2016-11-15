@@ -36,6 +36,7 @@ import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.file.Environment;
 import util.file.FileSort;
 import util.functional.Functors.PƑ0;
@@ -121,7 +122,7 @@ public class DirViewer extends ClassController {
     final V<FileField> sortBy = new V<>(NAME, this::resort);
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
-    @IsConfig(name = "Last visited", info = "Last visited item.", editable = false)
+    @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     File lastVisited = null;
     Item item = null;   // item, children of which are displayed
 

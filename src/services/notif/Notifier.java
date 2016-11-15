@@ -26,6 +26,7 @@ import util.access.VarEnum;
 import util.action.IsAction;
 import util.action.IsActionable;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
 
 import static layout.widget.WidgetManager.WidgetSource.NEW;
@@ -59,14 +60,14 @@ public final class Notifier extends ServiceBase {
     public boolean showStatusNotification = true;
     @IsConfig(name = "On playing song change")
     public boolean showSongNotification = true;
+    @IsConfig(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
+    public boolean notifAutohide = false;
     @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
     public Duration notificationDuration = millis(2500);
     @IsConfig(name = "Animate", info = "Use animations on the notification")
     public boolean notifAnimated = true;
     @IsConfig(name = "Animation duration")
     public Duration notifFadeTime = millis(500);
-    @IsConfig(name = "Hide on click anywhere", info = "Whether notification hides on mouse click anywhere within the application", editable = false)
-    public boolean notifAutohide = false;
     @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
     public PopOver.ScreenPos notifPos = Screen_Bottom_Right;
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")

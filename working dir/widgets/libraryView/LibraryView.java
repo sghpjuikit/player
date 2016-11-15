@@ -41,6 +41,7 @@ import util.access.Vo;
 import util.async.executor.ExecuteN;
 import util.conf.Config;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.file.Environment;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -369,7 +370,7 @@ public class LibraryView extends FXMLController {
     // restoring selection from previous session, we serialize string
     // representation and try to restre when application runs again
     // we restore only once
-    @IsConfig(name = "Last selected", editable = false)
+    @IsConfig(name = "Last selected", editable = EditMode.APP)
     private String sel_last = "null";
     private boolean sel_last_restored = false;
 

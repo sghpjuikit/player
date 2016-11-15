@@ -26,6 +26,7 @@ import util.async.Async;
 import util.collections.mapset.MapSet;
 import util.conf.Config;
 import util.conf.IsConfig;
+import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
 import util.file.Environment;
 import util.hotkey.Hotkeys;
@@ -351,8 +352,8 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     @Override
-    public boolean isEditable() {
-        return true;
+    public EditMode isEditable() {
+        return EditMode.USER;
     }
 
 	@Override
@@ -430,9 +431,9 @@ public final class Action extends Config<Action> implements Runnable {
 
 /* ---------- SHORTCUT HANDLING ON APP LEVEL ------------------------------------------------------------------------ */
 
-    @IsConfig(name = "Global shortcuts supported", editable = false, info = "Whether global shortcuts are supported on this system")
+    @IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
     private static boolean isGlobalShortcutsSupported = true;
-    @IsConfig(name = "Media shortcuts supported", editable = false, info = "Whether media shortcuts are supported on this system")
+    @IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
     private static boolean isMedialShortcutsSupported = true;
     private static boolean isRunning = false;
     private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
@@ -714,7 +715,7 @@ public final class Action extends Config<Action> implements Runnable {
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.")
     public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
 
-    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = false)
+    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = EditMode.NONE)
     public static String Shortcut_COLAPSE = "Shift+C";
 
 }

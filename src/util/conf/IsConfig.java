@@ -48,39 +48,56 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface IsConfig {
-    /** 
-     * @return human readable name of the field. Default value is "". If not 
-     * provided, the name will match the name of the annotated field.
-     */ String name() default "";
-    /** 
-     * @return human readable description of the field. Mostly used for 
-      * tooltips within graphical user interface. Default is "".
-     */ String info() default "";
-    /** 
-     * @return category of the field belongs to. Use for aggregation of
-     * the configuration fields. Default value is "". The default value will be
-     * set from category or name of the class containing the field. See
-     * {@link IsConfigurable}.
-     */ String group() default "";
-    /** 
-     * @return the intended editability of the configuration field by the user.
-     * Should be adhered to by the graphical user interface for example by not
-     * displaying this config. Default true.
-     */ EditMode editable() default EditMode.USER;
+	/**
+	 * @return human readable name of the field. Default value is "". If not
+	 * provided, the name will match the name of the annotated field.
+	 */ String name() default "";
+	/**
+	 * @return human readable description of the field. Mostly used for
+	  * tooltips within graphical user interface. Default is "".
+	 */ String info() default "";
+	/**
+	 * @return category of the field belongs to. Use for aggregation of
+	 * the configuration fields. Default value is "". The default value will be
+	 * set from category or name of the class containing the field. See
+	 * {@link IsConfigurable}.
+	 */ String group() default "";
+	/**
+	 * @return the intended editability of the configuration field by the user.
+	 * Should be adhered to by the graphical user interface for example by not
+	 * displaying this config. Default true.
+	 */ EditMode editable() default EditMode.USER;
 
-     enum EditMode {
-     	USER, APP, NONE;
+	 enum EditMode {
+		/**
+		 * Editable by app and user.
+		 */ USER,
+		/**
+		 * Editable by app, but not the user.
+		 */ APP,
+		/**
+		 * Not editable.
+		 */ NONE;
 
-	     public boolean isByNone() {
-		     return this==NONE;
-	     }
+		/**
+		 * @return true iff not editable
+		 */
+		public boolean isByNone() {
+			return this==NONE;
+		}
 
-	     public boolean isByApp() {
-		     return this!=NONE;
-	     }
+		/**
+		 * @return true iff editable by app
+		 */
+		public boolean isByApp() {
+			return this!=NONE;
+		}
 
-	     public boolean isByUser() {
-		     return this==USER;
-	     }
-     }
+		/**
+		 * @return true iff editable by user
+		 */
+		public boolean isByUser() {
+			return this==USER;
+		}
+	}
 }

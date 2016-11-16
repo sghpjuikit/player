@@ -323,7 +323,7 @@ public class WindowManager implements Configurable<Object> {
             // auto-hiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
-            Anim a = new Anim(millis(300),x -> miniWindow.setY(-H*x, false));
+            Anim a = new Anim(millis(200), x -> miniWindow.setY(-H*x, false));
 
             FxTimer hider = new FxTimer(0, 1, () -> {
                 if (miniWindow==null) return;

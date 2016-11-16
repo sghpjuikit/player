@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 
-import javax.persistence.EntityManager;
-
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
@@ -20,6 +18,7 @@ import audio.playlist.PlaylistItem;
 import services.database.Db;
 import util.file.AudioFileFormat.Use;
 
+import static services.database.Db.em;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.dev.Util.log;
@@ -235,75 +234,67 @@ public class MetadataReader{
      * </ul>
      *
      * @param items
-     * @param onEnd
-     * @param all_i true to return all discovered files, false to return only those that
-     * were added to library as a result of this task - ignore existing files
      * @return task
      */
-    public static AddToLibTask<List<Metadata>,?> readAaddMetadata(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
+    public static ConvertListTask<Item,Metadata> readAaddMetadata(Collection<? extends Item> items){
         noØ(items);
-	    return new AddToLibTask<>("Adding items to library", onEnd){
-            private final int all = items.size();
-            private int completed = 0;
-            private int skipped = 0;
+	    return new ConvertListTask<>("Adding items to library") {
+		    private final List<Item> all = new ArrayList<>(items);
 
             @Override
-            protected List<Metadata> call() throws Exception {
-                List<Metadata> out = new ArrayList<>();
-                Metadata m;
+            protected Result<Item,Metadata> call() throws Exception {
+                List<Item> processed = new ArrayList<>(all.size());
+                List<Metadata> converted = new ArrayList<>(all.size());
+                List<Item> skipped = new ArrayList<>(0);
 
-                EntityManager em = Db.em;
-                              em.getTransaction().begin();
+	            em.getTransaction().begin();
 
-                for (Item item : items){
+                for (Item item : items) {
                 	// debug: sleep(millis(500));
 
-                    completed++;
                     if (isCancelled()) {
                         log(MetadataReader.class).info("Metadata reading was canceled.");
                         break;
                     }
 
-                    boolean succeeded = false;
-                    Metadata l = null;
+	                Metadata m;
                     try {
-                        succeeded = false;
-                        l = null;
-                        l = em.find(Metadata.class, Metadata.metadataID(item.getURI()));
-                        if (l == null) {
+                        m = em.find(Metadata.class, Metadata.metadataID(item.getURI()));
+                        if (m == null) {
                             MetadataWriter.useNoRefresh(item, MetadataWriter::setLibraryAddedNowIfEmpty);
                             m = create(item);
 
-                            if (m.isEmpty()) skipped++;
-                            else {
+                            if (m.isEmpty()) {
+	                            skipped.add(item);
+                            } else {
                                 em.persist(m);
-                                out.add(m);
-                                succeeded = true;
+                                converted.add(m);
                             }
+                        } else {
+		                    skipped.add(item);
                         }
                     } catch (Exception e) {
                         log(MetadataReader.class).warn("Problem during reading tag of {}", item);
                     }
 
-                    if (!succeeded) skipped++;
-                    if (!succeeded && all_i && l!=null) {
-                        out.add(l);
-                    }
+                    processed.add(item);
 
                     // update progress
-                    updateMessage(all,completed,skipped);
-                    updateProgress(completed, all);
-	                updateSkipped(skipped);
+                    updateMessage(all.size(), processed.size());
+                    updateProgress(processed.size(), all.size());
+	                updateSkipped(skipped.size());
                 }
                 em.getTransaction().commit();
 
 	            // update library model
                 runFX(Db::updateInMemoryDBfromPersisted);
-                // update state
-                updateMessage(all,completed,skipped);
-                updateProgress(completed, all);
 
-                return out;
+                // update progress
+	            updateMessage(all.size(), processed.size());
+	            updateProgress(processed.size(), all.size());
+	            updateSkipped(skipped.size());
+
+                return new Result<>(all, processed, converted, skipped);
             }
         };
     }
@@ -319,21 +310,21 @@ public class MetadataReader{
             protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
                 List<Metadata> library_items = Db.getAllItems();
                 all = library_items.size();
-                Db.em.getTransaction().begin();
+                em.getTransaction().begin();
 
                 for (Metadata m : library_items){
                     completed++;
                     if (isCancelled()) break;
 
                     if (!m.getFile().exists()) {
-                        Db.em.remove(m);
+                        em.remove(m);
                         removed++;
                     }
                     updateMessage(all,completed,removed);
                     updateProgress(completed, all);
                 }
 
-                Db.em.getTransaction().commit();
+                em.getTransaction().commit();
                 // update library model
                 runFX(Db::updateInMemoryDBfromPersisted);
 

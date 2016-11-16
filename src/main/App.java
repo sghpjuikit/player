@@ -67,7 +67,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.infonode.InfoAddToLibTask;
+import gui.infonode.ConvertListTask;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
@@ -585,11 +585,11 @@ public class App extends Application implements Configurable {
                 () -> {
 	                SingleR<Widget,Void> tagger = new SingleR<>(() ->
 		                      stream(APP.widgetManager.factories).findFirst(f -> f.name().equals("Tagger")).get().create());
-	                InfoAddToLibTask info = new InfoAddToLibTask(null, new Label(), new Label(), new Spinner().hidingOnIdle(true));
-//	                maintain(info.progressIndicator.visibleProperty(), info.message.visibleProperty());
+	                ConvertListTask info = new ConvertListTask(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
 	                return layHorizontally(50, Pos.CENTER,
 		                layVertically(50, Pos.CENTER,
 			                layVertically(10, Pos.CENTER_LEFT,
+				                info.state,
 				                layHorizontally(10, Pos.CENTER,
 					                info.message,
 					                info.progressIndicator
@@ -600,18 +600,12 @@ public class App extends Application implements Configurable {
 				                ((Icon) e.getSource()).setDisable(true);
 				                Fut.fut((List<File>)actionPane.getData())
 					                .map(files -> map(files, SimpleItem::new))
-					                .map(items ->
-					                     MetadataReader.readAaddMetadata(items, (ok, added) -> {
-						                     if (ok)
-							                     ((SongReader) tagger.get().getController()).read(added);
-					                     }, false)
-					                )
+					                .map(MetadataReader::readAaddMetadata)
 									.use(info::bind, FX)
 									.use(Task::run)
 									.then(info::unbind, FX)
-					                .showProgress(actionPane.actionProgress)
-					                .then(() -> services.getService(Notifier.class)
-						                            .ifPresent(n -> n.showTextNotification("Complete", "Tagging")), FX);
+									.use(t -> ((SongReader) tagger.get().getController()).read(t.getValue().converted), FX)
+					                .showProgress(actionPane.actionProgress);
 			                }).withText("Do")
 		                ),
 		                tagger.get().load()

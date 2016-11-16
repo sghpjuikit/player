@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.spinner;
 
 import javafx.animation.Interpolator;
@@ -17,16 +12,20 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Arc;
 import javafx.util.Duration;
 
+import org.reactfx.Subscription;
+
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static javafx.util.Duration.ZERO;
+import static util.reactive.Util.maintain;
+import static util.reactive.Util.unsubscribe;
 
 /**
  * Very simple custom {@link ProgressIndicator}.
  * @author Martin Polakovic
  */
 public class Spinner extends ProgressIndicator {
-
+	private Subscription hidingOnIdle = null;
 
     public Spinner() {
         this(1);
@@ -36,6 +35,21 @@ public class Spinner extends ProgressIndicator {
         // needed
         setSkin(createDefaultSkin());
         setProgress(progress);
+    }
+
+    public Spinner hidingOnIdle(boolean v) {
+    	if (v) {
+		    if (hidingOnIdle == null)
+		    	hidingOnIdle = maintain(progressProperty(), p -> p.doubleValue()!=1, visibleProperty());
+	    } else {
+	    	if (hidingOnIdle!=null) hidingOnIdle.unsubscribe();
+		    hidingOnIdle = unsubscribe(hidingOnIdle);
+	    }
+    	return this;
+    }
+
+    public boolean isHidingOnIdle() {
+    	return hidingOnIdle!=null;
     }
 
     @Override

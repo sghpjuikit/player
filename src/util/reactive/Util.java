@@ -145,4 +145,19 @@ public interface Util {
 			}
 		};
 	}
+
+	/**
+	 * Unsubscribes the subscription. Does nothing if null. Returns (always) null.
+	 * <p/>
+	 * Use for concise and null safe disposal, using the following idiom:
+	 * <br/><br/>
+	 * {@code mySubscription = unsubscribe(mySubscription); }
+	 *
+	 * @param s
+	 * @return null
+	 */
+	static Subscription unsubscribe(Subscription s) {
+		if (s!=null) s.unsubscribe();
+		return null;
+	}
 }

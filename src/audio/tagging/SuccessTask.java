@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package audio.tagging;
 
 import java.util.function.BiConsumer;
@@ -11,10 +5,6 @@ import java.util.function.Consumer;
 import javafx.concurrent.Task;
 import util.functional.Operable;
 
-/**
- *
- * @author Martin Polakovic
- */
 public abstract class SuccessTask<T,O> extends Task<T> implements Operable<O> {
     
     private BiConsumer<Boolean,T> onEnd;
@@ -51,22 +41,24 @@ public abstract class SuccessTask<T,O> extends Task<T> implements Operable<O> {
         return (O)this;
     }
     
-    
-    @Override protected void succeeded() {
+    @Override
+    protected void succeeded() {
         super.succeeded();
         updateMessage(getTitle() + " succeeded");
         if (onEnd!=null) onEnd.accept(true, getValue());
         if (onClose!=null) onClose.accept((O)this);
     }
 
-    @Override protected void cancelled() {
+    @Override
+    protected void cancelled() {
         super.cancelled();
         updateMessage(getTitle() + " cancelled");
         if (onEnd!=null) onEnd.accept(false, getValue());
         if (onClose!=null) onClose.accept((O)this);
     }
 
-    @Override protected void failed() {
+    @Override
+    protected void failed() {
         super.failed();
         updateMessage(getTitle() + " failed");
         if (onEnd!=null) onEnd.accept(false, getValue());
@@ -95,19 +87,4 @@ public abstract class SuccessTask<T,O> extends Task<T> implements Operable<O> {
 	    updateMessage(sb.toString());
     }
 
-//    @Override
-//    protected void updateMessage(String message) {
-//        super.updateMessage(message);
-//        // print message for debug
-//    }
-
-    
-    /**
-     * Runs this task on specified executor.
-     * @param executor 
-     */
-    public void run(Consumer<Runnable> executor) {
-        executor.accept(this);
-    }
-    
 }

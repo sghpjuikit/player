@@ -19,14 +19,15 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -66,6 +67,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
+import gui.infonode.InfoAddToLibTask;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
@@ -507,8 +509,6 @@ public class App extends Application implements Configurable {
 				    if (dir!=null) w.exportFxwl(dir);
 		    })
 	    );
-	    SingleR<Widget,Void> cachedTagger = new SingleR<>(() ->
-                      (Widget) stream(APP.widgetManager.factories).findFirst(f -> f.name().equals("Tagger")).get().create());
         actionPane.register(Item.class,
             new FastColAction<>("Add to new playlist",
                 "Add items to new playlist widget.",
@@ -582,22 +582,41 @@ public class App extends Application implements Configurable {
                 MaterialDesignIcon.DATABASE_PLUS,
                 items -> {}
             ).preventClosing(new ComplexActionData<Collection<File>,List<File>>(
-                () -> layHorizontally(50, Pos.CENTER,
-	                new Icon(FontAwesomeIcon.CHECK,25).onClick(() -> {
-			                Fut.fut((List<File>)actionPane.getData())
-								.map(files -> map(files, SimpleItem::new))
-								.use(items ->
-									MetadataReader.readAaddMetadata(items, (ok,added) -> {
-										if (ok)
-											((SongReader) cachedTagger.get().getController()).read(added);
-									}, false).run()
-								)
-								.showProgress(actionPane.actionProgress)
-								.then(() -> services.getService(Notifier.class)
-									            .ifPresent(n -> n.showTextNotification("Complete", "Tagging")), FX);
-	                }).withText("Do"),
-	                cachedTagger.get().load()
-                ),
+                () -> {
+	                SingleR<Widget,Void> tagger = new SingleR<>(() ->
+		                      stream(APP.widgetManager.factories).findFirst(f -> f.name().equals("Tagger")).get().create());
+	                InfoAddToLibTask info = new InfoAddToLibTask(null, new Label(), new Label(), new Spinner().hidingOnIdle(true));
+//	                maintain(info.progressIndicator.visibleProperty(), info.message.visibleProperty());
+	                return layHorizontally(50, Pos.CENTER,
+		                layVertically(50, Pos.CENTER,
+			                layVertically(10, Pos.CENTER_LEFT,
+				                layHorizontally(10, Pos.CENTER,
+					                info.message,
+					                info.progressIndicator
+				                ),
+				                info.skipped
+			                ),
+			                new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
+				                ((Icon) e.getSource()).setDisable(true);
+				                Fut.fut((List<File>)actionPane.getData())
+					                .map(files -> map(files, SimpleItem::new))
+					                .map(items ->
+					                     MetadataReader.readAaddMetadata(items, (ok, added) -> {
+						                     if (ok)
+							                     ((SongReader) tagger.get().getController()).read(added);
+					                     }, false)
+					                )
+									.use(info::bind, FX)
+									.use(Task::run)
+									.then(info::unbind, FX)
+					                .showProgress(actionPane.actionProgress)
+					                .then(() -> services.getService(Notifier.class)
+						                            .ifPresent(n -> n.showTextNotification("Complete", "Tagging")), FX);
+			                }).withText("Do")
+		                ),
+		                tagger.get().load()
+	                );
+                },
 				files -> Fut.fut(files).map(fs ->  Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
             )),
             new FastColAction<>("Add to existing playlist",

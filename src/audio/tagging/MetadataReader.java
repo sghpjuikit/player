@@ -20,8 +20,8 @@ import audio.playlist.PlaylistItem;
 import services.database.Db;
 import util.file.AudioFileFormat.Use;
 
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+import static javafx.util.Duration.millis;
+import static util.async.Async.*;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
@@ -129,14 +129,14 @@ public class MetadataReader{
 
     /**
      * Reads {@link Metadata} for specified item.
-     * When error occurs during reading {@link Metadata#EMPTY()} will be
+     * When error occurs during reading {@link Metadata#EMPTY} will be
      * returned.
      * <p/>
      * Incurs costly I/O.
      * Avoid using this method in loops or in chains on main application thread.
      *
      * @param item
-     * @return metadata for specified item or {@link Metadata#EMPTY()} if error.
+     * @return metadata for specified item or {@link Metadata#EMPTY} if error.
      * Never null.
      */
     public static Metadata create(Item item){
@@ -236,13 +236,13 @@ public class MetadataReader{
      *
      * @param items
      * @param onEnd
-     * @param all true to return all discovered files, false to return only those that
+     * @param all_i true to return all discovered files, false to return only those that
      * were added to library as a result of this task - ignore existing files
      * @return task
      */
-    public static Task<List<Metadata>> readAaddMetadata(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
+    public static AddToLibTask<List<Metadata>,?> readAaddMetadata(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
         noØ(items);
-        final Task<List<Metadata>> task = new SuccessTask<>("Adding items to library", onEnd){
+	    return new AddToLibTask<>("Adding items to library", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
@@ -256,6 +256,7 @@ public class MetadataReader{
                               em.getTransaction().begin();
 
                 for (Item item : items){
+                	sleep(millis(500));
                     completed++;
                     if (isCancelled()) {
                         log(MetadataReader.class).info("Metadata reading was canceled.");
@@ -288,14 +289,15 @@ public class MetadataReader{
                         out.add(l);
                     }
 
-                    // update
+                    // update progress
                     updateMessage(all,completed,skipped);
                     updateProgress(completed, all);
+	                updateSkipped(skipped);
                 }
                 em.getTransaction().commit();
-                // update library model
-                runFX(Db::updateInMemoryDBfromPersisted);
 
+	            // update library model
+                runFX(Db::updateInMemoryDBfromPersisted);
                 // update state
                 updateMessage(all,completed,skipped);
                 updateProgress(completed, all);
@@ -303,8 +305,6 @@ public class MetadataReader{
                 return out;
             }
         };
-
-        return task;
     }
 
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){

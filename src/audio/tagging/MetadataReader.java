@@ -20,8 +20,8 @@ import audio.playlist.PlaylistItem;
 import services.database.Db;
 import util.file.AudioFileFormat.Use;
 
-import static javafx.util.Duration.millis;
-import static util.async.Async.*;
+import static util.async.Async.runFX;
+import static util.async.Async.runNew;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
@@ -256,7 +256,8 @@ public class MetadataReader{
                               em.getTransaction().begin();
 
                 for (Item item : items){
-                	sleep(millis(500));
+                	// debug: sleep(millis(500));
+
                     completed++;
                     if (isCancelled()) {
                         log(MetadataReader.class).info("Metadata reading was canceled.");

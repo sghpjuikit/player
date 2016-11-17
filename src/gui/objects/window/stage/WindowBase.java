@@ -213,7 +213,7 @@ public class WindowBase {
 
     /** Sets the value of the property minimized. */
     public void setMinimized(boolean val) {
-            APP.taskbarIcon.forbidIconify = true;
+        APP.taskbarIcon.forbidIconify = true;
         if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
             ((Stage)s.getOwner()).setIconified(val);
         } else {
@@ -226,8 +226,11 @@ public class WindowBase {
         }
 
         // focus when deminimizing
-        if (!val) focus();
-            runLater(() -> APP.taskbarIcon.forbidIconify = false);
+	    // TODO: SRSLY FIX THIS METHOD!!
+//        if (!val) focus();  // ! working anymore
+//        if (!val) runLater(this::focus);  // ! working anymore
+        if (!val) Async.run(50,this::focus);  // gotta skip few render pulses first...
+        runLater(() -> APP.taskbarIcon.forbidIconify = false);
     }
 
     /**

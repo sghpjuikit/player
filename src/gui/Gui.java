@@ -278,17 +278,12 @@ public class Gui {
     @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", desc = "Switch minimized mode.", keys = "F10")
     public static void toggleMinimizeFocus() {
-        // After this operation, all windows are either minimized or not, but vefore it, the state
+        // After this operation, all windows are either minimized or not, but before it, the state
         // may vary. Thus we need to decide whether we minimize all windows or the opposite.
         // if any window is not minimized, app
-        boolean m = APP.windowManager.windows.stream().map(w -> w.isMinimized()).reduce(false, Boolean::logicalOr);
-        boolean f = APP.windowManager.windows.stream().map(w -> w.focused.get()).reduce(false, Boolean::logicalOr);
-        APP.windowManager.windows.forEach(w -> {
-            if (!m && !f)
-                w.focus();
-            else
-                w.setMinimized(!m);
-        });
+        boolean m = APP.windowManager.windows.stream().anyMatch(w -> w.isMinimized());
+        boolean f = APP.windowManager.windows.stream().anyMatch(w -> w.focused.get());
+	    APP.windowManager.windows.forEach((!m && !f) ? Window::focus : w -> w.setMinimized(!m));
     }
 
     @IsAction(name = "Show application", desc = "Shows application.", global = true)
@@ -302,7 +297,7 @@ public class Gui {
     }
 
     public static void toggleMinimize() {
-        boolean m = APP.windowManager.windows.stream().map(Window::isMinimized).reduce(false, Boolean::logicalOr);
+        boolean m = APP.windowManager.windows.stream().anyMatch(Window::isMinimized);
         APP.windowManager.windows.forEach(w -> w.setMinimized(!m));
     }
 

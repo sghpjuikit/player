@@ -163,6 +163,7 @@ public interface Environment {
      *
      * @param f
      */
+    // TODO: if no associated editor exists exception is thrown! fix and use Try
     static void edit(File f) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(EDIT)) {
             log(Environment.class).warn("Unsupported operation : " + EDIT + " uri");

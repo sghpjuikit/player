@@ -133,7 +133,7 @@ public interface Try<R,E> {
 		};
 	}
 
-	static <I,O,E extends Throwable> O tryWrapR(Ƒ0E<O,E> f) {
+	static <I,O,E extends Throwable> O orThrow(Ƒ0E<O,E> f) {
 		try {
 			return f.apply();
 		} catch(Throwable e) {
@@ -141,7 +141,7 @@ public interface Try<R,E> {
 		}
 	}
 
-	static <I,O,E extends Throwable> Try<O,Throwable> tryWrapE(Ƒ0E<O,E> f) {
+	static <I,O,E extends Throwable> Try<O,Throwable> wrapE(Ƒ0E<O,E> f) {
 		try {
 			return ok(f.apply());
 		} catch(Throwable e) {

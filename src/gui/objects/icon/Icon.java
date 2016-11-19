@@ -309,8 +309,9 @@ public class Icon<I extends Icon<?>> extends StackPane {
             }
         });
 
-        if (action==null) removeEventHandler(Event.ANY, CONSUMER);
-        else addEventHandler(Event.ANY, CONSUMER);
+        // TODO: remove
+        removeEventHandler(Event.ANY, CONSUMER);
+        if (action!=null) addEventHandler(Event.ANY, CONSUMER);
 
         return (I)this;
     }

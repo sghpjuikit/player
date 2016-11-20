@@ -438,9 +438,6 @@ public interface Util {
 	static Image loadImage(File file, double width, double height) {
 		if (file == null) return null;
 
-		if (Platform.isFxApplicationThread())
-			util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
-
 		if (file.getPath().endsWith("psd")) {
 		   return loadImageFull(file, width, height, false);
 		} else {
@@ -451,9 +448,6 @@ public interface Util {
 	static Image loadImageThumb(File file, double width, double height) {
 		if (file == null) return null;
 
-		if (Platform.isFxApplicationThread())
-			util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
-
 		// negative values have same effect as 0, 0 loads image at its size
 		int W = max(0,(int)width);
 		int H = max(0,(int)height);
@@ -463,6 +457,9 @@ public interface Util {
 		if (!file.getPath().endsWith("psd")) {
 			return imgImplLoadFX(file, W, H, loadFullSize);
 		} else {
+			if (Platform.isFxApplicationThread())
+				util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
+
 			ImageReader reader = null;
 			try (ImageInputStream input = ImageIO.createImageInputStream(file)) {
 				Iterator<ImageReader> readers = ImageIO.getImageReaders(input);

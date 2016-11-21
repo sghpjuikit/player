@@ -436,6 +436,7 @@ public class App extends Application implements Configurable {
 
         // add optional object class -> string converters
         className.addNoLookup(Void.class, "Nothing");
+        className.add(String.class, "Text");
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
@@ -458,6 +459,7 @@ public class App extends Application implements Configurable {
 
         // add optional object instance -> info string converters
 	    instanceInfo.add(Void.class, (v,map) -> {});
+        instanceInfo.add(String.class, (s,map) -> map.put("Length", Integer.toString(s==null ? 0 : s.length())));
         instanceInfo.add(File.class, (f,map) -> {
             String suffix = Util.getSuffix(f);
         	FileSize fs = new FileSize(f);

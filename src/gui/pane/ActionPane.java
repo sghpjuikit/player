@@ -12,7 +12,10 @@ import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.ScrollEvent;
@@ -53,8 +56,7 @@ import util.type.ClassName;
 import util.type.InstanceInfo;
 import util.type.InstanceName;
 
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.pane.ActionPane.GroupApply.*;
@@ -62,8 +64,7 @@ import static java.util.stream.Collectors.joining;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.async.Async.FX;
@@ -82,8 +83,8 @@ import static util.type.Util.getEnumConstants;
  *
  * @author Martin Polakovic
  */
-@IsConfigurable("Action Chooser")
-public class ActionPane extends OverlayPane implements Configurable<Object> {
+@IsConfigurable("Gui.Action Chooser")
+public class ActionPane extends OverlayPane<Object> implements Configurable<Object> {
 
 	// TODO: refactor out
 	static final ClassMap<Class<?>> fieldMap = new ClassMap<>();
@@ -127,7 +128,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 		StackPane iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
 		// Minimal and maximal height of the 3 layout components. The heights should add
 		// up to full length (including the spacing of course). Sounds familiar? No, could not use
-		// VBox or stackpane as we need the icons to be always in the center.
+		// VBox or StackPane as we need the icons to be always in the center.
 		// Basically we want the individual components to resize individually, but still respect
 		// each other's presence (so to not cover each other).
 		// We do not want any component to be very small (hence the min height) but the text should not
@@ -147,25 +148,34 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 		// important and should be wider & closer to center
 		iconPane.minWidthProperty().bind(content.widthProperty().multiply(0.6));
 
+		Icon resizeB = new Icon(RESIZE_BOTTOM_RIGHT, 20);
+			 resizeB.setCursor(Cursor.SE_RESIZE);
 		Pane controlsMirror = new Pane();
 			 controlsMirror.prefHeightProperty().bind(controls.heightProperty()); // see below
 		setContent(
-			layHeaderTopBottom(20, CENTER_RIGHT,
-				controls, // tiny header
-				content, // the above and below also serve as top/bottom padding
-				controlsMirror // fills bottom so the content resizes vertically to center
+			layStack(
+				layHeaderTopBottom(20, CENTER_RIGHT,
+					controls, // tiny header
+					content, // the above and below also serve as top/bottom padding
+					controlsMirror // fills bottom so the content resizes vertically to center
+				), Pos.CENTER
+//				resizeB, Pos.BOTTOM_RIGHT
 			)
 		);
 		getContent().setMinSize(300,200);
-		// guarantee some padding of the content from edge
-		getContent().maxWidthProperty().bind(widthProperty().multiply(0.65));
-		getContent().maxHeightProperty().bind(heightProperty().multiply(0.65));
+
+		// put some padding of the content from edge
+		// note: The content is user-resizable now, sp we do not use bind, but set maxSize on show
+		// getContent().maxWidthProperty().bind(widthProperty().multiply(CONTENT_SIZE_SCALE));
+		// getContent().maxHeightProperty().bind(heightProperty().multiply(CONTENT_SIZE_SCALE);
 
 		descPane.setMouseTransparent(true); // just in case
 		infoPane.setMouseTransparent(true); // same here
 		descTitle.setTextAlignment(TextAlignment.CENTER);
 		descFull.setTextAlignment(TextAlignment.JUSTIFY);
 		descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
+
+		makeResizableByUser();
 	}
 
 /* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
@@ -202,22 +212,28 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 	private Object data;
 	private List<ActionData> actionsIcons;
 	private final List<ActionData> actionsData = new ArrayList<>();
+	private static final double CONTENT_SIZE_SCALE = 0.65;
 
-	@Override
-	public void show() {
+	protected void show() {
 		throwIfNotFxThread();
 		setData(data);
 
 		// Bug fix. We need to initialize the layout before it is visible or it may visually
 		// jump around as it does on its own.
 		// Cause: unknown, probably the many bindings we use...
+		// TODO: fix this
 		getContent().layout();
 		getContent().requestLayout();
 		getContent().autosize();
 
 		super.show();
+
+		// Reset content size to default (overrides previous user-defined size)
+		Bounds b = getParent().getLayoutBounds();
+		getContent().setPrefSize(b.getWidth()*CONTENT_SIZE_SCALE, b.getHeight()*CONTENT_SIZE_SCALE);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final void show(Object value) {
 		throwIfNotFxThread();
@@ -255,6 +271,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void doneHide(ActionData action) {
 		if (action.isComplex) {
 			ComplexActionData complexAction = action.complexData;
@@ -299,6 +316,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 			return d;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void setData(Object d) {
 		throwIfNotFxThread();
 		// clear content
@@ -326,6 +344,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 		descFull.setText(a==null ? "" : a.description);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void setDataInfo(Object data, boolean computed) {
 		dataInfo.setText(getDataInfo(data, computed));
 		tablePane.getChildren().clear();
@@ -494,9 +513,9 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 
 	public static class ComplexActionData<R,T> {
 		public final Supplier<Node> gui;
-		public final Functors.Ƒ1<? super R, ? extends Object> input;
+		public final Functors.Ƒ1<? super R, ?> input;
 
-		public ComplexActionData(Supplier<Node> gui, Ƒ1<? super R, ? extends Object> input) {
+		public ComplexActionData(Supplier<Node> gui, Ƒ1<? super R, ?> input) {
 			this.gui = gui;
 			this.input = input;
 		}
@@ -552,6 +571,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		public T prepInput(Object data) {
 			boolean isCollection = data instanceof Collection;
 			if (groupApply==FOR_ALL) {
@@ -562,7 +582,7 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 			} else
 			if (groupApply==NONE) {
 				if (isCollection) throw new RuntimeException("Action can not use collection");
-				return (T)data;
+				return (T) data;
 			} else {
 				throw new SwitchException(groupApply);
 			}
@@ -648,4 +668,5 @@ public class ActionPane extends OverlayPane implements Configurable<Object> {
 	public enum GroupApply {
 		FOR_EACH, FOR_ALL, NONE
 	}
+
 }

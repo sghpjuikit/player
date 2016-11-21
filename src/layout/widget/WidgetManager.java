@@ -5,7 +5,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -34,6 +36,7 @@ import util.collections.mapset.MapSet;
 import util.dev.Idempotent;
 import util.file.FileMonitor;
 import util.file.Util;
+import util.functional.Try;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 import static java.util.stream.Collectors.joining;
@@ -63,9 +66,11 @@ public final class WidgetManager {
     private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetname);
     private boolean initialized = false;
     private final WindowManager windowManager; // use App instead, but that requires different App initialization
+	private final Consumer<? super String> userErrorLogger;
 
-    public WidgetManager(WindowManager windowManager) {
+    public WidgetManager(WindowManager windowManager, Consumer<? super String> userErrorLogger) {
         this.windowManager = windowManager;
+        this.userErrorLogger = userErrorLogger;
     }
 
     public void initialize() {
@@ -165,21 +170,23 @@ public final class WidgetManager {
         final String widgetname;
         final File widgetdir;
         final File classfile;
-        final File srcfile;
-        final File skinfile;
+        final File srcFile;
+        final File skinFile;
         FileMonitor classMonitor;
         FileMonitor srcMonitor;
         FileMonitor skinsMonitor;
         boolean monitorOn = false;
-        private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250, () -> runNew(() -> compile(getSrcFiles(),getLibFiles())));
-        private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500, () -> runFX(this::registerExternalFactory));
+        private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
+	        () -> runFX(this::registerExternalFactory));
+        private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
+	        () -> runNew(() -> compile(getSrcFiles(),getLibFiles()).ifError(userErrorLogger)));
 
         WidgetDir(String name, File dir) {
             this.widgetname = name;
             this.widgetdir = dir;
             classfile = new File(widgetdir,widgetname + ".class");
-            srcfile = new File(widgetdir,widgetname + ".java");
-            skinfile = new File(widgetdir,"skin.css");
+            srcFile = new File(widgetdir,widgetname + ".java");
+            skinFile = new File(widgetdir,"skin.css");
         }
 
         @Idempotent
@@ -212,7 +219,7 @@ public final class WidgetManager {
                 }
             });
             // monitor skin file & reload factory on change
-            srcMonitor = FileMonitor.monitorFile(skinfile, type -> {
+            srcMonitor = FileMonitor.monitorFile(skinFile, type -> {
                 if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
                     LOGGER.info("Widget {} SKIN file changed {}", widgetname,type);
                     // reload skin on all open widgets
@@ -222,8 +229,8 @@ public final class WidgetManager {
                             .forEach(w -> {
                                 try {
                                     if (w.root instanceof Pane) {
-                                        ((Pane)w.root).getStylesheets().remove(skinfile.toURI().toURL().toExternalForm());
-                                        ((Pane)w.root).getStylesheets().add(skinfile.toURI().toURL().toExternalForm());
+                                        ((Pane)w.root).getStylesheets().remove(skinFile.toURI().toURL().toExternalForm());
+                                        ((Pane)w.root).getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
                                     }
                                 } catch (MalformedURLException ex) {
                                     java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -276,10 +283,10 @@ public final class WidgetManager {
                 if (initialized)
                 	runNew(() -> compile(getSrcFiles(),getLibFiles()));
                 else {
-                    boolean isSuccess = compile(getSrcFiles(),getLibFiles());
                     // File monitoring is not and must not be running yet (as it creates factory
                     // asynchronously). We do it manually.
-                    if (isSuccess) registerExternalFactory();
+	                // TODO: use assert
+                    compile(getSrcFiles(),getLibFiles()).ifOk(v -> registerExternalFactory());
                 }
             }
 
@@ -301,13 +308,15 @@ public final class WidgetManager {
 
     }
 
+    // TODO: collect compiler error output & clean-up
     /**
      * Compiles the .java file into .class file. All project dependencies (including the project
      * itself - its jar) are available because they are on the classpath.
      *
      * @param srcFiles .java files to compile
      */
-    private static boolean compile(Stream<File> srcFiles, Stream<File> libFiles) {
+    private Try<Void,String> compile(Stream<File> srcFiles, Stream<File> libFiles) {
+    	List<File> ffs = srcFiles.collect(toList());
     	String classpath = System.getProperty("java.class.path");
         Stream<String> options = stream(                            // Command-line options
 	        // Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
@@ -316,19 +325,86 @@ public final class WidgetManager {
 			// "-verbose"
 			"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
         );
-        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
+//        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
+        Stream<String> sourceFiles = ffs.stream().map(File::getPath);   // One or more source files to be compiled
         Stream<String> classes = stream();   // One or more classes to be processed for annotations
         Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
         String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         LOGGER.info("Compiling with arguments: {} ", toS(", ", arguments));
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), App.APP.encoding);
+//        compiler.getStandardFileManager(diagnostics, null, null);
         int success = compiler.run(null, null, null, arguments);
+
+//	    StringBuilder sb = new StringBuilder();
+//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), App.APP.encoding);
+//        compiler.getStandardFileManager(diagnostics, null, null);
+//        int success = compiler.run(null, new OutputStream() {
+//	        @Override
+//	        public void write(int b) throws IOException {
+//		        throw new AssertionError("Operation not allowed for performance reasons.");
+//	        }
+//
+//	        @Override
+//	        public void write(byte[] b, int off, int len) throws IOException {
+//	        	sb.append(new String(b));
+//	        }
+//
+//            }, null, arguments);
+
+
+	    //	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+	    //	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+	    //	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
+	    //	    JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits);
+	    //	    boolean isSuccess = task.call();
+
+//	    StringBuilder sb = new StringBuilder();
+//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
+//	    JavaCompiler.CompilationTask task = compiler.getTask(new Writer() {
+//		    @Override
+//		    public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
+//			    sb.append(cbuf);
+//		    }
+//
+//		    @Override
+//		    public void flush() throws IOException {
+//
+//		    }
+//
+//		    @Override
+//		    public void close() throws IOException {
+//
+//		    }
+//	    }, fileManager, diagnostics, null, null, compilationUnits);
+//	    boolean isSuccess = task.call();
+
 	    boolean isSuccess = success==0;
         if (isSuccess) LOGGER.info("Compilation succeeded");
         else LOGGER.error("Compilation failed");
-
-	    return isSuccess;
+	    return isSuccess
+			? Try.ok()
+			: Try.error("Compilation failed with errors");
+//			: Try.error(sb.toString());
+//			: Try.error("Compilation failed with errors:\n\n" + stream(diagnostics.getDiagnostics())
+//					.map(d -> "" +
+//						"Kind: " + d.getKind() + "\n" +
+//						"Code: " + d.getCode() + "\n" +
+//						"Message :" + d.getMessage(null) + "\n" +
+//						"Source :" + d.getSource().getName() + "\n" +
+//						"Column number :" + d.getColumnNumber() + "\n" +
+//						"Position start :" + d.getStartPosition() + "\n" +
+//						"Position :" + d.getPosition() + "\n" +
+//						"Position end :" + d.getEndPosition() + "\n" +
+//						"Line: " + d.getLineNumber() + "\n"
+//					)
+//					.joining("\n\n"));
     }
 
     private static Class<?> loadClass(String widgetName, File classFile, Stream<File> libFiles) {
@@ -527,21 +603,6 @@ public final class WidgetManager {
     public enum WidgetSource {
 
         /**
-         * The source is be all currently active widgets contained within all
-         * of the layouts in all of the windows. Does not contain standalone
-         * widgets. Standalone widget is one that is not part of the layout. for
-         * example located in the popup. Most limited source.
-         *//**
-         * The source is be all currently active widgets contained within all
-         * of the layouts in all of the windows. Does not contain standalone
-         * widgets. Standalone widget is one that is not part of the layout. for
-         * example located in the popup. Most limited source.
-         *//**
-         * The source is be all currently active widgets contained within all
-         * of the layouts in all of the windows. Does not contain standalone
-         * widgets. Standalone widget is one that is not part of the layout. for
-         * example located in the popup. Most limited source.
-         *//**
          * The source is be all currently active widgets contained within all
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for

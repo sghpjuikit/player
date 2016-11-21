@@ -39,7 +39,7 @@ import static util.graphics.Util.*;
  * @author Martin Polakovic
  */
 @IsConfigurable("Shortcut Viewer")
-public class InfoPane extends OverlayPane {
+public class InfoPane extends OverlayPane<Void> {
 
 	private static final String STYLECLASS = "info-pane";
 	private static final String STYLECLASS_GROUP = "info-pane-group-label";
@@ -84,17 +84,9 @@ public class InfoPane extends OverlayPane {
 	}
 
 	@Override
-	public void show() {
+	public void show(Void noValue) {
 		super.show();
-		build();
-	}
 
-	@Override
-	public void hide() {
-		super.hide();
-	}
-
-	private void build() {
 		// clear content
 		g.getChildren().clear();
 		g.getRowConstraints().clear();

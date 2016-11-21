@@ -1,5 +1,7 @@
 package gui.pane;
 
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.effect.BoxBlur;
@@ -11,17 +13,21 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import gui.objects.icon.Icon;
 import gui.objects.window.stage.Window;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.reactive.SetƑ;
 
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.graphics.Util.*;
+import static util.reactive.Util.maintain;
 
 /**
  * Pane laying 'above' window creating 'overlay' bgr above it.
@@ -32,7 +38,7 @@ import static util.graphics.Util.*;
  *
  * @author Martin Polakovic
  */
-public class OverlayPane extends StackPane {
+public abstract class OverlayPane<T> extends StackPane {
 
 	private static final String IS_SHOWN = "visible";
 	private static final String ROOT_STYLECLASS = "overlay-pane";
@@ -51,6 +57,8 @@ public class OverlayPane extends StackPane {
 	/**
 	 * Handlers called just after this pane was hidden.
 	 */ public final SetƑ onHidden = new SetƑ();
+	private Pane content;
+	private Icon resizeB;
 
 	public OverlayPane() {
 		setVisible(false);
@@ -72,13 +80,23 @@ public class OverlayPane extends StackPane {
 			e.consume();
 		});
 
+		resizeB = new Icon(RESIZE_BOTTOM_RIGHT, 20);
+		resizeB.setCursor(Cursor.SE_RESIZE);
+		resizeB.setVisible(false);
 	}
+
+	/**
+	 * Shows this pane with given value.
+	 *
+	 * @param value to be used
+	 */
+	abstract public void show(T value);
 
 	/**
 	 * Shows this pane. The content should be set before calling this method.
 	 * @see #setContent(javafx.scene.layout.Pane)
 	 */
-	public void show() {
+	protected void show() {
 		if (!isShown()) {
 			getProperties().put(IS_SHOWN,IS_SHOWN);
 			animStart();
@@ -98,19 +116,48 @@ public class OverlayPane extends StackPane {
 		}
 	}
 
+	/**
+	 * Sets graphics as content. Only one object can be set as content and any previous content will be cleared.
+	 * Consequent invocations with the same parameter have no effect. Null clears the content.
+	 *
+	 * @param contentRoot new content used instead of the old one or null for none
+	 */
 	public void setContent(Pane contentRoot) {
-		getChildren().add(contentRoot);
-		contentRoot.getStyleClass().add(CONTENT_STYLECLASS);
+		if (contentRoot==null) {
+			if (content!=null) {
+				getChildren().clear();
+				content.getStyleClass().add(CONTENT_STYLECLASS);
+				content = null;
+			}
+		} else {
+			content = contentRoot;
+			if (!getChildren().contains(content)) {
+				getChildren().setAll(content, layStack(resizeB, Pos.BOTTOM_RIGHT));
+				content.getStyleClass().add(CONTENT_STYLECLASS);
+				maintain(content.prefWidthProperty(), ((StackPane) resizeB.getParent()).maxWidthProperty());
+				maintain(content.prefHeightProperty(), ((StackPane) resizeB.getParent()).maxHeightProperty());
+				maintain(content.paddingProperty(), ((StackPane) resizeB.getParent()).paddingProperty());
+				resizeB.getParent().setMouseTransparent(true);
+			}
+		}
 	}
 
+	/**
+	 * @return content if any or null if none
+	 */
 	public Pane getContent() {
-		return getChildren().isEmpty() ? null : (Pane)getChildren().get(0);
+		return content;
 	}
 
-/* ---------- ANIMATION ----------------------------------------------------------------------------------------- */
+	public void makeResizableByUser() {
+		resizeB.setVisible(true);
+		new PolarResize().install(this, content);
+	}
+
+	/* ---------- ANIMATION ----------------------------------------------------------------------------------------- */
 
 	private Display displayForHide; // prevents inconsistency in start() and stop(), see use
-	private Anim animation = new Anim(30, this::animDo).dur(millis(250)).intpl(x->x*x); // lowering fps can help on fullHD+ resolutions
+	private Anim animation = new Anim(30, this::animDo).dur(millis(200)).intpl(x -> x*x); // lowering fps can help on fullHD+ resolutions
 	private Stage stg = null;
 	private BoxBlur blurBack = new BoxBlur(0,0,3);  // we need best possible quality
 	private BoxBlur blurFront = new BoxBlur(0,0,1); // we do not need quality, hence iterations==1
@@ -252,4 +299,29 @@ public class OverlayPane extends StackPane {
 		}
 	}
 
+	private class PolarResize {
+		boolean isActive = false;
+
+		public void install(Node eventEmitter, Pane child) {
+			child.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+			child.addEventHandler(MOUSE_PRESSED, e -> {
+				double cornerSize = 30;
+				Pane n = (Pane) e.getSource();
+				if (e.getX() >= n.getWidth()-cornerSize && e.getY() >= n.getHeight()-cornerSize)
+					isActive = true;
+			});
+			eventEmitter.addEventHandler(MOUSE_RELEASED, e -> isActive = false);
+			eventEmitter.addEventHandler(MOUSE_DRAGGED, e -> {
+				if (isActive) {
+					Pane n = (Pane) e.getSource();
+					child.setPrefSize(
+						2 * (e.getX() - n.getLayoutBounds().getWidth() / 2),
+						2 * (e.getY() - n.getLayoutBounds().getHeight() / 2)
+					);
+					//					child.setMaxSize(getContent().getPrefWidth(), getContent().getPrefHeight());
+					e.consume();
+				}
+			});
+		}
+	}
 }

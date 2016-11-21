@@ -544,7 +544,7 @@ interface Utils {
 	}
 
 	/** How to play help pane. */
-	class HowToPane extends OverlayPane {
+	class HowToPane extends OverlayPane<Game> {
 		private final GridPane g = new GridPane();
 		private final Icon helpI = createInfoIcon("How to play");
 
@@ -567,18 +567,10 @@ interface Utils {
 			setContent(l);
 		}
 
-		@Deprecated
 		@Override
-		public void show() {
-			super.show();
-		}
-
 		public void show(Game game) {
 			super.show();
-			build(game);
-		}
 
-		private void build(Game game) {
 			// clear content
 			g.getChildren().clear();
 			g.getRowConstraints().clear();
@@ -610,7 +602,7 @@ interface Utils {
 		}
 	}
 	/** Mission details help pane. */
-	class MissionPane extends OverlayPane {
+	class MissionPane extends OverlayPane<Mission> {
 		private final Text text = new Text();
 		private final Icon helpI = createInfoIcon("Mission details");
 
@@ -633,12 +625,7 @@ interface Utils {
 			setContent(l);
 		}
 
-		@Deprecated
 		@Override
-		public void show() {
-			super.show();
-		}
-
 		public void show(Mission mission) {
 			super.show();
 
@@ -650,7 +637,7 @@ interface Utils {
 		}
 	}
 	/** How to play help pane. */
-	class EndGamePane extends OverlayPane {
+	class EndGamePane extends OverlayPane<Map<Player,List<Achievement>>> {
 		private final GridPane g = new GridPane();
 		private final Icon helpI = createInfoIcon("How to play");
 
@@ -673,18 +660,10 @@ interface Utils {
 			setContent(l);
 		}
 
-		@Deprecated
 		@Override
-		public void show() {
-			super.show();
-		}
-
 		public void show(Map<Player,List<Achievement>> game) {
 			super.show();
-			build(game);
-		}
 
-		private void build(Map<Player,List<Achievement>> game) {
 			// clear content
 			g.getChildren().clear();
 			g.getRowConstraints().clear();
@@ -725,7 +704,6 @@ interface Utils {
 					g.add(new Label(), 2,i.get()); // empty row
 					g.add(new Label(), 2,i.get()); // empty row
 				});
-
 		}
 	}
 

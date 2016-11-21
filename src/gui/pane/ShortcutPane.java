@@ -1,5 +1,6 @@
 package gui.pane;
 
+import java.util.Collection;
 import java.util.Map.Entry;
 
 import javafx.event.Event;
@@ -31,17 +32,17 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
-import static util.action.Action.getActions;
 import static util.functional.Util.by;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
+import static util.reactive.Util.unsubscribe;
 
 /**
  *
  * @author Martin Polakovic
  */
 @IsConfigurable("Shortcuts.Viewer")
-public class ShortcutPane extends OverlayPane {
+public class ShortcutPane extends OverlayPane<Collection<Action>> {
 
 	private static final String HE_TITLE = "Hide unassigned shortcuts";
 	private static final String HE_INFO = "Displays only shortcuts that have keys assigned";
@@ -53,7 +54,7 @@ public class ShortcutPane extends OverlayPane {
 
 
 	private final GridPane g = new GridPane();
-	Subscription rebuilding = maintain(HIDE_EMPTY_SHORTCUTS,v -> build());
+	private Subscription rebuilding;
 
 	public ShortcutPane() {
 		getStyleClass().add(STYLECLASS);
@@ -81,18 +82,19 @@ public class ShortcutPane extends OverlayPane {
 	}
 
 	@Override
-	public void show() {
-		rebuilding = maintain(HIDE_EMPTY_SHORTCUTS, v -> build());
-		super.show();
-	}
-
-	@Override
 	public void hide() {
 		if (rebuilding!=null) rebuilding.unsubscribe();
 		super.hide();
 	}
 
-	private void build() {
+	@Override
+	public void show(Collection<Action> actions) {
+		rebuilding = unsubscribe(rebuilding);
+		rebuilding = maintain(HIDE_EMPTY_SHORTCUTS, v -> build(actions));
+		super.show();
+	}
+
+	private void build(Collection<Action> actions) {
 		// clear content
 		g.getChildren().clear();
 		g.getRowConstraints().clear();
@@ -105,27 +107,27 @@ public class ShortcutPane extends OverlayPane {
 
 		// build rows
 		R<Integer> i = new R<>(-1);
-		getActions().stream()
-					.filter(a -> !HIDE_EMPTY_SHORTCUTS.getValue() || a.hasKeysAssigned())
-					.collect(groupingBy(Action::getGroup))
-					.entrySet().stream()
-					.sorted(by(Entry::getKey))
-					.peek(e -> e.getValue().sort(by(Action::getName)))
-					.forEach(e -> {
-			// group title row
-			i.setOf(v -> v+1);
-			Label group = new Label(e.getKey());
-				  group.getStyleClass().add(STYLECLASS_GROUP);
-			g.add(layVertically(0,Pos.CENTER, new Label(), group), 2,i.get());
-			GridPane.setValignment(group.getParent(), VPos.CENTER);
-			GridPane.setHalignment(group.getParent(), HPos.LEFT);
-
-			// shortcut rows
-			for (Action a : e.getValue()) {
+		actions.stream()
+			.filter(a -> !HIDE_EMPTY_SHORTCUTS.getValue() || a.hasKeysAssigned())
+			.collect(groupingBy(Action::getGroup))
+			.entrySet().stream()
+			.sorted(by(Entry::getKey))
+			.peek(e -> e.getValue().sort(by(Action::getName)))
+			.forEach(e -> {
+				// group title row
 				i.setOf(v -> v+1);
-				g.add(new Label(a.getKeys()), 0,i.get());
-				g.add(new Label(a.getName()), 2,i.get());
-			}
+				Label group = new Label(e.getKey());
+					  group.getStyleClass().add(STYLECLASS_GROUP);
+				g.add(layVertically(0,Pos.CENTER, new Label(), group), 2,i.get());
+				GridPane.setValignment(group.getParent(), VPos.CENTER);
+				GridPane.setHalignment(group.getParent(), HPos.LEFT);
+
+				// shortcut rows
+				for (Action a : e.getValue()) {
+					i.setOf(v -> v+1);
+					g.add(new Label(a.getKeys()), 0,i.get());
+					g.add(new Label(a.getName()), 2,i.get());
+				}
 		});
 	}
 }

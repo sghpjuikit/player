@@ -83,14 +83,11 @@ import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
 import gui.objects.window.stage.WindowManager;
-import gui.pane.ActionPane;
+import gui.pane.*;
 import gui.pane.ActionPane.ComplexActionData;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
-import gui.pane.InfoPane;
-import gui.pane.OverlayPane;
-import gui.pane.ShortcutPane;
 import layout.Component;
 import layout.area.ContainerNode;
 import layout.widget.Widget;
@@ -288,6 +285,8 @@ public class App extends Application implements Configurable {
 
     public final TaskBar taskbarIcon = new TaskBar();
     public final ActionPane actionPane = new ActionPane(className, instanceName, instanceInfo);
+    public final ActionPane actionAppPane = new ActionPane(className, instanceName, instanceInfo);
+    public final MessagePane messagePane = new MessagePane();
     public final ShortcutPane shortcutPane = new ShortcutPane();
     public final InfoPane infoPane = new InfoPane();
     public final Guide guide = new Guide();
@@ -311,7 +310,7 @@ public class App extends Application implements Configurable {
 	 */ public final WindowManager windowManager = new WindowManager();
 	/**
 	 * Manages widgets.
-	 */ public final WidgetManager widgetManager = new WidgetManager(windowManager);
+	 */ public final WidgetManager widgetManager = new WidgetManager(windowManager, messagePane::show);
 	/**
 	 * Manages services.
 	 */ public final ServiceManager services = new ServiceManager();
@@ -1120,9 +1119,9 @@ public class App extends Application implements Configurable {
 		    File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
 		    Component c = UiContext.instantiateComponent(f);
 		    if (c!=null) {
-			    OverlayPane op = new OverlayPane() {
+			    OverlayPane<Void> op = new OverlayPane<>() {
 				    @Override
-				    public void show() {
+				    public void show(Void noValue) {
 					    OverlayPane root = this;
 					    getChildren().add(c.load());
 					    // TODO: remove
@@ -1143,7 +1142,7 @@ public class App extends Application implements Configurable {
 				    }
 			    };
 			    op.display.set(SCREEN_OF_MOUSE);
-			    op.show();
+			    op.show(null);
 			    c.load().prefWidth(900);
 			    c.load().prefHeight(700);
 		    }
@@ -1161,7 +1160,7 @@ public class App extends Application implements Configurable {
 
 	    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
 	    static void openActions() {
-		    APP.actionPane.show(Void.class, null, false,
+		    APP.actionAppPane.show(Void.class, null, false,
 			    new FastAction<>(
                     "Export widgets",
                     "Creates launcher file in the destination directory for every widget.\n"
@@ -1174,7 +1173,7 @@ public class App extends Application implements Configurable {
 	                    DirectoryChooser dc = new DirectoryChooser();
 	                    dc.setInitialDirectory(APP.DIR_LAYOUTS);
 	                    dc.setTitle("Export to...");
-	                    File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
+	                    File dir = dc.showDialog(APP.actionAppPane.getScene().getWindow());
 	                    if (dir!=null) {
 		                    APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
 	                    }
@@ -1191,7 +1190,7 @@ public class App extends Application implements Configurable {
 
 	    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
 	    static void openOpen() {
-		    APP.actionPane.show(Void.class, null, false,
+		    APP.actionAppPane.show(Void.class, null, false,
 			    new FastAction<>(
                     "Open widget",
                     "Open file chooser to open an exported widget",
@@ -1201,7 +1200,7 @@ public class App extends Application implements Configurable {
 	                    fc.setInitialDirectory(APP.DIR_LAYOUTS);
 	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
 	                    fc.setTitle("Open widget...");
-	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+	                    File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
 	                    if (f!=null) UiContext.launchComponent(f);
                     }
 			    ),
@@ -1214,7 +1213,7 @@ public class App extends Application implements Configurable {
 	                    fc.setInitialDirectory(APP.DIR_SKINS);
 	                    fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
 	                    fc.setTitle("Open skin...");
-	                    File f = fc.showOpenDialog(APP.actionPane.getScene().getWindow());
+	                    File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
 	                    if (f!=null) Gui.setSkinExternal(f);
                     }
 			    ),
@@ -1227,10 +1226,10 @@ public class App extends Application implements Configurable {
 	                    fc.setInitialDirectory(APP.DIR_SKINS);
 	                    fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP), AudioFileFormat::toExtFilter));
 	                    fc.setTitle("Open audio...");
-	                    List<File> fs = fc.showOpenMultipleDialog(APP.actionPane.getScene().getWindow());
+	                    List<File> fs = fc.showOpenMultipleDialog(APP.actionAppPane.getScene().getWindow());
 	                    // Action pane may auto-close when this action finishes, so we make sure to call
 	                    // show() after that happens by delaying using runLater
-	                    if (fs!=null) runLater(() -> APP.actionPane.show(fs));
+	                    if (fs!=null) runLater(() -> APP.actionAppPane.show(fs));
                     }
 			    )
 		    );
@@ -1238,13 +1237,13 @@ public class App extends Application implements Configurable {
 
 	    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
 	    static void showShortcuts() {
-		    APP.shortcutPane.show();
+		    APP.shortcutPane.show(Action.getActions());
 	    }
 
 	    @IsAction(name = "Show system info", desc = "Display system information.")
 	    static void showSysInfo() {
 		    APP.actionPane.hide();
-		    APP.infoPane.show();
+		    APP.infoPane.show(null);
 	    }
 
 	    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")

@@ -10,7 +10,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import gui.objects.window.stage.Window;
-import util.graphics.Util;
 
 import static javafx.stage.StageStyle.DECORATED;
 import static javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST;
@@ -18,6 +17,7 @@ import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.list;
+import static util.graphics.Util.getScreen;
 
 // TODO: implement this whole mess properly, look into java9 desktop enhancement features
 /**
@@ -124,7 +124,7 @@ public class TaskBar {
 
 					// FIXME: only works when taskbar at the bottom of the screen!
 					Point2D mouse = APP.mouseCapture.getMousePosition();
-					if (mouse.getX()< Util.getScreen(mouse).getBounds().getMaxY()-50) {
+					if (mouse.getY()<getScreen(mouse).getBounds().getMaxY()-50) {
 						if (nv) {
 							System.out.println("ALT TAB event");
 							inconsistent = true;

@@ -45,28 +45,29 @@ import static util.functional.Util.stream;
  * OK button callback. The configurable is provided as a parameter and if this
  * object is generic it will provide correct configurable returning correct
  * values without type casting.
+ *
  * @see util.conf.Configurable
  * @author Martin Polakovic
  */
 public class SimpleConfigurator<T> extends AnchorPane {
-    
-    @FXML private GridPane fields;
-    @FXML private BorderPane buttonPane;
-    @FXML private StackPane okPane;
-    @FXML private ScrollPane fieldsPane;
+
+	@FXML private GridPane fields;
+	@FXML private BorderPane buttonPane;
+	@FXML private StackPane okPane;
+	@FXML private ScrollPane fieldsPane;
 	@FXML private Label warnLabel;
 
 	private final Icon okB = new Icon(OctIcon.CHECK, 25);
-    private final double anchor;
-    private final List<ConfigField<T>> configFields = new ArrayList<>();
+	private final double anchor;
+	private final List<ConfigField<T>> configFields = new ArrayList<>();
 	public final Configurable<T> configurable;
-    /**
-     * Procedure executed when user finishes the configuring. 
-     * Invoked when ok button is pressed.
-     * Default implementation does nothing. Must not be null.
-     * <p/>
-     * For example one might want to close this control when no item is selected.
-     */ public final Consumer<? super Configurable<T>> onOK;
+	/**
+	 * Procedure executed when user finishes the configuring.
+	 * Invoked when ok button is pressed.
+	 * Default implementation does nothing. Must not be null.
+	 * <p/>
+	 * For example one might want to close this control when no item is selected.
+	 */ public final Consumer<? super Configurable<T>> onOK;
 	/**
 	 * Denotes whether parent window or popup should close immediately after {@link #onOK} executes.
 	 * Default false.
@@ -79,71 +80,71 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
 	}
 
-    /**
-     * @param c configurable object
-     * @param on_OK OK button click action. Null if none. Affects visibility
-     * of the OK button. It is only visible if there is an action to execute.
-     */
-    @SafeVarargs
-    public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
-        configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
-        onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));
-	    hasAction.set(on_OK!=null && on_OK.length>0);
+	/**
+	 * @param c configurable object
+	 * @param on_OK OK button click action. Null if none. Affects visibility
+	 * of the OK button. It is only visible if there is an action to execute.
+	 */
+	@SafeVarargs
+	public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
+		configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
+		onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));
+		hasAction.set(on_OK!=null && on_OK.length>0);
 
-        // load fxml part
-        new ConventionFxmlLoader(this).loadNoEx();
+		// load fxml part
+		new ConventionFxmlLoader(this).loadNoEx();
 
-	    okPane.getChildren().add(okB);
-        fieldsPane.setMaxHeight(Screen.getPrimary().getBounds().getHeight()*0.7);
-        anchor = AnchorPane.getBottomAnchor(fieldsPane);
-        setOkButtonVisible(hasAction.get());
-        
-        // set configs
-        configFields.clear();
-        fields.getChildren().clear();
-        c.getFields().stream()
-         .sorted(byNC(Config::getGuiName))
-         .forEach(f -> {
-            ConfigField cf = ConfigField.create(f);                 // create
-            configFields.add(cf);                                   // add
-            fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
-            fields.add(cf.getNode(), 1, configFields.size()-1);
-        });
-	    Consumer<Try<T,String>> observer = v -> validate();
-	    configFields.forEach(f -> f.observer = observer);
+		okPane.getChildren().add(okB);
+		fieldsPane.setMaxHeight(Screen.getPrimary().getBounds().getHeight()*0.7);
+		anchor = AnchorPane.getBottomAnchor(fieldsPane);
+		setOkButtonVisible(hasAction.get());
 
-	    fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-	    	if (e.getCode()==ENTER) {
-			    ok();
-			    e.consume();
-		    }
-	    });
-        fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
+		// set configs
+		configFields.clear();
+		fields.getChildren().clear();
+		configurable.getFields().stream()
+			.sorted(byNC(Config::getGuiName))
+			.forEach(f -> {
+				ConfigField cf = ConfigField.create(f);                 // create
+				configFields.add(cf);                                   // add
+				fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
+				fields.add(cf.getNode(), 1, configFields.size()-1);
+			});
+		Consumer<Try<T,String>> observer = v -> validate();
+		configFields.forEach(f -> f.observer = observer);
 
-	    validate();
-    }
+		fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode()==ENTER) {
+				ok();
+				e.consume();
+			}
+		});
+		fieldsPane.setOnScroll(Event::consume); // prevent scroll event leak
 
-    @FXML
-    public void ok() {
-    	if (!hasAction.get()) return;
+		validate();
+	}
 
-	    Try<T,String> validation = validate();
-	    if (validation.isOk()) {
-		    configFields.forEach(ConfigField::apply);
-		    onOK.accept(configurable);
-		    if (hideOnOk.get() && getScene() != null && getScene().getWindow() != null && getScene().getWindow().isShowing()) {
-			    if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
-		    }
-	    }
-    }
+	@FXML
+	public void ok() {
+		if (!hasAction.get()) return;
 
-    private Try<T,String> validate() {
-	    Try<T,String> validation = configFields.stream()
-                           .map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
-	                       .reduce(Try::and).orElse(Try.ok(null));
-	    showWarnButton(validation);
-	    return validation;
-    }
+		Try<T,String> validation = validate();
+		if (validation.isOk()) {
+			configFields.forEach(ConfigField::apply);
+			onOK.accept(configurable);
+			if (hideOnOk.get() && getScene() != null && getScene().getWindow() != null && getScene().getWindow().isShowing()) {
+				if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
+			}
+		}
+	}
+
+	private Try<T,String> validate() {
+		Try<T,String> validation = configFields.stream()
+						.map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
+						.reduce(Try::and).orElse(Try.ok(null));
+		showWarnButton(validation);
+		return validation;
+	}
 
 	private void showWarnButton(Try<T,String> validation) {
 		if (validation.isError()) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
@@ -154,13 +155,13 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		if (validation.isError()) warnLabel.setText(validation.getError());
 	}
 
-    public void focusFirstConfigField() {
-    	if (!configFields.isEmpty())
-    		configFields.get(0).focus();
-    }
+	public void focusFirstConfigField() {
+		if (!configFields.isEmpty())
+			configFields.get(0).focus();
+	}
 
-    private void setOkButtonVisible(boolean val) {
-        buttonPane.setVisible(val);
-        AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
-    }
+	private void setOkButtonVisible(boolean val) {
+		buttonPane.setVisible(val);
+		AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
+	}
 }

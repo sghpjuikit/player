@@ -2,8 +2,12 @@ package util.functional;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.Collections;
 import java.util.function.*;
-import java.util.stream.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.reactfx.util.TriFunction;
 
@@ -15,16 +19,14 @@ import util.SwitchException;
 import util.collections.Tuple2;
 import util.functional.Functors.*;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+import static java.lang.Math.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
-import static util.dev.Util.no;
 import static util.dev.Util.noØ;
-import static util.dev.Util.yes;
+import static util.dev.Util.throwIf;
+import static util.dev.Util.throwIfNot;
 
 /**
  *
@@ -837,14 +839,14 @@ public interface Util {
 
 	/** Loops over both lists simultaneously. Must be of the same size. */
 	static <A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
-		yes(a.size()==b.size());
+		throwIfNot(a.size()==b.size());
 		for (int i=0; i<a.size(); i++)
 			action.accept(a.get(i), b.get(i));
 	}
 
 	/** Loops over both arrays simultaneously. Must be of the same size. */
 	static <A,B> void forEachBoth(A[] a, B[] b, BiConsumer<A,B> action) {
-		yes(a.length==b.length);
+		throwIfNot(a.length==b.length);
 		for (int i=0; i<a.length; i++)
 			action.accept(a[i], b[i]);
 	}
@@ -996,30 +998,30 @@ public interface Util {
 	}
 
 	static <R> Stream<R> forEachInLine(double fromX, double fromY, double toX, double toY, long count, BiFunction<Double,Double,R> mapper) {
-		no(count<0);
+		throwIf(count<0);
 		return forEachInLineBy(fromX, fromY, count<=1 ? 0 : (toX-fromX)/(count-1), count<=1 ? 0 : (toY-fromY)/(count-1), count, mapper);
 	}
 
 	static <R> Stream<R> forEachInLineBy(double x, double y, double byX, double byY, long count, BiFunction<Double,Double,R> mapper) {
-		no(count<0);
+		throwIf(count<0);
 		return IntStream.iterate(0, i -> i<=count, i -> i+1)
 				.mapToObj(i -> mapper.apply(x+i*byX, y+i*byY));
 	}
 
 	static <R> StreamEx<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
-		no(count<0);
+		throwIf(count<0);
 		return forEachOnCircle(0, 0, 1, count, mapper);
 	}
 
 	static <R> StreamEx<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
-		no(count<0);
+		throwIf(count<0);
 		double circumference = by*count;
 		double radius = circumference/(2*PI);
 		return forEachOnCircle(x, y, radius, count, mapper);
 	}
 
 	static <R> StreamEx<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
-		no(count<0);
+		throwIf(count<0);
 		return DoubleStreamEx.iterate(0, a-> a+2*PI/count)
 				.limit(count)
 				.mapToObj(a -> mapper.apply(x+radius*cos(a), y+radius*sin(a), a));
@@ -1181,7 +1183,7 @@ public interface Util {
 	}
 
 	static <A,B,R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
-		yes(a.length==b.length);
+		throwIfNot(a.length==b.length);
 		Stream.Builder<R> builder = Stream.builder();
 		for (int i=0; i<a.length; i++)
 			builder.accept(zipper.apply(a[i], b[i]));

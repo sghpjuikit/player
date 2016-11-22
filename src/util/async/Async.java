@@ -19,7 +19,7 @@ import javafx.util.Duration;
 import util.async.executor.FxTimer;
 
 import static javafx.animation.Animation.INDEFINITE;
-import static util.dev.Util.no;
+import static util.dev.Util.throwIf;
 
 /**
  *
@@ -184,13 +184,13 @@ public interface Async {
      * @param delay delay in milliseconds
      */
     static void runFX(double delay, Runnable r) {
-        no(delay<0);
+        throwIf(delay<0);
         if (delay==0) runFX(r);
         else new FxTimer(delay, 1, () -> runFX(r)).start();
     }
 
     static void runFX(double delay1, Runnable r1, double delay2, Runnable r2) {
-        no(delay1<0);
+        throwIf(delay1<0);
         runFX(delay1, () -> {
             r1.run();
             runFX(delay2,r2);

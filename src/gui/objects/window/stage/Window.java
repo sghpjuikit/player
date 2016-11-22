@@ -70,7 +70,7 @@ import static util.access.SequentialValue.next;
 import static util.access.SequentialValue.previous;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
-import static util.dev.Util.yes;
+import static util.dev.Util.throwIfNot;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.Util.setScaleXY;
@@ -378,7 +378,7 @@ public class Window extends WindowBase {
     }
 
     public void setContent(Node n) {
-        yes(layout==null, "Layout already initialized");
+        throwIfNot(layout==null, "Layout already initialized");
         content.getChildren().clear();
         content.getChildren().add(n);
         setAnchors(n, 0d);
@@ -403,7 +403,7 @@ public class Window extends WindowBase {
     }
 
     public void initLayout(Layout l) {
-        yes(layout==null, "Layout already initialized");
+        throwIfNot(layout==null, "Layout already initialized");
         layout = l;
 	    content.getChildren().clear();
         layout.load(content);

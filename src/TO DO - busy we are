@@ -1,6 +1,15 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- improve messagePane, make okPane & errorPane, use icon to style
+- improve widget compilation string result
+- make actionPane content resizable + fix layout issues
+- clean up add/remove/readMetadata and refactor to Task subclasses and Futures
+- impl cover parent album name dir convention
+- docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
+- fix tagger input fields deleting
+- fix tagger popover size
+- make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer
 - subclass WidgetArea for standalone widget to adjust graphics for popup
 - clean up Action and its keys handling, including the ConfigField
@@ -8,13 +17,11 @@
 - Tagger reimplement validations trough Configs
 - converter transform off when just typing
 - converter default area !set
-- native support of configs in configs > flatMap
 - handle licences properly
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
   set it from file name. Also improve pseudo-component saving user experience. I.e., make pseudo-components rock.
 - improve skinning support
-  - disable bgr blur (or make optional)
   - implement apply/refresh skin properly
   - clean up old skins
 - remove all remaining dependencies on internal APIs
@@ -55,8 +62,6 @@
 - save playlists into db instead of xml to improve big playlist startup
 - saving multiple playlists is bugged
 - display window snap preview & snap only on mouse release
-- remove appliers from all configs, its bad design. use maintain() and subscriptions
-- figure out gui error reporting method
 - figure out image animation auto-play def behavior & indicative play/pause mechanism
 - LibraryView placeholder does not detect empty table correctly
 - explicit config for song enqueue order (Comparator)
@@ -175,7 +180,7 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
   but the window does not cover whole screen - maybe its too soon 
   and the window is not really fully initialized 
   solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
-- Icon does not support disabled style (opacity 0.4). Thus it was added in css.                     (minor, inconvenience)
+- Icon does not support disabled style (opacity 0.4). Thus it was processed in css.                     (minor, inconvenience)
   But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
   style gets applied twice! javafx apparently applies the disabled state on the
   graphics of Labelled on its own!

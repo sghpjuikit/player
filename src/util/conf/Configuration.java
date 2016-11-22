@@ -29,8 +29,8 @@ import util.validation.Constraint;
 import util.validation.Constraint.IsConstraint;
 
 import static java.util.stream.Collectors.toSet;
-import static util.dev.Util.noFinal;
-import static util.dev.Util.yesFinal;
+import static util.dev.Util.throwIfFinal;
+import static util.dev.Util.throwIfNotFinal;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 import static util.type.Util.*;
@@ -255,7 +255,7 @@ public class Configuration {
             return newFromProperty(f, instance, name, annotation, group);
         } else {
             try {
-                noFinal(f);                // make sure the field is not final
+                throwIfFinal(f);                // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
@@ -270,7 +270,7 @@ public class Configuration {
     @SuppressWarnings("unchecked")
     private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
         try {
-            yesFinal(f);                // make sure the field is final
+            throwIfNotFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
             if (VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig<>(name, annotation, (VarList)f.get(instance), group);
@@ -301,7 +301,7 @@ public class Configuration {
     @SuppressWarnings("unchecked")
     private static <T> Config<T> newFromConfig(Field f, Object instance) {
         try {
-            yesFinal(f);                // make sure the field is final
+            throwIfNotFinal(f);                // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
 	        Config<T> config = (Config<T>)f.get(instance);
 	        ((ConfigBase)config).constraints = constraintsOf(config.getType(), f.getAnnotations());

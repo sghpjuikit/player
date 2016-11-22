@@ -1,7 +1,6 @@
 package util.demo.particleanim;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -108,17 +107,17 @@ public class Main extends Application {
 				}
 
 				// apply force: gravity
-				allParticles.forEach(sprite -> {
-					sprite.applyForce(Settings.FORCE_GRAVITY);
-				});
+				allParticles.forEach(sprite ->
+					sprite.applyForce(Settings.FORCE_GRAVITY)
+				);
 
 				// apply force: wind depending on attractor position
 				for (Attractor attractor : allAttractors) {
 					double dx = Utils.map(attractor.getLocation().x, 0, Settings.SCENE_WIDTH, -0.2, 0.2);
 					Vector2D windForce = new Vector2D(dx, 0);
-					allParticles.stream().parallel().forEach(sprite -> {
-						sprite.applyForce(windForce);
-					});
+					allParticles.stream().parallel().forEach(sprite ->
+						sprite.applyForce(windForce)
+					);
 				}
 
 				// apply force: repeller
@@ -141,7 +140,7 @@ public class Main extends Application {
 				graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
 				// TODO: parallel?
-				allParticles.stream().forEach(particle -> {
+				allParticles.forEach(particle -> {
 
 					Image img = images[particle.getLifeSpan()];
 					graphicsContext.drawImage(img, particle.getLocation().x, particle.getLocation().y);
@@ -171,19 +170,8 @@ public class Main extends Application {
 	}
 
 	private void removeDeadParticles() {
-
-		Iterator<Particle> iter = allParticles.iterator();
-		while (iter.hasNext()) {
-
-			Particle particle = iter.next();
-			if (particle.isDead()) {
-
-				// remove from particle list
-				iter.remove();
-			}
-
-		}
-
+		// remove from particle list
+		allParticles.removeIf(Sprite::isDead);
 	}
 
 	private void addParticle() {

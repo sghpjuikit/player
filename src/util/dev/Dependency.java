@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.dev;
 
 import java.lang.annotation.*;
@@ -17,5 +12,5 @@ import static java.lang.annotation.ElementType.*;
 @Repeatable(Dependencies.class)
 @Target({METHOD, CONSTRUCTOR, FIELD, TYPE})
 public @interface Dependency {
-    String value() default "";
+	String value() default "";
 }

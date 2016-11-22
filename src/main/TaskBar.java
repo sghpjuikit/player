@@ -206,7 +206,6 @@ public class TaskBar {
 		}
 	}
 
-
 	public boolean forbidIconify = false;   // prevents synthetic events when affecting focus programmatically
 	public boolean inconsistent = false;   // prevents synthetic events when affecting focus programmatically
 	private boolean ignore = false;

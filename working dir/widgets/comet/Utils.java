@@ -60,7 +60,8 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.reactive.SetƑ;
 
-import static comet.Comet.Constants.*;
+import static comet.Comet.Constants.FPS;
+import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
 import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
@@ -78,8 +79,8 @@ import static javafx.util.Duration.seconds;
 import static util.Util.clip;
 import static util.Util.pyth;
 import static util.collections.Tuples.tuple;
-import static util.dev.Util.no;
-import static util.dev.Util.yes;
+import static util.dev.Util.throwIf;
+import static util.dev.Util.throwIfNot;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -373,7 +374,7 @@ interface Utils {
 		drawHudCircle(gc, field, x, y, r, 0, D360, color);
 	}
 	static void drawHudPolygon(GraphicsContext gc, GameSize field, double[] xs, double[] ys, long pointCount) {
-		yes(xs.length==ys.length);
+		throwIfNot(xs.length==ys.length);
 
 		for (int j=0; j<pointCount; j++) {
 			int k = j==pointCount-1 ? 0 : j+1;
@@ -428,11 +429,11 @@ interface Utils {
 	}
 	@SafeVarargs
 	static <T> T randOf(T... c) {
-		no(c.length==0);
+		throwIf(c.length==0);
 		return c[randInt(c.length)];
 	}
 	static <T> T randOf(Collection<T> c) {
-		no(c.isEmpty());
+		throwIf(c.isEmpty());
 		int size = c.size();
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
 	}

@@ -22,7 +22,6 @@ import static util.dev.Util.noØ;
  */
 public interface Util {
 
-
 	static <O> Subscription changes(ObservableValue<O> o, BiConsumer<? super O,? super O> u) {
 		ChangeListener<O> l = (b,ov,nv) -> u.accept(ov,nv);
 		o.addListener(l);
@@ -147,13 +146,13 @@ public interface Util {
 	}
 
 	/**
-	 * Unsubscribes the subscription. Does nothing if null. Returns (always) null.
+	 * Unsubscribe the subscription. Does nothing if null. Returns (always) null.
 	 * <p/>
 	 * Use for concise and null safe disposal, using the following idiom:
 	 * <br/><br/>
 	 * {@code mySubscription = unsubscribe(mySubscription); }
 	 *
-	 * @param s
+	 * @param s subscription to unsubscribe or null
 	 * @return null
 	 */
 	static Subscription unsubscribe(Subscription s) {

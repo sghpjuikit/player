@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.toCollection;
 import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.StringDirection.FROM_START;
 import static util.dev.TODO.Purpose.BUG;
-import static util.dev.Util.no;
+import static util.dev.Util.throwIf;
 
 /**
  * Provides general purpose utility methods.
@@ -845,7 +845,7 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if list empty
 	 */
 	private static <T> T randPopOf(List<T> list) {
-		no(list.isEmpty());
+		throwIf(list.isEmpty());
 		int i = (int)Math.floor(random()*list.size());
 		T t = list.get(i);
 		list.remove(t);
@@ -859,7 +859,7 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if list does not have enough elements
 	 */
 	private static <T> ArrayList<T> randN(int amount, List<T> source) {
-		no(amount>=source.size());
+		throwIf(amount>=source.size());
 
 		ArrayList<T> all = new ArrayList<>(source); // we need a copy
 		ArrayList<T> l = new ArrayList<>();

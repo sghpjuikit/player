@@ -21,7 +21,7 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static util.dev.Util.noØ;
-import static util.dev.Util.yes;
+import static util.dev.Util.throwIfNot;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
 import static util.type.Util.instantiateOrThrow;
@@ -115,7 +115,7 @@ public interface Constraint<T> {
 		public NumberMinMax(double min, double max) {
 			this.min = min;
 			this.max = max;
-			yes(max>min, "Max value must be greater than min value");
+			throwIfNot(max>min, "Max value must be greater than min value");
 		}
 
 		@Override
@@ -157,7 +157,7 @@ public interface Constraint<T> {
 		public StringLength(int min, int max) {
 			this.min = min;
 			this.max = max;
-			yes(max > min, "Max value must be greater than min value");
+			throwIfNot(max > min, "Max value must be greater than min value");
 		}
 
 		@Override

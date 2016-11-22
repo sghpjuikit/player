@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package unused;
 
 /**
@@ -15,10 +10,6 @@ public class CircleContextMenu {
     private static final double PI = Math.PI; // 360 degrees = 2PI
     private static double minAngle = 0;       // min degree
     private static double maxAngle = 2*PI;    // max degree
-    
-    public CircleContextMenu() {
-        
-    }
     
 //    void open(double X, double Y) {
 //        if (elements.isEmpty()) return;
@@ -37,8 +28,8 @@ public class CircleContextMenu {
 //            double polarX = radius * Math.cos(angle); // calculate math. position
 //            double polarY = radius * Math.sin(angle); // calculate math. position
 //            polarY *= -1;// mirror vertically coordinates (math->gui implementation)
-//            polarX += getWidth()/2; // shift to gui [0;0] (eliminate negative coords)
-//            polarY += getHeight()/2; // shift to gui [0;0] (eliminate negative coords)
+//            polarX += getWidth()/2; // shift to gui [0;0] (eliminate negative co-ordinates)
+//            polarY += getHeight()/2; // shift to gui [0;0] (eliminate negative co-ordinates)
 //            e.relocateCenter(polarX, polarY, angle); //position and centre
 //        }
 //    }
@@ -77,7 +68,7 @@ public class CircleContextMenu {
 //        double y = getLayoutY();    // leftmost corner
 //        double h = getHeight();     // height
 //        double w = getWidth();      // width
-//        double hr = h/2;            // hight radius
+//        double hr = h/2;            // height radius
 //        double wr = w/2;            // width radius
 //        double H = getDisplay().getHeight();    // display height
 //        double W = getDisplay().getWidth();     // display width
@@ -85,48 +76,48 @@ public class CircleContextMenu {
 //        double dy = offScreenFixOFFSET+ getElementHeight()/2;   // offset y
 //
 //        if (x<0 && y<0) {
-//            double diffx = -x + dx;
-//            minAngle = PI + Math.acos((wr-diffx)/radius);
-//            double diffy = -y + dy;
-//            maxAngle = Math.asin((hr-diffy)/radius);
+//            double diffX = -x + dx;
+//            minAngle = PI + Math.acos((wr-diffX)/radius);
+//            double diffY = -y + dy;
+//            maxAngle = Math.asin((hr-diffY)/radius);
 //        } else
 //        if (x<0 && y+h>H) {
-//            double diffy = h+y-H + dy;
-//            minAngle = -Math.asin((hr-diffy)/radius);
-//            double diffx = -x + dx;
-//            maxAngle = PI - Math.acos((wr-diffx)/radius);
+//            double diffY = h+y-H + dy;
+//            minAngle = -Math.asin((hr-diffY)/radius);
+//            double diffX = -x + dx;
+//            maxAngle = PI - Math.acos((wr-diffX)/radius);
 //        } else
 //        if (x+w>W && y<0) {
-//            double diffy = -y + dy;
-//            minAngle = PI-Math.asin((hr-diffy)/radius);
-//            double diffx = w+x-W + dx;
-//            maxAngle = -Math.acos((wr-diffx)/radius);
+//            double diffY = -y + dy;
+//            minAngle = PI-Math.asin((hr-diffY)/radius);
+//            double diffX = w+x-W + dx;
+//            maxAngle = -Math.acos((wr-diffX)/radius);
 //        } else
 //        if (x+w>W && y+h>H) {
-//            double diffx = w+x-W + dx;
-//            minAngle = Math.acos((wr-diffx)/radius);
-//            double diffy = h+y-H + dy;
-//            maxAngle = PI+Math.asin((hr-diffy)/radius);
+//            double diffX = w+x-W + dx;
+//            minAngle = Math.acos((wr-diffX)/radius);
+//            double diffY = h+y-H + dy;
+//            maxAngle = PI+Math.asin((hr-diffY)/radius);
 //        } else
 //        if (x<0) {
-//            double diffx = -x + dx;
-//            minAngle = PI+Math.acos((wr-diffx)/radius);
-//            maxAngle = PI-Math.acos((wr-diffx)/radius);
+//            double diffX = -x + dx;
+//            minAngle = PI+Math.acos((wr-diffX)/radius);
+//            maxAngle = PI-Math.acos((wr-diffX)/radius);
 //        } else
 //        if (y<0) {
-//            double diffy = -y + dy;
-//            minAngle = PI-Math.asin((hr-diffy)/radius);
-//            maxAngle = Math.asin((hr-diffy)/radius);
+//            double diffY = -y + dy;
+//            minAngle = PI-Math.asin((hr-diffY)/radius);
+//            maxAngle = Math.asin((hr-diffY)/radius);
 //        } else
 //        if (x+w>W) {
-//            double diffx = w+x-W + dx;
-//            minAngle = Math.acos((wr-diffx)/radius);
-//            maxAngle = -Math.acos((wr-diffx)/radius);
+//            double diffX = w+x-W + dx;
+//            minAngle = Math.acos((wr-diffX)/radius);
+//            maxAngle = -Math.acos((wr-diffX)/radius);
 //        } else
 //        if (y+h>H) {
-//            double diffy = h+y-H + dy;
-//            minAngle = Math.asin(-(hr-diffy)/radius);
-//            maxAngle = PI-Math.asin(-(hr-diffy)/radius);
+//            double diffY = h+y-H + dy;
+//            minAngle = Math.asin(-(hr-diffY)/radius);
+//            maxAngle = PI-Math.asin(-(hr-diffY)/radius);
 //        }
 //    }
 }

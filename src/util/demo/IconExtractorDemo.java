@@ -22,7 +22,6 @@ public class IconExtractorDemo extends Application {
 		launch(args);
 	}
 
-
 	private final ListView<String> list = new ListView<>();
 	private final ObservableList<String> data = observableArrayList(
 		// "C:\\CCleaner\\CCleaner.exe", // an example to test out .exe (windows executable) file
@@ -42,7 +41,6 @@ public class IconExtractorDemo extends Application {
 		VBox.setVgrow(list, Priority.ALWAYS);
 
 		list.setItems(data);
-
 		list.setCellFactory(list1 -> new AttachmentListCell());
 
 		stage.show();

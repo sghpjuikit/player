@@ -25,7 +25,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.Build.appTooltip;
-import static util.dev.Util.yes;
+import static util.dev.Util.throwIfNot;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.repeat;
 
@@ -121,8 +121,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * If the chain is already at least as long as n, no elements are added.
      */
     public void growTo(int n) {
-        yes(n>=0,"Chain length must not be negative");
-        yes(n<=maxChainLength.get(),"Chain length must not be larger than max length");
+        throwIfNot(n>=0,"Chain length must not be negative");
+        throwIfNot(n<=maxChainLength.get(),"Chain length must not be larger than max length");
         repeat(n-chain.size(),(Runnable)this::addChained);
         generateValue();
     }

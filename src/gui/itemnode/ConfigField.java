@@ -817,7 +817,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             super(c);
             ObservableValue<File> v = getObservableValue(c);
 	        isObservable = v!=null;
-	        Constraint.FileActor constraint = stream(c.getConstraints()).select(Constraint.FileActor.class).findFirst().orElse(Constraint.FileActor.ANY);
+	        Constraint.FileActor constraint = stream(c.getConstraints())
+				.select(Constraint.FileActor.class)
+				.findFirst().orElse(Constraint.FileActor.ANY);
 
 	        editor = new FileItemNode(constraint);
             editor.setValue(config.getValue());

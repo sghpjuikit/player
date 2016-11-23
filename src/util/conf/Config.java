@@ -910,7 +910,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             return this;
         }
 
-
         /**
          * Adds invalidation listener to the list.
          * Returns subscription to dispose of the listening.

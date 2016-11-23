@@ -21,6 +21,7 @@ import util.conf.Configurable;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.functional.Util.byNC;
+import static util.functional.Util.list;
 import static util.functional.Util.stream;
 
 public class ConfigPane<T> implements ConfiguringFeature {
@@ -29,6 +30,10 @@ public class ConfigPane<T> implements ConfiguringFeature {
 	public Runnable onChange;
 
 	public ConfigPane() {}
+
+	public ConfigPane(Config<T>... configs) {
+		this(list(configs));
+	}
 
 	@SuppressWarnings("unchecked")
 	public ConfigPane(Collection<Config<T>> configs) {

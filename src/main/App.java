@@ -584,11 +584,20 @@ public class App extends Application implements Configurable {
 				items -> {}
 			).preventClosing(new ComplexActionData<Collection<File>,List<File>>(
 				() -> {
-					SingleR<Widget,Void> tagger = new SingleR<>(() ->
-							  stream(APP.widgetManager.factories).findFirst(f -> f.name().equals("Tagger")).get().create());
+					V<Boolean> makeWritable = new V<>(true);
+					V<Boolean> editInTagger = new V<>(true);
+					V<Boolean> editOnlyAdded = new V<>(false);
 					ConvertListTask info = new ConvertListTask(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
+					SingleR<Widget,Void> tagger = new SingleR<>(() -> stream(APP.widgetManager.factories)
+								.findFirst(f -> f.name().equals("Tagger"))
+								.get().create());
 					return layHorizontally(50, Pos.CENTER,
 						layVertically(50, Pos.CENTER,
+							new ConfigPane<>(
+								Config.forProperty(Boolean.class, "Make writable if read-only", makeWritable),
+								Config.forProperty(Boolean.class, "Edit in Tagger", editInTagger),
+								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded)
+							).getNode(),
 							layVertically(10, Pos.CENTER_LEFT,
 								info.state,
 								layHorizontally(10, Pos.CENTER,
@@ -600,14 +609,22 @@ public class App extends Application implements Configurable {
 							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
 								((Icon) e.getSource()).setDisable(true);
 								Fut.fut((List<File>)actionPane.getData())
+									.use(files -> {
+										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
+									})
 									.map(files -> map(files, SimpleItem::new))
 									.map(MetadataReader::readAaddMetadata)
 									.use(info::bind, FX)
 									.use(Task::run)
 									.then(info::unbind, FX)
-									.use(t -> ((SongReader) tagger.get().getController()).read(t.getValue().converted), FX)
+									.use(t -> {
+										if (editInTagger.get()) {
+											List<? extends Item> items = editOnlyAdded.get() ? t.getValue().converted : t.getValue().all;
+											((SongReader) tagger.get().getController()).read(items);
+										}
+									}, FX)
 									.showProgress(actionPane.actionProgress);
-							}).withText("Do")
+							}).withText("Execute")
 						),
 						tagger.get().load()
 					);

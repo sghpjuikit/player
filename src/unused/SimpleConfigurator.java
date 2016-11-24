@@ -34,7 +34,7 @@ import static util.functional.Util.stream;
  * Configurable state transformer graphical control. Graphics to configure 
  * {@link util.conf.Configurable}.
  * <p/>
- * When OK button is clicked all changed {@link gui.itemnode.ConfigField}s with unapplied values
+ * When OK button is clicked all changed {@link gui.itemnode.ConfigField}s with un-applied values
  * will be set and applied. Then the specified behavior is executed.
  * 
  * @param <T> Specifies generic type of Configurable for this component. Only
@@ -105,9 +105,9 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		configurable.getFields().stream()
 			.sorted(byNC(Config::getGuiName))
 			.forEach(f -> {
-				ConfigField cf = ConfigField.create(f);                 // create
-				configFields.add(cf);                                   // add
-				fields.add(cf.createLabel(), 0, configFields.size()-1);    // populate
+				ConfigField<T> cf = ConfigField.create(f);                  // create
+				configFields.add(cf);                                       // add
+				fields.add(cf.createLabel(), 0, configFields.size()-1);  // populate
 				fields.add(cf.getNode(), 1, configFields.size()-1);
 			});
 		Consumer<Try<T,String>> observer = v -> validate();

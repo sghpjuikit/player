@@ -28,7 +28,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
 	    this.fileActor = fileActor;
 	    this.type = fileActor== Constraint.FileActor.FILE ? FileType.FILE : FileType.DIRECTORY;
 
-	    if (fileActor== Constraint.FileActor.ANY) {
+	    if (fileActor==Constraint.FileActor.ANY) {
 		    ArrowDialogButton b1 = new ArrowDialogButton();
 		    b1.setOnMouseClicked(e -> type = type.next());
 		    ArrowDialogButton b2 = (ArrowDialogButton) getRight();

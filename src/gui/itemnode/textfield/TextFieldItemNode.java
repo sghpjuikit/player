@@ -103,7 +103,7 @@ public abstract class TextFieldItemNode<T> extends DecoratedTextField implements
      * equality check and will fire even for same object to be set.
      */
     public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
-        onItemChange=_onFontChange;
+        onItemChange = _onFontChange;
     }
 
     /** @return current value displayed in this text field. */

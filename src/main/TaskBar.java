@@ -28,7 +28,7 @@ public class TaskBar {
 
 	private boolean iconified;
 	private Image icn;
-	private String titl;
+	private String title;
 	private Screen scr;
 	private Consumer<Boolean> onMinimized;
 	private Runnable onAltTab;
@@ -38,8 +38,8 @@ public class TaskBar {
 	private Stage s;
 
 	public void setTitle(String title) {
-		titl = title;
-		if (s!=null) s.setTitle(titl==null ? "" : titl);
+		this.title = title;
+		if (s!=null) s.setTitle(this.title ==null ? "" : this.title);
 	}
 
 	public void setIcon(Image icon) {
@@ -54,21 +54,20 @@ public class TaskBar {
 
 		scr = screen;
 
-		// The below is not working for some reason, even though I have successfully used this
-		// approach elsewhere. Moving the stage to different screen will reposition the
-		// taskbar icon (OS Windows). I mean should. In this case, the taskbar "update" does not happen without
-		// refreshing the stage's in some unspecified way (clicking manually on the taskbar to
-		// minimize the stage repositions the taskbar correctly, but im not going to try emulating
-		// that)
 		 if (s!=null) {
+			// The below is not working for some reason, even though I have successfully used this
+			// approach elsewhere. Moving the stage to different screen will reposition the
+			// taskbar icon (OS Windows). I mean should. In this case, the taskbar "update" does not happen without
+			// refreshing the stage's in some unspecified way (clicking manually on the taskbar to
+			// minimize the stage repositions the taskbar correctly, but im not going to try emulating
+			// that)
 			 s.setX(scr.getBounds().getMinX());
 			 s.setY(scr.getBounds().getMinY());
+
+			// rather, just reinitialize the whole thing, problem solved
+//			setVisible(false);
+//			setVisible(true);
 		 }
-		// rather, just reinitialize the whole thing, problem solved
-		if (s!=null){
-//            setVisible(false);
-//            setVisible(true);
-		}
 	}
 
 	public void setOnMinimize(Consumer<Boolean> action) {
@@ -135,16 +134,16 @@ public class TaskBar {
 							runLater(() -> inconsistent = false);
 						}
 					} else {
-					// Allright, trust me when I say I have no idea how this works...
+					// Alright, trust me when I say I have no idea how this works...
 					// Here is what happened when I did this:
 					// Every time focus changes (and this handler is called), the onMinimized
-					// action causes somehow another focus change and refiring of this
+					// action causes somehow another focus change and re-firing of this
 					// handler. Yes that requires the onMinimized action to do something very specific
 					// and Im not exactly sure what it is. It has something to do with the window
-					// the action deminimizes steals focus, which affects focus of this stage.
+					// the action de-minimizes steals focus, which affects focus of this stage.
 					//
 					// Point is, if this handler is called once, as per javaFX, minimization does not
-					// work, only deminimization. However, due to this listener being called twice
+					// work, only de-minimization. However, due to this listener being called twice
 					// and the interference with focus, SOMEHOW, no idea how, minimization works too.
 					//
 					// The problem was that if onMinimized action restored multiple windows, this
@@ -153,12 +152,12 @@ public class TaskBar {
 					//
 					// For this I introduced this weird double lock. We disallow firing action while
 					// one action is already running, but we do fire it 2nd time, only with a delay
-					// (runLater) so they dont interfere. And we use another lock to prevent any
+					// (runLater) so they don't interfere. And we use another lock to prevent any
 					// more actions.
 					//
 					// That is nice, but my testing shows, the action is now called only once and
 					// stuff works, but sometimes during initializations, it is actually called twice
-					// and we have to keep handling it like this to make sure it all works corectly.
+					// and we have to keep handling it like this to make sure it all works correctly.
 						if (onMinimized!=null) {
 							if (!ignore2) {
 								if (!ignore) {
@@ -182,7 +181,7 @@ public class TaskBar {
 				});
 			}
 			if (scr==null) scr = Screen.getPrimary();
-			s.setTitle(titl==null ? "" : titl);
+			s.setTitle(title ==null ? "" : title);
 			s.getIcons().setAll(icn==null ? list() : list(icn));
 			s.setIconified(iconified);
 

@@ -31,6 +31,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 
 	public ConfigPane() {}
 
+	@SafeVarargs
 	public ConfigPane(Config<T>... configs) {
 		this(list(configs));
 	}

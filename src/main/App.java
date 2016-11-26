@@ -962,29 +962,29 @@ public class App extends Application implements Configurable {
 
 	public static void refreshItemsFromFileJob(List<? extends Item> items) {
 		Fut.fut()
-//           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
-		   .then(() -> {
-			   List<Metadata> l = MetadataReader.readMetadata(items);
-			   l.forEach(m -> System.out.println(m.getCustom5()));
-			   Player.refreshItemsWith(l);
-		   },Player.IO_THREAD)
-		   .showProgress(APP.windowManager.getActive().map(Window::taskAdd))
-		   .run();
+//			.then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
+			.then(() -> {
+				List<Metadata> l = MetadataReader.readMetadata(items);
+				l.forEach(m -> System.out.println(m.getCustom5()));
+				Player.refreshItemsWith(l);
+			},Player.IO_THREAD)
+			.showProgress(APP.windowManager.getActive().map(Window::taskAdd))
+			.run();
 	}
 
 	public static void itemToMeta(Item i, Consumer<Metadata> action) {
 	   if (i.same(Player.playingItem.get())) {
-		   action.accept(Player.playingItem.get());
-		   return;
-	   }
+			action.accept(Player.playingItem.get());
+			return;
+		}
 
-	   Metadata m = Db.items_byId.get(i.getId());
-	   if (m!=null) {
-		   action.accept(m);
-	   } else {
+		Metadata m = Db.items_byId.get(i.getId());
+		if (m!=null) {
+			action.accept(m);
+		} else {
 			Fut.fut(i).map(MetadataReader::create,Player.IO_THREAD)
 					  .use(action, FX).run();
-	   }
+		}
 	}
 
 	public static void openImageFullscreen(File image, Screen screen) {

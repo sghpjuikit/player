@@ -74,6 +74,7 @@ import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
+import gui.objects.popover.PopOver.ScreenPos;
 import gui.objects.spinner.Spinner;
 import gui.objects.tablecell.RatingCellFactory;
 import gui.objects.tablecell.RatingRatingCellFactory;
@@ -349,7 +350,7 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(name = "Enabled", group = "Taskbar", info = "Show taskbar icon. Disabling taskbar will"
 			+ "also disable ALT+TAB functionality.")
-	public final V<Boolean> taskbarEnabled = new V<>(true, taskbarIcon::setVisible);
+	public final V<Boolean> taskbarEnabled = new V<>(true);
 
 	@IsConfig(info = "Preferred text when no tag value for field. This value can be overridden.")
 	public String TAG_NO_VALUE = "<none>";
@@ -728,10 +729,6 @@ public class App extends Application implements Configurable {
 						windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
 				}
 			});
-
-			// create window owner
-			windowManager.windowOwner = windowManager.createWindowOwner();
-			windowManager.windowOwner.show();
 
 			// discover plugins
 			ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
@@ -1277,7 +1274,7 @@ public class App extends Application implements Configurable {
 				(Consumer<String>) Environment::runCommand);
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run system command ");
-					p.show(PopOver.ScreenPos.App_Center);
+					p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
@@ -1288,14 +1285,12 @@ public class App extends Application implements Configurable {
 				(String command) -> APP.parameterProcessor.process(list(command)));
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run app command");
-					p.show(PopOver.ScreenPos.App_Center);
+					p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 		@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
 		static void showSearch() {
-			boolean isFocused = APP.windowManager.getFocused().isPresent();
-
 			DecoratedTextField tf = new DecoratedTextField();
 			Region clearButton = new Region();
 			clearButton.getStyleClass().addAll("graphic");
@@ -1328,7 +1323,6 @@ public class App extends Application implements Configurable {
 				}
 			});
 
-
 			tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
 			tf.left.get().setMouseTransparent(true);
 
@@ -1340,30 +1334,20 @@ public class App extends Application implements Configurable {
 			PopOver<TextField> p = new PopOver<>(tf);
 			p.title.set("Search for an action or option");
 			p.setAutoHide(true);
-			p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
-			if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
-				run(200, () -> {
-					p.getOwnerWindow().requestFocus();
-					p.requestFocus();
-					tf.requestFocus();
-				});
-			}
+			p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
 		static void openDictionary() {
-			boolean isFocused = APP.windowManager.getFocused().isPresent();
 			PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
 				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
 				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
 			));
 			p.title.set("Look up in dictionary...");
 			p.setAutoHide(true);
-			p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
+			p.show(ScreenPos.App_Center);
 			p.getContentNode().focusFirstConfigField();
 			p.getContentNode().hideOnOk.setValue(true);
-			if (!isFocused)   // TODO: remove this by incorporating it into PopOver#show()
-				run(200, () -> p.getOwnerWindow().requestFocus());
 		}
 
 		static void printAllImageFileMetadata(File file) {

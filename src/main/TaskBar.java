@@ -33,6 +33,7 @@ public class TaskBar {
 	private Consumer<Boolean> onMinimized;
 	private Runnable onAltTab;
 	private Runnable onClose;
+	private boolean enabled = false;
 
 	private Stage s;
 
@@ -48,6 +49,7 @@ public class TaskBar {
 
 	public void setScreen(Screen screen) {
 		noØ(screen);
+		if (!enabled) return;
 		if (scr==screen) return;
 
 		scr = screen;
@@ -102,6 +104,7 @@ public class TaskBar {
 	}
 
 	public void setVisible(boolean v) {
+		if (!enabled) return;
 		if (v) {
 			if (s==null) {
 				s = new Stage();
@@ -212,6 +215,7 @@ public class TaskBar {
 	private boolean ignore2 = false;
 
 	public void iconify(boolean v) {
+		if (!enabled) return;
 		if (ignore || ignore2) return;      // no idea if this is necessary
 		iconified = v;
 		if (s!=null) {

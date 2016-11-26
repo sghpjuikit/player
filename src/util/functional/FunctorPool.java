@@ -49,11 +49,11 @@ public class FunctorPool {
 		 * and we need its proper type X -> X (otherwise it erases type in function chains). Single
 		 * instance per class is required for Identity function.
 		 * Unfortunately:
-		 *     - we cant put it to functor pool, as we do not need which classes will need it
+		 *     - we cant put it to functor pool, as we do not know which classes will need it
 		 *     - we cant put it to functor pool on requests, as the returned functors for class X
 		 *       return functors for X and all superclasses of X, which causes IDENTITY function
 		 *       to be inserted multiple times, even worse, only one of them has proper signature!
-		 *     - hence we cant even return Set to prevent duplicates, as the order of class
+		 *     - hence we cant even return Set to prevent duplicates, as the order of class iteration
 		 *       is undefined. In addition, functors are actually wrapped.
 		 * Solution is to insert the proper IDENTITY functor into results, after they were
 		 * collected. This guarantees single instance and correct signature. The downside is that

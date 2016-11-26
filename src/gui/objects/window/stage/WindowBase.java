@@ -49,8 +49,8 @@ public class WindowBase {
     final ReadOnlyBooleanWrapper isMoving = new ReadOnlyBooleanWrapper(false);
     final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper<>(Resize.NONE);
     final BooleanProperty FullProp = new SimpleBooleanProperty(false);
-    private double demax_x = 0; // 0-1
-    private double demax_y = 0; // 0-1
+    private double deMaxX = 0; // 0-1
+    private double deMaxY = 0; // 0-1
 
     Stage s = new Stage();
 
@@ -108,8 +108,8 @@ public class WindowBase {
         s.setX(X.get());
         s.setY(Y.get());
         screen = Util.getScreen(getCenterXY()); // update screen
-        demax_x = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
-        demax_x = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
+        deMaxX = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
+        deMaxX = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
         // we need to refresh maximized value so set it to NONE and back
         Maximized m = MaxProp.get();
@@ -265,8 +265,8 @@ public class WindowBase {
             H.set(s.getHeight());
             X.set(s.getX());
             Y.set(s.getY());
-            demax_x = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();
-            demax_y = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight();
+            deMaxX = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();
+            deMaxY = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight();
         }
         // remember state
         MaxProp.set(val);
@@ -356,8 +356,8 @@ public class WindowBase {
         // width (otherwise we again risk outside of screen position))
         // and calculate new one: screen+offset setXY(X.get(),Y.get());
         stageresizeRelocate(
-            demax_x*screen.getBounds().getWidth() + screen.getBounds().getMinX(),
-            demax_y*screen.getBounds().getHeight() + screen.getBounds().getMinY(),
+            deMaxX *screen.getBounds().getWidth() + screen.getBounds().getMinX(),
+            deMaxY *screen.getBounds().getHeight() + screen.getBounds().getMinY(),
             W.get(),
             H.get()
         );

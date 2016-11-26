@@ -531,7 +531,7 @@ public class Window extends WindowBase {
      * Set title for this window shown in the header.
      */
     public void setTitle(String text) {
-	titleL.setText(text);
+		titleL.setText(text);
     }
 
     /** Set title alignment. */

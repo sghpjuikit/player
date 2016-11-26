@@ -492,6 +492,7 @@ public interface Util {
 		return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
 	}
 
+	// TODO: make generic
 	/**
 	 * Returns enum constants of an enum class in declared order. Works for
 	 * enums with class method bodies (where Enum.getEnumConstants) does not work.

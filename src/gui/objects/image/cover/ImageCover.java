@@ -56,7 +56,7 @@ public class ImageCover implements Cover {
 
     @Override
     public boolean isEmpty() {
-        return imageB!=null && imageI!=null;
+        return imageB==null && imageI==null;
     }
 
     @Override

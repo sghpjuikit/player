@@ -8,6 +8,34 @@ import javafx.scene.image.Image;
  * @author Martin Polakovic
  */
 public interface Cover {
+
+	Cover EMPTY = new Cover() {
+		@Override
+		public Image getImage() {
+			return null;
+		}
+
+		@Override
+		public Image getImage(double width, double height) {
+			return null;
+		}
+
+		@Override
+		public File getFile() {
+			return null;
+		}
+
+		@Override
+		public String getDescription() {
+			return "";
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return true;
+		}
+	};
+
     /**
      * Returns the cover image.
      */
@@ -30,13 +58,15 @@ public interface Cover {
     /**
      * Human readable information about the cover. No guarantees about the
      * format of the output. Do not parse.
+     * <br/>
      * Example: "jpg 500x500"
+     *
      * @return information about the cover or "" if not available. Never null.
      */
     String getDescription();
     
     /**
-     * Cover is empty if it doestnt contain any resource that could be turned
+     * Cover is empty if it doesn't contain any resource that could be turned
      * into an Image. For nonempty Cover method {@link #getImage()} at least
      * must not return null value.
      * @return 

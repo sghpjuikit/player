@@ -80,6 +80,7 @@ import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
+import static util.async.Async.runNew;
 import static util.file.Util.EMPTY_COLOR;
 import static util.functional.Util.*;
 
@@ -308,8 +309,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         return allItems.isEmpty();
     }
 
-
 /******************************************************************************/
+
     BooleanProperty add_not_set = new SimpleBooleanProperty(false);
 
     /**
@@ -338,6 +339,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
         else add(set, true);
     }
+
     private void add(Collection<? extends Item> added, boolean readAll) {
         if (added.isEmpty()) return;
 
@@ -355,7 +357,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             });
 
         // read metadata for items
-        MetadataReader.readMetadata(needs_read, (ok,result) -> {
+        runNew(MetadataReader.buildReadMetadataTask(needs_read, (ok,result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
@@ -367,8 +369,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 metadatas.addAll(unique);
                 populate(metadatas);
             }
-        });
+        }));
     }
+
     private void rem(Collection<? extends Item> rem) {
         if (rem.isEmpty()) return;
         // show progress, hide when populate ends - in populate()

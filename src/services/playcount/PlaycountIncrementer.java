@@ -157,7 +157,7 @@ public class PlaycountIncrementer extends ServiceBase {
 			int p = δ + m.getPlaycount();
 			Player.IO_THREAD.execute(() -> {
 				MetadataWriter.useNoRefresh(m, w -> w.setPlaycount(p));
-				Player.refreshItemWith(MetadataReader.create(m), true);
+				Player.refreshItemWith(MetadataReader.readMetadata(m), true);
 			});
 		}
 	}

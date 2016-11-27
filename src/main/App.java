@@ -52,7 +52,6 @@ import audio.Player;
 import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
-import util.async.future.ConvertListTask;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import audio.tagging.MetadataReader;
@@ -114,7 +113,7 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.future.Fut;
+import util.async.future.ConvertListTask;
 import util.conf.*;
 import util.dev.TODO;
 import util.file.AudioFileFormat;
@@ -159,6 +158,7 @@ import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
 import static util.async.Async.*;
+import static util.async.future.Fut.fut;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.file.Util.getFilesAudio;
@@ -614,7 +614,7 @@ public class App extends Application implements Configurable {
 							),
 							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
 								((Icon) e.getSource()).setDisable(true);
-								Fut.fut((List<File>) actionPane.getData())
+								fut((List<File>) actionPane.getData())
 									.use(files -> {
 										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
 									})
@@ -637,7 +637,7 @@ public class App extends Application implements Configurable {
 						tagger.get().load()
 					);
 				},
-				files -> Fut.fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
+				files -> fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
 			)),
 			new FastColAction<>("Add to existing playlist",
 				"Add items to existing playlist widget if possible or to a new one if not.",
@@ -968,13 +968,9 @@ public class App extends Application implements Configurable {
 
 
 	public static void refreshItemsFromFileJob(List<? extends Item> items) {
-		Fut.fut()
-//			.then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
-			.then(() -> {
-				List<Metadata> l = MetadataReader.readMetadata(items);
-				l.forEach(m -> System.out.println(m.getCustom5()));
-				Player.refreshItemsWith(l);
-			},Player.IO_THREAD)
+		fut(items)
+			.map(is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList(), Player.IO_THREAD)
+			.use(Player::refreshItemsWith, Player.IO_THREAD)
 			.showProgress(APP.windowManager.getActive().map(Window::taskAdd))
 			.run();
 	}
@@ -989,8 +985,9 @@ public class App extends Application implements Configurable {
 		if (m!=null) {
 			action.accept(m);
 		} else {
-			Fut.fut(i).map(MetadataReader::create,Player.IO_THREAD)
-					  .use(action, FX).run();
+			fut(i)
+				.map(MetadataReader::readMetadata,Player.IO_THREAD)
+				.use(action, FX).run();
 		}
 	}
 

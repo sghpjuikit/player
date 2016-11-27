@@ -64,6 +64,7 @@ import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.list;
 import static util.functional.Util.split;
+import static util.functional.Util.stream;
 
 /**
  *
@@ -879,6 +880,8 @@ public class MetadataWriter extends MetaItem {
 
 /******************************************************************************/
 
+	// TODO: use Fut
+
     public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter) {
         use(singletonList(item), setter);
     }
@@ -896,9 +899,9 @@ public class MetadataWriter extends MetaItem {
                     setter.accept(w);
                     w.write();
                 }
-            List<Metadata> fresh = MetadataReader.readMetadata(items);
-            Player.refreshItemsWith(fresh);
-            if (action!=null) runFX(() -> action.accept(fresh));
+            List<Metadata> ms = stream(items).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList();
+            Player.refreshItemsWith(ms);
+            if (action!=null) runFX(() -> action.accept(ms));
         });
     }
 
@@ -910,7 +913,7 @@ public class MetadataWriter extends MetaItem {
                 setter.accept(w);
                 boolean b = w.write();
 
-                Metadata m = MetadataReader.create(item);
+                Metadata m = MetadataReader.readMetadata(item);
                 if (!m.isEmpty()) Player.refreshItemWith(m);
                 if (action!=null) runFX(() -> action.accept(b));
             });

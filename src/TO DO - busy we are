@@ -4,7 +4,6 @@
 - improve messagePane, make okPane & errorPane, use icon to style
 - improve widget compilation string result
 - make actionPane content resizable + fix layout issues
-- clean up add/remove/readMetadata and refactor to Task subclasses and Futures
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - fix tagger input fields deleting
 - fix tagger popover size
@@ -129,26 +128,25 @@
 - javafx player MediaException: system cant find media file when weird character                    (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
   Its patched so playback continues with next item, but that is not a solution. Fill a bug.
-- database throws exception when transaction begins and library is importing files
-com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
-	at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]
-	at com.objectdb.o.JPE.g(JPE.java:145) ~[objectdb.jar:na]
-	at com.objectdb.o.ERR.f(ERR.java:56) ~[objectdb.jar:na]
-	at com.objectdb.o.OBC.onObjectDBError(OBC.java:1503) ~[objectdb.jar:na]
-	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:287) ~[objectdb.jar:na]
-	at AudioPlayer.services.database.Db.updatePer(Db.java:181) ~[Player/:na]
-	at AudioPlayer.Player.lambda$refreshItemsWithNow$13(Player.java:201) ~[Player/:na]
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1158) ~[na:na]
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:632) ~[na:na]
-	at java.lang.Thread.run(Thread.java:804) ~[na:na]
-Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when a transaction is active
-	at com.objectdb.o.MSG.d(MSG.java:62) ~[objectdb.jar:na]
-	at com.objectdb.o.OBC.E(OBC.java:1460) ~[objectdb.jar:na]
-	at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
-	at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
-	... 5 common frames omitted
-- annoying java "bugs" (problem scope == entire application)
-    - do something about the crazy TextField.prefColumnCount overriding prefSize! It totally breaks HGrow in HBox!
+- support multithreaded library access
+ for now, the below can happen:
+    com.objectdb.o._PersistenceException: Attempt to begin a new transaction when a transaction is active
+        at com.objectdb.o._PersistenceException.b(_PersistenceException.java:45) ~[objectdb.jar:na]
+        at com.objectdb.o.JPE.g(JPE.java:145) ~[objectdb.jar:na]
+        at com.objectdb.o.ERR.f(ERR.java:56) ~[objectdb.jar:na]
+        at com.objectdb.o.OBC.onObjectDBError(OBC.java:1503) ~[objectdb.jar:na]
+        at com.objectdb.jpa.EMImpl.begin(EMImpl.java:287) ~[objectdb.jar:na]
+        at AudioPlayer.services.database.Db.updatePer(Db.java:181) ~[Player/:na]
+        at AudioPlayer.Player.lambda$refreshItemsWithNow$13(Player.java:201) ~[Player/:na]
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1158) ~[na:na]
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:632) ~[na:na]
+        at java.lang.Thread.run(Thread.java:804) ~[na:na]
+    Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when a transaction is active
+        at com.objectdb.o.MSG.d(MSG.java:62) ~[objectdb.jar:na]
+        at com.objectdb.o.OBC.E(OBC.java:1460) ~[objectdb.jar:na]
+        at com.objectdb.o.OBM.bK(OBM.java:708) ~[objectdb.jar:na]
+        at com.objectdb.jpa.EMImpl.begin(EMImpl.java:284) ~[objectdb.jar:na]
+        ... 5 common frames omitted
 
 /* ---------- WORKAROUNDS ------------------------------------------------------------------------------------------- */
 
@@ -201,10 +199,9 @@ Caused by: com.objectdb.o.UserException: Attempt to begin a new transaction when
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
     --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
-- util.dev.TODO annotates also bugged code, CTRL+F it throughout the project
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory
-  exceptions for images like 6k x 6k px & closing in on 10MB...
+  exceptions for images of res 6k x 6k px & or size of 10MB...
 - any VM arguments, in order to be used in self-contained app, need to be
   specified in the build.xml file (Netbeans), for IntelliJ Idea, i have no idea. Fortunately
   I already have the .exe (which runs the application jar) built and it can be reused. It passes

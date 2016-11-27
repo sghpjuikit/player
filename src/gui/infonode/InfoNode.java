@@ -27,8 +27,8 @@ public interface InfoNode<B> {
     void setVisible(boolean v);
     
     /** Binds and sets visible true. */
-    default void showNbind(B bindable) {
-        bind(bindable);
+    default void showNbind(B b) {
+        bind(b);
         setVisible(true);
     }
     

@@ -115,7 +115,6 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
-import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -159,7 +158,6 @@ import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
 import static util.async.Async.*;
 import static util.async.future.Fut.fut;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
 import static util.file.Util.getFilesAudio;
 import static util.functional.Util.*;
@@ -946,18 +944,6 @@ public class App extends Application implements Configurable {
 			}
 		}
 		return instances;
-	}
-
-	@Deprecated
-	@TODO(purpose = FUNCTIONALITY, note="broken, might work only in dev mode & break if path has spaces")
-	private static File obtainAppSourceJar() {
-		// see: http://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
-		try {
-			return new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-		} catch (Exception e) {
-			LOGGER.error("Failed to obtain application source directory", e);
-			return null;
-		}
 	}
 
 	/** @return image of the icon of the application. */

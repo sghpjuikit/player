@@ -19,7 +19,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -53,6 +52,7 @@ import audio.Player;
 import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
+import util.async.future.ConvertListTask;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import audio.tagging.MetadataReader;
@@ -67,7 +67,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.infonode.ConvertListTask;
+import gui.infonode.ConvertTaskInfo;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
@@ -161,6 +161,7 @@ import static util.Util.getImageDim;
 import static util.async.Async.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.file.Environment.browse;
+import static util.file.Util.getFilesAudio;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -588,7 +589,10 @@ public class App extends Application implements Configurable {
 					V<Boolean> makeWritable = new V<>(true);
 					V<Boolean> editInTagger = new V<>(true);
 					V<Boolean> editOnlyAdded = new V<>(false);
-					ConvertListTask info = new ConvertListTask(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
+					V<Boolean> enqueue = new V<>(false);
+					ConvertListTask<Item,Metadata> task = MetadataReader.buildAddItemsToLibTask();
+					ConvertTaskInfo info = new ConvertTaskInfo(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
+									info.bind(task);
 					SingleR<Widget,Void> tagger = new SingleR<>(() -> stream(APP.widgetManager.factories)
 								.findFirst(f -> f.name().equals("Tagger"))
 								.get().create());
@@ -597,11 +601,12 @@ public class App extends Application implements Configurable {
 							new ConfigPane<>(
 								Config.forProperty(Boolean.class, "Make writable if read-only", makeWritable),
 								Config.forProperty(Boolean.class, "Edit in Tagger", editInTagger),
-								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded)
+								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded),
+								Config.forProperty(Boolean.class, "Enqueue in playlist", enqueue)
 							).getNode(),
 							layVertically(10, Pos.CENTER_LEFT,
 								info.state,
-								layHorizontally(10, Pos.CENTER,
+								layHorizontally(10, Pos.CENTER_LEFT,
 									info.message,
 									info.progressIndicator
 								),
@@ -609,28 +614,30 @@ public class App extends Application implements Configurable {
 							),
 							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
 								((Icon) e.getSource()).setDisable(true);
-								Fut.fut((List<File>)actionPane.getData())
+								Fut.fut((List<File>) actionPane.getData())
 									.use(files -> {
 										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
 									})
 									.map(files -> map(files, SimpleItem::new))
-									.map(MetadataReader::readAaddMetadata)
-									.use(info::bind, FX)
-									.use(Task::run)
-									.then(info::unbind, FX)
-									.use(t -> {
+									.map(task)
+									.showProgress(actionPane.actionProgress)
+									.use(r -> {
 										if (editInTagger.get()) {
-											List<? extends Item> items = editOnlyAdded.get() ? t.getValue().converted : t.getValue().all;
+											List<? extends Item> items = editOnlyAdded.get() ? r.converted : r.all;
 											((SongReader) tagger.get().getController()).read(items);
 										}
-									}, FX)
-									.showProgress(actionPane.actionProgress);
+										if (enqueue.get() && !r.all.isEmpty()) {
+											APP.widgetManager.find(PlaylistFeature.class, WidgetSource.ANY)
+												.map(PlaylistFeature::getPlaylist)
+												.ifPresent(p -> p.addItems(r.all));
+										}
+									}, FX);
 							}).withText("Execute")
 						),
 						tagger.get().load()
 					);
 				},
-				files -> Fut.fut(files).map(fs ->  Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
+				files -> Fut.fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
 			)),
 			new FastColAction<>("Add to existing playlist",
 				"Add items to existing playlist widget if possible or to a new one if not.",

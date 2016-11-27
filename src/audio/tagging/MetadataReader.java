@@ -1,4 +1,3 @@
-
 package audio.tagging;
 
 import java.util.ArrayList;
@@ -16,6 +15,7 @@ import org.jaudiotagger.audio.AudioFile;
 import audio.Item;
 import audio.playlist.PlaylistItem;
 import services.database.Db;
+import util.async.future.ConvertListTask;
 import util.file.AudioFileFormat.Use;
 
 import static services.database.Db.em;
@@ -225,33 +225,27 @@ public class MetadataReader{
 
 
     /**
-     * Creates a task (must be ran manually) that:
+     * Creates a task that:
      * <ul>
-     * <li>reads metadata from files of the items and adds items to library. If item
-     * already exists, it will not be overwritten or changed.
-     * <li> The task returns list of all provided items that are in the database after
-     * the task succeeds.
+     * <li> Reads metadata from files of the items.
+     * <li> Adds items to library. If library already contains the item, it will not be added.
+     * <li> Returns detailed information about the end result
      * </ul>
      *
-     * @param items
-     * @return task
+     * @return the task
      */
-    public static ConvertListTask<Item,Metadata> readAaddMetadata(Collection<? extends Item> items){
-        noØ(items);
+    public static ConvertListTask<Item,Metadata> buildAddItemsToLibTask() {
 	    return new ConvertListTask<>("Adding items to library") {
-		    private final List<Item> all = new ArrayList<>(items);
-
             @Override
-            protected Result<Item,Metadata> call() throws Exception {
+            protected Result<Item,Metadata> compute(Collection<? extends Item> input) {
+	            List<Item> all = new ArrayList<>(input);
                 List<Item> processed = new ArrayList<>(all.size());
                 List<Metadata> converted = new ArrayList<>(all.size());
                 List<Item> skipped = new ArrayList<>(0);
 
 	            em.getTransaction().begin();
 
-                for (Item item : items) {
-                	// debug: sleep(millis(500));
-
+                for (Item item : input) {
                     if (isCancelled()) {
                         log(MetadataReader.class).info("Metadata reading was canceled.");
                         break;
@@ -284,6 +278,7 @@ public class MetadataReader{
                     updateProgress(processed.size(), all.size());
 	                updateSkipped(skipped.size());
                 }
+
                 em.getTransaction().commit();
 
 	            // update library model

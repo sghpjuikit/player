@@ -5,15 +5,17 @@ import javafx.scene.control.ProgressIndicator;
 
 import org.reactfx.Subscription;
 
+import util.async.future.ConvertListTask;
+
 import static util.Util.enumToHuman;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.unsubscribe;
 
-public class ConvertListTask extends InfoTask<audio.tagging.ConvertListTask<?,?>> {
+public class ConvertTaskInfo extends InfoTask<ConvertListTask<?,?>> {
 	public final Labeled skipped, state;
 	private Subscription skippedS, stateS;
 
-	public ConvertListTask(Labeled title, Labeled message, Labeled skipped, Labeled state, ProgressIndicator pi) {
+	public ConvertTaskInfo(Labeled title, Labeled message, Labeled skipped, Labeled state, ProgressIndicator pi) {
 		super(title, message, pi);
 		this.skipped = skipped;
 		this.state = state;
@@ -26,7 +28,7 @@ public class ConvertListTask extends InfoTask<audio.tagging.ConvertListTask<?,?>
 	}
 
 	@Override
-	public void bind(audio.tagging.ConvertListTask<?,?> t) {
+	public void bind(ConvertListTask<?,?> t) {
 		super.bind(t);
 		if (skipped!=null) skippedS = maintain(t.skippedProperty(), v -> "Skipped: " + v, skipped.textProperty());
 		if (state!=null) stateS = maintain(t.stateProperty(), v -> "State: " + enumToHuman(v), state.textProperty());

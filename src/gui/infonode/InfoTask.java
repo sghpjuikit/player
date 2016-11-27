@@ -4,14 +4,22 @@ import javafx.concurrent.Task;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
 
+import org.reactfx.Subscription;
+
+import static javafx.concurrent.Worker.State.READY;
+import static javafx.concurrent.Worker.State.SCHEDULED;
+import static util.reactive.Util.maintain;
+import static util.reactive.Util.unsubscribe;
+
 /**
- *  Provides information about the task and its progress.
+ * Provides information about the task and its progress.
  */
 public class InfoTask<T extends Task> implements InfoNode<T> {
 
 	public final Labeled title;
 	public final Labeled message;
 	public final ProgressIndicator progressIndicator;
+	private Subscription titleS, messageS, progressS;
 
 	/**
 	 * @param title title label. Use null if none.
@@ -24,7 +32,6 @@ public class InfoTask<T extends Task> implements InfoNode<T> {
 		this.progressIndicator = pi;
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void setVisible(boolean v) {
 		if (title!=null) title.setVisible(v);
@@ -32,21 +39,19 @@ public class InfoTask<T extends Task> implements InfoNode<T> {
 		if (progressIndicator!=null) progressIndicator.setVisible(v);
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void bind(T t) {
 		unbind();
-		if (progressIndicator!=null) progressIndicator.progressProperty().bind(t.progressProperty());
-		if (title!=null) title.textProperty().bind(t.titleProperty());
-		if (message!=null) message.textProperty().bind(t.messageProperty());
+		if (progressIndicator!=null) maintain(t.progressProperty(), p -> t.getState()==SCHEDULED || t.getState()==READY ? 0 : p, progressIndicator.progressProperty());
+		if (title!=null) maintain(t.titleProperty(), title.textProperty());
+		if (message!=null) maintain(t.messageProperty(), message.textProperty());
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void unbind() {
-		if (progressIndicator!=null) progressIndicator.progressProperty().unbind();
-		if (title!=null) title.textProperty().unbind();
-		if (message!=null) message.textProperty().unbind();
+		if (titleS!=null) unsubscribe(titleS);
+		if (messageS!=null) unsubscribe(messageS);
+		if (progressS!=null) unsubscribe(progressS);
 	}
 
 }

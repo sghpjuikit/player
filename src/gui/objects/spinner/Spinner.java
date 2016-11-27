@@ -40,7 +40,7 @@ public class Spinner extends ProgressIndicator {
     public Spinner hidingOnIdle(boolean v) {
     	if (v) {
 		    if (hidingOnIdle == null)
-		    	hidingOnIdle = maintain(progressProperty(), p -> p.doubleValue()!=1, visibleProperty());
+		    	hidingOnIdle = maintain(progressProperty(), p -> p.doubleValue()!=1 && p.doubleValue()!=0, visibleProperty());
 	    } else {
 	    	if (hidingOnIdle!=null) hidingOnIdle.unsubscribe();
 		    hidingOnIdle = unsubscribe(hidingOnIdle);
@@ -94,7 +94,8 @@ public class Spinner extends ProgressIndicator {
         private void update() {
             Spinner s = getSkinnable();
             double p = s.getProgress();
-            if (s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
+            //
+            if (p!=1 && s.getParent()!=null && s.getScene()!=null && s.isVisible()) {
                 if (rt==null) {
                     rt = new RotateTransition(Duration.seconds(120), inner);
                     rt.setInterpolator(Interpolator.LINEAR);

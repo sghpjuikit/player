@@ -49,7 +49,7 @@ public class FileCover implements Cover {
 
     @Override
     public boolean isEmpty() {
-        return file != null;
+        return file == null;
     }
 
     @Override

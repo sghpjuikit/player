@@ -5,7 +5,6 @@
 - improve widget compilation string result
 - make actionPane content resizable + fix layout issues
 - clean up add/remove/readMetadata and refactor to Task subclasses and Futures
-- impl cover parent album name dir convention
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - fix tagger input fields deleting
 - fix tagger popover size

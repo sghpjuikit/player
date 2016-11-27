@@ -44,7 +44,6 @@ import gui.objects.image.cover.FileCover;
 import gui.objects.image.cover.ImageCover;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
-import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.ImageFileFormat;
 import util.file.Util;
@@ -59,6 +58,7 @@ import static audio.tagging.Metadata.Field.COVER_INFO;
 import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static util.Util.emptyOr;
 import static util.Util.localDateTimeFromMillis;
 import static util.dev.Util.log;
@@ -767,14 +767,12 @@ public final class Metadata extends MetaItem<Metadata> {
      */
     public Cover getCover(CoverSource source) {
         switch(source) {
-            case TAG: return getCover();
-            case DIRECTORY: return new FileCover(getCoverFromDirAsFile(), "");
-            case ANY : {
-                Cover c = getCover();
-                return c.getImage()!=null
-                        ? c
-                        : new FileCover(getCoverFromDirAsFile(), "");
-            }
+            case TAG: return getCoverOfTag();
+            case DIRECTORY: return getCoverOfDir().map(f -> (Cover) new FileCover(f, "")).orElse(Cover.EMPTY);
+            case ANY : return stream(CoverSource.TAG, CoverSource.DIRECTORY)
+								.map(this::getCover)
+								.findFirst(c -> !c.isEmpty())
+								.orElse(Cover.EMPTY);
             default: throw new SwitchException(source);
         }
     }
@@ -787,7 +785,7 @@ public final class Metadata extends MetaItem<Metadata> {
         cover = tag==null ? null : tag.getFirstArtwork();
     }
 
-    private Cover getCover() {
+    private Cover getCoverOfTag() {
         try {
             loadCover();
             if (cover==null) return new ImageCover((Image)null, getCoverInfo());
@@ -818,37 +816,21 @@ public final class Metadata extends MetaItem<Metadata> {
     }
 
     /**
-     * Identical to getCoverFromDir() method, but returns the image file
-     * itself. Only file based items.
+     * Returns the cover image file or no-op if this item is not file based.
      * <p/>
-     * If the Image object of the cover suffices, it is recommended to
-     * avoid this method, or even better use getCoverFromAnySource()
+     * If the Image object of the cover suffices, it is recommended to avoid this method, or even better use
+     * {@link #getCover(gui.objects.image.cover.Cover.CoverSource)}
      *
      * @return cover file
      */
-    @TODO(note = "ensure null does not cause any problems")
-    private File getCoverFromDirAsFile() {
-        if (!isFileBased()) return null;
+    private Optional<File> getCoverOfDir() {
+        if (!isFileBased()) return Optional.empty();
 
-        File dir = getFile().getParentFile();
-        return listFiles(dir)
-            .filter(f -> {
-                 String filename = f.getName();
-                 int i = filename.lastIndexOf('.');
-                 if (i == -1) return false;
-                 String name = filename.substring(0, i);
-	            // TODO: fix logic, this should be chained as suppliers of Optional.orElse()
-	            // this way the predicate priorities do no work if multiple files match some of the predicates!
-                 return ImageFileFormat.isSupported(f.toURI()) && (
-                             name.equalsIgnoreCase("cover") ||
-                             name.equalsIgnoreCase("folder") ||
-                             name.equalsIgnoreCase(getFilenameFull()) ||
-                             name.equalsIgnoreCase(getFilename()) ||
-                             name.equalsIgnoreCase(getTitle()) ||
-                             name.equalsIgnoreCase(getAlbum())
-                     );
-            })
-            .findFirst().orElse(null);
+        List<File> fs = listFiles(getLocation()).collect(toList());
+        return stream(getFilename(), getTitle(), getAlbum(), "cover", "folder")
+			.flatMap(filename -> fs.stream().filter(f -> Util.getName(f).equalsIgnoreCase(filename)))
+			.filter(ImageFileFormat::isSupported)
+	        .findFirst();
     }
 
     /** @return the rating or -1 if empty. */
@@ -1112,7 +1094,7 @@ public final class Metadata extends MetaItem<Metadata> {
         DISCS_INFO(Metadata::getDiscInfo,"Complete disc number in format: disc/disc total"),
         GENRE(Metadata::getGenre,"Genre of the song"),
         YEAR(Metadata::getYear,"Year the album was published"),
-        COVER(Metadata::getCover,"Cover of the song"),
+        COVER(Metadata::getCoverOfTag,"Cover of the song"),
         COVER_INFO(Metadata::getCoverInfo,"Cover information"),
         RATING(Metadata::getRatingPercent,"Song rating in 0-1 range"),
         RATING_RAW(Metadata::getRating,"Song rating tag value. Depends on tag type"),

@@ -31,6 +31,7 @@ package gui.objects.popover;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
@@ -48,6 +49,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
@@ -67,6 +69,7 @@ import static util.functional.Util.isAny;
 import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
 import static util.graphics.Util.getScreenForMouse;
+import static util.type.Util.getEnumConstants;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
@@ -171,10 +174,10 @@ import static util.graphics.Util.getScreenForMouse;
 public class PopOver<N extends Node> extends PopupControl {
 
     public static final List<PopOver> active_popups = new ArrayList<>();
+	private static final Object CLOSE_OWNER = new Object();
     private static final String STYLE_CLASS = "popover";
     private static final String STYLE_CLASS_HELP = "help-popover";
     private static final String STYLE_CLASS_HELP_TEXT = "help-popover-text";
-
 
     /**
      * Creates simple help popover designed as a tooltip for help buttons.
@@ -240,20 +243,6 @@ public class PopOver<N extends Node> extends PopupControl {
         getStyleClass().add(STYLE_CLASS);
         setConsumeAutoHidingEvents(false);
         setAutoFix(false);
-
-
-        // not working as advertised, disable for now...
-//        ChangeListener<Object> repositionListener = (o, oldV, newV) -> {
-//            if (isShowing() && !isDetached()) {
-//                System.out.println("reposition listener fired");
-//                show(ownerNode, getX(), getY());
-//                adjustWindowLocation();
-//            }
-//        };
-//        arrowSize.addListener(repositionListener);
-//        cornerRadius.addListener(repositionListener);
-//        arrowLocation.addListener(repositionListener);
-//        arrowIndent.addListener(repositionListener);
     }
 
     /**
@@ -362,9 +351,11 @@ public class PopOver<N extends Node> extends PopupControl {
      * observed to cause serious problems.
      */
     public void hideImmediatelly() {
-        active_popups.remove(this);
+    	active_popups.remove(this);
         uninstallMoveWith();
         super.hide();
+    	if (getProperties().containsKey(CLOSE_OWNER)) ((Stage) getOwnerWindow()).close();
+    	getProperties().remove(CLOSE_OWNER);
     }
 
 /******************************************************************************/
@@ -476,11 +467,21 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
-	    // TODO: do not use APP.windowOwner, instead create new hidden window and focus it, or closing this popup may
-	    // not return focus to whatever application had it before
-        showThis(null, pos.isAppCentric() && APP.windowManager.getActive().isPresent() ? APP.windowManager.getActive().map(w -> w.getStage()).get() : APP.windowManager.windowOwner.getStage());
-        position(pos.calcX(this), pos.calcY(this));
-        if (!pos.isAppCentric()) uninstallMoveWith();
+	    Optional<Window> owneR = APP.windowManager.getFocused()
+						.filter(w -> pos.isAppCentric())
+						.map(WindowBase::getStage);
+	    boolean isScreenCentric = !owneR.isPresent();
+	    Optional<Window> ownerO = owneR.or(() -> Optional.ofNullable(getOwnerWindow()).filter(Window::isShowing));
+	    boolean isOwnerCreated = !ownerO.isPresent();
+	    Window owner = ownerO.orElseGet(APP.windowManager::createStageOwner);
+	    ScreenPos p = isScreenCentric ? pos.toScreenCentric() : pos;
+	    owner.requestFocus();
+        showThis(null, owner);
+        position(p.calcX(this), p.calcY(this));
+	    owner.requestFocus();
+        if (!p.isAppCentric()) uninstallMoveWith();
+        if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);
+
     }
 
     @Override
@@ -877,6 +878,14 @@ public class PopOver<N extends Node> extends PopupControl {
 
         public boolean isAppCentric() {
             return isAny(this, App_Bottom_Left,App_Bottom_Right,App_Center,App_Top_Left,App_Top_Right);
+        }
+
+        public ScreenPos toScreenCentric() {
+        	return (ScreenPos) getEnumConstants(ScreenPos.class)[ordinal()%5];
+        }
+
+        public ScreenPos toAppCentric() {
+        	return (ScreenPos) getEnumConstants(ScreenPos.class)[5+ordinal()%5];
         }
 
         public double calcX(PopOver popup) {

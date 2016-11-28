@@ -24,6 +24,7 @@ import audio.Player;
 import audio.playback.PLAYBACK;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
+import gui.objects.window.stage.WindowBase;
 import unused.SimpleConfigurator;
 import util.collections.mapset.MapSet;
 import util.conf.ValueConfig;
@@ -670,7 +671,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFiles(boolean add) {
-        List<File> files = Environment.chooseFiles("Choose Audio Files", PlaylistManager.browse, APP.windowManager.windowOwner.getStage(), AudioFileFormat.filter(Use.PLAYBACK));
+        List<File> files = Environment.chooseFiles(
+        	"Choose Audio Files",
+	        PlaylistManager.browse,
+	        APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
+	        AudioFileFormat.filter(Use.PLAYBACK)
+        );
         if (files != null) {
             PlaylistManager.browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -691,8 +697,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFolder(boolean add) {
-        File dir = Environment.chooseFile("Choose Audio Files From Directory Tree",
-                DIRECTORY, PlaylistManager.browse, APP.windowManager.windowOwner.getStage());
+        File dir = Environment.chooseFile(
+        	"Choose Audio Files From Directory Tree",
+            DIRECTORY,
+	        PlaylistManager.browse,
+	        APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
+        );
         if (dir != null) {
             PlaylistManager.browse = dir;
             List<URI> queue = new ArrayList<>();

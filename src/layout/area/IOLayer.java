@@ -8,7 +8,6 @@ package layout.area;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javafx.animation.PathTransition;
@@ -633,11 +632,11 @@ public class IOLayer extends StackPane {
     }
 
     public static String oToStr(Output<?> o) {
-        if (o.typet==null) {
+        if (o.typeT ==null) {
             return APP.className.get(o.getType()) + " : " + o.getName() +
                    "\n" + APP.instanceName.get(o.getValue());
         } else {
-            return APP.className.get(o.typet.getRawType()) + " : " + o.getName() +
+            return APP.className.get(o.typeT.getRawType()) + " : " + o.getName() +
                    "\n" + APP.instanceName.get(o.getValue());
         }
     }

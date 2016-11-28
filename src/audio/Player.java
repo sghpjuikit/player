@@ -18,23 +18,24 @@ import audio.playback.PLAYBACK;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.playlist.PlaylistManager;
-import services.database.Db;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
 import layout.widget.controller.io.InOutput;
+import services.database.Db;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
+import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 
 import static audio.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static util.async.Async.FX;
+import static util.async.Async.runNew;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.functional.Util.forEachBoth;
-import static util.functional.Util.forEachPair;
 import static util.functional.Util.list;
 
 /**
@@ -121,7 +122,7 @@ public class Player {
         return () -> refreshHandlers.remove(handler);
     }
 
-    /** Singleton variant of {@link #refreshItems(java.util.List)}. */
+    /** Singleton variant of {@link #refreshItems(java.util.Collection)}. */
     public static void refreshItem(Item i) {
         noØ(i);
         refreshItems(list(i));
@@ -138,9 +139,9 @@ public class Player {
         noØ(is);
         if (is.isEmpty()) return;
 
-        MetadataReader.readMetadata(is, (ok,m) -> {
+	    runNew(MetadataReader.buildReadMetadataTask(is, (ok,m) -> {
             if (ok) refreshItemsWith(m);
-        });
+        }));
     }
 
     /** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
@@ -317,6 +318,7 @@ public class Player {
         public void update() {
             load(false, val);
         }
+
         public void update(Metadata m) {
             set(false, m);
         }
@@ -346,35 +348,22 @@ public class Player {
             nextCachePreloader.start();
         }
 
-        // load metadata, type indicates UPDATE vs CHANGE
-        private void load(boolean changeType, Item item){
-            MetadataReader.create(item, (success, result) -> {
-                if (success){
-                    set(changeType, result);
-                    log(Player.class).info("Current metadata loaded.");
-                } else {
-                    set(changeType, item.toMeta());
-                    log(Player.class).info("Current metadata load fail. Metadata will be not be fully formed.");
-                }
-            });
-        }
+	    // load metadata, type indicates UPDATE vs CHANGE
+	    private void load(boolean changeType, Item item) {
+		    Fut.fut(item)
+			    .map(MetadataReader::readMetadata)
+			    .use(m -> set(changeType, m.isEmpty() ? item.toMeta() : m), FX);
+	    }
 
-        private void preloadNext(){
-            log(Player.class).info("Preloading metadata for next item to play.");
-            PlaylistItem next = PlaylistManager.use(p -> p.getNextPlaying(),null);
-            if (next == null){
-                log(Player.class).info("Preloading aborted. No next playing item.");
-            } else {
-                MetadataReader.create(next,(success, result) -> {
-                    if (success){
-                        nextMetadataCache = result;
-                        log(Player.class).info("Next item metadata cache preloaded.");
-                    } else {
-                        // dont set any value, not even empty
-                        log(Player.class).info("Preloading next item metadata into cache failed.");
-                    }
-                });
-            }
-        }
+	    private void preloadNext() {
+		    log(Player.class).info("Pre-loading metadata for next item to play.");
+
+		    PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying,null);
+		    if (next != null) {
+			    Fut.fut(next)
+				    .map(MetadataReader::readMetadata)
+				    .use(m -> nextMetadataCache = m, FX);
+		    }
+	    }
     }
 }

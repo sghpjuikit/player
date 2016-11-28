@@ -65,7 +65,7 @@ import static util.graphics.drag.DragUtil.installDrag;
 public final class Guide implements Configurable {
 
 	private static final String STYLECLASS_TEXT = "guide-text";
-	private final double ICON_SIZE = 40; // use css style instead
+	private final double ICON_SIZE = 40; // TODO: use css style instead
 
 	private final List<Hint> hints = new ArrayList<>();
 	private int prev_at = -1;
@@ -89,7 +89,7 @@ public final class Guide implements Configurable {
 		p.setAutoHide(false);
 		p.setHideOnClick(false);
 		p.setHideOnEscape(true);
-		p.getSkinn().setContentPadding(new Insets(8));
+		p.getSkinn().setContentPadding(new Insets(8)); // TODO: use css style instead
 		p.setArrowSize(0);
 		p.detached.set(true);
 		p.setOnHiding(e -> run(20,() -> APP.actionStream.push("Guide closing")));

@@ -17,8 +17,6 @@ public interface ImagesDisplayFeature {
 
 	/**
 	 * Displays the images.
-	 *
-	 * @param imgFiles
 	 */
 	void showImages(Collection<File> imgFiles);
 

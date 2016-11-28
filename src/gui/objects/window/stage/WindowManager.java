@@ -15,7 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -76,9 +76,6 @@ public class WindowManager implements Configurable<Object> {
 
 	private static final Logger LOGGER = log(WindowManager.class);
 
-	/**
-	 * Window owner - all 'top' windows are owned by it, see {@link javafx.stage.Stage#getWindowOwner()}. Never null.
-	 */ public Window windowOwner;
 	/**
 	 * Main application window, see {@link gui.objects.window.stage.Window#isMain}. May be null.
 	 */ private Window mainWindow;
@@ -163,15 +160,20 @@ public class WindowManager implements Configurable<Object> {
     	return create(false);
     }
 
+	public Stage createStageOwner() {
+        Stage s = new Stage(UTILITY); // utility means no taskbar
+              s.setWidth(10);
+              s.setHeight(10);
+              s.setX(0);
+              s.setY(0);
+              s.setOpacity(0);
+              s.setScene(new Scene(new Pane())); // allows child stages (e.g. popup) to receive key events
+              s.show();
+		return s;
+	}
     private Window create(boolean canBeMain) {
-        Stage owner = new Stage(UTILITY); // utility means no taskbar
-              owner.setWidth(0);
-              owner.setHeight(0);
-              owner.setX(0);
-              owner.setY(0);
-              owner.setOpacity(0);
-              owner.show();
-        return create(owner,UNDECORATED, canBeMain);
+//        return create(owner,UNDECORATED, canBeMain);
+        return create(null,UNDECORATED, canBeMain);
     }
 
     public Window create(Stage owner, StageStyle style, boolean canBeMain) {
@@ -191,21 +193,11 @@ public class WindowManager implements Configurable<Object> {
         w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));
         w.disposables.add(maintain(window_borderless, w::setBorderless));
         w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
+	    w.getStage().setTitle(APP.name);
+	    w.getStage().getIcons().add(APP.getIcon());
 
         return w;
     }
-
-	public Window createWindowOwner() {
-		Window w = new Window(null, UTILITY);
-		w.s.setOpacity(0);
-		w.s.setScene(new Scene(new Region()));
-		((Region)w.s.getScene().getRoot()).setBackground(null);
-		w.s.getScene().setFill(null);
-		w.s.setTitle(APP.name);
-		w.s.getIcons().add(APP.getIcon());
-		w.setSize(20, 20);
-		return w;
-	}
 
     private Window createWindow(boolean canBeMain) {
 	    LOGGER.debug("Creating default window");
@@ -244,9 +236,7 @@ public class WindowManager implements Configurable<Object> {
 //        s.iconifiedProperty().addListener((o,ov,nv) -> {
 //            if (nv) APP.taskbarIcon.iconify(nv);
 //        });
-
     }
-
 
 	// TODO: create dynamically from config annotation
 	@IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
@@ -271,10 +261,8 @@ public class WindowManager implements Configurable<Object> {
 
         mini.set(val);
         if (val) {
-            // avoid pointless operation
             if (miniWindow!=null && miniWindow.isShowing()) return;
-            // if not available, make new one, set initial size
-            if (miniWindow == null)  miniWindow = create();
+            if (miniWindow == null)  miniWindow = create(createStageOwner(), UNDECORATED, false);
             Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(false);
@@ -317,8 +305,6 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.update();
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
-            // todo - rather allow widget area have no controls and use Window.setContent(Component)
-            //        for simplicity and consistency
 
             // auto-hiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible

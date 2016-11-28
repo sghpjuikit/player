@@ -3,6 +3,9 @@ package util.file.mimetype;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static util.dev.Util.noØ;
+import static util.functional.Util.stream;
+
 /**
  * Represents a mimetype with its possible extension. If multiple
  * extensions are provided, the first is the default.
@@ -24,8 +27,13 @@ public class MimeType {
 	private String[] extensions;
 
 	public MimeType(String mimeType, String... extensions) {
+		noØ(mimeType);
 		this.mimeType = mimeType;
 		this.extensions = extensions;
+	}
+
+	public String getName() {
+		return mimeType;
 	}
 
 	public String getMimeType() {
@@ -37,8 +45,8 @@ public class MimeType {
 		return i<0 ? mimeType : mimeType.substring(0,i);
 	}
 
-	public boolean isOfType(String type) {
-		return mimeType.equalsIgnoreCase(type);
+	public boolean isOfType(String extension) {
+		return stream(extensions).nonNull().anyMatch(ext -> ext.equalsIgnoreCase(extension));
 	}
 
 	public String[] getExtensions() {
@@ -61,8 +69,8 @@ public class MimeType {
 		if (!(o instanceof MimeType)) {
 			return false;
 		}
-		MimeType mimeType1 = (MimeType) o;
-		return Objects.equals(mimeType, mimeType1.mimeType) && Arrays.equals(extensions, mimeType1.extensions);
+		MimeType m = (MimeType) o;
+		return Objects.equals(mimeType, m.mimeType) && Arrays.equals(extensions, m.extensions);
 	}
 
 	@Override

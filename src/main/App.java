@@ -19,7 +19,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -67,13 +66,14 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.infonode.ConvertListTask;
+import gui.infonode.ConvertTaskInfo;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
+import gui.objects.popover.PopOver.ScreenPos;
 import gui.objects.spinner.Spinner;
 import gui.objects.tablecell.RatingCellFactory;
 import gui.objects.tablecell.RatingRatingCellFactory;
@@ -113,9 +113,8 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.future.Fut;
+import util.async.future.ConvertListTask;
 import util.conf.*;
-import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -158,8 +157,9 @@ import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
 import static util.async.Async.*;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.async.future.Fut.fut;
 import static util.file.Environment.browse;
+import static util.file.Util.getFilesAudio;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -349,7 +349,7 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(name = "Enabled", group = "Taskbar", info = "Show taskbar icon. Disabling taskbar will"
 			+ "also disable ALT+TAB functionality.")
-	public final V<Boolean> taskbarEnabled = new V<>(true, taskbarIcon::setVisible);
+	public final V<Boolean> taskbarEnabled = new V<>(true);
 
 	@IsConfig(info = "Preferred text when no tag value for field. This value can be overridden.")
 	public String TAG_NO_VALUE = "<none>";
@@ -587,7 +587,10 @@ public class App extends Application implements Configurable {
 					V<Boolean> makeWritable = new V<>(true);
 					V<Boolean> editInTagger = new V<>(true);
 					V<Boolean> editOnlyAdded = new V<>(false);
-					ConvertListTask info = new ConvertListTask(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
+					V<Boolean> enqueue = new V<>(false);
+					ConvertListTask<Item,Metadata> task = MetadataReader.buildAddItemsToLibTask();
+					ConvertTaskInfo info = new ConvertTaskInfo(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
+									info.bind(task);
 					SingleR<Widget,Void> tagger = new SingleR<>(() -> stream(APP.widgetManager.factories)
 								.findFirst(f -> f.name().equals("Tagger"))
 								.get().create());
@@ -596,11 +599,12 @@ public class App extends Application implements Configurable {
 							new ConfigPane<>(
 								Config.forProperty(Boolean.class, "Make writable if read-only", makeWritable),
 								Config.forProperty(Boolean.class, "Edit in Tagger", editInTagger),
-								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded)
+								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded),
+								Config.forProperty(Boolean.class, "Enqueue in playlist", enqueue)
 							).getNode(),
 							layVertically(10, Pos.CENTER_LEFT,
 								info.state,
-								layHorizontally(10, Pos.CENTER,
+								layHorizontally(10, Pos.CENTER_LEFT,
 									info.message,
 									info.progressIndicator
 								),
@@ -608,28 +612,30 @@ public class App extends Application implements Configurable {
 							),
 							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
 								((Icon) e.getSource()).setDisable(true);
-								Fut.fut((List<File>)actionPane.getData())
+								fut((List<File>) actionPane.getData())
 									.use(files -> {
 										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
 									})
 									.map(files -> map(files, SimpleItem::new))
-									.map(MetadataReader::readAaddMetadata)
-									.use(info::bind, FX)
-									.use(Task::run)
-									.then(info::unbind, FX)
-									.use(t -> {
+									.map(task)
+									.showProgress(actionPane.actionProgress)
+									.use(r -> {
 										if (editInTagger.get()) {
-											List<? extends Item> items = editOnlyAdded.get() ? t.getValue().converted : t.getValue().all;
+											List<? extends Item> items = editOnlyAdded.get() ? r.converted : r.all;
 											((SongReader) tagger.get().getController()).read(items);
 										}
-									}, FX)
-									.showProgress(actionPane.actionProgress);
+										if (enqueue.get() && !r.all.isEmpty()) {
+											APP.widgetManager.find(PlaylistFeature.class, WidgetSource.ANY)
+												.map(PlaylistFeature::getPlaylist)
+												.ifPresent(p -> p.addItems(r.all));
+										}
+									}, FX);
 							}).withText("Execute")
 						),
 						tagger.get().load()
 					);
 				},
-				files -> Fut.fut(files).map(fs ->  Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
+				files -> fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
 			)),
 			new FastColAction<>("Add to existing playlist",
 				"Add items to existing playlist widget if possible or to a new one if not.",
@@ -728,10 +734,6 @@ public class App extends Application implements Configurable {
 						windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
 				}
 			});
-
-			// create window owner
-			windowManager.windowOwner = windowManager.createWindowOwner();
-			windowManager.windowOwner.show();
 
 			// discover plugins
 			ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
@@ -944,18 +946,6 @@ public class App extends Application implements Configurable {
 		return instances;
 	}
 
-	@Deprecated
-	@TODO(purpose = FUNCTIONALITY, note="broken, might work only in dev mode & break if path has spaces")
-	private static File obtainAppSourceJar() {
-		// see: http://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
-		try {
-			return new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-		} catch (Exception e) {
-			LOGGER.error("Failed to obtain application source directory", e);
-			return null;
-		}
-	}
-
 	/** @return image of the icon of the application. */
 	public Image getIcon() {
 		return new Image(new File("icon512.png").toURI().toString());
@@ -964,30 +954,27 @@ public class App extends Application implements Configurable {
 
 
 	public static void refreshItemsFromFileJob(List<? extends Item> items) {
-		Fut.fut()
-//           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
-		   .then(() -> {
-			   List<Metadata> l = MetadataReader.readMetadata(items);
-			   l.forEach(m -> System.out.println(m.getCustom5()));
-			   Player.refreshItemsWith(l);
-		   },Player.IO_THREAD)
-		   .showProgress(APP.windowManager.getActive().map(Window::taskAdd))
-		   .run();
+		fut(items)
+			.map(is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList(), Player.IO_THREAD)
+			.use(Player::refreshItemsWith, Player.IO_THREAD)
+			.showProgress(APP.windowManager.getActive().map(Window::taskAdd))
+			.run();
 	}
 
 	public static void itemToMeta(Item i, Consumer<Metadata> action) {
 	   if (i.same(Player.playingItem.get())) {
-		   action.accept(Player.playingItem.get());
-		   return;
-	   }
+			action.accept(Player.playingItem.get());
+			return;
+		}
 
-	   Metadata m = Db.items_byId.get(i.getId());
-	   if (m!=null) {
-		   action.accept(m);
-	   } else {
-			Fut.fut(i).map(MetadataReader::create,Player.IO_THREAD)
-					  .use(action, FX).run();
-	   }
+		Metadata m = Db.items_byId.get(i.getId());
+		if (m!=null) {
+			action.accept(m);
+		} else {
+			fut(i)
+				.map(MetadataReader::readMetadata,Player.IO_THREAD)
+				.use(action, FX).run();
+		}
 	}
 
 	public static void openImageFullscreen(File image, Screen screen) {
@@ -1277,7 +1264,7 @@ public class App extends Application implements Configurable {
 				(Consumer<String>) Environment::runCommand);
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run system command ");
-					p.show(PopOver.ScreenPos.App_Center);
+					p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
@@ -1288,14 +1275,12 @@ public class App extends Application implements Configurable {
 				(String command) -> APP.parameterProcessor.process(list(command)));
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run app command");
-					p.show(PopOver.ScreenPos.App_Center);
+					p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 		@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
 		static void showSearch() {
-			boolean isFocused = APP.windowManager.getFocused().isPresent();
-
 			DecoratedTextField tf = new DecoratedTextField();
 			Region clearButton = new Region();
 			clearButton.getStyleClass().addAll("graphic");
@@ -1328,7 +1313,6 @@ public class App extends Application implements Configurable {
 				}
 			});
 
-
 			tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
 			tf.left.get().setMouseTransparent(true);
 
@@ -1340,30 +1324,20 @@ public class App extends Application implements Configurable {
 			PopOver<TextField> p = new PopOver<>(tf);
 			p.title.set("Search for an action or option");
 			p.setAutoHide(true);
-			p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
-			if (!isFocused) {   // TODO: remove this by incorporating it into PopOver#show()
-				run(200, () -> {
-					p.getOwnerWindow().requestFocus();
-					p.requestFocus();
-					tf.requestFocus();
-				});
-			}
+			p.show(ScreenPos.App_Center);
 		}
 
 		@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
 		static void openDictionary() {
-			boolean isFocused = APP.windowManager.getFocused().isPresent();
 			PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
 				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
 				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
 			));
 			p.title.set("Look up in dictionary...");
 			p.setAutoHide(true);
-			p.show(isFocused ? PopOver.ScreenPos.App_Center : PopOver.ScreenPos.Screen_Center);
+			p.show(ScreenPos.App_Center);
 			p.getContentNode().focusFirstConfigField();
 			p.getContentNode().hideOnOk.setValue(true);
-			if (!isFocused)   // TODO: remove this by incorporating it into PopOver#show()
-				run(200, () -> p.getOwnerWindow().requestFocus());
 		}
 
 		static void printAllImageFileMetadata(File file) {

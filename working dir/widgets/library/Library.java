@@ -47,7 +47,7 @@ import util.access.fieldvalue.ObjectField.ColumnField;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
-import util.async.executor.FxTimer;
+import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
@@ -55,7 +55,6 @@ import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.FileType;
-import util.file.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -71,10 +70,13 @@ import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
+import static javafx.util.Duration.seconds;
 import static layout.widget.Widget.Group.LIBRARY;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static util.animation.Anim.Interpolators.reverse;
+import static util.async.Async.FX;
+import static util.async.Async.sleeping;
 import static util.file.Util.getCommonRoot;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
@@ -112,23 +114,12 @@ public class Library extends FXMLController implements SongReader {
         Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         @Override
         public void setVisible(boolean v) {
-            if (v) {
-                super.setVisible(v);
-                a.then(null)
-                 .play();
-            } else {
-//                Async.run(3000, () -> a.then(() -> super.setVisible(v))
-//                 .playClose());
-                super.setVisible(v);
-            }
+            super.setVisible(v);
+            if (v) a.playOpenFrom(0);
         }
     };
-    private final FxTimer hideInfo = new FxTimer(5000, 1,
-        new Anim(at-> setScaleXY(taskInfo.progressIndicator,at*at))
-	        .dur(500)
-            .intpl(reverse(new ElasticInterpolator()))
-	        .then(taskInfo::hideNunbind)::play
-    );
+	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.progressIndicator,at*at))
+		                              .dur(500).intpl(reverse(new ElasticInterpolator()));
 
 	private final ExecuteN runOnce = new ExecuteN(1);
     private Output<Metadata> out_sel;
@@ -170,6 +161,7 @@ public class Library extends FXMLController implements SongReader {
         // add progress indicator to bottom controls
         ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.message, taskInfo.progressIndicator);
         taskInfo.setVisible(false);
+
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double Σms = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
@@ -319,8 +311,16 @@ public class Library extends FXMLController implements SongReader {
     }
 
     private void removeInvalid() {
-        Task t = MetadataReader.removeMissingFromLibrary((success,result) -> hideInfo.start());
-        taskInfo.showNbind(t);
+    	Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
+	    Fut.fut(t)
+			.use(taskInfo::showNbind, FX)
+			.use(Task::run)
+			.then(sleeping(seconds(5)))
+			.then(() -> hideInfo.playOpenDo(taskInfo::hideNunbind), FX)
+	        .f.exceptionally(x -> {
+	        	x.printStackTrace();
+	        	return null;
+	    });
     }
 
     private static final TableContextMenuR<Metadata> contxt_menu = new TableContextMenuR<> (

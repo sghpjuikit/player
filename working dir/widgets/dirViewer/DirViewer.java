@@ -455,11 +455,13 @@ public class DirViewer extends ClassController {
 	                ? listFiles(files.list.stream())
 		                  .flatMap(f -> {
 		                  	try {
-			                    return Files.walk(f.toPath(), Integer.MAX_VALUE);
+			                    return Files.walk(f.toPath(), Integer.MAX_VALUE)
+						                  .map(Path::toFile)
+						                  .filter(File::isFile);
 		                    } catch (IOException e) {
 		                    	return stream();
 		                    }
-		                  }).map(Path::toFile)
+		                  })
 	                : filesJoin.get() ? listFiles(files.list.stream()) : files.list.stream();
         }
 
@@ -485,12 +487,16 @@ public class DirViewer extends ClassController {
         filters.add(new PƑ0<>("File type - file", File.class, Boolean.class, File::isFile));
         filters.add(new PƑ0<>("File type - directory", File.class, Boolean.class, File::isDirectory));
         APP.mimeTypes.setOfGroups().forEach(group -> {
-            filters.add(new PƑ0<>("Mime - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(APP.mimeTypes.ofFile(file).getGroup())));
-            filters.add(new PƑ0<>("Mime - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(APP.mimeTypes.ofFile(file).getGroup())));
+            filters.add(new PƑ0<>("Mime type group - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(APP.mimeTypes.ofFile(file).getGroup())));
+            filters.add(new PƑ0<>("Mime type group - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(APP.mimeTypes.ofFile(file).getGroup())));
+        });
+        APP.mimeTypes.setOfMimeTypes().forEach(mime -> {
+            filters.add(new PƑ0<>("Mime type - is " + mime.getName(), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file)==mime));
+            filters.add(new PƑ0<>("Mime type - no " + mime.getName(), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file)!=mime));
         });
         APP.mimeTypes.setOfExtensions().forEach(extension -> {
-            filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file).isOfType(extension)));
-            filters.add(new PƑ0<>("Type - no " + extension, File.class, Boolean.class, file -> !APP.mimeTypes.ofFile(file).isOfType(extension)));
+            filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> getSuffix(file).equalsIgnoreCase(extension)));
+            filters.add(new PƑ0<>("Type - no " + extension, File.class, Boolean.class, file -> !getSuffix(file).equalsIgnoreCase(extension)));
         });
     }
 

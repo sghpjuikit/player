@@ -21,6 +21,7 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -80,6 +81,7 @@ import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
+import static util.async.Async.runNew;
 import static util.file.Util.EMPTY_COLOR;
 import static util.functional.Util.*;
 
@@ -308,8 +310,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         return allItems.isEmpty();
     }
 
-
 /******************************************************************************/
+
     BooleanProperty add_not_set = new SimpleBooleanProperty(false);
 
     /**
@@ -338,6 +340,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
         else add(set, true);
     }
+
     private void add(Collection<? extends Item> added, boolean readAll) {
         if (added.isEmpty()) return;
 
@@ -355,7 +358,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             });
 
         // read metadata for items
-        MetadataReader.readMetadata(needs_read, (ok,result) -> {
+        runNew(MetadataReader.buildReadMetadataTask(needs_read, (ok,result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
@@ -367,8 +370,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 metadatas.addAll(unique);
                 populate(metadatas);
             }
-        });
+        }));
     }
+
     private void rem(Collection<? extends Item> rem) {
         if (rem.isEmpty()) return;
         // show progress, hide when populate ends - in populate()
@@ -400,7 +404,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         // writing
         MetadataWriter.use(metadatas, w -> {
-            // write to tag if field commitable
+            // write to tag if field committable
             if ((boolean) titleF.getUserData())        w.setTitle(titleF.getText());
             if ((boolean) albumF.getUserData())        w.setAlbum(albumF.getText());
             if ((boolean) artistF.getUserData())       w.setArtist(artistF.getText());
@@ -606,8 +610,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
                     l.setVisible(!b);
-                    if (b) if (cf.getRight()==l) cf.setRight(new Region());
-                    else if (cf.getRight()!=l) cf.setRight(l);
+                    if (b) {
+                    	if (cf.getRight()==l) cf.setRight(new Region());
+                    } else {
+                    	if (cf.getRight()!=l) cf.setRight(l);
+                    }
                 });
             }
 
@@ -621,16 +628,19 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if (field.isTypeNumber())
                 InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
 
-            // if not commitable yet, enable commitable & set text to tag value on click
+            // if not committable yet, enable committable & set text to tag value on click
             c.setOnMouseClicked(e -> {
-                if (e.getButton()==PRIMARY)
-                    OnMouseClicked();
+                if (e.getButton()==PRIMARY) {
+	                onMouseClicked();
+	                e.consume();
+                }
             });
 
-            // disable commitable if empty and backspace key pressed
-            c.setOnKeyPressed(e -> {
-                if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE))
-                    OnBackspacePressed();
+            // disable committable if empty and backspace key pressed
+	        c.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE)) {
+	                onBackspacePressed(e); // requires event filter
+                }
             });
 
             // autocompletion
@@ -657,7 +667,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         void emptyContent() {
             c.setText("");              // set empty
             c.setPromptText("");        // set empty
-            c.setUserData(false);       // set not commitable
+            c.setUserData(false);       // set not committable
             c.setDisable(true);         // set disabled
             c.setId("");                // set empty prompt text backup
         }
@@ -668,7 +678,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setPromptText(c.getId());
             }
         }
-        void OnMouseClicked() {
+        void onMouseClicked() {
             if (!(boolean)c.getUserData()) {
                 c.setUserData(true);
                 c.setText("");
@@ -679,8 +689,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.selectAll();
             }
         }
-        void OnBackspacePressed() {
-            if (c.getText().isEmpty()) {
+        void onBackspacePressed(KeyEvent e) {
+        	boolean setToInitial = c.getText().isEmpty();
+            if (setToInitial) {
                 c.setPromptText(c.getId());
                 c.setUserData(false);
                 root.requestFocus();
@@ -692,6 +703,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     ratingF.setPromptText(ratingF.getId());
                     ratingF.setUserData(false);
                 }
+                e.consume();
             }
         }
         void setVerticalAlignment(Pos alignment) {

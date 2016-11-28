@@ -631,7 +631,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             // if not committable yet, enable committable & set text to tag value on click
             c.setOnMouseClicked(e -> {
                 if (e.getButton()==PRIMARY) {
-	                OnMouseClicked();
+	                onMouseClicked();
 	                e.consume();
                 }
             });
@@ -639,8 +639,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             // disable committable if empty and backspace key pressed
 	        c.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                 if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE)) {
-	                OnBackspacePressed(); // requires event filter
-	                e.consume();
+	                onBackspacePressed(e); // requires event filter
                 }
             });
 
@@ -679,7 +678,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setPromptText(c.getId());
             }
         }
-        void OnMouseClicked() {
+        void onMouseClicked() {
             if (!(boolean)c.getUserData()) {
                 c.setUserData(true);
                 c.setText("");
@@ -690,8 +689,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.selectAll();
             }
         }
-        void OnBackspacePressed() {
-            if (c.getText().isEmpty()) {
+        void onBackspacePressed(KeyEvent e) {
+        	boolean setToInitial = c.getText().isEmpty();
+            if (setToInitial) {
                 c.setPromptText(c.getId());
                 c.setUserData(false);
                 root.requestFocus();
@@ -703,6 +703,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     ratingF.setPromptText(ratingF.getId());
                     ratingF.setUserData(false);
                 }
+                e.consume();
             }
         }
         void setVerticalAlignment(Pos alignment) {

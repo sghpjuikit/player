@@ -156,6 +156,7 @@ public final class Notifier extends ServiceBase {
 			n.setAnimated(notifAnimated);
 			n.setAnimDuration(notifFadeTime);
 			n.setDuration(notificationDuration);
+			n.focusOnShow.set(false);
 			n.lClickAction = onClickL.getValueAction();
 			n.rClickAction = onClickR.getValueAction();
 			// show

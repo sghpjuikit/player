@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -57,6 +58,7 @@ import javafx.util.Duration;
 import gui.objects.Text;
 import gui.objects.window.stage.WindowBase;
 import util.SwitchException;
+import util.access.V;
 
 import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -464,6 +466,11 @@ public class PopOver<N extends Node> extends PopupControl {
         position(x, y);
     }
 
+    private static Stage UNFOCUSED_OWNER;
+    static {
+	    Platform.runLater(() -> UNFOCUSED_OWNER = APP.windowManager.createStageOwner());
+    }
+
     /** Display at specified designated screen position */
     public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
@@ -472,16 +479,13 @@ public class PopOver<N extends Node> extends PopupControl {
 						.map(WindowBase::getStage);
 	    boolean isScreenCentric = !owneR.isPresent();
 	    Optional<Window> ownerO = owneR.or(() -> Optional.ofNullable(getOwnerWindow()).filter(Window::isShowing));
-	    boolean isOwnerCreated = !ownerO.isPresent();
-	    Window owner = ownerO.orElseGet(APP.windowManager::createStageOwner);
+	    boolean isOwnerCreated = !ownerO.isPresent() && focusOnShow.get();
+	    Window owner = ownerO.orElseGet(() -> focusOnShow.get() ? APP.windowManager.createStageOwner() : UNFOCUSED_OWNER);
 	    ScreenPos p = isScreenCentric ? pos.toScreenCentric() : pos;
-	    owner.requestFocus();
         showThis(null, owner);
         position(p.calcX(this), p.calcY(this));
-	    owner.requestFocus();
         if (!p.isAppCentric()) uninstallMoveWith();
         if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);
-
     }
 
     @Override
@@ -1269,36 +1273,35 @@ public class PopOver<N extends Node> extends PopupControl {
 
     private EventHandler<MouseEvent> hideOnClick;
 
-/******************************************************************************/
-
-    public void setParentPopup(PopOver popover) {
+	public void setParentPopup(PopOver popover) {
         popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
-            if (this != null && this.isShowing())
+            if (this.isShowing())
                 // same bug as with 'open popups preventing app
                 // closing properly' due to owner being closed before the child
-                // we neeed to close immediatelly
+                // we need to close immediately
                 this.hideImmediatelly();
         });
     }
-/******************************** DETACHING ***********************************/
 
 
-    /** Determines whether the pop over can be detached. */
-    public final BooleanProperty detachable = new SimpleBooleanProperty(this, "detachable", true);
-
-    /** Denotes whether this popover is detached. Popover detached from the
+	/**
+	 * Determines whether the pop over will have focus and be able to receive input events after it is shown.
+	 * Use false for use like non-interactive notifications. Default true.
+	 */ public final V<Boolean> focusOnShow = new V<>(true);
+	/**
+	 * Determines whether the pop over can be detached.
+	 */ public final BooleanProperty detachable = new SimpleBooleanProperty(this, "detachable", true);
+    /**
+     * Denotes whether this popover is detached. Popover detached from the
      * owning node. The pop over will no longer display an arrow pointing at the
-     * owner node.*/
-    public final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
-
-
-    /** Title text. Default "". */
-    public final StringProperty title = new SimpleStringProperty(this, "title", "");
-
-    /** Header visibility. Default true. Header contains title and icons. */
-    public final BooleanProperty headerVisible = new SimpleBooleanProperty(true);
-
-
+     * owner node.
+     */ public final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
+    /**
+     * Title text. Default "".
+     */ public final StringProperty title = new SimpleStringProperty(this, "title", "");
+    /**
+     * Header visibility. Default true. Header contains title and icons.
+     */ public final BooleanProperty headerVisible = new SimpleBooleanProperty(true);
 
     private ObservableList<Node> headerContent = null;
 

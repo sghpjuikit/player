@@ -12,7 +12,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 /**
  * Notification popover.
  */
-public class Notification extends PopOver {
+public class Notification extends PopOver<Node> {
 
     private static final String STYLECLASS = "notification";
     private final FxTimer closer = new FxTimer(5000, 1, this::hide);

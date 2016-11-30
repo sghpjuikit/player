@@ -18,6 +18,7 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static util.dev.Util.noØ;
 import static util.functional.Util.forEach;
+import static util.functional.Util.stream;
 
 /**
  * Accessor which can enumerate all its possible values - implementing {@link EnumerableValue}.
@@ -34,6 +35,11 @@ public class VarEnum<T> extends V<T> implements EnumerableValue<T> {
 
 
     private final Supplier<Collection<T>> valueEnumerator;
+
+	public VarEnum(T... enumeration) {
+		super(enumeration[0]);
+		valueEnumerator = () -> stream(enumeration).toList();
+	}
 
     public VarEnum(T val, Supplier<Collection<T>> enumerator) {
         super(val);

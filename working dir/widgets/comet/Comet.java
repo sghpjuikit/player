@@ -47,7 +47,6 @@ import layout.widget.controller.ClassController;
 import util.access.V;
 import util.access.VarEnum;
 import util.animation.Anim;
-import util.async.executor.FxTimer;
 import util.conf.Config.ConfigurableVarList;
 import util.conf.Configurable;
 import util.conf.IsConfig;
@@ -56,7 +55,6 @@ import util.conf.ListConfigurable;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
-import util.reactive.SetƑ;
 import util.validation.Constraint;
 
 import static comet.Comet.Constants.*;
@@ -113,8 +111,6 @@ public class Comet extends ClassController {
 	final GraphicsContext gc_bgr = canvas_bgr.getGraphicsContext2D(); // draws canvas game graphics on bgr canvas
 	final Text message = new Text();
 	final Game game = new Game();
-	final SetƑ every200ms = new SetƑ();
-	final FxTimer timer200ms = new FxTimer(200,-1,every200ms);
 
 	public Comet() {
 		// message
@@ -304,8 +300,7 @@ public class Comet extends ClassController {
 		double INKOID_SIZE_FACTOR = 50;
 		double ENERG_SIZE_FACTOR = 50;
 		double BLACKHOLE_PARTICLES_MAX = 4000;
-
-	}
+		}
 
 	@IsConfig
 	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK, c -> game.colorCanvasFade = color(c, game.colorCanvasFade.getOpacity()));
@@ -327,6 +322,8 @@ public class Comet extends ClassController {
 		new Player(7, Color.CADETBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
+	@IsConfig
+	final VarEnum<GameMode> mode = new VarEnum<>(new ClassicMode(game), new UfoHellMode(game), new BounceHellMode(game));
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
 		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
@@ -395,7 +392,9 @@ public class Comet extends ClassController {
 		final V<Boolean> running = new V<>(false);
 		private boolean isInitialized = false;
 
-		final V<Boolean> deadly_bullets = new V<>(false);
+		V<Boolean> deadly_bullets = new V<>(false);
+		boolean playerGunDisabled = false;
+		Duration ufoGunReloadTime = UFO_GUN_RELOAD_TIME;
 
 		final ObservableSet<Player> players  = FXCollections.observableSet();
 		final EntityManager entities = new EntityManager();
@@ -514,7 +513,7 @@ public class Comet extends ClassController {
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		boolean useGrid = true;
 
-		private GameMode mode = new ClassicMode(this);
+		private GameMode mode;
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
 		MissionInfoButton mission_button;
 		final StatsGame stats = new StatsGame();
@@ -674,7 +673,7 @@ public class Comet extends ClassController {
 		public void init() {
 			grid = new Grid(gc, game.field.width, game.field.height, 20);
 			gamepads.init();
-			mode.init();
+			Comet.this.mode.enumerateValues().forEach(Play::init);
 
 			collisionStrategies.add(Rocket.class,Rocket.class, (r1,r2) -> {
 				if (!r1.isin_hyperspace && !r2.isin_hyperspace && r1.isHitDistance(r2)) {
@@ -759,6 +758,8 @@ public class Comet extends ClassController {
 		public void start(int player_count) {
 			stop();
 
+			mode = Comet.this.mode.get();
+
 			if (!isInitialized) {
 				init();
 				isInitialized = true;
@@ -771,8 +772,8 @@ public class Comet extends ClassController {
 				.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
 				.sorted(by(g -> g.getDeviceID()))
 				.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
-					              .findFirst(p -> p.gamepadId.get()==null)
-					              .ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
+									.findFirst(p -> p.gamepadId.get()==null)
+									.ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
 				);
 
 			running.set(true);
@@ -782,7 +783,6 @@ public class Comet extends ClassController {
 
 			players.forEach(Player::spawn);
 			loop.start();
-			timer200ms.start();
 			playfield.requestFocus();
 			mode.start(player_count);
 
@@ -801,17 +801,8 @@ public class Comet extends ClassController {
 		public void doLoop() {
 			if (loop.isNth((long)FPS)) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
-			// collect and handle player inputs
 			gamepads.doLoop();
-			players.stream().filter(p -> p.alive).forEach(p -> {
-				if (pressedKeys.contains(p.keyLeft.get())) p.isInputLeft |= true;
-				if (pressedKeys.contains(p.keyRight.get())) p.isInputRight |= true;
-				if (pressedKeys.contains(p.keyThrust.get())) p.isInputThrust |= true;
-				if (pressedKeys.contains(p.keyFire.get())) p.isInputFire |= true;
-				if (pressedKeys.contains(p.keyAbility.get())) p.isInputAbility |= true;
-			});
-			players.forEach(Player::doInputs);
-
+			players.forEach(Player::doLoop);
 
 			// remove inactive objects
 			for (PO o : os) if (o.dead) removables.add(o);
@@ -897,7 +888,6 @@ public class Comet extends ClassController {
 		@Override
 		public void stop() {
 			running.set(false);
-			timer200ms.stop();
 			loop.stop();
 			players.clear();
 			os.clear();
@@ -905,7 +895,7 @@ public class Comet extends ClassController {
 			entities.clear();
 			runNext.clear();
 			playfield.getChildren().clear();
-			mode.stop();
+			if (mode!=null) mode.stop();
 		}
 
 		/** Clears resources. No game session will occur after this. */
@@ -913,7 +903,7 @@ public class Comet extends ClassController {
 		public void dispose() {
 			stop();
 			gamepads.dispose();
-			mode.dispose();
+			if (mode!=null) mode.dispose();
 		}
 
 		@Override
@@ -1136,18 +1126,16 @@ public class Comet extends ClassController {
 		class Mission {
 			final int id;
 			final String name, scale, details;
-			final Background bgr;
 			final Ƒ5<Double,Double,Double,Double,Double,Asteroid> planetoidConstructor;
 			final Color color;
 			final Color colorCanvasFade; // normally null, canvas fade effect
 			Consumer<Game> initializer = game -> {};
 			Consumer<Game> disposer = game -> {};
 
-			public Mission(int ID, String NAME, String SCALE, String DETAILS, Background BGR, Color COLOR, Color CANVAS_REDRAW,
+			public Mission(int ID, String NAME, String SCALE, String DETAILS, Color COLOR, Color CANVAS_REDRAW,
 					Ƒ5<Double,Double,Double,Double,Double,Asteroid> planetoidFactory) {
 				id = ID;
 				name = NAME; scale = SCALE; details = DETAILS;
-				bgr = BGR;
 				color = COLOR==null ? Color.TRANSPARENT : COLOR;
 				colorCanvasFade = CANVAS_REDRAW==null ? Color.TRANSPARENT : CANVAS_REDRAW;
 				planetoidConstructor = planetoidFactory;
@@ -1157,11 +1145,6 @@ public class Comet extends ClassController {
 				initializer = INITIALIZER;
 				disposer = DISPOSER;
 				return this;
-			}
-
-			void start() {
-				((Pane)playfield.getParent()).setBackground(bgr);
-//				((Pane)playfield.getParent()).setBackground(Util.bgr(new Color(0.1F, 0.20F, 0.34509807F,1)));
 			}
 
 			void spawnPlanetoid() {
@@ -1203,7 +1186,7 @@ public class Comet extends ClassController {
 	}
 
 	/** Game player. Survives game sessions. */
-	public class Player implements Configurable {
+	public class Player implements LO, Configurable {
 		@IsConfig(editable = EditMode.APP) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
@@ -1225,6 +1208,7 @@ public class Comet extends ClassController {
 		public final V<Double> energy = new V<>(0d);
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
+		private long hudUpdateFrequency = (long) ttl(millis(200));
 
 		public Player(int ID, Color COLOR, KeyCode kfire, KeyCode kthrust, KeyCode kleft, KeyCode kright, KeyCode kability, AbilityKind ABILITY) {
 			id.set(ID);
@@ -1242,7 +1226,21 @@ public class Comet extends ClassController {
 			score.onChange((os,ns) -> {
 				if (os/PLAYER_SCORE_NEW_LIFE<ns/PLAYER_SCORE_NEW_LIFE) lives.setValueOf(l -> l+1);
 			});
-			every200ms.add(() -> { if (rocket!=null) energy.set(rocket.energy); });
+		}
+
+		@Override
+		public void doLoop() {
+			if (rocket!=null && game.loop.isNth(hudUpdateFrequency))
+				energy.set(rocket.energy);
+
+			if (alive) {
+				if (game.pressedKeys.contains(keyLeft.get())) isInputLeft |= true;
+				if (game.pressedKeys.contains(keyRight.get())) isInputRight |= true;
+				if (game.pressedKeys.contains(keyThrust.get())) isInputThrust |= true;
+				if (game.pressedKeys.contains(keyFire.get())) isInputFire |= true;
+				if (game.pressedKeys.contains(keyAbility.get())) isInputAbility |= true;
+			}
+			doInputs();
 		}
 
 		void die() {
@@ -1543,8 +1541,10 @@ public class Comet extends ClassController {
 
 			void fire() {
 				if (!isin_hyperspace) {
-					if (Ship.this instanceof Rocket)
+					if (Ship.this instanceof Rocket) {
 						((Rocket) Ship.this).player.stats.accFiredBullet(game.loop.id);
+						if (game.playerGunDisabled) return;
+					}
 
 					// for each turret, fire
 					game.runNext.add(() -> {
@@ -2478,7 +2478,7 @@ public class Comet extends ClassController {
 			engine.enabled = true;
 			gun = new Gun(
 				AUTO,
-				UFO_GUN_RELOAD_TIME,
+				game.ufoGunReloadTime,
 				() -> {
 					if (!aggressive || game.ufos.ufo_enemy==null) return rand0N(D360);
 					Rocket enemy = isDistanceLess(game.ufos.ufo_enemy, UFO_BULLET_RANGE)

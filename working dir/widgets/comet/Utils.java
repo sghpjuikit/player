@@ -448,12 +448,14 @@ interface Utils {
 		ACTIVATING, PASSSIVATING, OFF, ON
 	}
 	enum AbilityKind {
+		NONE,
 		HYPERSPACE,
 		DISRUPTOR,
 		SHIELD;
 
 		Ship.Ability create(Ship s) {
 			switch(this) {
+				case NONE : return null;
 				case DISRUPTOR : return s.new Disruptor();
 				case HYPERSPACE : return s.new Hyperspace();
 				case SHIELD : return s.new Shield();
@@ -1177,6 +1179,10 @@ interface Utils {
 		boolean isNth(long n) {
 			return id % n == 0;
 		}
+
+		boolean isNth(Duration d) {
+			return isNth((long) ttl(d));
+		}
 	}
 	class GameSize {
 		double width=0, height=0, diagonal=0, area=0, length=0;
@@ -1342,11 +1348,17 @@ interface Utils {
 		public Set<Achievement> achievements() {
 			return set();
 		}
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName();
+		}
 	}
 	class ClassicMode extends GameMode {
 		final MapSet<Integer,Mission> missions;
 		int mission_counter = 0;   // mission counter, starts at 1, increments by 1
 		boolean isMissionScheduled = false;
+		boolean isMissionStartPlanetoidSplitting = false;
 		final Set<Achievement> achievements;
 
 		public ClassicMode(Game game) {
@@ -1355,53 +1367,53 @@ interface Utils {
 //				new Mission(
 //					1, "Energetic fragility","10⁻¹⁵","",
 //					null, Color.RED,Color.rgb(255,255,255,0.015), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
-////					null, Color.RED,Color.rgb(0,0,0,0.08), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
+////					Color.RED,Color.rgb(0,0,0,0.08), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
 //				).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
 				game.new Mission(
 					1, "The strange world", "10⁻⁴m", "",
 //					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
-					null,Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+					Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 				),
 				game.new Mission(
 					2, "Sumi-e","10⁻¹⁵","",
-					null,Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+					Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					3, "Mol's molecule","","",
-					null,Color.YELLOW, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					Color.YELLOW, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					4, "PartiCuLar elEment","10⁻¹⁵","",
-					null,Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					5, "Decay of the weak force","10⁻¹","",
-					null,Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					6, "String a string","10⁻¹⁵","",
-					null,Color.YELLOW, rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
+					Color.YELLOW, rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
 				), //new Glow(0.3)
 				game.new Mission(
 					7, "Mother of all branes","10⁻¹⁵","",
-					null,Color.DODGERBLUE, rgb(0, 0, 15, 0.08), (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
+					Color.DODGERBLUE, rgb(0, 0, 15, 0.08), (a,b,c,d,e) -> game.owner.new Genoid(a,b,c,d,e)
 				),
 				game.new Mission(
 					8, "Energetic fragility","10⁻¹⁵","",
-					null,Color.DODGERBLUE, rgb(10,10,25,0.08), (a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
+					Color.DODGERBLUE, rgb(10,10,25,0.08), (a,b,c,d,e) -> game.owner.new Energ(a,b,c,d,e)
 				),
 				game.new Mission(
 					9, "Planc's plancton","10⁻¹⁵","",
-					null,Color.DARKCYAN, new Color(0,0.08,0.08,0.09),(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
+					Color.DARKCYAN, new Color(0,0.08,0.08,0.09),(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
 				)//,
 //				new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
-//					null,Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
+//					Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
 //				),
 //				new Mission(11, "Informative xperience","10⁻¹⁵","",
-//					bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//					Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
 //				),
 //				new Mission(12, "Holographically principled","10⁻¹⁵","",
-//					bgr(Color.WHITE), Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
+//					Color.DODGERBLUE,new Color(1,1,1,0.02),new ColorAdjust(0,-0.6,-0.7,0),Energ::new
 //				)
 			);
 			achievements = set(
@@ -1432,12 +1444,12 @@ interface Utils {
 				),
 				achievement01(
 					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
-					g -> stream(g.players).min(nullsLast(by(p -> p.stats.fired1stTime))),
+					g -> stream(g.players).min(by(p -> p.stats.fired1stTime, nullsLast(Comparable::compareTo))),
 					"Be the first to shoot"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
-					g -> stream(g.players).min(nullsLast(by(p -> p.stats.hitEnemy1stTime))),
+					g -> stream(g.players).min(by(p -> p.stats.hitEnemy1stTime, nullsLast(Comparable::compareTo))),
 					"Be the first to deal damage"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
@@ -1506,7 +1518,7 @@ interface Utils {
 			return achievements;
 		}
 
-		private void nextMission() {
+		protected void nextMission() {
 			// schedule
 			if (isMissionScheduled) return;
 			isMissionScheduled = true;
@@ -1522,7 +1534,6 @@ interface Utils {
 
 			// start mission
 			game.mission = mNew;
-			game.mission.start();
 			boolean isEasy = mission_counter<4;
 			double size = sqrt(game.field.height)/1000;
 			int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + game.players.size()/2;
@@ -1530,7 +1541,13 @@ interface Utils {
 			double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
 			game.runNext.add(delay/2, () -> game.message("Level " + mission_counter, mNew.name));
 			game.runNext.add(delay, () -> repeat(planetoids, i -> mNew.spawnPlanetoid()));
-			if (isEasy) game.runNext.add(delay, () -> game.oss.get(Asteroid.class).forEach(a -> a.split(null)));
+			if (isEasy) {
+				isMissionStartPlanetoidSplitting = true;
+				game.runNext.add(delay, () -> {
+					game.oss.get(Asteroid.class).forEach(a -> a.split(null));
+					isMissionStartPlanetoidSplitting = false;
+				});
+			}
 			game.runNext.add(delay, () -> isMissionScheduled = false);
 			game.mission.initializer.accept(game);
 
@@ -1545,6 +1562,92 @@ interface Utils {
 					game.grid.color = mOld.color.interpolate(mNew.color, p);
 				})
 			);
+		}
+	}
+	class UfoHellMode extends ClassicMode {
+		private final Game game;
+
+		public UfoHellMode(Game game) {
+			super(game);
+			this.game = game;
+		}
+
+		@Override
+		public void init() {
+			super.init();
+		}
+
+		@Override
+		public void start(int player_count) {
+			super.start(player_count);
+			game.playerGunDisabled = true;
+			game.ufoGunReloadTime = millis(20);
+			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
+			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
+		}
+
+		@Override
+		public void doLoop() {
+			super.doLoop();
+		}
+
+		@Override
+		public void handleEvent(Object event) {
+			super.handleEvent(event);
+		}
+
+		@Override
+		public void stop() {
+			super.stop();
+		}
+
+		@Override
+		public void pause(boolean v) {
+			super.pause(v);
+		}
+	}
+	class BounceHellMode extends ClassicMode {
+		private final Game game;
+
+		public BounceHellMode(Game game) {
+			super(game);
+			this.game = game;
+		}
+
+		@Override
+		public void init() {
+			super.init();
+		}
+
+		@Override
+		public void start(int player_count) {
+			super.start(player_count);
+			game.playerGunDisabled = true;
+			game.players.forEach(p -> p.ability_type.set(AbilityKind.SHIELD));
+		}
+
+		@Override
+		public void doLoop() {
+			super.doLoop();
+		}
+
+		@Override
+		public void handleEvent(Object event) {
+			super.handleEvent(event);
+
+			if (event==Events.PLANETOID_DESTROYED && !isMissionStartPlanetoidSplitting) {
+				game.mission.spawnPlanetoid();
+			}
+		}
+
+		@Override
+		public void stop() {
+			super.stop();
+		}
+
+		@Override
+		public void pause(boolean v) {
+			super.pause(v);
 		}
 	}
 

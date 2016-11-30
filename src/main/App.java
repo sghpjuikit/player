@@ -160,6 +160,7 @@ import static util.async.Async.*;
 import static util.async.future.Fut.fut;
 import static util.file.Environment.browse;
 import static util.file.Util.getFilesAudio;
+import static util.file.Util.isValidatedDirectory;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -189,10 +190,16 @@ public class App extends Application implements Configurable {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) {
+		// relocate temp to working directory
+		// It is our principle to leave no trace of ever running on the system
+		// User can also better see what the application is doing
+		File tmp = new File(new File(new File("").getAbsoluteFile(), "user"),"tmp");
+		isValidatedDirectory(tmp);
+		System.setProperty("java.io.tmpdir", tmp.getAbsolutePath());
+
 		launch(args);
 		// LauncherImpl.launchApplication(App.class, preloaderClass, args); launch with preloader
 	}
-
 
 	/**
 	 * Name of this application.

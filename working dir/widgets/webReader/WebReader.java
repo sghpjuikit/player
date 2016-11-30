@@ -1,7 +1,5 @@
 package webReader;
 
-import java.io.File;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -10,10 +8,12 @@ import javafx.scene.web.WebView;
 
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
+import util.access.VarEnum;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.dev.Dependency;
-import util.file.Util;
+import web.DuckDuckGoImageQBuilder;
+import web.SearchUriBuilder;
 
 import static main.App.APP;
 import static util.dev.Util.log;
@@ -29,9 +29,9 @@ import static util.type.Util.invokeMethodP1;
 @Widget.Info(
 	name = "WebReader",
 	author = "Martin Polakovic",
-	howto = "",
+//	howto = "",
 	description = "Very simple web browser widget.",
-	notes = "",
+//	notes = "",
 	version = "0.8",
 	year = "2015",
 	group = Widget.Group.OTHER
@@ -47,27 +47,31 @@ public class WebReader extends FXMLController {
     @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     public String url = "http://duckduckgo.com/";
 
+    @IsConfig(name = "Search engine")
+    private final VarEnum<SearchUriBuilder> searchEngine = new VarEnum<>(new DuckDuckGoImageQBuilder(), () -> APP.plugins.getPlugins(SearchUriBuilder.class));
+
     @Override
     public void init() {
         engine = webView.getEngine();
-
-	    File userDir = new File(APP.DIR_USERDATA, "webdata");
-	    Util.isValidatedDirectory(userDir);
-		engine.setUserDataDirectory(userDir);
+		engine.setUserDataDirectory(APP.DIR_TEMP);
 
 //	    webView.setBlendMode(BlendMode.DIFFERENCE);
 //	    webView.setStyle("-fx-background-color: red;");
 
         addressBar.setOnKeyPressed( e -> {
-            if (e.getCode().equals(KeyCode.ENTER))
-                refresh();
+            if (e.getCode().equals(KeyCode.ENTER)) {
+            	String text = addressBar.getText();
+            	boolean isUrl = text!=null && text.contains(".") ;
+	            loadPage(isUrl ? text : searchEngine.get().apply(text).toASCIIString());
+            }
         });
         engine.locationProperty().addListener(o -> {
             url = engine.getLocation();
-            addressBar.setText(engine.getLocation());
+            addressBar.setText(url);
         });
 	    d(maintain(engine.documentProperty(), doc -> setTransparentBgrColor()));
-	    getInputs().create("Html", String.class, this::loadPage);
+	    getInputs().create("Html", String.class, this::loadHtml);
+	    getInputs().create("Url", String.class, this::loadPage);
 
 //	    try {
 ////		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), Gui.skin.get() + separator + Gui.skin.get() + ".css").toURI().toURL().toExternalForm());
@@ -91,17 +95,19 @@ public class WebReader extends FXMLController {
         loadPage(" ");
     }
 
-    public void reloadPage() {
-        engine.load(addressBar.getText());
-    }
+	public void loadHtml(String html) {
+		if (html!=null) {
+			//			    String s = "<body text=white>" + text + "</body>";
+			engine.loadContent(html);
+			//		    engine.loadContent(s);
+		}
+	}
 
-    public void loadPage(String page) {
-	    if (page!=null) {
-		    //			    String s = "<body text=white>" + text + "</body>";
-		    String s = page;
-		    engine.loadContent(s);
-	    }
-    }
+	public void loadPage(String url) {
+		if (url!=null) {
+			engine.load(url);
+		}
+	}
 
 	@Dependency("requires access to javafx.web/com.sun.webkit.WebPage")
 	private void setTransparentBgrColor() {

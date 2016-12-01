@@ -309,21 +309,23 @@ interface Utils {
 		g.fillOval(x-r,y-r,d,d);
 	}
 	static void drawTriangle(GraphicsContext gc, double x, double y, double r, double dir, double angleOffset) {
+		double d1 = dir, d2 = dir+angleOffset, d3 = dir-angleOffset;
 		gc.beginPath();
 		gc.moveTo(
-			x+r*cos(dir),
-			y+r*sin(dir)
+			x+r*cos(d1),
+			y+r*sin(d1)
 		);
 		gc.lineTo(
-			x+r*cos(dir+angleOffset),
-			y+r*sin(dir+angleOffset)
+			x+r*cos(d2),
+			y+r*sin(d2)
 		);
 		gc.lineTo(
-			x+r*cos(dir-angleOffset),
-			y+r*sin(dir-angleOffset)
+			x+r*cos(d3),
+			y+r*sin(d3)
 		);
 		gc.closePath();
-		gc.fill();
+//		gc.fill();
+		gc.stroke();
 	}
 	static void strokeLine(GraphicsContext g, double x, double y, double length, double angleRad) {
 		g.strokeLine(x,y,x+length*cos(angleRad),y+length*sin(angleRad));

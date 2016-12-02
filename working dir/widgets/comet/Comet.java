@@ -2430,6 +2430,8 @@ public class Comet extends ClassController {
 				game.runNext.add(millis(500), () -> repeat(5, i -> new UfoSwarmer(x, y, i*D360/5)));
 			}
 		};
+		public final TimeDouble gunAngleBase = new TimeDouble(0, D120);
+		public final TimeDouble gunAngle = new TimeDouble(0, Utils.ttlVal(D360, seconds(2)));
 
 
 		boolean hasSwarmers = randBoolean();
@@ -2500,16 +2502,19 @@ public class Comet extends ClassController {
 				AUTO,
 				game.settings.UFO_GUN_RELOAD_TIME,
 				() -> {
-					if (!aggressive || game.ufos.ufo_enemy==null) return rand0N(D360);
-					Rocket enemy = isDistanceLess(game.ufos.ufo_enemy, UFO_BULLET_RANGE)
-						? game.ufos.ufo_enemy
-						: findClosestRocketTo(this);
-					return enemy==null ? rand0N(D360) : dir(enemy) + randMN(-D30,D30);
+					return gunAngleBase.getAndRun()+gunAngle.getAndRun();
+//					if (!aggressive || game.ufos.ufo_enemy==null) return rand0N(D360);
+//					Rocket enemy = isDistanceLess(game.ufos.ufo_enemy, UFO_BULLET_RANGE)
+//						? game.ufos.ufo_enemy
+//						: findClosestRocketTo(this);
+//					return enemy==null ? rand0N(D360) : dir(enemy) + randMN(-D30,D30);
 				},
 				dir -> new UfoBullet(
 					this,
 					x + game.settings.UFO_BULLET_OFFSET*cos(dir),
 					y + game.settings.UFO_BULLET_OFFSET*sin(dir),
+					dx + cos(dir)*game.settings.UFO_BULLET_SPEED,
+					dy + sin(dir)*game.settings.UFO_BULLET_SPEED
 				)
 			);
 			game.runNext.addPeriodic(() -> ttl(seconds(5)), tryDiscs);

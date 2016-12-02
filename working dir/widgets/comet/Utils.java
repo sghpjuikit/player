@@ -1509,6 +1509,7 @@ interface Utils {
 
 		@Override
 		public void start(int player_count) {
+			game.settings = new Settings();
 			mission_counter = 0;
 			isMissionScheduled = false;
 			nextMission();

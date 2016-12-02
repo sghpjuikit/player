@@ -870,8 +870,11 @@ public class Comet extends ClassController {
 			os.forEach(PO::draw);
 			oss.get(Bullet.class).forEach(Bullet::draw);
 
+			if (cceStrengthW.value>1) cceStrengthW.value = 0;
+			if (cceStrengthH.value>1) cceStrengthH.value = 0;
+			cee.setAngle(cceStrengthH.getAndRun()*360);
 			gc_bgr.applyEffect(cee);
-//			gc.applyEffect(cee2);
+			gc.applyEffect(cee2);
 
 			oss.get(Bullet.class).forEach(Bullet::draw);
 			os.forEach(PO::draw);
@@ -884,8 +887,11 @@ public class Comet extends ClassController {
 			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
 			mode.doLoop();
 		}
-		private final Effect cee = new BoxBlur(100,2,2);
+		private final MotionBlur cee = new MotionBlur( 0, 50);
+//		private final BoxBlur cee = new BoxBlur(100,2,2);
 		private final Effect cee2 = new Bloom(0.3);
+		private final TimeDouble cceStrengthW = new TimeDouble(0,0.01);
+		private final TimeDouble cceStrengthH = new TimeDouble(0.5,0.01);
 
 		@Override
 		public void stop() {

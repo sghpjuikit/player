@@ -61,7 +61,6 @@ import util.functional.Try;
 import util.reactive.SetƑ;
 
 import static comet.Comet.Constants.FPS;
-import static comet.Comet.Constants.ROCKET_GUN_TURRET_ANGLE_GAP;
 import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
@@ -166,12 +165,12 @@ interface Utils {
 	 * Creates array of fire angles for specified number of turrets. Angles are a symmetrical
 	 * sequence with 0 in the middle and consistent angle gap in between each.
 	 */
-	static Double[] calculateGunTurretAngles(int i) {
+	static Double[] calculateGunTurretAngles(int i, double gap) {
 		if (i<=1) return array(0d);
 		return ( i%2==1
 			? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
 			: stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
-		).map(x -> ROCKET_GUN_TURRET_ANGLE_GAP*x)
+		).map(x -> gap*x)
 		 .toArray(Double[]::new);
 	}
 
@@ -1609,8 +1608,16 @@ interface Utils {
 		@Override
 		public void start(int player_count) {
 			super.start(player_count);
-			game.playerGunDisabled = true;
-			game.ufoGunReloadTime = millis(20);
+
+			game.settings = game.owner.new Settings();
+			game.settings.playerGunDisabled = true;
+			game.settings.UFO_BULLET_TTL *= 2;
+			game.settings.UFO_BULLET_SPEED /= 3;
+			game.settings.player_ability_auto_on = true;
+			game.settings.DISRUPTOR_E_RATE = 0;
+			game.settings.DISRUPTOR_E_ACTIVATION = 0;
+			game.settings.UFO_GUN_RELOAD_TIME = millis(20);
+
 			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
 		}
@@ -1651,7 +1658,13 @@ interface Utils {
 		@Override
 		public void start(int player_count) {
 			super.start(player_count);
-			game.playerGunDisabled = true;
+
+			game.settings = game.owner.new Settings();
+			game.settings.playerGunDisabled = true;
+			game.settings.player_ability_auto_on = true;
+			game.settings.SHIELD_E_RATE = 0;
+			game.settings.SHIELD_E_ACTIVATION = 0;
+
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.SHIELD));
 		}
 

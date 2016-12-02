@@ -828,14 +828,9 @@ public class Comet extends ClassController {
 			forEachPair(filter(entities.forceFields, ff -> ff instanceof DisruptorField), oss.get(Particle.class), ForceField::apply);
 
 			// canvas clearing
-			// we use optional "fade" effect. Filling canvas with transparent color repeatedly
-			// will serve instead of clearing & spare drawing complex stuff & produce bgr & interesting effect
-			if (colorCanvasFade ==null) {
-				gc_bgr.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
-			} else {
-				gc_bgr.setFill(colorCanvasFade);
-				gc_bgr.fillRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
-			}
+			gc_bgr.setFill(colorCanvasFade);
+//			gc_bgr.setFill(color(rgb(0,0,0), 0.1));
+			gc_bgr.fillRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 			gc.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 
 			if (useGrid) {

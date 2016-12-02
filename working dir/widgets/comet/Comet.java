@@ -305,6 +305,8 @@ public class Comet extends ClassController {
 		double INKOID_SIZE_FACTOR = 50;
 		double ENERG_SIZE_FACTOR = 50;
 		double BLACKHOLE_PARTICLES_MAX = 4000;
+
+		boolean useGrid = true;
 	}
 
 	@IsConfig
@@ -513,7 +515,7 @@ public class Comet extends ClassController {
 		Color colorCanvasFade; // normally null, canvas fade effect
 		Color colorHud = color(Color.AQUA, 0.25);
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
-		boolean useGrid = true;
+
 
 		private GameMode mode;
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
@@ -787,6 +789,7 @@ public class Comet extends ClassController {
 			loop.start();
 			playfield.requestFocus();
 			mode.start(player_count);
+			grid.enabled = settings.useGrid;
 
 			runNext.add(() -> mission_button = new MissionInfoButton());
 		}
@@ -833,10 +836,8 @@ public class Comet extends ClassController {
 			gc_bgr.fillRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 			gc.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 
-			if (useGrid) {
-				grid.update();
-				grid.draw();
-			}
+			grid.update();
+			grid.draw();
 
 			// update objects
 			runNext.run();

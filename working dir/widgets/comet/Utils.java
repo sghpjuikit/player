@@ -1610,6 +1610,7 @@ interface Utils {
 			super.start(player_count);
 
 			game.settings = new Settings();
+			game.settings.useGrid = false;
 			game.settings.playerGunDisabled = true;
 			game.settings.UFO_BULLET_TTL *= 2;
 			game.settings.UFO_BULLET_SPEED /= 3;
@@ -2051,6 +2052,7 @@ interface Utils {
 	 *
 	 */
 	class Grid {
+		boolean enabled = true;
 		Spring[] springs;
 		PointMass[][] points;
 		GraphicsContext gc;
@@ -2105,6 +2107,8 @@ interface Utils {
 		}
 
 		void update() {
+			if (!enabled) return;
+
 			for (Spring s : springs)
 				s.update();
 
@@ -2114,6 +2118,8 @@ interface Utils {
 		}
 
 		 void applyDirectedForce(Vec force, Vec position, double radius) {
+			if (!enabled) return;
+
 			for (PointMass[] ps : points)
 				for (PointMass p : ps) {
 					double distSqr = position.distSqr(p.position);
@@ -2127,6 +2133,8 @@ interface Utils {
 		}
 
 		 void applyImplosiveForce(double force, Vec position, double radius) {
+			if (!enabled) return;
+
 			for (PointMass[] ps : points)
 				for (PointMass p : ps) {
 				double dist2 = position.distSqr(p.position);
@@ -2141,6 +2149,8 @@ interface Utils {
 		}
 
 		 void applyExplosiveForce(double force, Vec position, double radius) {
+			if (!enabled) return;
+
 			for (PointMass[] ps : points)
 				for (PointMass p : ps) {
 				double dist2 = position.distSqr(p.position);
@@ -2155,6 +2165,8 @@ interface Utils {
 		}
 
 		 void draw() {
+			if (!enabled) return;
+
 			gc.save();
 			gc.setStroke(color);
 			double opacityMin = 0.02, opacityMax = 0.5;

@@ -289,6 +289,7 @@ public class Comet extends ClassController {
 		int UFO_DISC_DECISION_TIME_TTL = (int) ttl(millis(500));
 		double UFO_EXPLOSION_RADIUS = 100;
 		double UFO_DISC_EXPLOSION_RADIUS = 8;
+		boolean ufoSpawnSwarms = true;
 
 		double UFO_TTL() { return ttl(seconds(randMN(30, 60))); }
 
@@ -2423,7 +2424,7 @@ public class Comet extends ClassController {
 		boolean aggressive = false;
 		private final Runnable radio = () -> game.ufos.pulseCall(this);
 		private final Runnable tryDiscs = () -> {
-			if (game.ufos.canSpawnDiscs) {
+			if (game.settings.ufoSpawnSwarms && game.ufos.canSpawnDiscs) {
 				game.ufos.canSpawnDiscs = false;
 				double spawnX = x, spawnY = y;
 				radio.run();
@@ -3385,6 +3386,10 @@ public class Comet extends ClassController {
 		RadioWavePulse(SO OWNER, double EXPANSION_RATE, Color COLOR, boolean RECTANGULAR) {
 			this(OWNER.x,OWNER.y,0,0,EXPANSION_RATE, COLOR, RECTANGULAR);
 			owner = OWNER;
+
+
+
+
 		}
 		RadioWavePulse(double x, double y, double dx, double dy, double EXPANSION_RATE, Color COLOR, boolean RECTANGULAR) {
 			super(x,y,dx,dy, ttl(seconds(1.5)));

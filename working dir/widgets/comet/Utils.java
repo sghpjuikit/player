@@ -1621,6 +1621,7 @@ interface Utils {
 			game.settings.DISRUPTOR_E_RATE = 0;
 			game.settings.DISRUPTOR_E_ACTIVATION = 0;
 			game.settings.UFO_GUN_RELOAD_TIME = millis(20);
+			game.settings.ufoSpawnSwarms = false;
 
 			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
@@ -1668,6 +1669,7 @@ interface Utils {
 			game.settings.player_ability_auto_on = true;
 			game.settings.SHIELD_E_RATE = 0;
 			game.settings.SHIELD_E_ACTIVATION = 0;
+			game.settings.ufoSpawnSwarms = false;
 
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.SHIELD));
 		}

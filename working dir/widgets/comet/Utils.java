@@ -773,6 +773,35 @@ interface Utils {
 			}
 		}
 	}
+	class TimeDouble implements Runnable {
+		public double value;
+		public final double by;
+
+		public TimeDouble(double start, double by) {
+			this.value = start;
+			this.by = by;
+		}
+
+		@Override
+		public void run() {
+			value += by;
+		}
+
+		public double get() {
+			return value;
+		}
+
+		public double getAndRun() {
+			double d = value;
+			run();
+			return d;
+		}
+
+		public double runAndGet() {
+			run();
+			return value;
+		}
+	}
 	class ObjectStore<O> {
 		private final Map<Class,Set<O>> m = new HashMap<>();
 		private final Ƒ1<O,Class> mapper;

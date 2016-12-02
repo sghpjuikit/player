@@ -1609,7 +1609,7 @@ interface Utils {
 		public void start(int player_count) {
 			super.start(player_count);
 
-			game.settings = game.owner.new Settings();
+			game.settings = new Settings();
 			game.settings.playerGunDisabled = true;
 			game.settings.UFO_BULLET_TTL *= 2;
 			game.settings.UFO_BULLET_SPEED /= 3;
@@ -1659,7 +1659,7 @@ interface Utils {
 		public void start(int player_count) {
 			super.start(player_count);
 
-			game.settings = game.owner.new Settings();
+			game.settings = new Settings();
 			game.settings.playerGunDisabled = true;
 			game.settings.player_ability_auto_on = true;
 			game.settings.SHIELD_E_RATE = 0;

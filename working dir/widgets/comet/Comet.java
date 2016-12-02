@@ -219,7 +219,7 @@ public class Comet extends ClassController {
 		double FPS_KEY_PRESSED_PERIOD = 1000 / FPS_KEY_PRESSED; // ms
 		AbilityKind PLAYER_ABILITY_INITIAL = SHIELD; // rocket fire-fire time period
 	}
-	class Settings {
+	static class Settings {
 		Duration PLAYER_GUN_RELOAD_TIME = millis(100); // default ability
 		int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
 		int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division

@@ -3202,16 +3202,30 @@ public class Comet extends ClassController {
 //			gc_bgr.setStroke(null);
 //			gc_bgr.setGlobalAlpha(1);
 
-			double x = this.x, y = this.y, radius = 3*scale_factor*(ttl*ttl), opacity = 0.7*(1-ttl);
-			drawFading(game, seconds(0.5), ttl -> {
-				double r = (1-ttl)*radius, d = 2*r;
-				gc.setGlobalAlpha(ttl*ttl*opacity);
-				gc.setStroke(game.ufos.color);
-				gc.setLineWidth(2);
-				gc.strokeOval(x-(1-ttl)*r,y-(1-ttl)*r,(1-ttl)*d,(1-ttl)*d);
-				gc.setStroke(null);
-				gc.setGlobalAlpha(1);
-			});
+
+//			Color c = game.ufos.color;
+			Color c = color(game.ufos.color, 0.8*(1-ttl));
+//			gc_bgr.setGlobalAlpha(0.8*(1-ttl));
+			gc_bgr.setStroke(c);
+			gc_bgr.setFill(c);   //effect 2
+			gc_bgr.setLineWidth(2);
+			double r = scale_factor*(ttl*ttl);
+			double d = 2*r;
+			gc_bgr.strokeOval(x-r,y-r,d,d);
+			gc_bgr.fillOval(x-r,y-r,d,d); // effect 2
+			gc_bgr.setStroke(null);
+//			gc_bgr.setGlobalAlpha(1);
+
+//			double x = this.x, y = this.y, radius = 3*scale_factor*(ttl*ttl), opacity = 0.7*(1-ttl);
+//			drawFading(game, seconds(0.5), ttl -> {
+//				double r = (1-ttl)*radius, d = 2*r;
+//				gc.setGlobalAlpha(ttl*ttl*opacity);
+//				gc.setStroke(game.ufos.color);
+//				gc.setLineWidth(2);
+//				gc.strokeOval(x-(1-ttl)*r,y-(1-ttl)*r,(1-ttl)*d,(1-ttl)*d);
+//				gc.setStroke(null);
+//				gc.setGlobalAlpha(1);
+//			});
 		}
 
 		@Override public void doLoop() {

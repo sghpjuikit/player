@@ -1056,7 +1056,7 @@ interface Utils {
 		boolean isIncrement;
 		final DoubleConsumer r;
 
-		 TtlC(double TtlFrom, double TtlTo, double TtlBy, DoubleConsumer R) {
+		TtlC(double TtlFrom, double TtlTo, double TtlBy, DoubleConsumer R) {
 			ttl = TtlFrom;
 			ttlTo = TtlTo;
 			ttlBy = TtlBy;
@@ -1065,7 +1065,7 @@ interface Utils {
 			r = R;
 		}
 
-		 public void run() {
+		public void run() {
 			ttl += ttlBy;
 			r.accept(ttl);
 		}
@@ -1665,7 +1665,9 @@ interface Utils {
 			super.handleEvent(event);
 
 			if (event==Events.PLANETOID_DESTROYED && !isMissionStartPlanetoidSplitting) {
-				game.mission.spawnPlanetoid();
+				// game.mission.spawnPlanetoid();
+				// tun next cycle to avoid possible concurrent modification error
+				game.runNext.add(game.mission::spawnPlanetoid);
 			}
 		}
 

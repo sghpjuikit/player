@@ -2615,10 +2615,8 @@ public class Comet extends ClassController {
 	}
 	private void drawUfoRadar(double x, double y) {
 		double r = game.settings.UFO_RADAR_RADIUS;
-		gc.setGlobalAlpha(0.3);
-		gc.setFill(new RadialGradient(0,0,0.5,0.5,1,true,NO_CYCLE,new Stop(0.3,Color.TRANSPARENT),new Stop(1, rgb(114,208,74))));
+		gc.setFill(new RadialGradient(0,0,0.5,0.5,1,true,NO_CYCLE,new Stop(0.3,Color.TRANSPARENT),new Stop(1, rgb(114,208,74, 0.3))));
 		gc.fillOval(x-r,y-r,2*r,2*r);
-		gc.setGlobalAlpha(1);
 	}
 	private void drawUfoExplosion(double x, double y) {
 		new FermiGraphics(x, y, game.settings.UFO_EXPLOSION_RADIUS).color = game.colors.ufos;

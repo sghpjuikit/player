@@ -1594,7 +1594,7 @@ interface Utils {
 
 			// transition color scheme
 			game.runNext.add(delay/2, () ->
-				game.runNext.addAnim01(millis(300), p -> cOld.interpolate(mNew.colors, p))
+				game.runNext.addAnim01(millis(300), p -> game.colors.interpolate(cOld, mNew.colors, p))
 			);
 		}
 	}

@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
-import javafx.animation.Interpolatable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -58,7 +57,8 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.validation.Constraint;
 
-import static comet.Comet.Constants.*;
+import static comet.Comet.Constants.FPS;
+import static comet.Comet.Constants.PLAYER_ABILITY_INITIAL;
 import static comet.Utils.AbilityKind.SHIELD;
 import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
@@ -311,7 +311,7 @@ public class Comet extends ClassController {
 		boolean spawnSwarms = true;
 		boolean useGrid = true;
 	}
-	static class Colors implements Interpolatable<Colors> {
+	static class Colors {
 		private Color main = Color.LIGHTGREEN;
 		private Color canvasFade = rgb(0,31,41, 0.1);
 		private Color humans = Color.DODGERBLUE;
@@ -320,15 +320,14 @@ public class Comet extends ClassController {
 		private Color grid = Color.LIGHTGREEN;
 		private Color hud = color(Color.AQUA, 0.25);
 
-		@Override
-		public Colors interpolate(Colors colors, double v) {
-			main  = main.interpolate(colors.main , v);
-			canvasFade = canvasFade.interpolate(colors.canvasFade, v);
-			humans = humans.interpolate(colors.humans, v);
-			humansTech = humansTech.interpolate(colors.humansTech, v);
-			ufos = ufos.interpolate(colors.ufos, v);
-			grid = grid.interpolate(colors.grid, v);
-			hud = hud.interpolate(colors.hud, v);
+		public Colors interpolate(Colors from, Colors to, double v) {
+			main = from.main.interpolate(to.main , v);
+			canvasFade = from.canvasFade.interpolate(to.canvasFade, v);
+			humans = from.humans.interpolate(to.humans, v);
+			humansTech = from.humansTech.interpolate(to.humansTech, v);
+			ufos = from.ufos.interpolate(to.ufos, v);
+			grid = from.grid.interpolate(to.grid, v);
+			hud = from.hud.interpolate(to.hud, v);
 			return this;
 		}
 	}

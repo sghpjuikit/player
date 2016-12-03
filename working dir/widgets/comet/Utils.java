@@ -1666,15 +1666,15 @@ interface Utils {
 					"- Increases maximum energy by 10%",
 					"- Increases energy accumulation by 10%"
 				),
-				game.new Enhancer("Energy (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
+				game.new Enhancer("Energy (S)", MaterialDesignIcon.BATTERY_30, seconds(5),
 					r -> r.energy = min(r.energy+2000,r.energy_max),
 					"- Increases energy by up to 2000"
 				),
-				game.new Enhancer("Energy (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
+				game.new Enhancer("Energy (M)", MaterialDesignIcon.BATTERY_60, seconds(5),
 					r -> r.energy = min(r.energy+5000,r.energy_max),
 					"- Increases energy by up to 5000"
 				),
-				game.new Enhancer("Energy (large)", MaterialDesignIcon.BATTERY, seconds(5),
+				game.new Enhancer("Energy (L)", MaterialDesignIcon.BATTERY, seconds(5),
 					r -> r.energy = min(r.energy+10000,r.energy_max),
 					"- Increases energy by up to 10000"
 				)

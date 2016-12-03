@@ -1635,7 +1635,10 @@ interface Utils {
 		@Override
 		public void doLoop() {
 			super.doLoop();
-			if (missionTimer.runAndGet() >= 1) nextMission();
+			if (missionTimer.runAndGet() >= 1) {
+				nextMission();
+				missionTimer.value = 0;
+			}
 		}
 
 		@Override

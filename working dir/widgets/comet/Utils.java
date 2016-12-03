@@ -74,6 +74,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.util.Duration.millis;
+import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
 import static util.Util.clip;
 import static util.Util.pyth;
@@ -1561,7 +1562,7 @@ interface Utils {
 			int id = mission_counter%missions.size();
 			int mission_id = id==0 ? missions.size() : mission_counter%missions.size(); // modulo mission count, but start at 1
 			Mission mNew = missions.get(mission_id);
-			Mission mOld = game.mission==null ? mNew : game.mission;
+			Colors cOld = game.mission==null ? game.colors : game.mission.colors;
 
 			// start mission
 			game.mission = mNew;
@@ -1584,19 +1585,13 @@ interface Utils {
 
 			// transition color scheme
 			game.runNext.add(delay/2, () ->
-				game.runNext.addAnim01(millis(300), p -> {
-					game.color = mOld.color.interpolate(mNew.color, p);
-					game.colorCanvasFade = mOld.colorCanvasFade.interpolate(mNew.colorCanvasFade, p);
-					game.humans.color = mOld.color.interpolate(mNew.color, p);
-					game.humans.colorTech = mOld.color.interpolate(mNew.color, p);
-					game.ufos.color = mOld.color.interpolate(mNew.color, p);
-					game.grid.color = mOld.color.interpolate(mNew.color, p);
-				})
+				game.runNext.addAnim01(millis(300), p -> cOld.interpolate(mNew.colors, p))
 			);
 		}
 	}
 	class UfoHellMode extends ClassicMode {
 		private final Game game;
+		private final TimeDouble missionTimer = new TimeDouble(0, 1/ttl(minutes(1)));
 
 		public UfoHellMode(Game game) {
 			super(game);
@@ -1612,6 +1607,8 @@ interface Utils {
 		public void start(int player_count) {
 			super.start(player_count);
 
+			missionTimer.value = 0;
+
 			game.settings = new Settings();
 			game.settings.useGrid = false;
 			game.settings.playerGunDisabled = true;
@@ -1621,7 +1618,7 @@ interface Utils {
 			game.settings.DISRUPTOR_E_RATE = 0;
 			game.settings.DISRUPTOR_E_ACTIVATION = 0;
 			game.settings.UFO_GUN_RELOAD_TIME = millis(20);
-			game.settings.ufoSpawnSwarms = false;
+			game.settings.spawnSwarms = false;
 
 			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
@@ -1630,6 +1627,7 @@ interface Utils {
 		@Override
 		public void doLoop() {
 			super.doLoop();
+			if (missionTimer.runAndGet() >= 1) nextMission();
 		}
 
 		@Override
@@ -1669,7 +1667,7 @@ interface Utils {
 			game.settings.player_ability_auto_on = true;
 			game.settings.SHIELD_E_RATE = 0;
 			game.settings.SHIELD_E_ACTIVATION = 0;
-			game.settings.ufoSpawnSwarms = false;
+			game.settings.spawnSwarms = false;
 
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.SHIELD));
 		}

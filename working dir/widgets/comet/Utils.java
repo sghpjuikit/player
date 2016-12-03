@@ -548,6 +548,24 @@ interface Utils {
 		}
 	}
 
+	class Draw {
+		Image graphics;
+
+		public Draw(Image graphics) {
+			this.graphics = graphics;
+		}
+
+		public void draw(GraphicsContext gc, double x, double y) {
+			gc.setGlobalAlpha(1);
+			gc.drawImage(graphics, x-graphics.getWidth()/2, y-graphics.getHeight()/2);
+		}
+
+		public void draw(GraphicsContext gc, double x, double y, double scale, double angle) {
+			gc.setGlobalAlpha(1);
+			drawImageRotatedScaled(gc, graphics, deg(angle), x, y, scale);
+		}
+	}
+
 	/** How to play help pane. */
 	class HowToPane extends OverlayPane<Game> {
 		private final GridPane g = new GridPane();

@@ -11,7 +11,6 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
 import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.*;
@@ -1415,7 +1414,7 @@ public class Comet extends ClassController {
 		double mass = 0;
 		Engine engine = null;
 		Class type;
-		Image graphics;
+		Draw graphics;
 		double graphicsDir = 0;
 		double graphicsScale = 1;
 		Set<LO> children = null;
@@ -1427,7 +1426,7 @@ public class Comet extends ClassController {
 			x = X; y = Y; dx = DX; dy = DY;
 			radius = HIT_RADIUS;
 			mass = 2*HIT_RADIUS*HIT_RADIUS; // 4/3d*PI*HIT_RADIUS*HIT_RADIUS*HIT_RADIUS;
-			graphics = GRAPHICS;
+			graphics = GRAPHICS==null ? null : new Draw(GRAPHICS);
 			init();
 		}
 
@@ -1452,7 +1451,7 @@ public class Comet extends ClassController {
 		@Override void draw() {
 			if (graphics!=null) {
 				double scale = graphicsScale*(clip(0.7,20*g_potential,1));
-				drawImageRotatedScaled(gc, graphics, deg(graphicsDir), x, y, scale);
+				graphics.draw(gc, x, y, scale, deg(graphicsDir));
 			}
 		}
 
@@ -1673,75 +1672,6 @@ public class Comet extends ClassController {
 							}
 						};
 					}
-				}
-			}
-		}
-		class PulseEngine extends Engine {
-			private double pulseTTL = 0;
-			private double shipDistance = 9;
-
-			@Override
-			void onOn() { pulseTTL = 0; }
-			@Override
-			void onOff() {}
-			@Override
-			void onDoLoop() {
-				pulseTTL--;
-				if (pulseTTL<0) {
-					pulseTTL = game.settings.PULSE_ENGINE_PULSE_PERIOD_TTL;
-					pulse();
-				}
-			}
-			void pulse() {
-				game.entities.addForceField(new PulseEngineForceField());
-			}
-
-			class PulseEngineForceField extends ForceField {
-				final double mobility_multiplier_effect = mobility.value();
-				private double ttl = 1;
-				private boolean debris_done = false; // prevents spawning debris multiple times
-
-				PulseEngineForceField() {
-					double d = Ship.this.direction+PI;
-					x = Ship.this.x + shipDistance*cos(d);
-					y = Ship.this.y + shipDistance*sin(d);
-					isin_hyperspace = Ship.this.isin_hyperspace;
-				}
-
-				public void doLoop() {
-					ttl -= game.settings.PULSE_ENGINE_PULSE_TTL1;
-					if (ttl<0) dead = true;
-
-					if (!debris_done && ttl<0.7) {
-						double m = mobility.value();
-						debris_done = true;
-						if (!isin_hyperspace) {
-							game.runNext.add(() -> {
-								new PulseEngineDebris(x-2,y+2,-.5d, .5d,m);
-								new PulseEngineDebris(x+2,y+2, .5d, .5d,m);
-								new PulseEngineDebris(x+2,y-2, .5d,-.5d,m);
-								new PulseEngineDebris(x-2,y-2,-.5d,-.5d,m);
-							});
-						}
-					}
-				}
-
-				void apply(PO o) {
-					if (!(o instanceof Rocket)) return;  // too much performance costs for no benefits
-					if (isin_hyperspace!=o.isin_hyperspace) return;
-
-					double distX = game.field.distXSigned(x,o.x);
-					double distY = game.field.distYSigned(y,o.y);
-					double dist = game.field.dist(distX,distY)+1; // +1 avoids /0 " + dist);
-					double f = force(o.mass,dist);
-
-					// apply force
-					o.dx += distX*f/dist;
-					o.dy += distY*f/dist;
-				}
-
-				public double force(double mass, double dist) {
-					return dist==0 ? 0 : -255*mobility_multiplier_effect*ttl*ttl/(dist*dist*dist);
 				}
 			}
 		}
@@ -2909,7 +2839,7 @@ public class Comet extends ClassController {
 			);
 			e = s instanceof Shuttle ? randOf(game.ROCKET_ENHANCERS_NO_SHUTTLE) : ((Satellite)s).e;
 			children = new HashSet<>(2);
-			graphics = graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null);
+			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
 			isLarge = false;
 			graphicsScale = 0.5;
 		}
@@ -3377,18 +3307,6 @@ public class Comet extends ClassController {
 			new RocketEngineDebris(x+20*cos(dir), y+20*sin(dir), 1*cos(d4),1*sin(d4),strength);
 		});
 	};
-	class PulseEngineDebris extends Particle {
-		PulseEngineDebris(double x, double y, double dx, double dy, double ttlmultiplier) {
-			super(x,y,dx,dy,ttlmultiplier* ttl(millis(250)));
-		}
-
-		@Override void draw() {
-			gc.setGlobalAlpha(ttl);
-			gc.setFill(game.colors.humans);
-			gc.fillOval(x-1,y-1,2,2);
-			gc.setGlobalAlpha(1);
-		}
-	}
 	/** Omnidirectional expanding wave. Represents active communication of the ship. */
 	class RadioWavePulse extends Particle {
 		double dxy;
@@ -4647,27 +4565,27 @@ public class Comet extends ClassController {
 	class EIndicator implements LO {
 		double ttl;
 		final PO owner;
-		final Node graphics;
 		final int index;
+		final Draw graphics;
 
 		public EIndicator(PO OWNER, Enhancer enhancer) {
 			owner = OWNER;
 			ttl = ttl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
 			index = findFirstInt(0, i -> stream(owner.children).select(EIndicator.class).noneMatch(o -> o.index==i));
 			owner.children.add(this);
-			graphics = new Icon(enhancer.icon,15);
-			playfield.getChildren().add(graphics);
+			graphics = new Draw(graphics(enhancer.icon, 15, game.colors.humansTech, null));
 		}
 
+		@Override
 		public void doLoop() {
 			ttl--;
 			if (ttl<0) game.runNext.add(this::dispose);
-			relocateCenter(graphics, owner.x+30+20*index, owner.y-30); // javafx inverts y, hence minus
+			graphics.draw(gc, owner.x+30+20*index, owner.y-30);
 		}
 
+		@Override
 		public void dispose() {
 			owner.children.remove(this);
-			playfield.getChildren().remove(graphics);
 		}
 
 	}

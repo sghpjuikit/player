@@ -1384,6 +1384,14 @@ interface Utils {
 		public String toString() {
 			return getClass().getSimpleName();
 		}
+
+		@Override
+		public final void start(int player_count) {
+			game.settings = new Settings();
+			startDo(player_count);
+		}
+
+		abstract protected void startDo(int playerCount);
 	}
 	class ClassicMode extends GameMode {
 		final MapSet<Integer,Mission> missions;
@@ -1511,8 +1519,7 @@ interface Utils {
 		public void init() {}
 
 		@Override
-		public void start(int player_count) {
-			game.settings = new Settings();
+		public void startDo(int player_count) {
 			mission_counter = 0;
 			isMissionScheduled = false;
 			nextMission();
@@ -1566,19 +1573,21 @@ interface Utils {
 
 			// start mission
 			game.mission = mNew;
-			boolean isEasy = mission_counter<4;
-			double size = sqrt(game.field.height)/1000;
-			int planetoidCount = 3 + (int)(2*(size-1)) + (mission_counter-1) + game.players.size()/2;
-			int planetoids = isEasy ? planetoidCount/2 : planetoidCount;
 			double delay = ttl(seconds(mission_counter==1 ? 2 : 5));
-			game.runNext.add(delay/2, () -> game.message("Level " + mission_counter, mNew.name));
-			game.runNext.add(delay, () -> repeat(planetoids, i -> mNew.spawnPlanetoid()));
-			if (isEasy) {
-				isMissionStartPlanetoidSplitting = true;
-				game.runNext.add(delay, () -> {
-					game.oss.get(Asteroid.class).forEach(a -> a.split(null));
-					isMissionStartPlanetoidSplitting = false;
-				});
+			if (game.settings.spawnAsteroids) {
+				boolean isEasy = mission_counter < 4;
+				double size = sqrt(game.field.height) / 1000;
+				int planetoidCount = 3 + (int) (2 * (size - 1)) + (mission_counter - 1) + game.players.size() / 2;
+				int planetoids = isEasy ? planetoidCount / 2 : planetoidCount;
+				game.runNext.add(delay / 2, () -> game.message("Level " + mission_counter, mNew.name));
+				game.runNext.add(delay, () -> repeat(planetoids, i -> mNew.spawnPlanetoid()));
+				if (isEasy) {
+					isMissionStartPlanetoidSplitting = true;
+					game.runNext.add(delay, () -> {
+						game.oss.get(Asteroid.class).forEach(a -> a.split(null));
+						isMissionStartPlanetoidSplitting = false;
+					});
+				}
 			}
 			game.runNext.add(delay, () -> isMissionScheduled = false);
 			game.mission.initializer.accept(game);
@@ -1604,12 +1613,7 @@ interface Utils {
 		}
 
 		@Override
-		public void start(int player_count) {
-			super.start(player_count);
-
-			missionTimer.value = 0;
-
-			game.settings = new Settings();
+		public void startDo(int player_count) {
 			game.settings.useGrid = false;
 			game.settings.playerGunDisabled = true;
 			game.settings.UFO_BULLET_TTL *= 2;
@@ -1619,7 +1623,11 @@ interface Utils {
 			game.settings.DISRUPTOR_E_ACTIVATION = 0;
 			game.settings.UFO_GUN_RELOAD_TIME = millis(20);
 			game.settings.spawnSwarms = false;
+			game.settings.spawnAsteroids = false;
 
+			super.startDo(player_count);
+
+			missionTimer.value = 0;
 			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
 		}
@@ -1659,15 +1667,14 @@ interface Utils {
 		}
 
 		@Override
-		public void start(int player_count) {
-			super.start(player_count);
-
-			game.settings = new Settings();
+		public void startDo(int player_count) {
 			game.settings.playerGunDisabled = true;
 			game.settings.player_ability_auto_on = true;
 			game.settings.SHIELD_E_RATE = 0;
 			game.settings.SHIELD_E_ACTIVATION = 0;
 			game.settings.spawnSwarms = false;
+
+			super.startDo(player_count);
 
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.SHIELD));
 		}

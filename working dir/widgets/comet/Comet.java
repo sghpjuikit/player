@@ -353,7 +353,7 @@ public class Comet extends ClassController {
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
 	@IsConfig
-	final VarEnum<GameMode> mode = new VarEnum<>(new ClassicMode(game), new UfoHellMode(game), new BounceHellMode(game));
+	final VarEnum<GameMode> mode = new VarEnum<>(new ClassicMode(game), new TimeTrial(game), new BounceHellMode(game));
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
 		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
@@ -432,6 +432,17 @@ public class Comet extends ClassController {
 		final Map<KeyCode,Long> keyPressTimes = new HashMap<>();
 		final GamepadDevices gamepads = new GamepadDevices() {
 			private IControllerListener listener;
+
+			@Override
+			public void start() {
+				gamepads.getControllers()
+					.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
+					.sorted(by(IController::getDeviceID))
+					.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
+						              .findFirst(p -> p.gamepadId.get()==null)
+						              .ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
+					);
+			}
 
 			@Override
 			protected void onInit(IController[] gamepads) {
@@ -540,6 +551,12 @@ public class Comet extends ClassController {
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
 		MissionInfoButton mission_button;
 		final StatsGame stats = new StatsGame();
+
+		private final MotionBlur cee = new MotionBlur( 0, 50);
+		//		private final BoxBlur cee = new BoxBlur(100,2,2);
+		private final Effect cee2 = new Bloom(0.3);
+		private final TimeDouble cceStrengthW = new TimeDouble(0,0.01);
+		private final TimeDouble cceStrengthH = new TimeDouble(0.5,0.01);
 
 		final Voronoi voronoi = new Voronoi(
 			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
@@ -658,8 +675,6 @@ public class Comet extends ClassController {
 		public void start(int player_count) {
 			stop();
 
-			mode = Comet.this.mode.get();
-
 			if (!isInitialized) {
 				init();
 				isInitialized = true;
@@ -667,27 +682,20 @@ public class Comet extends ClassController {
 
 			players.addAll(listF(player_count,PLAYERS.list::get));
 			players.forEach(Player::reset);
-
-			gamepads.getControllers()
-				.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
-				.sorted(by(IController::getDeviceID))
-				.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
-									.findFirst(p -> p.gamepadId.get()==null)
-									.ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
-				);
+			gamepads.start();
 
 			running.set(true);
 			loop.reset();
 			ufos.init();
 			humans.init();
 
+			mode = Comet.this.mode.get();
+			mode.start(player_count);
 			players.forEach(Player::spawn);
 			loop.start();
 			playfield.requestFocus();
-			mode.start(player_count);
-			grid.enabled = settings.useGrid;
 
-			runNext.add(() -> mission_button = new MissionInfoButton());
+			grid.enabled = settings.useGrid;
 		}
 
 		@Override
@@ -779,11 +787,6 @@ public class Comet extends ClassController {
 			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
 			mode.doLoop();
 		}
-		private final MotionBlur cee = new MotionBlur( 0, 50);
-//		private final BoxBlur cee = new BoxBlur(100,2,2);
-		private final Effect cee2 = new Bloom(0.3);
-		private final TimeDouble cceStrengthW = new TimeDouble(0,0.01);
-		private final TimeDouble cceStrengthH = new TimeDouble(0.5,0.01);
 
 		@Override
 		public void stop() {
@@ -868,7 +871,6 @@ public class Comet extends ClassController {
 			void init() {
 				share_enhancers = false;
 				intelOn.reset();
-				runNext.addPeriodic(() -> settings.SATELLITE_TTL()/sqrt(players.size()), humans::sendSatellite);
 			}
 
 			void send(Rocket r, Consumer<? super Rocket> action) {
@@ -895,7 +897,20 @@ public class Comet extends ClassController {
 					st.x = x;
 					st.y = y;
 					createHyperSpaceAnimIn(game, st);
-				} );
+				});
+			}
+			void sendSmallStationarySatellite() {
+				double x = rand0N(game.field.width);
+				double y = rand0N(game.field.height);
+				if (humans.intelOn.is()) pulseAlert(x,y);
+				if (humans.intelOn.is()) placeholder("Support", x,y);
+				runNext.add(seconds(2), () -> {
+					Satellite s = new Satellite(Side.LEFT).small();
+					s.x = x;
+					s.y = y;
+					s.dx = s.dy = 0;
+					createHyperSpaceAnimIn(game, s);
+				});
 			}
 
 			void pulseCall(PO o) {
@@ -930,9 +945,6 @@ public class Comet extends ClassController {
 				losses = 0;
 				ufo_enemy = null;
 				aggressive = false;
-				runNext.addPeriodic(() -> settings.UFO_TTL()/sqrt(players.size()), ufos::sendUfo);
-				runNext.addPeriodic(() -> settings.UFO_SWARM_TTL()/sqrt(players.size()), ufos::sendUfoSwarm);
-				runNext.addPeriodic(() -> settings.UFO_DISCSPAWN_TTL()/sqrt(players.size()), () -> canSpawnDiscs = true);
 			}
 
 			void onUfoDestroyed() {
@@ -2750,7 +2762,7 @@ public class Comet extends ClassController {
 	/** Represents defunct ship. Gives upgrades. */
 	class Satellite extends PO {
 		final Enhancer e;
-		final boolean isLarge;
+		private boolean isLarge = true;
 
 		/** Creates small satellite out of Shuttle or large Satellite. */
 		public Satellite(PO s, double DIR) {
@@ -2765,13 +2777,14 @@ public class Comet extends ClassController {
 				: ((Satellite)s).e;
 			children = new HashSet<>(2);
 			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
-			isLarge = false;
-			graphicsScale = 0.5;
+			small();
 		}
+
 		/** Creates large Satellite. */
 		public Satellite() {
 			this(randEnum(Side.class));
 		}
+
 		/** Creates large Satellite. */
 		public Satellite(Side dir) {
 			super(Satellite.class,
@@ -2782,8 +2795,12 @@ public class Comet extends ClassController {
 			e = randOf(game.mode.enhancers());
 			children = new HashSet<>(2);
 			if (game.humans.intelOn.is()) new EIndicator(this,e);
-			isLarge = true;
-			graphicsScale = 1;
+		}
+
+		Satellite small() {
+			isLarge = false;
+			graphicsScale = 0.5;
+			return this;
 		}
 
 		void move() {}

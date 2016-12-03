@@ -38,8 +38,8 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
 
 import comet.Comet.*;
-import comet.Comet.Game.Mission;
 import comet.Comet.Game.Enhancer;
+import comet.Comet.Game.Mission;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -801,16 +801,26 @@ interface Utils {
 	}
 	class TimeDouble implements Runnable {
 		public double value;
-		public final double by;
+		public final double from, by, to;
 
-		public TimeDouble(double start, double by) {
-			this.value = start;
+		public TimeDouble(double from, double by) {
+			this(from, by, Double.MAX_VALUE);
+		}
+
+		public TimeDouble(double from, double by, double to) {
+			this.value = from;
+			this.from = from;
 			this.by = by;
+			this.to = to;
 		}
 
 		@Override
 		public void run() {
 			value += by;
+		}
+
+		public boolean isDone() {
+			return value >= to;
 		}
 
 		public double get() {
@@ -826,6 +836,10 @@ interface Utils {
 		public double runAndGet() {
 			run();
 			return value;
+		}
+
+		public void reset() {
+			value = from;
 		}
 	}
 	class ObjectStore<O> {
@@ -1395,9 +1409,11 @@ interface Utils {
 	}
 	abstract class GameMode implements Play {
 		protected Game game;
+		public String name; // TODO: make final
 
-		public GameMode(Game game) {
+		public GameMode(Game game, String name) {
 			this.game = game;
+			this.name = name;
 		}
 
 		public Set<Achievement> achievements() {
@@ -1410,7 +1426,7 @@ interface Utils {
 
 		@Override
 		public String toString() {
-			return getClass().getSimpleName();
+			return name;
 		}
 
 		@Override
@@ -1430,7 +1446,7 @@ interface Utils {
 		final Set<Enhancer> enhancers;
 
 		public ClassicMode(Game game) {
-			super(game);
+			super(game, "Classic");
 			missions = new MapSet<>(m -> m.id,
 //				new Mission(
 //					1, "Energetic fragility","10⁻¹⁵","",
@@ -1673,6 +1689,12 @@ interface Utils {
 			mission_counter = 0;
 			isMissionScheduled = false;
 			nextMission();
+
+			game.runNext.addPeriodic(() -> game.settings.SATELLITE_TTL()/sqrt(game.players.size()), game.humans::sendSatellite);
+			game.runNext.addPeriodic(() -> game.settings.UFO_TTL()/sqrt(game.players.size()), game.ufos::sendUfo);
+			game.runNext.addPeriodic(() -> game.settings.UFO_SWARM_TTL()/sqrt(game.players.size()), game.ufos::sendUfoSwarm);
+			game.runNext.addPeriodic(() -> game.settings.UFO_DISCSPAWN_TTL()/sqrt(game.players.size()), () -> game.ufos.canSpawnDiscs = true);
+			game.runNext.add(() -> game.mission_button = game.owner.new MissionInfoButton());
 		}
 
 		@Override
@@ -1753,13 +1775,25 @@ interface Utils {
 			);
 		}
 	}
-	class UfoHellMode extends ClassicMode {
-		private final Game game;
-		private final TimeDouble missionTimer = new TimeDouble(0, 1/ttl(minutes(1)));
+	class TimeTrial extends ClassicMode {
+		private final TimeDouble missionTimer = new TimeDouble(0, 1, ttl(minutes(1)));
+		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(30)));
 
-		public UfoHellMode(Game game) {
+		public TimeTrial(Game game) {
 			super(game);
-			this.game = game;
+			this.name = "Time Trial";
+
+			enhancers.clear();
+			enhancers.add(
+				game.new Enhancer(
+					"+5 seconds", FontAwesomeIcon.CLOCK_ALT, Duration.ZERO,
+					r -> {
+						remainingTimeMs.value -= ttl(seconds(5));
+						game.humans.sendSmallStationarySatellite();
+					},
+					"Increase remaining time by 5 seconds"
+				)
+			);
 		}
 
 		@Override
@@ -1780,19 +1814,31 @@ interface Utils {
 			game.settings.spawnSwarms = false;
 			game.settings.spawnAsteroids = false;
 
-			super.startDo(player_count);
-
-			missionTimer.value = 0;
-			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
+			game.humans.intelOn.inc();
+			remainingTimeMs.reset();
+			missionTimer.reset();
+			mission_counter = 0;
+			isMissionScheduled = false;
+			nextMission();
+
+			game.runNext.add(seconds(5), game.humans::sendSmallStationarySatellite);
+			game.runNext.addPeriodic(seconds(4), game.ufos::sendUfo);
 		}
 
 		@Override
 		public void doLoop() {
 			super.doLoop();
-			if (missionTimer.runAndGet() >= 1) {
+
+			missionTimer.run();
+			if (missionTimer.isDone()) {
 				nextMission();
 				missionTimer.value = 0;
+			}
+
+			remainingTimeMs.run();
+			if (remainingTimeMs.isDone()) {
+				game.over();
 			}
 		}
 
@@ -1812,11 +1858,10 @@ interface Utils {
 		}
 	}
 	class BounceHellMode extends ClassicMode {
-		private final Game game;
 
 		public BounceHellMode(Game game) {
 			super(game);
-			this.game = game;
+			this.name = "Bounce";
 		}
 
 		@Override
@@ -2471,6 +2516,8 @@ interface Utils {
 				LOGGER.error("Failed to initialize gamepad controllers", e);
 			}
 		}
+
+		public void start() {};
 
 		public final void doLoop() {
 			if (!isInitialized) return;

@@ -39,9 +39,11 @@ import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
 
 import comet.Comet.*;
 import comet.Comet.Game.Mission;
+import comet.Comet.Game.Enhancer;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import gui.pane.OverlayPane;
@@ -73,9 +75,7 @@ import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.paint.Color.rgb;
-import static javafx.util.Duration.millis;
-import static javafx.util.Duration.minutes;
-import static javafx.util.Duration.seconds;
+import static javafx.util.Duration.*;
 import static util.Util.clip;
 import static util.Util.pyth;
 import static util.collections.Tuples.tuple;
@@ -594,6 +594,12 @@ interface Utils {
 		public void show(Game game) {
 			super.show();
 
+			buildEnhancers(game.mode.enhancers().stream());
+		}
+
+
+
+		private void buildEnhancers(Stream<Game.Enhancer> enhancers) {
 			// clear content
 			g.getChildren().clear();
 			g.getRowConstraints().clear();
@@ -606,7 +612,7 @@ interface Utils {
 
 			// build rows
 			R<Integer> i = new R<>(-1); // row index
-			game.ROCKET_ENHANCERS.stream()
+			enhancers
 				.sorted(by(enhancer -> enhancer.name))
 				.forEach(enhancer -> {
 					i.setOf(v -> v+1);
@@ -614,7 +620,7 @@ interface Utils {
 					Icon icon = new Icon(enhancer.icon, 20);
 					Label nameL = new Label(enhancer.name);
 					Text descL = new Text(enhancer.description);
-						 descL.setWrappingWidth(400);
+					descL.setWrappingWidth(400);
 					g.add(icon, 0,i.get());
 					g.add(nameL, 2,i.get());
 					i.setOf(v -> v+1);
@@ -1398,6 +1404,10 @@ interface Utils {
 			return set();
 		}
 
+		public Set<Game.Enhancer> enhancers() {
+			return set();
+		}
+
 		@Override
 		public String toString() {
 			return getClass().getSimpleName();
@@ -1417,6 +1427,7 @@ interface Utils {
 		boolean isMissionScheduled = false;
 		boolean isMissionStartPlanetoidSplitting = false;
 		final Set<Achievement> achievements;
+		final Set<Enhancer> enhancers;
 
 		public ClassicMode(Game game) {
 			super(game);
@@ -1449,7 +1460,7 @@ interface Utils {
 				),
 				game.new Mission(
 					6, "String a string","10⁻¹⁵","",
-					Color.YELLOW, rgb(10, 11, 1, 0.2),(a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
+					Color.YELLOW, rgb(10, 11, 1, 0.2), (a,b,c,d,e) -> game.owner.new Stringoid(a,b,c,d,e)
 				), //new Glow(0.3)
 				game.new Mission(
 					7, "Mother of all branes","10⁻¹⁵","",
@@ -1461,7 +1472,7 @@ interface Utils {
 				),
 				game.new Mission(
 					9, "Planc's plancton","10⁻¹⁵","",
-					Color.DARKCYAN, new Color(0,0.08,0.08,0.09),(a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
+					Color.DARKCYAN, new Color(0,0.08,0.08,0.09), (a,b,c,d,e) -> game.owner.new Linker(a,b,c,d,e)
 				)//,
 //				new Mission(10, "T duality of a planck boundary","10⁻¹⁵","",
 //					Color.DARKSLATEBLUE,new Color(1,1,1,0.08),null,Energ2::new
@@ -1531,6 +1542,127 @@ interface Utils {
 					"Kill most UFOs"
 				).onlyIf(g -> g.players.size()>1)
 			);
+			enhancers = set(
+				game.new Enhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
+					r -> r.gun.turrets.inc(), (Rocket r) -> {/*r.gun.turrets.dec()*/},
+					"- Mounts additional gun turret",
+					"- Increases chance of hitting the target",
+					"- Increases maximum possible target damage by 100%"
+				),
+				game.new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidFire.inc(), r -> r.rapidFire.dec(),
+					" - Largely increases rate of fire temporarily. Fires constant stream of bullets",
+					" - Improved hit efficiency due to bullet spam",
+					" - Improved mobility due to less danger of being hit",
+					"Tip: Fire constantly. Be on the move. Let the decimating power of countless bullets"
+						+ " be your shield. The upgrade lasts only a while - being static is a disadvantage."
+				),
+				game.new Enhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(60), r -> r.powerFire.inc(), r -> r.powerFire.dec(),
+					"- Increases bullet speed",
+					"- Increases bullet range",
+					"Tip: Aim closer to target. Faster bullet will reach target sooner."
+				),
+				game.new Enhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyFire.inc(), r -> r.energyFire.dec(),
+					"- Bullets penetrate the target",
+					"- Increases bullet damage, 1 hit kill",
+					"- Multiple target damage",
+					"Tip: Fire at bigger target or group of targets.",
+					"Tip: Try lining up targets into a line."
+				),
+				game.new Enhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitFire.inc(), r -> r.splitFire.dec(),
+					"- Bullets split into 2 bullets on hit",
+					"- Multiple target damage",
+					"Tip: Strategic weapon. The damage potential raises exponentially"
+						+ " with the number of targets. Annihilate the most dense enemy area with ease."
+				),
+				// TODO: make useful
+				//			new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
+				//				"- Fires a bullet generating a black hole",
+				//				"- Lethal to everything, including players",
+				//				"- Player receives partial score for all damage caused by the black hole",
+				//				"Tip: Strategic weapon. Do not endanger yourself or your allies."
+				//			),
+				game.new Enhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(45),
+					r -> {
+						Ship.LaserSight ls = r.new LaserSight();
+						game.runNext.add(seconds(45),ls::dispose);
+					},
+					"- Displays bullet path",
+					"- Displays bullet range"
+				),
+				game.new Enhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
+					"- Increases propulsion efficiency, i.e., speed",
+					"- Increases maneuverability",
+					"Tip: If there is ever time to move, it is now. Don't idle around."
+				),
+				game.new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  game.humans.intelOn.inc(), r -> game.humans.intelOn.dec(), false,
+					"- Reports incoming ufo time & location",
+					"- Reports incoming upgrade time & location",
+					"- Reveals exact upgrade type before it is picked up",
+					"- Displays bullet range",
+					"- Displays player control area and marks the best area control position",
+					"Tip: This upgrade is automatically shared."
+				),
+				game.new Enhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
+					r -> game.humans.share_enhancers=true, r -> game.humans.share_enhancers=false,
+					"- Applies upgrades to all allies",
+					"Tip: The more allies, the bigger the gain."
+				),
+				game.new Enhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
+					r -> game.humans.send(r, rc -> game.owner.new Shuttle(rc)), r -> {}, false,
+					"- Calls in supply shuttle",
+					"- Provides large and powerful stationary kinetic shield",
+					"- Provides additional upgrades",
+					"Tip: This upgrade can not be shared."
+				),
+				game.new Enhancer("Super shield", FontAwesomeIcon.CIRCLE_THIN, seconds(5),
+					r -> game.humans.send(r, rc -> game.owner.new SuperShield(rc)), r -> {}, false,
+					"- Calls in support shield",
+					"- Provides large and powerful stationary kinetic shield",
+					"Tip: This upgrade can not be shared."
+				),
+				game.new Enhancer("Super disruptor", MaterialIcon.BLUR_ON, seconds(5),
+					r -> game.humans.send(r, rc -> game.owner.new SuperDisruptor(rc)), r -> {}, false,
+					"- Calls in support disruptor",
+					"- Provides large and powerful stationary force field that slows objects down",
+					"Tip: Hide inside and use as a form of shield.",
+					"Tip: Objects with active propulsion will still be able to move, albeit slowed down.",
+					"Tip: This upgrade can not be shared."
+				),
+				game.new Enhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
+					r -> {
+						r.kinetic_shield.KSenergy_max *= 1.1;
+						r.kinetic_shield.changeKSenergyToMax();
+					},
+					"- Sets kinetic shield energy to max",
+					"- Increases maximum kinetic shield energy by 10%"
+				),
+				game.new Enhancer("Shield enhancer", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(), r -> r.kinetic_shield.large.dec(),
+					"- Increases kinetic shield range by " + game.settings.KINETIC_SHIELD_LARGE_RADIUS_INC + "px",
+					"- Increases maximum kinetic shield energy by " + (game.settings.KINETIC_SHIELD_LARGE_E_MAX_INC*100) + "%",
+					"- Increases kinetic shield energy accumulation " + (game.settings.KINETIC_SHIELD_LARGE_E_RATE) +" times",
+					"Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
+				),
+				game.new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5),
+					r -> {
+						r.energy_max *= 1.1;
+						r.energy_buildup_rate *= 1.1;
+					},
+					"- Increases maximum energy by 10%",
+					"- Increases energy accumulation by 10%"
+				),
+				game.new Enhancer("Energy (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
+					r -> r.energy = min(r.energy+2000,r.energy_max),
+					"- Increases energy by up to 2000"
+				),
+				game.new Enhancer("Energy (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
+					r -> r.energy = min(r.energy+5000,r.energy_max),
+					"- Increases energy by up to 5000"
+				),
+				game.new Enhancer("Energy (large)", MaterialDesignIcon.BATTERY, seconds(5),
+					r -> r.energy = min(r.energy+10000,r.energy_max),
+					"- Increases energy by up to 10000"
+				)
+			);
 		}
 
 		@Override
@@ -1573,6 +1705,11 @@ interface Utils {
 		@Override
 		public Set<Achievement> achievements() {
 			return achievements;
+		}
+
+		@Override
+		public Set<Enhancer> enhancers() {
+			return enhancers;
 		}
 
 		protected void nextMission() {

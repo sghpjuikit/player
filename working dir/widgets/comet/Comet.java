@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import comet.Comet.Ship.Disruptor.DisruptorField;
 import comet.Comet.Ship.Hyperspace;
 import comet.Comet.Ship.Shield;
+import comet.Comet.Game.Enhancer;
 import comet.Utils.*;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -191,7 +192,7 @@ public class Comet extends ClassController {
 					game.handleEvent(Events.COMMAND_NEXT_MISSION);
 				});
 				if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
-				if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.ROCKET_ENHANCERS).enhance(r));
+				if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.mode.enhancers()).enhance(r));
 				if (cc==DIGIT7) game.entities.addForceField(new BlackHole(null, seconds(20),rand0N(game.field.width),rand0N(game.field.height)));
 				if (cc==DIGIT8) game.start(2);
 			}
@@ -534,135 +535,12 @@ public class Comet extends ClassController {
 		final Set<PO> removables = new HashSet<>();
 		final CollisionHandlers collisionStrategies = new CollisionHandlers();
 
-		private GameMode mode;
+		GameMode mode;
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
 		MissionInfoButton mission_button;
 		final StatsGame stats = new StatsGame();
 
-
-		final Set<Enhancer> ROCKET_ENHANCERS = set(
-			new Enhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
-				r -> r.gun.turrets.inc(), r -> {/*r.gun.turrets.dec()*/},
-				"- Mounts additional gun turret",
-				"- Increases chance of hitting the target",
-				"- Increases maximum possible target damage by 100%"
-			),
-			new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidFire.inc(), r -> r.rapidFire.dec(),
-				" - Largely increases rate of fire temporarily. Fires constant stream of bullets",
-				" - Improved hit efficiency due to bullet spam",
-				" - Improved mobility due to less danger of being hit",
-				"Tip: Fire constantly. Be on the move. Let the decimating power of countless bullets"
-			  + " be your shield. The upgrade lasts only a while - being static is a disadvantage."
-			),
-			new Enhancer("Long fire", MaterialDesignIcon.DOTS_HORIZONTAL, seconds(60), r -> r.powerFire.inc(), r -> r.powerFire.dec(),
-				"- Increases bullet speed",
-				"- Increases bullet range",
-				"Tip: Aim closer to target. Faster bullet will reach target sooner."
-			),
-			new Enhancer("High energy fire", MaterialDesignIcon.MINUS, seconds(25), r -> r.energyFire.inc(), r -> r.energyFire.dec(),
-				"- Bullets penetrate the target",
-				"- Increases bullet damage, 1 hit kill",
-				"- Multiple target damage",
-				"Tip: Fire at bigger target or group of targets.",
-				"Tip: Try lining up targets into a line."
-			),
-			new Enhancer("Split ammo", MaterialIcon.CALL_SPLIT, seconds(15), r -> r.splitFire.inc(), r -> r.splitFire.dec(),
-				"- Bullets split into 2 bullets on hit",
-				"- Multiple target damage",
-				"Tip: Strategic weapon. The damage potential raises exponentially"
-			  + " with the number of targets. Annihilate the most dense enemy area with ease."
-			),
-			// TODO: make useful
-//			new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
-//				"- Fires a bullet generating a black hole",
-//				"- Lethal to everything, including players",
-//				"- Player receives partial score for all damage caused by the black hole",
-//				"Tip: Strategic weapon. Do not endanger yourself or your allies."
-//			),
-			new Enhancer("Aim enhancer", MaterialDesignIcon.RULER, seconds(45),
-				r -> {
-					Ship.LaserSight ls = r.new LaserSight();
-					game.runNext.add(seconds(45),ls::dispose);
-				},
-				"- Displays bullet path",
-				"- Displays bullet range"
-			),
-			new Enhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
-				"- Increases propulsion efficiency, i.e., speed",
-				"- Increases maneuverability",
-				"Tip: If there is ever time to move, it is now. Don't idle around."
-			),
-			new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  humans.intelOn.inc(), r -> humans.intelOn.dec(), false,
-				"- Reports incoming ufo time & location",
-				"- Reports incoming upgrade time & location",
-				"- Reveals exact upgrade type before it is picked up",
-				"- Displays bullet range",
-				"- Displays player control area and marks the best area control position",
-				"Tip: This upgrade is automatically shared."
-			),
-			new Enhancer("Share upgrades", MaterialDesignIcon.SHARE_VARIANT, minutes(2),
-				r -> humans.share_enhancers=true, r -> humans.share_enhancers=false,
-				"- Applies upgrades to all allies",
-				"Tip: The more allies, the bigger the gain."
-			),
-			new Enhancer("Shuttle support", FontAwesomeIcon.SPACE_SHUTTLE, seconds(5),
-				r -> humans.send(r,Shuttle::new), r -> {}, false,
-				"- Calls in supply shuttle",
-				"- Provides large and powerful stationary kinetic shield",
-				"- Provides additional upgrades",
-				"Tip: This upgrade can not be shared."
-			),
-			new Enhancer("Super shield", FontAwesomeIcon.CIRCLE_THIN, seconds(5),
-				r -> humans.send(r,SuperShield::new), r -> {}, false,
-				"- Calls in support shield",
-				"- Provides large and powerful stationary kinetic shield",
-				"Tip: This upgrade can not be shared."
-			),
-			new Enhancer("Super disruptor", MaterialIcon.BLUR_ON, seconds(5),
-				r -> humans.send(r, SuperDisruptor::new), r -> {}, false,
-				"- Calls in support disruptor",
-				"- Provides large and powerful stationary force field that slows objects down",
-				"Tip: Hide inside and use as a form of shield.",
-				"Tip: Objects with active propulsion will still be able to move, albeit slowed down.",
-				"Tip: This upgrade can not be shared."
-			),
-			new Enhancer("Shield energizer", MaterialDesignIcon.IMAGE_FILTER_TILT_SHIFT, seconds(5),
-				r -> {
-					r.kinetic_shield.KSenergy_max *= 1.1;
-					r.kinetic_shield.changeKSenergyToMax();
-				},
-				"- Sets kinetic shield energy to max",
-				"- Increases maximum kinetic shield energy by 10%"
-			),
-			new Enhancer("Shield enhancer", FontAwesomeIcon.SUN_ALT, seconds(25), r -> r.kinetic_shield.large.inc(), r -> r.kinetic_shield.large.dec(),
-				"- Increases kinetic shield range by " + settings.KINETIC_SHIELD_LARGE_RADIUS_INC + "px",
-				"- Increases maximum kinetic shield energy by " + (settings.KINETIC_SHIELD_LARGE_E_MAX_INC*100) + "%",
-				"- Increases kinetic shield energy accumulation " + (settings.KINETIC_SHIELD_LARGE_E_RATE) +" times",
-				"Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
-			),
-			new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5),
-				r -> {
-					r.energy_max *= 1.1;
-					r.energy_buildup_rate *= 1.1;
-				},
-				"- Increases maximum energy by 10%",
-				"- Increases energy accumulation by 10%"
-			),
-			new Enhancer("Energy (small)", MaterialDesignIcon.BATTERY_30, seconds(5),
-				r -> r.energy = min(r.energy+2000,r.energy_max),
-				"- Increases energy by up to 2000"
-			),
-			new Enhancer("Energy (medium)", MaterialDesignIcon.BATTERY_60, seconds(5),
-				r -> r.energy = min(r.energy+5000,r.energy_max),
-				"- Increases energy by up to 5000"
-			),
-			new Enhancer("Energy (large)", MaterialDesignIcon.BATTERY, seconds(5),
-				r -> r.energy = min(r.energy+10000,r.energy_max),
-				"- Increases energy by up to 10000"
-			)
-		);
-		final Set<Enhancer> ROCKET_ENHANCERS_NO_SHUTTLE = stream(ROCKET_ENHANCERS).filter(re -> !"Shuttle support".equals(re.name)).toSet();
 		final Voronoi voronoi = new Voronoi(
 			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
 			(rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
@@ -1205,6 +1083,51 @@ public class Comet extends ClassController {
 				forceFieldstoAdd.clear();
 			}
 		}
+		/**
+		 * A rocket ability. Enhances player's rocket in some way.
+		 */
+		public class Enhancer extends Displayable {
+			final Duration duration;
+			final Consumer<Rocket> starter;
+			final Consumer<Rocket> stopper;
+			final boolean isShareable;
+
+			public Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, boolean ISSHAREABLE, CharSequence... DESCRIPTION) {
+				super(NAME, ICON, DESCRIPTION);
+				duration = DURATION;
+				starter = STARTER;
+				stopper = STOPPER;
+				isShareable = ISSHAREABLE;
+			}
+
+			public Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, CharSequence... DESCRIPTION) {
+				this(NAME, ICON, DURATION, STARTER, STOPPER, true, DESCRIPTION);
+			}
+
+			public Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, CharSequence... DESCRIPTION) {
+				this(NAME, ICON, DURATION, STARTER, r -> {}, DESCRIPTION);
+			}
+
+			void enhance(Rocket r) {
+				start(r);
+				Game.this.runNext.add(duration,() -> stop(r));
+			}
+
+			void start(Rocket r) {
+				if (isShareable && Game.this.humans.share_enhancers) {
+					Game.this.oss.get(Rocket.class).forEach(starter);
+					Game.this.oss.get(Rocket.class).forEach(rk -> new EIndicator(rk, this));
+				} else {
+					starter.accept(r);
+					new EIndicator(r,this);
+				}
+			}
+
+			void stop(Rocket r) {
+				if (isShareable && Game.this.humans.share_enhancers) Game.this.oss.get(Rocket.class).forEach(stopper);
+				else stopper.accept(r);
+			}
+		}
 	}
 
 	/** Game player. Survives game sessions. */
@@ -1293,7 +1216,7 @@ public class Comet extends ClassController {
 			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id.get());
 			rocket.energy = game.settings.PLAYER_ENERGY_INITIAL;
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
-			new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
+			game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
 		}
 
@@ -2837,7 +2760,9 @@ public class Comet extends ClassController {
 				s instanceof Shuttle ? 0.2*sin(DIR) : s.dy,
 				game.settings.SATELLITE_RADIUS/2, null
 			);
-			e = s instanceof Shuttle ? randOf(game.ROCKET_ENHANCERS_NO_SHUTTLE) : ((Satellite)s).e;
+			e = s instanceof Shuttle
+				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).toList())
+				: ((Satellite)s).e;
 			children = new HashSet<>(2);
 			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
 			isLarge = false;
@@ -2854,7 +2779,7 @@ public class Comet extends ClassController {
 				(dir==Side.LEFT ? 1 : -1)*game.settings.SATELLITE_SPEED, 0,
 				game.settings.SATELLITE_RADIUS, graphics(MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null)
 			);
-			e = randOf(game.ROCKET_ENHANCERS);
+			e = randOf(game.mode.enhancers());
 			children = new HashSet<>(2);
 			if (game.humans.intelOn.is()) new EIndicator(this,e);
 			isLarge = true;
@@ -4514,51 +4439,6 @@ public class Comet extends ClassController {
 		}
 	}
 
-	/**
-	 * A rocket ability. Enhances player's rocket in some way.
-	 */
-	class Enhancer extends Displayable {
-		final Duration duration;
-		final Consumer<Rocket> starter;
-		final Consumer<Rocket> stopper;
-		final boolean isShareable;
-
-		Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, boolean ISSHAREABLE, CharSequence... DESCRIPTION) {
-			super(NAME, ICON, DESCRIPTION);
-			duration = DURATION;
-			starter = STARTER;
-			stopper = STOPPER;
-			isShareable = ISSHAREABLE;
-		}
-
-		Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, Consumer<Rocket> STOPPER, CharSequence... DESCRIPTION) {
-			this(NAME, ICON, DURATION, STARTER, STOPPER, true, DESCRIPTION);
-		}
-
-		Enhancer(String NAME, GlyphIcons ICON, Duration DURATION, Consumer<Rocket> STARTER, CharSequence... DESCRIPTION) {
-			this(NAME, ICON, DURATION, STARTER, r -> {}, DESCRIPTION);
-		}
-
-		void enhance(Rocket r) {
-			start(r);
-			game.runNext.add(duration,() -> stop(r));
-		}
-
-		void start(Rocket r) {
-			if (isShareable && game.humans.share_enhancers) {
-				game.oss.get(Rocket.class).forEach(starter);
-				game.oss.get(Rocket.class).forEach(rk -> new EIndicator(rk,this));
-			} else {
-				starter.accept(r);
-				new EIndicator(r,this);
-			}
-		}
-
-		void stop(Rocket r) {
-			if (isShareable && game.humans.share_enhancers) game.oss.get(Rocket.class).forEach(stopper);
-			else stopper.accept(r);
-		}
-	}
 	/**
 	 * Rocket enhancer indicator icon moving with player rocket to indicate active enhancers.
 	 */

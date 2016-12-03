@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import javafx.event.Event;
 import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.GraphicsContext;
@@ -16,10 +17,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
@@ -75,9 +73,9 @@ import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.paint.Color.rgb;
+import static javafx.scene.text.Font.font;
 import static javafx.util.Duration.*;
-import static util.Util.clip;
-import static util.Util.pyth;
+import static util.Util.*;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.throwIf;
 import static util.dev.Util.throwIfNot;
@@ -666,16 +664,25 @@ interface Utils {
 		}
 	}
 	/** How to play help pane. */
-	class EndGamePane extends OverlayPane<Map<Player,List<Achievement>>> {
-		private final GridPane g = new GridPane();
+	class EndGamePane extends OverlayPane<Game> {
+		private final Label gameModeName = new Label();
+		private final StackPane gameResultPane = new StackPane();
+		private final GridPane achievementPane = new GridPane();
 		private final Icon helpI = createInfoIcon("How to play");
 
 		public EndGamePane() {
 			display.set(Display.WINDOW);
+			gameModeName.setFont(font(UI_FONT.getFamily(), 30));
 
 			ScrollPane sp = new ScrollPane();
 			sp.setOnScroll(Event::consume);
-			sp.setContent(layStack(g, CENTER));
+			sp.setContent(
+				layVertically(50, Pos.CENTER,
+					gameModeName,
+					gameResultPane,
+					layStack(achievementPane, CENTER)
+				)
+			);
 			sp.setFitToWidth(true);
 			sp.setFitToHeight(false);
 			sp.setHbarPolicy(ScrollBarPolicy.NEVER);
@@ -690,30 +697,37 @@ interface Utils {
 		}
 
 		@Override
-		public void show(Map<Player,List<Achievement>> game) {
+		public void show(Game game) {
 			super.show();
 
+			gameModeName.setText(game.mode.name);
+			gameResultPane.getChildren().setAll(game.mode.buildResultGraphics());
+
 			// clear content
-			g.getChildren().clear();
-			g.getRowConstraints().clear();
-			g.getColumnConstraints().clear();
+			achievementPane.getChildren().clear();
+			achievementPane.getRowConstraints().clear();
+			achievementPane.getColumnConstraints().clear();
 
 			// build columns
-			g.getColumnConstraints().add(new ColumnConstraints(100,100,100, NEVER, HPos.RIGHT, false));
-			g.getColumnConstraints().add(new ColumnConstraints(20));
-			g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
+			achievementPane.getColumnConstraints().add(new ColumnConstraints(100,100,100, NEVER, HPos.RIGHT, false));
+			achievementPane.getColumnConstraints().add(new ColumnConstraints(20));
+			achievementPane.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
 			// build rows
 			R<Integer> i = new R<>(-1); // row index
-			game.keySet().stream()
-				.sorted(by(player -> player.name.get()))
-				.forEach(player -> {
+			stream(game.mode.achievements())
+				.filter(a -> a.condition==null || a.condition.test(game))
+				.flatMapToEntry(a -> stream(a.evaluator.apply(game)).toMap(player -> player, player -> a))
+				.grouping()
+				.entrySet().stream()
+				.sorted(by(e -> e.getKey().name.get()))
+				.forEach(e -> {
 					i.setOf(v -> v+1);
-					g.add(new Label(player.name.get()), 0,i.get());
+					achievementPane.add(new Label(e.getKey().name.get()), 0,i.get());
 					i.setOf(v -> v+1);
-					g.add(new Label(), 2,i.get()); // empty row
+					achievementPane.add(new Label(), 2,i.get()); // empty row
 
-					game.get(player).stream()
+					e.getValue().stream()
 						.sorted(by(achievement -> achievement.name))
 						.forEach(enhancer -> {
 							i.setOf(v -> v+1);
@@ -722,16 +736,16 @@ interface Utils {
 							Label nameL = new Label(enhancer.name);
 							Text descL = new Text(enhancer.description);
 							descL.setWrappingWidth(400);
-							g.add(icon, 0,i.get());
-							g.add(nameL, 2,i.get());
+							achievementPane.add(icon, 0,i.get());
+							achievementPane.add(nameL, 2,i.get());
 							i.setOf(v -> v+1);
-							g.add(descL, 2,i.get());
+							achievementPane.add(descL, 2,i.get());
 							i.setOf(v -> v+1);
-							g.add(new Label(), 2,i.get()); // empty row
+							achievementPane.add(new Label(), 2,i.get()); // empty row
 						});
 
-					g.add(new Label(), 2,i.get()); // empty row
-					g.add(new Label(), 2,i.get()); // empty row
+					achievementPane.add(new Label(), 2,i.get()); // empty row
+					achievementPane.add(new Label(), 2,i.get()); // empty row
 				});
 		}
 	}
@@ -1436,6 +1450,8 @@ interface Utils {
 		}
 
 		abstract protected void startDo(int playerCount);
+
+		abstract public Node buildResultGraphics();
 	}
 	class ClassicMode extends GameMode {
 		final MapSet<Integer,Mission> missions;
@@ -1734,6 +1750,11 @@ interface Utils {
 			return enhancers;
 		}
 
+		@Override
+		public Node buildResultGraphics() {
+			return new Pane();
+		}
+
 		protected void nextMission() {
 			// schedule
 			if (isMissionScheduled) return;
@@ -1855,6 +1876,13 @@ interface Utils {
 		@Override
 		public void pause(boolean v) {
 			super.pause(v);
+		}
+
+		@Override
+		public Node buildResultGraphics() {
+			Label l = new Label(formatDuration(time(game.loop.id)));
+			l.setFont(font(UI_FONT.getFamily(), 20));
+			return l;
 		}
 	}
 	class BounceHellMode extends ClassicMode {

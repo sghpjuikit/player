@@ -31,10 +31,10 @@ import org.gamepad4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import comet.Comet.Game.Enhancer;
 import comet.Comet.Ship.Disruptor.DisruptorField;
 import comet.Comet.Ship.Hyperspace;
 import comet.Comet.Ship.Shield;
-import comet.Comet.Game.Enhancer;
 import comet.Utils.*;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -817,11 +817,7 @@ public class Comet extends ClassController {
 		void over() {
 			players.forEach(p -> p.stats.accGameEnd(loop.id));
 			runNext.add(seconds(5), () -> {
-				Map<Player,List<Achievement>> as = stream(mode.achievements())
-							.filter(a -> a.condition==null || a.condition.test(this))
-							.flatMapToEntry(a -> stream(a.evaluator.apply(this)).toMap(player -> player, player -> a))
-							.grouping();
-				new EndGamePane().show(as);
+				new EndGamePane().show(this);
 				stop();
 			});
 		}
@@ -846,6 +842,8 @@ public class Comet extends ClassController {
 		void placeholder(String text, PO o, double x, double y) {
 			boolean isFollow = o!=null;
 			Font f = Font.font(UI_FONT.getName(), 12);
+			double fW = computeFontWidth(f, text);
+			double fH = computeFontHeight(f);
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = map01To010(p, 0.9);
 				double tx = game.field.modX(isFollow ? o.x-15 : x);

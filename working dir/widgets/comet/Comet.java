@@ -845,12 +845,12 @@ public class Comet extends ClassController {
 			double fW = computeFontWidth(f, text);
 			double fH = computeFontHeight(f);
 			game.runNext.addAnim01(seconds(2), p -> {
-				double s = map01To010(p, 0.9);
+				double s = sqrt(map01To010(p, 0.9));
 				double tx = game.field.modX(isFollow ? o.x-15 : x);
 				double ty = game.field.modY(isFollow ? o.y-15 : y);
 
 				Affine sa = new Affine();
-				sa.append(new Scale(s,s, tx + fW/2,ty + fH/2));
+				sa.append(new Scale(s,s, tx + fW/2,ty - fH/2));
 
 				Affine a = gc.getTransform();
 				gc.setTransform(sa);

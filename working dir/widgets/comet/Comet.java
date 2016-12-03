@@ -180,7 +180,7 @@ public class Comet extends ClassController {
 			if (first_time) {
 				game.keyPressTimes.put(cc,game.loop.now);
 				game.players.stream().filter(p -> p.alive).forEach(p -> {
-					if (cc==p.keyAbility.getValue()) p.rocket.ability_main.onKeyPress();
+					if (cc==p.keyAbility.getValue()) p.rocket.ability.onKeyPress();
 					if (cc==p.keyFire.getValue()) p.rocket.gun.fire();
 				});
 				// cheats
@@ -199,7 +199,7 @@ public class Comet extends ClassController {
 		});
 		playfield.addEventFilter(KEY_RELEASED, e -> {
 			game.players.stream().filter(p -> p.alive).forEach(p -> {
-				if (e.getCode()==p.keyAbility.getValue()) p.rocket.ability_main.onKeyRelease();
+				if (e.getCode()==p.keyAbility.getValue()) p.rocket.ability.onKeyRelease();
 			});
 			game.pressedKeys.remove(e.getCode());
 		});
@@ -701,27 +701,27 @@ public class Comet extends ClassController {
 
 			collisionStrategies.add(Rocket.class,Rocket.class, (r1,r2) -> {
 				if (!r1.isin_hyperspace && !r2.isin_hyperspace && r1.isHitDistance(r2)) {
-					if (r1.ability_main.isActiveOfType(Shield.class)) {
-						((Shield) r1.ability_main).onHit(r2);
+					if (r1.ability.isActiveOfType(Shield.class)) {
+						((Shield) r1.ability).onHit(r2);
 					} else {
 						r1.player.die();
 					}
-					if (r2.ability_main.isActiveOfType(Shield.class)) {
-						((Shield) r2.ability_main).onHit(r1);
+					if (r2.ability.isActiveOfType(Shield.class)) {
+						((Shield) r2.ability).onHit(r1);
 					} else {
 						r2.player.die();
 					}
 				}
 			});
 			collisionStrategies.add(Rocket.class,Satellite.class, (r, s) -> {
-				 if ((!r.isin_hyperspace || r.ability_main.isActiveOfType(Hyperspace.class)) && r.isHitDistance(s)) {
+				 if ((!r.isin_hyperspace || r.ability.isActiveOfType(Hyperspace.class)) && r.isHitDistance(s)) {
 					s.pickUpBy(r);
 				}
 			});
 			collisionStrategies.add(Rocket.class,Ufo.class, (r, u) -> {
 				if (!r.isin_hyperspace && r.isHitDistance(u)) {
-					if (r.ability_main.isActiveOfType(Shield.class)) {
-						((Shield)r.ability_main).onHit(u);
+					if (r.ability.isActiveOfType(Shield.class)) {
+						((Shield)r.ability).onHit(u);
 					} else {
 						r.player.die();
 					}
@@ -730,8 +730,8 @@ public class Comet extends ClassController {
 			});
 			collisionStrategies.add(Rocket.class,UfoSwarmer.class, (r, ud) -> {
 				if (!r.isin_hyperspace && !ud.isInitialOutOfField && r.isHitDistance(ud)) {
-					if (r.ability_main.isActiveOfType(Shield.class)) {
-						((Shield)r.ability_main).onHit(ud);
+					if (r.ability.isActiveOfType(Shield.class)) {
+						((Shield)r.ability).onHit(ud);
 					} else {
 						r.player.die();
 					}
@@ -740,8 +740,8 @@ public class Comet extends ClassController {
 			});
 			collisionStrategies.add(Rocket.class,Asteroid.class, (r, a) -> {
 				if (!r.isin_hyperspace && r.isHitDistance(a)) {
-					if (r.ability_main.isActiveOfType(Shield.class)) {
-						((Shield)r.ability_main).onHit(a);
+					if (r.ability.isActiveOfType(Shield.class)) {
+						((Shield)r.ability).onHit(a);
 					} else {
 						if (r.kineticEto(a)<r.kinetic_shield.KSenergy) {
 							r.kinetic_shield.onShieldHit(a);
@@ -1328,7 +1328,7 @@ public class Comet extends ClassController {
 				if (isInputThrust) rocket.engine.on(); else rocket.engine.off();
 				if (isInputLeft && isInputRight) rocket.ddirection = 0;
 				if (isInputFireOnce || (game.loop.isNth(3) && rocket.rapidFire.is() && isInputFire)) rocket.gun.fire();
-				if (isInputAbility || game.settings.player_ability_auto_on) rocket.ability_main.activate(); else rocket.ability_main.passivate();
+				if (isInputAbility || game.settings.player_ability_auto_on) rocket.ability.activate(); else rocket.ability.passivate();
 			}
 			wasInputLeft = isInputLeft;
 			wasInputRight = isInputRight;
@@ -1515,7 +1515,7 @@ public class Comet extends ClassController {
 		double energy_buildup_rate;
 		double energy_max = 10000;
 		Gun gun = null;
-		Ability ability_main;
+		Ability ability;
 		KineticShield kinetic_shield = null;
 
 		// to avoid multiple calculations/loop
@@ -1771,7 +1771,7 @@ public class Comet extends ClassController {
 				passivate(); // forcefully deactivate
 				onPassivateStart(); // forcefully deactivate
 				onPassivateEnd(); // forcefully deactivate
-				if (ability_main==this) ability_main = null;
+				if (ability ==this) ability = null;
 				children.remove(this);
 			}
 
@@ -1901,8 +1901,6 @@ public class Comet extends ClassController {
 					double f = force(o.mass,dist);
 					boolean hasNoEffect = false;
 
-					if (o instanceof Particle) {
-					} else
 					// disrupt ufo bullets
 					if (o instanceof Bullet && ((Bullet)o).owner instanceof Ufo) {
 						double strength = dist>500 ? 0 : 1-dist/500;
@@ -1919,10 +1917,10 @@ public class Comet extends ClassController {
 					} else
 					// shield pulls disruptor
 					// Makes disruptor vs shield battles more interesting
-					if (o instanceof Rocket && ((Rocket)o).ability_main instanceof Shield && ((Rocket)o).ability_main.isActivated()) {
+					if (o instanceof Rocket && ((Rocket)o).ability.isActiveOfType(Shield.class)) {
 						f *= -3;
 					} else
-					if (o instanceof Shuttle || o instanceof SuperShield || o instanceof SuperDisruptor) {
+					if (o instanceof Satellite || o instanceof Shuttle || o instanceof SuperShield || o instanceof SuperDisruptor) {
 						hasNoEffect = true;
 					}
 
@@ -2235,7 +2233,7 @@ public class Comet extends ClassController {
 					passivate(); // forcefully deactivate
 					onPassivateStart(); // forcefully deactivate
 					onPassivateEnd(); // forcefully deactivate
-					if (ability_main==this) ability_main = null;
+					if (ability ==this) ability = null;
 					children.remove(this);
 				}
 			}
@@ -2412,10 +2410,10 @@ public class Comet extends ClassController {
 		}
 
 		void changeAbility(AbilityKind type) {
-			if (ability_main!=null) ability_main.dispose();
-			children.remove(ability_main);
-			ability_main = type.create(this);
-			children.add(ability_main);
+			if (ability !=null) ability.dispose();
+			children.remove(ability);
+			ability = type.create(this);
+			children.add(ability);
 		}
 
 		@Override
@@ -3064,15 +3062,15 @@ public class Comet extends ClassController {
 						r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 						bounceOffShieldOf(r);
 
-						if (r.ability_main.isActiveOfType(Shield.class)) {
-							((Shield)r.ability_main).onHit(this);
+						if (r.ability.isActiveOfType(Shield.class)) {
+							((Shield)r.ability).onHit(this);
 						}
 					}
 					if (game.settings.deadly_bullets || !(owner instanceof Rocket)) {
-						if (r.ability_main.isActiveOfType(Shield.class)) {
+						if (r.ability.isActiveOfType(Shield.class)) {
 							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 							bounceOffShieldOf(r);
-							((Shield)r.ability_main).onHit(this);
+							((Shield)r.ability).onHit(this);
 						} else if (r.kinetic_shield.KSenergy>=r.kinetic_shield.KSenergy_max) {
 							r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 							bounceOffShieldOf(r);

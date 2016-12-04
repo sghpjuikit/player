@@ -2136,10 +2136,8 @@ interface Utils {
 
 			Lin l = (Lin) o;
 			return (
-				(Double.compare(l.x1, x1)==0 && Double.compare(l.x2, x2)==0 &&
-				 Double.compare(l.y1, y1)==0 && Double.compare(l.y2, y2)==0) ||
-				(Double.compare(l.x1, x2)==0 && Double.compare(l.x2, x1)==0 &&
-				 Double.compare(l.y1, y2)==0 && Double.compare(l.y2, y1)==0)
+				(Double.compare(l.x1, x1)==0 && Double.compare(l.x2, x2)==0 && Double.compare(l.y1, y1)==0 && Double.compare(l.y2, y2)==0) ||
+				(Double.compare(l.x1, x2)==0 && Double.compare(l.x2, x1)==0 && Double.compare(l.y1, y2)==0 && Double.compare(l.y2, y1)==0)
 			);
 		}
 
@@ -2147,7 +2145,7 @@ interface Utils {
 		public int hashCode() {
 			int result;
 			long temp;
-			if (x1<x2) {
+			if (x1 < x2) {
 				temp = Double.doubleToLongBits(x1);
 				result = (int) (temp ^ (temp >>> 32));
 				temp = Double.doubleToLongBits(y1);
@@ -2156,6 +2154,26 @@ interface Utils {
 				result = 31 * result + (int) (temp ^ (temp >>> 32));
 				temp = Double.doubleToLongBits(y2);
 				result = 31 * result + (int) (temp ^ (temp >>> 32));
+			} else if (x1 == x2) {
+				if (y1 < y2) {
+					temp = Double.doubleToLongBits(y1);
+					result = (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+				} else {
+					temp = Double.doubleToLongBits(y2);
+					result = (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x2);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(y1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					temp = Double.doubleToLongBits(x1);
+					result = 31 * result + (int) (temp ^ (temp >>> 32));
+				}
 			} else {
 				temp = Double.doubleToLongBits(x2);
 				result = (int) (temp ^ (temp >>> 32));
@@ -2545,7 +2563,7 @@ interface Utils {
 			}
 		}
 
-		public void start() {};
+		public void start() {}
 
 		public final void doLoop() {
 			if (!isInitialized) return;

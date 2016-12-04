@@ -17,11 +17,11 @@ import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Scale;
@@ -118,13 +118,6 @@ public class Comet extends ClassController {
 		// message
 		message.setOpacity(0);
 		message.setFont(new Font(UI_FONT.getName(), 50));
-
-		// playfield
-		Rectangle playfieldMask = new Rectangle();
-		playfieldMask.widthProperty().bind(playfield.widthProperty());
-		playfieldMask.heightProperty().bind(playfield.heightProperty());
-		playfield.setClip(playfieldMask);
-		playfield.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
 		// canvas
 		canvas.widthProperty().bind(playfield.widthProperty());

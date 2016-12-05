@@ -455,7 +455,7 @@ interface Utils {
 
 		Ship.Ability create(Ship s) {
 			switch(this) {
-				case NONE : return null;
+				case NONE : return s.new Ability(false, Duration.ZERO, Duration.ZERO, 0, 0);
 				case DISRUPTOR : return s.new Disruptor();
 				case HYPERSPACE : return s.new Hyperspace();
 				case SHIELD : return s.new Shield();
@@ -1826,6 +1826,7 @@ interface Utils {
 		public void startDo(int player_count) {
 			game.settings.useGrid = false;
 			game.settings.playerGunDisabled = true;
+			game.settings.playerNoKineticShield = true;
 			game.settings.UFO_BULLET_TTL *= 2;
 			game.settings.UFO_BULLET_SPEED /= 3;
 			game.settings.player_ability_auto_on = true;
@@ -1934,6 +1935,72 @@ interface Utils {
 		@Override
 		public void pause(boolean v) {
 			super.pause(v);
+		}
+	}
+	class AreaMode extends GameMode {
+		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(5)));
+
+		public AreaMode(Game game) {
+			super(game, "Area");
+		}
+
+		@Override
+		public void init() {}
+
+		@Override
+		public void doLoop() {
+			remainingTimeMs.run();
+			if (remainingTimeMs.isDone()) {
+				game.over();
+			}
+
+			// TODO: highlight player with biggest area
+		}
+
+		@Override
+		public void handleEvent(Object event) {}
+
+		@Override
+		public void stop() {}
+
+		@Override
+		public void pause(boolean v) {}
+
+		@Override
+		protected void startDo(int playerCount) {
+			game.settings.useGrid = false;
+			game.settings.playerGunDisabled = true;
+			game.settings.player_ability_auto_on = true;
+			game.settings.playerNoKineticShield = true;
+
+			remainingTimeMs.reset();
+			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));
+			game.humans.intelOn.inc();
+		}
+
+		@Override
+		public Node buildResultGraphics() {
+			// TODO: make numbers more readable
+			String text = ""
+				+ "Average\n\n"
+				+ stream(game.players)
+					  .reverseSorted(by(p -> p.stats.controlAreaSize.getAverage()))
+					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getAverage())
+					  .joining("\n")
+				+ "\n\nMax\n\n"
+				+ stream(game.players)
+					  .reverseSorted(by(p -> p.stats.controlAreaSize.getMax()))
+					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMax())
+					  .joining("\n")
+				+ "\n\nMin\n\n"
+				+ stream(game.players)
+					  .reverseSorted(by(p -> p.stats.controlAreaSize.getMin()))
+					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMin())
+					  .joining("\n");
+
+			Label l = new Label(text);
+			l.setFont(font(UI_FONT.getFamily(), 15));
+			return new StackPane(l);
 		}
 	}
 

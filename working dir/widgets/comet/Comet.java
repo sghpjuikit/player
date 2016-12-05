@@ -240,6 +240,7 @@ public class Comet extends ClassController {
 		boolean playerGunDisabled = false;
 		boolean deadly_bullets = false;
 		boolean player_ability_auto_on = false;
+		boolean playerNoKineticShield = false;
 
 		double ROCKET_ENGINE_THRUST = 0.16; // px/s/frame
 		double PULSE_ENGINE_PULSE_PERIOD_TTL = ttl(millis(20));
@@ -346,7 +347,12 @@ public class Comet extends ClassController {
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
 	@IsConfig
-	final VarEnum<GameMode> mode = new VarEnum<>(new ClassicMode(game), new TimeTrial(game), new BounceHellMode(game));
+	final VarEnum<GameMode> mode = new VarEnum<>(
+		new ClassicMode(game),
+		new TimeTrial(game),
+		new BounceHellMode(game),
+		new AreaMode(game)
+	);
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
 		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
@@ -1224,7 +1230,8 @@ public class Comet extends ClassController {
 			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id.get());
 			rocket.energy = game.settings.PLAYER_ENERGY_INITIAL;
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
-			game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
+			// TODO: refactor to event
+			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
 		}
 
@@ -2162,15 +2169,13 @@ public class Comet extends ClassController {
 				Rocket.class,
 				game.field.width/2,game.field.height/2,0,0,game.settings.PLAYER_HIT_RADIUS,
 				graphics(MaterialDesignIcon.ROCKET,34,PLAYER.color.get(),null),
-				// graphics(FontAwesomeIcon.ROCKET,40,PLAYER.color.get(),null),
 				game.settings.PLAYER_ENERGY_INITIAL,game.settings.PLAYER_E_BUILDUP
 			);
 			player = PLAYER;
-			kinetic_shield = new KineticShield(game.settings.ROCKET_KINETIC_SHIELD_RADIUS,game.settings.ROCKET_KINETIC_SHIELD_ENERGYMAX);
-			changeAbility(player.ability_type.get());
-//			engine = rand01()<0.5 ? new RocketEngine() : new PulseEngine();
+			kinetic_shield = game.settings.playerNoKineticShield
+				? null
+				: new KineticShield(game.settings.ROCKET_KINETIC_SHIELD_RADIUS,game.settings.ROCKET_KINETIC_SHIELD_ENERGYMAX);
 			engine = new RocketEngine();
-
 			gun = new Gun(
 				MANUAL,
 				game.settings.PLAYER_GUN_RELOAD_TIME,
@@ -2195,6 +2200,7 @@ public class Comet extends ClassController {
 							game.settings.PLAYER_BULLET_TTL
 						)
 			);
+			changeAbility(player.ability_type.get());
 		}
 
 		@Override
@@ -2213,6 +2219,8 @@ public class Comet extends ClassController {
 			Color c = player.color.get(); // game.humans.color
 			double scale = graphicsScale*(clip(0.7,20*g_potential,1));
 			gc.setFill(c);
+			gc.setStroke(c);
+			gc.setGlobalAlpha(1);
 			drawTriangle(gc, x,y,scale*15, direction, 3*PI/4);
 
 			// draw speed effect
@@ -2604,6 +2612,7 @@ public class Comet extends ClassController {
 
 	private void drawUfoDisc(double x, double y, double dir, double scale) {
 		gc.setFill(game.colors.ufos);
+		gc.setStroke(game.colors.ufos);
 		drawTriangle(gc, x,y,scale*game.settings.UFO_DISC_RADIUS, dir, 3*PI/4);
 	}
 	private void drawUfoRadar(double x, double y) {

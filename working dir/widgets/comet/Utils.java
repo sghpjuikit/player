@@ -63,9 +63,7 @@ import util.reactive.SetƑ;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
-import static java.lang.Double.max;
 import static java.lang.Math.*;
-import static java.lang.Math.min;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toSet;
@@ -133,6 +131,9 @@ interface Utils {
 	static double cos(double rad) {
 		return degCosMemo[((int)Math.round(deg(rad)*precision))%UNITS+UNITS];
 	}
+	static double atan(double a) {
+		return Math.atan(a);
+	}
 	static double sign(double number) {
 		return Math.signum(number);
 	}
@@ -154,6 +155,21 @@ interface Utils {
 		if (diff>+PI) return diff-D360;
 		if (diff<-PI) return diff+D360;
 		return diff;
+	}
+	static double abs(double a) {
+		return Math.abs(a);
+	}
+	static double max(double a, double b) {
+		return Math.max(a, b);
+	}
+	static double min(double a, double b) {
+		return Math.min(a, b);
+	}
+	static double pow(double number, double exponent) {
+		return Math.pow(number, exponent);
+	}
+	static int floorMod(int number, int mod) {
+		return Math.floorMod(number, mod);
 	}
 
 	static double computeForceInversePotential(double distance, double maxDistance) {

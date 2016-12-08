@@ -2286,9 +2286,9 @@ public class Comet extends ClassController {
 
 		@Override
 		boolean isHitDistance(SO o) {
-			if (o instanceof Bullet)
+			if (o instanceof Bullet && kinetic_shield!=null)
 				return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
-			if (o instanceof Asteroid && kineticEto(o)<kinetic_shield.KSenergy)
+			if (o instanceof Asteroid && kinetic_shield!=null && kineticEto(o)<kinetic_shield.KSenergy)
 				return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
 			return isDistanceLess(o,radius+o.radius);
 		}

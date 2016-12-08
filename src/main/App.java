@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
@@ -1338,7 +1339,7 @@ public class App extends Application implements Configurable {
 		static void openDictionary() {
 			PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
 				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
-				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + phrase))
+				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + URLEncoder.encode(phrase)))
 			));
 			p.title.set("Look up in dictionary...");
 			p.setAutoHide(true);

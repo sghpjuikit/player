@@ -1938,7 +1938,7 @@ interface Utils {
 		}
 	}
 	class AreaMode extends GameMode {
-		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(5)));
+		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(minutes(2)));
 
 		public AreaMode(Game game) {
 			super(game, "Area");

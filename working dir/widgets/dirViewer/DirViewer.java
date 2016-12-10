@@ -113,7 +113,10 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<>("File - all", () -> map(filters, f -> f.name), v -> buildFilter(), f -> revisitCurrent());
+    final VarEnum<String> filter = new VarEnum<String>("File - all", () -> map(filters, f -> f.name), v -> {
+	    filterPredicate.set(buildFilter());
+	    revisitCurrent();
+    });
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(ASCENDING, this::resort);
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
@@ -462,7 +465,9 @@ public class DirViewer extends ClassController {
 		                    	return stream();
 		                    }
 		                  })
-	                : filesJoin.get() ? listFiles(files.list.stream()) : files.list.stream();
+	                : filesJoin.get()
+		                  ? listFiles(files.list.stream())
+		                  : files.list.stream();
         }
 
         @Override

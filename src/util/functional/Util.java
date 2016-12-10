@@ -24,9 +24,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
-import static util.dev.Util.noØ;
-import static util.dev.Util.throwIf;
-import static util.dev.Util.throwIfNot;
+import static util.dev.Util.*;
 
 /**
  *
@@ -252,15 +250,12 @@ public interface Util {
 	/**
 	 * Creates comparator comparing E elements by extracted {@link Comparable} value.
 	 * <p/>
-	 * This method is generic Comparator factory producing comparators comparing
-	 * the obtained result of the comparable supplier.
-	 * <p/>
 	 * The returned comparator is serializable if the specified function
 	 * and comparator are both serializable.
 	 *
 	 * @param  <E> the type of element to be compared
 	 * @param  <C> the type of the extracted value to compare by
-	 * @param  extractor the function used to extract the value to compare by
+	 * @param  extractor the function used to extract non null value to compare by
 	 * @return comparator that compares by an extracted comparable value
 	 * @throws NullPointerException if argument is null
 	 */
@@ -270,8 +265,21 @@ public interface Util {
 	}
 
 	/**
-	 * Accepts a function that extracts a sort key from a type {@code T}, and
-	 * returns a {@code Comparator<T>} that compares by that sort key using
+	 * Creates comparator comparing E elements by their string representation
+	 * obtained by provided converter. Utilizes String.compareToIgnoreCase().
+	 * <p/>
+	 * Easy and concise way to compare objects without code duplication.
+	 *
+	 * @param extractor the function used to extract non null {@code String} value to compare by
+	 * the object.
+	 */
+	static <E> Comparator<E> byNC(Function<E,String> extractor) {
+		return (a,b) -> extractor.apply(a).compareToIgnoreCase(extractor.apply(b));
+	}
+
+	/**
+	 * Accepts a function that extracts a sort key from a type {@code E}, and
+	 * returns a {@code Comparator<E>} that compares by that sort key using
 	 * the specified {@link Comparator}.
 	 * <p/>
 	 * The returned comparator is serializable if the specified function
@@ -282,35 +290,42 @@ public interface Util {
 	 * ignoring case differences,
 	 *
 	 * <pre>{@code
-	 *     Comparator<Person> cmp = Comparator.comparing(
-	 *             Person::getLastName,
-	 *             String.CASE_INSENSITIVE_ORDER);
+	 *     Comparator<Person> cmp = by(Person::getLastName, String.CASE_INSENSITIVE_ORDER);
 	 * }</pre>
 	 *
 	 * @param  <E> the type of element to be compared
 	 * @param  <C> the type of the extracted value to compare by
-	 * @param  extractor the function used to extract the value to compare by
+	 * @param  extractor the function used to extract non null value to compare by
 	 * @param  comparator the {@code Comparator} used to compare the sort key
 	 * @return comparator that compares by an extracted value using the specified {@code Comparator}
 	 * @throws NullPointerException if any argument is null
 	 */
-	static <E, C> Comparator<E> by(Function<? super E, ? extends C> extractor, Comparator<? super C> comparator) {
+	static <E,C> Comparator<E> by(Function<? super E,? extends C> extractor, Comparator<? super C> comparator) {
 		noØ(extractor);
 		noØ(comparator);
 		return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a),extractor.apply(b));
 	}
 
 	/**
-	 * Creates comparator comparing E elements by their string representation
-	 * obtained by provided converter. Utilizes String.compareToIgnoreCase().
+	 * Accepts a function that extracts a sort key from a type {@code E}, and
+	 * returns a {@code Comparator<E>} that compares by that sort key using
+	 * the {@link Comparator} derived from {@link java.util.Comparator#naturalOrder()}.
 	 * <p/>
-	 * Easy and concise way to compare objects without code duplication.
+	 * @apiNote convenience method, helpful for cases where the extracted value may be null (and using for example
+	 * {@link Comparator#nullsFirst(java.util.Comparator)}).
 	 *
-	 * @param toStr E to String mapper, derives String from E.
-	 * the object.
+	 * @param  <E> the type of element to be compared
+	 * @param  <C> the type of the extracted value to compare by
+	 * @param  extractor the function used to extract nullable value to compare by
+	 * @param  comparatorModifier function that modifies comparing, it is supplied a default
+	 *          {@link java.util.Comparator#naturalOrder()} comparator.
+	 * @return comparator that compares by an extracted value using the specified {@code Comparator}
+	 * @throws NullPointerException if any argument is null
 	 */
-	static <E> Comparator<E> byNC(Function<E,String> toStr) {
-		return (a,b) -> toStr.apply(a).compareToIgnoreCase(toStr.apply(b));
+	static <E,C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor, Function<Comparator<? super C>, Comparator<? super C>> comparatorModifier) {
+		noØ(extractor);
+		noØ(comparatorModifier);
+		return (Comparator<E> & Serializable) (a, b) -> comparatorModifier.apply(Comparator.naturalOrder()).compare(extractor.apply(a),extractor.apply(b));
 	}
 
 	/** @return set of elements of provided collection with no duplicates. Order undefined. */

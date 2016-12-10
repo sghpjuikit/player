@@ -65,7 +65,6 @@ import static comet.Utils.Achievement.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Math.*;
 import static java.util.Collections.singleton;
-import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -1560,12 +1559,12 @@ interface Utils {
 				),
 				achievement01(
 					"Quickdraw", MaterialDesignIcon.CROSSHAIRS,
-					g -> stream(g.players).min(by(p -> p.stats.fired1stTime, nullsLast(Comparable::compareTo))),
+					g -> stream(g.players).min(by(p -> p.stats.fired1stTime, Comparator::nullsLast)),
 					"Be the first to shoot"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Rusher", MaterialDesignIcon.CROSSHAIRS_GPS,
-					g -> stream(g.players).min(by(p -> p.stats.hitEnemy1stTime, nullsLast(Comparable::compareTo))),
+					g -> stream(g.players).min(by(p -> p.stats.hitEnemy1stTime, Comparator::nullsLast)),
 					"Be the first to deal damage"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(

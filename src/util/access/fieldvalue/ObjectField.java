@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.access.fieldvalue;
 
 import java.util.Comparator;
@@ -77,21 +72,10 @@ public interface ObjectField<V> extends TypedValue {
      * it must handle null logic such as it does not permit the underlying comparator to compare null.
      */
     @SuppressWarnings("unchecked")
-    default <C extends Comparable<C>> Comparator<V> comparator(Function<Comparator,Comparator> comparatorTransformer) {
+    default <C extends Comparable<? super C>> Comparator<V> comparator(Function<Comparator<? super C>, Comparator<? super C>> comparatorTransformer) {
     	noØ(comparatorTransformer);
         return Comparable.class.isAssignableFrom(getType())
-		    // Complexity of this simple method (we only want to compare by extracted value, like: by(this::getOf)
-            // lies in the fact, that it is necessary to be able to modify the behavior of the comparator, which
-		    // is (nonintuitively) impossible outside of this method, because what we need to modify is the
-			// underlying comparator of extracted values (hidden as implementation of this method), so we must pass in
-	        // an additional argument that does this - comparatorTransformer.
-			// In other words, this convenience method sort of inverts control (of comparator chaining), and the
-            // comparator transformations must be applied from below up, similarly to how nested callbacks work
-			// Then there are two problems
-	        // 1) transformer must be a function, so we must pass in it natural comparator Comparable::compareTo,
-	        //    which alleviates developer from doing this at call site
-	        // 2) bunch of generics & inference problems in the way
-			? by(o -> getOf((V)o), comparatorTransformer.apply((a,b) -> ((C)a).compareTo((C)b)))
+			? by(o -> (C) getOf(o), comparatorTransformer)
             : util.functional.Util.SAME;
     }
 

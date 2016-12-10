@@ -47,6 +47,18 @@ public interface Util {
 		return () -> o.removeListener(l);
 	}
 
+	static <O1,O2> Subscription maintain(ObservableValue<O1> o1, ObservableValue<O2> o2, BiConsumer<? super O1, ? super O2> u) {
+		ChangeListener<O1> l1 = (b,ov,nv) -> u.accept(nv, o2.getValue());
+		ChangeListener<O2> l2 = (b,ov,nv) -> u.accept(o1.getValue(), nv);
+		u.accept(o1.getValue(), o2.getValue());
+		o1.addListener(l1);
+		o2.addListener(l2);
+		return () -> {
+			o1.removeListener(l1);
+			o2.removeListener(l2);
+		};
+	}
+
 	static <O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {
 		w.setValue(o.getValue());
 		ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);

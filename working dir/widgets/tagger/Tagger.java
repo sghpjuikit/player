@@ -15,6 +15,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -129,9 +130,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     ThumbnailWithAdd CoverV;
     File new_cover_file = null;
     ProgressIndicator progressI;
-    @FXML Label infoL, placeholder;
-    @FXML StackPane fieldDescPane, okPane;
-    Text fieldDesc;
+    @FXML Label infoL, placeholder, fieldDesc;
 
     ObservableList<Item> allItems = FXCollections.observableArrayList();
     List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
@@ -146,8 +145,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @Override
     public void init() {
-    	Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save");
-    	okPane.getChildren().add(okB);
+    	Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save", Side.RIGHT);
+    	content.getChildren().add(okB);
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
@@ -158,10 +157,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         progressI = new Spinner();
         progressI.setVisible(false);
         header.setRight(progressI);
-
-        fieldDesc = new gui.objects.Text();
-        fieldDescPane.getChildren().add(fieldDesc);
-        StackPane.setAlignment(fieldDesc, Pos.CENTER);
 
         // add specialized mood text field
         grid.add(moodF, 1, 14, 2, 1);

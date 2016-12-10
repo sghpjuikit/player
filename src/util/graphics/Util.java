@@ -77,6 +77,34 @@ public interface Util {
 		return l;
 	}
 
+	/**
+	 * Horizontal layout where content takes as much horizontal space as possible. Header on the left
+	 * shrinks to its content.
+	 * Sets {@link HBox#setHgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
+	 * to {@link javafx.scene.layout.Priority#ALWAYS}.
+	 * <p/>
+	 * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
+	 */
+	static HBox layHeaderLeft(double gap, Pos align, Node header, Node content) {
+		HBox l = layHorizontally(gap, align, header,content);
+		HBox.setHgrow(content,ALWAYS);
+		return l;
+	}
+
+	/**
+	 * Horizontal layout where content takes as much horizontal space as possible. Header on the right
+	 * shrinks to its content.
+	 * Sets {@link HBox#setHgrow(javafx.scene.Node, javafx.scene.layout.Priority)} for content
+	 * to {@link javafx.scene.layout.Priority#ALWAYS}.
+	 * <p/>
+	 * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
+	 */
+	static HBox layHeaderRight(double gap, Pos align, Node content, Node header) {
+		HBox l = layHorizontally(gap, align, content, header);
+		HBox.setHgrow(content,ALWAYS);
+		return l;
+	}
+
 	/** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
 	static VBox layVertically(double gap, Pos align, Node... nodes) {
 		VBox l = new VBox(gap, nodes);

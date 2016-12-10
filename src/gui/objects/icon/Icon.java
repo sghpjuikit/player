@@ -18,13 +18,14 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
@@ -46,6 +47,7 @@ import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.popover.PopOver;
 import util.LazyR;
+import util.SwitchException;
 import util.action.Action;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
@@ -344,8 +346,18 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 
 
-    public VBox withText(String text) {
-        return layHeaderBottom(5, Pos.CENTER, this, new Label(text));
+    public Pane withText(String text) {
+        return withText(text, Side.BOTTOM);
+    }
+
+    public Pane withText(String text, Side side) {
+    	switch (side) {
+		    case LEFT:   return layHeaderLeft(10, Pos.CENTER, this, new Label(text));
+		    case TOP:    return layHeaderTop(5, Pos.CENTER, this, new Label(text));
+		    case RIGHT:  return layHeaderRight(10, Pos.CENTER, this, new Label(text));
+		    case BOTTOM: return layHeaderBottom(5, Pos.CENTER, this, new Label(text));
+		    default: throw new SwitchException(side);
+	    }
     }
 
 

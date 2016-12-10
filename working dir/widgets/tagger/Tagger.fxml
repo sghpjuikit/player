@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import gui.objects.textfield.*?>
 
-<AnchorPane fx:id="root" prefHeight="710.0" prefWidth="545.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="root" prefHeight="740.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
        <VBox fx:id="content" alignment="CENTER">
           <children>
@@ -18,7 +18,7 @@
                       <Insets left="10.0" right="10.0" />
                   </padding>
               </BorderPane>
-              <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="640.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
+              <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="640.0" prefWidth="550.0" VBox.vgrow="ALWAYS">
                  <content>
                      <AnchorPane id="AnchorPane" fx:id="scrollContent">
                          <padding>
@@ -263,7 +263,7 @@
                                    </BorderPane>
                                </children>
                             </AnchorPane>
-                            <BorderPane prefHeight="205.50006103515625" prefWidth="199.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <BorderPane prefHeight="205.0" prefWidth="200.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <bottom>
                                     <Label fx:id="CoverL" text="Cover value" BorderPane.alignment="CENTER">
                                         <BorderPane.margin>
@@ -284,12 +284,11 @@
                      </AnchorPane>
                  </content>
               </ScrollPane>
-              <StackPane fx:id="fieldDescPane">
-                  <padding>
-                      <Insets bottom="5.0" top="5.0" />
-                  </padding>
-              </StackPane>
-            <StackPane fx:id="okPane" prefHeight="50.0" />
+            <Label fx:id="fieldDesc" text="Label">
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+            </Label>
           </children>
        </VBox>
        <StackPane mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

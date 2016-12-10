@@ -100,13 +100,12 @@ public final class UiContext {
 
         // build layout
 	    // We are building standalone widget here, but every widget must be part of the layout
-	    AnchorPane root = new AnchorPane();
 	    Layout l = new Layout();
 	    l.isStandalone = true;
-	    l.load(root);
+	    l.load(new AnchorPane());
 
         // build popup
-        PopOver p = new PopOver<>(root);
+        PopOver p = new PopOver<>(l.getRoot());
                 p.title.set(w.getInfo().nameGui());
                 p.setAutoFix(false);
                 p.show(windowManager.getActive().get().getStage(),getX(),getY());

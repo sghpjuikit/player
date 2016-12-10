@@ -1,11 +1,12 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- improve messagePane, make okPane & errorPane, use icon to style
-- improve widget compilation string result
+- Comet
+    - mode stay inside voronoi polygon with hyperspace
+    - death condition object (out of field, ttl, etc)
+    - fix spawning on right side
 - make actionPane content resizable + fix layout issues
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
-- fix tagger popover size
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer
 - subclass WidgetArea for standalone widget to adjust graphics for popup
@@ -32,7 +33,6 @@
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller
 - implement loading images properly using the twelve monkeys
-- ConfigSearch should open Settings and look up the property
 - add name/icon for parametric function's parameters
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
@@ -74,7 +74,6 @@
 - layout mode zoom animation use loop to increase smoothness
 - config field add checkbox list config field, implement for fileInfo
 - volume add linear vs logarithmic option
-- Inspector implement 'preview'/info pane
 - make generic rater control, use in FileInfo
 - tagger add icons to reset and defaults
 - tagger cover loading optimize
@@ -92,6 +91,14 @@
     - main.ImageThumbIconTest
 - cleanups
     - Var, Ref, ActionPane.ActionData, SwitchPane configs, Autocomplete
+
+
+/* ---------- IMPROVEMENTS ------------------------------------------------------------------------------------------ */
+
+- ConfigSearch should open Settings and look up the property
+- Inspector implement 'preview'/info pane
+- improve messagePane, make okPane & errorPane, use icon to style
+- improve widget compilation string result
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 

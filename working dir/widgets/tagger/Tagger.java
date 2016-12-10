@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
@@ -48,7 +49,6 @@ import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
 import services.database.Db;
 import services.notif.Notifier;
-import util.validation.InputConstraints;
 import util.access.V;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
@@ -59,6 +59,7 @@ import util.file.ImageFileFormat;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
+import util.validation.InputConstraints;
 
 import static audio.tagging.Metadata.Field.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
@@ -79,9 +80,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
 import static org.atteo.evo.inflector.English.plural;
-import static util.async.Async.FX;
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+import static util.async.Async.*;
 import static util.file.Util.EMPTY_COLOR;
 import static util.functional.Util.*;
 
@@ -126,31 +125,29 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
     @FXML StackPane coverSuperContainer;
-    @FXML Label CoverL;
-    @FXML Label noCoverL;
+    @FXML Label CoverL, noCoverL;
     ThumbnailWithAdd CoverV;
     File new_cover_file = null;
     ProgressIndicator progressI;
-    @FXML Label infoL;
-    @FXML Label placeholder;
-    @FXML StackPane fieldDescPane;
+    @FXML Label infoL, placeholder;
+    @FXML StackPane fieldDescPane, okPane;
     Text fieldDesc;
 
-    // global variables
     ObservableList<Item> allItems = FXCollections.observableArrayList();
     List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data change during writing
     private final List<Validation> validators = new ArrayList<>();
 
-    // properties
     @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
-    public final V<Pos> field_text_alignment = new V<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
+    public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT, v -> fields.forEach(f -> f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final V<NodePos> popupPos = new V<>(DownCenter, moodF::setPos);
 
     @Override
     public void init() {
+    	Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save");
+    	okPane.getChildren().add(okB);
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
@@ -300,7 +297,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @Override
     public void refresh() {
-        field_text_alignment.applyValue();
+        fieldTextAlignment.applyValue();
         popupPos.applyValue();
     }
 
@@ -388,7 +385,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
      * <br/>
      * If no items are loaded then this method is a no-op.
      */
-    @FXML
     public void write() {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
@@ -423,14 +419,14 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if ((boolean) commentF.getUserData())      w.setComment(commentF.getText());
             if ((boolean) moodF.getUserData())         w.setMood(moodF.getText());
             colorFPicker.setUserData(true);
-            if ((boolean)colorFPicker.getUserData()&&colorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(colorFPicker.getValue());
+            if ((boolean) colorFPicker.getUserData()&&colorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(colorFPicker.getValue());
             if ((boolean) colorF.getUserData())        w.setCustom1(colorF.getText());
             if ((boolean) tagsF.getUserData())         w.setTags(noDups(split(tagsF.getText().replace(", ",","),",")));
 //            if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
 //            if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
 //            if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
-            if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
-            if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
+            if ((boolean) LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
+            if ((boolean) CoverL.getUserData())        w.setCover(new_cover_file);
             if ((boolean) custom1F.getUserData())      w.setCustom2(custom1F.getText());
             if ((boolean) custom4F.getUserData())      w.setCustom4(custom4F.getText());
             // enabling the following these has no effect as they are not
@@ -454,7 +450,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     private void populate(List<Metadata> items) {
         // return if writing active
         if (writing) {
-            hideProgress(); return; }
+            hideProgress();
+            return;
+        }
 
         // totally empty
         boolean totally_empty = allItems.isEmpty();

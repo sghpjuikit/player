@@ -493,6 +493,13 @@ public class App extends Application implements Configurable {
 		);
 
 		// register actions
+		actionPane.register(Object.class,
+			new FastColAction<>("Set as data",
+				"Sets the selected data as input.",
+				MaterialDesignIcon.DATABASE,
+				fs -> actionPane.show(fs)
+			)
+		);
 		actionPane.register(Widget.class,
 			new FastAction<>("Create launcher (def)",
 				"Creates a launcher for this widget with default (no predefined) settings. \n"

@@ -64,11 +64,11 @@ import static java.util.stream.Collectors.joining;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static util.async.Async.FX;
-import static util.async.Async.sleeping;
+import static util.async.Async.*;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.throwIfNotFxThread;
@@ -230,8 +230,11 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		super.show();
 
 		// Reset content size to default (overrides previous user-defined size)
-		Bounds b = getParent().getLayoutBounds();
-		getContent().setPrefSize(b.getWidth()*CONTENT_SIZE_SCALE, b.getHeight()*CONTENT_SIZE_SCALE);
+		// Note, sometimes we need to delay this action, hence the runLater
+		runLater(() -> {
+			Bounds b = getParent().getLayoutBounds();
+			getContent().setPrefSize(b.getWidth()*CONTENT_SIZE_SCALE, b.getHeight()*CONTENT_SIZE_SCALE);
+		});
 	}
 
 	@Override

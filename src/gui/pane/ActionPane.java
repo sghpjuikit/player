@@ -216,6 +216,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 	protected void show() {
 		throwIfNotFxThread();
+
 		setData(data);
 
 		// Bug fix. We need to initialize the layout before it is visible or it may visually
@@ -237,6 +238,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	@SuppressWarnings("unchecked")
 	public final void show(Object value) {
 		throwIfNotFxThread();
+
 		value = collectionUnwrap(value);
 		Class c = value==null ? Void.class : value.getClass();
 		show(c, value);
@@ -290,7 +292,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	private final Text descFull = new Text();
 	private final ObservableList<Node> icons;
 	private final DoubleProperty tableContentGap;
-	private StackPane tablePane = new StackPane();
+	private final StackPane tablePane = new StackPane();
 	private FilteredTable<?,?> table;
 	private final StackPane iconPaneComplex = new StackPane();
 
@@ -304,13 +306,15 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	 * @return user selection of the data available
 	 */
 	public Object getData() {
-		Object d = futureUnwrap(data);
+		throwIfNotFxThread();
+
+		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
 			if (table!=null) {
 				if (table.getSelectionModel().isEmpty()) return table.getItems();
 				else return table.getSelectedItemsCopy();
 			} else {
-				return collectionWrap(d);
+				return d;
 			}
 		} else
 			return d;
@@ -319,6 +323,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	@SuppressWarnings("unchecked")
 	private void setData(Object d) {
 		throwIfNotFxThread();
+
 		// clear content
 		setActionInfo(null);
 		icons.clear();
@@ -327,7 +332,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		data = collectionUnwrap(d);
 		boolean isDataReady = !(data instanceof Fut && !((Fut)data).isDone());
 		if (isDataReady) {
-			data = futureUnwrap(data);
+			data = collectionUnwrap(futureUnwrapOrThrow(data));
 			setDataInfo(data, true);
 			showIcons(data);
 		} else {
@@ -346,7 +351,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 	@SuppressWarnings("unchecked")
 	private void setDataInfo(Object data, boolean computed) {
-		dataInfo.setText(getDataInfo(data, computed));
+		dataInfo.setText(computeDataInfo(data, computed));
 		tablePane.getChildren().clear();
 		double gap = 0;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
@@ -369,15 +374,16 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 				table = t;
 				t.setItemsRaw(collection);
 				t.getSelectedItems().addListener((Change<?> c) -> {
-					if (insteadIcons==null)
-						showIcons(t.getSelectedOrAllItemsCopy());
+					if (insteadIcons==null) {
+						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
+					}
 				});
 			}
 		}
 		tableContentGap.set(gap);
 	}
 
-	private String getDataInfo(Object data, boolean computed) {
+	private String computeDataInfo(Object data, boolean computed) {
 		Class<?> type = data==null ? Void.class : data.getClass();
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
 
@@ -422,24 +428,29 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 			hideCustomActionUi();
 		}
 
-		stream(actionsData).sorted(by(a -> a.name)).map(action -> {
-			Icon i = new Icon<>()
-				  .icon(action.icon)
-				  .styleclass(ICON_STYLECLASS)
-				  .onClick(e -> runAction(action, d));
-				 // Description is shown when mouse hovers
-				 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
-				 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
-				 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
-				 // is not possible. Hence we detect scrolling above mouse and pass it to the
-				 // scrollbar. A bit unintuitive, but works like a charm and description remains
-				 // fully readable.
-				 i.addEventHandler(ScrollEvent.ANY, e -> {
-					 descFull.getParent().getParent().fireEvent(e);
-					 e.consume();
-				 });
-			return i.withText(action.name);
-		}).toListAndThen(icons::setAll);
+		stream(actionsData)
+			.sorted(by(a -> a.name))
+			.map(action -> {
+				Icon i = new Icon<>()
+					  .icon(action.icon)
+					  .styleclass(ICON_STYLECLASS)
+					  .onClick(e -> runAction(action, getData()));
+
+					 // Description is shown when mouse hovers
+					 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
+					 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
+
+					 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
+					 // is not possible. Hence we detect scrolling above mouse and pass it to the
+					 // scrollbar. A bit unintuitive, but works like a charm and description remains
+					 // fully readable.
+					 i.addEventHandler(ScrollEvent.ANY, e -> {
+						 descFull.getParent().getParent().fireEvent(e);
+						 e.consume();
+					 });
+				return i.withText(action.name);
+			})
+			.toListAndThen(icons::setAll);
 
 		// Animate - pop icons in parallel, but with increasing delay
 		// We do not want the total animation length be dependent on number of icons (by using
@@ -481,10 +492,11 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	}
 
 	private static Class<?> getUnwrappedType(Object d) {
-		return d==null ? Void.class
-				   : d instanceof Collection
-						 ? getCollectionType((Collection)d)
-						 : d.getClass();
+		return d==null
+				? Void.class
+				: d instanceof Collection
+					? getCollectionType((Collection)d)
+					: d.getClass();
 	}
 
 	private static Class<?> getCollectionType(Collection<?> c) {
@@ -500,12 +512,16 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		if (o instanceof Collection) {
 			Collection<?> c = (Collection)o;
 			if (c.isEmpty()) return null;
-			if (c.size()==1) return c.stream().findAny().get();
+			if (c.size()==1) return collectionWrap(c.stream().findAny().get());
 		}
 		return o;
 	}
 
 	private static Object futureUnwrap(Object o) {
+		return o instanceof Fut && ((Fut)o).isDone() ? ((Fut)o).getDone() : o;
+	}
+
+	private static Object futureUnwrapOrThrow(Object o) {
 		if (o instanceof Fut && !((Fut)o).isDone()) throw new IllegalStateException("Future not done yet");
 		return o instanceof Fut ? ((Fut)o).getDone() : o;
 	}

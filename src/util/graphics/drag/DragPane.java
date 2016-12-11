@@ -162,6 +162,13 @@ public class DragPane extends Placeholder {
 			PANE.get().hide();
 			node.getProperties().remove(ACTIVE);
 		});
+		// Fixes an issue when the above handlers do not cause pane to hide
+		node.hoverProperty().addListener((o,ov,nv) -> {
+			if (!nv) {
+				PANE.get().hide();
+				node.getProperties().remove(ACTIVE);
+			}
+		});
 	}
 
 	public static class Data {

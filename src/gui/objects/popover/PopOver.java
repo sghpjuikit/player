@@ -394,8 +394,10 @@ public class PopOver<N extends Node> extends PopupControl {
         // we fix this here, because we need default hide() implementation to
         // not close detached popup
         getScene().addEventHandler(KEY_PRESSED, e -> {
-            if (e.getCode()==ESCAPE && isHideOnEscape() && detached.get())
-                hideStrong();
+            if (e.getCode()==ESCAPE && isHideOnEscape() && detached.get()) {
+	            hideStrong();
+	            e.consume();
+            }
         });
     }
 

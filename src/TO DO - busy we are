@@ -5,7 +5,6 @@
     - mode stay inside voronoi polygon with hyperspace
     - death condition object (out of field, ttl, etc)
     - fix spawning on right side
-- make actionPane content resizable + fix layout issues
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer

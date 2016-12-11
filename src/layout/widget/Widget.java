@@ -110,16 +110,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	@IsConfig(name = "Custom name", info = "Name displayed in gui. User can set his own. By default component type name.")
 	public final V<String> custom_name = new V<>("");
 
-
-	/**
-	 * @param name name of the widget {@link Widget#name}
-	 */
-	public Widget(String name) {
-		this.name = name;
-		this.factory = APP.widgetManager.factories.get(name);
-		custom_name.setValue(name);
-	}
-
 	public Widget(String name, WidgetFactory factory) {
 		this.name = name;
 		this.factory = factory;

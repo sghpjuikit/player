@@ -10,7 +10,9 @@ import javafx.scene.layout.Region;
 import layout.widget.controller.Controller;
 import layout.widget.controller.io.Inputs;
 import layout.widget.controller.io.Outputs;
+import main.App;
 import util.conf.Config;
+import util.type.ClassName;
 
 import static java.util.Collections.emptyMap;
 import static util.functional.Util.listRO;
@@ -34,7 +36,7 @@ class EmptyWidget extends Widget<EmptyWidget> implements Controller<EmptyWidget>
 	private final Inputs i = new Inputs();
 
 	public EmptyWidget() {
-		super("Empty");
+		super("Empty", App.APP.widgetManager.factories.get(ClassName.of(EmptyWidget.class)));
 		controller = this;
 	}
 

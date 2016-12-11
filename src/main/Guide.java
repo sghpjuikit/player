@@ -114,10 +114,8 @@ public final class Guide implements Configurable {
 			e.consume();
 		});
 		p.getContentNode().addEventHandler(KEY_PRESSED, e -> {
-			System.out.println(e);
-			if (e.getCode()==RIGHT) goToNext();
-			if (e.getCode()==LEFT)  goToPrevious();
-			e.consume();
+			if (e.getCode()==RIGHT) { goToNext(); e.consume(); }
+			if (e.getCode()==LEFT)  { goToPrevious(); e.consume(); }
 		});
 
 		hint("Intro", "Hi, this is guide for this application. It will show you around. " +
@@ -250,20 +248,21 @@ public final class Guide implements Configurable {
 		   + "to navigate to its controls first. Use mouse buttons:\n"
 		   + "\n\t• Right click: go 'up' - visit parent container"
 		   + "\n\t• Left click: go 'down' - visit children"
-		   + "\n\n Try out container navigation:",
+		   + "\n\nTry out container navigation:",
 			 new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
 				 Window w = APP.windowManager.getActiveOrNew();
 				 int i = w.getTopContainer().getEmptySpot();
 				 w.getTopContainer().ui.alignTab(i);
-				 runFX(1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
-					 1000, () -> Gui.setLayoutMode(true)
+				 runFX(
+				 	1000, () -> w.getTopContainer().addChild(i, testControlContainer()),
+					1000, () -> Gui.setLayoutMode(true)
 				 );
-			 }).withText("voronoi")
+			 }).withText("Start")
 		);
 		hint("Layout lock", () -> "Because automatic layout mode can be intrusive, the layout can be "
 		   + "locked. Locked layout will enter layout mode only with shortcut."
 		   + "\nYou may want to lock the layout after configuring it to your needs." +
-			 "\n\nClick on the lock button in the window header or press '" + Action.get("Toggle layout lock.").getKeys() +
+			 "\n\nClick on the lock button in the window header or press '" + Action.get("Lock layout - toggle").getKeys() +
 			 "' to lock layout.");
 		hint("Widget layout lock", "Widgets and containers can be locked as well. Locking widget "
 		   + "is useful if automatic layout mode gets in the way of the particular widget. Locking "
@@ -321,7 +320,7 @@ public final class Guide implements Configurable {
 		   + "self to self is usually forbidden)."
 		   + "\n\nDrag areas may cover each other! Therefore, if an accept signal is visible, moving "
 		   + "the mouse within the area can still activate different area (child area)."
-		   + "\n\nYou can start the tutorial below:",
+		   + "\n\nBelow you can start a tutorial and see the drag behavior by dragging '2' or '3' onto the test UI",
 			 new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
 				 Window wd = APP.windowManager.getActiveOrNew();
 				 int i = wd.getTopContainer().getEmptySpot();
@@ -352,15 +351,15 @@ public final class Guide implements Configurable {
 						e -> {}
 					);
 				 });
-			 }).withText("voronoi"),
-			 new Icon(DICE_2,ICON_SIZE){{
+			 }).withText("Start"),
+			 new Icon(DICE_2, ICON_SIZE){{
 				 setOnDragDetected(e -> {
 					 Dragboard db = this.startDragAndDrop(TransferMode.COPY);
 					 db.setContent(singletonMap(DataFormat.PLAIN_TEXT, "2"));
 					 e.consume();
 				 });
 			 }}.withText("Drag '2'"),
-			 new Icon(DICE_3,ICON_SIZE){{
+			 new Icon(DICE_3, ICON_SIZE){{
 				 setOnDragDetected(e -> {
 					 Dragboard db = this.startDragAndDrop(TransferMode.COPY);
 					 db.setContent(singletonMap(DataFormat.PLAIN_TEXT, "3"));

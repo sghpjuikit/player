@@ -113,7 +113,7 @@ public final class AreaControls {
             // we need to handle hiding this AreaControls when popup
 	    // closes and we are outside of the area (not implemented yet)
 	    p.addEventHandler(WINDOW_HIDDEN, we -> {
-		if (ac.isShowingWeak) ac.hide();
+			if (ac.isShowingWeak) ac.hide();
 	    });
 	});
 
@@ -142,32 +142,30 @@ public final class AreaControls {
 
         root.getStyleClass().add(Area.WIDGET_AREA_CONTROLS_STYLECLASS);
 
-	// avoid clashing of title and control buttons for small root size
-	header_buttons.maxWidthProperty()
-	    .bind(root.widthProperty().subtract(title.widthProperty())
-		.divide(2).subtract(15));
-	header_buttons.setMinWidth(15);
-	header_buttons.setHgap(8);
-	header_buttons.setVgap(8);
+		// avoid clashing of title and control buttons for small root size
+		header_buttons.maxWidthProperty()
+		    .bind(root.widthProperty().subtract(title.widthProperty())
+			.divide(2).subtract(15));
+		header_buttons.setMinWidth(15);
+		header_buttons.setHgap(8);
+		header_buttons.setVgap(8);
 
-	// build header buttons
-	Icon closeB = new Icon(TIMES, 12, closebTEXT, this::close);
-	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
-	Icon detachB = new Icon(CLONE, 12, detachbTEXT, area::detach);
-	Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
-            APP.actionPane.show(Widget.class, area.getWidget())
-        );
-	propB = new Icon(COGS, 12, propbTEXT, this::settings);
-	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
-	lockB = new Icon(null, 12, lockbTEXT, () -> {
-            toggleLocked();
-	    APP.actionStream.push("Widget layout lock");
+		// build header buttons
+		Icon closeB = new Icon(TIMES, 12, closebTEXT, this::close);
+		Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
+		Icon detachB = new Icon(CLONE, 12, detachbTEXT, area::detach);
+		Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
+		propB = new Icon(COGS, 12, propbTEXT, this::settings);
+		Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
+		lockB = new Icon(null, 12, lockbTEXT, () -> {
+	        toggleLocked();
+		    APP.actionStream.push("Widget layout lock");
         });
-//        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
-	absB = new Icon(LINK, 12, absbTEXT, e -> {
-	    toggleAbsSize();
-	    updateAbsB();
-	});
+//		maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
+		absB = new Icon(LINK, 12, absbTEXT, e -> {
+		    toggleAbsSize();
+		    updateAbsB();
+		});
         Icon dragB = new Icon(MAIL_REPLY, 12, dragbTEXT);
         CheckIcon loadB = new CheckIcon();
         maintain(area.getWidget().loadType, lt -> lt==AUTOMATIC, loadB.selected);
@@ -192,81 +190,81 @@ public final class AreaControls {
         root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
 
 
-	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
+		infoB = new Icon(INFO, 12, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
 
-	// build header
-	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
-	header_buttons.setAlignment(Pos.CENTER_RIGHT);
-	header_buttons.getChildren().addAll(infoB, loadB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
+		// build header
+		header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
+		header_buttons.setAlignment(Pos.CENTER_RIGHT);
+		header_buttons.getChildren().addAll(infoB, loadB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
 
-	// build animations
-	contrAnim = new FadeTransition(Gui.duration_LM, root);
-	contAnim = new FadeTransition(Gui.duration_LM, area.getContent());
-	BoxBlur blur = new BoxBlur(0, 0, 1);
-	area.getContent().setEffect(blur);
-	blurAnim = new Anim(at -> {
-            blur.setWidth(at* Gui.blur_LM);
-            blur.setHeight(at* Gui.blur_LM);
-        }).dur(Gui.duration_LM);
+		// build animations
+		contrAnim = new FadeTransition(Gui.duration_LM, root);
+		contAnim = new FadeTransition(Gui.duration_LM, area.getContent());
+		BoxBlur blur = new BoxBlur(0, 0, 1);
+		area.getContent().setEffect(blur);
+		blurAnim = new Anim(at -> {
+	            blur.setWidth(at* Gui.blur_LM);
+	            blur.setHeight(at* Gui.blur_LM);
+	        }).dur(Gui.duration_LM);
 
-        // weak mode and strong mode - strong mode is show/hide called from external code
-	// - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
-	// - the weak behavior must not work in strong mode
-	// weak show - activator behavior
-	BooleanProperty inside = new SimpleBooleanProperty(false);
-	// monitor mouse movement (as filter)
-	EventSource<MouseEvent> showS = new EventSource();
-        Pane p = area.content_padding;
-	p.addEventFilter(MOUSE_MOVED, showS::push);
-	p.addEventFilter(MOUSE_ENTERED, showS::push);
-	p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
-        // and check activator.mouse_enter events
-	// ignore when already showing, under lock or in strong mode
-	showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
-	    // transform into IN/OUT boolean
-	    .map(e -> p.getWidth() - activatorW < e.getX() && activatorH > e.getY())
-	    // ignore when no change
-	    .filter(in -> in != inside.get())
-	    // or store new state on change
-	    .hook(inside::set)
-	    // ignore when not inside
-	    .filter(in -> in)
-	    // activate weak layout mode
-	    .subscribe(activating -> showWeak());
+	        // weak mode and strong mode - strong mode is show/hide called from external code
+		// - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
+		// - the weak behavior must not work in strong mode
+		// weak show - activator behavior
+		BooleanProperty inside = new SimpleBooleanProperty(false);
+		// monitor mouse movement (as filter)
+		EventSource<MouseEvent> showS = new EventSource<>();
+	        Pane p = area.content_padding;
+		p.addEventFilter(MOUSE_MOVED, showS::push);
+		p.addEventFilter(MOUSE_ENTERED, showS::push);
+		p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
+	        // and check activator.mouse_enter events
+		// ignore when already showing, under lock or in strong mode
+		showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
+		    // transform into IN/OUT boolean
+		    .map(e -> p.getWidth() - activatorW < e.getX() && activatorH > e.getY())
+		    // ignore when no change
+		    .filter(in -> in != inside.get())
+		    // or store new state on change
+		    .hook(inside::set)
+		    // ignore when not inside
+		    .filter(in -> in)
+		    // activate weak layout mode
+		    .subscribe(activating -> showWeak());
 
-	// weak hide - deactivator behavior
-        Consumer<MouseEvent> hideWeakTry = e -> {
-            if (
-                // ignore when already not showing or in strong mode
-                isShowingWeak && !isShowingStrong &&
-                // mouse entering the popup qualifies as root.mouseExited which we need
-                // to avoid (now we need to handle hiding when popup closes)
-                (helpP.isØ() || !helpP.get().isShowing()) &&
-                // only when the deactivators are !'hovered'
-                // (Node.isHover() !work here) & we need to transform coords into scene-relative
-                !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
-                !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
-            ) {
-                hideWeak();
-            }
-        };
-	deactivator.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-	deactivator2.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-	header_buttons.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-	p.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+		// weak hide - deactivator behavior
+	        Consumer<MouseEvent> hideWeakTry = e -> {
+	            if (
+	                // ignore when already not showing or in strong mode
+	                isShowingWeak && !isShowingStrong &&
+	                // mouse entering the popup qualifies as root.mouseExited which we need
+	                // to avoid (now we need to handle hiding when popup closes)
+	                (helpP.isØ() || !helpP.get().isShowing()) &&
+	                // only when the deactivators are !'hovered'
+	                // (Node.isHover() !work here) & we need to transform coords into scene-relative
+	                !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
+	                !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
+	            ) {
+	                hideWeak();
+	            }
+	        };
+		deactivator.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+		deactivator2.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+		header_buttons.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+		p.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
 
-        // hide on mouse exit from area
-	// sometimes mouse exited deactivator does not fire in fast movement
-	// same thing as above - need to take care of popup...
-	p.addEventFilter(MOUSE_EXITED, e -> {
-	    if (isShowingWeak && !isShowingStrong && (helpP.isØ() || !helpP.get().isShowing()))
-		hide();
-	});
+	        // hide on mouse exit from area
+		// sometimes mouse exited deactivator does not fire in fast movement
+		// same thing as above - need to take care of popup...
+		p.addEventFilter(MOUSE_EXITED, e -> {
+		    if (isShowingWeak && !isShowingStrong && (helpP.isØ() || !helpP.get().isShowing()))
+			hide();
+		});
 
-        // enlarge deactivator that resizes with control buttons to give more
-	// room for mouse movement
-	deactivator.setScaleX(1.2);
-	deactivator.setScaleY(1.2);
+	        // enlarge deactivator that resizes with control buttons to give more
+		// room for mouse movement
+		deactivator.setScaleX(1.2);
+		deactivator.setScaleY(1.2);
     }
 
     void refreshWidget() {

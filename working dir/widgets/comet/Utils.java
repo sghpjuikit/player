@@ -17,6 +17,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -29,10 +30,7 @@ import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
 
 import comet.Comet.*;
@@ -106,7 +104,8 @@ interface Utils {
 	Random RAND = new Random();
 	// Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
 	// platform it is packed with the widget.
-	Font UI_FONT = Font.loadFont(Utils.class.getResourceAsStream("Tele-Marines.TTF"), 12.0);
+	Font FONT_UI = Font.loadFont(Utils.class.getResourceAsStream("Tele-Marines.TTF"), 12.0);
+	Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 12);
 	double HUD_DOT_GAP = 3;
 	double HUD_DOT_DIAMETER = 1;
 
@@ -195,11 +194,11 @@ interface Utils {
 
 	static Node createPlayerStat(Player p) {
 		Label score = new Label();
-		installFont(score, UI_FONT);
+		installFont(score, FONT_UI);
 		p.score.maintain(s -> score.setText("Score: " + s));
 
 		Label nameL = new Label();
-		installFont(nameL, UI_FONT);
+		installFont(nameL, FONT_UI);
 		maintain(p.name,nameL::setText);
 
 		HBox lives = layHorizontally(5, CENTER_LEFT);
@@ -217,7 +216,7 @@ interface Utils {
 		});
 
 		Label energy = new Label();
-		installFont(energy, UI_FONT);
+		installFont(energy, FONT_UI);
 		p.energy.maintain(e -> energy.setText("Energy: " + e.intValue()));
 
 		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy);
@@ -338,11 +337,45 @@ interface Utils {
 			y+r*sin(d3)
 		);
 		gc.closePath();
-//		gc.fill();
 		gc.stroke();
+	}
+	static void fillTriangle(GraphicsContext gc, double x, double y, double r, double dir, double angleOffset) {
+		double d1 = dir, d2 = dir+angleOffset, d3 = dir-angleOffset;
+		gc.beginPath();
+		gc.moveTo(
+			x+r*cos(d1),
+			y+r*sin(d1)
+		);
+		gc.lineTo(
+			x+r*cos(d2),
+			y+r*sin(d2)
+		);
+		gc.lineTo(
+			x+r*cos(d3),
+			y+r*sin(d3)
+		);
+		gc.closePath();
+		gc.fill();
 	}
 	static void strokeLine(GraphicsContext g, double x, double y, double length, double angleRad) {
 		g.strokeLine(x,y,x+length*cos(angleRad),y+length*sin(angleRad));
+	}
+	static void strokePolygon(GraphicsContext gc, Geometry polygon) {
+		Coordinate[] cs = polygon.getCoordinates();
+		gc.beginPath();
+		gc.moveTo(cs[0].x, cs[0].y);
+		for (int j=1; j<cs.length; j++)
+			gc.lineTo(cs[j].x, cs[j].y);
+		gc.closePath();
+		gc.stroke();
+
+//		Coordinate[] cs = polygon.getCoordinates();
+//		for (int j=0; j<cs.length-1; j++)
+//			gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y);
+//		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
+
+		// Performs very badly
+		// gc.strokePolygon(xs, ys, cs.length);
 	}
 	static void drawRect(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;
@@ -687,7 +720,7 @@ interface Utils {
 
 		public EndGamePane() {
 			display.set(Display.WINDOW);
-			gameModeName.setFont(font(UI_FONT.getFamily(), 30));
+			gameModeName.setFont(font(FONT_UI.getFamily(), 30));
 
 			ScrollPane sp = new ScrollPane();
 			sp.setOnScroll(Event::consume);
@@ -1897,7 +1930,7 @@ interface Utils {
 		@Override
 		public Node buildResultGraphics() {
 			Label l = new Label(formatDuration(time(game.loop.id)));
-			l.setFont(font(UI_FONT.getFamily(), 20));
+			l.setFont(font(FONT_UI.getFamily(), 20));
 			return l;
 		}
 	}
@@ -1969,7 +2002,20 @@ interface Utils {
 				game.over();
 			}
 
-			// TODO: highlight player with biggest area
+			List<Player> victors = stream(game.players)
+				.reverseSorted(by(p -> p.stats.controlAreaSize.getAverage()))
+			    .toList();
+			// Highlight player ranking
+			forEachWithI(victors, (i,p) -> {
+				if (p.alive)
+					game.fillText("" + i, p.rocket.x, p.rocket.y);
+			});
+			// Highlight player with biggest area
+			stream(victors)
+				.findFirst(p -> p.alive && p.rocket.voronoiArea!=null)
+				.ifPresent(p -> {
+					drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud);
+				});
 		}
 
 		@Override
@@ -1987,10 +2033,10 @@ interface Utils {
 			game.settings.playerGunDisabled = true;
 			game.settings.player_ability_auto_on = true;
 			game.settings.playerNoKineticShield = true;
+			game.settings.voronoiDraw = true;
 
 			remainingTimeMs.reset();
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));
-			game.humans.intelOn.inc();
 		}
 
 		@Override
@@ -2014,8 +2060,151 @@ interface Utils {
 					  .joining("\n");
 
 			Label l = new Label(text);
-			l.setFont(font(UI_FONT.getFamily(), 15));
+			l.setFont(font(FONT_UI.getFamily(), 15));
 			return new StackPane(l);
+		}
+	}
+
+	class VoronoiMode extends GameMode {
+		private final List<Cell> cells = new ArrayList<>();
+
+		public VoronoiMode(Game game) {
+			super(game, "Voronoi");
+		}
+
+		@Override
+		public void init() {
+			game.owner.playfield.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> cells.add(new Cell(e.getX(), e.getY())));
+		}
+
+		@Override
+		public void doLoop() {
+//			computeVoronoi(
+//				stream(Asteroid.class, Rocket.class)
+//					.flatMap(c -> game.oss.get(c).stream())
+//					.toList(),
+//				game
+//			);
+
+			GraphicsContext gc = game.owner.gc;
+			gc.setFill(game.colors.hud);
+			gc.setStroke(game.colors.hud);
+
+
+			// draw cells
+			gc.save();
+
+			Set<Cell> selectedCells = stream(game.players)
+				.filter(p -> p.alive)
+				.map(p -> stream(cells).minBy(c -> c.distance(p.rocket.x, p.rocket.y)).orElse(null))
+				.filter(ISNTØ)
+				.toSet();
+			Map<Coordinate,Cell> inputOutputMap = stream(cells).toMap(o -> new Coordinate(o.x, o.y), o -> o);
+			Collection<Coordinate> cords = inputOutputMap.keySet();
+			VoronoiDiagramBuilder diagram = new VoronoiDiagramBuilder();
+			diagram.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
+			diagram.setSites(cords);
+			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
+				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+				.ifOk(g ->
+						IntStreamEx.range(0, g.getNumGeometries())
+							.mapToObj(g::getGeometryN)
+							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+							.forEach(polygon -> {
+								Cell cell = (Cell) polygon.getUserData();
+								Point centroid = polygon.getCentroid();
+								strokePolygon(gc, polygon);
+
+								Coordinate[] cs = polygon.getCoordinates();
+								double[] xs = new double[cs.length];
+								double[] ys = new double[cs.length];
+								for (int j = 0; j < cs.length; j++) {
+									xs[j] = cs[j].x;
+									ys[j] = cs[j].y;
+								}
+
+								boolean isSelected = selectedCells.contains(cell);
+								if (isSelected) {
+									gc.setGlobalAlpha(0.2);
+									gc.fillPolygon(xs, ys, polygon.getNumPoints());
+									gc.setGlobalAlpha(1);
+								}
+							})
+				);
+			gc.restore();
+
+
+
+			// draw cell seeds
+			gc.save();
+			double r = 2;
+			cells.forEach(c -> gc.fillOval(c.x-r,c.y-r,2*r,2*r));
+//			double rd = 4;
+//			if (selectedCell!=null) gc.fillOval(selectedCell.x-rd,selectedCell.y-rd,2*rd,2*rd);
+			gc.restore();;
+		}
+
+		@Override
+		public void handleEvent(Object event) {}
+
+		@Override
+		public void stop() {}
+
+		@Override
+		public void pause(boolean v) {}
+
+		@Override
+		protected void startDo(int playerCount) {
+			game.settings.useGrid = false;
+			game.settings.playerGunDisabled = true;
+			game.settings.player_ability_auto_on = true;
+			game.settings.playerNoKineticShield = true;
+
+			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));
+		}
+
+		@Override
+		public Node buildResultGraphics() {
+			Label l = new Label(formatDuration(time(game.loop.id)));
+			l.setFont(font(FONT_UI.getFamily(), 15));
+			return new StackPane(l);
+		}
+
+		static class P {
+			double x=0,y=0;
+
+			P(double x, double y) {
+				this.x = x;
+				this.y = y;
+			}
+
+			double distance(P p) {
+				return distance(p.x,p.y);
+			}
+
+			double distance(double x, double y) {
+				return sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y));
+			}
+		}
+		static class Cell extends P {
+			public double dx=0, dy=0;
+			public BiConsumer<Double,Double> moving = null;
+
+			public Cell(double x, double y) {
+				super(x, y);
+			}
+
+			public Cell moving(BiConsumer<Double,Double> moving) {
+				this.moving = moving;
+				return this;
+			}
+
+			static Cell random(double width, double height, double speed) {
+				Cell c = new Cell(rand0N(width),rand0N(height));
+				c.dx = rand0N(speed) - speed/2;
+				c.dy = rand0N(speed) - speed/2;
+				return c;
+			}
 		}
 	}
 
@@ -2348,7 +2537,7 @@ interface Utils {
 										distAction.accept(rocket, game.field.dist(c.getX(), c.getY(), rocket.x, rocket.y));
 									}
 								})
-								.filter(polygon -> game.humans.intelOn.is())
+								.filter(polygon -> game.settings.voronoiDraw|| game.humans.intelOn.is())
 								// optimization: return edges -> draw edges instead of polygons, we can improve performance
 								 .flatMap(polygon -> {
 									 Coordinate[] cs = polygon.getCoordinates();
@@ -2384,6 +2573,34 @@ interface Utils {
 					)
 				);
 		}
+	}
+
+	static void computeVoronoi(Collection<? extends PO> os, Game game) {
+		Map<Coordinate,PO> inputOutputMap = stream(os).toMap(o -> new Coordinate(o.x, o.y), o -> o);
+		Set<Coordinate> cells = inputOutputMap.keySet();
+
+		VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
+		voronoi.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
+		voronoi.setSites(cells);
+		Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
+			.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+			.ifOk(g ->
+					IntStreamEx.range(0, g.getNumGeometries())
+						.mapToObj(g::getGeometryN)
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+						.forEach(polygon -> {
+//						.groupingBy(polygon -> ((PO) polygon.getUserData()).type)
+//						.entrySet()
+//						.forEach(e -> {
+//							Class<?> type = e.getKey();
+//							List<Geometry> polygons = e.getValue();
+
+							game.owner.gc.setStroke(game.colors.hud);
+							game.owner.gc.setLineWidth(1);
+//							game.owner.gc.setFill(color(game.colors.hud, 0.1));
+							strokePolygon(game.owner.gc, polygon);
+						})
+		);
 	}
 
 	/**

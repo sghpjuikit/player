@@ -114,7 +114,7 @@ public class Comet extends ClassController {
 	public Comet() {
 		// message
 		message.setOpacity(0);
-		message.setFont(new Font(UI_FONT.getName(), 50));
+		message.setFont(new Font(FONT_UI.getName(), 50));
 
 		// canvas
 		canvas.widthProperty().bind(playfield.widthProperty());
@@ -301,15 +301,16 @@ public class Comet extends ClassController {
 		boolean spawnAsteroids = true;
 		boolean spawnSwarms = true;
 		boolean useGrid = true;
+		boolean voronoiDraw = false;
 	}
 	static class Colors {
-		private Color main = Color.LIGHTGREEN;
-		private Color canvasFade = rgb(0,31,41, 0.1);
-		private Color humans = Color.DODGERBLUE;
-		private Color humansTech = Color.AQUAMARINE;
-		private Color ufos = rgb(114,208,74);
-		private Color grid = Color.LIGHTGREEN;
-		private Color hud = color(Color.AQUA, 0.25);
+		public Color main = Color.LIGHTGREEN;
+		public Color canvasFade = rgb(0,31,41, 0.1);
+		public Color humans = Color.DODGERBLUE;
+		public Color humansTech = Color.AQUAMARINE;
+		public Color ufos = rgb(114,208,74);
+		public Color grid = Color.LIGHTGREEN;
+		public Color hud = color(Color.AQUA, 0.25);
 
 		public Colors interpolate(Colors from, Colors to, double v) {
 			main = from.main.interpolate(to.main , v);
@@ -348,7 +349,8 @@ public class Comet extends ClassController {
 		new ClassicMode(game),
 		new TimeTrial(game),
 		new BounceHellMode(game),
-		new AreaMode(game)
+		new AreaMode(game),
+		new VoronoiMode(game)
 	);
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
@@ -555,8 +557,14 @@ public class Comet extends ClassController {
 		private final TimeDouble cceStrengthH = new TimeDouble(0.5,0.01);
 
 		final Voronoi voronoi = new Voronoi(
-			(rocket,area) -> rocket.player.stats.controlAreaSize.accept(area),
-			(rocket,areaCenterDistance) -> rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance),
+			(rocket,area) -> {
+				rocket.voronoiArea = area;
+				rocket.player.stats.controlAreaSize.accept(area);
+			},
+			(rocket,areaCenterDistance) -> {
+				rocket.voronoiAreaCenterDistance = areaCenterDistance;
+				rocket.player.stats.controlAreaCenterDistance.accept(areaCenterDistance);
+			},
 			(centerX,centerY) -> {
 //				if (humans.intelOn.is()) {
 //					// Nice, but ends up being distracting and poorly communicated to players, who then wonder wth this is
@@ -837,9 +845,8 @@ public class Comet extends ClassController {
 		}
 		void placeholder(String text, PO o, double x, double y) {
 			boolean isFollow = o!=null;
-			Font f = Font.font(UI_FONT.getName(), 12);
-			double fW = computeFontWidth(f, text);
-			double fH = computeFontHeight(f);
+			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
+			double fH = computeFontHeight(FONT_PLACEHOLDER);
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = sqrt(map01To010(p, 0.9));
 				double tx = game.field.modX(isFollow ? o.x-15 : x);
@@ -848,18 +855,36 @@ public class Comet extends ClassController {
 				Affine sa = new Affine();
 				sa.append(new Scale(s,s, tx + fW/2,ty - fH/2));
 
-				Affine a = gc.getTransform();
+				Affine a1 = gc.getTransform();
+				Affine a2 = gc_bgr.getTransform();
 				gc.setTransform(sa);
-				gc.setFont(f);
+				gc.setFont(FONT_PLACEHOLDER);
 				gc.setFill(game.colors.main);
 				gc.setGlobalAlpha(1);
 				gc.fillText(text, tx, ty);
-				gc_bgr.setFont(f);
+				gc.setTransform(a1);
+				gc_bgr.setTransform(sa);
+				gc_bgr.setFont(FONT_PLACEHOLDER);
 				gc_bgr.setFill(game.colors.main);
 				gc_bgr.setGlobalAlpha(1);
 				gc_bgr.fillText(text, tx, ty);
-				gc.setTransform(a);
+				gc_bgr.setTransform(a2);
 			});
+		}
+
+		public void fillText(String text, double x, double y) {
+			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
+			double fH = computeFontHeight(FONT_PLACEHOLDER);
+			double tx = game.field.modX(x+15 - fW/2);
+			double ty = game.field.modY(y-15 - fH/2);
+			gc.setFont(FONT_PLACEHOLDER);
+			gc.setFill(game.colors.main);
+			gc.setGlobalAlpha(1);
+			gc.fillText(text, tx, ty);
+			gc_bgr.setFont(FONT_PLACEHOLDER);
+			gc_bgr.setFill(game.colors.main);
+			gc_bgr.setGlobalAlpha(1);
+			gc_bgr.fillText(text, tx, ty);
 		}
 
 
@@ -1227,6 +1252,8 @@ public class Comet extends ClassController {
 			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id.get());
 			rocket.energy = game.settings.PLAYER_ENERGY_INITIAL;
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
+			rocket.voronoiArea = null;
+			rocket.voronoiAreaCenterDistance = null;
 			// TODO: refactor to event
 			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
@@ -2160,6 +2187,8 @@ public class Comet extends ClassController {
 		final InEffect splitFire = new InEffect();
 		double bulletRange = computeBulletRange();
 		final double cacheRandomVoronoiTranslation = randOf(-1,1)*randMN(0.01,0.012);
+		Double voronoiArea = null;
+		Double voronoiAreaCenterDistance = null;
 
 		Rocket(Player PLAYER) {
 			super(

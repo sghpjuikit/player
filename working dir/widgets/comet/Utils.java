@@ -361,21 +361,23 @@ interface Utils {
 		g.strokeLine(x,y,x+length*cos(angleRad),y+length*sin(angleRad));
 	}
 	static void strokePolygon(GraphicsContext gc, Geometry polygon) {
-		Coordinate[] cs = polygon.getCoordinates();
-		gc.beginPath();
-		gc.moveTo(cs[0].x, cs[0].y);
-		for (int j=1; j<cs.length; j++)
-			gc.lineTo(cs[j].x, cs[j].y);
-		gc.closePath();
-		gc.stroke();
-
-//		Coordinate[] cs = polygon.getCoordinates();
-//		for (int j=0; j<cs.length-1; j++)
-//			gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y);
-//		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
-
 		// Performs very badly
 		// gc.strokePolygon(xs, ys, cs.length);
+
+		// Performs about the same as above
+//		Coordinate[] cs = polygon.getCoordinates();
+//		gc.beginPath();
+//		gc.moveTo(cs[0].x, cs[0].y);
+//		for (int j=1; j<cs.length; j++)
+//			gc.lineTo(cs[j].x, cs[j].y);
+//		gc.closePath();
+//		gc.stroke();
+
+		// Performs so much better than the above, not even funny. Like, wtf. TODO: find out why
+		Coordinate[] cs = polygon.getCoordinates();
+		for (int j=0; j<cs.length-1; j++)
+			gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y);
+		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
 	}
 	static void drawRect(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;

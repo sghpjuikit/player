@@ -236,6 +236,7 @@ public class Voronoi extends ClassController  {
 			gc.setFill(Color.AQUA);
 			gc.setStroke(Color.AQUA);
 			gc.clearRect(0,0,W,H);
+			gc.setGlobalAlpha(0.7);
 
 			List<Coordinate> cords = stream(cells)
 				 .map(cell -> {
@@ -279,7 +280,7 @@ public class Voronoi extends ClassController  {
 							strokePolygon(gc, polygon);
 						})
 				);
-			gc.applyEffect(new GaussianBlur(15));
+			gc.applyEffect(new GaussianBlur(10));
 			gc.restore();
 
 			// draw lines
@@ -411,12 +412,9 @@ public class Voronoi extends ClassController  {
 		}
 		static void strokePolygon(GraphicsContext gc, Geometry polygon) {
 			Coordinate[] cs = polygon.getCoordinates();
-			gc.beginPath();
-			gc.moveTo(cs[0].x, cs[0].y);
-			for (int j=1; j<cs.length; j++)
-				gc.lineTo(cs[j].x, cs[j].y);
-			gc.closePath();
-			gc.stroke();
+			for (int j=0; j<cs.length-1; j++)
+				gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y);
+			gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
 		}
 	}
 }

@@ -43,6 +43,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import gui.pane.OverlayPane;
+import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import unused.TriConsumer;
@@ -477,6 +478,12 @@ interface Utils {
 	static <T> T randOf(T a, T b) {
 		return randBoolean() ? a : b;
 	}
+	static int randOf(int a, int b) {
+		return randBoolean() ? a : b;
+	}
+	static double randOf(double a, double b) {
+		return randBoolean() ? a : b;
+	}
 	@SafeVarargs
 	static <T> T randOf(T... c) {
 		throwIf(c.length==0);
@@ -505,7 +512,7 @@ interface Utils {
 
 		Ship.Ability create(Ship s) {
 			switch(this) {
-				case NONE : return s.new Ability(false, Duration.ZERO, Duration.ZERO, 0, 0);
+				case NONE : return s.new Ability(true, Duration.ZERO, Duration.ZERO, 0, 0);
 				case DISRUPTOR : return s.new Disruptor();
 				case HYPERSPACE : return s.new Hyperspace();
 				case SHIELD : return s.new Shield();
@@ -2006,7 +2013,7 @@ interface Utils {
 
 			List<Player> victors = stream(game.players)
 				.reverseSorted(by(p -> p.stats.controlAreaSize.getAverage()))
-			    .toList();
+				.toList();
 			// Highlight player ranking
 			forEachWithI(victors, (i,p) -> {
 				if (p.alive)
@@ -2066,9 +2073,9 @@ interface Utils {
 			return new StackPane(l);
 		}
 	}
-
 	class VoronoiMode extends GameMode {
-		private final List<Cell> cells = new ArrayList<>();
+//		private final List<Cell> cells = new ArrayList<>();
+		private List<Cell> cells;
 
 		public VoronoiMode(Game game) {
 			super(game, "Voronoi");
@@ -2076,7 +2083,112 @@ interface Utils {
 
 		@Override
 		public void init() {
+			// for development
 			game.owner.playfield.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> cells.add(new Cell(e.getX(), e.getY())));
+
+			// generate cells
+			int W = (int) game.field.width;
+			int H = (int) game.field.height;
+			int cellCount = 40;
+			if (cells == null) {
+				// circle
+				double wh = min(W,H);
+				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/11).limit(11)
+							.mapToObj(a -> new Cell(0,0) {
+								double angle = a;
+								{
+									moving = (w,h) -> {
+										angle += 0.001;
+										x = wh/2+wh/20*cos(angle);
+										y = wh/2+wh/20*sin(angle);
+										x += randOf(-1,1)*randMN(0.0005,0.00051);
+										y += randOf(-1,1)*randMN(0.0005,0.00051);
+									};
+								}
+							})
+							.map(c -> (Cell)c)
+							.toList();
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/3).limit(3)
+								 .mapToObj(a -> new Cell(0,0) {
+									 double angle = a;
+									 {
+										 moving = (w,h) -> {
+											 angle -= 0.002;
+											 x = wh/2+wh/10*cos(angle);
+											 y = wh/2+wh/10*sin(angle);
+											 x += randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+										 };
+									 }
+								 })
+								 .map(c -> (Cell)c)
+								 .toList());
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								 .mapToObj(a -> new Cell(0,0) {
+									 double angle = a;
+									 {
+										 moving = (w,h) -> {
+											 angle -= 0.002;
+											 x = wh-wh/6+wh/8*cos(angle);
+											 y = wh/6+wh/8*sin(angle);
+											 x += randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+										 };
+									 }
+								 })
+								 .map(c -> (Cell)c)
+								 .toList());
+				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								 .mapToObj(a -> new Cell(0,0) {
+									 double angle = a;
+									 {
+										 moving = (w,h) -> {
+											 angle -= 0.002;
+											 x = wh/2+wh/4*cos(angle);
+											 y = wh/2+wh/4*sin(angle);
+											 x += randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+										 };
+									 }
+								 })
+								 .map(c -> (Cell)c)
+								 .toList());
+				// horizontal sequence
+//				cells = IntStreamEx.range(0,cellCount)
+//								.mapToObj(a -> new Cell(W*0.1+W*0.8/cellCount*a, H/2))
+//								.toList();
+				// random
+//				cells = StreamEx.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
+
+				// add noise to avoid arithmetic problem
+				cells.forEach(cell -> {
+					cell.x += randOf(-1,1)*randMN(0.01,0.012);
+					cell.y += randOf(-1,1)*randMN(0.01,0.012);
+				});
+
+				cells.stream().filter(cell -> cell.moving==null)
+					.forEach(c -> c.moving = (w,h) -> {
+						double x = c.x+c.dx;
+						double y = c.y+c.dy;
+						if (x<0) {
+							c.dx = -c.dx;
+							c.x = -x;
+						} else if (x>w) {
+							c.dx = -c.dx;
+							c.x = 2*w-x;
+						} else
+							c.x = x;
+
+						if (y<0) {
+							c.dy = -c.dy;
+							c.y = -y;
+						} else if (y>h) {
+							c.dy = -c.dy;
+							c.y = 2*h-y;
+						} else
+							c.y = y;
+					});
+			}
 		}
 
 		@Override
@@ -2088,14 +2200,23 @@ interface Utils {
 //				game
 //			);
 
+			// make rockets generate voronoi path trail
+			if (game.loop.isNth(7))
+				stream(game.players)
+//					.filter(p -> p.alive && p.rocket.speed()>ttlVal(100, seconds(1)))
+					.filter(p -> p.alive && p.rocket.ability.isActivated())
+					.forEach(p -> cells.add(new Cell(p.rocket.x + randMN(0.01,0.012), p.rocket.y + randMN(0.01,0.012))));
+
+			// move cells
+			cells.stream().filter(cell -> cell.moving!=null)
+				.forEach(cell -> cell.moving.accept(game.field.width, game.field.height));
+
 			GraphicsContext gc = game.owner.gc;
 			gc.setFill(game.colors.hud);
 			gc.setStroke(game.colors.hud);
 
-
 			// draw cells
 			gc.save();
-
 			Set<Cell> selectedCells = stream(game.players)
 				.filter(p -> p.alive)
 				.map(p -> stream(cells).minBy(c -> c.distance(p.rocket.x, p.rocket.y)).orElse(null))
@@ -2135,14 +2256,10 @@ interface Utils {
 				);
 			gc.restore();
 
-
-
 			// draw cell seeds
 			gc.save();
 			double r = 2;
 			cells.forEach(c -> gc.fillOval(c.x-r,c.y-r,2*r,2*r));
-//			double rd = 4;
-//			if (selectedCell!=null) gc.fillOval(selectedCell.x-rd,selectedCell.y-rd,2*rd,2*rd);
 			gc.restore();;
 		}
 
@@ -2159,7 +2276,6 @@ interface Utils {
 		protected void startDo(int playerCount) {
 			game.settings.useGrid = false;
 			game.settings.playerGunDisabled = true;
-			game.settings.player_ability_auto_on = true;
 			game.settings.playerNoKineticShield = true;
 
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));

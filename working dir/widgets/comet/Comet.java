@@ -1254,6 +1254,7 @@ public class Comet extends ClassController {
 			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
 			rocket.voronoiArea = null;
 			rocket.voronoiAreaCenterDistance = null;
+			rocket.changeAbility(ability_type.get());
 			// TODO: refactor to event
 			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
@@ -1721,16 +1722,18 @@ public class Comet extends ClassController {
 						onActivateEnd();
 					}
 					onActiveChanged(activation);
-				} else
-				if (state==PASSSIVATING) {
+				} else if (state==PASSSIVATING) {
 					activation = timePassivation==0 ? 0 : max(0,activation-1/(timePassivation*FPS));
 					if (activation==0) {
 						state = OFF;
 						onPassivateEnd();
 					}
 					onActiveChanged(activation);
-				} else if (activation==0) onPassive();
-				else if (activation==1) onActive();
+				} else if (activation==0) {
+					onPassive();
+				} else if (activation==1) {
+					onActive();
+				}
 
 				if (activation==1) energy -= min(energy,e_rate);
 				if (energy==0) passivate();
@@ -2226,7 +2229,6 @@ public class Comet extends ClassController {
 							game.settings.PLAYER_BULLET_TTL
 						)
 			);
-			changeAbility(player.ability_type.get());
 		}
 
 		@Override

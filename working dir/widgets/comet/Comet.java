@@ -3940,6 +3940,83 @@ public class Comet extends ClassController {
 			//		}
 		}
 	}
+	class PGon extends Asteroid<OrganelleMover> {
+		TimeDouble shapeOuter = new TimeDouble(0, 0.01);
+		TimeDouble shapeInner = new TimeDouble(0, 0.015);
+		TimeDouble vertexCount = new TimeDouble(5, -0.01, 1).periodic();
+		TimeDouble radiusTransform = new TimeDouble(0, 0.015, 1).periodic();
+		double radiusMax;
+
+		public PGon(double X, double Y, double SPEED, double DIR, double LIFE) {
+			super(X, Y, SPEED, DIR, LIFE);
+			propulsion = new OrganelleMover();
+			size = LIFE;
+			radius = game.settings.INKOID_SIZE_FACTOR*size;
+			radiusMax = radius;
+			size_hitdecr = 1;
+			size_child = 0.5; // 1 * 1 -> (3-4) * 0.5 -> 2 * 0.25 -> 2 * 0.125
+			splits = size>0.5 ? randOf(3,4) : size>0.125 ? 2 : 0;
+			hits_max = splits>2 ? 1 : 0;
+		}
+
+		@Override
+		public void doLoop() {
+			super.doLoop();
+			shapeOuter.run();
+			shapeInner.run();
+			vertexCount.run();
+			radiusTransform.run();
+			radius = radiusMax * pow(max(0,2*radiusTransform.get()-1),3);
+			radius = 5+radiusMax * (radiusTransform.get()<0.5
+					? pow(max(0,2*2*radiusTransform.get()-1),3)
+					: pow(max(0,2*(1-2*(radiusTransform.get()-0.5))-1),3));
+		}
+
+		@Override void onHit(SO o) {
+			super.onHit(o);
+		}
+
+		@Override
+		void onHitParticles(SO o) {
+
+		}
+
+		@Override void draw() {
+			{
+				int vertices = (int) (vertexCount.get());
+				double[] xs = new double[vertices];
+				double[] ys = new double[vertices];
+				double dAngle = D360 / vertices;
+				repeat(vertices, i -> {
+					double angle = i * dAngle;
+					xs[i] = x+(10+radius)*cos(angle+shapeOuter.get());
+					ys[i] = y+(10+radius)*sin(angle+shapeOuter.get());
+				});
+				gc.setFill(color(Color.GREENYELLOW, 0.3));
+				gc.setStroke(color(Color.GREENYELLOW, 0.3));
+				gc.strokePolygon(xs, ys, vertices);
+				gc_bgr.setFill(color(Color.GREENYELLOW, 0.3));
+				gc_bgr.setStroke(color(Color.GREENYELLOW, 0.3));
+				gc_bgr.strokePolygon(xs, ys, vertices);
+//				gc.fillPolygon(xs, ys, vertices);
+			}
+			{
+				int vertices = (int) (vertexCount.get());
+				double[] xs = new double[vertices];
+				double[] ys = new double[vertices];
+				double dAngle = D360 / vertices;
+				repeat(vertices, i -> {
+					double angle = i * dAngle;
+					xs[i] = x+radius*cos(angle+shapeInner.get());
+					ys[i] = y+radius*sin(angle+shapeInner.get());
+				});
+				gc.setFill(color(Color.GREENYELLOW, 0.3));
+				gc.setStroke(color(Color.GREENYELLOW, 0.3));
+				gc.strokePolygon(xs, ys, vertices);
+				gc.fillPolygon(xs, ys, vertices);
+			}
+		}
+	}
 	class Genoid extends Asteroid<OrganelleMover> {
 		double circling = 0;
 		double circling_speed = 0.5*D360/ ttl(seconds(0.5)); // times/sec

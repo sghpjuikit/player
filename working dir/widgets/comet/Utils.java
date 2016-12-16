@@ -874,11 +874,16 @@ interface Utils {
 		public double value;
 		public final double from, by, to;
 
+		public TimeDouble(double from) {
+			this(from, 0, Double.MAX_VALUE);
+		}
+
 		public TimeDouble(double from, double by) {
 			this(from, by, Double.MAX_VALUE);
 		}
 
 		public TimeDouble(double from, double by, double to) {
+			throwIf((from<to && by<0) || (from>to && by>0));
 			this.value = from;
 			this.from = from;
 			this.by = by;
@@ -891,7 +896,9 @@ interface Utils {
 		}
 
 		public boolean isDone() {
-			return value >= to;
+			return by>0
+					? value >= to
+					: value <= to;
 		}
 
 		public double get() {
@@ -911,6 +918,16 @@ interface Utils {
 
 		public void reset() {
 			value = from;
+		}
+
+		public TimeDouble periodic() {
+			return new TimeDouble(this.from, this.by, this.to) {
+				@Override
+				public void run() {
+					super.run();
+					if (isDone()) this.value = this.from;
+				}
+			};
 		}
 	}
 	class ObjectStore<O> {
@@ -1513,6 +1530,7 @@ interface Utils {
 	class ClassicMode extends GameMode {
 		final MapSet<Integer,Mission> missions;
 		int mission_counter = 0;   // mission counter, starts at 1, increments by 1
+		int firstMissionId = 2;
 		boolean isMissionScheduled = false;
 		boolean isMissionStartPlanetoidSplitting = false;
 		final Set<Achievement> achievements;
@@ -1531,9 +1549,13 @@ interface Utils {
 //					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 					Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 				),
+//				game.new Mission(
+//					2, "Sumi-e","10⁻¹⁵","",
+//					Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new PGon(a,b,c,d,e)
+//				),
 				game.new Mission(
 					2, "Sumi-e","10⁻¹⁵","",
-					Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+					Color.LIGHTGREEN, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new PGon(a,b,c,d,e)
 				),
 				game.new Mission(
 					3, "Mol's molecule","","",
@@ -1818,7 +1840,6 @@ interface Utils {
 			isMissionScheduled = true;
 
 			// get mission
-			int firstMissionId = 2;
 			if (game.mission!=null) game.mission.disposer.accept(game);
 			mission_counter = mission_counter==0 ? firstMissionId : mission_counter+1;
 			int id = mission_counter%missions.size();
@@ -2017,11 +2038,12 @@ interface Utils {
 			// Highlight player ranking
 			forEachWithI(victors, (i,p) -> {
 				if (p.alive)
-					game.fillText("" + i, p.rocket.x, p.rocket.y);
+					game.fillText("" + (i+1), p.rocket.x, p.rocket.y);
 			});
 			// Highlight player with biggest area
-			stream(victors)
-				.findFirst(p -> p.alive && p.rocket.voronoiArea!=null)
+			stream(game.players)
+				.filter(p -> p.alive && p.rocket.voronoiArea!=null)
+				.maxByDouble(p -> p.rocket.voronoiArea)
 				.ifPresent(p -> {
 					drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud);
 				});

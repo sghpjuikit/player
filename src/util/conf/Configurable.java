@@ -106,6 +106,7 @@ public interface Configurable<T> {
      *
      * @return Configs of this configurable
      */
+    @SuppressWarnings("unchecked")
     default Collection<Config<T>> getFields() {
         return (Collection) configsOf(getClass(), this, false, true);
     }
@@ -136,6 +137,7 @@ public interface Configurable<T> {
      * @param name unique name of the field
      * @return config with given name or null if does not exist.
      */
+    @SuppressWarnings("unchecked")
     default Config<T> getFieldOrThrow(String name) {
         try {
             Class<?> c = this.getClass();
@@ -193,10 +195,12 @@ public interface Configurable<T> {
     }
 
 
-    static <E extends ObservableValue & WritableValue> Collection<Config<?>> configsFromFieldsOf(Object o) {
+    @SuppressWarnings("unchecked")
+    static <E extends ObservableValue & WritableValue> Collection<Config<Object>> configsFromFieldsOf(Object o) {
         return (Collection) configsOf(o.getClass(), o, false, true);
     }
 
+	@SuppressWarnings("unchecked")
     static Configurable<?> configsFromFxPropertiesOf(Object o) {
         List<Config<?>> cs = new ArrayList<>();
         forEachJavaFXProperty(o,(p,name,type) -> cs.add(Config.forProperty(type,name,p)));

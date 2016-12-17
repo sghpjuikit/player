@@ -49,7 +49,6 @@ import one.util.streamex.StreamEx;
 import unused.TriConsumer;
 import util.R;
 import util.SwitchException;
-import util.Util;
 import util.animation.Anim;
 import util.collections.Tuple2;
 import util.collections.map.ClassMap;
@@ -83,6 +82,7 @@ import static util.reactive.Util.maintain;
 /**
  * @author Martin Polakovic
  */
+@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
 
 	// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
@@ -522,9 +522,6 @@ interface Utils {
 		}
 
 	}
-	enum Relations {
-		ALLY, NEUTRAL, ENEMY
-	}
 	enum PlayerSpawn {
 		CIRCLE,
 		LINE,
@@ -941,10 +938,10 @@ interface Utils {
 				public void run() {
 					super.run();
 					if (isDone()) {
-						double t1=from, t3=to;
-						this.from = t3;
+						double tmp = from;
+						this.from = to;
 						this.by = -by;
-						this.to = t1;
+						this.to = tmp;
 					}
 				}
 			};
@@ -1809,7 +1806,7 @@ interface Utils {
 			game.runNext.addPeriodic(() -> game.settings.SATELLITE_TTL()/sqrt(game.players.size()), game.humans::sendSatellite);
 			game.runNext.addPeriodic(() -> game.settings.UFO_TTL()/sqrt(game.players.size()), game.ufos::sendUfo);
 			game.runNext.addPeriodic(() -> game.settings.UFO_SWARM_TTL()/sqrt(game.players.size()), game.ufos::sendUfoSwarm);
-			game.runNext.addPeriodic(() -> game.settings.UFO_DISCSPAWN_TTL()/sqrt(game.players.size()), () -> game.ufos.canSpawnDiscs = true);
+			game.runNext.addPeriodic(() -> game.settings.UFO_DISC_SPAWN_TTL()/sqrt(game.players.size()), () -> game.ufos.canSpawnDiscs = true);
 //			game.runNext.add(() -> game.mission_button = game.owner.new MissionInfoButton());
 		}
 
@@ -2070,9 +2067,7 @@ interface Utils {
 			stream(game.players)
 				.filter(p -> p.alive && p.rocket.voronoiArea!=null)
 				.maxByDouble(p -> p.rocket.voronoiArea)
-				.ifPresent(p -> {
-					drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud);
-				});
+				.ifPresent(p -> drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud));
 
 			timeDisplay.doLoop();
 			timeDisplay.draw();
@@ -2103,7 +2098,7 @@ interface Utils {
 				@Override
 				public void doLoop() {
 					super.doLoop();
-					if (remainingTimeMs.get() <= 5000) pulse.run();
+					if (remainingTimeMs.get() <= 10000) pulse.run();
 				}
 
 				@Override
@@ -2167,8 +2162,8 @@ interface Utils {
 										angle += 0.001;
 										x = wh/2+wh/20*cos(angle);
 										y = wh/2+wh/20*sin(angle);
-										x += randOf(-1,1)*randMN(0.0005,0.00051);
-										y += randOf(-1,1)*randMN(0.0005,0.00051);
+										x += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
+										y += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
 									};
 								}
 							})
@@ -2182,8 +2177,8 @@ interface Utils {
 											 angle -= 0.002;
 											 x = wh/2+wh/10*cos(angle);
 											 y = wh/2+wh/10*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+											 x += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
 										 };
 									 }
 								 })
@@ -2197,8 +2192,8 @@ interface Utils {
 											 angle -= 0.002;
 											 x = wh-wh/6+wh/8*cos(angle);
 											 y = wh/6+wh/8*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+											 x += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
 										 };
 									 }
 								 })
@@ -2212,8 +2207,8 @@ interface Utils {
 											 angle -= 0.002;
 											 x = wh/2+wh/4*cos(angle);
 											 y = wh/2+wh/4*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
+											 x += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
+											 y += Utils.randOf(-1,1)*randMN(0.0005,0.00051);
 										 };
 									 }
 								 })
@@ -2228,8 +2223,8 @@ interface Utils {
 
 				// add noise to avoid arithmetic problem
 				cells.forEach(cell -> {
-					cell.x += randOf(-1,1)*randMN(0.01,0.012);
-					cell.y += randOf(-1,1)*randMN(0.01,0.012);
+					cell.x += Utils.randOf(-1,1)*randMN(0.01,0.012);
+					cell.y += Utils.randOf(-1,1)*randMN(0.01,0.012);
 				});
 
 				cells.stream().filter(cell -> cell.moving==null)
@@ -2301,7 +2296,7 @@ interface Utils {
 							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
 							.forEach(polygon -> {
 								Cell cell = (Cell) polygon.getUserData();
-								Point centroid = polygon.getCentroid();
+//								Point centroid = polygon.getCentroid();
 								strokePolygon(gc, polygon);
 
 								Coordinate[] cs = polygon.getCoordinates();
@@ -2326,7 +2321,7 @@ interface Utils {
 			gc.save();
 			double r = 2;
 			cells.forEach(c -> gc.fillOval(c.x-r,c.y-r,2*r,2*r));
-			gc.restore();;
+			gc.restore();
 		}
 
 		@Override

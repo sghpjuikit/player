@@ -142,13 +142,13 @@ public final class UiContext {
 //		p.show(n);
 	}
 
-	public static void showSettingsSimple(Configurable c, MouseEvent e) {
+	public static void showSettingsSimple(Configurable<?> c, MouseEvent e) {
 		showSettingsSimple(c, (Node) e.getSource());
 	}
 
-	public static void showSettingsSimple(Configurable c, Node n) {
+	public static void showSettingsSimple(Configurable<?> c, Node n) {
 		String name = c instanceof Widget ? ((Widget)c).getName() : "";
-		SimpleConfigurator sc = new SimpleConfigurator(c);
+		SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
 		PopOver p = new PopOver<>(sc);
 		p.title.set((name==null ? "" : name+" ") + " Settings");
 		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux

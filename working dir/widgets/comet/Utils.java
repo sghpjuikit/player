@@ -49,6 +49,7 @@ import one.util.streamex.StreamEx;
 import unused.TriConsumer;
 import util.R;
 import util.SwitchException;
+import util.Util;
 import util.animation.Anim;
 import util.collections.Tuple2;
 import util.collections.map.ClassMap;
@@ -872,7 +873,7 @@ interface Utils {
 	}
 	class TimeDouble implements Runnable {
 		public double value;
-		public final double from, by, to;
+		protected double from, by, to;
 
 		public TimeDouble(double from) {
 			this(from, 0, Double.MAX_VALUE);
@@ -888,6 +889,10 @@ interface Utils {
 			this.from = from;
 			this.by = by;
 			this.to = to;
+		}
+
+		public TimeDouble(double from, double to, Duration per) {
+			this(from, ttlVal(to-from, per), to);
 		}
 
 		@Override
@@ -929,7 +934,23 @@ interface Utils {
 				}
 			};
 		}
+
+		public TimeDouble oscillating() {
+			return new TimeDouble(this.from, this.by, this.to) {
+				@Override
+				public void run() {
+					super.run();
+					if (isDone()) {
+						double t1=from, t3=to;
+						this.from = t3;
+						this.by = -by;
+						this.to = t1;
+					}
+				}
+			};
+		}
 	}
+
 	class ObjectStore<O> {
 		private final Map<Class,Set<O>> m = new HashMap<>();
 		private final Ƒ1<O,Class> mapper;
@@ -1789,7 +1810,7 @@ interface Utils {
 			game.runNext.addPeriodic(() -> game.settings.UFO_TTL()/sqrt(game.players.size()), game.ufos::sendUfo);
 			game.runNext.addPeriodic(() -> game.settings.UFO_SWARM_TTL()/sqrt(game.players.size()), game.ufos::sendUfoSwarm);
 			game.runNext.addPeriodic(() -> game.settings.UFO_DISCSPAWN_TTL()/sqrt(game.players.size()), () -> game.ufos.canSpawnDiscs = true);
-			game.runNext.add(() -> game.mission_button = game.owner.new MissionInfoButton());
+//			game.runNext.add(() -> game.mission_button = game.owner.new MissionInfoButton());
 		}
 
 		@Override
@@ -2016,7 +2037,9 @@ interface Utils {
 		}
 	}
 	class AreaMode extends GameMode {
-		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(minutes(2)));
+		private final Duration gameLength = minutes(2);
+		private final TimeDouble remainingTimeMs = new TimeDouble(gameLength.toMillis(), -1000/FPS, 0);
+		private MissionInfoButton timeDisplay;
 
 		public AreaMode(Game game) {
 			super(game, "Area");
@@ -2027,9 +2050,10 @@ interface Utils {
 
 		@Override
 		public void doLoop() {
-			remainingTimeMs.run();
 			if (remainingTimeMs.isDone()) {
 				game.over();
+			} else {
+				remainingTimeMs.run();
 			}
 
 			List<Player> victors = stream(game.players)
@@ -2049,6 +2073,9 @@ interface Utils {
 				.ifPresent(p -> {
 					drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud);
 				});
+
+			timeDisplay.doLoop();
+			timeDisplay.draw();
 		}
 
 		@Override
@@ -2070,6 +2097,20 @@ interface Utils {
 
 			remainingTimeMs.reset();
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));
+			timeDisplay = game.owner.new MissionInfoButton() {
+				private final TimeDouble pulse = new TimeDouble(1,1.5, millis(500)).oscillating();
+
+				@Override
+				public void doLoop() {
+					super.doLoop();
+					if (remainingTimeMs.get() <= 5000) pulse.run();
+				}
+
+				@Override
+				void draw() {
+					game.fillText(formatDuration(millis(remainingTimeMs.get())), x,y, pulse.get());
+				}
+			};
 		}
 
 		@Override
@@ -2096,6 +2137,7 @@ interface Utils {
 			l.setFont(font(FONT_UI.getFamily(), 15));
 			return new StackPane(l);
 		}
+
 	}
 	class VoronoiMode extends GameMode {
 //		private final List<Cell> cells = new ArrayList<>();

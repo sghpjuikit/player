@@ -16,7 +16,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -57,17 +56,13 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ5;
 import util.validation.Constraint;
 
+import static comet.Utils.*;
 import static comet.Comet.Constants.FPS;
 import static comet.Comet.Constants.PLAYER_ABILITY_INITIAL;
 import static comet.Utils.AbilityKind.SHIELD;
 import static comet.Utils.AbilityState.*;
-import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
-import static comet.Utils.PI;
-import static comet.Utils.cos;
-import static comet.Utils.sin;
-import static comet.Utils.sqrt;
 import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.effect.BlendMode.*;
@@ -547,7 +542,6 @@ public class Comet extends ClassController {
 		GameMode mode;
 		Grid grid;// = new Grid(gc_bgr, 1000, 500, 50, 50);
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
-		MissionInfoButton mission_button;
 		final StatsGame stats = new StatsGame();
 
 		private final MotionBlur cee = new MotionBlur( 0, 50);
@@ -873,18 +867,31 @@ public class Comet extends ClassController {
 		}
 
 		public void fillText(String text, double x, double y) {
+			fillText(text, x, y, 1);
+		}
+
+		public void fillText(String text, double x, double y, double scale) {
 			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
 			double fH = computeFontHeight(FONT_PLACEHOLDER);
 			double tx = game.field.modX(x+15 - fW/2);
 			double ty = game.field.modY(y-15 - fH/2);
+			Affine sa = new Affine();
+			sa.append(new Scale(scale,scale, tx + fW/2,ty - fH/2));
+
+			Affine a1 = gc.getTransform();
+			Affine a2 = gc_bgr.getTransform();
+			gc.setTransform(sa);
 			gc.setFont(FONT_PLACEHOLDER);
 			gc.setFill(game.colors.main);
 			gc.setGlobalAlpha(1);
 			gc.fillText(text, tx, ty);
+			gc.setTransform(a1);
+			gc_bgr.setTransform(sa);
 			gc_bgr.setFont(FONT_PLACEHOLDER);
 			gc_bgr.setFill(game.colors.main);
 			gc_bgr.setGlobalAlpha(1);
 			gc_bgr.fillText(text, tx, ty);
+			gc_bgr.setTransform(a2);
 		}
 
 
@@ -2616,19 +2623,21 @@ public class Comet extends ClassController {
 			}
 		}
 	}
+
 	/** Non-interactive mission info button. */
 	class MissionInfoButton extends PO {
 		MissionInfoButton() {
-			super(MissionInfoButton.class, 0, 0, 0, 0, 0, graphics(FontAwesomeIcon.INFO,15,game.colors.humans,null));
+			super(MissionInfoButton.class, 0, 0, 0, 0, 0, null);
+//			super(MissionInfoButton.class, 0, 0, 0, 0, 0, graphics(FontAwesomeIcon.INFO,15,game.colors.humans,null));graphics=null;
 			x = rand0N(game.field.width);
 			y = rand0N(game.field.height);
 			// graphics.setOnMouseClicked(e -> new MissionPane().show(game.mission));
-			playfield.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-				if ((x-e.getX())*(x-e.getX())+(y-e.getY())*(y-e.getY())<=10*10) {
-					new MissionPane().show(game.mission);
-					e.consume();
-				}
-			});
+//			playfield.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+//				if ((x-e.getX())*(x-e.getX())+(y-e.getY())*(y-e.getY())<=10*10) {
+//					new MissionPane().show(game.mission);
+//					e.consume();
+//				}
+//			});
 		}
 		@Override void init() {}
 		@Override public void dispose() {}

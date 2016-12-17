@@ -2033,13 +2033,15 @@ interface Utils {
 			}
 
 			List<Player> victors = stream(game.players)
-				.reverseSorted(by(p -> p.stats.controlAreaSize.getAverage()))
+				.sorted(by((Player p) -> p.stats.controlAreaSize.getAverage()).reversed())
 				.toList();
+
 			// Highlight player ranking
 			forEachWithI(victors, (i,p) -> {
 				if (p.alive)
 					game.fillText("" + (i+1), p.rocket.x, p.rocket.y);
 			});
+
 			// Highlight player with biggest area
 			stream(game.players)
 				.filter(p -> p.alive && p.rocket.voronoiArea!=null)

@@ -18,8 +18,10 @@ import gui.itemnode.StringSplitParser.SplitData;
 import main.App;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
-import util.file.*;
+import util.file.AudioFileFormat;
+import util.file.FileType;
 import util.file.Util;
+import util.file.WindowsShortcut;
 import util.file.mimetype.MimeType;
 import util.functional.Functors.*;
 import util.units.*;
@@ -127,7 +129,7 @@ public class FunctorPool {
 
 		add("Path",         File.class,String.class, File::getAbsolutePath);
 		add("Size",         File.class,FileSize.class, FileSize::new);
-		add("Name",   File.class,String.class, Util::getName, true,true,true);
+		add("Name",         File.class,String.class, Util::getName, true,true,true);
 		add("Name.Suffix",  File.class,String.class, File::getName);
 		add("Suffix",       File.class,String.class, Util::getSuffix);
 		add("MimeType",     File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
@@ -135,6 +137,7 @@ public class FunctorPool {
 		add("Shortcut of",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
 		add("Type",         File.class,FileType.class, FileType::of);
 		add("Exists",       File.class,B,File::exists);
+		add("Anime",        File.class,S, f -> util.Util.renameAnime(Util.getName(f)));
 
 		add("Group",        MimeType.class,String.class, MimeType::getGroup);
 		add("Extensions",   MimeType.class,String.class, m -> toS(", ", m.getExtensions()));

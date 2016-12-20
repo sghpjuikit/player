@@ -187,7 +187,7 @@ public final class Notifier extends ServiceBase {
 
 	private void songChange(Metadata m) {
 		if (showSongNotification) {
-			String title = "Now playing";
+			String title = "Now playing \t" + m.getPlaylistIndexInfo();
 			songNotifInfo.read(m);
 
 			showNotification(songNotifGui, title);

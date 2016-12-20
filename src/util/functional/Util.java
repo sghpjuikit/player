@@ -866,6 +866,24 @@ public interface Util {
 			action.accept(a[i], b[i]);
 	}
 
+	static void forEachBoth(int[] a, int[] b, IntBiConsumer action) {
+		throwIfNot(a.length==b.length);
+		for (int i=0; i<a.length; i++)
+			action.accept(a[i], b[i]);
+	}
+
+	static void forEachBoth(long[] a, long[] b, LongBiConsumer action) {
+		throwIfNot(a.length==b.length);
+		for (int i=0; i<a.length; i++)
+			action.accept(a[i], b[i]);
+	}
+
+	static void forEachBoth(double[] a, double[] b, DoubleBiConsumer action) {
+		throwIfNot(a.length==b.length);
+		for (int i=0; i<a.length; i++)
+			action.accept(a[i], b[i]);
+	}
+
 	/** Loops over list zipping index with each item. Index starts at 0. */
 	static <T> void forEachWithI(Collection<T> c, BiConsumer<Integer,T> action) {
 		int i=0;
@@ -882,6 +900,16 @@ public interface Util {
 			action.accept(i, item);
 			i++;
 		}
+	}
+
+	interface IntBiConsumer {
+		void accept(int i1, int i2);
+	}
+	interface LongBiConsumer {
+		void accept(long d1, long d2);
+	}
+	interface DoubleBiConsumer {
+		void accept(double d1, double d2);
 	}
 
 	/** Loops over cartesian product C x C of a collection C. */

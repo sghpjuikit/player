@@ -381,6 +381,12 @@ interface Utils {
 			gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y);
 		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
 	}
+	static void strokePolygon(GraphicsContext gc, double[] xs, double[] ys) {
+		throwIf(xs.length != ys.length);
+		for (int j=0; j<xs.length-1; j++)
+			gc.strokeLine(xs[j], ys[j], xs[j+1], ys[j+1]);
+		gc.strokeLine(xs[0], ys[0], xs[xs.length-1], ys[ys.length-1]);
+	}
 	static void drawRect(GraphicsContext g, double x, double y, double r) {
 		double d = 2*r;
 		g.fillRect(x-r,y-r,d,d);
@@ -868,9 +874,10 @@ interface Utils {
 			}
 		}
 	}
-	class TimeDouble implements Runnable {
+	class TimeDouble {
 		public double value;
 		protected double from, by, to;
+		public long cycle = 0;
 
 		public TimeDouble(double from) {
 			this(from, 0, Double.MAX_VALUE);
@@ -892,9 +899,9 @@ interface Utils {
 			this(from, ttlVal(to-from, per), to);
 		}
 
-		@Override
-		public void run() {
+		public boolean run() {
 			value += by;
+			return isDone();
 		}
 
 		public boolean isDone() {
@@ -918,16 +925,32 @@ interface Utils {
 			return value;
 		}
 
-		public void reset() {
+		public TimeDouble setToFrom() {
 			value = from;
+			return this;
+		}
+
+		public TimeDouble setToTo() {
+			value = to;
+			return this;
+		}
+
+		public TimeDouble setTo(double v) {
+			throwIf((by>0 && v<from && v>to) || (by<0 && v>from && v<to));
+			value = v;
+			return this;
 		}
 
 		public TimeDouble periodic() {
 			return new TimeDouble(this.from, this.by, this.to) {
 				@Override
-				public void run() {
-					super.run();
-					if (isDone()) this.value = this.from;
+				public boolean run() {
+					boolean is = super.run();
+					if (is) {
+						cycle++;
+						this.value = this.from;
+					}
+					return is;
 				}
 			};
 		}
@@ -935,14 +958,16 @@ interface Utils {
 		public TimeDouble oscillating() {
 			return new TimeDouble(this.from, this.by, this.to) {
 				@Override
-				public void run() {
-					super.run();
-					if (isDone()) {
+				public boolean run() {
+					boolean is = super.run();
+					if (is) {
+						cycle++;
 						double tmp = from;
 						this.from = to;
 						this.by = -by;
 						this.to = tmp;
 					}
+					return is;
 				}
 			};
 		}
@@ -1548,7 +1573,7 @@ interface Utils {
 	class ClassicMode extends GameMode {
 		final MapSet<Integer,Mission> missions;
 		int mission_counter = 0;   // mission counter, starts at 1, increments by 1
-		int firstMissionId = 2;
+		int firstMissionId = 1;
 		boolean isMissionScheduled = false;
 		boolean isMissionStartPlanetoidSplitting = false;
 		final Set<Achievement> achievements;
@@ -1562,17 +1587,17 @@ interface Utils {
 //					null, Color.RED,Color.rgb(255,255,255,0.015), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
 ////					Color.RED,Color.rgb(0,0,0,0.08), null,(a,b,c,d,e) -> game.owner.new Particler(a,b,c,d,e)
 //				).initializer(game -> game.useGrid = false, game -> game.useGrid = true),
-				game.new Mission(
-					1, "The strange world", "10⁻⁴m", "",
-//					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
-					Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
-				),
 //				game.new Mission(
-//					2, "Sumi-e","10⁻¹⁵","",
-//					Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new PGon(a,b,c,d,e)
+//					1, "The strange world", "10⁻⁴m", "",
+////					null,Color.BLACK, Color.rgb(225,225,225, 0.2), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
+//					Color.LIGHTGREEN, rgb(0,51,51, 0.1), (a,b,c,d,e) -> game.owner.new PlanetoDisc(a,b,c,d,e)
 //				),
 				game.new Mission(
-					2, "Sumi-e","10⁻¹⁵","",
+					1, "Sumi-e","10⁻¹⁵","",
+					Color.LIGHTGREEN, rgb(0, 51, 51, 0.1), (a,b,c,d,e) -> game.owner.new Inkoid(a,b,c,d,e)
+				),
+				game.new Mission(
+					2, "Strunctur-E-lement","10⁻¹⁵","",
 					Color.LIGHTGREEN, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new PGon(a,b,c,d,e)
 				),
 				game.new Mission(
@@ -1934,8 +1959,8 @@ interface Utils {
 
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.DISRUPTOR));
 			game.humans.intelOn.inc();
-			remainingTimeMs.reset();
-			missionTimer.reset();
+			remainingTimeMs.setToFrom();
+			missionTimer.setToFrom();
 			mission_counter = 0;
 			isMissionScheduled = false;
 			nextMission();
@@ -2090,7 +2115,7 @@ interface Utils {
 			game.settings.playerNoKineticShield = true;
 			game.settings.voronoiDraw = true;
 
-			remainingTimeMs.reset();
+			remainingTimeMs.setToFrom();
 			game.players.forEach(p -> p.ability_type.set(AbilityKind.NONE));
 			timeDisplay = game.owner.new MissionInfoButton() {
 				private final TimeDouble pulse = new TimeDouble(1,1.5, millis(500)).oscillating();

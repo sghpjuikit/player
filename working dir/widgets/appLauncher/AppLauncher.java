@@ -2,6 +2,7 @@ package appLauncher;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -326,10 +327,9 @@ public class AppLauncher extends ClassController {
 
         @Override
         protected FItem createItem(Item parent, File value, util.file.FileType type) {
-        	if (isRootOfPortableApp(value, type))
-	            return new FItem(parent, getPortableAppExe(value, type), FileType.FILE);
-	        else
-	        	return new FItem(parent, value, type);
+			return getPortableAppExe(value, type)
+				.map(f -> new FItem(parent, getPortableAppExe(value, type).orElse(null), FileType.FILE))
+				.orElseGet(() -> new FItem(parent, value, type));
         }
 
     }
@@ -358,13 +358,10 @@ public class AppLauncher extends ClassController {
         };
     }
 
-    public static boolean isRootOfPortableApp(File f, FileType type) {
-    	if (type!=FileType.DIRECTORY) return false;
-    	if (getPortableAppExe(f, type).exists()) return true;
-    	return false;
-    }
-    public static File getPortableAppExe(File f, FileType type) {
-    	return type!=FileType.DIRECTORY ? null : new File(f, f.getName() + ".exe");
+    public static Optional<File> getPortableAppExe(File f, FileType type) {
+    	return type==FileType.DIRECTORY
+					? Optional.of(new File(f, f.getName() + ".exe"))
+					: Optional.empty();
     }
 
     enum CellSize {

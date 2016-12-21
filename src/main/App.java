@@ -15,13 +15,9 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 
-import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -30,7 +26,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -78,7 +73,6 @@ import gui.objects.popover.PopOver.ScreenPos;
 import gui.objects.spinner.Spinner;
 import gui.objects.tablecell.RatingCellFactory;
 import gui.objects.tablecell.RatingRatingCellFactory;
-import gui.objects.textfield.DecoratedTextField;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
@@ -298,7 +292,7 @@ public class App extends Application implements Configurable {
 	public final ShortcutPane shortcutPane = new ShortcutPane();
 	public final InfoPane infoPane = new InfoPane();
 	public final Guide guide = new Guide();
-	private final ConfigSearch.History configSearchHistory = new ConfigSearch.History();
+	public final Search search = new Search();
 
 	/**
 	 * Actions ran just before application stopping.
@@ -699,6 +693,13 @@ public class App extends Application implements Configurable {
 			s -> widgetManager.getFactories().anyMatch(f -> f.nameGui().equals(s) || f.name().equals(s)),
 			ws -> ws.forEach(UiContext::launchComponent)
 		);
+
+		// add search sources
+		search.sources.addAll(list(
+			() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
+			() -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
+			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
+		));
 
 		// listen to other application instance launches
 		try {
@@ -1296,47 +1297,7 @@ public class App extends Application implements Configurable {
 		@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 		@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
 		static void showSearch() {
-			DecoratedTextField tf = new DecoratedTextField();
-			Region clearButton = new Region();
-			clearButton.getStyleClass().addAll("graphic");
-			StackPane clearB = new StackPane(clearButton);
-			clearB.getStyleClass().addAll("clear-button");
-			clearB.setOpacity(0.0);
-			clearB.setCursor(Cursor.DEFAULT);
-			clearB.setOnMouseReleased(e -> tf.clear());
-			clearB.managedProperty().bind(tf.editableProperty());
-			clearB.visibleProperty().bind(tf.editableProperty());
-			tf.right.set(clearB);
-			FadeTransition fade = new FadeTransition(millis(250), clearB);
-			tf.textProperty().addListener(new InvalidationListener() {
-				@Override public void invalidated(Observable arg0) {
-					String text = tf.getText();
-					boolean isTextEmpty = text == null || text.isEmpty();
-					boolean isButtonVisible = fade.getNode().getOpacity() > 0;
-
-					if (isTextEmpty && isButtonVisible) {
-						setButtonVisible(false);
-					} else if (!isTextEmpty && !isButtonVisible) {
-						setButtonVisible(true);
-					}
-				}
-
-				private void setButtonVisible( boolean visible ) {
-					fade.setFromValue(visible? 0.0: 1.0);
-					fade.setToValue(visible? 1.0: 0.0);
-					fade.play();
-				}
-			});
-
-			tf.left.set(new Icon(FontAwesomeIcon.SEARCH));
-			tf.left.get().setMouseTransparent(true);
-
-			new ConfigSearch(tf, APP.configSearchHistory,
-				() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
-				() -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
-				() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
-			);
-			PopOver<TextField> p = new PopOver<>(tf);
+			PopOver<TextField> p = new PopOver<>(APP.search.build());
 			p.title.set("Search for an action or option");
 			p.setAutoHide(true);
 			p.show(ScreenPos.App_Center);

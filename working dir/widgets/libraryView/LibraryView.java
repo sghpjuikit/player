@@ -70,7 +70,6 @@ import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
-import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -340,8 +339,9 @@ public class LibraryView extends FXMLController {
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
-        if (mgs.stream().anyMatch(mg -> mg.isAll())) return list;
-        else return mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
+        return mgs.stream().anyMatch(mg -> mg.isAll())
+			? list
+			: mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
 
     // get all items in grouped in the selected groups, sorts using library sort order \
@@ -425,15 +425,17 @@ public class LibraryView extends FXMLController {
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> Db.removeItems(m.getValue())),
                 new Menu("Show in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(), f->f.hasFeature(SongReader.class), f -> f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue()))
+                    menuItems(
+                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
+	                    f -> f.nameGui(),
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(), f->f.hasFeature(SongWriter.class), f -> f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
+                    menuItems(
+                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
+	                    f -> f.nameGui(),
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
                 searchMenu

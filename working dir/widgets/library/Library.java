@@ -78,7 +78,6 @@ import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
 import static util.async.Async.sleeping;
 import static util.file.Util.getCommonRoot;
-import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
@@ -110,7 +109,7 @@ public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
 	private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
-    private final InfoTask<Task> taskInfo = new InfoTask<>(null, new Label(), new Spinner()) {
+    private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), new Spinner()) {
         Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         @Override
         public void setVisible(boolean v) {
@@ -213,7 +212,7 @@ public class Library extends FXMLController implements SongReader {
                     if (!r.isSelected())
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
                     // show context menu
-                    contxt_menu.show(table, e);
+                    contextMenu.show(table, e);
                 })
                 // additional css styleclasses
                 .styleRuleAdd("played", m -> Player.playingItem.get().same(m)) // dont use mthod reference!
@@ -323,7 +322,7 @@ public class Library extends FXMLController implements SongReader {
 	    });
     }
 
-    private static final TableContextMenuR<Metadata> contxt_menu = new TableContextMenuR<> (
+    private static final TableContextMenuR<Metadata> contextMenu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e ->
@@ -339,24 +338,27 @@ public class Library extends FXMLController implements SongReader {
                     Db.removeItems(m.getValue())
                 ),
                 new Menu("Show in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue()))
+                    menuItems(
+                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
+	                    f -> f.nameGui(),
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
+                    menuItems(
+                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
+	                    f -> f.nameGui(),
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
                 menuItem("Explore items's directory", e -> {
                     Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
                 }),
                 new Menu("Explore items's directory in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(FileExplorerFeature.class),f->f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile()))
+                    menuItems(
+                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)).toList(),
+	                    f -> f.nameGui(),
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile()))
                     )
                 ),
                 new Menu("Search album cover",null,

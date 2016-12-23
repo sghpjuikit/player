@@ -108,6 +108,7 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
+import util.async.Async;
 import util.async.future.ConvertListTask;
 import util.conf.*;
 import util.file.AudioFileFormat;
@@ -492,6 +493,12 @@ public class App extends Application implements Configurable {
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
 				fs -> actionPane.show(fs)
+			),
+			new FastColAction<>("Open in Converter",
+				"Open data in Converter.",
+				MaterialDesignIcon.SWAP_HORIZONTAL,
+				// TODO: make sure it opens Converter or support multiple Opener types
+				f -> widgetManager.use(Opener.class, ANY, o -> o.open(f))
 			)
 		);
 		actionPane.register(Widget.class,
@@ -578,14 +585,15 @@ public class App extends Application implements Configurable {
 				f -> AudioFileFormat.isSupported(f, Use.APP),
 				fs -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(fs))
 			),
-//            new SlowColAction<File>("Search audio",
-//                "Looks for audio files recursively in the files and directories of the data.",
-//                MaterialDesignIcon.AUDIOBOOK,
-//                fs -> {
-//                	Object o = Util.getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList());
-//                	Async.runFX(() -> actionPane.show(o));
-//                }
-//            ).preventClosing(),
+			new SlowColAction<>("Find files",
+				"Looks for files recursively in the the data.",
+				MaterialDesignIcon.FILE_FIND,
+				fs -> {
+					// TODO: make fully configurable, recursion depth lvl, filtering, ...
+					Object o = Util.getFilesR(fs, Integer.MAX_VALUE).collect(toList());
+					Async.runFX(() -> actionPane.show(o));
+				}
+			),
 			new SlowColAction<File>("Add to library",
 				"Add items to library if not yet contained and edit added items in tag editor. If "
 				+ "item already was in the database it will not be added or edited.",

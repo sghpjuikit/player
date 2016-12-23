@@ -42,6 +42,7 @@ import layout.widget.Widget;
 import layout.widget.Widget.Group;
 import layout.widget.controller.ClassController;
 import layout.widget.controller.io.Output;
+import layout.widget.feature.Opener;
 import layout.widget.feature.SongWriter;
 import util.access.V;
 import util.access.VarEnum;
@@ -109,7 +110,7 @@ import static util.graphics.drag.DragUtil.installDrag;
     year = "2015",
     group = Group.APP
 )
-public class Converter extends ClassController implements SongWriter {
+public class Converter extends ClassController implements Opener, SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
     private final EditArea ta_in = new EditArea("In",true);
@@ -226,7 +227,12 @@ public class Converter extends ClassController implements SongWriter {
         setData(map(items,Item::toMeta));
     }
 
-/******************************* helper classes *******************************/
+	@Override
+	public void open(Object data) {
+		setData(data);
+	}
+
+	/******************************* helper classes *******************************/
 
     /* Generates unique name in format 'CustomN', where N is integer. */
     String taname() {

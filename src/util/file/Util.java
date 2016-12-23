@@ -8,7 +8,10 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,7 +24,7 @@ import javafx.scene.paint.Color;
 import util.file.AudioFileFormat.Use;
 
 import static main.App.APP;
-import static util.Util.*;
+import static util.Util.filenamizeString;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.ISNTØ;
@@ -193,27 +196,33 @@ public interface Util {
         return dirs.filter(ISNTØ).flatMap(Util::listFiles);
     }
 
+	static Stream<File> getFilesR(File dir, int depth) {
+		return getFilesR(dir, depth, f -> true);
+	}
+
+	static Stream<File> getFilesR(Collection<File> files, int depth) {
+		return files.stream().flatMap(d -> getFilesR(d, depth, f -> true));
+	}
+
+	static Stream<File> getFilesR(File dir, int depth, Predicate<? super File> filter) {
+		if (dir.isDirectory()) {
+			try {
+				return Files.walk(dir.toPath(),depth).map(Path::toFile).filter(filter);
+			} catch (IOException ex) {
+				return Stream.empty();
+			}
+		}
+
+		return filter.test(dir) ? Stream.of(dir) : Stream.empty();
+	}
+
     /**
      * @param depth the maximum number of levels of directories to visit. A value
      * of 0 means that only the starting file is visited. Integer.MAX_VALUE
      * may be used to indicate that all levels should be visited.
      */
     static Stream<File> getFilesAudio(File dir, Use use, int depth) {
-        if (dir.isDirectory()) {
-            try {
-                return Files.walk(dir.toPath(),depth).map(Path::toFile)
-                            .filter(f -> AudioFileFormat.isSupported(f,use));
-            } catch (IOException ex) {
-                return Stream.empty();
-            }
-        }
-
-        if (dir.isFile()) {
-            if (AudioFileFormat.isSupported(dir,use))
-                return Stream.of(dir);
-        }
-
-        return Stream.empty();
+        return getFilesR(dir, depth, f -> AudioFileFormat.isSupported(f,use));
     }
 
     static Stream<File> getFilesAudio(Collection<File> files, Use use, int depth) {
@@ -221,21 +230,7 @@ public interface Util {
     }
 
     static Stream<File> getFilesImage(File dir, int depth) {
-        if (dir.isDirectory()) {
-            try {
-                return Files.walk(dir.toPath(),depth).map(Path::toFile)
-                            .filter(ImageFileFormat::isSupported);
-            } catch (IOException ex) {
-                return Stream.empty();
-            }
-        }
-
-        if (dir.isFile()) {
-            if (ImageFileFormat.isSupported(dir))
-                return Stream.of(dir);
-        }
-
-        return Stream.empty();
+	    return getFilesR(dir, depth, ImageFileFormat::isSupported);
     }
 
     static Stream<File> getFilesImage(List<File> files, int depth) {
@@ -574,7 +569,7 @@ public interface Util {
      * destination directory is provided and the destination file will be put
      * there and named according to the input url file name.
      * @param url
-     * @param dirdirectory
+     * @param dir directory
      *
      * @return the file denoting the new file.
      *

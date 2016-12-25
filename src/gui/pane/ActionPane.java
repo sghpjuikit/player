@@ -232,7 +232,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		// Reset content size to default (overrides previous user-defined size)
 		// Note, sometimes we need to delay this action, hence the runLater
 		runLater(() -> {
-			Bounds b = getParent().getLayoutBounds();
+			Bounds b = getParent().getLayoutBounds(); // TODO: nullpointer possible here, handle properly
 			getContent().setPrefSize(b.getWidth()*CONTENT_SIZE_SCALE, b.getHeight()*CONTENT_SIZE_SCALE);
 		});
 	}
@@ -515,7 +515,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		if (o instanceof Collection) {
 			Collection<?> c = (Collection)o;
 			if (c.isEmpty()) return null;
-			if (c.size()==1) return collectionWrap(c.stream().findAny().get());
+			if (c.size()==1) return c.stream().findAny().get();
 		}
 		return o;
 	}

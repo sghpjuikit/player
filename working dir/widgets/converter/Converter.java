@@ -123,6 +123,8 @@ public class Converter extends ClassController implements Opener, SongWriter {
     public Converter() {
         inputs.create("Input", Object.class, this::setData);
 
+        setPrefSize(800, 500);
+
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);

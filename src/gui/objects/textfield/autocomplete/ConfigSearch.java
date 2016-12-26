@@ -67,7 +67,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
     @Override
     protected AutoCompletePopup<Entry> buildPopup() {
-        return new AutoCompletePopup<>(){
+        return new AutoCompletePopup<Entry>(){
             @Override
             protected Skin<AutoCompletePopup<Entry>> createDefaultSkin() {
                 return new AutoCompletePopupSkin<>(this, 2) {

@@ -108,16 +108,13 @@ import util.action.IsAction;
 import util.action.IsActionable;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.Async;
 import util.async.future.ConvertListTask;
 import util.conf.*;
-import util.file.AudioFileFormat;
+import util.file.*;
 import util.file.AudioFileFormat.Use;
-import util.file.Environment;
-import util.file.ImageFileFormat;
-import util.file.Util;
 import util.file.mimetype.MimeTypes;
 import util.functional.Functors;
+import util.functional.Try;
 import util.graphics.MouseCapture;
 import util.plugin.IsPlugin;
 import util.plugin.IsPluginType;
@@ -134,8 +131,8 @@ import util.validation.Constraint;
 import util.validation.Constraint.StringNonEmpty;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
 import static gui.objects.popover.PopOver.ScreenPos.App_Center;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static java.util.stream.Collectors.toList;
@@ -154,7 +151,8 @@ import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
 import static util.async.Async.*;
 import static util.async.future.Fut.fut;
-import static util.file.Environment.browse;
+import static util.dev.Util.log;
+import static util.file.Environment.*;
 import static util.file.Util.getFilesAudio;
 import static util.file.Util.isValidatedDirectory;
 import static util.functional.Util.*;
@@ -440,6 +438,7 @@ public class App extends Application implements Configurable {
 		// add optional object class -> string converters
 		className.addNoLookup(Void.class, "Nothing");
 		className.add(String.class, "Text");
+		className.add(App.class, "Application");
 		className.add(Item.class, "Song");
 		className.add(PlaylistItem.class, "Playlist Song");
 		className.add(Metadata.class, "Library Song");
@@ -448,6 +447,7 @@ public class App extends Application implements Configurable {
 
 		// add optional object instance -> string converters
 		instanceName.add(Void.class, o -> "<none>");
+		instanceName.add(App.class, app -> "This application");
 		instanceName.add(Item.class, Item::getPath);
 		instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
 		instanceName.add(Metadata.class, Metadata::getTitle);
@@ -476,6 +476,7 @@ public class App extends Application implements Configurable {
 				map.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
 			}
 		});
+		instanceInfo.add(App.class, (v,map) -> map.put("Name", v.name));
 		instanceInfo.add(Metadata.class, (m,map) ->
 			stream(Metadata.Field.values())
 					.filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
@@ -488,11 +489,30 @@ public class App extends Application implements Configurable {
 		);
 
 		// register actions
+		actionPane.register(Void.class,
+			new FastAction<>(
+				"Select file",
+				"Open file chooser to select files",
+				MaterialDesignIcon.FILE,
+				actionPane.converting(none ->
+					chooseFiles("Select file...", null, actionPane.getScene().getWindow())
+				)
+			),
+			new FastAction<>(
+				"Select directory",
+				"Open file chooser to select directory",
+				MaterialDesignIcon.FOLDER,
+				actionPane.converting(none ->
+					chooseFile("Select directory...", FileType.DIRECTORY, null, actionPane.getScene().getWindow())
+				)
+			)
+		);
 		actionPane.register(Object.class,
 			new FastColAction<>("Set as data",
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
-				fs -> actionPane.show(fs)
+//				actionPane.converting(Try::ok)
+				actionPane.converting(o -> Try.ok(o))
 			),
 			new FastColAction<>("Open in Converter",
 				"Open data in Converter.",
@@ -585,14 +605,13 @@ public class App extends Application implements Configurable {
 				f -> AudioFileFormat.isSupported(f, Use.APP),
 				fs -> widgetManager.use(PlaylistFeature.class, NEW, p -> p.getPlaylist().addFiles(fs))
 			),
-			new SlowColAction<>("Find files",
+			new SlowColAction<File>("Find files",
 				"Looks for files recursively in the the data.",
 				MaterialDesignIcon.FILE_FIND,
-				fs -> {
+				actionPane.converting(fs ->
 					// TODO: make fully configurable, recursion depth lvl, filtering, ...
-					Object o = Util.getFilesR(fs, Integer.MAX_VALUE).collect(toList());
-					Async.runFX(() -> actionPane.show(o));
-				}
+					Try.ok(Util.getFilesR(fs, Integer.MAX_VALUE).collect(toList()))
+				)
 			),
 			new SlowColAction<File>("Add to library",
 				"Add items to library if not yet contained and edit added items in tag editor. If "
@@ -775,6 +794,33 @@ public class App extends Application implements Configurable {
 			stream(this, windowManager, guide, services.getService(PlaycountIncrementer.class).get())
 				.flatMap(Action::gatherActions)
 				.forEach(Action.getActions()::add);
+
+			actionAppPane.register(App.class,
+				new FastAction<>(
+					"Export widgets",
+					"Creates launcher file in the destination directory for every widget.\n"
+					+ "Launcher file is a file that when opened by this application opens the widget. "
+					+ "If application was not running before, it will not load normally, but will only "
+					+ "open the widget.\n"
+					+ "Essentially, this exports the widgets as 'standalone' applications.",
+					EXPORT,
+					app -> {
+						DirectoryChooser dc = new DirectoryChooser();
+						dc.setInitialDirectory(app.DIR_LAYOUTS);
+						dc.setTitle("Export to...");
+					File dir = dc.showDialog(app.actionAppPane.getScene().getWindow());
+						if (dir!=null) {
+							app.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+						}
+					}
+				),
+				new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+				new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
+				new FastAction<>(GITHUB,Action.get("Open on Github")),
+				new FastAction<>(CSS3,Action.get("Open css guide")),
+				new FastAction<>(IMAGE,Action.get("Open icon viewer")),
+				new FastAction<>(FOLDER,Action.get("Open app directory"))
+			);
 
 			// gather configs
 			configuration.rawAdd(FILE_SETTINGS);
@@ -1190,37 +1236,14 @@ public class App extends Application implements Configurable {
 
 		@IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
 		static void openActions() {
-			APP.actionAppPane.show(Void.class, null, false,
-				new FastAction<>(
-					"Export widgets",
-					"Creates launcher file in the destination directory for every widget.\n"
-						+ "Launcher file is a file that when opened by this application opens the widget. "
-						+ "If application was not running before, it will not load normally, but will only "
-						+ "open the widget.\n"
-						+ "Essentially, this exports the widgets as 'standalone' applications.",
-					EXPORT,
-					ignored -> {
-						DirectoryChooser dc = new DirectoryChooser();
-						dc.setInitialDirectory(APP.DIR_LAYOUTS);
-						dc.setTitle("Export to...");
-						File dir = dc.showDialog(APP.actionAppPane.getScene().getWindow());
-						if (dir!=null) {
-							APP.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
-						}
-					}
-				),
-				new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
-				new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
-				new FastAction<>(GITHUB,Action.get("Open on Github")),
-				new FastAction<>(CSS3,Action.get("Open css guide")),
-				new FastAction<>(IMAGE,Action.get("Open icon viewer")),
-				new FastAction<>(FOLDER,Action.get("Open app directory"))
-			);
+			APP.actionAppPane.show(App.APP);
 		}
 
+		// TODO: is this even needed anymore? It improves UX, but its kind of unnecessary
 		@IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
 		static void openOpen() {
-			APP.actionAppPane.show(Void.class, null, false,
+//			APP.actionAppPane.show(Void.class, null, false,
+			APP.actionPane.show(Void.class, null, false,
 				new FastAction<>(
 					"Open widget",
 					"Open file chooser to open an exported widget",
@@ -1228,7 +1251,7 @@ public class App extends Application implements Configurable {
 					none -> {
 						FileChooser fc = new FileChooser();
 						fc.setInitialDirectory(APP.DIR_LAYOUTS);
-						fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.fxwl"));
+						fc.getExtensionFilters().add(new ExtensionFilter("component file","*.fxwl"));
 						fc.setTitle("Open widget...");
 						File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
 						if (f!=null) UiContext.launchComponent(f);
@@ -1322,6 +1345,26 @@ public class App extends Application implements Configurable {
 			p.show(ScreenPos.App_Center);
 			p.getContentNode().focusFirstConfigField();
 			p.getContentNode().hideOnOk.setValue(true);
+		}
+
+		// TODO: activate only when platform==WINDOWS
+		@IsAction(name = "Rotate display cw", desc = "Rotates display clockwise", keys = "CTRL + ALT + DOWN", global = true)
+		static void rotateDisplayCw() {
+			try {
+				new ProcessBuilder("display.exe", "/rotate:cw").directory(App.APP.DIR_APP).start();
+			} catch (IOException e) {
+				log(App.class).error("Failed to rotate display", e);
+			}
+		}
+
+		// TODO: activate only when platform==WINDOWS
+		@IsAction(name = "Rotate display ccw", desc = "Rotates display counter-clockwise", keys = "CTRL + ALT + UP", global = true)
+		static void rotateDisplayCcw() {
+			try {
+				new ProcessBuilder("display.exe", "/rotate:ccw").directory(App.APP.DIR_APP).start();
+			} catch (IOException e) {
+				log(App.class).error("Failed to rotate display", e);
+			}
 		}
 
 		static void printAllImageFileMetadata(File file) {

@@ -292,21 +292,21 @@ public class Library extends FXMLController implements SongReader {
     @FXML private void addDirectory() {
 	    Window w = root.getScene().getWindow();
 	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-	    File f = Environment.chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef);
-		if (f!=null) {
-			App.APP.actionPane.show(f);
-			lastDir = f.getParentFile();
-		}
+	    Environment.chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
+			.ifOk(file -> {
+				App.APP.actionPane.show(file);
+				lastDir = file.getParentFile();
+			});
     }
 
     @FXML private void addFiles() {
 	    Window w = root.getScene().getWindow();
 	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-		List<File> fs = Environment.chooseFiles("Add files to library", lastFile, w, ef);
-		if (fs!=null && !fs.isEmpty()) {
-			App.APP.actionPane.show(fs);
-			lastFile = getCommonRoot(fs);
-		}
+		Environment.chooseFiles("Add files to library", lastFile, w, ef)
+			.ifOk(files -> {
+				App.APP.actionPane.show(files);
+				lastFile = getCommonRoot(files);
+			});
     }
 
     private void removeInvalid() {
@@ -319,7 +319,7 @@ public class Library extends FXMLController implements SongReader {
 	        .f.exceptionally(x -> {
 	        	x.printStackTrace();
 	        	return null;
-	    });
+	        });
     }
 
     private static final TableContextMenuR<Metadata> contextMenu = new TableContextMenuR<> (

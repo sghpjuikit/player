@@ -38,8 +38,8 @@ public class FileItemNode extends TextFieldItemNode<File> {
 
     @Override
     void onDialogAction() {
-        File f = Environment.chooseFile(type==DIRECTORY ? "Choose directory" : "Choose file", type, v, getScene().getWindow());
-        if (f!=null) setValue(f);
+        Environment.chooseFile(type==DIRECTORY ? "Choose directory" : "Choose file", type, v, getScene().getWindow())
+            .ifOk(this::setValue);
     }
 
     @Override

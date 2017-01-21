@@ -39,6 +39,7 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import gui.itemnode.ConfigField;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import layout.widget.Widget;
@@ -64,8 +65,6 @@ import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
-import static comet.Utils.max;
-import static comet.Utils.min;
 import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.effect.BlendMode.*;
@@ -145,6 +144,7 @@ public class Comet extends ClassController {
 		// layout
 		setAnchor(this,
 			layHorizontally(20,CENTER_LEFT,
+				ConfigField.createForProperty(GameMode.class, "Mode", mode).getNode().getChildren().get(0),
 				new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
 				new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
 				new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),
@@ -2945,8 +2945,6 @@ public class Comet extends ClassController {
 			y += dy;
 			doLoopOutOfField();
 
-			// draw(); must be called after collision checking
-
 			ttl -= g_potential*ttl_d;
 			if (ttl<0) {
 				dead = true;
@@ -2973,8 +2971,6 @@ public class Comet extends ClassController {
 			g.setLineWidth(isHighEnergy ?  5 : 3);
 			g.strokeLine(x,y,x+dx*0.7,y+dy*0.7);
 //			g.setGlobalAlpha(1);
-
-
 
 			double xFrom = this.x, yFrom = this.y, xTo = x+dx*0.7, yTo = y+dy*0.7, opacity = 0.4, w = isHighEnergy ?  5 : 3;
 			drawFading(game, ttl -> {
@@ -3789,9 +3785,9 @@ public class Comet extends ClassController {
 		}
 
 		@Override void draw() {
-			double r = graphicsRadius;
-			gc.setFill(game.colors.main);
-			drawOval(gc, x,y,r);
+			gc.setStroke(game.colors.main);
+			gc.setLineWidth(1);
+			strokeOval(gc, x, y, graphicsRadius);
 
 			double connectionDistMin = 20, connectionDistMax = 100;
 			double forceDistMin = 20, forceDistMax = 80, forceDistMid = (forceDistMax-forceDistMin)*2/3;
@@ -4068,6 +4064,46 @@ public class Comet extends ClassController {
 			gc_bgr.setFill(color(Color.GREENYELLOW, 0.3));
 			gc_bgr.setStroke(color(Color.GREENYELLOW, 0.3));
 			strokePolygon(gc_bgr, xs, ys);
+		}
+	}
+	class Chargion extends Asteroid<OrganelleMover> {
+		final String name;
+
+		public Chargion(double X, double Y, double SPEED, double DIR, double LIFE) {
+			super(X, Y, SPEED, DIR, LIFE);
+			propulsion = new OrganelleMover();
+			size = LIFE;
+			radius = game.settings.INKOID_SIZE_FACTOR*size;
+			size_hitdecr = 1;
+			size_child = size>0.5 ? randOf(0.25, 0.125) : size>0.25 ? 0.5 : 1; // 1 * 1 -> (3-4) * 0.5 -> 2 * 0.25 -> 2 * 0.125
+			splits = size>0.5 ? 1 : size>0.25 ? randOf(1,0) : 0;
+			name = size>0.5 ? randOf("p+", "n") : size>0.125 ? "e-" : randOf("u", "d", "t");
+			hits_max = splits==1 ? 4 : 0;
+		}
+
+		@Override
+		void draw() {
+			game.fillText(name, x, y);
+
+			gc.setStroke(game.colors.main);
+			gc.setLineWidth(1);
+			strokeOval(gc, x, y, radius);
+		}
+
+		@Override
+		void onHit(SO o) {
+			hits++;
+			split(o);
+			onHitParticles(o);
+		}
+
+		@Override
+		void onHitParticles(SO o) {}
+
+		@Override
+		void split(SO o) {
+			super.split(o);
+			dead = hits>=hits_max;
 		}
 	}
 	class Genoid extends Asteroid<OrganelleMover> {

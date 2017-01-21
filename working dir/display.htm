@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="Noël Danjou" />
+    <title>Display - Read Me</title>
+    <style type="text/css">
+        body {
+            font-family: "Segoe UI", Tahoma, Verdana, Arial, Sans-Serif;
+            font-size: 1.0em;
+            margin: 35px 40px;
+        }
+
+        h1 {
+            font-size: 1.3em;
+        }
+
+        h2 {
+            font-size: 1.2em;
+            margin-left: 15px;
+            color: #0072BC;
+        }
+
+        h3 {
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-left: 30px;
+        }
+
+        p.subtitle {
+            font-style: italic;
+        }
+
+        div.h2content {
+            margin-left: 25px;
+            margin-bottom: 35px;
+        }
+
+        div.h3content {
+            margin-left: 40px;
+        }
+
+        li {
+            padding-bottom: 8px;
+        }
+
+        pre {
+            font-family: "Courier New", Courier;
+            font-size: 1.0em;
+            background: #EEE;
+            padding: 10px;
+        }
+
+        table.TOC {
+            border-collapse: collapse;
+            border-spacing: 4px;
+            width: 50%;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+
+            table.TOC tr th {
+                font-size: 1.1em;
+                font-weight: 600;
+                text-align: left;
+                padding: 2px 2px 10px 2px;
+            }
+
+            table.TOC tr td {
+                padding: 2px 2px 2px 10px;
+            }
+
+        table.description {
+            width: 100%;
+        }
+
+            table.description th {
+                background-color: #DDD;
+                padding: 4px;
+            }
+
+            table.description td {
+                background-color: #EEE;
+                padding: 4px;
+                vertical-align: top;
+            }
+    </style>
+</head>
+<body>
+    <h1>Display</h1>
+    <p>
+        Version 1.2 (April 2014)<br />
+        © 2005-2014, Noël DANJOU<br />
+        All rights reserved.
+    </p>
+    <table class="TOC">
+        <tr>
+            <th>
+                <strong>Table of Contents</strong>
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Welcome">Welcome</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Package">Package Contents</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Syntax">Syntax</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#ErrorLevel">Return Codes</a> (ERRORLEVEL)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#HowTo">How To...</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#History">History</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Download">Latest Version</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Redistribution">Redistribution</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="#Contact">Contact Details</a>
+            </td>
+        </tr>
+    </table>
+    <p>
+        &nbsp;
+    </p>
+    <hr />
+    <a id="Welcome" />
+    <h2>Welcome</h2>
+    <div class="h2content">
+        <p>
+            <strong>Display</strong> (formerly Display Power Management) is a small command-line
+            tool that allows you to either change display orientation or to change the
+            brightness or the contrast of a specified display device (if supported by the display
+            driver and the system) or to turn the monitors or the screen saver on and off to
+            save power.
+        </p>
+    </div>
+    <hr />
+    <a id="Package" />
+    <h2>Package Contents</h2>
+    <div class="h2content">
+        <p>
+            The package is provided as a compressed (zip) archive that holds a few files. The
+            included files are described in the table below.
+        </p>
+        <table class="description">
+            <tr>
+                <th>File</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td style="text-align: center">display.exe</td>
+                <td>The Display program.</td>
+            </tr>
+            <tr>
+                <td style="text-align: center">readme.htm</td>
+                <td>This file.</td>
+            </tr>
+        </table>
+    </div>
+    <hr />
+    <a id="Syntax" />
+    <h2>Syntax</h2>
+    <div class="h2content">
+        <p>
+            Display features many parameters, for a whole list of the supported parameters and
+            a description, type the following command in a <em>Command Prompt</em>:
+        </p>
+        <pre>display /?</pre>
+        <p>
+            <strong>Examples:</strong>
+        </p>
+        <ul>
+            <li>
+                <p>
+                    To turn the default monitor off, use:
+                </p>
+                <pre>display /power:off</pre>
+            </li>
+            <li>
+                <p>
+                    To rotate the default display orientation by 90° counter-clockwise, use:
+                </p>
+                <pre>display /rotate:90</pre>
+            </li>
+        </ul>
+    </div>
+    <hr />
+    <a id="ErrorLevel" />
+    <h2>Return Codes (ERRORLEVEL)</h2>
+    <div class="h2content">
+        <p>
+            When Display is used in a batch file, you can use <em>ERRORLEVEL</em> to check the
+            completion code returned by the program. The possible return codes are listed in
+            the table below.
+        </p>
+        <table class="description" style="width: 70%">
+            <tr>
+                <th style="width: 20%">
+                    Code
+                </th>
+                <th>
+                    Description
+                </th>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    0
+                </td>
+                <td>
+                    Success.
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    1
+                </td>
+                <td>Syntax error or help/registration information displayed.</td>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    2
+                </td>
+                <td>
+                    Failure, new mode could not be set.
+                </td>
+            </tr>
+        </table>
+    </div>
+    <hr />
+    <a id="HowTo" />
+    <h2>How To Create a Shortcut To Toggle Screen Orientation?</h2>
+    <div class="h2content">
+        <ul>
+            <li>right-click the Desktop</li>
+            <li>click <strong>New</strong> &gt; <strong>Shortcut</strong></li>
+            <li>click <strong>Browse</strong></li>
+            <li>select <strong>display.exe</strong></li>
+            <li>click <strong>OK</strong></li>
+            <li>put a blank after the path and append the two parameters: <strong>/rotate:90 /toggle</strong><br />
+                <p>e.g. <strong>"C:\Users\<i>UserName</i>\Desktop\display.exe" /rotate:90 /toggle</strong></p>
+                <p>Note: quotes are required if the path contains blanks.</p>
+            </li>
+            <li>click <strong>Next</strong></li>
+            <li>give the shortcut a name e.g. <strong>Toggle Screen Orientation</strong></li>
+            <li>click <strong>Finish</strong></li>
+            <li>Pin the new shortcut to the taskbar</li>
+        </ul>
+    </div>
+    <hr />
+    <a id="History" />
+    <h2>History</h2>
+    <div class="h2content">
+        <h3>April 10, 2014 - Version 1.2 (build 15.3)</h3>
+        <div class="h3content">
+            <ul>
+                <li>signed executable with renew digital certificate.</li>
+                <li>updated readme.htm to include instructions about how to
+                 create a shortcut to toggle the screen orientation.</li>
+            </ul>
+        </div>
+        <h3>August 9, 2013 - Version 1.2 (build 14.5)</h3>
+        <div class="h3content">
+            <ul>
+                <li>
+                    adds new <strong>/brigthness</strong>, <strong>/contrast</strong>, <strong>/device</strong>, <strong>/listdevices</strong>,
+                    <strong>/listproperties</strong> and <strong>/toggle</strong> parameters.
+                </li>
+                <li>improves multi-monitor support.</li>
+            </ul>
+        </div>
+        <h3>July 18, 2008 - Version 1.1 (build 6.5)</h3>
+        <div class="h3content">
+            <ul>
+                <li>UNICODE version only.</li>
+                <li>adds support for default display orientation.</li>
+                <li>adds new <strong>/power</strong> and <strong>/rotate</strong> parameters.</li>
+            </ul>
+        </div>
+        <h3>January 19, 2005 - Version 1.0 (build 2.3)</h3>
+        <div class="h3content">
+            <ul>
+                <li>first release.</li>
+            </ul>
+        </div>
+    </div>
+    <hr />
+    <a id="Download" />
+    <h2>Latest Version</h2>
+    <div class="h2content">
+        <p>
+            The latest version of Display is always available for download from this address:
+        </p>
+        <p style="margin-left: 40px">
+            <a href="http://noeld.com/programs.asp?cat=misc#Display">http://noeld.com/programs.asp?cat=misc#Display</a>
+        </p>
+    </div>
+    <hr />
+    <a id="Redistribution" />
+    <h2>Redistribution</h2>
+    <div class="h2content">
+        <p>
+            Computer magazine publishers are welcome to redistribute the application as-is on
+            their complimentary or monthly CDs. Any other redistribution of the application
+            with commercial products is strictly forbidden without my written permission. Please
+            contact me for a license agreement (see <a href="#Contact">Contact Details</a>).
+        </p>
+    </div>
+    <hr />
+    <a id="Contact" />
+    <h2>Contact Details</h2>
+    <div class="h2content">
+        <p>
+            E-mail: <a href="mailto:webmaster@noeld.com">webmaster@noeld.com</a>
+        </p>
+        <p>
+            Website: <a href="http://noeld.com">noeld.com</a>
+        </p>
+    </div>
+</body>
+</html>

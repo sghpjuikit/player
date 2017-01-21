@@ -323,6 +323,10 @@ interface Utils {
 		double d = 2*r;
 		g.fillOval(x-r,y-r,d,d);
 	}
+	static void strokeOval(GraphicsContext g, double x, double y, double r) {
+		double d = 2*r;
+		g.strokeOval(x-r,y-r,d,d);
+	}
 	static void drawTriangle(GraphicsContext gc, double x, double y, double r, double dir, double angleOffset) {
 		double d1 = dir, d2 = dir+angleOffset, d3 = dir-angleOffset;
 		gc.beginPath();
@@ -1602,11 +1606,11 @@ interface Utils {
 				),
 				game.new Mission(
 					3, "Mol's molecule","","",
-					Color.YELLOW, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
 				),
 				game.new Mission(
 					4, "PartiCuLar elEment","10⁻¹⁵","",
-					Color.GREEN, rgb(0, 15, 0, 0.08), (a,b,c,d,e) -> game.owner.new Fermi(a,b,c,d,e)
+					Color.YELLOW, rgb(0, 15, 0, 0.1), (a,b,c,d,e) -> game.owner.new Chargion(a,b,c,d,e)
 				),
 				game.new Mission(
 					5, "Decay of the weak force","10⁻¹","",

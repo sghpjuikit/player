@@ -9,9 +9,8 @@ import java.io.File;
 import java.util.function.Consumer;
 
 import de.jensd.fx.glyphs.GlyphIcons;
-import util.file.Environment;
 import util.async.future.Fut;
-import util.file.FileType;
+import util.file.Environment;
 import util.graphics.drag.DragPane;
 import util.graphics.drag.DragUtil;
 
@@ -19,9 +18,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.*;
 import static util.async.future.Fut.fut;
 import static util.file.FileType.FILE;
 
@@ -68,8 +65,11 @@ public class ThumbnailWithAdd extends Thumbnail {
         // add image on click
         root.addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton()==PRIMARY) {
-                File f = Environment.chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow());
-                if (f!= null && onFileDropped!=null) onFileDropped.accept(fut(f));
+                Environment.chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow())
+					.ifOk(file -> {
+		                if (onFileDropped!=null)
+		                	onFileDropped.accept(fut(file));
+					});
                 e.consume();
             }
         });

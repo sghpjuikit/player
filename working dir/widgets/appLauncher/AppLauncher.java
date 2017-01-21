@@ -52,7 +52,6 @@ import static util.Sort.ASCENDING;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
 import static util.dev.Util.throwIfNotFxThread;
-import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.FILE;
 import static util.file.Util.getName;
@@ -87,10 +86,8 @@ public class AppLauncher extends ClassController {
 	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
-        () -> {
-            File dir = chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindow().getStage());
-            if (dir!=null) files.list.add(dir);
-        }
+        () -> Environment.chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindow().getStage())
+				.ifOk(files.list::setAll)
     );
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")

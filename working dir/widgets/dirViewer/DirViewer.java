@@ -24,9 +24,7 @@ import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import util.SingleR;
-import util.Sort;
-import util.SwitchException;
+import util.*;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
@@ -60,7 +58,6 @@ import static util.Util.capitalize;
 import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
 import static util.dev.Util.throwIfNotFxThread;
-import static util.file.Environment.chooseFile;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.*;
@@ -102,11 +99,12 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
     private volatile long visitId = 0;
-    private final Placeholder placeholder = new Placeholder(FOLDER_PLUS, "Click to explore directory", () -> {
-        File dir = chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage());
-        if (dir != null) files.list.setAll(dir);
-    });
-    private final SingleR<PƑ0<File, Boolean>, ?> filterPredicate = new SingleR<>(this::buildFilter);
+    private final Placeholder placeholder = new Placeholder(
+    	FOLDER_PLUS, "Click to explore directory",
+		() -> Environment.chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
+				.ifOk(files.list::setAll)
+    );
+    private final LazyR<PƑ0<File, Boolean>> filterPredicate = new SingleR<>(this::buildFilter);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));

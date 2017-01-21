@@ -617,7 +617,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void addUris(Collection<URI> uris, int at) {
         int _at = at;
-        if (_at < 0)             _at = 0;
+        if (_at < 0)      _at = 0;
         if (_at > size()) _at = size();
 
         List<PlaylistItem> l = new ArrayList<>();
@@ -654,7 +654,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      */
     public void addPlaylist(Collection<PlaylistItem> ps, int at) {
         int _at = at;
-        if (_at < 0)             _at = 0;
+        if (_at < 0)      _at = 0;
         if (_at > size()) _at = size();
 
         addAll(_at, ps);
@@ -671,25 +671,25 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFiles(boolean add) {
-        List<File> files = Environment.chooseFiles(
-        	"Choose Audio Files",
-	        PlaylistManager.browse,
-	        APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
-	        AudioFileFormat.filter(Use.PLAYBACK)
-        );
-        if (files != null) {
-            PlaylistManager.browse = files.get(0).getParentFile();
-            List<URI> queue = new ArrayList<>();
-            files.forEach(f -> queue.add(f.toURI()));
+	    Environment.chooseFiles(
+			    "Choose Audio Files",
+			    PlaylistManager.browse,
+			    APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
+			    AudioFileFormat.filter(Use.PLAYBACK)
+		    )
+		    .ifOk(files -> {
+			    PlaylistManager.browse = files.get(0).getParentFile();
+			    List<URI> queue = new ArrayList<>();
+			    files.forEach(f -> queue.add(f.toURI()));
 
-            if (add) addUris(queue);
-            else {
-                PLAYBACK.stop();
-                clear();
-                addUris(queue);
-                playFirstItem();
-            }
-        }
+			    if (add) addUris(queue);
+			    else {
+				    PLAYBACK.stop();
+				    clear();
+				    addUris(queue);
+				    playFirstItem();
+			    }
+		    });
     }
 
     /**
@@ -697,25 +697,25 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
      * @param add true to add items, false to clear playlist and play items
      */
     public void addOrEnqueueFolder(boolean add) {
-        File dir = Environment.chooseFile(
-        	"Choose Audio Files From Directory Tree",
-            DIRECTORY,
-	        PlaylistManager.browse,
-	        APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
-        );
-        if (dir != null) {
-            PlaylistManager.browse = dir;
-            List<URI> queue = new ArrayList<>();
-            getFilesAudio(dir, Use.APP, PlaylistManager.folder_depth).forEach(f -> queue.add(f.toURI()));
+        Environment.chooseFile(
+	            "Choose Audio Files From Directory Tree",
+	            DIRECTORY,
+		        PlaylistManager.browse,
+		        APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
+	        )
+			.ifOk(dir -> {
+	            PlaylistManager.browse = dir;
+	            List<URI> queue = new ArrayList<>();
+	            getFilesAudio(dir, Use.APP, PlaylistManager.folder_depth).forEach(f -> queue.add(f.toURI()));
 
-            if (add) addUris(queue);
-            else {
-                PLAYBACK.stop();
-                clear();
-                addUris(queue);
-                playFirstItem();
-            }
-        }
+	            if (add) addUris(queue);
+	            else {
+	                PLAYBACK.stop();
+	                clear();
+	                addUris(queue);
+	                playFirstItem();
+	            }
+			});
     }
 
     /**

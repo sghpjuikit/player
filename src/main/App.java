@@ -153,6 +153,7 @@ import static util.async.Async.*;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.file.Environment.*;
+import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getFilesAudio;
 import static util.file.Util.isValidatedDirectory;
 import static util.functional.Util.*;
@@ -503,7 +504,7 @@ public class App extends Application implements Configurable {
 				"Open file chooser to select directory",
 				MaterialDesignIcon.FOLDER,
 				actionPane.converting(none ->
-					chooseFile("Select directory...", FileType.DIRECTORY, null, actionPane.getScene().getWindow())
+					chooseFile("Select directory...", DIRECTORY, null, actionPane.getScene().getWindow())
 				)
 			)
 		);
@@ -526,25 +527,19 @@ public class App extends Application implements Configurable {
 				"Creates a launcher for this widget with default (no predefined) settings. \n"
 				+ "Opening the launcher with this application will open this "
 				+ "widget as if it were a standalone application.",
-				EXPORT, w -> {
-					DirectoryChooser dc = new DirectoryChooser();
-									 dc.setInitialDirectory(DIR_APP);
-									 dc.setTitle("Export to...");
-					File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-					if (dir!=null) w.exportFxwlDefault(dir);
-			})
+				EXPORT, w -> Environment
+					.chooseFile("Export to...", DIRECTORY, DIR_APP, APP.actionPane.getScene().getWindow())
+					.ifOk(w::exportFxwlDefault)
+			)
 		);
 		actionPane.register(Component.class,
 			new FastAction<>("Export",
 				  "Creates a launcher for this component with current settings. \n"
 				+ "Opening the launcher with this application will open this component as if it were a standalone application.",
-				EXPORT, w -> {
-					DirectoryChooser dc = new DirectoryChooser();
-					dc.setInitialDirectory(DIR_LAYOUTS);
-					dc.setTitle("Export to...");
-					File dir = dc.showDialog(APP.actionPane.getScene().getWindow());
-					if (dir!=null) w.exportFxwl(dir);
-			})
+				EXPORT, w -> Environment
+					.chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
+					.ifOk(w::exportFxwl)
+			)
 		);
 		actionPane.register(Item.class,
 			new FastColAction<>("Add to new playlist",

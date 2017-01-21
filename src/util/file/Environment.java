@@ -294,7 +294,7 @@ public interface Environment {
         FileChooser c = new FileChooser();
         c.setTitle(title);
         c.setInitialDirectory(getExistingParent(initial,APP.DIR_APP));
-        c.setInitialFileName(title);
+        c.setInitialFileName(initialName);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         c.showSaveDialog(w);
     }

@@ -134,6 +134,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
 import static gui.objects.popover.PopOver.ScreenPos.App_Center;
+import static gui.pane.ActionPane.collectionWrap;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
@@ -643,7 +644,7 @@ public class App extends Application implements Configurable {
 							),
 							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
 								((Icon) e.getSource()).setDisable(true);
-								fut((List<File>) actionPane.getData())
+								fut((List<File>) collectionWrap(actionPane.getData()))  // TODO: make automatic
 									.use(files -> {
 										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
 									})

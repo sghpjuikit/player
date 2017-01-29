@@ -238,6 +238,11 @@ public class WindowManager implements Configurable<Object> {
 //        });
     }
 
+	@IsAction(name = "Close active window", keys = "CTRL+W", desc = "Opens new application window")
+	private void closeActiveWindow() {
+		getActive().ifPresent(Window::close);
+	}
+
 	// TODO: create dynamically from config annotation
 	@IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
     private void toggleMini() {

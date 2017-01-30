@@ -865,14 +865,14 @@ public class MetadataWriter extends MetaItem {
     public void reset(Item i) {
         file = i.isFileBased() ? i.getFile() : null;
         audioFile = readAudioFile(file);
-        try{
-            if (audioFile == null) throw new IllegalStateException("Couldnt read file " + file);
+        try {
+            if (audioFile == null) throw new IllegalStateException("Couldn't read file " + file);
             tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
             hasCorruptedTag = false;
         } catch (IllegalStateException | NullPointerException e) {
             hasCorruptedTag = true;
             tag = new ID3v24Tag(); // fake tag to write into
-            LOGGER.warn("Couldnt initialize MetadataWriter, writing to tag will be ignored", e);
+            LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored", e);
         }
         fields_changed = 0;
         isWriting.set(false);

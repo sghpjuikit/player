@@ -67,8 +67,8 @@ public class MetadataReader{
 	/**
 	 * Creates task that reads metadata for specified items.
 	 *
-	 * @param items list of items to read mretadata for
-	 * @param onEnd procedure to execute upon finishing this task providig the result and success flag. Must not be null.
+	 * @param items list of items to read metadata for
+	 * @param onEnd procedure to execute upon finishing this task providing the result and success flag. Must not be null.
 	 * @return the task reading the files returning all successfully read metadata
 	 *
 	 * @throws NullPointerException if any parameter null

@@ -7,6 +7,7 @@ import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
 import util.plugin.IsPlugin;
 
+import static util.Util.urlEncodeUtf8;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
@@ -20,9 +21,8 @@ public class DuckDuckGoImageQBuilder implements SearchUriBuilder {
 	public DuckDuckGoImageQBuilder() {}
 
 	@Override
-	public URI apply(String term) {
-		String s =  "https://duckduckgo.com/?q=" + term.replace(" ", "%20") + "&iax=1&ia=images";
-		return URI.create(s);
+	public URI apply(String q) {
+		return URI.create("https://duckduckgo.com/?q=" + urlEncodeUtf8(q));
 	}
 
 }

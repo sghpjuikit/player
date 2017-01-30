@@ -3,7 +3,6 @@ package main;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
@@ -149,6 +148,7 @@ import static layout.widget.WidgetManager.WidgetSource.*;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
+import static util.Util.urlEncodeUtf8;
 import static util.async.Async.*;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
@@ -1333,7 +1333,7 @@ public class App extends Application implements Configurable {
 		static void openDictionary() {
 			PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
 				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
-				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + URLEncoder.encode(phrase)))
+				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + urlEncodeUtf8(phrase)))
 			));
 			p.title.set("Look up in dictionary...");
 			p.setAutoHide(true);

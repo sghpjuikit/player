@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -401,6 +405,22 @@ public interface Util {
 	/** Same as {@link #enumToHuman(java.lang.Enum)}, for String. */
 	static String enumToHuman(String s) {
 		return capitalizeStrong(s.replace('_', ' '));
+	}
+
+	/**
+	 * Invokes {@link java.net.URLEncoder#encode(String, String)} with {@link java.nio.charset.StandardCharsets#UTF_8}
+	 * .
+	 * @param s
+	 * @return
+	 */
+	static String urlEncodeUtf8(String s) {
+		Charset charset = StandardCharsets.UTF_8; // UTF-8 is url encoding recommended encoding
+		try {
+			return URLEncoder.encode(s, charset.name());
+		} catch (UnsupportedEncodingException e) {
+			// will never happen as UTF-8 is guaranteed to be available on every platform
+			throw new AssertionError("Can't url encode string '" + s + "'. Charset " + charset + " not available.");
+		}
 	}
 
 	/** @return true if the string is palindrome (empty string is palindrome) */

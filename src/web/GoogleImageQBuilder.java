@@ -6,6 +6,7 @@ import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.plugin.IsPlugin;
 
+import static util.Util.urlEncodeUtf8;
 import static util.parsing.StringParseStrategy.From.ANNOTATED_METHOD;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
@@ -20,9 +21,8 @@ public class GoogleImageQBuilder implements SearchUriBuilder {
 	public GoogleImageQBuilder() {}
 
 	@Override
-	public URI apply(String term) {
-		String s = "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + term.replace(" ", "%20");
-		return URI.create(s);
+	public URI apply(String q) {
+		return URI.create("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=" + urlEncodeUtf8(q));
 	}
 
 }

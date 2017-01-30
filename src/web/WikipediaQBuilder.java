@@ -7,6 +7,7 @@ import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
 import util.plugin.IsPlugin;
 
+import static util.Util.urlEncodeUtf8;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /**
@@ -21,7 +22,7 @@ public class WikipediaQBuilder implements SearchUriBuilder {
 
 	@Override
 	public URI apply(String q) {
-		return URI.create("https://en.wikipedia.org/wiki/" + q.replace(" ", "%20"));
+		return URI.create("https://en.wikipedia.org/wiki/" + urlEncodeUtf8(q));
 	}
 
 }

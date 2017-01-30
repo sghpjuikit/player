@@ -31,6 +31,7 @@ import gui.itemnode.StringSplitParser.SplitData;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import util.dev.TODO;
+import util.functional.Try;
 
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toCollection;
@@ -590,11 +591,11 @@ public interface Util {
 			return new Image(file.toURI().toString());
 		else {
 			// find out real image file resolution
-			Dimension d = getImageDim(file);
-			int w = d==null ? Integer.MAX_VALUE : d.width;
-			int h = d==null ? Integer.MAX_VALUE : d.height;
+			Try<Dimension,?> dt = getImageDim(file);
+			int w = dt.map(d -> d.width).getOr(Integer.MAX_VALUE);
+			int h = dt.map(d -> d.height).getOr(Integer.MAX_VALUE);
 
-			// lets not surpass real size (Image unfortunately does that if we do not stop it)
+			// lets not surpass real size (javafx.scene.Image does that if we do not stop it)
 			int fin_width = min(W,w);
 			int fin_height = min(H,h);
 			return new Image(file.toURI().toString(), fin_width, fin_height, true, true, true);
@@ -606,10 +607,9 @@ public interface Util {
 	 * memory. It still involves i/o.
 	 */
 	@TODO(purpose = BUG, note = "suppressed by catching NullPointerException, dirty hack")
-	static Dimension getImageDim(File f) {
+	static Try<Dimension,Void> getImageDim(File f) {
 		// see more at:
 		// http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
-		Dimension result = null;
 		String suffix = util.file.Util.getSuffix(f.toURI());
 		Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(suffix);
 		if (readers.hasNext()) {
@@ -619,7 +619,7 @@ public interface Util {
 				int ii = reader.getMinIndex(); // 1st image index
 				int width = reader.getWidth(ii);
 				int height = reader.getHeight(ii);
-				result = new Dimension(width, height);
+				return Try.ok(new Dimension(width, height));
 			} catch (IOException | NullPointerException e) {
 				getLogger(Util.class).warn("Problem finding out image size {}", f ,e);
 				// we need to catch NullPointerException as well, seems to be a bug, stacktrace below:
@@ -635,14 +635,14 @@ public interface Util {
 				//	at com.sun.imageio.plugins.jpeg.JPEGImageReader.gotoImage(JPEGImageReader.java:482) ~[na:na]
 				//	at com.sun.imageio.plugins.jpeg.JPEGImageReader.readHeader(JPEGImageReader.java:603) ~[na:na]
 				//	at com.sun.imageio.plugins.jpeg.JPEGImageReader.getWidth(JPEGImageReader.java:717) ~[na:na]
+				return Try.error();
 			} finally {
 				reader.dispose();
 			}
 		} else {
 			getLogger(Util.class).warn("No reader found for given file: {}", f);
+			return Try.error();
 		}
-
-		return result;
 	}
 
 	/**

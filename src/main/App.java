@@ -1,6 +1,5 @@
 package main;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -20,10 +19,7 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.*;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -110,8 +106,11 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
-import util.file.*;
+import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
+import util.file.Environment;
+import util.file.ImageFileFormat;
+import util.file.Util;
 import util.file.mimetype.MimeTypes;
 import util.functional.Functors;
 import util.functional.Try;
@@ -474,8 +473,8 @@ public class App extends Application implements Configurable {
 
 			ImageFileFormat iff = ImageFileFormat.of(f.toURI());
 			if (iff.isSupported()) {
-				Dimension id = getImageDim(f);
-				map.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
+				String res = getImageDim(f).map(id -> id.width + " x " + id.height).getOr("n/a");
+				map.put("Resolution", res);
 			}
 		});
 		instanceInfo.add(App.class, (v,map) -> map.put("Name", v.name));

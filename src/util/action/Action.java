@@ -39,7 +39,7 @@ import static util.action.Action.CONFIG_GROUP;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.reactive.Util.doOnceIfNonNull;
-import static util.reactive.Util.listChangeHandler;
+import static util.reactive.Util.listChangeHandlerEach;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -472,7 +472,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
 
-    private static final ListChangeListener<Window> localListenerRegistrator = listChangeHandler(
+    private static final ListChangeListener<Window> localListenerRegistrator = listChangeHandlerEach(
         window -> doOnceIfNonNull(window.sceneProperty(),
 	        scene -> getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.registerInScene(scene))),
         window -> {

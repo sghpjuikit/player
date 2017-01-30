@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javafx.beans.binding.DoubleBinding;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -270,8 +271,19 @@ public class WindowManager implements Configurable<Object> {
             if (miniWindow == null)  miniWindow = create(createStageOwner(), UNDECORATED, false);
             Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
-            miniWindow.resizable.set(false);
+            miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
+            miniWindow.disposables.add(onScreenChange(screen -> {
+            	// TODO: implement for every window
+                // maintain proper widget content until window closes
+                if (screen.getBounds().contains(miniWindow.getX(), miniWindow.getY()))
+                    miniWindow.setXYSize(
+                        screen.getBounds().getMinX(),
+                        screen.getBounds().getMinY(),
+                        screen.getBounds().getWidth(),
+                        miniWindow.getHeight()
+                    );
+            }));
 
             // content controls
             Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMiniFull);
@@ -312,9 +324,9 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
 
             // auto-hiding
-            double H = miniWindow.getHeight()-2; // leave 2 pixels visible
+            DoubleBinding H = miniWindow.H.subtract(2); // leave 2 pixels visible
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
-            Anim a = new Anim(millis(200), x -> miniWindow.setY(-H*x, false));
+            Anim a = new Anim(millis(200), x -> miniWindow.setY(-H.get()*x, false));
 
             FxTimer hider = new FxTimer(0, 1, () -> {
                 if (miniWindow==null) return;

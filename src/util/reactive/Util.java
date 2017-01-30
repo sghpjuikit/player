@@ -1,5 +1,6 @@
 package util.reactive;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -11,6 +12,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.stage.Screen;
 
 import org.reactfx.Subscription;
 
@@ -131,7 +133,15 @@ public interface Util {
 		return () -> property.removeListener(l);
 	}
 
-	/** Creates list change listener which calls the respective listeners (only) on add or remove events respectively. */
+	/** Creates list change listener which calls an action for every added or removed item. */
+	static Subscription onScreenChange(Consumer<? super Screen> onChange) {
+		ListChangeListener<Screen> l = listChangeListener(change -> {
+			if (change.wasAdded()) onChange.accept(change.getAddedSubList().get(0));
+		});
+		Screen.getScreens().addListener(l);
+		return () -> Screen.getScreens().removeListener(l);
+	}
+
 	static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onAdded, ListChangeListener<T> onRemoved) {
 		noØ(onAdded, onRemoved);
 		return change -> {
@@ -144,14 +154,42 @@ public interface Util {
 		};
 	}
 
+	/**
+	 * Creates list change listener which calls the provided listeners on every change.
+	 * </p>
+	 * This is a convenience method taking care of the while(change.next()) code pattern explained in
+	 * {@link javafx.collections.ListChangeListener.Change}.
+	 */
+	static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onChange) {
+		noØ(onChange);
+		return change -> {
+			while(change.next()) {
+				onChange.onChanged(change);
+			}
+		};
+	}
+
 	/** Creates list change listener which calls an action for every added or removed item. */
-	static <T> ListChangeListener<T> listChangeHandler(Consumer<T> addedHandler, Consumer<T> removedHandler) {
+	static <T> ListChangeListener<T> listChangeHandlerEach(Consumer<T> addedHandler, Consumer<T> removedHandler) {
 		noØ(addedHandler, removedHandler);
 		return change -> {
 			while(change.next()) {
 				if (!change.wasPermutated() && !change.wasUpdated()) {
 					if (change.wasAdded()) change.getRemoved().forEach(removedHandler);
 					if (change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
+				}
+			}
+		};
+	}
+
+	/** Creates list change listener which calls an action added or removed item list. */
+	static <T> ListChangeListener<T> listChangeHandler(Consumer<List<? extends T>> addedHandler, Consumer<List<? extends T>> removedHandler) {
+		noØ(addedHandler, removedHandler);
+		return change -> {
+			while(change.next()) {
+				if (!change.wasPermutated() && !change.wasUpdated()) {
+					if (change.wasAdded()) removedHandler.accept(change.getRemoved());
+					if (change.wasAdded()) addedHandler.accept(change.getAddedSubList());
 				}
 			}
 		};

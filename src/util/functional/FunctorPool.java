@@ -7,6 +7,8 @@ import java.time.Year;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import javafx.util.Duration;
+
 import org.atteo.evo.inflector.English;
 
 import audio.Item;
@@ -150,9 +152,9 @@ public class FunctorPool {
 		add("Is unknown",   Bitrate.class,B, x -> x.getValue()==-1);
 		add("Is known",     Bitrate.class,B, x -> x.getValue()>-1);
 
-		add("Less",         FormattedDuration.class,B,(x, y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
-		add("Is",           FormattedDuration.class,B,(x,y) -> x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
-		add("More",   FormattedDuration.class,B,(x,y) -> x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
+		add("Less",         Duration.class,B,(x, y) -> x.compareTo(y)<0, Duration.class, new Duration(0));
+		add("Is",           Duration.class,B,(x,y) -> x.compareTo(y)==0, Duration.class, new Duration(0));
+		add("More",         Duration.class,B,(x,y) -> x.compareTo(y)>0, Duration.class, new Duration(0),false,false,true);
 
 		add("<  Less",      NofX.class,B, (x, y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
 		add("=  Is",        NofX.class,B, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
@@ -161,7 +163,7 @@ public class FunctorPool {
 		add("<> Is not",    NofX.class,B, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
 		add("<= Not more",  NofX.class,B, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
 
-		add("<  Less",FileSize.class,B, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
+		add("<  Less",      FileSize.class,B, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
 		add("=  Is",        FileSize.class,B, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
 		add(">  More",      FileSize.class,B, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
 		add("Is unknown",   FileSize.class,B, x -> x.inBytes()==-1);

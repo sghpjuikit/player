@@ -104,7 +104,7 @@ public class DirViewer extends ClassController {
 		() -> Environment.chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
 				.ifOk(files.list::setAll)
     );
-    private final LazyR<PƑ0<File, Boolean>> filterPredicate = new SingleR<>(this::buildFilter);
+    private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));

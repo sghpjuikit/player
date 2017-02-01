@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javafx.util.Duration;
+
 import audio.Player;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
@@ -172,7 +174,7 @@ public final class MetadataGroup {
         VALUE(Object.class, MetadataGroup::getValue,"Song field to group by"),
         ITEMS(Long.class, MetadataGroup::getItemCount,"Number of songs in the group"),
         ALBUMS(Long.class, MetadataGroup::getAlbumCount,"Number of albums in the group"),
-        LENGTH(Double.class, MetadataGroup::getLength,"Total length of the group"),
+        LENGTH(Duration.class, MetadataGroup::getLength,"Total length of the group"),
         SIZE(FileSize.class, MetadataGroup::getFileSize,"Total file size of the group"),
         AVG_RATING(Double.class, MetadataGroup::getAvgRating,"Average rating of the group = sum(rating)/items"),
         W_RATING(Double.class, MetadataGroup::getWeighRating,"Weighted rating of the group = sum(rating) = avg_rating*items"),
@@ -182,7 +184,7 @@ public final class MetadataGroup {
         private final Ƒ1<MetadataGroup,?> extr;
         private final Class type;
 
-        <T> Field(Class<T> type, Ƒ1<MetadataGroup,?> extractor, String description) {
+        <T> Field(Class<T> type, Ƒ1<MetadataGroup,? extends T> extractor, String description) {
             mapEnumConstantName(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
             this.desc = description;
             this.extr = extractor;

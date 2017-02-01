@@ -179,7 +179,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 		if (from==null || to==null) return stream();
 		int fromI = from.getIndex();
 		int toI = to.getIndex();
-		if (fromI<=0 || toI<=0) return stream();
+		if (fromI<0 || toI<0) return stream();
 		return IntStreamEx.rangeClosed(fromI,toI).mapToObj(i -> getFlow().getCell(i)).flatMap(r -> r.getSkinn().getCells());
 	}
 

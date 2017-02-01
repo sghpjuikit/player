@@ -27,7 +27,7 @@ import gui.itemnode.FieldedPredicateChainItemNode;
 import gui.itemnode.FieldedPredicateItemNode;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.icon.Icon;
-import gui.objects.search.SearchCancelable;
+import gui.objects.search.SearchAutoCancelable;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
 import util.functional.Functors;
@@ -42,6 +42,7 @@ import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
@@ -138,7 +139,6 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 return;
             }
 
-            if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
             // ESC, filter not focused -> close filter
             if (k==ESCAPE) {
                 if (filterVisible.get()) {
@@ -148,16 +148,10 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 }
             }
 
-            // typing -> scroll to
-            search.search(e);
+            search.onKeyPressed(e);
         });
-
-        addEventFilter(KEY_PRESSED, e -> {
-            if (e.getCode()==ESCAPE && search.isActive()) {
-                search.cancel();
-                e.consume(); // must cause all KEY_PRESSED handlers to be ignored
-            }
-        });
+		addEventHandler(KEY_TYPED, search::onKeyTyped);
+        addEventFilter(KEY_PRESSED, search::onEscPressHide);
         // TODO: fix the overkill
         addEventFilter(Event.ANY, e -> {
         	if (search.isActive())
@@ -373,7 +367,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	 */ public final Search search = new Search();
 
 
-	public class Search extends SearchCancelable {
+	public class Search extends SearchAutoCancelable {
 		/**
 		 * If the user types text to quick search content by scrolling table, the
 		 * text matching will be done by this field. Its column cell data must be

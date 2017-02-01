@@ -50,7 +50,7 @@ import javafx.util.Callback;
 
 import org.reactfx.EventStreams;
 
-import gui.objects.search.SearchCancelable;
+import gui.objects.search.SearchAutoCancelable;
 import util.access.V;
 import util.functional.Functors.Ƒ1;
 
@@ -58,7 +58,6 @@ import static gui.objects.grid.GridView.SelectionOn.KEY_PRESSED;
 import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.scene.input.KeyCode.ESCAPE;
 import static util.async.Async.runLater;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -175,15 +174,10 @@ public class GridView<T,F> extends Control {
             }
         });
 
-
 	    // search
-	    addEventHandler(KeyEvent.KEY_PRESSED, search::search);
-	    addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-		    if (e.getCode()==ESCAPE && search.isActive()) {
-			    search.cancel();
-			    e.consume(); // must cause all KEY_PRESSED handlers to be ignored
-		    }
-	    });
+	    addEventHandler(KeyEvent.KEY_TYPED, search::onKeyTyped);
+	    addEventHandler(KeyEvent.KEY_PRESSED, search::onKeyPressed);
+	    addEventFilter(KeyEvent.KEY_PRESSED, search::onEscPressHide);
 	    addEventFilter(Event.ANY, e -> {
 		    if (search.isActive())
 			    search.updateSearchStyles();
@@ -522,7 +516,7 @@ public class GridView<T,F> extends Control {
 
 
     public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESSED }
-	private class Search extends SearchCancelable{
+	private class Search extends SearchAutoCancelable {
 		@Override
 		public void onSearch(String s) {
 			for (int i=0; i<getItemsShown().size(); i++) {

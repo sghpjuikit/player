@@ -11,17 +11,20 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
+import javafx.scene.input.KeyCode;
 
 import gui.objects.search.Search;
 
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static util.dev.Util.noØ;
 
 /**
- * ComboBox with extra functions.
+ * ComboBox with added functionalities.
  * <ul>
  * <li> String converter
  * <li> Default text for empty value
+ * <li> Better keyboard UX (SPACE key press shows popup)
  * <li> Searching & scrolling when typing
  * </ul>
  *
@@ -50,7 +53,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 					String es = toStringConverter.apply(e);
 					if (matches(es,searchQuery.get())) {
 						items.scrollTo(i);
-						items.getSelectionModel().select(i);
+						// items.getSelectionModel().select(i); // TODO: make this work reasonably well
 						break;
 					}
 				}
@@ -75,7 +78,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 
 	/**
 	 * @param toS to string converter (it will never receive null)
-	 * @param empty_text
+	 * @param empty_text text to use for null value
 	 */
     public ImprovedComboBox(Function<T,String> toS, String empty_text) {
         noØ(toS, empty_text);
@@ -105,7 +108,18 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
         setButtonCell(getCellFactory().call(null));
         setValue(null);
 
-        addEventHandler(KEY_PRESSED, search::search);
+        // search
+        addEventFilter(KEY_PRESSED, search::onKeyPressed);
+        addEventHandler(KEY_TYPED, search::onKeyTyped);
+
+        // improved keyboard UX
+        addEventHandler(KEY_PRESSED, e -> {
+	        if (!e.isConsumed() && e.getCode()==KeyCode.SPACE && !isShowing() && !getItems().isEmpty()) {
+		        show();
+		        ListView<T> items = (ListView)((ComboBoxListViewSkin)getSkin()).getPopupContent();
+		        items.requestFocus();
+	        }
+        });
     }
 
 }

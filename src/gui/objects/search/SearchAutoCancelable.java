@@ -10,14 +10,15 @@ import util.async.executor.FxTimer;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 
-import static gui.objects.search.SearchCancelable.Match.CONTAINS;
+import static gui.objects.search.SearchAutoCancelable.Match.CONTAINS;
 import static javafx.util.Duration.millis;
 import static util.type.Util.mapEnumConstantName;
 
 /**
+ * Search that auto-cancels after given period of time.
  */
 @IsConfigurable("Search")
-public abstract class SearchCancelable extends Search {
+public abstract class SearchAutoCancelable extends Search {
 
 	@IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
 	public static Duration cancelQueryDelay = millis(500);
@@ -33,27 +34,11 @@ public abstract class SearchCancelable extends Search {
 	protected long searchTime = -1;
 	protected final FxTimer searchAutocanceller = new FxTimer(3000,1,this::cancel);
 
-
 	@Override
 	public boolean matches(String text, String query) {
 		String t = isIgnoreCase ? text.toLowerCase() : text;
 		String q = isIgnoreCase ? query.toLowerCase() : query;
 		return matcher.getValue().predicate.test(t,q);
-	}
-
-	/**
-	 * Returns whether search is active. Every search must be ended, either
-	 * automatically {@link #isCancelable}, or manually {@link #cancel()}.
-	 */
-	public boolean isActive() {
-		return !searchQuery.get().isEmpty();
-	}
-
-	/**
-	 * Ends search.
-	 */
-	public void cancel() {
-		searchQuery.set("");
 	}
 
 	public enum Match {

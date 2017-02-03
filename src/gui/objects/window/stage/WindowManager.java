@@ -230,13 +230,7 @@ public class WindowManager implements Configurable<Object> {
 	    if (mainWindow!=null) mainWindow.isMain.setValue(false);
 		mainWindow = w;
 		w.isMain.setValue(true);
-
-	    w.isMainDisposables.add(changes(w.isMoving, (o,n) -> { if (o && !n) APP.taskbarIcon.setScreen(getScreen(w.getCenterXY())); }));
-	    w.isMainDisposables.add(doOnceIf(w.s.showingProperty(), v -> v, v -> APP.taskbarIcon.setScreen(getScreen(w.getCenterXY()))));
 	    w.isMainDisposables.add(() -> w.isMain.setValue(false));
-//        s.iconifiedProperty().addListener((o,ov,nv) -> {
-//            if (nv) APP.taskbarIcon.iconify(nv);
-//        });
     }
 
 	@IsAction(name = "Close active window", keys = "CTRL+W", desc = "Opens new application window")

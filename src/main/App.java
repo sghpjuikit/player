@@ -71,7 +71,6 @@ import gui.objects.tablecell.RatingRatingCellFactory;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
-import gui.objects.window.stage.WindowBase;
 import gui.objects.window.stage.WindowManager;
 import gui.pane.*;
 import gui.pane.ActionPane.ComplexActionData;
@@ -285,7 +284,6 @@ public class App extends Application implements Configurable {
 	public final InstanceInfo instanceInfo = new InstanceInfo();
 	public final ObjectFieldMap classFields = new ObjectFieldMap();
 
-	public final TaskBar taskbarIcon = new TaskBar();
 	public final ActionPane actionPane = new ActionPane(className, instanceName, instanceInfo);
 	public final ActionPane actionAppPane = new ActionPane(className, instanceName, instanceInfo);
 	public final MessagePane messagePane = new MessagePane();
@@ -758,21 +756,6 @@ public class App extends Application implements Configurable {
 		}
 
 		try {
-			taskbarIcon.setTitle(name);
-			taskbarIcon.setIcon(getIcon());
-			taskbarIcon.setOnClose(this::close);
-			taskbarIcon.setOnMinimize(v -> windowManager.windows.forEach(w -> w.setMinimized(v)));
-			taskbarIcon.setOnAltTab(() -> {
-				boolean isAppFocused = windowManager.getFocused()!=null;
-				if (!isAppFocused) {
-					boolean isAllMinimized = windowManager.windows.stream().allMatch(Window::isMinimized);
-					if (isAllMinimized)
-						windowManager.windows.forEach(w -> w.setMinimized(false));
-					else
-						windowManager.windows.stream().filter(WindowBase::isShowing).forEach(Window::focus);
-				}
-			});
-
 			// discover plugins
 			ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
 			ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);

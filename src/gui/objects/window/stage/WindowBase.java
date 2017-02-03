@@ -30,9 +30,7 @@ import static gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
 import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UNDECORATED;
-import static main.App.APP;
 import static util.async.Async.run;
-import static util.async.Async.runLater;
 import static util.reactive.Util.installSingletonListener;
 
 /**
@@ -225,16 +223,10 @@ public class WindowBase {
 
     /** Sets the value of the property minimized. */
     public void setMinimized(boolean val) {
-        APP.taskbarIcon.forbidIconify = true;
         if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
             ((Stage)s.getOwner()).setIconified(val);
         } else {
             s.setIconified(val);
-        }
-
-//        if (val && Window.WINDOWS.stream().allMatch(w -> w.isMinimized())) APP.taskbarIcon.iconify(val);
-        if (val) {
-            APP.taskbarIcon.iconify(val);
         }
 
         // focus when deminimizing
@@ -242,7 +234,6 @@ public class WindowBase {
 //        if (!val) focus();  // ! working anymore
 //        if (!val) runLater(this::focus);  // ! working anymore
         if (!val) Async.run(50,this::focus);  // gotta skip few render pulses first...
-        runLater(() -> APP.taskbarIcon.forbidIconify = false);
     }
 
     /**

@@ -105,7 +105,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.addEventHandler(KEY_PRESSED, e -> {
             KeyCode c = e.getCode();
             if (c.isNavigationKey()) {
-                if (control.selectOn.contains(SelectionOn.KEY_PRESSED)) {
+                if (control.selectOn.contains(SelectionOn.KEY_PRESS)) {
                     if (c==KeyCode.UP || c==KeyCode.KP_UP)       selectIfNoneOr(this::selectFirst,this::selectUp);
                     if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN)   selectIfNoneOr(this::selectFirst,this::selectDown);
                     if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT)   selectIfNoneOr(this::selectFirst,this::selectLeft);
@@ -238,7 +238,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     protected void updateRows(int rowCount) {
-        for (int i = 0; i < rowCount; i++) {
+    	boolean isAnyVisible = skin.flow.getFirstVisibleCell()!=null;
+    	if (!isAnyVisible) return;
+    	int indexStart = skin.flow.getFirstVisibleCell().getIndex();
+    	int indexEnd = skin.flow.getLastVisibleCell().getIndex();
+        for (int i = indexStart; i <= indexEnd; i++) {
             GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
                 row.updateIndex(-1);

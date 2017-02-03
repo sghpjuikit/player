@@ -108,24 +108,25 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
 
     @Override
     protected void layoutChildren(double x, double y, double w, double h) {
-//        double currentWidth = getSkinnable().getWidth();
+        // double currentWidth = getSkinnable().getWidth();
         double cellWidth = getSkinnable().gridViewProperty().get().getCellWidth();
         double cellHeight = getSkinnable().gridViewProperty().get().getCellHeight();
         double horizontalCellSpacing = getSkinnable().gridViewProperty().get().getHorizontalCellSpacing();
         double verticalCellSpacing = getSkinnable().gridViewProperty().get().getVerticalCellSpacing();
 
-        double xPos = 0;
-        double yPos = 0;
-
         // here we alter the horizontal spacing to get rid of the gap on the right
         int columns = ((GridViewSkin)getSkinnable().getGridView().getSkin()).computeMaxCellsInRow();
-        // TODO: use hgap as min gap or something
         horizontalCellSpacing = (w-columns*cellWidth)/(columns+1);
-
+        double xPos = 0;
+        double yPos = 0;
         for (Node child : getChildren()) {
-            child.relocate(xPos + horizontalCellSpacing, yPos + verticalCellSpacing);
-            child.resize(cellWidth, cellHeight);
-            xPos = xPos + horizontalCellSpacing + cellWidth; // + horizontalCellSpacing
+            child.resizeRelocate(
+	            snapPosition(xPos + horizontalCellSpacing),
+	            snapPosition(yPos + verticalCellSpacing),
+	            snapSize(cellWidth),
+	            snapSize(cellHeight)
+            );
+            xPos = xPos + cellWidth + horizontalCellSpacing ;
         }
     }
 

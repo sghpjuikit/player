@@ -8,9 +8,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 
 import static javafx.css.PseudoClass.getPseudoClass;
-import static javafx.scene.input.KeyCode.BACK_SPACE;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.SPACE;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.util.Duration.millis;
 import static util.Util.removeLastChar;
 
@@ -38,7 +36,7 @@ public abstract class Search {
 	/**
 	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event.
 	 *
-	 * @apiNote Use as event handler in form of method reference.
+	 * @apiNote Use as event filter in form of method reference.
 	 *
 	 * @param e event to handle
 	 */
@@ -54,7 +52,7 @@ public abstract class Search {
 	 * @param e event to handle
 	 */
 	public void onKeyTyped(KeyEvent e) {
-		if (pressedKeyCode==null || pressedKeyCode==ESCAPE) return;
+		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB) return;
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
 		if ((!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE))) return;
 

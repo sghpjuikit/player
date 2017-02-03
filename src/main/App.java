@@ -1116,7 +1116,7 @@ public class App extends Application implements Configurable {
 		static void openIconViewer() {
 			double iconSize = 45;
 			GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
-			grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESSED));
+			grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS));
 			grid.setCellFactory(view -> new GridCell<>() {
 //			    Anim a;
 

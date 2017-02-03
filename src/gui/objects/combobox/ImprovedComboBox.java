@@ -109,8 +109,9 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
         setValue(null);
 
         // search
-        addEventFilter(KEY_PRESSED, search::onKeyPressed);
         addEventHandler(KEY_TYPED, search::onKeyTyped);
+        addEventFilter(KEY_PRESSED, search::onKeyPressed);
+        addEventFilter(KEY_PRESSED, search::onEscPressHide);
 
         // improved keyboard UX
         addEventHandler(KEY_PRESSED, e -> {

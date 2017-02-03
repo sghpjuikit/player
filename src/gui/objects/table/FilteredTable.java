@@ -130,7 +130,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         });
 
         // addEventFilter would cause ignoring first key stroke when setting filter visible
-        addEventHandler(KEY_PRESSED, e -> {
+	    root.addEventHandler(KEY_PRESSED, e -> {
             KeyCode k = e.getCode();
             // CTRL+F -> toggle filter
             if (k==F && e.isShortcutDown()) {
@@ -147,13 +147,12 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                     e.consume();
                 }
             }
-
-            search.onKeyPressed(e);
         });
-		addEventHandler(KEY_TYPED, search::onKeyTyped);
-        addEventFilter(KEY_PRESSED, search::onEscPressHide);
+		root.addEventHandler(KEY_TYPED, search::onKeyTyped);
+        root.addEventFilter(KEY_PRESSED, search::onKeyPressed);
+        root.addEventFilter(KEY_PRESSED, search::onEscPressHide);
         // TODO: fix the overkill
-        addEventFilter(Event.ANY, e -> {
+	    root.addEventFilter(Event.ANY, e -> {
         	if (search.isActive())
         		search.updateSearchStyles();
         });

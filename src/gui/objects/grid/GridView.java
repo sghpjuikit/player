@@ -44,7 +44,6 @@ import javafx.css.*;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.util.Callback;
 
@@ -54,10 +53,12 @@ import gui.objects.search.SearchAutoCancelable;
 import util.access.V;
 import util.functional.Functors.Ƒ1;
 
-import static gui.objects.grid.GridView.SelectionOn.KEY_PRESSED;
+import static gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static util.async.Async.runLater;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -175,9 +176,9 @@ public class GridView<T,F> extends Control {
         });
 
 	    // search
-	    addEventHandler(KeyEvent.KEY_TYPED, search::onKeyTyped);
-	    addEventHandler(KeyEvent.KEY_PRESSED, search::onKeyPressed);
-	    addEventFilter(KeyEvent.KEY_PRESSED, search::onEscPressHide);
+	    addEventHandler(KEY_TYPED, search::onKeyTyped);
+	    addEventFilter(KEY_PRESSED, search::onKeyPressed);
+	    addEventFilter(KEY_PRESSED, search::onEscPressHide);
 	    addEventFilter(Event.ANY, e -> {
 		    if (search.isActive())
 			    search.updateSearchStyles();
@@ -213,11 +214,11 @@ public class GridView<T,F> extends Control {
 
 	/**
 	 * Contains {@link gui.objects.grid.GridView.SelectionOn} constants, signaling when should the selection change.
-	 * By default, contains {@link SelectionOn#MOUSE_CLICK} and {@link SelectionOn#KEY_PRESSED}.
+	 * By default, contains {@link SelectionOn#MOUSE_CLICK} and {@link SelectionOn#KEY_PRESS}.
 	 * <p/>
 	 * Removing all elements from this sets will cause this grid ignore selection
 	 */
-	public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESSED);
+	public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESS);
 
     /**
      * Property for specifying how much spacing there is between each cell
@@ -515,7 +516,7 @@ public class GridView<T,F> extends Control {
     }
 
 
-    public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESSED }
+    public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS}
 	private class Search extends SearchAutoCancelable {
 		@Override
 		public void onSearch(String s) {

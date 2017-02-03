@@ -2,6 +2,7 @@
 package gui.objects.window.stage;
 
 import java.util.List;
+import java.util.UUID;
 
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
@@ -10,19 +11,29 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinDef.HWND;
+
 import gui.Gui;
 import gui.objects.window.Resize;
 import util.access.CyclicEnum;
 import util.async.Async;
 import util.dev.Dependency;
 import util.graphics.Util;
+import util.system.Os;
 
+import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
+import static javafx.stage.StageStyle.TRANSPARENT;
+import static javafx.stage.StageStyle.UNDECORATED;
 import static main.App.APP;
 import static util.async.Async.run;
 import static util.async.Async.runLater;
+import static util.reactive.Util.installSingletonListener;
 
 /**
  * Customized Stage, window of the application.
@@ -82,6 +93,7 @@ public class WindowBase {
         if (owner!=null) s.initOwner(owner);
         if (style!=null) s.initStyle(style);
         s.setFullScreenExitHint("");
+	    fixJavaFxNonDecoratedMinimization();
     }
 
     /**
@@ -622,6 +634,85 @@ public class WindowBase {
 
     public void close() {
        s.close();
+    }
+
+	/**
+	 * Sets window always at bottom (opposite of always on top).<br/>
+	 * Windows only.
+	 *
+	 * @apiNote adjusts native window style. Based on: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
+	 */
+	public void setNonInteractingOnBottom() {
+		if (Os.getCurrent()!=Os.WINDOWS) return;
+
+		installSingletonListener(s.showingProperty(), v -> v, v -> {
+			String titleOriginal = s.getTitle();
+		    String titleUnique = UUID.randomUUID().toString();
+		    s.setTitle(titleUnique);
+		    long lhwnd = com.sun.glass.ui.Window.getWindows().stream()  // TODO: avoid com.sun
+			                 .filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
+			                 .getNativeWindow();
+			s.setTitle(titleOriginal);
+		    Pointer lpVoid = new Pointer(lhwnd);
+		    HWND hwnd = new HWND(lpVoid);
+		    User32 user32 = User32.INSTANCE;
+
+		    // Prevent window from popping up
+		    int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
+		    int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
+		    int newStyle = oldStyle | WS_EX_NOACTIVATE;
+		    // System.out.println(Integer.toBinaryString(oldStyle));
+		    // System.out.println(Integer.toBinaryString(newStyle));
+		    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
+
+		    // Put the window on bottom
+		    // http://stackoverflow.com/questions/527950/how-to-make-always-on-bottom-window
+		    int SWP_NOSIZE = 0x0001;
+		    int SWP_NOMOVE = 0x0002;
+		    int SWP_NOACTIVATE = 0x0010;
+		    int HWND_BOTTOM = 1;
+	        user32.SetWindowPos(hwnd,new HWND(new Pointer(HWND_BOTTOM)), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+		});
+    }
+
+	/**
+	 * Turns deminimization on user click on taskbar on for {@link StageStyle#UNDECORATED} amd
+	 * {@link javafx.stage.StageStyle#TRANSPARENT}, for which this feature is bugged and does not work..<br/>
+	 * Windows only.
+	 *
+	 * @apiNote adjusts native window style.
+	 */
+	private void fixJavaFxNonDecoratedMinimization() {
+		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
+	    if (Os.getCurrent()!=Os.WINDOWS) return;
+
+		installSingletonListener(s.showingProperty(), v -> v, v -> {
+		    String titleOriginal = s.getTitle();
+		    String titleUnique = UUID.randomUUID().toString();
+		    s.setTitle(titleUnique);
+		    long lhwnd = com.sun.glass.ui.Window.getWindows().stream()
+			                 .filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
+			                 .getNativeWindow();
+		    Pointer lpVoid = new Pointer(lhwnd);
+		    WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
+		    final User32 user32 = User32.INSTANCE;
+		    s.setTitle(titleOriginal);
+
+		    int WS_MINIMIZEBOX = 0x00020000;
+		    int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
+		    int newStyle = oldStyle | WS_MINIMIZEBOX;
+		    // System.out.println(Integer.toBinaryString(oldStyle));
+		    // System.out.println(Integer.toBinaryString(newStyle));
+		    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
+
+		    // redraw
+		    int SWP_NOSIZE = 0x0001;
+		    int SWP_NOMOVE = 0x0002;
+		    int SWP_NOOWNERZORDER = 0x0200;
+		    int SWP_FRAMECHANGED = 0x0020;
+		    int SWP_NOZORDER = 0x0004;
+		    user32.SetWindowPos(hwnd, null, 0,0,0,0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+		});
     }
 
     /** State of window maximization. */

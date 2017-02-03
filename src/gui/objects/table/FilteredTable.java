@@ -114,18 +114,16 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
                 // searchBox.clear();
                 // setFilterVisible(false);
 
-
                 // clear filter on 1st, hide on 2nd
                 if (filterVisible.get()) {
-                    if (filterPane.isEmpty()) filterVisible.set(false);
-                    else filterPane.clear();
+                    if (filterPane.isEmpty()) {
+                    	filterVisible.set(false);
+	                    requestFocus();
+                    } else {
+                    	filterPane.clear();
+                    }
                     e.consume();
                 }
-            }
-            // CTRL+F -> hide filter
-            if (e.getCode()==F && e.isShortcutDown()) {
-                filterVisible.set(false);
-                requestFocus();
             }
         });
 

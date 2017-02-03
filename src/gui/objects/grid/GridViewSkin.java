@@ -376,28 +376,26 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                     // clear();
                     // setFilterVisible(false);
 
-
                     // clear filter on 1st, hide on 2nd
                     if (filterVisible.get()) {
-                        if (isEmpty()) filterVisible.set(false);
-                        else clear();
+                        if (isEmpty()) {
+                        	filterVisible.set(false);
+	                        GridViewSkin.this.skin.flow.requestFocus();
+                        } else {
+                        	clear();
+                        }
                         e.consume();
                     }
-                }
-                // CTRL+F -> hide filter
-                if (e.getCode()==F && e.isShortcutDown()) {
-                    filterVisible.set(false);
-                    GridViewSkin.this.root.requestFocus();
                 }
             });
 
             // addEventFilter would cause ignoring first key stroke when setting filter visible
-            GridViewSkin.this.skin.flow.addEventHandler(KEY_PRESSED, e -> {
+            getSkinnable().addEventHandler(KEY_PRESSED, e -> {
                 KeyCode k = e.getCode();
                 // CTRL+F -> toggle filter
                 if (k==F && e.isShortcutDown()) {
                     filterVisible.set(!filterVisible.get());
-                    if (!filterVisible.get()) GridViewSkin.this.root.requestFocus();
+                    if (!filterVisible.get()) GridViewSkin.this.skin.flow.requestFocus();
                     return;
                 }
 

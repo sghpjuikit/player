@@ -76,7 +76,7 @@ import static util.graphics.Util.layHorizontally;
 import static util.reactive.Util.maintain;
 
 /**
- * Editable and setable graphic control for configuring {@Config}.
+ * Editable and settable graphic control for configuring {@link util.conf.Config}.
  * <p/>
  * Convenient way to create wide and diverse property sheets, that take
  * type of configuration into consideration. For example
@@ -223,8 +223,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /**
      * Sets editability by disabling the Nodes responsible for value change
-     *
-     * @param val
      */
     public void setEditable(boolean val) {
         getControl().setDisable(!val);
@@ -413,10 +411,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
                 Try<T,String> t = getValid();
-                boolean erroneous = t.isError();
-                boolean applicable = !erroneous && !Objects.equals(config.getValue(),t.get());
-                showOkButton(!applyOnChange && applicable && !erroneous);
-                showWarnButton(erroneous, erroneous ? t.getError() : null);
+                boolean applicable = t.isOk() && !Objects.equals(config.getValue(),t.get());
+                showOkButton(!applyOnChange && applicable && t.isOk());
+                showWarnButton(t);
                 if (applyOnChange) apply(false);
             });
             okI.setOnMouseClicked(e -> {
@@ -431,8 +428,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
 
 	        Try<T,String> t = getValid();
-	        boolean erroneous = t.isError();
-	        showWarnButton(erroneous, erroneous ? t.getError() : null);
+	        showWarnButton(t);
         }
 
         @Override
@@ -450,12 +446,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public Try<T,String> get() {
             return config.ofS(n.getText());
         }
+
         @Override
         public void refreshItem() {
             n.setText(config.getValueS());
             showOkButton(false);
-            showWarnButton(false, null);
+            showWarnButton(Try.ok());
         }
+
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
@@ -470,15 +468,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             else config.setValue(t.get());
             inconsistentState = false;
         }
+
         private void showOkButton(boolean val) {
             n.setLeft(val ? okI : null);
             okI.setVisible(val);
         }
-        private void showWarnButton(boolean val, String message) {
-            n.setRight(val ? warnB : null);
-            warnB.setVisible(val);
-            if (val) warnTooltip.setText(message);
+
+        private void showWarnButton(Try<?,String> value) {
+	        n.setRight(value.isError() ? warnB : null);
+	        warnB.setVisible(value.isError());
+	        if (value.isError()) warnTooltip.setText(value.getError());
         }
+
         private void showWarnButton(boolean val) {
             n.setRight(val ? warnB : null);
             warnB.setVisible(val);

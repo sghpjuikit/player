@@ -417,7 +417,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 boolean applicable = !erroneous && !Objects.equals(config.getValue(),t.get());
                 showOkButton(!applyOnChange && applicable && !erroneous);
                 showWarnButton(erroneous, erroneous ? t.getError() : null);
-                if (nv.isEmpty()) return;
                 if (applyOnChange) apply(false);
             });
             okI.setOnMouseClicked(e -> {

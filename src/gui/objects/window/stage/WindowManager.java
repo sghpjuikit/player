@@ -172,8 +172,8 @@ public class WindowManager implements Configurable<Object> {
               s.show();
 		return s;
 	}
+
     private Window create(boolean canBeMain) {
-//        return create(owner,UNDECORATED, canBeMain);
         return create(null,UNDECORATED, canBeMain);
     }
 

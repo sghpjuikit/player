@@ -191,15 +191,29 @@
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
 - use the following VM parameters:
-    -Xmx1g --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    -Xmx1g
+    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
     --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
 - use the following javac parameters:
     --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
     --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+
+    // lombok
+    --add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+    --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory
   exceptions for images of res 6k x 6k px & or size of 10MB...

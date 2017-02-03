@@ -37,6 +37,7 @@ public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList<>();
     private final ComboBox<PƑ<I,O>> fCB;
+    private boolean inconsistentState = false;
 
     public FItemNode(Supplier<PrefList<PƑ<I,O>>> functionPool) {
         fCB = new ImprovedComboBox<>(f -> f.name);
@@ -77,6 +78,7 @@ public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
     }
 
     private void generateValue() {
+    	if (inconsistentState) return;
         PƑ<I,O> f = fCB.getValue();
         changeValue(f.toƑ1(configs.stream().map(ConfigField::getValue).toArray()));
     }
@@ -90,5 +92,12 @@ public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
         PƑ<I,O> f = fCB.getValue();
         return f==null ? Void.class : f.out;
     }
+
+	public void clear() {
+		inconsistentState = true;
+		configs.forEach(ConfigField::setNapplyDefault);
+		inconsistentState = false;
+		generateValue();
+	}
 
 }

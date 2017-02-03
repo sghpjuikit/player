@@ -139,9 +139,11 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
     }
 
     public void clear() {
+        inconsistentState = true;
+        if (config!=null) config.clear();
+        inconsistentState = false;
         empty = true;
-        value = (Predicate<V>)IS;
-        // TODO: clear config (the predicate values, e.g., )
+        changeValue((Predicate<V>)IS);
     }
 
     private void generatePredicate() {

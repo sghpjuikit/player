@@ -36,11 +36,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Skin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -60,7 +62,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static util.Util.isInRangeInc;
 import static util.functional.Util.by;
@@ -368,48 +369,32 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
             setData(attributes.get());
 
+	        EventHandler<KeyEvent> filterKeyHandler = e -> {
+		        KeyCode k = e.getCode();
+		        // CTRL+F -> toggle filter
+		        if (k==KeyCode.F && e.isShortcutDown()) {
+			        filterVisible.set(!filterVisible.get());
+			        if (!filterVisible.get()) GridViewSkin.this.skin.flow.requestFocus();
+			        e.consume();
+			        return;
+		        }
 
-            getNode().addEventFilter(KEY_PRESSED, e -> {
-                // ESC -> close filter
-                if (e.getCode()==ESCAPE) {
-                    // clear & hide filter on single ESC
-                    // clear();
-                    // setFilterVisible(false);
-
-                    // clear filter on 1st, hide on 2nd
-                    if (filterVisible.get()) {
-                        if (isEmpty()) {
-                        	filterVisible.set(false);
-	                        GridViewSkin.this.skin.flow.requestFocus();
-                        } else {
-                        	clear();
-                        }
-                        e.consume();
-                    }
-                }
-            });
-
-            // addEventFilter would cause ignoring first key stroke when setting filter visible
-            getSkinnable().addEventHandler(KEY_PRESSED, e -> {
-                KeyCode k = e.getCode();
-                // CTRL+F -> toggle filter
-                if (k==F && e.isShortcutDown()) {
-                    filterVisible.set(!filterVisible.get());
-                    if (!filterVisible.get()) GridViewSkin.this.skin.flow.requestFocus();
-                    return;
-                }
-
-                if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
-                // ESC, filter not focused -> close filter
-                if (k==ESCAPE) {
-                    if (filterVisible.get()) {
-                        if (isEmpty()) filterVisible.set(false);
-                        else clear();
-                        e.consume();
-                    }
-                }
-            });
-
+		        if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
+		        // ESC, filter not focused -> close filter
+		        if (k==ESCAPE) {
+			        if (filterVisible.get()) {
+				        if (isEmpty()) {
+					        filterVisible.set(false);
+					        GridViewSkin.this.skin.flow.requestFocus();
+				        } else {
+					        clear();
+				        }
+				        e.consume();
+			        }
+		        }
+	        };
+            getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
+            getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
         }
 
     }

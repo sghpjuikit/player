@@ -12,10 +12,12 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -39,8 +41,6 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -107,45 +107,36 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	    // filtering
         filterPane = new Filter(filtereditems, main_field);
         filterPane.getNode().setVisible(false);
-        filterPane.getNode().addEventFilter(KEY_PRESSED, e -> {
-            // ESC -> close filter
-            if (e.getCode()==ESCAPE) {
-                // clear & hide filter on single ESC
-                // searchBox.clear();
-                // setFilterVisible(false);
+        EventHandler<KeyEvent> filterKeyHandler = e -> {
+	        KeyCode k = e.getCode();
+	        // CTRL+F -> toggle filter
+	        if (k==KeyCode.F && e.isShortcutDown()) {
+		        filterVisible.set(!filterVisible.get());
+		        if (!filterVisible.get()) requestFocus();
+		        e.consume();
+		        return;
+	        }
 
-                // clear filter on 1st, hide on 2nd
-                if (filterVisible.get()) {
-                    if (filterPane.isEmpty()) {
-                    	filterVisible.set(false);
-	                    requestFocus();
-                    } else {
-                    	filterPane.clear();
-                    }
-                    e.consume();
-                }
-            }
-        });
+	        // ESC -> close filter
+	        if (e.getCode()==KeyCode.ESCAPE) {
+		        // clear & hide filter on single ESC
+		        // searchBox.clear();
+		        // setFilterVisible(false);
 
-        // addEventFilter would cause ignoring first key stroke when setting filter visible
-	    root.addEventHandler(KEY_PRESSED, e -> {
-            KeyCode k = e.getCode();
-            // CTRL+F -> toggle filter
-            if (k==F && e.isShortcutDown()) {
-                filterVisible.set(!filterVisible.get());
-                if (!filterVisible.get()) requestFocus();
-                return;
-            }
-
-            // ESC, filter not focused -> close filter
-            if (k==ESCAPE) {
-                if (filterVisible.get()) {
-                    if (filterPane.isEmpty()) filterVisible.set(false);
-                    else filterPane.clear();
-                    e.consume();
-                }
-            }
-        });
+		        // clear filter on 1st, hide on 2nd
+		        if (filterVisible.get()) {
+			        if (filterPane.isEmpty()) {
+				        filterVisible.set(false);
+				        requestFocus();
+			        } else {
+				        filterPane.clear();
+			        }
+			        e.consume();
+		        }
+	        }
+        };
+        filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
+	    root.addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
 		root.addEventHandler(KEY_TYPED, search::onKeyTyped);
         root.addEventFilter(KEY_PRESSED, search::onKeyPressed);
         root.addEventFilter(KEY_PRESSED, search::onEscPressHide);

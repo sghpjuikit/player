@@ -290,13 +290,14 @@ public interface Environment {
 	    return fs!=null && !fs.isEmpty() ? ok(fs) : error();
     }
 
-    static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
+    static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
         c.setInitialDirectory(getExistingParent(initial,APP.DIR_APP));
         c.setInitialFileName(initialName);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
-        c.showSaveDialog(w);
+        File f = c.showSaveDialog(w);
+        return f!=null ? Try.ok(f) : Try.error();
     }
 
 	static boolean deleteFileRecycle(File f) {

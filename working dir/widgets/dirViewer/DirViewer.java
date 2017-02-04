@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import javafx.event.Event;
@@ -24,7 +25,9 @@ import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import util.*;
+import util.LazyR;
+import util.Sort;
+import util.SwitchException;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
@@ -98,7 +101,7 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
     boolean initialized = false;
-    private volatile long visitId = 0;
+    private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
     	FOLDER_PLUS, "Click to explore directory",
 		() -> Environment.chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
@@ -198,7 +201,7 @@ public class DirViewer extends ClassController {
         if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
         if (item != null && item.isHChildOf(dir)) item.disposeChildren();
-        visitId++;
+        visitId.incrementAndGet();
 
         item = dir;
         lastVisited = dir.val;
@@ -511,9 +514,9 @@ public class DirViewer extends ClassController {
     }
 
     private Runnable task(Runnable r) {
-        final long id = visitId;
+        final long id = visitId.get();
         return () -> {
-            if (id == visitId)
+            if (id == visitId.get())
                 r.run();
         };
     }

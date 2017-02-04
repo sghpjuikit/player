@@ -204,6 +204,10 @@
     --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
 
+    // jaudiotagger
+    --add-exports java.base/sun.nio.ch=ALL-UNNAMED
+    --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+
     // lombok
     --add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
     --add-exports jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED

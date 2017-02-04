@@ -405,7 +405,8 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     // TODO: remove
-    private static Action fromString(String str) {
+	@Deprecated(forRemoval = true)
+    public static Action fromString(String str) {
         int i = str.lastIndexOf(",");
         if (i==-1) return null;
         String s1 = str.substring(0,i);
@@ -415,7 +416,9 @@ public final class Action extends Config<Action> implements Runnable {
         return new Action(isGlobal, keys);
     }
 
-    private static Action from(Action a, String str) {
+    // internal use
+	@Deprecated
+    static Action from(Action a, String str) {
         Action tmp = fromString(str);
         if (tmp!=null) {
             a.global = tmp.global;

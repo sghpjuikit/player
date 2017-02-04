@@ -14,6 +14,7 @@ import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DataFormat;
@@ -22,7 +23,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 
@@ -582,78 +582,67 @@ public class Thumbnail extends ImageNode {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-    private static final SingleR<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleR<>(
-        () -> {
-            ImprovedContextMenu<Image> m = new ImprovedContextMenu<>();
-            m.getItems().addAll(
-                menuItem("Save the image as ...", e -> {
-                    FileChooser fc = new FileChooser();
-                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());
-                        fc.setTitle("Save image as...");
-                        fc.setInitialFileName("new_image");
-                        fc.setInitialDirectory(APP.DIR_APP);
-                    File f = fc.showSaveDialog(m.getOwnerWindow());
-                    Util.writeImage(m.getValue(), f);
-                }),
-                menuItem("Copy the image to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE,m.getValue()))
-            );
-            return m;
-        },
-        (menu,thumbnail) -> {
-            Image i = thumbnail.getImage();
-            menu.setValue(i);
-            menu.getItems().forEach(m->m.setDisable(i==null));
-        }
-    );
-
-    private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> file_context_menu = new SingleR<>(
+    private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> context_menu = new SingleR<>(
         () -> new ImprovedContextMenu<ContextMenuData>(){{
             getItems().setAll(
-                menuItem("Browse location", e -> Environment.browse(getValue().file)),
-                menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
-                menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
-                menuItem("Fullscreen", e -> {
-                    File f = getValue().fsImageFile;
-                    if (ImageFileFormat.isSupported(f)) {
-                        Screen screen = getScreen(getX(),getY());
-                        App.openImageFullscreen(f,screen);
-                    }
-                }),
-                menuItem("Delete from disc", e -> deleteFile(getValue().file)),
-                menuItem("Save as ...", e -> {
-                    File f = getValue().file;
-                    FileChooser fc = new FileChooser();
-                    fc.getExtensionFilters().addAll(ImageFileFormat.filter());
-                    fc.setTitle("Save as...");
-                    fc.setInitialFileName(f.getName());
-                    fc.setInitialDirectory(APP.DIR_APP);
-
-                    File nf = fc.showSaveDialog(getOwnerWindow());
-                    if (nf!=null) {
-                        try {
-                            Files.copy(f.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException ex) {
-                            LOGGER.error("File export failed.",ex);
-                        }
-                    }
-                })
+            	new Menu("Image", null,
+	                menuItem("Save the image as ...", e ->
+	                	Environment.saveFile(
+	                		    "Save image as...",
+			                    APP.DIR_APP,
+				                getValue().iFile==null ? "new_image" : getValue().iFile.getName(),
+			                    getOwnerWindow(),
+			                    ImageFileFormat.filter()
+		                    )
+							.ifOk(file -> Util.writeImage(getValue().image, file))
+	                ),
+	                menuItem("Copy to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE, getValue().image))
+                ),
+            	new Menu("Image file", null,
+                    menuItem("Fullscreen", e -> {
+	                    File f = getValue().fsImageFile;
+	                    if (ImageFileFormat.isSupported(f)) {
+		                    Screen screen = getScreen(getX(),getY());
+		                    App.openImageFullscreen(f, screen);
+	                    }
+                    })
+                ),
+            	new Menu("File", null,
+                    menuItem("Browse location", e -> Environment.browse(getValue().file)),
+                    menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
+                    menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
+                    menuItem("Delete from disc", e -> deleteFile(getValue().file)),
+                    menuItem("Save as ...", e ->
+	                        Environment.saveFile(
+                    		    "Copy as...",
+		                        APP.DIR_APP,
+			                    getValue().file.getName(),
+		                        getOwnerWindow(),
+			                    ImageFileFormat.filter()
+		                    )
+		                    .ifOk(nf -> {
+			                    try {
+				                    Files.copy(getValue().file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			                    } catch (IOException ex) {
+				                    LOGGER.error("File export failed.",ex);
+			                    }
+		                    })
+                    )
+	            )
             );
         }},
         (menu,thumbnail) -> {
             ContextMenuData data = thumbnail.new ContextMenuData();
             menu.setValue(data);
-            menu.getItems().forEach(i -> i.setDisable(data.menuDisabled));
-            stream(menu.getItems()).findFirst(m -> m.getText().equals("Fullscreen")).ifPresent(i -> i.setDisable(data.fsDisabled));
+	        menu.getItems().get(0).setDisable(data.image==null);
+            menu.getItems().get(1).setDisable(data.fsDisabled);
+            menu.getItems().get(2).setDisable(data.menuDisabled);
         }
     );
 
     private final EventHandler<MouseEvent> contextMenuHandler = e -> {
         if (e.getButton()==SECONDARY) {
-            if (getRepresentant() instanceof File)
-                file_context_menu.getM(this).show(root,e);
-            else if (getImage() !=null)
-                img_context_menu.getM(this).show(root,e);
-
+            context_menu.getM(this).show(root,e);
             e.consume();
         }
     };
@@ -663,7 +652,9 @@ public class Thumbnail extends ImageNode {
         public final File file = representant instanceof File ? (File) representant : null;
         public final File iFile = getFile();
         public final File fsImageFile = iFile!=null ? iFile : file;
+        public final Image image = getImage();
         public final boolean menuDisabled = file==null;
         public final boolean fsDisabled = fsImageFile==null || !ImageFileFormat.isSupported(fsImageFile);
+        public final Thumbnail thumbnail = Thumbnail.this;
     }
 }

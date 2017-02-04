@@ -35,6 +35,7 @@ import javafx.scene.control.skin.CellSkinBase;
 import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.search.Search;
 
+import static java.lang.Math.min;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.getAt;
 
@@ -73,25 +74,19 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
             int maxCellsInRow = ((GridViewSkin<?,?>)gridView.getSkin()).computeMaxCellsInRow();
             int totalCellsInGrid = gridView.getItemsShown().size();
             int startCellIndex = rowIndex * maxCellsInRow;
-            int endCellIndex = startCellIndex + maxCellsInRow;
+            int endCellIndex = min(startCellIndex + maxCellsInRow, totalCellsInGrid-1);
             int cacheIndex = 0;
 
 	        for (int i = startCellIndex; i < endCellIndex; i++, cacheIndex++) {
-	            if (i < totalCellsInGrid) {
-                    // Check if we can re-use a cell at this index or create a new one
-                    GridCell<T,F> cell = getCellAtIndex(cacheIndex);
-                    if (cell == null) {
-                        cell = createCell();
-                        getChildren().add(cell);
-                    }
-                    cell.updateIndex(-1);
-                    cell.updateIndex(i);
-	                cell.pseudoClassStateChanged(Search.SEARCHMATCHPC, false);
-	                cell.pseudoClassStateChanged(Search.SEARCHMATCHNOTPC, false);
-//                    cell.forceUpdateIndex(i);
+                // Check if we can re-use a cell at this index or create a new one
+                GridCell<T,F> cell = getCellAtIndex(cacheIndex);
+                if (cell == null) {
+                    cell = createCell();
+                    getChildren().add(cacheIndex, cell);
                 }
-                // we are going out of bounds -> exist the loop
-                else break;
+                cell.updateIndex(i);
+                cell.pseudoClassStateChanged(Search.SEARCHMATCHPC, false);
+                cell.pseudoClassStateChanged(Search.SEARCHMATCHNOTPC, false);
             }
 
             // In case we are re-using a row that previously had more cells than

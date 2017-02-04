@@ -20,13 +20,10 @@ class GridRow<T,F> extends IndexedCell<T>{
 
     @Override
     public void updateIndex(int i) {
-        if (i>=0)
-            forceUpdateIndex(i);
-    }
+	    // Since row can resize horizontally, cells can change index even if row does not. Hence we must still update
+		// if (getIndex()==i) return;
 
-    public void forceUpdateIndex(int i) {
         super.updateIndex(i);
-//        if (i<0) return;
         updateItem(null, false);
         updateSelected(i==getGridView().implGetSkin().selectedRI);
     }

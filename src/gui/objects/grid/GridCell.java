@@ -44,13 +44,9 @@ public class GridCell<T,F> extends IndexedCell<T> {
 
     @Override
     public void updateIndex(int i) {
-        if (i>=0)
-            forceUpdateIndex(i);
-    }
+	    if (getIndex()==i) return;
 
-    public void forceUpdateIndex(int i) {
         super.updateIndex(i);
-//        if (i<0) return;
 
         GridView<T,F> grid = getGridView();
         T item = grid.getItemsShown().get(i);

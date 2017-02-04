@@ -81,7 +81,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.setId("virtual-flow");
         skin.flow.setPannable(false);
         skin.flow.setVertical(true);
-        skin.flow.setFocusTraversable(getSkinnable().isFocusTraversable());
+        skin.flow.focusTraversableProperty().bind(control.focusTraversableProperty());
+        skin.flow.fixedCellSizeProperty().bind(control.cellHeightProperty().add(5));    // TODO: make configurable
         skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
         control.focusedProperty().addListener((o,ov,nv) -> {
             if (nv) getFlow().requestFocus();
@@ -89,7 +90,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
         root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, skin.flow);
         filter = new Filter(control.type, control.itemsFiltered);
-
 
         ListChangeListener<T> itemsListener = change -> {
             if (change.next())
@@ -246,9 +246,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         for (int i = indexStart; i <= indexEnd; i++) {
             GridRow<T,F> row = skin.flow.getVisibleCell(i);
             if (row != null) {
-                row.updateIndex(-1);
                 row.updateIndex(i);
-//                row.forceUpdateIndex(i);
             }
         }
     }
@@ -410,8 +408,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 /* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 
     private static final int NO_SELECT = Integer.MIN_VALUE;
-    int selectedCI = -1;
-    int selectedRI = -1;
+    int selectedCI = NO_SELECT;
+    int selectedRI = NO_SELECT;
     private GridRow<T,F> selectedR = null;
     private GridCell<T,F> selectedC = null;
 
@@ -421,11 +419,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     }
 
     void selectRight() {
-        select(selectedCI +1);
+        select(selectedCI + 1);
     }
 
     void selectLeft() {
-        select(selectedCI -1);
+        select(selectedCI - 1);
     }
 
     void selectUp() {

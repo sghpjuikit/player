@@ -71,13 +71,13 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
         int rowIndex = getSkinnable().getIndex();
         if (rowIndex >= 0) {
             GridView<T,F> gridView = getSkinnable().getGridView();
-            int maxCellsInRow = ((GridViewSkin<?,?>)gridView.getSkin()).computeMaxCellsInRow();
+            int maxCellsInRow = gridView.implGetSkin().computeMaxCellsInRow();
             int totalCellsInGrid = gridView.getItemsShown().size();
             int startCellIndex = rowIndex * maxCellsInRow;
             int endCellIndex = min(startCellIndex + maxCellsInRow, totalCellsInGrid-1);
             int cacheIndex = 0;
 
-	        for (int i = startCellIndex; i < endCellIndex; i++, cacheIndex++) {
+	        for (int i = startCellIndex; i <= endCellIndex; i++, cacheIndex++) {
                 // Check if we can re-use a cell at this index or create a new one
                 GridCell<T,F> cell = getCellAtIndex(cacheIndex);
                 if (cell == null) {

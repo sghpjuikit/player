@@ -52,7 +52,7 @@ public abstract class Search {
 	 * @param e event to handle
 	 */
 	public void onKeyTyped(KeyEvent e) {
-		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB) return;
+		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER) return;
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
 		if ((!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE))) return;
 

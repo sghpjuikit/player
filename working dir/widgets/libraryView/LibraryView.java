@@ -131,10 +131,6 @@ public class LibraryView extends FXMLController {
         out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
         in_items = inputs.create("To display", List.class, listRO(), this::setItems);
 
-
-//        out_sel_met = outputs.create(widget.id,"Selected Songs", new TypeToken<List<Metadata>>(){}, listRO());
-//        in_items = inputs.create("To display", new TypeToken<List<Metadata>>(){}.getRawType(), listRO(), this::setItems);
-
         // add table to scene graph
         root.getChildren().add(table.getRoot());
         setAnchors(table.getRoot(),0d);
@@ -245,10 +241,6 @@ public class LibraryView extends FXMLController {
         // forward on selection
         d(changesOf(table.getSelectedItems())
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
-
-                if (!sel_ignore) if (fieldFilter.get()==CATEGORY) {
-                    System.out.println("output set " + filterList(in_items.getValue(),true).size());
-                }
                 if (!sel_ignore)
                     out_sel_met.setValue(filterList(in_items.getValue(),true));
                 if (sel_ignore_canturnback) {
@@ -260,7 +252,7 @@ public class LibraryView extends FXMLController {
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(s -> {
                 MetadataGroup nv = s.getNewValue();
                 if (!sel_ignore)
-                    sel_last = nv==null ? "null" : VALUE.toS(nv,nv.getValue(), "");
+                    sel_last = nv==null ? "null" : nv.getValueS("");
         }));
 
         // prevent volume change
@@ -344,7 +336,9 @@ public class LibraryView extends FXMLController {
 			: mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
 
-    // get all items in grouped in the selected groups, sorts using library sort order \
+	/**
+	 *  Get all items in grouped in the selected groups, sorts using library sort order.
+ 	 */
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filterList(in_items.getValue(),false);
                        l.sort(Db.library_sorter.get());
@@ -352,7 +346,7 @@ public class LibraryView extends FXMLController {
     }
 
     private void playSelected() {
-        play(filterList(in_items.getValue(),false));
+        play(getSelected());
     }
 
     private List<Metadata> getSelected() {
@@ -387,7 +381,7 @@ public class LibraryView extends FXMLController {
         // restore last selected from previous session
         if (!sel_last_restored && !"null".equals(sel_last)) {
             forEachWithI(table.getItems(), (i,mg) -> {
-                if (VALUE.toS(mg,mg.getValue(), "").equals(sel_last)) {
+                if (mg.getValueS("").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
                     return;

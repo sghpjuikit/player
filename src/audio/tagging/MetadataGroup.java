@@ -106,6 +106,10 @@ public final class MetadataGroup {
         return val;
     }
 
+    public String getValueS(String empty_val) {
+    	return Field.VALUE.toS(this, val, empty_val);
+    }
+
     public boolean isAll() {
         return all_flag;
     }
@@ -141,6 +145,7 @@ public final class MetadataGroup {
     public double getAvgRating() {
         return avg_rating;
     }
+
     public double getWeighRating() {
         return weigh_rating;
     }

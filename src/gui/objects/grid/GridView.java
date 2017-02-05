@@ -28,7 +28,6 @@
 package gui.objects.grid;
 
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +51,7 @@ import org.reactfx.EventStreams;
 
 import gui.objects.search.SearchAutoCancelable;
 import util.access.V;
+import util.access.fieldvalue.ObjectField;
 import util.functional.Functors.Ƒ1;
 
 import static gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
@@ -87,8 +87,8 @@ import static util.functional.Util.stream;
  *   {@link gui.objects.grid.GridCell#graphicProperty() graphic property} (as it accepts any Node).
  * </ol>
  *
- * @param T type of item displayed in a grid
- * @param F type of cell
+ * @param <T> type of item wrapper to hold cached attributes of the item, can be the item type itself
+ * @param <F> type of item displayed in a grid
  *
  * @see GridCell
  */
@@ -117,7 +117,7 @@ public class GridView<T,F> extends Control {
 
     private boolean scrollFlag = true;
 
-	private F field;
+	public ObjectField<F> primaryFilterField;
 	public final Search search = new Search();
 
     /** Creates a default, empty GridView control. */

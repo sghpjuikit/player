@@ -29,6 +29,7 @@
 package gui.objects.grid;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
@@ -52,10 +53,8 @@ import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridView.SelectionOn;
 import main.App;
 import one.util.streamex.IntStreamEx;
-import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors;
-import util.functional.Functors.Ƒ0;
 import util.type.Util;
 
 import static java.lang.Math.max;
@@ -342,30 +341,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     /** Table's filter node. */
     public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F>> {
 
-        public Filter(Class<F> filterType, FilteredList<T> filterList) {
-            this(filterType, filterList, () -> attributes(filterType));
-        }
-
-        private Filter(Class<F> filterType, FilteredList<T> filterList, Ƒ0<List<PredicateData<ObjectField<F>>>> attributes) {
+        private Filter(Class<F> filterType, FilteredList<T> filterList) {
             super(() -> {
                 FieldedPredicateItemNode<F,ObjectField<F>> g = new FieldedPredicateItemNode<>(
                     in -> Functors.pool.getIO(in, Boolean.class),
                     in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
-                @SuppressWarnings("unchecked")
-                ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
-                g.setPrefTypeSupplier(() -> PredicateData.ofField(prefField));
-//                g.setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
-                g.setData(attributes.get());
+                g.setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
+                g.setData(getFilterPredicates(filterType));
                 return g;
             });
-            @SuppressWarnings("unchecked")
-            ObjectField<F> prefField = (ObjectField<F>) FileField.NAME_FULL;
-            setPrefTypeSupplier(() -> PredicateData.ofField(prefField));
-//            setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
-//            onItemChange = getSkinnable().itemsFiltered::setPredicate;
+            setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
-            setData(attributes.get());
+            setData(getFilterPredicates(filterType));
 
 	        EventHandler<KeyEvent> filterKeyHandler = e -> {
 		        KeyCode k = e.getCode();
@@ -394,16 +382,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
             getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
             getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
         }
-
     }
 
-    private static <R> List<PredicateData<ObjectField<R>>> attributes(Class<R> filterType) {
-        return stream(App.APP.classFields.get(filterType))
-                .filter(ObjectField::isTypeStringRepresentable)
-                .map(mf -> PredicateData.ofField(mf))
-                .sorted(by(e -> e.name))
-                .toList();
+    private PredicateData<ObjectField<F>> getPrimaryFilterPredicate() {
+	    return Optional.ofNullable(getSkinnable().primaryFilterField).map(PredicateData::ofField).orElse(null);
     }
+
+	private List<PredicateData<ObjectField<F>>> getFilterPredicates(Class<F> filterType) {
+		return stream(App.APP.classFields.get(filterType))
+			       .filter(ObjectField::isTypeStringRepresentable)
+			       .map(PredicateData::ofField)
+			       .sorted(by(e -> e.name))
+			       .toList();
+	}
 
 /* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 

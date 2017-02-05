@@ -247,10 +247,10 @@ public class LibraryView extends FXMLController {
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
 
                 if (!sel_ignore) if (fieldFilter.get()==CATEGORY) {
-                    System.out.println("output set " + filterList(in_items.getValue(),true,false).size());
+                    System.out.println("output set " + filterList(in_items.getValue(),true).size());
                 }
                 if (!sel_ignore)
-                    out_sel_met.setValue(filterList(in_items.getValue(),true,false));
+                    out_sel_met.setValue(filterList(in_items.getValue(),true));
                 if (sel_ignore_canturnback) {
                     sel_ignore_canturnback = false;
                     sel_ignore = false;
@@ -311,7 +311,7 @@ public class LibraryView extends FXMLController {
         setItems(in_items.getValue());
     }
 
-    /** populates metadata groups to table from metadata list */
+    /** Populates metadata groups to table from metadata list. */
     private void setItems(List<Metadata> list) {
         if (list==null) return;
         fut(fieldFilter.getValue())
@@ -320,7 +320,7 @@ public class LibraryView extends FXMLController {
                     MetadataGroup.groupOf(f,list),
                     MetadataGroup.groupsOf(f,list)
                 ).collect(toList());
-                List<Metadata> fl = filterList(list,true,false);
+                List<Metadata> fl = filterList(list,true);
                 runLater(() -> {
                     if (!mgs.isEmpty()) {
                         selectionStore();
@@ -333,10 +333,10 @@ public class LibraryView extends FXMLController {
             .run();
     }
 
-    private List<Metadata> filterList(List<Metadata> list, boolean orAll, boolean orEmpty) {
+    private List<Metadata> filterList(List<Metadata> list, boolean orAll) {
         if (list==null || list.isEmpty()) return listRO();
 
-        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+        List<MetadataGroup> mgs = table.getSelectedOrAllItems(orAll).collect(toList());
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
         return mgs.stream().anyMatch(mg -> mg.isAll())
@@ -346,17 +346,17 @@ public class LibraryView extends FXMLController {
 
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
-        List<Metadata> l = filterList(in_items.getValue(),false,true);
+        List<Metadata> l = filterList(in_items.getValue(),false);
                        l.sort(Db.library_sorter.get());
         return l;
     }
 
     private void playSelected() {
-        play(filterList(in_items.getValue(),false,true));
+        play(filterList(in_items.getValue(),false));
     }
 
     private List<Metadata> getSelected() {
-        return filterList(in_items.getValue(),false,true);
+        return filterList(in_items.getValue(),false);
     }
 
 /******************************* SELECTION RESTORE ****************************/

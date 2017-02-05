@@ -7,6 +7,7 @@ package gui.itemnode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -94,6 +95,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
         negB.tooltip(negTooltip);
     }
 
+    // TODO: this should be advertied that supplier can return null
     public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
         prefTypeSupplier = supplier;
     }
@@ -117,8 +119,10 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
         typeCB.getItems().setAll(cs);
         inconsistentState = false;
 
-	    PredicateData<F> v = prefTypeSupplier == null ? null : prefTypeSupplier.get();
-        if (v==null) v = cs.isEmpty() ? null : cs.get(0);
+	    PredicateData<F> v =  Optional.ofNullable(prefTypeSupplier)
+			.map(Supplier::get)
+			.orElseGet(() -> cs.isEmpty() ? null : cs.get(0));
+	    // TODO: handle v==null
         typeCB.setValue(v);
     }
 
@@ -170,7 +174,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
 		public final T value;
 
 		public static <A, V extends ObjectField<A>> PredicateData<V> ofField(V field) {
-			return new PredicateData<>(field.toString(), field.getType(), field);
+			return new PredicateData<>(field.name(), field.getType(), field);
 		}
 
 		public PredicateData(String name, Class type, T value) {

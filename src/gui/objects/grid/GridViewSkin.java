@@ -404,49 +404,49 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     private GridRow<T,F> selectedR = null;
     private GridCell<T,F> selectedC = null;
 
-    void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
+    public void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
         if (selectedCI <0) ifEmpty.run();
         else otherwise.run();
     }
 
-    void selectRight() {
+	public void selectRight() {
         select(selectedCI + 1);
     }
 
-    void selectLeft() {
+	public void selectLeft() {
         select(selectedCI - 1);
     }
 
-    void selectUp() {
+	public void selectUp() {
         int sel = selectedCI -computeMaxCellsInRow();
          select(max(0,sel));
     }
 
-    void selectDown() {
+	public void selectDown() {
         int sel = selectedCI +computeMaxCellsInRow();
         select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
 
-    void selectPageUp() {
+	public void selectPageUp() {
         int sel = selectedCI -computeMaxRowsInGrid()*computeMaxCellsInRow();
         select(max(0,sel));
     }
 
-    void selectPageDown() {
+	public void selectPageDown() {
         int sel = selectedCI +computeMaxRowsInGrid()*computeMaxCellsInRow();
         int max = getSkinnable().getItemsShown().size()-1;
         select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
 
-    void selectFirst() {
+	public void selectFirst() {
         select(0);
     }
 
-    void selectLast() {
+	public void selectLast() {
         select(getSkinnable().getItemsShown().size()-1);
     }
 
-    void selectNone() {
+	public void selectNone() {
         if (selectedC!=null) selectedC.updateSelected(false);
         if (selectedR!=null) selectedR.updateSelected(false);
         getSkinnable().selectedRow.set(null);
@@ -457,13 +457,17 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         selectedCI = NO_SELECT;
     }
 
-    void select(GridCell<T,F> c) {
+	public void select(GridCell<T,F> c) {
         if (c==null || c.getItem()==null) selectNone();
         else select(c.getIndex());
     }
 
+    public void select(T item) {
+    	select(getSkinnable().getItemsShown().indexOf(item));
+    }
+
     /** Select cell (and row it is in) at index. No-op if out of range. */
-    void select(int i) {
+    public void select(int i) {
         if (skin.flow==null) return;
         if (i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
 

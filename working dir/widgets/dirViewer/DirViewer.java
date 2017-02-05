@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -165,7 +164,6 @@ public class DirViewer extends ClassController {
 					: list(getCommonRoot(DragUtil.getFiles((e))))
 			)
 		);
-		setOnScroll(Event::consume);
     }
 
     @Override

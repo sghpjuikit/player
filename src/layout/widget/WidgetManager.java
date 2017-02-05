@@ -649,7 +649,7 @@ public final class WidgetManager {
 		}
 	}
 
-	public enum Widget_Target {
+	public enum WidgetTarget {
 		LAYOUT,
 		TAB,
 		POPUP,

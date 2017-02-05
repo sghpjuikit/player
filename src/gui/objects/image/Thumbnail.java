@@ -599,6 +599,10 @@ public class Thumbnail extends ImageNode {
 	                menuItem("Copy to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE, getValue().image))
                 ),
             	new Menu("Image file", null,
+                    menuItem("Browse location", e -> Environment.browse(getValue().fsImageFile)),
+                    menuItem("Open (in associated program)", e -> Environment.open(getValue().fsImageFile)),
+                    menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().fsImageFile)),
+                    menuItem("Delete from disc", e -> deleteFile(getValue().fsImageFile)),
                     menuItem("Fullscreen", e -> {
 	                    File f = getValue().fsImageFile;
 	                    if (ImageFileFormat.isSupported(f)) {
@@ -612,7 +616,7 @@ public class Thumbnail extends ImageNode {
                     menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
                     menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
                     menuItem("Delete from disc", e -> deleteFile(getValue().file)),
-                    menuItem("Save as ...", e ->
+                    menuItem("Copy as ...", e ->
 	                        Environment.saveFile(
                     		    "Copy as...",
 		                        APP.DIR_APP,
@@ -624,7 +628,7 @@ public class Thumbnail extends ImageNode {
 			                    try {
 				                    Files.copy(getValue().file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			                    } catch (IOException ex) {
-				                    LOGGER.error("File export failed.",ex);
+				                    LOGGER.error("File cpy failed.",ex);
 			                    }
 		                    })
                     )

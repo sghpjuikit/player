@@ -2,6 +2,7 @@ package gui.objects.table;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
@@ -118,27 +119,48 @@ public class ImprovedTable<T> extends TableView<T> {
         }
     }
 
-
-    /** Returns selected items. The list will continue to reflect changes in selection. */
+    /**
+     * Returns selected items.
+     * The list will continue to reflect changes in selection.
+     */
     public ObservableList<T> getSelectedItems() {
         return getSelectionModel().getSelectedItems();
     }
 
-    /** @return unchanging copy of selected items.
-        @see #getSelectedItems() */
-    public List<T> getSelectedItemsCopy() {
-        return new ArrayList<>(getSelectionModel().getSelectedItems());
-    }
-    /** @return selected items or all if none selected. The list will continue
-    to reflect change in selection or table list (depending on which was returned). */
+    /**
+     * Returns selected items or all if none selected.
+     * The list will continue to reflect change in selection or table list (depending on which was returned).
+     */
     public ObservableList<T> getSelectedOrAllItems() {
         return getSelectionModel().isEmpty() ? getItems() : getSelectedItems();
     }
-    /** @return unchanging copy of selected or all items.
-        @see #getSelectedOrAllItems() */
-    public List<T> getSelectedOrAllItemsCopy() {
+
+	/**
+	 * Returns unchanging copy of selected items
+	 * @see #getSelectedItems()
+	 */
+	public ArrayList<T> getSelectedItemsCopy() {
+		return new ArrayList<>(getSelectedItems());
+	}
+
+    /**
+     * Returns unchanging copy of selected or all items
+     * @see #getSelectedOrAllItems()
+     */
+    public ArrayList<T> getSelectedOrAllItemsCopy() {
         return new ArrayList<>(getSelectedOrAllItems());
     }
+
+	/**
+	 * Returns selected items or all if none selected and asked
+	 * <p/>
+	 * The stream is intended for immediate consumption because it may be backed by an observable.
+	 *
+	 * @param orAll whether all items should be returned when no item is selected
+	 */
+	public Stream<T> getSelectedOrAllItems(boolean orAll) {
+		return (orAll ? getSelectedOrAllItems() : getSelectedItems()).stream();
+	}
 
     /** Max index. Normally equal to number of items. */
     public int getMaxIndex() {

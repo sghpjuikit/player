@@ -21,6 +21,7 @@ import javafx.scene.input.Dragboard;
 
 import audio.Item;
 import audio.SimpleItem;
+import audio.tagging.MetadataGroup;
 import de.jensd.fx.glyphs.GlyphIcons;
 import layout.Component;
 import layout.widget.controller.io.Output;
@@ -85,14 +86,14 @@ public final class DragUtil {
 
 /* ---------- DATA FORMATS ------------------------------------------------------------------------------------------ */
 
-	/** Data Format for List<Item>. */
-	public static final DataFormat itemsDF = new DataFormat("items");
-	/** Data Format for WidgetTransfer. */
-	public static final DataFormat widgetDF = new DataFormat("widget");
-	/** Data Format for Component. */
-	public static final DataFormat componentDF = new DataFormat("component");
-	/** Data Format for widget output linking. */
-	public static final DataFormat widget_outputDF = new DataFormat("widget-output");
+	/** Data Format for {@link java.util.List} of {@link audio.Item}. */
+	public static final DataFormat DF_ITEMS = new DataFormat("application/items");
+	/** Data Format for {@link layout.Component}. */
+	public static final DataFormat DF_COMPONENT = new DataFormat("application/component");
+	/** Data Format for widget {@link layout.widget.controller.io.Output} linking. */
+	public static final DataFormat DF_WIDGET_OUTPUT = new DataFormat("application/widget-output");
+	/** Data Format for {@link audio.tagging.MetadataGroup}. */
+	public static final DataFormat DF_METADATA_GROUP = new DataFormat("application/metadata-group");
 
 /* ---------- DRAGBOARD --------------------------------------------------------------------------------------------- */
 
@@ -149,6 +150,7 @@ public final class DragUtil {
 		// first in-app objects, then general object (text, files, etc.)
 		if (hasItemList(e)) return getItemsList(e);
 		if (hasComponent(e)) return getComponent(e);
+		if (hasMetadataGroup(e)) return getMetadataGroup(e);
 		if (d.hasFiles()) return d.getFiles();
 		if (d.hasImage()) return d.getImage();
 		if (d.hasUrl()) return d.getUrl();
@@ -162,6 +164,7 @@ public final class DragUtil {
 		// first in-app objects, then general object (text, files, etc.)
 		if (hasItemList(e)) return getItemsList(e);
 		if (hasComponent(e)) return getComponent(e);
+		if (hasMetadataGroup(e)) return getMetadataGroup(e);
 		if (d.hasFiles()) return d.getFiles();
 		if (d.hasImage()) return d.getImage();
 		if (d.hasUrl()) return futUrl(d.getUrl());
@@ -223,7 +226,7 @@ public final class DragUtil {
 
 	public static void setComponent(Component c, Dragboard db) {
 		data = c;
-		db.setContent(singletonMap(componentDF, ""));   // fake data
+		db.setContent(singletonMap(DF_COMPONENT, ""));   // fake data
 	}
 
 	public static Component getComponent(DragEvent e) {
@@ -232,14 +235,14 @@ public final class DragUtil {
 	}
 
 	public static boolean hasComponent(DragEvent e) {
-		return e.getDragboard().hasContent(componentDF);
+		return e.getDragboard().hasContent(DF_COMPONENT);
 	}
 
 /* ---------- WIDGET OUTPUT ----------------------------------------------------------------------------------------- */
 
 	public static void setWidgetOutput(Output o, Dragboard db) {
 		data = o;
-		db.setContent(singletonMap(widget_outputDF, ""));   // fake data
+		db.setContent(singletonMap(DF_WIDGET_OUTPUT, ""));   // fake data
 	}
 
 	/** Returns widget output from dragboard or runtime exceptin if none. */
@@ -251,18 +254,34 @@ public final class DragUtil {
 
 	/** Returns whether dragboard contains text. */
 	public static boolean hasWidgetOutput(DragEvent e) {
-		return e.getDragboard().hasContent(widget_outputDF);
+		return e.getDragboard().hasContent(DF_WIDGET_OUTPUT);
+	}
+
+/* ---------- METADATA GROUP ---------------------------------------------------------------------------------------- */
+
+	public static void setMetadataGroup(MetadataGroup c, Dragboard db) {
+		data = c;
+		db.setContent(singletonMap(DF_METADATA_GROUP, ""));   // fake data
+	}
+
+	public static MetadataGroup getMetadataGroup(DragEvent e) {
+		if (!hasMetadataGroup(e)) throw new RuntimeException("No " + DF_METADATA_GROUP + " in data available.");
+		return (MetadataGroup) data;
+	}
+
+	public static boolean hasMetadataGroup(DragEvent e) {
+		return e.getDragboard().hasContent(DF_METADATA_GROUP);
 	}
 
 /* ---------- SONGS ------------------------------------------------------------------------------------------------- */
 
 	public static void setItemList(List<? extends Item> items, Dragboard db, boolean includeFiles) {
 		data = items;
-		db.setContent(singletonMap(itemsDF, ""));   // fake data
+		db.setContent(singletonMap(DF_ITEMS, ""));   // fake data
 
 		if (includeFiles) {
 			HashMap<DataFormat,Object> c = new HashMap<>();
-			c.put(itemsDF, "");   // fake data
+			c.put(DF_ITEMS, "");   // fake data
 			c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
 			db.setContent(c);
 		}
@@ -275,7 +294,7 @@ public final class DragUtil {
 	}
 
 	public static boolean hasItemList(DragEvent e) {
-		return e.getDragboard().hasContent(itemsDF);
+		return e.getDragboard().hasContent(DF_ITEMS);
 	}
 
 	/**
@@ -365,7 +384,8 @@ public final class DragUtil {
 		return fut(null);
 	}
 
-	@Deprecated    // workaround method, remove
+	// workaround method, remove
+	@Deprecated(forRemoval = true)
 	public static File getImageNoUrl(DragEvent e) {
 		Dragboard d = e.getDragboard();
 

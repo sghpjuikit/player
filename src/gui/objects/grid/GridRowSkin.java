@@ -1,5 +1,5 @@
 
-/**
+/*
  * Copyright (c) 2013, ControlsFX
  * All rights reserved.
  *
@@ -106,12 +106,10 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
         // double currentWidth = getSkinnable().getWidth();
         double cellWidth = getSkinnable().gridViewProperty().get().getCellWidth();
         double cellHeight = getSkinnable().gridViewProperty().get().getCellHeight();
-        double horizontalCellSpacing = getSkinnable().gridViewProperty().get().getHorizontalCellSpacing();
         double verticalCellSpacing = getSkinnable().gridViewProperty().get().getVerticalCellSpacing();
-
         // here we alter the horizontal spacing to get rid of the gap on the right
-        int columns = ((GridViewSkin)getSkinnable().getGridView().getSkin()).computeMaxCellsInRow();
-        horizontalCellSpacing = (w-columns*cellWidth)/(columns+1);
+        int columns = getSkinnable().getGridView().implGetSkin().computeMaxCellsInRow();
+        double horizontalCellSpacing = (w-columns*cellWidth)/(columns+1);
         double xPos = 0;
         double yPos = 0;
         for (Node child : getChildren()) {
@@ -125,6 +123,7 @@ public class GridRowSkin<T,F> extends CellSkinBase<GridRow<T,F>> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public Stream<GridCell<T,F>> getCells() {
 		return getChildren().stream().map(c -> (GridCell<T,F>)c);
     }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, 2015, ControlsFX
  * All rights reserved.
  *
@@ -26,7 +26,6 @@
  */
 
 package gui.objects.grid;
-
 
 import java.util.Comparator;
 import java.util.List;

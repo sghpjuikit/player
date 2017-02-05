@@ -28,6 +28,7 @@
 package gui.objects.grid;
 
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -85,6 +86,9 @@ import static util.functional.Util.stream;
  *   GridCell can have an arbitrarily complex scenegraph set inside its
  *   {@link gui.objects.grid.GridCell#graphicProperty() graphic property} (as it accepts any Node).
  * </ol>
+ *
+ * @param T type of item displayed in a grid
+ * @param F type of cell
  *
  * @see GridCell
  */
@@ -187,6 +191,7 @@ public class GridView<T,F> extends Control {
 		    if (search.isActive())
 			    search.updateSearchStyles();
 	    });
+	    setOnScroll(Event::consume);
     }
 
     @Override
@@ -219,6 +224,33 @@ public class GridView<T,F> extends Control {
 	 * Removing all elements from this sets will cause this grid ignore selection
 	 */
 	public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESS);
+
+	/**
+	 * Returns selected items.
+	 * <p/>
+	 * The stream is intended for immediate consumption because it may be backed by an observable.
+	 */
+	public Stream<T> getSelectedItems() {
+		return selectedItem.get()==null ? Stream.empty() : Stream.of(selectedItem.get());
+	}
+
+	/**
+	 * Returns selected items or all if none selected.
+	 */
+	public Stream<T> getSelectedOrAllItems() {
+		return selectedItem.get()==null ? getItemsShown().stream() : Stream.of(selectedItem.get());
+	}
+
+	/**
+	 * Returns selected items or all if none selected and asked
+	 * <p/>
+	 * The stream is intended for immediate consumption because it may be backed by an observable.
+	 *
+	 * @param orAll whether all items should be returned when no item is selected
+	 */
+	public Stream<T> getSelectedOrAllItems(boolean orAll) {
+		return orAll ? getSelectedOrAllItems() : getSelectedItems();
+	}
 
     /**
      * Property for specifying how much spacing there is between each cell

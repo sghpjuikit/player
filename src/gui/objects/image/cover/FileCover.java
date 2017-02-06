@@ -37,9 +37,12 @@ public class FileCover implements Cover {
 
     @Override
     public Image getImage(double width, double height) {
+    	if (file==null) return null;
+
         Image cached = Thumbnail.getCached(file, width, width);
         if (cached!=null) return cached;
-        return file==null ? null : Util.loadImage(file, width, height);
+
+        return Util.loadImage(file, width, height);
     }
 
     @Override

@@ -338,7 +338,7 @@ public class DirViewer extends ClassController {
                 //     - reduce ui performance when resizing
                 // Solved by delaying the image loading & drawing, which reduces subsequent
                 // invokes into single update (last).
-	            boolean loadLater = item.cover_loadedFull; // && !isResizing;
+	            boolean loadLater = item.cover_loadedFull;
                 if (loadLater) setCoverNow(item);
                 else setCoverLater(item);
             }

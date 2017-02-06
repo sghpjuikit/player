@@ -439,7 +439,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
 
 	public void selectPageDown() {
         int sel = selectedCI +computeMaxRowsInGrid()*computeMaxCellsInRow();
-        int max = getSkinnable().getItemsShown().size()-1;
         select(min(getSkinnable().getItemsShown().size()-1,sel));
     }
 
@@ -479,7 +478,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         int itemCount = getSkinnable().getItemsShown().size();
         int iMin = 0;
         int iMax = itemCount-1;
-        if (itemCount==0 || i== selectedCI || !isInRangeInc(i,iMin,iMax)) return;
+        if (itemCount==0 || i==selectedCI || !isInRangeInc(i,iMin,iMax)) return;
 
         selectNone();
 

@@ -548,7 +548,7 @@ public class GridView<T,F> extends Control {
 
 
     public enum SelectionOn { MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS}
-	private class Search extends SearchAutoCancelable {
+	class Search extends SearchAutoCancelable {
 		@Override
 		public void onSearch(String s) {
 			for (int i=0; i<getItemsShown().size(); i++) {
@@ -567,12 +567,12 @@ public class GridView<T,F> extends Control {
 			updateSearchStyleRowsNoReset();
 		}
 
-		private void updateSearchStyles() {
+		void updateSearchStyles() {
 			if (isCancelable) searchAutocanceller.start(cancelActivityDelay);
 			updateSearchStyleRowsNoReset();
 		}
 
-		private void updateSearchStyleRowsNoReset() {
+		void updateSearchStyleRowsNoReset() {
 			boolean searchOn = isActive();
 			getCellsShown().forEach(cell -> {
 				T t = cell.getItem();

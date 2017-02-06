@@ -62,6 +62,7 @@ import static java.lang.Math.min;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.isInRangeInc;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
@@ -123,6 +124,10 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
                 }
             }
         });
+	    skin.flow.addEventHandler(MOUSE_CLICKED, e -> {
+		    if (control.selectOn.contains(SelectionOn.MOUSE_CLICK))
+			    selectNone();
+	    });
     }
 
     public VirtualFlow<GridRow<T,F>> getFlow() {

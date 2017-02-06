@@ -59,13 +59,15 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.Util.getScreen;
-import static util.reactive.Util.*;
+import static util.reactive.Util.maintain;
+import static util.reactive.Util.onScreenChange;
 
 /**
  * Manages windows.
@@ -268,15 +270,18 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
             miniWindow.disposables.add(onScreenChange(screen -> {
-            	// TODO: implement for every window
+	            // TODO: implement for every window
                 // maintain proper widget content until window closes
-                if (screen.getBounds().contains(miniWindow.getX(), miniWindow.getY()))
-                    miniWindow.setXYSize(
-                        screen.getBounds().getMinX(),
-                        screen.getBounds().getMinY(),
-                        screen.getBounds().getWidth(),
-                        miniWindow.getHeight()
-                    );
+                if (screen.getBounds().contains(miniWindow.getCenterXY()))
+		            runLater(() -> {
+			            miniWindow.setScreen(screen);
+			            miniWindow.setXYSize(
+				            screen.getBounds().getMinX(),
+				            screen.getBounds().getMinY(),
+				            screen.getBounds().getWidth(),
+				            miniWindow.getHeight()
+			            );
+		            });
             }));
 
             // content controls

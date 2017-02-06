@@ -158,6 +158,8 @@ public final class WidgetManager {
 			.forEach(w -> {
 				Widget<?> nw = wf.create();
 				nw.setStateFrom((Widget)w);
+				// TODO: actually this can still be null as widget is not guaranteed to be within layout (i.e. FileInfo
+				// in notification). It MUST be wrapped within container!
 				Integer i = w.indexInParent();
 				Container c = w.getParent();
 				c.removeChild(i);

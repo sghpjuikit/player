@@ -291,14 +291,14 @@ public class FileInfo extends FXMLController implements SongReader {
 
         // sort
         if (groupFields.getValue()==Sort.SEMANTIC) {
-        labels.clear();
+            labels.clear();
             fields.sort(by(l -> l.semantic_index));
             labels.addAll(fields);
             labels.add(4,gap1);
             labels.add(10,gap2);
             labels.add(17,gap3);
         } else {
-        labels.clear();
+            labels.clear();
             fields.sort(by(l -> l.name));
             labels.addAll(fields);
         }
@@ -311,6 +311,14 @@ public class FileInfo extends FXMLController implements SongReader {
 
     private void setCover(CoverSource source) {
         cover.loadImage(isEmpty() ? null : data.getCover(source));
+
+        // TODO: the below should be safer
+//        cover.loadImage((Cover) null);
+//        if (!isEmpty()) {
+//        	fut().supply(() -> data.getCover(source))
+//				.map(Cover::getImage)
+//				.use(cover::loadImage, FX);
+//        }
     }
 
     private void setOverrun(OverrunStyle os) {

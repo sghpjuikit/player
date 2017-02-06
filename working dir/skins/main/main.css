@@ -4086,9 +4086,9 @@ check-icon-disabling:selected {
 }
 
 .grid-cell:selected {
-    -fx-background-insets: -8 -8 12 -8;
+    -fx-background-insets: -4 -4 6 -4;
     -fx-background-color: black;
-    -fx-padding: -4;
+    -fx-padding: -2;
 }
 
 /*

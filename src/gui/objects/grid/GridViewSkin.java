@@ -82,7 +82,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         skin.flow.setPannable(false);
         skin.flow.setVertical(true);
         skin.flow.focusTraversableProperty().bind(control.focusTraversableProperty());
-        skin.flow.fixedCellSizeProperty().bind(control.cellHeightProperty().add(5));    // TODO: make configurable
         skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
         control.focusedProperty().addListener((o,ov,nv) -> {
             if (nv) getFlow().requestFocus();
@@ -275,7 +274,8 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         public SkinDelegate(GridView<T,F> control) {
             super(control);
 
-            registerChangeListener(control.cellHeightProperty(), e -> flowRecreateCells());
+	        flow.fixedCellSizeProperty().bind(control.cellHeightProperty().add(5));    // TODO: make configurable
+//            registerChangeListener(control.cellHeightProperty(), e -> flowRecreateCells());
             registerChangeListener(control.cellWidthProperty(), e -> { updateRowCount(); flowRecreateCells(); });
             registerChangeListener(control.horizontalCellSpacingProperty(), e -> { updateRowCount(); flowRecreateCells(); });
             registerChangeListener(control.verticalCellSpacingProperty(), e -> flowRecreateCells());
@@ -491,14 +491,7 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         if (row<0 || row>rows) return;
 
         // show row & cell to select
-        GridRow<T,F> fvc = skin.flow.getFirstVisibleCell();
-        GridRow<T,F> lvc = skin.flow.getLastVisibleCell();
-        boolean isUp   = row<=fvc.getIndex();
-        boolean isDown = row>=lvc.getIndex();
-        if (fvc.getIndex() >= row || row >= lvc.getIndex()) {
-            if (isUp) skin.flow.scrollToTop(row);
-            else skin.flow.scrollTo(row); // TODO: fix weird behavior
-        }
+        scrollTo(row);
 
         // find row & cell to select
         GridRow<T,F> r = skin.flow.getCell(row);
@@ -515,6 +508,25 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         selectedC.updateSelected(true);
         getSkinnable().selectedRow.set(r.getItem());
         getSkinnable().selectedItem.set(c.getItem());
+    }
+
+    private void scrollTo(int row) {
+	    GridRow<T,F> fvc = skin.flow.getFirstVisibleCell();
+	    GridRow<T,F> lvc = skin.flow.getLastVisibleCell();
+	    boolean isUp   = row<=fvc.getIndex();
+	    boolean isDown = row>=lvc.getIndex();
+	    if (fvc.getIndex() >= row || row >= lvc.getIndex()) {
+		    if (isUp) skin.flow.scrollToTop(row);
+		    else scrollToBottom(row);
+	    }
+    }
+
+    private void scrollToBottom(int row) {
+	    GridRow lastRow = skin.flow.getLastVisibleCell();
+	    double rowBy = (row - lastRow.getIndex())*skin.flow.getFixedCellSize();
+	    double cellBy = lastRow.getLayoutY() + skin.flow.getFixedCellSize() -  (double)invokeMethodP0(skin.flow, "getViewportLength");
+	    double by = rowBy + cellBy;
+	    skin.flow.scrollPixels(by);
     }
 
 }

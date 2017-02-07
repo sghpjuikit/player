@@ -1,33 +1,7 @@
-/*
- * Copyright (c) 2010, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package gui.objects.grid;
 
 import javafx.scene.control.Control;
 import javafx.scene.control.IndexedCell;
-import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.skin.VirtualFlow;
 
@@ -40,7 +14,6 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
 
     /** The virtualized container which handles the layout and scrolling of all the cells. */
     final VirtualFlow<I> flow;
-    boolean rowCountDirty;
 
     /**
      *
@@ -49,31 +22,9 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
     public CustomVirtualContainerBase(final C control) {
         super(control);
         flow = createVirtualFlow();
-
-        control.addEventHandler(ScrollToEvent.scrollToTopIndex(), event -> {
-            // Fix for RT-24630: The row count in VirtualFlow was incorrect
-            // (normally zero), so the scrollTo call was misbehaving.
-            if (rowCountDirty) {
-                // update row count before we do a scroll
-                updateRowCount();
-                rowCountDirty = false;
-            }
-            flow.scrollToTop(event.getScrollTarget());
-        });
     }
-
-    /**
-     * Returns the total number of items in this container, including those
-     * that are currently hidden because they are out of view.
-     */
-    abstract int getItemCount();
 
     abstract void updateRowCount();
-
-    /** {@inheritDoc} */
-    @Override protected void layoutChildren(double x, double y, double w, double h) {
-        checkState();
-    }
 
     /**
      * Enables skin subclasses to provide a custom VirtualFlow implementation,
@@ -83,10 +34,4 @@ public abstract class CustomVirtualContainerBase<C extends Control, I extends In
         return new VirtualFlow<>();
     }
 
-    void checkState() {
-        if (rowCountDirty) {
-            updateRowCount();
-            rowCountDirty = false;
-        }
-    }
 }

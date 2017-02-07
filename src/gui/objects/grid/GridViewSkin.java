@@ -290,11 +290,6 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         }
 
         @Override
-        int getItemCount() {
-            return GridViewSkin.this.getItemCount();
-        }
-
-        @Override
         void updateRowCount() {
             GridViewSkin.this.updateRowCount();
         }

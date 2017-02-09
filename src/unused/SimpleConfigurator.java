@@ -82,13 +82,14 @@ public class SimpleConfigurator<T> extends AnchorPane {
 
 	/**
 	 * @param c configurable object
-	 * @param on_OK OK button click action. Null if none. Affects visibility
+	 * @param on_OK OK button click actions taking the configurable as input parameter. Affects visibility
 	 * of the OK button. It is only visible if there is an action to execute.
 	 */
 	@SafeVarargs
-	public SimpleConfigurator(Configurable<T> c, Consumer<? super Configurable<T>>... on_OK) {
+	@SuppressWarnings("unchecked")
+	public <C extends Configurable<T>> SimpleConfigurator(C c, Consumer<? super C>... on_OK) {
 		configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
-		onOK = cf -> stream(on_OK).forEach(action -> action.accept(cf));
+		onOK = c==null ? cf -> {} : cf -> stream(on_OK).forEach(action -> action.accept((C)cf)); // cas is safe because we know its always C
 		hasAction.set(on_OK!=null && on_OK.length>0);
 
 		// load fxml part

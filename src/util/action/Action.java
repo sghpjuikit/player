@@ -35,7 +35,6 @@ import util.validation.Constraint;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
-import static util.action.Action.CONFIG_GROUP;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.reactive.Util.doOnceIfNonNull;
@@ -50,7 +49,7 @@ import static util.reactive.Util.listChangeHandlerEach;
  * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
-@IsConfigurable(CONFIG_GROUP)
+@IsConfigurable(Action.CONFIG_GROUP)
 public final class Action extends Config<Action> implements Runnable {
 
     /** Action that does nothing. Use where null inappropriate. */
@@ -583,6 +582,10 @@ public final class Action extends Config<Action> implements Runnable {
 
     private static final MapSet<Integer,Action> actions = gatherActions();
 
+    public static void installActions(Object... os) {
+    	stream(os).forEach(o -> gatherActions(o).forEach(actions::add));
+    }
+
     /** @return all actions of this application */
     private static MapSet<Integer,Action> gatherActions() {
 	    return util.type.Util.getAnnotated(IsActionable.class)
@@ -591,7 +594,7 @@ public final class Action extends Config<Action> implements Runnable {
 			.toCollection(() -> new MapSet<>(new ConcurrentHashMap<>(), Action::getID));
     }
 
-    public static <T> Stream<Action> gatherActions(T object) {
+    public static Stream<Action> gatherActions(Object object) {
     	return gatherActions(object.getClass(), object);
     }
 

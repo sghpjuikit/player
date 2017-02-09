@@ -11,7 +11,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.LogManager;
+import java.util.stream.Stream;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -83,6 +85,7 @@ import layout.widget.Widget;
 import layout.widget.WidgetManager;
 import layout.widget.WidgetManager.WidgetSource;
 import layout.widget.feature.*;
+import main.Plugin.SimplePlugin;
 import services.ClickEffect;
 import services.Service;
 import services.ServiceManager;
@@ -104,6 +107,7 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
+import util.conf.Config.PropertyConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -153,8 +157,7 @@ import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.file.Environment.*;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getFilesAudio;
-import static util.file.Util.isValidatedDirectory;
+import static util.file.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -510,7 +513,7 @@ public class App extends Application implements Configurable {
 			new FastColAction<>("Set as data",
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
-//				actionPane.converting(Try::ok)
+//				actionPane.converting(Try::ok)  // TODO: Fix this throwing: Error:java: Compilation failed: internal java compiler error
 				actionPane.converting(o -> Try.ok(o))
 			),
 			new FastColAction<>("Open in Converter",
@@ -721,6 +724,48 @@ public class App extends Application implements Configurable {
 			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		));
 
+		// TODO: implement plugin discovery
+		// TODO: avoid specifying plugin name in group
+		installPlugins(
+			new SimplePlugin("App Search") {
+
+				@Constraint.FileType(Constraint.FileActor.DIRECTORY)
+				@IsConfig(group = Plugin.CONFIG_GROUP + ".App Search")
+				final V<File> searchDir = new V<>(null, this::computeFiles);
+
+				@IsConfig(group = Plugin.CONFIG_GROUP + ".App Search")
+				final V<Integer> searchDepth = new V<>(2, this::computeFiles);
+
+				private List<File> apps;
+				private final Supplier<Stream<ConfigSearch.Entry>> src = () -> apps.stream()
+						.map(f ->
+						  ConfigSearch.Entry.of(
+						      () -> "Run app: " + f.getName(),
+						      () -> Environment.open(f),
+						      () -> new Icon(MaterialIcon.APPS
+						      )
+						  )
+						);
+
+				@Override
+				public void onStart() {
+					computeFiles();
+					App.APP.search.sources.add(src);
+				}
+
+				@Override
+				public void onStop() {
+					App.APP.search.sources.remove(src);
+				}
+
+				void computeFiles() {
+					apps = searchDir.get()==null
+							? list()
+							: getFilesR(searchDir.get(), searchDepth.get(), f -> f.getPath().endsWith(".exe")).collect(toList());
+				}
+			}
+		);
+
 		// listen to other application instance launches
 		try {
 			appCommunicator.start();
@@ -733,6 +778,25 @@ public class App extends Application implements Configurable {
 		// start global shortcuts
 		Action.startActionListening();
 		Action.loadCommandActions();
+	}
+
+	public void installPlugins(Plugin... plugins) {
+		stream(plugins).forEach(this::installPlugins);
+	}
+
+	/**
+	 * Plugin is like Service, but user or developer never uses it directly, hence allows for simpler API. Its basically
+	 * a Runnable which can be started and stopped. In the future Plugin and Service may extend a common supertype and
+	 * share lifecycle management.
+	 */
+	public void installPlugins(Plugin plugin) {
+		String name = "Enable";
+		String group = Plugin.CONFIG_GROUP + "." + plugin.getName();
+		String info = "Enable/disable this plugin";
+		V<Boolean> starter = new V<>(false, plugin::activate);
+		configuration.collect(new PropertyConfig<>(Boolean.class, name, name, starter, group, info, IsConfig.EditMode.USER));
+		configuration.collect(plugin);
+		Action.installActions(plugin);
 	}
 
 	/**
@@ -768,10 +832,13 @@ public class App extends Application implements Configurable {
 			services.addService(new PlaycountIncrementer());
 			services.addService(new ClickEffect());
 
-			// gather actions
-			stream(this, windowManager, guide, services.getService(PlaycountIncrementer.class).get())
-				.flatMap(Action::gatherActions)
-				.forEach(Action.getActions()::add);
+			// install actions
+			Action.installActions(
+				this,
+				windowManager,
+				guide,
+				services.getService(PlaycountIncrementer.class).get()
+			);
 
 			actionAppPane.register(App.class,
 				new FastAction<>(

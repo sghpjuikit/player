@@ -102,8 +102,8 @@ public class SwitchContainer extends Container<SwitchPane> {
             maintain(SNAP, ui.snap);
             maintain(MIN_SWITCH_DIST_ABS, ui.switch_dist_abs);
             maintain(MIN_SWITCH_DIST_REL, ui.switch_dist_rel);
-            maintain(SNAP_TRESHOLD_ABS, ui.snap_treshold_abs);
-            maintain(SNAP_TRESHOLD_REL, ui.snap_treshold_rel);
+            maintain(SNAP_TRESHOLD_ABS, ui.snap_threshold_abs);
+            maintain(SNAP_TRESHOLD_REL, ui.snap_threshold_rel);
             maintain(DRAG_INERTIA, ui.drag_inertia);
             maintain(ZOOM, ui.zoomScaleFactor);
         }

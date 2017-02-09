@@ -26,6 +26,7 @@ import layout.area.WidgetArea;
 import layout.container.Container;
 import layout.widget.Widget;
 import util.access.V;
+import util.animation.Anim;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -65,7 +66,7 @@ public class SwitchPane implements ContainerNode {
             double H = getHeight();
             double W = getWidth();
             double tW = tabWidth();
-            tabs.forEach((index,tab) -> tab.resizeRelocate(tab.index*tW,0,W,H));
+            tabs.forEach((index,tab) -> tab.resizeRelocate(tab.index*tW, 0, W, H));
         }
     };
     public final IOLayer widget_io = new IOLayer(this);
@@ -75,8 +76,8 @@ public class SwitchPane implements ContainerNode {
     public final V<Double> switch_dist_abs = new V<>(150.0);
     public final V<Double> switch_dist_rel = new V<>(0.15); // 0 - 1
     public final V<Double> drag_inertia = new V<>(1.5);
-    public final V<Double> snap_treshold_rel = new V<>(0.05); // 0 - 0.5
-    public final V<Double> snap_treshold_abs = new V<>(25.0);
+    public final V<Double> snap_threshold_rel = new V<>(0.05); // 0 - 0.5
+    public final V<Double> snap_threshold_abs = new V<>(25.0);
     public final V<Double> zoomScaleFactor = new V<>(0.7); // 0.2 - 1
 
     public SwitchPane(SwitchContainer container) {
@@ -124,24 +125,22 @@ public class SwitchPane implements ContainerNode {
 
         // if mouse exits the root (and quite possibly window) we can not
         // capture mouse release/click events so lets end the drag right there
-        root.addEventFilter(MOUSE_EXITED, e-> {
-            dragUiEnd(e);
-        });
+        root.addEventFilter(MOUSE_EXITED, this::dragUiEnd);
 
         root.addEventHandler(SCROLL, e-> {
             if (Gui.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
-                double fromcentre = e.getX()-uiWidth()/2;
-                       fromcentre = fromcentre/zoom.getScaleX();
-                tox = signum(-1*e.getDeltaY())*(fromcentre);
+                double fromCentre = e.getX()-uiWidth()/2;
+                       fromCentre = fromCentre/zoom.getScaleX();
+                tox = signum(-1*e.getDeltaY())*(fromCentre);
                 zoom(i);
                 e.consume();
             }
         });
 
-        uiDrag = new TranslateTransition(Duration.millis(400),ui);
+        uiDrag = new XTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
 
         // bind widths for automatic dynamic resizing (works perfectly)
@@ -151,7 +150,7 @@ public class SwitchPane implements ContainerNode {
         // Maintain container properties
         double translate = (double)container.properties.computeIfAbsent("translate", key -> ui.getTranslateX());
         ui.setTranslateX(translate);
-        // remember latest position for deserialisation (we must not rewrite init value above)
+        // remember latest position for deserialization (we must not rewrite init value above)
         maintain(ui.translateXProperty(), v -> container.properties.put("translate",v));
 
         // initialize
@@ -189,10 +188,11 @@ public class SwitchPane implements ContainerNode {
     /**
      * Adds mew tab at specified position and initializes new empty layout. If tab
      * already exists this method is a no-op.
-     * @param i
+     *
+     * @param i tab index
      */
     public void loadTab(int i) {
-        Node n = null;
+        Node n;
         Component c = layouts.get(i);
         TabPane tab = tabs.computeIfAbsent(i, index -> {
             TabPane t = new TabPane(i);
@@ -238,14 +238,14 @@ public class SwitchPane implements ContainerNode {
 
 /****************************  DRAG ANIMATIONS   ******************************/
 
-    private final TranslateTransition uiDrag;
+    private final XTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
     boolean uiDragActive = false;
 
     private double lastX = 0;
     private double nowX = 0;
-    FxTimer measurePulser = new FxTimer(100, INDEFINITE, () -> {
+    FxTimer measurePulse = new FxTimer(100, INDEFINITE, () -> {
         lastX = nowX;
         nowX = ui.getTranslateX();
     });
@@ -256,7 +256,7 @@ public class SwitchPane implements ContainerNode {
         uiStartX = e.getSceneX();
         uiTransX = ui.getTranslateX();
         uiDragActive = true;
-        measurePulser.start();
+        measurePulse.start();
         e.consume();
     }
     private void dragUiEnd(MouseEvent e) {
@@ -264,7 +264,7 @@ public class SwitchPane implements ContainerNode {
         // stop drag
 //        uiDragActive = false;
         Async.run(100, () -> uiDragActive=false);
-        measurePulser.stop();
+        measurePulse.stop();
         // handle drag end
         if (align.get()) {
             uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
@@ -284,7 +284,7 @@ public class SwitchPane implements ContainerNode {
             uiDrag.setOnFinished( a -> {
                 int i = snapTabs();
                 // setParentRec layouts to left & right
-                // otherwise the layouds are added only if we activate the snapping
+                // otherwise the layouts are added only if we activate the snapping
                 // which for non-discrete mode is a problem
                 addTab(i-1);
                 addTab(i+1);
@@ -309,7 +309,7 @@ public class SwitchPane implements ContainerNode {
 
     /**
      * Scrolls to the current tab.
-     * It is pointless to use this method when autoalign is enabled.
+     * It is pointless to use this method when auto-align is enabled.
      * <p/>
      * Use to force-align tabs.
      * <p/>
@@ -370,7 +370,7 @@ public class SwitchPane implements ContainerNode {
         int i = -1;
         for (Entry<Integer,Component> e : layouts.entrySet()) {
             Component cm = e.getValue();
-            boolean has = cm==c || (cm instanceof Container && ((Container)cm).getAllChildren().anyMatch(ch -> ch==c));
+            boolean has = cm==c || (cm instanceof Container && ((Container<?>)cm).getAllChildren().anyMatch(ch -> ch==c));
             if (has) {
                 i = e.getKey();
                 alignTab(i);
@@ -381,8 +381,7 @@ public class SwitchPane implements ContainerNode {
     }
 
     /**
-     * Executes {@link #alignTabs()} if the position of the tabs fullfills
-     * snap requirements.
+     * Executes {@link #alignTabs()} if the position of the tabs fulfills snap requirements.
      * <p/>
      * Use to align tabs while adhering to user settings.
      *
@@ -395,10 +394,10 @@ public class SwitchPane implements ContainerNode {
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
         double dist = Math.abs(is-should_be);
-        double treshold1 = ui.getWidth()*snap_treshold_rel.get();
-        double treshold2 = snap_treshold_abs.get();
+        double threshold1 = ui.getWidth()* snap_threshold_rel.get();
+        double threshold2 = snap_threshold_abs.get();
 
-        return dist < Math.max(treshold1, treshold2) ? alignTabs() : i;
+        return dist < Math.max(threshold1, threshold2) ? alignTabs() : i;
     }
 
     /**
@@ -410,8 +409,9 @@ public class SwitchPane implements ContainerNode {
     }
 
     // get current ui width
-    private double uiWidth() { // must never return 0 (divisio by zero)
-        return ui.getWidth()==0 ? 50 : ui.getWidth();
+    private double uiWidth() {
+	    double someNonZeroNumber = 50; // must never return 0 (division by zero)
+        return ui.getWidth()==0 ? someNonZeroNumber : ui.getWidth();
     }
 
     private double tabWidth() {
@@ -420,12 +420,9 @@ public class SwitchPane implements ContainerNode {
 
     // get current X position of the tab with the specified index
     private double getTabX(int i) {
-        if (i==0)
-            return 0;
-        else if (tabs.containsKey(i))
-            return tabs.get(i).getLayoutX();
-        else
-            return tabWidth()*i;
+        if (i==0) return 0;
+        if (tabs.containsKey(i)) return tabs.get(i).getLayoutX();
+        return tabWidth()*i;
     }
 
     // align to next tab
@@ -433,9 +430,9 @@ public class SwitchPane implements ContainerNode {
         double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
         double dAbs = Math.abs(dist);
-        double treshold1 = ui.getWidth()*switch_dist_rel.get();
-        double treshold2 = switch_dist_abs.get();
-        if (dAbs > Math.min(treshold1, treshold2))
+        double threshold1 = ui.getWidth()*switch_dist_rel.get();
+        double threshold2 = switch_dist_abs.get();
+        if (dAbs > Math.min(threshold1, threshold2))
             byT = (int) -Math.signum(dist);
 
         int currentT = (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
@@ -472,8 +469,11 @@ public class SwitchPane implements ContainerNode {
         zoom(!isZoomed());
     }
 
-    /** Use to animate or manipulate zooming
-    @return zoom scale prperty taking on values from (0,1> */
+    /**
+     * Use to animate or manipulate zooming
+     *
+     * @return zoom scale property taking on values from (0,1>
+     */
     public DoubleProperty zoomProperty() {
         return zoom.scaleXProperty();
     }
@@ -567,5 +567,37 @@ public class SwitchPane implements ContainerNode {
                 n.resizeRelocate(0,0,getWidth(),getHeight());
         }
 
+    }
+
+    /**
+     * Effectively same as {@link javafx.animation.TranslateTransition} of only X property,
+     * but always rounds the translation values to integer values to prevent visual artifacts that can result due to
+     * double coordinate system.
+     */
+    private static class XTransition extends Anim {
+    	private final Node node;
+	    private double from, to, by;
+
+    	public XTransition(Duration length, Node node) {
+		    super(d -> {}); // TODO remove this by adding proper support for Anim subclassing
+		    dur(length);
+		    this.node = node;
+	    }
+
+	    @Override
+	    protected void interpolate(double at) {
+	    	node.setTranslateX(Math.rint(from + at * by));
+	    }
+
+	    public void setToX(double to) {
+			this.to = Math.rint(to);
+	    }
+
+	    @Override
+	    public void play() {
+	    	from = node.getTranslateX();
+	    	by = Math.rint(to - from);
+		    super.play();
+	    }
     }
 }

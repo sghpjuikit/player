@@ -184,7 +184,6 @@
   graphics of Labelled on its own!
   workaround: when intended to be used as graphics, call embedded() method
   on the icon. it will set different styleclass disabling the disable style
-- Thumbnail border has inconsistent border width/size and is not crisp. See Thumbnail.java file     // medium
 - tables consuming SHIFT key and local shortcuts like SHIFT+ARROW !work after any
   table receives focus for the 1st time -> useless...
 

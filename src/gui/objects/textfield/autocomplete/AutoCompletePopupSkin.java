@@ -29,78 +29,74 @@
 
 package gui.objects.textfield.autocomplete;
 
+import gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Region;
-
-import gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent;
-
 import static javafx.beans.binding.Bindings.min;
 import static javafx.beans.binding.Bindings.size;
 
 public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
-    private final AutoCompletePopup<T> control;
-    private final ListView<T> list;
-    private final int activationClickCount;
+	private final AutoCompletePopup<T> control;
+	private final ListView<T> list;
 
-    public AutoCompletePopupSkin(AutoCompletePopup<T> control){
-        this(control, 1);
-    }
+	public AutoCompletePopupSkin(AutoCompletePopup<T> control) {
+		this(control, 1);
+	}
 
-    public AutoCompletePopupSkin(AutoCompletePopup<T> control, int activationClickCount){
-        this.control = control;
-        this.activationClickCount = activationClickCount;
+	public AutoCompletePopupSkin(AutoCompletePopup<T> control, int activationClickCount) {
+		this.control = control;
 
-        double reserve = 12; // removes vertical scrollbar
-        list = new ListView<>(control.getSuggestions());
+		double reserve = 12; // removes vertical scrollbar
+		list = new ListView<>(control.getSuggestions());
 		list.setFixedCellSize(20);
-        list.prefHeightProperty().bind(
-                min(control.visibleRowCountProperty(), size(list.getItems()))
-                .multiply(list.fixedCellSizeProperty())
-	            .add(reserve));
-        list.setCellFactory(this::buildListViewCellFactory);
-        list.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount()==activationClickCount)
-                chooseSuggestion();
-        });
-        list.setOnKeyPressed(e -> {
-            switch (e.getCode()) {
-                case ENTER  : chooseSuggestion();
-                              break;
-                case ESCAPE : if (control.isHideOnEscape()) control.hide();
-                              break;
-                default     : break;
-            }
-            e.consume();
-        });
-    }
+		list.prefHeightProperty().bind(
+			min(control.visibleRowCountProperty(), size(list.getItems()))
+				.multiply(list.fixedCellSizeProperty())
+				.add(reserve));
+		list.setCellFactory(this::buildListViewCellFactory);
+		list.setOnMouseClicked(e -> {
+			if (e.getButton()==MouseButton.PRIMARY && e.getClickCount()==activationClickCount)
+				chooseSuggestion();
+		});
+		list.setOnKeyPressed(e -> {
+			switch (e.getCode()) {
+				case ENTER: chooseSuggestion();
+					break;
+				case ESCAPE: if (control.isHideOnEscape()) control.hide();
+					break;
+				default: break;
+			}
+			e.consume();
+		});
+	}
 
-    @Override
-    public Region getNode() {
-        return list;
-    }
+	@Override
+	public Region getNode() {
+		return list;
+	}
 
-    @Override
-    public AutoCompletePopup<T> getSkinnable() {
-        return control;
-    }
+	@Override
+	public AutoCompletePopup<T> getSkinnable() {
+		return control;
+	}
 
-    @Override
-    public void dispose() {}
+	@Override
+	public void dispose() {}
 
-    private void chooseSuggestion(){
-        onSuggestionChosen(list.getSelectionModel().getSelectedItem());
-    }
+	private void chooseSuggestion() {
+		onSuggestionChosen(list.getSelectionModel().getSelectedItem());
+	}
 
-    private void onSuggestionChosen(T suggestion){
-        if (suggestion != null && getSkinnable().onSuggestion.get() != null)
-		    getSkinnable().onSuggestion.get().handle(new SuggestionEvent<>(suggestion));
-    }
+	private void onSuggestionChosen(T suggestion) {
+		if (suggestion!=null && getSkinnable().onSuggestion.get()!=null)
+			getSkinnable().onSuggestion.get().handle(new SuggestionEvent<>(suggestion));
+	}
 
-    protected ListCell<T> buildListViewCellFactory(ListView<T> listView) {
-        return TextFieldListCell.forListView(control.getConverter()).call(listView);
-    }
+	protected ListCell<T> buildListViewCellFactory(ListView<T> listView) {
+		return TextFieldListCell.forListView(control.getConverter()).call(listView);
+	}
 }

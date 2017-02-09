@@ -171,7 +171,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
         state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
             // get or build column
-            TableColumn tc = getColumn(nameToCF(c.name)).orElse(colFact.call(nameToF(c.name)));
+            TableColumn<T,?> tc = getColumn(nameToCF(c.name)).orElse(colFact.call(nameToF(c.name)));
             // set width
             tc.setPrefWidth(c.width);
             // set visibility
@@ -275,7 +275,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         if (!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
 
-/************************************* SORT ***********************************/
+/* --------------------- SORT --------------------------------------------------------------------------------------- */
 
     /**
      * Comparator for ordering items reflecting this table's sort order.
@@ -316,7 +316,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         updateComparator(null);
     }
 
-/******************************** CELL FACTORY ********************************/
+/* --------------------- CELL FACTORY ------------------------------------------------------------------------------- */
 
     /**
      * Use as cell factory for columns created in column factory.

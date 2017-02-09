@@ -31,12 +31,10 @@ package gui.objects.textfield.autocomplete;
 
 import java.util.Arrays;
 import java.util.Collection;
-
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.TextField;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-
 import org.reactfx.Subscription;
 
 /**
@@ -46,24 +44,27 @@ import org.reactfx.Subscription;
  */
 public class AutoCompletion<T> extends AutoCompletionBinding<T> {
 
-    static <T> StringConverter<T> defaultStringConverter() {
-        return new StringConverter<>() {
-            @Override public String toString(T t) {
-                return t == null ? null : t.toString();
-            }
-            @SuppressWarnings("unchecked")
-            @Override public T fromString(String string) {
-                return (T) string;
-            }
-        };
-    }
+	static <T> StringConverter<T> defaultStringConverter() {
+		return new StringConverter<>() {
+			@Override
+			public String toString(T t) {
+				return t==null ? null : t.toString();
+			}
 
-	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter) {
+			@SuppressWarnings("unchecked")
+			@Override
+			public T fromString(String string) {
+				return (T) string;
+			}
+		};
+	}
+
+	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest,Collection<T>> suggestionProvider, StringConverter<T> converter) {
 		AutoCompletion<T> a = new AutoCompletion<>(textField, suggestionProvider, converter);
 		return a::dispose;
 	}
 
-	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider) {
+	public static <T> Subscription autoComplete(TextField textField, Callback<ISuggestionRequest,Collection<T>> suggestionProvider) {
 		AutoCompletion<T> a = new AutoCompletion<>(textField, suggestionProvider, defaultStringConverter());
 		return a::dispose;
 	}
@@ -77,46 +78,45 @@ public class AutoCompletion<T> extends AutoCompletionBinding<T> {
 		return autoComplete(textField, Arrays.asList(possibleSuggestions));
 	}
 
-
 	/** String converter to be used to convert suggestions to strings. */
 	private StringConverter<T> converter;
-	private final ChangeListener<String> textChangeListener = (o,ov,nv) -> {
+	private final ChangeListener<String> textChangeListener = (o, ov, nv) -> {
 		if (getCompletionTarget().isFocused())
 			setUserInput(nv);
 	};
-	private final ChangeListener<Boolean> focusChangedListener = (o,ov,nv) -> {
+	private final ChangeListener<Boolean> focusChangedListener = (o, ov, nv) -> {
 		if (!nv)
 			hidePopup();
 	};
 
-    /**
-     * Creates a new auto-completion binding between the given textField
-     * and the given suggestion provider.
-     */
-    AutoCompletion(TextField textField, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter) {
-        super(textField, suggestionProvider, converter);
-        this.converter = converter;
+	/**
+	 * Creates a new auto-completion binding between the given textField
+	 * and the given suggestion provider.
+	 */
+	AutoCompletion(TextField textField, Callback<ISuggestionRequest,Collection<T>> suggestionProvider, StringConverter<T> converter) {
+		super(textField, suggestionProvider, converter);
+		this.converter = converter;
 
-        getCompletionTarget().textProperty().addListener(textChangeListener);
-        getCompletionTarget().focusedProperty().addListener(focusChangedListener);
-    }
+		getCompletionTarget().textProperty().addListener(textChangeListener);
+		getCompletionTarget().focusedProperty().addListener(focusChangedListener);
+	}
 
-    @Override
-    public TextField getCompletionTarget(){
-        return (TextField)super.getCompletionTarget();
-    }
+	@Override
+	public TextField getCompletionTarget() {
+		return (TextField) super.getCompletionTarget();
+	}
 
-    @Override
-    public void dispose(){
-        getCompletionTarget().textProperty().removeListener(textChangeListener);
-        getCompletionTarget().focusedProperty().removeListener(focusChangedListener);
-    }
+	@Override
+	public void dispose() {
+		getCompletionTarget().textProperty().removeListener(textChangeListener);
+		getCompletionTarget().focusedProperty().removeListener(focusChangedListener);
+	}
 
-    @Override
-    protected void acceptSuggestion(T completion){
-        String newText = converter.toString(completion);
-        getCompletionTarget().setText(newText);
-        getCompletionTarget().positionCaret(newText.length());
-    }
+	@Override
+	protected void acceptSuggestion(T completion) {
+		String newText = converter.toString(completion);
+		getCompletionTarget().setText(newText);
+		getCompletionTarget().positionCaret(newText.length());
+	}
 
 }

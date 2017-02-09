@@ -1,8 +1,8 @@
 package gui.objects.tablecell;
 
+import audio.tagging.Metadata;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import audio.tagging.Metadata;
 import util.functional.Functors.Ƒ1;
 import util.plugin.IsPluginType;
 

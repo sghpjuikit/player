@@ -1,9 +1,10 @@
 package gui.objects.table;
 
+import gui.Gui;
+import gui.objects.tablerow.ImprovedTableRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -20,11 +21,7 @@ import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-
-import gui.Gui;
-import gui.objects.tablerow.ImprovedTableRow;
 import util.Util;
-
 import static java.lang.Math.*;
 import static util.Util.zeroPad;
 import static util.graphics.Util.computeFontWidth;
@@ -32,29 +29,32 @@ import static util.graphics.Util.selectRows;
 import static util.type.Util.getFieldValue;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class ImprovedTable<T> extends TableView<T> {
 
 	/** Will add zeros to index numbers to maintain length consistency. Default true. */
-	public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true){
-		@Override public void set(boolean v) {
+	public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true) {
+		@Override
+		public void set(boolean v) {
 			super.set(v);
 			refreshColumn(columnIndex);
 		}
 	};
 	/** Visibility of columns header. Default true. */
-	public final BooleanProperty headerVisible = new SimpleBooleanProperty(true){
-		@Override public boolean get() {
+	public final BooleanProperty headerVisible = new SimpleBooleanProperty(true) {
+		@Override
+		public boolean get() {
 			// return super.get();
-			Pane header = (Pane)lookup("TableHeaderRow");
-			return header == null || header.isVisible();
+			Pane header = (Pane) lookup("TableHeaderRow");
+			return header==null || header.isVisible();
 		}
-		@Override public void set(boolean v) {
+
+		@Override
+		public void set(boolean v) {
 			super.set(v);
 			if (v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
-			else  getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
+			else getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
 		}
 	};
 
@@ -69,22 +69,26 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/** @return height of columns header or 0 if invisible. */
 	public double getTableHeaderHeight() {
-		Pane header = (Pane)lookup("TableHeaderRow");
+		Pane header = (Pane) lookup("TableHeaderRow");
 		return header==null || !header.isVisible() ? 0 : header.getHeight();
 	}
 
-	/** Return index of a row containing the given y coordinate.
-	Note: works only if table uses fixedCellHeight. */
+	/**
+	 * Return index of a row containing the given y coordinate.
+	 * Note: works only if table uses fixedCellHeight.
+	 */
 	public int getRow(double y) {
 		double h = headerVisible.get() ? y - getTableHeaderHeight() : y;
-		return (int)floor(h/getFixedCellSize());
+		return (int) floor(h/getFixedCellSize());
 	}
 
-	/** Return index of a row containing the given scene y coordinate.
-	Note: works only if table uses fixedCellHeight. */
+	/**
+	 * Return index of a row containing the given scene y coordinate.
+	 * Note: works only if table uses fixedCellHeight.
+	 */
 	public int getRowS(double sceneX, double sceneY) {
-			Point2D p = sceneToLocal(new Point2D(sceneX,sceneY));
-			return getRow(p.getY());
+		Point2D p = sceneToLocal(new Point2D(sceneX, sceneY));
+		return getRow(p.getY());
 	}
 
 	/** Returns whether there is an item in the row at specified index */
@@ -101,11 +105,11 @@ public class ImprovedTable<T> extends TableView<T> {
 	private List<TableRow<T>> getRows(Parent n, List<TableRow<T>> li) {
 		for (Node nn : n.getChildrenUnmodifiable())
 			if (nn instanceof TableRow)
-				li.add(((TableRow<T>)nn));
+				li.add(((TableRow<T>) nn));
 
 		for (Node nn : n.getChildrenUnmodifiable())
 			if (nn instanceof Parent)
-				getRows(((Parent)nn), li);
+				getRows(((Parent) nn), li);
 
 		return li;
 	}
@@ -113,7 +117,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	public void updateStyleRules() {
 		for (TableRow<T> row : getRows()) {
 			if (row instanceof ImprovedTableRow) {
-				((ImprovedTableRow)row).styleRulesUpdate();
+				((ImprovedTableRow) row).styleRulesUpdate();
 			}
 		}
 	}
@@ -136,6 +140,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/**
 	 * Returns unchanging copy of selected items
+	 *
 	 * @see #getSelectedItems()
 	 */
 	public ArrayList<T> getSelectedItemsCopy() {
@@ -144,6 +149,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/**
 	 * Returns unchanging copy of selected or all items
+	 *
 	 * @see #getSelectedOrAllItems()
 	 */
 	public ArrayList<T> getSelectedOrAllItemsCopy() {
@@ -177,32 +183,36 @@ public class ImprovedTable<T> extends TableView<T> {
 	/** Builds index column. */
 	public TableColumn<T,Void> buildIndexColumn() {
 		TableColumn<T,Void> c = new TableColumn<>("#");
-							c.setCellFactory(buildIndexColumnCellFactory());
-							c.setSortable(false);
-							c.setResizable(false);
+		c.setCellFactory(buildIndexColumnCellFactory());
+		c.setSortable(false);
+		c.setResizable(false);
 		return c;
 	}
 
 	/** Builds index column cell factory. Called only once. */
-	protected Callback<TableColumn<T,Void>, TableCell<T,Void>> buildIndexColumnCellFactory() {
+	protected Callback<TableColumn<T,Void>,TableCell<T,Void>> buildIndexColumnCellFactory() {
 		return (column -> new TableCell<>() {
 			{
 				setAlignment(Pos.CENTER_RIGHT);
 			}
-			@Override protected void updateItem(Void item, boolean empty) {
+
+			@Override
+			protected void updateItem(Void item, boolean empty) {
 				super.updateItem(item, empty);
 				if (empty) {
 					setText(null);
 				} else {
 					int i = 1 + getIndex();
-					setText((zeropadIndex.get() ? zeroPad(i, getItems().size(),'0') : i) + ".");
+					setText((zeropadIndex.get() ? zeroPad(i, getItems().size(), '0') : i) + ".");
 				}
 			}
 		});
 	}
 
-	/** Returns ideal width for index column derived from current max index.
-		Mostly used during table/column resizing. */
+	/**
+	 * Returns ideal width for index column derived from current max index.
+	 * Mostly used during table/column resizing.
+	 */
 	public double calculateIndexColumnWidth() {
 		// need this weird method to get 9s as 9 is a wide char (font is not always proportional)
 		int s = getMaxIndex();
@@ -222,7 +232,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 /* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
-	/** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); }*/
+	/** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); } */
 	public void selectAll() {
 		getSelectionModel().selectAll();
 	}
@@ -232,14 +242,14 @@ public class ImprovedTable<T> extends TableView<T> {
 		List<Integer> selected = getSelectionModel().getSelectedIndices();
 		int size = getItems().size();
 		List<Integer> inverse = new ArrayList<>();
-		for (int i=0; i<size; i++)
+		for (int i = 0; i<size; i++)
 			if (!selected.contains(i))
 				inverse.add(i);
 
 		selectRows(inverse, getSelectionModel());
 	}
 
-	/** Selects no items. Equivalent to {@code getSelectionModel().clearSelection(); }*/
+	/** Selects no items. Equivalent to {@code getSelectionModel().clearSelection(); } */
 	public void selectNone() {
 		getSelectionModel().clearSelection();
 	}
@@ -264,7 +274,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		});
 	}
 
-/* --------------------- SCROLL --------------------------------------------------------------------------------------- */
+/* --------------------- SCROLL ------------------------------------------------------------------------------------- */
 
 	/**
 	 * Scrolls to the item, so it is visible in the vertical center of the table.
@@ -277,7 +287,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 		double rows = getHeight()/getFixedCellSize();
 		i -= rows/2;
-		i = min(items-(int)rows+1,max(0,i));
+		i = min(items - (int) rows + 1, max(0, i));
 		scrollTo(i);
 	}
 
@@ -304,6 +314,15 @@ public class ImprovedTable<T> extends TableView<T> {
 
 
 /* --------------------- UTIL --------------------------------------------------------------------------------------- */
+
+	/**
+	 * Fixes lack of generic compile time safety of {@link TableView#setColumnResizePolicy(javafx.util.Callback)},
+	 * which unfortunately has generic declaration removed - java bug.
+	 */
+	@SuppressWarnings("unchecked")
+	public void setColumnResizePolicySafe(Callback<TableView.ResizeFeatures<T>,Boolean> policy) {
+		setColumnResizePolicy((Callback) policy);
+	}
 
 	final void resizeIndexColumn() {
 		if (getColumns().contains(columnIndex))

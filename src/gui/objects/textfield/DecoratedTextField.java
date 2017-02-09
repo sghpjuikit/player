@@ -40,62 +40,62 @@ import javafx.scene.control.TextField;
  */
 public class DecoratedTextField extends TextField {
 
-    public final ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left");
-    public final ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right");
+	public final ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left");
+	public final ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right");
 
-    /**
-     * Instantiates a default CustomTextField.
-     */
-    public DecoratedTextField() {
-        getStyleClass().add("custom-text-field");
-        setMinWidth(TextField.USE_PREF_SIZE);
-        setMaxWidth(TextField.USE_PREF_SIZE);
-    }
+	/**
+	 * Instantiates a default CustomTextField.
+	 */
+	public DecoratedTextField() {
+		getStyleClass().add("custom-text-field");
+		setMinWidth(TextField.USE_PREF_SIZE);
+		setMaxWidth(TextField.USE_PREF_SIZE);
+	}
 
 	/**
 	 * @see #left
 	 */
-    public final ObjectProperty<Node> leftProperty() {
-        return left;
-    }
+	public final ObjectProperty<Node> leftProperty() {
+		return left;
+	}
 
 	/**
 	 * @see #left
 	 */
-    public final Node getLeft() {
-        return left.get();
-    }
+	public final Node getLeft() {
+		return left.get();
+	}
 
 	/**
 	 * @see #left
 	 */
-    public final void setLeft(Node value) {
-        left.set(value);
-    }
-
-    /**
-     * @see #right
-     */
-    public final ObjectProperty<Node> rightProperty() {
-        return right;
-    }
+	public final void setLeft(Node value) {
+		left.set(value);
+	}
 
 	/**
 	 * @see #right
 	 */
-    public final Node getRight() {
-        return right.get();
-    }
+	public final ObjectProperty<Node> rightProperty() {
+		return right;
+	}
 
 	/**
 	 * @see #right
 	 */
-    public final void setRight(Node value) {
-        right.set(value);
-    }
+	public final Node getRight() {
+		return right.get();
+	}
 
-    @Override
-    protected Skin<?> createDefaultSkin() {
-        return new DecoratedTextFieldSkin(this);
-    }
+	/**
+	 * @see #right
+	 */
+	public final void setRight(Node value) {
+		right.set(value);
+	}
+
+	@Override
+	protected Skin<?> createDefaultSkin() {
+		return new DecoratedTextFieldSkin(this);
+	}
 }

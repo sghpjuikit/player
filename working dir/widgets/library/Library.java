@@ -1,9 +1,22 @@
 package library;
 
+import audio.Item;
+import audio.Player;
+import audio.playlist.PlaylistManager;
+import audio.tagging.Metadata;
+import audio.tagging.MetadataReader;
+import gui.Gui;
+import gui.infonode.InfoTask;
+import gui.objects.contextmenu.ImprovedContextMenu;
+import gui.objects.contextmenu.TableContextMenuR;
+import gui.objects.spinner.Spinner;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable.PojoV;
+import gui.objects.table.TableColumnInfo;
+import gui.objects.tablerow.ImprovedTableRow;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -17,23 +30,8 @@ import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
-
-import audio.Item;
-import audio.Player;
-import audio.playlist.PlaylistManager;
-import audio.tagging.Metadata;
-import audio.tagging.MetadataReader;
-import gui.Gui;
-import gui.infonode.InfoTask;
-import gui.objects.contextmenu.ImprovedContextMenu;
-import gui.objects.contextmenu.TableContextMenuR;
-import gui.objects.spinner.Spinner;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable;
-import gui.objects.table.ImprovedTable.PojoV;
-import gui.objects.table.TableColumnInfo;
-import gui.objects.tablerow.ImprovedTableRow;
 import layout.widget.Widget.Info;
+import layout.widget.WidgetFactory;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
@@ -61,7 +59,6 @@ import util.units.FormattedDuration;
 import util.validation.Constraint;
 import util.validation.Constraint.FileActor;
 import web.SearchUriBuilder;
-
 import static audio.tagging.Metadata.Field.RATING;
 import static audio.tagging.Metadata.Field.TITLE;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -322,7 +319,7 @@ public class Library extends FXMLController implements SongReader {
 	        });
     }
 
-    private static final TableContextMenuR<Metadata> contextMenu = new TableContextMenuR<> (
+    private static final TableContextMenuR<Metadata,FilteredTable<Metadata,Metadata.Field>> contextMenu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e ->
@@ -340,14 +337,14 @@ public class Library extends FXMLController implements SongReader {
                 new Menu("Show in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
-	                    f -> f.nameGui(),
+	                    WidgetFactory::nameGui,
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
-	                    f -> f.nameGui(),
+	                    WidgetFactory::nameGui,
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
@@ -357,7 +354,7 @@ public class Library extends FXMLController implements SongReader {
                 new Menu("Explore items's directory in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)).toList(),
-	                    f -> f.nameGui(),
+	                    WidgetFactory::nameGui,
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile()))
                     )
                 ),
@@ -370,7 +367,7 @@ public class Library extends FXMLController implements SongReader {
                );
             return m;
         },
-        (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
+        (menu,table) -> menu.setValue(table.getSelectedItemsCopy())
     );
 
 }

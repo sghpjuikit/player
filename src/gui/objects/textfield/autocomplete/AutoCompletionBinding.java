@@ -30,7 +30,6 @@
 package gui.objects.textfield.autocomplete;
 
 import java.util.Collection;
-
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -44,9 +43,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-
 import util.access.V;
-
 import static util.graphics.Util.setMinPrefMaxWidth;
 
 /**
@@ -61,273 +58,265 @@ import static util.graphics.Util.setMinPrefMaxWidth;
  */
 public abstract class AutoCompletionBinding<T> {
 
+	private static final long AUTO_COMPLETE_DELAY = 250;
+	protected final Node completionTarget;
+	protected final AutoCompletePopup<T> popup = buildPopup();
+	private final Object suggestionsTaskLock = new Object();
 
-    private static final long AUTO_COMPLETE_DELAY = 250;
-    protected final Node completionTarget;
-    final AutoCompletePopup<T> popup = buildPopup();
-    private final Object suggestionsTaskLock = new Object();
+	private FetchSuggestionsTask suggestionsTask = null;
+	private Callback<ISuggestionRequest,Collection<T>> suggestionProvider = null;
+	public final V<Boolean> hideOnSuggestion = new V<>(true);
+	/**
+	 * If IgnoreInputChanges is set to true, all changes to the user input are
+	 * ignored. This is primary used to avoid self triggering while
+	 * auto completing.
+	 */
+	protected boolean ignoreInputChanges = false;
 
-    private FetchSuggestionsTask suggestionsTask = null;
-    private Callback<ISuggestionRequest, Collection<T>> suggestionProvider = null;
-    public final V<Boolean> hideOnSuggestion = new V<>(true);
-    /**
-     * If IgnoreInputChanges is set to true, all changes to the user input are
-     * ignored. This is primary used to avoid self triggering while
-     * auto completing.
-     */
-    protected boolean ignoreInputChanges = false;
+	/**
+	 * Creates a new AutoCompletionBinding
+	 *
+	 * @param completionTarget The target node to which auto-completion shall be added
+	 * @param suggestionProvider The strategy to retrieve suggestions
+	 * @param converter The converter to be used to convert suggestions to strings
+	 */
+	protected AutoCompletionBinding(Node completionTarget, Callback<ISuggestionRequest,Collection<T>> suggestionProvider, StringConverter<T> converter) {
+		this.completionTarget = completionTarget;
+		this.suggestionProvider = suggestionProvider;
+		this.popup.setConverter(converter);
 
+		popup.setOnSuggestion(e -> {
+			try {
+				ignoreInputChanges = true;
+				acceptSuggestion(e.getSuggestion());
+				if (hideOnSuggestion.get()) hidePopup();
+				fireAutoCompletion(e.getSuggestion());
+			} finally {
+				// Ensure that ignore is always set back to false
+				ignoreInputChanges = false;
+			}
+		});
+	}
 
-    /**
-     * Creates a new AutoCompletionBinding
-     *
-     * @param completionTarget The target node to which auto-completion shall be added
-     * @param suggestionProvider The strategy to retrieve suggestions
-     * @param converter The converter to be used to convert suggestions to strings
-     */
-    protected AutoCompletionBinding(Node completionTarget, Callback<ISuggestionRequest, Collection<T>> suggestionProvider, StringConverter<T> converter){
-        this.completionTarget = completionTarget;
-        this.suggestionProvider = suggestionProvider;
-        this.popup.setConverter(converter);
+	/**
+	 * Specifies whether the PopupWindow should be hidden when an unhandled
+	 * escape key is pressed while the popup has focus.
+	 */
+	public void setHideOnEscape(boolean value) {
+		popup.setHideOnEscape(value);
+	}
 
-        popup.setOnSuggestion(e -> {
-            try {
-                ignoreInputChanges = true;
-                acceptSuggestion(e.getSuggestion());
-                if (hideOnSuggestion.get()) hidePopup();
-                fireAutoCompletion(e.getSuggestion());
-            } finally{
-                // Ensure that ignore is always set back to false
-                ignoreInputChanges = false;
-            }
-        });
-    }
+	/**
+	 * Set the current text the user has entered
+	 */
+	public final void setUserInput(String userText) {
+		if (!ignoreInputChanges)
+			onUserInputChanged(userText);
+	}
 
-    /**
-     * Specifies whether the PopupWindow should be hidden when an unhandled
-     * escape key is pressed while the popup has focus.
-     */
-    public void setHideOnEscape(boolean value) {
-        popup.setHideOnEscape(value);
-    }
+	/**
+	 * Gets the target node for auto completion
+	 *
+	 * @return the target node for auto completion
+	 */
+	public Node getCompletionTarget() {
+		return completionTarget;
+	}
 
-    /**
-     * Set the current text the user has entered
-     */
-    public final void setUserInput(String userText){
-        if (!ignoreInputChanges)
-            onUserInputChanged(userText);
-    }
+	/**
+	 * Disposes the binding.
+	 */
+	public abstract void dispose();
 
-    /**
-     * Gets the target node for auto completion
-     * @return the target node for auto completion
-     */
-    public Node getCompletionTarget(){
-        return completionTarget;
-    }
+	/**
+	 * Set the maximum number of rows to be visible in the popup when it is
+	 * showing.
+	 */
+	public final void setVisibleRowCount(int value) {
+		popup.setVisibleRowCount(value);
+	}
 
-    /**
-     * Disposes the binding.
-     */
-    public abstract void dispose();
+	/**
+	 * Return the maximum number of rows to be visible in the popup when it is
+	 * showing.
+	 *
+	 * @return the maximum number of rows to be visible in the popup when it is showing.
+	 */
+	public final int getVisibleRowCount() {
+		return popup.getVisibleRowCount();
+	}
 
+	/**
+	 * Return an property representing the maximum number of rows to be visible
+	 * in the popup when it is showing.
+	 *
+	 * @return an property representing the maximum number of rows to be visible in the popup when it is showing.
+	 */
+	public final IntegerProperty visibleRowCountProperty() {
+		return popup.visibleRowCountProperty();
+	}
 
-    /**
-     * Set the maximum number of rows to be visible in the popup when it is
-     * showing.
-     */
-    public final void setVisibleRowCount(int value) {
-        popup.setVisibleRowCount(value);
-    }
+	/**
+	 * Consumes user selected suggestion.
+	 * Normally when user clicks or presses ENTER key on given suggestion.
+	 */
+	protected abstract void acceptSuggestion(T suggestion);
 
-    /**
-     * Return the maximum number of rows to be visible in the popup when it is
-     * showing.
-     *
-     * @return the maximum number of rows to be visible in the popup when it is
-     * showing.
-     */
-    public final int getVisibleRowCount() {
-        return popup.getVisibleRowCount();
-    }
+	protected AutoCompletePopup<T> buildPopup() {
+		return new AutoCompletePopup<>();
+	}
 
-    /**
-     * Return an property representing the maximum number of rows to be visible
-     * in the popup when it is showing.
-     *
-     * @return an property representing the maximum number of rows to be visible
-     * in the popup when it is showing.
-     */
-    public final IntegerProperty visibleRowCountProperty() {
-        return popup.visibleRowCountProperty();
-    }
+	/**
+	 * Show the auto completion popup
+	 */
+	protected void showPopup() {
+		popup.show(completionTarget);
+		setMinPrefMaxWidth(popup.getSkin().getNode(), completionTarget.getLayoutBounds().getWidth());
+		selectFirstSuggestion(popup);
+	}
 
+	/**
+	 * Hide the auto completion targets
+	 */
+	protected void hidePopup() {
+		popup.hide();
+	}
 
-    /**
-     * Consumes user selected suggestion.
-     * Normally when user clicks or presses ENTER key on given suggestion.
-     */
-    protected abstract void acceptSuggestion(T suggestion);
+	protected void fireAutoCompletion(T completion) {
+		if (completion!=null && onAutoCompleted!=null && onAutoCompleted.get()!=null)
+			onAutoCompleted.get().handle(new AutoCompletionEvent<>(completion));
+	}
 
-    protected AutoCompletePopup<T> buildPopup() {
-        return new AutoCompletePopup<>();
-    }
+	/**
+	 * Selects the first suggestion (if any), so the user can choose it
+	 * by pressing enter immediately.
+	 */
+	private void selectFirstSuggestion(AutoCompletePopup<?> autoCompletionPopup) {
+		Skin<?> skin = autoCompletionPopup.getSkin();
+		if (skin instanceof AutoCompletePopupSkin) {
+			AutoCompletePopupSkin<?> au = (AutoCompletePopupSkin<?>) skin;
+			ListView<?> li = (ListView<?>) au.getNode();
+			if (li.getItems()!=null && !li.getItems().isEmpty()) {
+				li.getSelectionModel().select(0);
+			}
+		}
+	}
 
-    /**
-     * Show the auto completion popup
-     */
-    protected void showPopup(){
-        popup.show(completionTarget);
-        setMinPrefMaxWidth(popup.getSkin().getNode(), completionTarget.getLayoutBounds().getWidth());
-        selectFirstSuggestion(popup);
-    }
+	/**
+	 * Occurs when the user text has changed and the suggestions require an update
+	 */
+	private void onUserInputChanged(final String userText) {
+		synchronized (suggestionsTaskLock) {
+			if (suggestionsTask!=null && suggestionsTask.isRunning()) {
+				// cancel the current running task
+				suggestionsTask.cancel();
+			}
+			// create a new fetcher task
+			suggestionsTask = new FetchSuggestionsTask(userText);
+			new Thread(suggestionsTask).start();
+		}
+	}
 
-    /**
-     * Hide the auto completion targets
-     */
-    protected void hidePopup(){
-        popup.hide();
-    }
+	/** Represents a suggestion fetch request. */
+	public interface ISuggestionRequest {
+		/**
+		 * Is this request canceled?
+		 *
+		 * @return {@code true} if the request is canceled, otherwise {@code false}
+		 */
+		boolean isCancelled();
 
-    protected void fireAutoCompletion(T completion){
-	    if (completion != null && onAutoCompleted!=null && onAutoCompleted.get() != null)
-		    onAutoCompleted.get().handle(new AutoCompletionEvent<>(completion));
-    }
+		/**
+		 * Get the user text to which suggestions shall be found
+		 *
+		 * @return {@link String} containing the user text
+		 */
+		String getUserText();
+	}
 
+	/**
+	 * This task is responsible to fetch suggestions asynchronous by using the current defined suggestionProvider.
+	 */
+	private class FetchSuggestionsTask extends Task<Void> implements ISuggestionRequest {
+		private final String userText;
 
-    /**
-     * Selects the first suggestion (if any), so the user can choose it
-     * by pressing enter immediately.
-     */
-    private void selectFirstSuggestion(AutoCompletePopup<?> autoCompletionPopup){
-        Skin<?> skin = autoCompletionPopup.getSkin();
-        if (skin instanceof AutoCompletePopupSkin){
-            AutoCompletePopupSkin<?> au = (AutoCompletePopupSkin<?>)skin;
-            ListView<?> li = (ListView<?>)au.getNode();
-            if (li.getItems() != null && !li.getItems().isEmpty()){
-                li.getSelectionModel().select(0);
-            }
-        }
-    }
+		public FetchSuggestionsTask(String userText) {
+			this.userText = userText;
+		}
 
-    /**
-     * Occurs when the user text has changed and the suggestions require an update
-     */
-    private void onUserInputChanged(final String userText){
-        synchronized (suggestionsTaskLock) {
-            if (suggestionsTask != null && suggestionsTask.isRunning()){
-                // cancel the current running task
-                suggestionsTask.cancel();
-            }
-            // create a new fetcher task
-            suggestionsTask = new FetchSuggestionsTask(userText);
-            new Thread(suggestionsTask).start();
-        }
-    }
+		@Override
+		protected Void call() throws Exception {
+			Callback<ISuggestionRequest,Collection<T>> provider = suggestionProvider;
+			if (provider!=null) {
+				long start_time = System.currentTimeMillis();
+				final Collection<T> fetchedSuggestions = provider.call(this);
+				long sleep_time = start_time + AUTO_COMPLETE_DELAY - System.currentTimeMillis();
+				if (sleep_time>0 && !isCancelled()) {
+					Thread.sleep(sleep_time);
+				}
+				if (!isCancelled()) {
+					Platform.runLater(() -> {
+						if (fetchedSuggestions!=null && !fetchedSuggestions.isEmpty()) {
+							popup.getSuggestions().setAll(fetchedSuggestions);
+							showPopup();
+						} else {
+							// No suggestions found, so hide the popup
+							hidePopup();
+						}
+					});
+				}
+			} else {
+				// No suggestion provider
+				hidePopup();
+			}
+			return null;
+		}
 
+		@Override
+		public String getUserText() {
+			return userText;
+		}
+	}
 
-    /** Represents a suggestion fetch request. */
-    public interface ISuggestionRequest {
-        /**
-         * Is this request canceled?
-         *
-         * @return {@code true} if the request is canceled, otherwise {@code false}
-         */
-        boolean isCancelled();
+	/** Represents an Event which is fired after an auto completion. */
+	public static class AutoCompletionEvent<TE> extends Event {
 
-        /**
-         * Get the user text to which suggestions shall be found
-         *
-         * @return {@link String} containing the user text
-         */
-        String getUserText();
-    }
+		/**
+		 * The event type that should be listened to by people interested in
+		 * knowing when an auto completion has been performed.
+		 */
+		public static final EventType<AutoCompletionEvent> AUTO_COMPLETED = new EventType<>("AUTO_COMPLETED_EVENT");
 
-    /**
-     * This task is responsible to fetch suggestions asynchronous by using the current defined suggestionProvider.
-     */
-    private class FetchSuggestionsTask extends Task<Void> implements ISuggestionRequest {
-        private final String userText;
+		private final TE completion;
 
-        public FetchSuggestionsTask(String userText){
-            this.userText = userText;
-        }
+		/**
+		 * Creates a new event that can subsequently be fired.
+		 */
+		public AutoCompletionEvent(TE completion) {
+			super(AUTO_COMPLETED);
+			this.completion = completion;
+		}
 
-        @Override
-        protected Void call() throws Exception {
-            Callback<ISuggestionRequest, Collection<T>> provider = suggestionProvider;
-            if (provider != null){
-                long start_time = System.currentTimeMillis();
-                final Collection<T> fetchedSuggestions = provider.call(this);
-                long sleep_time = start_time + AUTO_COMPLETE_DELAY - System.currentTimeMillis();
-                if (sleep_time > 0 && !isCancelled()) {
-                    Thread.sleep(sleep_time);
-                }
-                if (!isCancelled()){
-                    Platform.runLater(() -> {
-                        if (fetchedSuggestions != null && !fetchedSuggestions.isEmpty()){
-                            popup.getSuggestions().setAll(fetchedSuggestions);
-                            showPopup();
-                        } else {
-                            // No suggestions found, so hide the popup
-                            hidePopup();
-                        }
-                    });
-                }
-            } else {
-                // No suggestion provider
-                hidePopup();
-            }
-            return null;
-        }
+		/**
+		 * Returns the chosen completion.
+		 */
+		public TE getCompletion() {
+			return completion;
+		}
+	}
 
-        @Override
-        public String getUserText() {
-            return userText;
-        }
-    }
+	private ObjectProperty<EventHandler<AutoCompletionEvent<T>>> onAutoCompleted;
 
-    /** Represents an Event which is fired after an auto completion. */
-    public static class AutoCompletionEvent<TE> extends Event {
+	/**
+	 * Set a event handler which is invoked after an auto completion.
+	 */
+	public final void setOnAutoCompleted(EventHandler<AutoCompletionEvent<T>> value) {
+		if (onAutoCompleted==null) onAutoCompleted = new SimpleObjectProperty<>();
+		onAutoCompleted.set(value);
+	}
 
-        /**
-         * The event type that should be listened to by people interested in
-         * knowing when an auto completion has been performed.
-         */
-        public static final EventType<AutoCompletionEvent> AUTO_COMPLETED = new EventType<>("AUTO_COMPLETED_EVENT");
-
-        private final TE completion;
-
-        /**
-         * Creates a new event that can subsequently be fired.
-         */
-        public AutoCompletionEvent(TE completion) {
-            super(AUTO_COMPLETED);
-            this.completion = completion;
-        }
-
-        /**
-         * Returns the chosen completion.
-         */
-        public TE getCompletion() {
-            return completion;
-        }
-    }
-
-
-    private ObjectProperty<EventHandler<AutoCompletionEvent<T>>> onAutoCompleted;
-
-    /**
-     * Set a event handler which is invoked after an auto completion.
-     */
-    public final void setOnAutoCompleted(EventHandler<AutoCompletionEvent<T>> value) {
-	    if (onAutoCompleted == null) onAutoCompleted = new SimpleObjectProperty<>();
-	    onAutoCompleted.set(value);
-    }
-
-    public final EventHandler<AutoCompletionEvent<T>> getOnAutoCompleted() {
-        return onAutoCompleted == null ? null : onAutoCompleted.get();
-    }
+	public final EventHandler<AutoCompletionEvent<T>> getOnAutoCompleted() {
+		return onAutoCompleted==null ? null : onAutoCompleted.get();
+	}
 
 }

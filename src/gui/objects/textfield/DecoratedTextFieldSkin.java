@@ -38,106 +38,105 @@ import javafx.scene.text.HitInfo;
 
 public class DecoratedTextFieldSkin extends TextFieldSkin {
 
-    private static final PseudoClass HAS_NO_SIDE_NODE = PseudoClass.getPseudoClass("no-side-nodes");
-    private static final PseudoClass HAS_LEFT_NODE = PseudoClass.getPseudoClass("left-node-visible");
-    private static final PseudoClass HAS_RIGHT_NODE = PseudoClass.getPseudoClass("right-node-visible");
+	private static final PseudoClass HAS_NO_SIDE_NODE = PseudoClass.getPseudoClass("no-side-nodes");
+	private static final PseudoClass HAS_LEFT_NODE = PseudoClass.getPseudoClass("left-node-visible");
+	private static final PseudoClass HAS_RIGHT_NODE = PseudoClass.getPseudoClass("right-node-visible");
 
-    private Node left, right;
-    private StackPane leftPane, rightPane;
+	private Node left, right;
+	private StackPane leftPane, rightPane;
 
-    public DecoratedTextFieldSkin(DecoratedTextField control) {
-        super(control);
+	public DecoratedTextFieldSkin(DecoratedTextField control) {
+		super(control);
 
-        updateChildren();
+		updateChildren();
 
-        registerChangeListener(control.leftProperty(), e -> updateChildren());
-        registerChangeListener(control.rightProperty(), e -> updateChildren());
-    }
+		registerChangeListener(control.leftProperty(), e -> updateChildren());
+		registerChangeListener(control.rightProperty(), e -> updateChildren());
+	}
 
 	public DecoratedTextField getSkinnableNode() {
 		return (DecoratedTextField) getSkinnable();
 	}
 
-    private void updateChildren() {
-        Node newLeft = getSkinnableNode().leftProperty().get();
-        if (newLeft != null) {
-            getChildren().remove(leftPane);
-            leftPane = new StackPane(newLeft);
-            leftPane.setAlignment(Pos.CENTER_LEFT);
-            leftPane.getStyleClass().add("left-pane");
-            getChildren().add(leftPane);
-            left = newLeft;
-        }
+	private void updateChildren() {
+		Node newLeft = getSkinnableNode().leftProperty().get();
+		if (newLeft!=null) {
+			getChildren().remove(leftPane);
+			leftPane = new StackPane(newLeft);
+			leftPane.setAlignment(Pos.CENTER_LEFT);
+			leftPane.getStyleClass().add("left-pane");
+			getChildren().add(leftPane);
+			left = newLeft;
+		}
 
-        Node newRight = getSkinnableNode().rightProperty().get();
-        if (newRight != null) {
-            getChildren().remove(rightPane);
-            rightPane = new StackPane(newRight);
-            rightPane.setAlignment(Pos.CENTER_RIGHT);
-            rightPane.getStyleClass().add("right-pane");
-            getChildren().add(rightPane);
-            right = newRight;
-        }
+		Node newRight = getSkinnableNode().rightProperty().get();
+		if (newRight!=null) {
+			getChildren().remove(rightPane);
+			rightPane = new StackPane(newRight);
+			rightPane.setAlignment(Pos.CENTER_RIGHT);
+			rightPane.getStyleClass().add("right-pane");
+			getChildren().add(rightPane);
+			right = newRight;
+		}
 
-        getSkinnable().pseudoClassStateChanged(HAS_LEFT_NODE, left != null);
-	    getSkinnable().pseudoClassStateChanged(HAS_RIGHT_NODE, right != null);
-	    getSkinnable().pseudoClassStateChanged(HAS_NO_SIDE_NODE, left == null && right == null);
-    }
+		getSkinnable().pseudoClassStateChanged(HAS_LEFT_NODE, left!=null);
+		getSkinnable().pseudoClassStateChanged(HAS_RIGHT_NODE, right!=null);
+		getSkinnable().pseudoClassStateChanged(HAS_NO_SIDE_NODE, left==null && right==null);
+	}
 
-    @Override
-    protected void layoutChildren(double x, double y, double w, double h) {
-        final double fullHeight = h + snappedTopInset() + snappedBottomInset();
+	@Override
+	protected void layoutChildren(double x, double y, double w, double h) {
+		final double fullHeight = h + snappedTopInset() + snappedBottomInset();
 
-        final double leftWidth = leftPane == null ? 0.0 : snapSize(leftPane.prefWidth(fullHeight));
-        final double rightWidth = rightPane == null ? 0.0 : snapSize(rightPane.prefWidth(fullHeight));
+		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(fullHeight));
+		final double rightWidth = rightPane==null ? 0.0 : snapSize(rightPane.prefWidth(fullHeight));
 
-        final double textFieldStartX = snapPosition(x) + snapSize(leftWidth);
-        final double textFieldWidth = w - snapSize(leftWidth) - snapSize(rightWidth);
+		final double textFieldStartX = snapPosition(x) + snapSize(leftWidth);
+		final double textFieldWidth = w - snapSize(leftWidth) - snapSize(rightWidth);
 
-        super.layoutChildren(textFieldStartX, 0, textFieldWidth, fullHeight);
+		super.layoutChildren(textFieldStartX, 0, textFieldWidth, fullHeight);
 
-        if (leftPane != null) {
-            final double leftStartX = 0;
-            leftPane.resizeRelocate(leftStartX, 0, leftWidth, fullHeight);
-        }
+		if (leftPane!=null) {
+			final double leftStartX = 0;
+			leftPane.resizeRelocate(leftStartX, 0, leftWidth, fullHeight);
+		}
 
-        if (rightPane != null) {
-            final double rightStartX = rightPane == null ? 0.0 : w - rightWidth + snappedLeftInset();
-            rightPane.resizeRelocate(rightStartX, 0, rightWidth, fullHeight);
-        }
-    }
+		if (rightPane!=null) {
+			final double rightStartX = rightPane==null ? 0.0 : w - rightWidth + snappedLeftInset();
+			rightPane.resizeRelocate(rightStartX, 0, rightWidth, fullHeight);
+		}
+	}
 
-    @Override
-    public HitInfo getIndex(double x, double y) {
-        /*
-         * This resolves https://bitbucket.org/controlsfx/controlsfx/issue/476
-         * when we have a left Node and the click point is badly returned
-         * because we weren't considering the shift induced by the leftPane.
-         */
-        final double leftWidth = leftPane == null ? 0.0 : snapSize(leftPane.prefWidth(getSkinnable().getHeight()));
-        return super.getIndex(x - leftWidth, y);
-    }
+	@Override
+	public HitInfo getIndex(double x, double y) {
+		// This resolves https://bitbucket.org/controlsfx/controlsfx/issue/476
+		// when we have a left Node and the click point is badly returned
+		// because we weren't considering the shift induced by the leftPane.
+		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(getSkinnable().getHeight()));
+		return super.getIndex(x - leftWidth, y);
+	}
 
-    @Override
-    protected double computePrefWidth(double h, double topInset, double rightInset, double bottomInset, double leftInset) {
-        final double pw = super.computePrefWidth(h, topInset, rightInset, bottomInset, leftInset);
-        final double leftWidth = leftPane == null ? 0.0 : snapSize(leftPane.prefWidth(h));
-        final double rightWidth = rightPane == null ? 0.0 : snapSize(rightPane.prefWidth(h));
+	@Override
+	protected double computePrefWidth(double h, double topInset, double rightInset, double bottomInset, double leftInset) {
+		final double pw = super.computePrefWidth(h, topInset, rightInset, bottomInset, leftInset);
+		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(h));
+		final double rightWidth = rightPane==null ? 0.0 : snapSize(rightPane.prefWidth(h));
 
-        return pw + leftWidth + rightWidth + leftInset + rightInset;
-    }
+		return pw + leftWidth + rightWidth + leftInset + rightInset;
+	}
 
-    @Override
-    protected double computePrefHeight(double w, double topInset, double rightInset, double bottomInset, double leftInset) {
-        final double ph = super.computePrefHeight(w, topInset, rightInset, bottomInset, leftInset);
-        final double leftHeight = leftPane == null ? 0.0 : snapSize(leftPane.prefHeight(-1));
-        final double rightHeight = rightPane == null ? 0.0 : snapSize(rightPane.prefHeight(-1));
+	@Override
+	protected double computePrefHeight(double w, double topInset, double rightInset, double bottomInset, double leftInset) {
+		final double ph = super.computePrefHeight(w, topInset, rightInset, bottomInset, leftInset);
+		final double leftHeight = leftPane==null ? 0.0 : snapSize(leftPane.prefHeight(-1));
+		final double rightHeight = rightPane==null ? 0.0 : snapSize(rightPane.prefHeight(-1));
 
-        return Math.max(ph, Math.max(leftHeight, rightHeight));
-    }
-//
+		return Math.max(ph, Math.max(leftHeight, rightHeight));
+	}
+
 //    @Override
 //    protected double computeMinWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
 //        return computePrefWidth(height, topInset, rightInset, bottomInset, leftInset);
 //}
+
 }

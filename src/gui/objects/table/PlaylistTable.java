@@ -1,24 +1,5 @@
 package gui.objects.table;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.*;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.util.Callback;
-
-import org.reactfx.Subscription;
-
 import audio.Item;
 import audio.Player;
 import audio.playlist.Playlist;
@@ -29,9 +10,27 @@ import gui.Gui;
 import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.contextmenu.TableContextMenuR;
 import gui.objects.tablerow.ImprovedTableRow;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableColumnBase;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.*;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
+import layout.widget.WidgetFactory;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
 import main.App;
+import org.reactfx.Subscription;
 import services.database.Db;
 import util.access.V;
 import util.dev.TODO;
@@ -40,7 +39,6 @@ import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
 import web.SearchUriBuilder;
-
 import static audio.playlist.PlaylistItem.Field.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -138,7 +136,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 // handle drag transfer
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
-                // additional css styleclasses
+                // additional css style classes
                 styleRuleAdd(STYLE_PLAYED, p -> p==getPlaylist().getPlaying());
                 styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
             }
@@ -147,9 +145,11 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         d1 = Player.playingItem.onChange(o -> refreshColumn(columnIndex));
 
         // resizing
-        setColumnResizePolicy(resize -> {
+        setColumnResizePolicySafe(resize -> {
+            if (resize==null) return true;
+
             // handle column resize (except index)
-            if (resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
+            if (resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
                 if (getColumns().contains(columnName))
                     columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
                 resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
@@ -176,11 +176,11 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             columnIndex.setPrefWidth(W1);
             columnTime.setPrefWidth(W3);
 
-            List<TableColumn> cs = new ArrayList<>(resize.getTable().getColumns());
+            List<TableColumn<PlaylistItem,?>> cs = new ArrayList<>(resize.getTable().getColumns());
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if (mc!=null) {
                 cs.remove(mc);
-                double Σcw = cs.stream().mapToDouble(c -> c.getWidth()).sum();
+                double Σcw = cs.stream().mapToDouble(TableColumnBase::getWidth).sum();
                 mc.setPrefWidth(tw-Σcw-sw-gap);
             }
             return true; // false/true, does not matter
@@ -308,7 +308,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         return (Playlist) getItemsRaw();
     }
 
-/********************************** SELECTION *********************************/
+/* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
     public boolean movingItems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
@@ -346,7 +346,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         movingItems = false;    // release lock
     }
 
-/****************************** DRAG AND DROP *********************************/
+/* --------------------- DRAG AND DROP ------------------------------------------------------------------------------ */
 
     private void dropDrag(DragEvent e, int index) {
         if (DragUtil.hasAudio(e)) {
@@ -357,9 +357,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         }
     }
 
-/****************************** CONTEXT MENU **********************************/
+/* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-    private static final TableContextMenuR<PlaylistItem> contextMenu = new TableContextMenuR<> (
+    private static final TableContextMenuR<PlaylistItem, PlaylistTable> contextMenu = new TableContextMenuR<>(
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e ->
@@ -369,15 +369,17 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     PlaylistManager.use(p -> p.removeAll(m.getValue()))
                 ),
                 new Menu("Show in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue()))
+                    menuItems(
+                        APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
+                        WidgetFactory::nameGui,
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
-                    menuItems(filterMap(APP.widgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.nameGui()),
-                        f -> f,
-                        f -> APP.widgetManager.use(f,NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue()))
+                    menuItems(
+                        APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
+                        WidgetFactory::nameGui,
+                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
                 menuItem("Crop items", e ->
@@ -407,12 +409,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             return m;
         },
         (menu,table) -> {
-            List<PlaylistItem> items = ImprovedTable.class.cast(table).getSelectedItemsCopy();
+            List<PlaylistItem> items = table.getSelectedItemsCopy();
             menu.setValue(items);
             if (items.isEmpty()) {
-                menu.getItems().forEach(i->i.setDisable(true));
+                menu.getItems().forEach(i -> i.setDisable(true));
             } else {
-                menu.getItems().forEach(i->i.setDisable(false));
+                menu.getItems().forEach(i -> i.setDisable(false));
             }
         }
     );

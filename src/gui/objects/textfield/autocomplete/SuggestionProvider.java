@@ -29,12 +29,9 @@
 
 package gui.objects.textfield.autocomplete;
 
-import java.util.*;
-
-import javafx.util.Callback;
-
 import gui.objects.textfield.autocomplete.AutoCompletionBinding.ISuggestionRequest;
-
+import java.util.*;
+import javafx.util.Callback;
 import static util.functional.Util.list;
 
 /**
@@ -43,127 +40,125 @@ import static util.functional.Util.list;
  *
  * @param <T> Type of suggestions
  */
-public abstract class SuggestionProvider<T> implements Callback<ISuggestionRequest, Collection<T>> {
+public abstract class SuggestionProvider<T> implements Callback<ISuggestionRequest,Collection<T>> {
 
-    private final List<T> possibleSuggestions = new ArrayList<>();
-    private final Object possibleSuggestionsLock = new Object();
+	private final List<T> possibleSuggestions = new ArrayList<>();
+	private final Object possibleSuggestionsLock = new Object();
 
+	/**
+	 * Add the given new possible suggestions to this  SuggestionProvider
+	 */
+	@SafeVarargs
+	public final void addPossibleSuggestions(T... newPossible) {
+		addPossibleSuggestions(list(newPossible));
+	}
 
-    /**
-     * Add the given new possible suggestions to this  SuggestionProvider
-     */
-    @SafeVarargs
-    public final void addPossibleSuggestions(T... newPossible){
-        addPossibleSuggestions(list(newPossible));
-    }
+	/**
+	 * Add the given new possible suggestions to this  SuggestionProvider
+	 */
+	public void addPossibleSuggestions(Collection<T> newPossible) {
+		synchronized (possibleSuggestionsLock) {
+			possibleSuggestions.addAll(newPossible);
+		}
+	}
 
-    /**
-     * Add the given new possible suggestions to this  SuggestionProvider
-     */
-    public void addPossibleSuggestions(Collection<T> newPossible){
-        synchronized (possibleSuggestionsLock) {
-            possibleSuggestions.addAll(newPossible);
-        }
-    }
+	/**
+	 * Remove all current possible suggestions
+	 */
+	public void clearSuggestions() {
+		synchronized (possibleSuggestionsLock) {
+			possibleSuggestions.clear();
+		}
+	}
 
-    /**
-     * Remove all current possible suggestions
-     */
-    public void clearSuggestions(){
-        synchronized (possibleSuggestionsLock) {
-            possibleSuggestions.clear();
-        }
-    }
+	@Override
+	public final Collection<T> call(final ISuggestionRequest request) {
+		List<T> suggestions = new ArrayList<>();
+		if (!request.getUserText().isEmpty()) {
+			synchronized (possibleSuggestionsLock) {
+				for (T possibleSuggestion : possibleSuggestions) {
+					if (isMatch(possibleSuggestion, request)) {
+						suggestions.add(possibleSuggestion);
+					}
+				}
+			}
+			suggestions.sort(getComparator());
+		}
+		return suggestions;
+	}
 
-    @Override
-    public final Collection<T> call(final ISuggestionRequest request) {
-        List<T> suggestions = new ArrayList<>();
-        if (!request.getUserText().isEmpty()){
-            synchronized (possibleSuggestionsLock) {
-                for (T possibleSuggestion : possibleSuggestions) {
-                    if (isMatch(possibleSuggestion, request)){
-                        suggestions.add(possibleSuggestion);
-                    }
-                }
-            }
-            Collections.sort(suggestions, getComparator());
-        }
-        return suggestions;
-    }
+	/**
+	 * Get the comparator to order the suggestions
+	 */
+	protected abstract Comparator<T> getComparator();
 
-    /**
-     * Get the comparator to order the suggestions
-     */
-    protected abstract Comparator<T> getComparator();
+	/**
+	 * Check the given possible suggestion is a match (is a valid suggestion)
+	 */
+	protected abstract boolean isMatch(T suggestion, ISuggestionRequest request);
 
-    /**
-     * Check the given possible suggestion is a match (is a valid suggestion)
-     */
-    protected abstract boolean isMatch(T suggestion, ISuggestionRequest request);
+	/**
+	 * Create a default suggestion provider based on the toString() method of the generic objects
+	 *
+	 * @param possibleSuggestions All possible suggestions
+	 */
+	public static <T> SuggestionProvider<T> create(Collection<T> possibleSuggestions) {
+		return create(null, possibleSuggestions);
+	}
 
+	/**
+	 * Create a default suggestion provider based on the toString() method of the generic objects
+	 * using the provided stringConverter
+	 *
+	 * @param stringConverter A stringConverter which converts generic T into a string
+	 * @param possibleSuggestions All possible suggestions
+	 */
+	public static <T> SuggestionProvider<T> create(Callback<T,String> stringConverter, Collection<T> possibleSuggestions) {
+		SuggestionProviderString<T> suggestionProvider = new SuggestionProviderString<>(stringConverter);
+		suggestionProvider.addPossibleSuggestions(possibleSuggestions);
+		return suggestionProvider;
+	}
 
-    /**
-     * Create a default suggestion provider based on the toString() method of the generic objects
-     * @param possibleSuggestions All possible suggestions
-     */
-    public static <T> SuggestionProvider<T> create(Collection<T> possibleSuggestions){
-        return create(null, possibleSuggestions);
-    }
+	/**
+	 * This is a simple string based suggestion provider.
+	 * All generic suggestions T are turned into strings for processing.
+	 */
+	private static class SuggestionProviderString<T> extends SuggestionProvider<T> {
 
-    /**
-     * Create a default suggestion provider based on the toString() method of the generic objects
-     * using the provided stringConverter
-     *
-     * @param stringConverter A stringConverter which converts generic T into a string
-     * @param possibleSuggestions All possible suggestions
-     */
-    public static <T> SuggestionProvider<T> create(Callback<T, String> stringConverter, Collection<T> possibleSuggestions){
-        SuggestionProviderString<T> suggestionProvider = new SuggestionProviderString<>(stringConverter);
-        suggestionProvider.addPossibleSuggestions(possibleSuggestions);
-        return suggestionProvider;
-    }
+		private Callback<T,String> stringConverter;
 
+		private final Comparator<T> stringComparator = new Comparator<>() {
+			@Override
+			public int compare(T o1, T o2) {
+				String o1str = stringConverter.call(o1);
+				String o2str = stringConverter.call(o2);
+				return o1str.compareTo(o2str);
+			}
+		};
 
-    /**
-     * This is a simple string based suggestion provider.
-     * All generic suggestions T are turned into strings for processing.
-     */
-    private static class SuggestionProviderString<T> extends SuggestionProvider<T> {
+		/**
+		 * Create a new SuggestionProviderString
+		 */
+		public SuggestionProviderString(Callback<T,String> converter) {
+			stringConverter = converter!=null
+				? converter
+				: obj -> obj!=null ? obj.toString() : "";
+		}
 
-        private Callback<T, String> stringConverter;
+		/** {@inheritDoc} */
+		@Override
+		protected Comparator<T> getComparator() {
+			return stringComparator;
+		}
 
-        private final Comparator<T> stringComparator = new Comparator<>() {
-            @Override
-            public int compare(T o1, T o2) {
-                String o1str = stringConverter.call(o1);
-                String o2str = stringConverter.call(o2);
-                return o1str.compareTo(o2str);
-            }
-        };
-
-        /**
-         * Create a new SuggestionProviderString
-         */
-        public SuggestionProviderString(Callback<T, String> converter){
-            stringConverter = converter != null
-                                   ? converter
-                                   : obj -> obj != null ? obj.toString() : "";
-        }
-
-        /**{@inheritDoc}*/
-        @Override
-        protected Comparator<T> getComparator() {
-            return stringComparator;
-        }
-
-        /**{@inheritDoc}*/
-        @Override
-        protected boolean isMatch(T suggestion, ISuggestionRequest request) {
-            String userTextLower = request.getUserText().toLowerCase();
-            String suggestionStr = suggestion.toString().toLowerCase();
-            return suggestionStr.contains(userTextLower)
-                    && !suggestionStr.equals(userTextLower);
-        }
-    }
+		/** {@inheritDoc} */
+		@Override
+		protected boolean isMatch(T suggestion, ISuggestionRequest request) {
+			String userTextLower = request.getUserText().toLowerCase();
+			String suggestionStr = suggestion.toString().toLowerCase();
+			return suggestionStr.contains(userTextLower)
+				&& !suggestionStr.equals(userTextLower);
+		}
+	}
 }
 

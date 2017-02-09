@@ -1,11 +1,11 @@
 package gui.objects.tablecell;
 
-import javafx.geometry.Pos;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataWriter;
 import gui.objects.rating.Rating;
+import javafx.geometry.Pos;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
@@ -16,15 +16,15 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as rating control. */
 @IsPlugin
-@StringParseStrategy( from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Stars" )
+@StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Stars")
 public class RatingRatingCellFactory implements RatingCellFactory {
 
 	@ParsesFromString
 	public RatingRatingCellFactory() {}
 
 	@Override
-	public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> c) {
-		return new TableCell<>(){
+	public TableCell<Metadata,Double> apply(TableColumn<Metadata,Double> c) {
+		return new TableCell<>() {
 			Rating r = new Rating(APP.maxRating.get(), 0);
 
 			{

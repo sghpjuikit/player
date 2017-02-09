@@ -1,9 +1,9 @@
 package gui.objects.tablecell;
 
+import audio.tagging.Metadata;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import audio.tagging.Metadata;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
@@ -13,7 +13,7 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as text from '' to '*****'. */
 @IsPlugin
-@StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Hyphen" )
+@StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Hyphen")
 public class HyphenRatingCellFactory implements RatingCellFactory {
 	private static final String s0 = "";
 	private static final String s1 = "-";
@@ -26,8 +26,8 @@ public class HyphenRatingCellFactory implements RatingCellFactory {
 	public HyphenRatingCellFactory() {}
 
 	@Override
-	public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> param) {
-		return new TableCell<>(){
+	public TableCell<Metadata,Double> apply(TableColumn<Metadata,Double> param) {
+		return new TableCell<>() {
 
 			{
 				setAlignment(Pos.CENTER);
@@ -39,7 +39,7 @@ public class HyphenRatingCellFactory implements RatingCellFactory {
 				if (empty) {
 					setText(null);
 				} else {
-					int r = (int)round(item/0.2);
+					int r = (int) round(item/0.2);
 					String s;
 					if (r==0) s = s0;
 					else if (r==1) s = s1;

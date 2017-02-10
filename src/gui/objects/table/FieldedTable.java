@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.SortType;
@@ -83,11 +83,12 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
     public FieldedTable(Class<F> type) {
         super();
-        if (!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
+
+        if (!noØ(type).isEnum()) throw new IllegalArgumentException("Fields must be an enum");
         this.type = type;
 
         // install comparator updating part I
-        getSortOrder().addListener((Change<?> c) -> updateComparator(c));
+        getSortOrder().addListener((ListChangeListener<Object>) this::updateComparator);
 
         // show the column control menu on right click ( + hide if shown )
         addEventHandler(MOUSE_CLICKED, e -> {
@@ -171,7 +172,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
         List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
         state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
             // get or build column
-            TableColumn<T,?> tc = getColumn(nameToCF(c.name)).orElse(colFact.call(nameToF(c.name)));
+            TableColumn<T,?> tc = getColumn(nameToCF(c.name)).orElseGet(() -> colFact.call(nameToF(c.name)));
             // set width
             tc.setPrefWidth(c.width);
             // set visibility

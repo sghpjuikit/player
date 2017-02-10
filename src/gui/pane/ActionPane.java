@@ -1,13 +1,19 @@
 package gui.pane;
 
-import java.io.File;
+import de.jensd.fx.glyphs.GlyphIcons;
+import gui.Gui;
+import gui.objects.Text;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
+import gui.objects.spinner.Spinner;
+import gui.objects.table.FilteredTable;
+import gui.objects.table.ImprovedTable.PojoV;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
 import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
@@ -25,29 +31,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
-
-import audio.playlist.PlaylistItem;
-import audio.tagging.Metadata;
-import audio.tagging.MetadataGroup;
-import de.jensd.fx.glyphs.GlyphIcons;
-import gui.Gui;
-import gui.objects.Text;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
-import gui.objects.spinner.Spinner;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable.PojoV;
+import main.App;
 import util.SwitchException;
 import util.access.V;
-import util.access.fieldvalue.FileField;
-import util.access.fieldvalue.ObjectField;
 import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.Async;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
-import util.collections.map.ClassMap;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
@@ -56,7 +48,6 @@ import util.functional.Try;
 import util.type.ClassName;
 import util.type.InstanceInfo;
 import util.type.InstanceName;
-
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.table.FieldedTable.defaultCell;
@@ -77,7 +68,6 @@ import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 import static util.type.Util.build;
-import static util.type.Util.getEnumConstants;
 
 /**
  * Action chooser pane. Displays icons representing certain actions.
@@ -86,15 +76,6 @@ import static util.type.Util.getEnumConstants;
  */
 @IsConfigurable("Gui.Action Chooser")
 public class ActionPane extends OverlayPane<Object> implements Configurable<Object> {
-
-	// TODO: refactor out
-	static final ClassMap<Class<?>> fieldMap = new ClassMap<>();
-	static {
-		fieldMap.put(PlaylistItem.class, PlaylistItem.Field.class);
-		fieldMap.put(Metadata.class, Metadata.Field.class);
-		fieldMap.put(MetadataGroup.class, MetadataGroup.Field.class);
-		fieldMap.put(File.class, FileField.class);
-	}
 
 	private static final String ROOT_STYLECLASS = "action-pane";
 	private static final String ICON_STYLECLASS = "action-pane-action-icon";
@@ -362,10 +343,10 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		tablePane.getChildren().clear();
 		double gap = 0;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
-			Collection<Object> collection = (Collection) data;
-			Class<?> colType = getCollectionType(collection);
-			if (fieldMap.containsKey(colType)) {
-				FilteredTable<Object,?> t = new FilteredTable<>((ObjectField)getEnumConstants(fieldMap.get(colType))[0]);
+			Collection<Object> items = (Collection) data;
+			Class itemType = getCollectionType(items);
+			if (App.APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
+				FilteredTable<Object,?> t = new FilteredTable<>(itemType, null);
 				t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
@@ -379,7 +360,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 				tablePane.getChildren().setAll(t.getRoot());
 				gap = 70;
 				table = t;
-				t.setItemsRaw(collection);
+				t.setItemsRaw(items);
 				t.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
 						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));

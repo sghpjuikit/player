@@ -1,10 +1,17 @@
 package gui.objects.table;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.infonode.InfoTable;
+import gui.itemnode.FieldedPredicateChainItemNode;
+import gui.itemnode.FieldedPredicateItemNode;
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import gui.objects.icon.Icon;
+import gui.objects.search.SearchAutoCancelable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -22,22 +29,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.infonode.InfoTable;
-import gui.itemnode.FieldedPredicateChainItemNode;
-import gui.itemnode.FieldedPredicateItemNode;
-import gui.itemnode.FieldedPredicateItemNode.PredicateData;
-import gui.objects.icon.Icon;
-import gui.objects.search.SearchAutoCancelable;
+import main.App;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
 import util.functional.Functors;
-
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
-import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -50,11 +48,11 @@ import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
+import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
-import static util.type.Util.getEnumConstants;
 
 /**
  *
@@ -64,26 +62,34 @@ import static util.type.Util.getEnumConstants;
  */
 public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
 
+	final Class<T> type;
+	public F primaryFilterField;
     private final ObservableList<T> allitems;
     private final FilteredList<T> filtereditems;
     private final SortedList<T> sortedItems;
     final VBox root = new VBox(this);
 
-    public FilteredTable(F main_field) {
-        this(main_field, observableArrayList());
+	/**
+	 *
+	 * @param type exact type of the item displayed in the table
+	 * @param main_field to be chosen as main and default search field or null
+	 */
+	public FilteredTable(Class<T> type, F main_field) {
+        this(type, main_field, observableArrayList());
     }
 
     /**
-     * @param main_field field that will denote main column. Must not be null.
-     * Also initializes {@link gui.objects.table.FilteredTable.Search#field}.
-     *
-     * @param main_field be chosen as main and default search field
-     * @param backing_list
+	 * @param type exact type of the item displayed in the table
+     * @param main_field field to determine primary filtering field and search column. Can be null
+     * Initializes {@link gui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
+     * @param backing_list non null backing list of items to be displayed in the table
      */
-    public FilteredTable(F main_field, ObservableList<T> backing_list) {
+    public FilteredTable(Class<T> type, F main_field, ObservableList<T> backing_list) {
         super((Class<F>)main_field.getClass());
 
-        allitems = backing_list;
+        this.type = type;
+
+        allitems = noØ(backing_list);
         filtereditems = new FilteredList<>(allitems);
         sortedItems = new SortedList<>(filtereditems);
         itemsPredicate = filtereditems.predicateProperty();
@@ -105,7 +111,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	    searchQueryLabel.textProperty().bind(search.searchQuery);
 
 	    // filtering
-        filterPane = new Filter(filtereditems, main_field);
+		primaryFilterField = main_field;
+        filterPane = new Filter(type, filtereditems);
         filterPane.getNode().setVisible(false);
         EventHandler<KeyEvent> filterKeyHandler = e -> {
 	        KeyCode k = e.getCode();
@@ -178,8 +185,6 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
      * working. The first replaces the table item list (instance of {@link FilteredList},
      * which must not happen. The second would throw an exception as FilteredList
      * is not directly modifiable.
-     *
-     * @param items
      */
     public void setItemsRaw(Collection<? extends T> items) {
         allitems.setAll(items);
@@ -195,14 +200,14 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
         return filtereditems.getSourceIndex(index);
     }
 
-/******************************** TOP CONTROLS ********************************/
+/* --------------------- TOP CONTROLS ------------------------------------------------------------------------------- */
 
     /** Filter pane in the top of the table. */
     public final Filter filterPane;
-    /*
+    /**
      * Predicate that filters the table list. Null predicate will match all
      * items (same as always true predicate). The value reflects the filter
-     * generated by the user through the {@link #searchBox}. Changing the
+     * generated by the user through the {@link #filterPane}. Changing the
      * predicate programmatically is possible, however the searchBox will not
      * react on the change, its effect will merely be overridden and when
      * search box predicate changes, it will in turn override effect of a
@@ -295,36 +300,36 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
     /** Table's filter node. */
     public class Filter extends FieldedPredicateChainItemNode<T,F> {
 
-        public Filter(FilteredList<T> table_list, F prefFilterType) {
+        public Filter(Class<T> filterType, FilteredList<T> filterList) {
             super(() -> {
                 FieldedPredicateItemNode<T,F> g = new FieldedPredicateItemNode<>(
                     in -> Functors.pool.getIO(in, Boolean.class),
                     in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
-                g.setPrefTypeSupplier(() -> PredicateData.ofField(prefFilterType));
-                g.setData(d(prefFilterType));
+                g.setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
+                g.setData(getFilterPredicates(filterType));
                 return g;
             });
-            setPrefTypeSupplier(() -> PredicateData.ofField(prefFilterType));
-            onItemChange = filtereditems::setPredicate;
-            if (prefFilterType instanceof Enum) {
-                setData(d(prefFilterType));
-            } else
-                throw new IllegalArgumentException("Initial value - field type must be an enum");
+            setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
+            onItemChange = filterList::setPredicate;
+			setData(getFilterPredicates(filterType));
         }
-
     }
 
-    private <F extends ObjectField<T>> List<PredicateData<F>> d(F prefFilterType) {
-        F[] es = getEnumConstants(prefFilterType.getClass());
-        return stream(es)
-                .filter(ObjectField::isTypeStringRepresentable)
-                .map(mf -> PredicateData.ofField(mf))
-                .sorted(by(e -> e.name))
-                .collect(toList());
-    }
+	private PredicateData<F> getPrimaryFilterPredicate() {
+		return Optional.ofNullable(primaryFilterField).map(PredicateData::ofField).orElse(null);
+	}
 
-/********************************** INDEX *************************************/
+	private List<PredicateData<F>> getFilterPredicates(Class<T> filterType) {
+		return stream(App.APP.classFields.get(filterType))
+			.filter(ObjectField::isTypeStringRepresentable)
+			.map(f -> (F) f)	// TODO: fix
+			.map(PredicateData::ofField)
+			.sorted(by(e -> e.name))
+			.toList();
+	}
+
+/* --------------------- INDEX -------------------------------------------------------------------------------------- */
 
     /**
      * Shows original item's index in the unfiltered list when filter is on.
@@ -374,8 +379,8 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 			APP.actionStream.push("Table search");
 			searchQuery.set(s);
 			// scroll to first found item
-			TableColumn c = getColumn(field).orElse(null);
-			if (!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
+			TableColumn c = field==null ? null : getColumn(field).orElse(null);
+			if (c!=null && !getItems().isEmpty() && c.getCellData(0) instanceof String) {
 				for (int i=0; i<getItems().size(); i++) {
 					String item = (String) field.getOf(getItems().get(i));
 					if (matches(item,searchQuery.get())) {

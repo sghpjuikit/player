@@ -99,7 +99,7 @@ import static util.reactive.Util.maintain;
 public class LibraryView extends FXMLController {
 
     private @FXML AnchorPane root;
-    private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
+    private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(MetadataGroup.class, VALUE);
 
     // input/output
     private Output<MetadataGroup> out_sel;

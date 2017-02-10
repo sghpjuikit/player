@@ -105,7 +105,7 @@ import static util.reactive.Util.maintain;
 public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
-	private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
+	private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), new Spinner()) {
         Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         @Override
@@ -190,7 +190,7 @@ public class Library extends FXMLController implements SongReader {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
             table.getColumn(ColumnField.INDEX)
-                 .ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
+                 .ifPresent(i -> i.setPrefWidth(table.calculateIndexColumnWidth()));
             return b;
         });
 

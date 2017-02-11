@@ -1,5 +1,7 @@
 package gui.objects.image;
 
+import gui.objects.contextmenu.ImprovedContextMenu;
+import gui.objects.image.cover.Cover;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -8,12 +10,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javafx.animation.Timeline;
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.Point2D;
 import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -25,13 +25,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.util.Duration;
-
+import main.App;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import gui.objects.contextmenu.ImprovedContextMenu;
-import gui.objects.image.cover.Cover;
-import main.App;
 import util.SingleR;
 import util.access.V;
 import util.animation.Anim;
@@ -41,7 +37,6 @@ import util.dev.Dependency;
 import util.file.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
-
 import static java.lang.Double.min;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -245,9 +240,9 @@ public class Thumbnail extends ImageNode {
     @Override
     public void loadImage(File img) {
         imageFile = img;
-        Point2D size = calculateImageLoadSize(root);
-        Image c = getCached(img, size.getX(), size.getY());
-        Image i = c!=null ? c : util.Util.loadImage(img, size.getX(), size.getY());
+        ImageSize size = calculateImageLoadSize();
+        Image c = getCached(img, size);
+        Image i = c!=null ? c : util.Util.loadImage(img, size.width, size.height);
         setImgA(i);
     }
 
@@ -256,8 +251,8 @@ public class Thumbnail extends ImageNode {
         if (img==null) {
             setImgA(null);
         } else {
-            Point2D size = calculateImageLoadSize(root);
-            Image i = img.getImage(size.getX(), size.getY());
+            ImageSize size = calculateImageLoadSize();
+            Image i = img.getImage(size);
             setImgA(i);
         }
     }
@@ -268,6 +263,10 @@ public class Thumbnail extends ImageNode {
     public static Image getCached(String url, double w, double h) {
         Image ci = url==null ? null : IMG_CACHE.get(url);
         return ci!=null && (ci.getWidth()>=w || ci.getHeight()>=h) ? ci : null;
+    }
+
+    public static Image getCached(File file, ImageSize size) {
+        return getCached(file, size.width, size.height);
     }
 
     public static Image getCached(File file, double w, double h) {
@@ -324,6 +323,10 @@ public class Thumbnail extends ImageNode {
             animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
             animationPause();
         }
+    }
+
+    public ImageSize calculateImageLoadSize() {
+        return calculateImageLoadSize(root);
     }
 
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */

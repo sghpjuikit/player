@@ -33,6 +33,7 @@ import services.database.Db;
 import util.access.V;
 import util.async.executor.EventReducer;
 import util.conf.Config;
+import util.conf.Config.ConfigBase;
 import util.conf.Config.PropertyConfig;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
@@ -144,7 +145,7 @@ public class FileInfo extends FXMLController implements SongReader {
     // generate show {field} configs
     private final Map<String,Config> fieldConfigs = fields.stream()
             .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
-            .collect(toMap(c -> c.getName(), c -> c));
+            .collect(toMap(ConfigBase::getName, c -> c));
 
     @Override
     public void init() {

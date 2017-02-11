@@ -1,5 +1,6 @@
 package appLauncher;
 
+import gui.objects.image.ImageNode.ImageSize;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
@@ -149,15 +150,15 @@ public class AppLauncher extends ClassController {
     private void visit() {
         if (!initialized) return;
         Item item = new TopItem();
-//        item.last_gridposition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
+//        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
         Fut.fut(item)
                 .map(Item::children,executorIO)
                 .use(cells -> cells.sort(buildSortComparator()),executorIO)
                 .use(cells -> {
                     grid.getItemsRaw().setAll(cells);
-                    if (item.last_gridposition>=0)
-                        grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+                    if (item.lastScrollPosition>=0)
+                        grid.implGetSkin().getFlow().setPosition(item.lastScrollPosition);
 
 	                grid.implGetSkin().getFlow().requestFocus();    // fixes focus problem
                 },FX)
@@ -182,7 +183,7 @@ public class AppLauncher extends ClassController {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
              sortHomo = sort.get(); // sorts each group separately
         FileField field = sortBy.get(); // precompute once for consistency and performance
-        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
+        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
                          cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
@@ -289,10 +290,9 @@ public class AppLauncher extends ClassController {
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
-		        double width  = cellSize.get().width,
-			           height = cellSize.get().height-CELL_TEXT_HEIGHT;
+	            ImageSize size = thumb.calculateImageLoadSize();
 		        //            executorThumbs.execute(task(() ->
-		        item.loadCover(false,width,height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img));
+		        item.loadCover(false, size.width, size.height, (was_loaded,file,img) -> setCoverPost(item,was_loaded,file,img));
 		        //            ));
 	        }
         }

@@ -1,5 +1,10 @@
 package dirViewer;
 
+import gui.objects.grid.GridCell;
+import gui.objects.grid.GridView;
+import gui.objects.hierarchy.Item;
+import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,18 +15,12 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-
-import gui.objects.grid.GridCell;
-import gui.objects.grid.GridView;
-import gui.objects.hierarchy.Item;
-import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.LazyR;
@@ -43,7 +42,6 @@ import util.functional.Functors.PƑ0;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.validation.Constraint;
-
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static dirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static dirViewer.DirViewer.CellSize.NORMAL;
@@ -197,7 +195,7 @@ public class DirViewer extends ClassController {
 
     private void visit(Item dir, Item scrollTo) {
         if (!initialized) return;
-        if (item != null) item.last_gridposition = grid.implGetSkin().getFlow().getPosition();
+        if (item != null) item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
         if (item != null && item.isHChildOf(dir)) item.disposeChildren();
         visitId.incrementAndGet();
@@ -209,8 +207,8 @@ public class DirViewer extends ClassController {
                 .use(cells -> cells.sort(buildSortComparator()), executorIO)
                 .use(cells -> {
                     grid.getItemsRaw().setAll(cells);
-                    if (item.last_gridposition >= 0)
-                        grid.implGetSkin().getFlow().setPosition(item.last_gridposition);
+                    if (item.lastScrollPosition>= 0)
+                        grid.implGetSkin().getFlow().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
                     run(millis(500), () -> grid.requestFocus());
@@ -265,7 +263,7 @@ public class DirViewer extends ClassController {
     }
 
     private void doubleClickItem(Item i, boolean edit) {
-        if (i.valtype == DIRECTORY) DirViewer.this.visit(i);
+        if (i.valType== DIRECTORY) DirViewer.this.visit(i);
         else {
             if (edit) Environment.edit(i.val);
             else     Environment.open(i.val);
@@ -283,7 +281,7 @@ public class DirViewer extends ClassController {
         Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
 	         sortHomo = sort.get();                 // sorts each group separately
         FileField field = sortBy.get();             // pre-compute, do not compute in comparator
-        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valtype)),
+        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
                          cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.cmp(c))));
         return cmpHetero.thenComparing(cmpHomo);
     }
@@ -397,15 +395,15 @@ public class DirViewer extends ClassController {
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
-	            double width = cellSize.get().width,
-	                   height = cellSize.get().height - CELL_TEXT_HEIGHT;
+                ImageSize size = thumb.calculateImageLoadSize();
+	            double w = size.width, h = size.height;
 	            // load thumbnail
 	            executorThumbs.execute(task(() ->
-	                item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            ));
 	            // load high quality thumbnail
 	            executorImage.execute(task(() ->
-	                item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            ));
 	        }
         }
@@ -484,7 +482,7 @@ public class DirViewer extends ClassController {
      * We use String config field to save which filter we use. Of course, we give up filter chaining and other stuff...
      * For now, it is good enough.
      */
-    private static final List<PƑ0<File, Boolean>> filters = list();
+    private static final List<PƑ0<File,Boolean>> filters = list();
 
     static {
         filters.add(new PƑ0<>("File - all", File.class, Boolean.class, file -> true));
@@ -505,7 +503,7 @@ public class DirViewer extends ClassController {
         });
     }
 
-    private PƑ0<File, Boolean> buildFilter() {
+    private PƑ0<File,Boolean> buildFilter() {
         String type = filter.getValue();
         return stream(filters)
                 .findAny(f -> type.equals(f.name))

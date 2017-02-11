@@ -1,7 +1,6 @@
 package gui.objects.image;
 
 import java.io.File;
-import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -85,11 +84,11 @@ public abstract class ImageNode {
      * @param from component to use to calculate the size based on
      * @return recommended size of the image
      */
-    public Point2D calculateImageLoadSize(Region from) {
+    public ImageSize calculateImageLoadSize(Region from) {
         // sample both size and prefSize to avoid getting 0 when source not yet initialized (part of scene graph)
         double w = APP.windowManager.screenMaxScaling*Math.max(from.getWidth(),from.getPrefWidth());
         double h = APP.windowManager.screenMaxScaling*Math.max(from.getHeight(),from.getPrefHeight());
-        return new Point2D(w,h).multiply(LOAD_COEFFICIENT);
+        return new ImageSize(LOAD_COEFFICIENT*w, LOAD_COEFFICIENT*h);
     }
 
     public abstract Pane getPane();
@@ -130,5 +129,14 @@ public abstract class ImageNode {
      */
     public void cache(boolean val) {
         getView().setCache(val);
+    }
+
+    public static class ImageSize {
+        public final double width, height;
+
+        public ImageSize(double width, double height) {
+            this.width = width;
+            this.height = height;
+        }
     }
 }

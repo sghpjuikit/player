@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javafx.beans.binding.DoubleBinding;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -79,6 +80,7 @@ public class WindowManager implements Configurable<Object> {
 
 	private static final Logger LOGGER = log(WindowManager.class);
 
+	public double screenMaxScaling;
 	/**
 	 * Main application window, see {@link gui.objects.window.stage.Window#isMain}. May be null.
 	 */ private Window mainWindow;
@@ -123,6 +125,14 @@ public class WindowManager implements Configurable<Object> {
     public final VarEnum<String> mini_widget = VarEnum.ofStream("PlayerControlsTiny",
         () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(WidgetFactory::name)
     );
+
+    public WindowManager() {
+    	Runnable computeMaxUsedScaling = () -> screenMaxScaling = Screen.getScreens().stream()
+			.mapToDouble(s -> max(s.getOutputScaleX(), s.getOutputScaleY())).max()
+			.orElse(1);
+    	computeMaxUsedScaling.run();
+		Screen.getScreens().addListener((ListChangeListener<Screen>) change -> computeMaxUsedScaling.run());
+	}
 
 	public Optional<Window> getMain() {
 		return Optional.ofNullable(mainWindow);

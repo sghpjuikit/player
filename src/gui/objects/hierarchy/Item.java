@@ -16,6 +16,7 @@ import util.file.FileType;
 import util.file.ImageFileFormat;
 import util.graphics.IconExtractor;
 
+import static main.App.APP;
 import static util.Util.loadImageFull;
 import static util.Util.loadImageThumb;
 import static util.file.FileType.DIRECTORY;
@@ -139,7 +140,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
     }
 
     public void loadCover(boolean full, double width, double height, TriConsumer<Boolean,File,Image> action) {
-        boolean wascoverFile_loaded = coverFile_loaded;
+    	double widthPx = APP.windowManager.screenMaxScaling*width;
+    	double heightPx = APP.windowManager.screenMaxScaling*height;
+		boolean wascoverFile_loaded = coverFile_loaded;
 	    File file = getCoverFile();
 	    if (file==null) {
 		    if (!wascoverFile_loaded && cover_file==null && (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk"))) {
@@ -153,7 +156,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		        // but that would cause animation to be played again, which we do not want
 	            boolean was_loaded = cover_loadedThumb || cover_loadedFull;
 	            if (!cover_loadedFull) {
-	                Image img = loadImageFull(file, width, height);
+	                Image img = loadImageFull(file, widthPx, heightPx);
 	                if (img!=null) {
 	                    cover = img;
 	                    action.accept(was_loaded,file,cover);
@@ -163,8 +166,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	        } else {
 	            boolean was_loaded = cover_loadedThumb;
 	            if (!cover_loadedThumb) {
-	                Image imgc = Thumbnail.getCached(file, width, height);
-	                cover = imgc!=null ? imgc : loadImageThumb(file, width, height);
+	                Image imgc = Thumbnail.getCached(file, widthPx, heightPx);
+	                cover = imgc!=null ? imgc : loadImageThumb(file, widthPx, heightPx);
 	                cover_loadedThumb = true;
 	            }
 	            action.accept(was_loaded,file,cover);

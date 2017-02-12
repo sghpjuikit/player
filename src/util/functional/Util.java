@@ -49,7 +49,7 @@ public interface Util {
 	ƑP<Object> ISNT = o -> false;
 
 	/** Comparator returning 0. Produces no order change. */
-	Comparator SAME = (a,b) -> 0;
+	Comparator<Object> SAME = (a,b) -> 0;
 
 	/**
 	 * Returns true if the arguments are equal to each other and false otherwise.

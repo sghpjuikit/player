@@ -23,7 +23,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import layout.widget.WidgetFactory;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
@@ -95,13 +94,13 @@ public class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field
 				? new PropertyValueFactory<>(f.name().toLowerCase())
 				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
 			);
-			c.setCellFactory((Callback) col -> buildDefaultCell(f));
+			c.setCellFactory(column -> buildDefaultCell(f));
 			c.setResizable(true);
 			return c;
 		});
 		setColumnState(getDefaultColumnInfo());
-		columnName = (TableColumn) getColumn(NAME).get();
-		columnTime = (TableColumn) getColumn(LENGTH).get();
+		columnName = (TableColumn<PlaylistItem,String>) getColumn(NAME).get();
+		columnTime = (TableColumn<PlaylistItem,FormattedDuration>) getColumn(LENGTH).get();
 
 		// initialize row factories
 		setRowFactory(t -> new ImprovedTableRow<>() {
@@ -113,7 +112,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field
 					if (getItem()==null)
 						selectNone();
 				});
-				// left doubleckick -> play
+				// left double ckick -> play
 				onLeftDoubleClick((r, e) -> getPlaylist().playItem(r.getItem()));
 				// right click -> show context menu
 				onRightSingleClick((r, e) -> {

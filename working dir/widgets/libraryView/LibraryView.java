@@ -150,14 +150,14 @@ public class LibraryView extends FXMLController {
         table.setKeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
-            TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
+            TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString(mf));
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
             Pos a = f.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==AVG_RATING
                 ? (Callback) APP.ratingCell.getValue()
                 : f==W_RATING
                 ? (Callback) new NumberRatingCellFactory()
-                : (Callback) col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
+                : col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
             );
             return c;
         });
@@ -177,7 +177,7 @@ public class LibraryView extends FXMLController {
                     if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
                     // show context menu
-                    contextMenu.show(this, (TableView)table, e);
+                    contextMenu.show(this, table, e);
                 })
         );
         // maintain playing item css by refreshing column
@@ -407,7 +407,7 @@ public class LibraryView extends FXMLController {
 /******************************** CONTEXT MENU ********************************/
 
     private static Menu searchMenu;
-    private static final TableContextMenuMR<Metadata, LibraryView> contextMenu = new TableContextMenuMR<>(
+    private static final TableContextMenuMR<Metadata, MetadataGroup, LibraryView> contextMenu = new TableContextMenuMR<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             MenuItem[] is = menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),

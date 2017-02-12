@@ -11,7 +11,7 @@ import util.SingleR;
 /**
  * @author Martin Polakovic
  */
-public class TableContextMenuMR<E, M> extends SingleR<ImprovedContextMenu<List<E>>,M> {
+public class TableContextMenuMR<E, TE, M> extends SingleR<ImprovedContextMenu<List<E>>,M> {
 
 	public TableContextMenuMR(Supplier<ImprovedContextMenu<List<E>>> builder) {
 		super(builder);
@@ -24,12 +24,12 @@ public class TableContextMenuMR<E, M> extends SingleR<ImprovedContextMenu<List<E
 	/**
 	 * Equivalent to: {@code getM(mutator).show(table, e)} . But called only if the table selection is not empty.
 	 */
-	public void show(M mutator, TableView<E> table, MouseEvent e) {
+	public void show(M mutator, TableView<TE> table, MouseEvent e) {
 		if (!table.getSelectionModel().isEmpty())
 			getM(mutator).show(table, e);
 	}
 
-	public void show(M mutator, TableView<E> table, ContextMenuEvent e) {
+	public void show(M mutator, TableView<TE> table, ContextMenuEvent e) {
 		if (!table.getSelectionModel().isEmpty())
 			getM(mutator).show(table, e);
 	}

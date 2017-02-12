@@ -10,7 +10,7 @@
     <StackPane fx:id="subroot" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                AnchorPane.topAnchor="0.0">
         <StackPane fx:id="back" mouseTransparent="true">
-            <StackPane fx:id="backimage" styleClass="bgr-image"/>
+            <StackPane fx:id="backImage" styleClass="bgr-image"/>
         </StackPane>
         <AnchorPane fx:id="front" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
             <AnchorPane fx:id="bordersVisual" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"

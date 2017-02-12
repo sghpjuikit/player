@@ -10,7 +10,7 @@ import javafx.scene.input.MouseEvent;
 /**
  * @author Martin Polakovic
  */
-public class TableContextMenuR<E, TABLE extends TableView<E>> extends TableContextMenuMR<E,TABLE> {
+public class TableContextMenuR<E, TABLE extends TableView<E>> extends TableContextMenuMR<E,E,TABLE> {
 
 	public TableContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {
 		super(builder);

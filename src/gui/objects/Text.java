@@ -11,80 +11,81 @@ import javafx.beans.value.ChangeListener;
  * @author Martin Polakovic
  */
 public class Text extends javafx.scene.text.Text {
-    public static final String STYLECLASS = "text-shape";
+	public static final String STYLECLASS = "text-shape";
 
-    public Text() {
-        super();
-        getStyleClass().add(STYLECLASS);
+	public Text() {
+		super();
+		getStyleClass().add(STYLECLASS);
 
-    }
-    public Text(String text) {
-        super(text);
-        getStyleClass().add(STYLECLASS);
-    }
-    public Text(double x, double y, String text) {
-        super(x,y,text);
-        getStyleClass().add(STYLECLASS);
-    }
+	}
 
-    /**
-     * Sets wrappingWidth to achieve roughly rectangular size. There is a slight
-     * horizontal bias (width > height).
-     * <p/>
-     * Use this feature when this Text object is expected to have size dependent
-     * on its text and influences the size of its parent. For example popups
-     * displaying text.
-     * <p/>
-     * Invoke after text has been set.
-     * <p/>
-     * The value depends on type and size of the font and might not produce
-     * optimal results. Try and see.
-     */
-    public void wrapWidthNaturally() {
-        wrapWidthSetter.changed(null,null,getText());
-    }
+	public Text(String text) {
+		super(text);
+		getStyleClass().add(STYLECLASS);
+	}
 
-    ChangeListener<String> wrapWidthSetter = (o,ov,nv) -> {
-        String s = nv==null ? "" : nv;
-        setWrappingWidth(110 + s.length()/4);
-    };
+	public Text(double x, double y, String text) {
+		super(x, y, text);
+		getStyleClass().add(STYLECLASS);
+	}
 
-    /**
-     * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
-     * Default false.
-     */
-    public final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
-        @Override
-        public void set(boolean newV) {
-            super.set(newV);
-            if (newV) {
-                textProperty().addListener(wrapWidthSetter);
-                // fire to initialize
-                wrapWidthSetter.changed(null,null,getText());
-            }
-            else textProperty().removeListener(wrapWidthSetter);
-        }
-    };
+	/**
+	 * Sets wrappingWidth to achieve roughly rectangular size. There is a slight
+	 * horizontal bias (width > height).
+	 * <p/>
+	 * Use this feature when this Text object is expected to have size dependent
+	 * on its text and influences the size of its parent. For example popups
+	 * displaying text.
+	 * <p/>
+	 * Invoke after text has been set.
+	 * <p/>
+	 * The value depends on type and size of the font and might not produce
+	 * optimal results. Try and see.
+	 */
+	public void wrapWidthNaturally() {
+		wrapWidthSetter.changed(null, null, getText());
+	}
 
-    /**
-     * @see #setWrappingWidthNatural(boolean)
-     */
-    public BooleanProperty wrappingWidthNatural() {
-        return wrappingWithNatural;
-    }
+	ChangeListener<String> wrapWidthSetter = (o, ov, nv) -> {
+		String s = nv==null ? "" : nv;
+		setWrappingWidth(110 + s.length()/4);
+	};
 
-    /**
-     * @see #setWrappingWidthNatural(boolean)
-     */
-    public boolean isWrappingWidthNaturally() {
-        return wrappingWithNatural.getValue();
-    }
+	/**
+	 * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
+	 * Default false.
+	 */
+	public final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
+		@Override
+		public void set(boolean newV) {
+			super.set(newV);
+			if (newV) {
+				textProperty().addListener(wrapWidthSetter);
+				// fire to initialize
+				wrapWidthSetter.changed(null, null, getText());
+			} else textProperty().removeListener(wrapWidthSetter);
+		}
+	};
 
-    /**
-     * @see #wrapWidthNaturally()
-     */
-    public void setWrappingWidthNatural(boolean val) {
-        wrappingWithNatural.setValue(val);
-    }
+	/**
+	 * @see #setWrappingWidthNatural(boolean)
+	 */
+	public BooleanProperty wrappingWidthNatural() {
+		return wrappingWithNatural;
+	}
+
+	/**
+	 * @see #setWrappingWidthNatural(boolean)
+	 */
+	public boolean isWrappingWidthNaturally() {
+		return wrappingWithNatural.getValue();
+	}
+
+	/**
+	 * @see #wrapWidthNaturally()
+	 */
+	public void setWrappingWidthNatural(boolean val) {
+		wrappingWithNatural.setValue(val);
+	}
 
 }

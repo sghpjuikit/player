@@ -352,7 +352,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 				t.setColumnFactory(f -> {
 					TableColumn<?,?> c = new TableColumn<>(f.toString());
 					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
-					c.setCellFactory(col -> (TableCell)defaultCell(f));
+					c.setCellFactory(col -> defaultCell(f));
 					c.setResizable(true);
 					return (TableColumn)c;
 				});

@@ -76,7 +76,7 @@ public interface ObjectField<V> extends TypedValue {
     	noØ(comparatorTransformer);
         return Comparable.class.isAssignableFrom(getType())
 			? by(o -> (C) getOf(o), comparatorTransformer)
-            : util.functional.Util.SAME;
+            : (Comparator)util.functional.Util.SAME;
     }
 
     default String toS(V v, Object o, String empty_val) {

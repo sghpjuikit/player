@@ -1,29 +1,24 @@
-
 package gui.objects.window.stage;
 
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import gui.Gui;
+import gui.objects.window.Resize;
 import java.util.List;
 import java.util.UUID;
-
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinDef.HWND;
-
-import gui.Gui;
-import gui.objects.window.Resize;
 import util.access.CyclicEnum;
 import util.async.Async;
 import util.dev.Dependency;
 import util.graphics.Util;
 import util.system.Os;
-
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.window.stage.WindowBase.Maximized.NONE;
@@ -50,582 +45,597 @@ import static util.reactive.Util.installSingletonListener;
  */
 public class WindowBase {
 
-    final DoubleProperty W = new SimpleDoubleProperty(100);
-    final DoubleProperty H = new SimpleDoubleProperty(100);
-    final DoubleProperty X = new SimpleDoubleProperty(0);
-    final DoubleProperty Y = new SimpleDoubleProperty(0);
-    final ReadOnlyObjectWrapper<Maximized> MaxProp = new ReadOnlyObjectWrapper<>(NONE);
-    final ReadOnlyBooleanWrapper isMoving = new ReadOnlyBooleanWrapper(false);
-    final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper<>(Resize.NONE);
-    final BooleanProperty FullProp = new SimpleBooleanProperty(false);
-    private double deMaxX = 0; // 0-1
-    private double deMaxY = 0; // 0-1
+	final DoubleProperty W = new SimpleDoubleProperty(100);
+	final DoubleProperty H = new SimpleDoubleProperty(100);
+	final DoubleProperty X = new SimpleDoubleProperty(0);
+	final DoubleProperty Y = new SimpleDoubleProperty(0);
+	final ReadOnlyObjectWrapper<Maximized> MaxProp = new ReadOnlyObjectWrapper<>(NONE);
+	final ReadOnlyBooleanWrapper isMoving = new ReadOnlyBooleanWrapper(false);
+	final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper<>(Resize.NONE);
+	final BooleanProperty FullProp = new SimpleBooleanProperty(false);
+	private double deMaxX = 0; // 0-1
+	private double deMaxY = 0; // 0-1
 
-    Stage s = new Stage();
+	Stage s = new Stage();
 
-    /**
-     * Indicates whether the window has focus. Read-only. Use {@link #focus()}.
-     */ public final ReadOnlyBooleanProperty focused = s.focusedProperty();
-    /**
-     * Indicates whether this window is always on top. Window always on top
-     * will not hide behind other windows.
-     */ public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
-    /**
-     * Indicates whether this window is in fullscreen.
-     */ public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
-    /**
-     * Indicates whether this window is maximized.
-     */ public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
-    /**
-     * Indicates whether the window is being moved.
-     */ public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
-    /**
-     * Indicates whether and how the window is being resized.
-     */ public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
-    /**
-     * Defines whether this window is resizable. Programmatically it is still
-     * possible to change the size of the Stage.
-     */ public final BooleanProperty resizable = s.resizableProperty();
+	/**
+	 * Indicates whether the window has focus. Read-only. Use {@link #focus()}.
+	 */
+	public final ReadOnlyBooleanProperty focused = s.focusedProperty();
+	/**
+	 * Indicates whether this window is always on top. Window always on top
+	 * will not hide behind other windows.
+	 */
+	public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
+	/**
+	 * Indicates whether this window is in fullscreen.
+	 */
+	public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
+	/**
+	 * Indicates whether this window is maximized.
+	 */
+	public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
+	/**
+	 * Indicates whether the window is being moved.
+	 */
+	public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
+	/**
+	 * Indicates whether and how the window is being resized.
+	 */
+	public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
+	/**
+	 * Defines whether this window is resizable. Programmatically it is still
+	 * possible to change the size of the Stage.
+	 */
+	public final BooleanProperty resizable = s.resizableProperty();
 
-    public WindowBase(Stage owner, StageStyle style) {
-        if (owner!=null) s.initOwner(owner);
-        if (style!=null) s.initStyle(style);
-        s.setFullScreenExitHint("");
-	    fixJavaFxNonDecoratedMinimization();
-    }
+	public WindowBase(Stage owner, StageStyle style) {
+		if (owner!=null) s.initOwner(owner);
+		if (style!=null) s.initStyle(style);
+		s.setFullScreenExitHint("");
+		fixJavaFxNonDecoratedMinimization();
+	}
 
-    /**
-     * Returns to last remembered state.
-     * Needed during window initialization.
-     * Does not affect content of the window.
-     */
-    public void update() {
-        s.setWidth(W.get());
-        s.setHeight(H.get());
+	/**
+	 * Returns to last remembered state.
+	 * Needed during window initialization.
+	 * Does not affect content of the window.
+	 */
+	public void update() {
+		s.setWidth(W.get());
+		s.setHeight(H.get());
 
-        List<Screen> scrs = Screen.getScreens();
-        Rectangle2D psb = Screen.getPrimary().getBounds();
-        double sxmin = scrs.stream().mapToDouble(s->s.getBounds().getMinX()).min().orElse(psb.getMinX());
-        double symin = scrs.stream().mapToDouble(s->s.getBounds().getMinY()).min().orElse(psb.getMinY());
-        double sxmax = scrs.stream().mapToDouble(s->s.getBounds().getMaxX()).min().orElse(psb.getMaxX());
-        double symax = scrs.stream().mapToDouble(s->s.getBounds().getMaxY()).min().orElse(psb.getMaxY());
-        // prevents out of screen position
-        if (Y.get()+H.get()<symin) Y.setValue(symin);
-        if (Y.get()>symax) Y.setValue(symax);
-        if (X.get()+W.get()<sxmin) X.setValue(sxmin);
-        if (X.get()>sxmax) X.setValue(sxmax);
+		List<Screen> screens = Screen.getScreens();
+		Rectangle2D psb = Screen.getPrimary().getBounds();
+		double sxmin = screens.stream().mapToDouble(s -> s.getBounds().getMinX()).min().orElse(psb.getMinX());
+		double symin = screens.stream().mapToDouble(s -> s.getBounds().getMinY()).min().orElse(psb.getMinY());
+		double sxmax = screens.stream().mapToDouble(s -> s.getBounds().getMaxX()).min().orElse(psb.getMaxX());
+		double symax = screens.stream().mapToDouble(s -> s.getBounds().getMaxY()).min().orElse(psb.getMaxY());
+		// prevents out of screen position
+		if (Y.get() + H.get()<symin) Y.setValue(symin);
+		if (Y.get()>symax) Y.setValue(symax);
+		if (X.get() + W.get()<sxmin) X.setValue(sxmin);
+		if (X.get()>sxmax) X.setValue(sxmax);
 
-        s.setX(X.get());
-        s.setY(Y.get());
-        screen = Util.getScreen(getCenterXY()); // update screen
-        deMaxX = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
-        deMaxX = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
+		s.setX(X.get());
+		s.setY(Y.get());
+		screen = Util.getScreen(getCenterXY()); // update screen
+		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
+		deMaxX = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
-        // we need to refresh maximized value so set it to NONE and back
-        Maximized m = MaxProp.get();
-        setMaximized(Maximized.NONE);
-        setMaximized(m);
+		// we need to refresh maximized value so set it to NONE and back
+		Maximized m = MaxProp.get();
+		setMaximized(Maximized.NONE);
+		setMaximized(m);
 
-        // setFullscreen(FullProp.get()) produces a bug probably because the
-        // window is not yet ready. Delay execution. Avoid the whole process
-        // when the value is not true
-        if (FullProp.get()) run(322, ()->setFullscreen(true));
-    }
+		// setFullscreen(FullProp.get()) produces a bug probably because the
+		// window is not yet ready. Delay execution. Avoid the whole process
+		// when the value is not true
+		if (FullProp.get()) run(322, () -> setFullscreen(true));
+	}
 
-    /**
-     * WARNING: Dont use the stage for positioning, maximizing and other
-     * functionalities already defined in this class!!
-     * @return stage or null if window's gui was not initialized yet.
-     */
-    public Stage getStage() {
-        return s;
-    }
+	/**
+	 * WARNING: Don't use the stage for positioning, maximizing and other
+	 * functionalities already defined in this class!!
+	 *
+	 * @return stage or null if window's gui was not initialized yet.
+	 */
+	public Stage getStage() {
+		return s;
+	}
 
-    public double getHeight() {
-        return s.getHeight();
-    }
+	public double getHeight() {
+		return s.getHeight();
+	}
 
-    public double getWidth() {
-        return s.getWidth();
-    }
+	public double getWidth() {
+		return s.getWidth();
+	}
 
-    public double getX() {
-        return s.getX();
-    }
+	public double getX() {
+		return s.getX();
+	}
 
-    public double getY() {
-        return s.getY();
-    }
+	public double getY() {
+		return s.getY();
+	}
 
-    public double getCenterX() {
-        return s.getX()+getWidth()/2;
-    }
+	public double getCenterX() {
+		return s.getX() + getWidth()/2;
+	}
 
-    public double getCenterY() {
-        return s.getY()+getHeight()/2;
-    }
+	public double getCenterY() {
+		return s.getY() + getHeight()/2;
+	}
 
-    // cached, needs to be updated when size or position changes
-    Screen screen = Screen.getPrimary();
+	// cached, needs to be updated when size or position changes
+	Screen screen = Screen.getPrimary();
 
-    /** Sets screen to this window. It influences screen dependent features. */
-    public void setScreen(Screen scr) {
-        screen = scr;
-    }
+	/** Sets screen to this window. It influences screen dependent features. */
+	public void setScreen(Screen scr) {
+		screen = scr;
+	}
 
-    /** Gets screen of this window. It influences screen dependent features. */
-    public Screen getScreen() {
-        return screen;
-    }
+	/** Gets screen of this window. It influences screen dependent features. */
+	public Screen getScreen() {
+		return screen;
+	}
 
+	/**
+	 * The value of the property resizable
+	 * see {@link #setAlwaysOnTop(boolean)}
+	 *
+	 * @return the value of the property resizable.
+	 */
+	public boolean isAlwaysOnTop() {
+		return s.isAlwaysOnTop();
+	}
 
-    /**
-     * The value of the property resizable
-     * see {@link #setAlwaysOnTop(boolean)}
-     * @return the value of the property resizable.
-     */
-    public boolean isAlwaysOnTop() {
-        return s.isAlwaysOnTop();
-    }
+	/**
+	 * Sets the value of the property is AlwaysOnTop.
+	 * Property description:
+	 * Defines behavior where this window always stays on top of other windows.
+	 */
+	public void setAlwaysOnTop(boolean val) {
+		s.setAlwaysOnTop(val);
+	}
 
-    /**
-     * Sets the value of the property is AlwaysOnTop.
-     * Property description:
-     * Defines behavior where this window always stays on top of other windows.
-     * @param val
-     */
-    public void setAlwaysOnTop(boolean val) {
-        s.setAlwaysOnTop(val);
-    }
+	public void toggleAlwaysOnTOp() {
+		s.setAlwaysOnTop(!s.isAlwaysOnTop());
+	}
 
-    public void toggleAlwaysOnTOp() {
-        s.setAlwaysOnTop(!s.isAlwaysOnTop());
-    }
+	/** Brings the window to front if it was behind some window on the desktop. */
+	public void focus() {
+		s.requestFocus();
+	}
 
-    /** Brings the window to front if it was behind some window on the desktop.*/
-    public void focus() {
-        s.requestFocus();
-    }
+	/**
+	 * @return the value of the property minimized.
+	 */
+	public boolean isMinimized() {
+		return s.getOwner()!=null && s.getOwner() instanceof Stage
+			? ((Stage) s.getOwner()).isIconified()
+			: s.isIconified();
+	}
 
-    /**
-     * @return the value of the property minimized.
-     */
-    public boolean isMinimized() {
-        return s.getOwner()!=null && s.getOwner() instanceof Stage
-                ? ((Stage) s.getOwner()).isIconified()
-                : s.isIconified();
-    }
+	/** Minimizes window. */
+	public void minimize() {
+		setMinimized(true);
+	}
 
-    /** Minimizes window. */
-    public void minimize() {
-        setMinimized(true);
-    }
+	/** Sets the value of the property minimized. */
+	public void setMinimized(boolean val) {
+		if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
+			((Stage) s.getOwner()).setIconified(val);
+		} else {
+			s.setIconified(val);
+		}
 
-    /** Sets the value of the property minimized. */
-    public void setMinimized(boolean val) {
-        if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
-            ((Stage)s.getOwner()).setIconified(val);
-        } else {
-            s.setIconified(val);
-        }
-
-        // focus when deminimizing
-	    // TODO: SRSLY FIX THIS METHOD!!
+		// focus when de-minimizing
+		// TODO: FIX THIS METHOD!!
 //        if (!val) focus();  // ! working anymore
 //        if (!val) runLater(this::focus);  // ! working anymore
-        if (!val) Async.run(50,this::focus);  // gotta skip few render pulses first...
-    }
+		if (!val) Async.run(50, this::focus);  // gotta skip few render pulses first...
+	}
 
-    /**
-     * Minimize/deminimize this window. Switches between ALL and NONE maximize states.
-     */
-    public void toggleMinimize() {
-        setMinimized(!isMinimized());
-    }
+	/**
+	 * Minimize/de-minimize this window. Switches between ALL and NONE maximize states.
+	 */
+	public void toggleMinimize() {
+		setMinimized(!isMinimized());
+	}
 
-    /** @return the value of the property maximized. */
-    public Maximized isMaximized() {
-        return MaxProp.get();
-    }
+	/** @return the value of the property maximized. */
+	public Maximized isMaximized() {
+		return MaxProp.get();
+	}
 
-    /**
-     * Sets maximized state of this window to provided state. If the window is
-     * in full screen mode this method is a no-op.
-     * @param val
-     */
-    public void setMaximized(Maximized val) {
-        // no-op if fullscreen
-        if (isFullscreen()) return;
+	/**
+	 * Sets maximized state of this window to provided state. If the window is
+	 * in full screen mode this method is a no-op.
+	 */
+	public void setMaximized(Maximized val) {
+		// no-op if fullscreen
+		if (isFullscreen()) return;
 
-        // prevent pointless change
-        Maximized old = isMaximized();
-        if (old==val) return;
+		// prevent pointless change
+		Maximized old = isMaximized();
+		if (old==val) return;
 
-        // remember window state if entering from non-maximized state
-        if (old==Maximized.NONE) {
-            // this must not execute when val==NONE but that will not happen here
-            W.set(s.getWidth());
-            H.set(s.getHeight());
-            X.set(s.getX());
-            Y.set(s.getY());
-            deMaxX = (s.getX()-screen.getBounds().getMinX())/screen.getBounds().getWidth();
-            deMaxY = (s.getY()-screen.getBounds().getMinY())/screen.getBounds().getHeight();
-        }
-        // remember state
-        MaxProp.set(val);
+		// remember window state if entering from non-maximized state
+		if (old==Maximized.NONE) {
+			// this must not execute when val==NONE but that will not happen here
+			W.set(s.getWidth());
+			H.set(s.getHeight());
+			X.set(s.getX());
+			Y.set(s.getY());
+			deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();
+			deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight();
+		}
+		// remember state
+		MaxProp.set(val);
 
-        // apply
-        switch (val) {
-            case ALL:           maximizeAll();          break;
-            case LEFT:          maximizeLeft();         break;
-            case RIGHT:         maximizeRight();        break;
-            case LEFT_TOP:      maximizeLeftTop();      break;
-            case RIGHT_TOP:     maximizeRightTop();     break;
-            case LEFT_BOTTOM:   maximizeLeftBottom();   break;
-            case RIGHT_BOTTOM:  maximizeRightBottom();  break;
-            case NONE:          demaximize();           break;
-        }
-    }
-    private void maximizeRightBottom() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
-            screen.getBounds().getMinY() + screen.getBounds().getHeight()/2,
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()/2
-        );
-    }
-    private void maximizeAll() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX(),
-            screen.getBounds().getMinY(),
-            screen.getBounds().getWidth(),
-            screen.getBounds().getHeight()
-        );
-    }
-    private void maximizeRight() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
-            screen.getBounds().getMinY(),
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()
-        );
-    }
-    private void maximizeLeft() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX(),
-            screen.getBounds().getMinY(),
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()
-        );
-    }
-    private void maximizeLeftTop() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX(),
-            screen.getBounds().getMinY(),
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()/2
-        );
-    }
-    private void maximizeRightTop() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
-            screen.getBounds().getMinY(),
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()/2
-        );
-    }
-    private void maximizeLeftBottom() {
-        stageresizeRelocate(
-            screen.getBounds().getMinX(),
-            screen.getBounds().getMinY() + screen.getBounds().getHeight()/2,
-            screen.getBounds().getWidth()/2,
-            screen.getBounds().getHeight()/2
-        );
-    }
-    private void stageresizeRelocate(double x, double y, double w, double h) {
-        s.setX(x);
-        s.setY(y);
-        s.setWidth(w);
-        s.setHeight(h);
-    }
-    private void demaximize() {
-        MaxProp.set(NONE);
-        // Normally we would use last position, but it is possible that demaximization happens
-        // not to the same screen as it was maximized on (screen can manually be changed, which
-        // is valid behavior in multi-screen maximization cycling (on Windows WIN+LEFT/RIGHT)).
-        // Because stage coordinates are absolute to all screens (eg only leftmost screen contains
-        // coordinate 0, demazimized window could be on the wrong (original) screen. Hence we
-        // remember screen-relative position (offset) and relatively so (in 0-1 fraction of screen
-        // width (otherwise we again risk outside of screen position))
-        // and calculate new one: screen+offset setXY(X.get(),Y.get());
-        stageresizeRelocate(
-            deMaxX *screen.getBounds().getWidth() + screen.getBounds().getMinX(),
-            deMaxY *screen.getBounds().getHeight() + screen.getBounds().getMinY(),
-            W.get(),
-            H.get()
-        );
-    }
-   /**
-    * Maximize/demaximize this window. Switches between ALL and NONE maximize states.
-    */
-    public void toggleMaximize() {
-        setMaximized(isMaximized()==ALL ? NONE : ALL);
-    }
+		// apply
+		switch (val) {
+			case ALL: maximizeAll(); break;
+			case LEFT: maximizeLeft(); break;
+			case RIGHT: maximizeRight(); break;
+			case LEFT_TOP: maximizeLeftTop(); break;
+			case RIGHT_TOP: maximizeRightTop(); break;
+			case LEFT_BOTTOM: maximizeLeftBottom(); break;
+			case RIGHT_BOTTOM: maximizeRightBottom(); break;
+			case NONE: demaximize(); break;
+		}
+	}
 
-    /** @return value of property fulscreen of this window */
-    public boolean isFullscreen() {
-        return s.isFullScreen();
-    }
+	private void maximizeRightBottom() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
+			screen.getBounds().getMinY() + screen.getBounds().getHeight()/2,
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()/2
+		);
+	}
 
-    /**
-     * Sets setFullscreen mode on (true) and off (false)
-     * @param val - true to go setFullscreen, - false to go out of setFullscreen
-     */
-    public void setFullscreen(boolean val) {
-        FullProp.set(val);
-        s.setFullScreen(val);
-    }
+	private void maximizeAll() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX(),
+			screen.getBounds().getMinY(),
+			screen.getBounds().getWidth(),
+			screen.getBounds().getHeight()
+		);
+	}
 
-    /** Change between on/off setFullscreen state */
-    public void toggleFullscreen() {
-        setFullscreen(!isFullscreen());
-    }
+	private void maximizeRight() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
+			screen.getBounds().getMinY(),
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()
+		);
+	}
 
-    /**
-     * Specifies the text to show when a user enters full screen mode, usually
-     * used to indicate the way a user should go about exiting out of setFullscreen
-     * mode. A value of null will result in the default per-locale message being
-     * displayed. If set to the empty string, then no message will be displayed.
-     * If an application does not have the proper permissions, this setting will
-     * be ignored.
-     * @param text
-     */
-    public void setFullScreenExitHint(String text) {
-        s.setFullScreenExitHint(text);
-    }
+	private void maximizeLeft() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX(),
+			screen.getBounds().getMinY(),
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()
+		);
+	}
 
-    /** Snaps this window to the top edge of this window's screen. */
-    public void snapUp() {
-        s.setY(screen.getBounds().getMinY());
-    }
+	private void maximizeLeftTop() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX(),
+			screen.getBounds().getMinY(),
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()/2
+		);
+	}
 
-    /** Snaps this window to the bottom edge of this window's screen. */
-    private void snapDown() {
-        s.setY(screen.getBounds().getMaxY() - s.getHeight());
-    }
+	private void maximizeRightTop() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX() + screen.getBounds().getWidth()/2,
+			screen.getBounds().getMinY(),
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()/2
+		);
+	}
 
-    /** Snaps this window to the left edge of this window's screen. */
-    private void snapLeft() {
-        s.setX(screen.getBounds().getMinX());
-    }
+	private void maximizeLeftBottom() {
+		stageResizeRelocate(
+			screen.getBounds().getMinX(),
+			screen.getBounds().getMinY() + screen.getBounds().getHeight()/2,
+			screen.getBounds().getWidth()/2,
+			screen.getBounds().getHeight()/2
+		);
+	}
 
-    /** Snaps this window to the right edge of this window's screen. */
-    private void snapRight() {
-        s.setX(screen.getBounds().getMaxX() - s.getWidth());
-    }
+	private void stageResizeRelocate(double x, double y, double w, double h) {
+		s.setX(x);
+		s.setY(y);
+		s.setWidth(w);
+		s.setHeight(h);
+	}
 
-    /** @see #setX(double, boolean) */
-    public void setX(double x) {
-        setXY(x, getY(), true);
-    }
+	private void demaximize() {
+		MaxProp.set(NONE);
+		// Normally we would use last position, but it is possible that de-maximization happens
+		// not to the same screen as it was maximized on (screen can manually be changed, which
+		// is valid behavior in multi-screen maximization cycling (on Windows WIN+LEFT/RIGHT)).
+		// Because stage coordinates are absolute to all screens (eg only leftmost screen contains
+		// coordinate 0, de-maximized window could be on the wrong (original) screen. Hence we
+		// remember screen-relative position (offset) and relatively so (in 0-1 fraction of screen
+		// width (otherwise we again risk outside of screen position))
+		// and calculate new one: screen+offset setXY(X.get(),Y.get());
+		stageResizeRelocate(
+			deMaxX*screen.getBounds().getWidth() + screen.getBounds().getMinX(),
+			deMaxY*screen.getBounds().getHeight() + screen.getBounds().getMinY(),
+			W.get(),
+			H.get()
+		);
+	}
 
-    /** @see #setX(double, boolean) */
-    public void setX(double x, boolean snap) {
-        setXY(x, getY(), snap);
-    }
+	/**
+	 * Maximize/de-maximize this window. Switches between ALL and NONE maximize states.
+	 */
+	public void toggleMaximize() {
+		setMaximized(isMaximized()==ALL ? NONE : ALL);
+	}
 
-    /** @see #setX(double, boolean)  */
-    public void setY(double y) {
-        setXY(getX(), y, true);
-    }
+	/** @return value of property fullscreen of this window */
+	public boolean isFullscreen() {
+		return s.isFullScreen();
+	}
 
-    /** @see #setY(double, boolean) */
-    public void setY(double y, boolean snap) {
-        setXY(getX(), y, snap);
-    }
+	/**
+	 * Sets setFullscreen mode on (true) and off (false)
+	 *
+	 * @param val - true to go setFullscreen, - false to go out of setFullscreen
+	 */
+	public void setFullscreen(boolean val) {
+		FullProp.set(val);
+		s.setFullScreen(val);
+	}
 
-    /**
-     * Calls {@link #setXY(double, double, boolean)} with provided parameters
-     * and true for snap.
-     */
-    public void setXY(double x, double y) {
-        setXY(x, y, true);
-    }
+	/** Change between on/off setFullscreen state */
+	public void toggleFullscreen() {
+		setFullscreen(!isFullscreen());
+	}
 
-    /** Centers this window on ita screen. */
-    public void setXYScreenCenter() {
-    	Rectangle2D b = screen.getBounds();
-        double x = (b.getMinX() + b.getMaxX())/2 - getWidth()/2;
-        double y = (b.getMinY() + b.getMaxY())/2 - getHeight()/2;
-        setXY(x, y);
-    }
+	/**
+	 * Specifies the text to show when a user enters full screen mode, usually
+	 * used to indicate the way a user should go about exiting out of setFullscreen
+	 * mode. A value of null will result in the default per-locale message being
+	 * displayed. If set to the empty string, then no message will be displayed.
+	 * If an application does not have the proper permissions, this setting will
+	 * be ignored.
+	 */
+	public void setFullScreenExitHint(String text) {
+		s.setFullScreenExitHint(text);
+	}
 
-    /** Returns screen x,y of the center of this window. */
-    public Point2D getCenterXY() {
-        return new Point2D(getCenterX(), getCenterY());
-    }
+	/** Snaps this window to the top edge of this window's screen. */
+	public void snapUp() {
+		s.setY(screen.getBounds().getMinY());
+	}
 
-    /**
-     * Snaps window to edge of the screen or other window.
-     * <p/>
-     * Executes snapping. Window will snap if snapping is allowed and if the
-     * preconditions of window's state require snapping to be done.
-     * <p/>
-     * Because convenience methods are provided that auto-snap on position
-     * change, there is little use for calling this method externally.
-     */
-    public void snap() {
-        // avoid snapping while isResizing. It leads to unwanted behavior
-        // avoid when not desired
-        if (!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
+	/** Snaps this window to the bottom edge of this window's screen. */
+	private void snapDown() {
+		s.setY(screen.getBounds().getMaxY() - s.getHeight());
+	}
 
-        double S = Gui.snapDistance.get();
+	/** Snaps this window to the left edge of this window's screen. */
+	private void snapLeft() {
+		s.setX(screen.getBounds().getMinX());
+	}
 
-        // snap to screen edges (x and y separately)
-        double SWm = screen.getBounds().getMinX();
-        double SHm = screen.getBounds().getMinY();
-        double SW = screen.getBounds().getMaxX();
-        double SH = screen.getBounds().getMaxY();
-        // x
-        if (abs(s.getX() - SWm) < S)
-            snapLeft();
-        else if (abs(s.getX()+s.getWidth() - SW) < S)
-            snapRight();
-        // y
-        if (abs(s.getY() - SHm) < S)
-            snapUp();
-        else if (abs(s.getY()+s.getHeight() - SH) < S)
-            snapDown();
+	/** Snaps this window to the right edge of this window's screen. */
+	private void snapRight() {
+		s.setX(screen.getBounds().getMaxX() - s.getWidth());
+	}
 
+	/** @see #setX(double, boolean) */
+	public void setX(double x) {
+		setXY(x, getY(), true);
+	}
 
-        // snap to other window edges
-        for (Window w: Window.WINDOWS) {
-            double WXS = w.getX()+w.getWidth();
-            double WXE = w.getX();
-            double WYS = w.getY()+w.getHeight();
-            double WYE = w.getY();
+	/** @see #setX(double, boolean) */
+	public void setX(double x, boolean snap) {
+		setXY(x, getY(), snap);
+	}
 
-            // x
-            if (Math.abs(WXS - s.getX())<S)
-                s.setX(WXS);
-            else if (Math.abs(s.getX()+s.getWidth() - WXE) < S)
-                s.setX(WXE - s.getWidth());
-            // y
-            if (Math.abs(WYS - s.getY())<S)
-                s.setY(WYS);
-            else if (Math.abs(s.getY()+s.getHeight() - WYE) < S)
-                s.setY(WYE - s.getHeight());
-        }
-    }
+	/** @see #setX(double, boolean) */
+	public void setY(double y) {
+		setXY(getX(), y, true);
+	}
 
-    /**
-     * Sets position of the window on the screen.
-     * <p/>
-     * Note: Always use methods provided in this class for isResizing and never
-     * those in the Stage of this window.
-     * <p/>
-     * If the window is in full screen mode, this method is no-op.
-     *
-     * @param x horizontal location of the top left corner
-     * @param y vertical location of the top left corner
-     * @param snap flag for snapping to screen edge and other windows. Snapping
-     * will be executed only if the window id not being resized.
-     */
-    @Dependency("must update screen")
-    public void setXY(double x,double y, boolean snap) {
-        if (isFullscreen()) return;
-        MaxProp.set(Maximized.NONE);
-        s.setX(x);
-        s.setY(y);
-        X.set(x);
-        Y.set(y);
-        screen = Util.getScreen(getCenterXY()); // update screen
-        if (snap) snap();
-    }
+	/** @see #setY(double, boolean) */
+	public void setY(double y, boolean snap) {
+		setXY(getX(), y, snap);
+	}
 
-    /**
-     * Sets size of the window.
-     * Always use this over setWidth(), setHeight(). Not using this method will
-     * result in improper behavior during isResizing - more specifically - the new
-     * size will not be remembered and the window will revert back to previous
-     * size during certain graphical operations like reposition.
-     *
-     * Its not recommended to use this method for maximizing. Use maximize(),
-     * maximizeLeft(), maximizeRight() instead.
-     *
-     * This method is weak solution to inability to override setWidth(),
-     * setHeight() methods of Stage.
-     *
-     * If the window is in full screen mode or !isResizable(), this method is no-op.
-     *
-     * @param x horizontal location of the top left corner
-     * @param y vertical location of the top left corner
-     * @param width horizontal size of the window
-     * @param height vertical size of the window
-     */
-    @Dependency("must update screen")
-    public void setXYSize(double x, double y, double width, double height) {
-        if (isFullscreen()) return;
-        MaxProp.set(Maximized.NONE);
-        s.setX(x);
-        s.setY(y);
-        X.set(x);
-        Y.set(y);
-        s.setWidth(width);
-        s.setHeight(height);
-        // should snap
-        // if (snap) snap();
-        W.set(s.getWidth());
-        H.set(s.getHeight());
-        screen = Util.getScreen(getCenterXY()); // update screen
-    }
+	/**
+	 * Calls {@link #setXY(double, double, boolean)} with provided parameters
+	 * and true for snap.
+	 */
+	public void setXY(double x, double y) {
+		setXY(x, y, true);
+	}
+
+	/** Centers this window on ita screen. */
+	public void setXYScreenCenter() {
+		Rectangle2D b = screen.getBounds();
+		double x = (b.getMinX() + b.getMaxX())/2 - getWidth()/2;
+		double y = (b.getMinY() + b.getMaxY())/2 - getHeight()/2;
+		setXY(x, y);
+	}
+
+	/** Returns screen x,y of the center of this window. */
+	public Point2D getCenterXY() {
+		return new Point2D(getCenterX(), getCenterY());
+	}
+
+	/**
+	 * Snaps window to edge of the screen or other window.
+	 * <p/>
+	 * Executes snapping. Window will snap if snapping is allowed and if the
+	 * preconditions of window's state require snapping to be done.
+	 * <p/>
+	 * Because convenience methods are provided that auto-snap on position
+	 * change, there is little use for calling this method externally.
+	 */
+	public void snap() {
+		// avoid snapping while isResizing. It leads to unwanted behavior
+		// avoid when not desired
+		if (!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
+
+		double S = Gui.snapDistance.get();
+
+		// snap to screen edges (x and y separately)
+		double SWm = screen.getBounds().getMinX();
+		double SHm = screen.getBounds().getMinY();
+		double SW = screen.getBounds().getMaxX();
+		double SH = screen.getBounds().getMaxY();
+		// x
+		if (abs(s.getX() - SWm)<S)
+			snapLeft();
+		else if (abs(s.getX() + s.getWidth() - SW)<S)
+			snapRight();
+		// y
+		if (abs(s.getY() - SHm)<S)
+			snapUp();
+		else if (abs(s.getY() + s.getHeight() - SH)<S)
+			snapDown();
+
+		// snap to other window edges
+		for (Window w : Window.WINDOWS) {
+			double WXS = w.getX() + w.getWidth();
+			double WXE = w.getX();
+			double WYS = w.getY() + w.getHeight();
+			double WYE = w.getY();
+
+			// x
+			if (Math.abs(WXS - s.getX())<S)
+				s.setX(WXS);
+			else if (Math.abs(s.getX() + s.getWidth() - WXE)<S)
+				s.setX(WXE - s.getWidth());
+			// y
+			if (Math.abs(WYS - s.getY())<S)
+				s.setY(WYS);
+			else if (Math.abs(s.getY() + s.getHeight() - WYE)<S)
+				s.setY(WYE - s.getHeight());
+		}
+	}
+
+	/**
+	 * Sets position of the window on the screen.
+	 * <p/>
+	 * Note: Always use methods provided in this class for isResizing and never
+	 * those in the Stage of this window.
+	 * <p/>
+	 * If the window is in full screen mode, this method is no-op.
+	 *
+	 * @param x horizontal location of the top left corner
+	 * @param y vertical location of the top left corner
+	 * @param snap flag for snapping to screen edge and other windows. Snapping will be executed only if the window id
+	 * not being resized.
+	 */
+	@Dependency("must update screen")
+	public void setXY(double x, double y, boolean snap) {
+		if (isFullscreen()) return;
+		MaxProp.set(Maximized.NONE);
+		s.setX(x);
+		s.setY(y);
+		X.set(x);
+		Y.set(y);
+		screen = Util.getScreen(getCenterXY()); // update screen
+		if (snap) snap();
+	}
+
+	/**
+	 * Sets size of the window.
+	 * Always use this over setWidth(), setHeight(). Not using this method will
+	 * result in improper behavior during isResizing - more specifically - the new
+	 * size will not be remembered and the window will revert back to previous
+	 * size during certain graphical operations like reposition.
+	 * <p>
+	 * Its not recommended to use this method for maximizing. Use maximize(),
+	 * maximizeLeft(), maximizeRight() instead.
+	 * <p>
+	 * This method is weak solution to inability to override setWidth(),
+	 * setHeight() methods of Stage.
+	 * <p>
+	 * If the window is in full screen mode or !isResizable(), this method is no-op.
+	 *
+	 * @param x horizontal location of the top left corner
+	 * @param y vertical location of the top left corner
+	 * @param width horizontal size of the window
+	 * @param height vertical size of the window
+	 */
+	@Dependency("must update screen")
+	public void setXYSize(double x, double y, double width, double height) {
+		if (isFullscreen()) return;
+		MaxProp.set(Maximized.NONE);
+		s.setX(x);
+		s.setY(y);
+		X.set(x);
+		Y.set(y);
+		s.setWidth(width);
+		s.setHeight(height);
+		// should snap
+		// if (snap) snap();
+		W.set(s.getWidth());
+		H.set(s.getHeight());
+		screen = Util.getScreen(getCenterXY()); // update screen
+	}
 
 	/**
 	 * @param width horizontal size of the window
 	 * @param height vertical size of the window
 	 */
 	@Dependency("must update screen")
-    public void setSize(double width, double height) {
-        if (isFullscreen()) return;
-        s.setWidth(width);
-        s.setHeight(height);
-        W.set(s.getWidth());
-        H.set(s.getHeight());
-        screen = Util.getScreen(getCenterXY()); // update screen
-    }
+	public void setSize(double width, double height) {
+		if (isFullscreen()) return;
+		s.setWidth(width);
+		s.setHeight(height);
+		W.set(s.getWidth());
+		H.set(s.getHeight());
+		screen = Util.getScreen(getCenterXY()); // update screen
+	}
 
-    /**
-     * Sets initial size and location by invoking the {@link #setSize} and
-     * {@link #setXY(double, double)} method. The initial size values are primary screen
-     * size divided by half and the location will be set so the window is
-     * center aligned on the primary screen.
-     */
-    public void setXYSizeInitial() {
-        double w = screen.getBounds().getWidth()/2;
-        double h = screen.getBounds().getHeight()/2;
-        setSize(w,h);
-        setXY(w/2,h/2);
-    }
+	/**
+	 * Sets initial size and location by invoking the {@link #setSize} and
+	 * {@link #setXY(double, double)} method. The initial size values are primary screen
+	 * size divided by half and the location will be set so the window is
+	 * center aligned on the primary screen.
+	 */
+	public void setXYSizeInitial() {
+		double w = screen.getBounds().getWidth()/2;
+		double h = screen.getBounds().getHeight()/2;
+		setSize(w, h);
+		setXY(w/2, h/2);
+	}
 
-    /** Sets the window visible and focuses it. */
-    public void show() {
-	    Async.runLater(() -> {
-	        s.show();
-	        focus();
-	    });
-    }
+	/** Sets the window visible and focuses it. */
+	public void show() {
+		Async.runLater(() -> {
+			s.show();
+			focus();
+		});
+	}
 
-    public void hide() {
-        s.hide();
-    }
+	public void hide() {
+		s.hide();
+	}
 
-    public boolean isShowing() {
-        return s.isShowing();
-    }
+	public boolean isShowing() {
+		return s.isShowing();
+	}
 
-    public void close() {
-       s.close();
-    }
+	public void close() {
+		s.close();
+	}
 
 	/**
 	 * Sets window always at bottom (opposite of always on top).<br/>
@@ -638,36 +648,36 @@ public class WindowBase {
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
 			String titleOriginal = s.getTitle();
-		    String titleUnique = UUID.randomUUID().toString();
-		    s.setTitle(titleUnique);
-		    long lhwnd = com.sun.glass.ui.Window.getWindows().stream()  // TODO: avoid com.sun
-			                 .filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
-			                 .getNativeWindow();
+			String titleUnique = UUID.randomUUID().toString();
+			s.setTitle(titleUnique);
+			long lhwnd = com.sun.glass.ui.Window.getWindows().stream()  // TODO: avoid com.sun
+				.filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
+				.getNativeWindow();
 			s.setTitle(titleOriginal);
-		    Pointer lpVoid = new Pointer(lhwnd);
-		    HWND hwnd = new HWND(lpVoid);
-		    User32 user32 = User32.INSTANCE;
+			Pointer lpVoid = new Pointer(lhwnd);
+			HWND hwnd = new HWND(lpVoid);
+			User32 user32 = User32.INSTANCE;
 
-		    // Prevent window from popping up
-		    int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
-		    int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
-		    int newStyle = oldStyle | WS_EX_NOACTIVATE;
-		    // System.out.println(Integer.toBinaryString(oldStyle));
-		    // System.out.println(Integer.toBinaryString(newStyle));
-		    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
+			// Prevent window from popping up
+			int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
+			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
+			int newStyle = oldStyle|WS_EX_NOACTIVATE;
+			// System.out.println(Integer.toBinaryString(oldStyle));
+			// System.out.println(Integer.toBinaryString(newStyle));
+			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
 
-		    // Put the window on bottom
-		    // http://stackoverflow.com/questions/527950/how-to-make-always-on-bottom-window
-		    int SWP_NOSIZE = 0x0001;
-		    int SWP_NOMOVE = 0x0002;
-		    int SWP_NOACTIVATE = 0x0010;
-		    int HWND_BOTTOM = 1;
-	        user32.SetWindowPos(hwnd,new HWND(new Pointer(HWND_BOTTOM)), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+			// Put the window on bottom
+			// http://stackoverflow.com/questions/527950/how-to-make-always-on-bottom-window
+			int SWP_NOSIZE = 0x0001;
+			int SWP_NOMOVE = 0x0002;
+			int SWP_NOACTIVATE = 0x0010;
+			int HWND_BOTTOM = 1;
+			user32.SetWindowPos(hwnd, new HWND(new Pointer(HWND_BOTTOM)), 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);
 		});
-    }
+	}
 
 	/**
-	 * Turns deminimization on user click on taskbar on for {@link StageStyle#UNDECORATED} amd
+	 * Turns de-minimization on user click on taskbar on for {@link StageStyle#UNDECORATED} amd
 	 * {@link javafx.stage.StageStyle#TRANSPARENT}, for which this feature is bugged and does not work..<br/>
 	 * Windows only.
 	 *
@@ -675,47 +685,47 @@ public class WindowBase {
 	 */
 	private void fixJavaFxNonDecoratedMinimization() {
 		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
-	    if (Os.getCurrent()!=Os.WINDOWS) return;
+		if (Os.getCurrent()!=Os.WINDOWS) return;
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
-		    String titleOriginal = s.getTitle();
-		    String titleUnique = UUID.randomUUID().toString();
-		    s.setTitle(titleUnique);
-		    long lhwnd = com.sun.glass.ui.Window.getWindows().stream()
-			                 .filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
-			                 .getNativeWindow();
-		    Pointer lpVoid = new Pointer(lhwnd);
-		    WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
-		    final User32 user32 = User32.INSTANCE;
-		    s.setTitle(titleOriginal);
+			String titleOriginal = s.getTitle();
+			String titleUnique = UUID.randomUUID().toString();
+			s.setTitle(titleUnique);
+			long lhwnd = com.sun.glass.ui.Window.getWindows().stream()
+				.filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
+				.getNativeWindow();
+			Pointer lpVoid = new Pointer(lhwnd);
+			WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
+			final User32 user32 = User32.INSTANCE;
+			s.setTitle(titleOriginal);
 
-		    int WS_MINIMIZEBOX = 0x00020000;
-		    int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
-		    int newStyle = oldStyle | WS_MINIMIZEBOX;
-		    // System.out.println(Integer.toBinaryString(oldStyle));
-		    // System.out.println(Integer.toBinaryString(newStyle));
-		    user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
+			int WS_MINIMIZEBOX = 0x00020000;
+			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
+			int newStyle = oldStyle|WS_MINIMIZEBOX;
+			// System.out.println(Integer.toBinaryString(oldStyle));
+			// System.out.println(Integer.toBinaryString(newStyle));
+			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
 
-		    // redraw
-		    int SWP_NOSIZE = 0x0001;
-		    int SWP_NOMOVE = 0x0002;
-		    int SWP_NOOWNERZORDER = 0x0200;
-		    int SWP_FRAMECHANGED = 0x0020;
-		    int SWP_NOZORDER = 0x0004;
-		    user32.SetWindowPos(hwnd, null, 0,0,0,0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+			// redraw
+			int SWP_NOSIZE = 0x0001;
+			int SWP_NOMOVE = 0x0002;
+			int SWP_NOOWNERZORDER = 0x0200;
+			int SWP_FRAMECHANGED = 0x0020;
+			int SWP_NOZORDER = 0x0004;
+			user32.SetWindowPos(hwnd, null, 0, 0, 0, 0, SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOOWNERZORDER);
 		});
-    }
+	}
 
-    /** State of window maximization. */
-    public enum Maximized implements CyclicEnum<Maximized> {
-        ALL,
-        LEFT,
-        RIGHT,
-        LEFT_TOP,
-        RIGHT_TOP,
-        LEFT_BOTTOM,
-        RIGHT_BOTTOM,
-        NONE
-    }
+	/** State of window maximization. */
+	public enum Maximized implements CyclicEnum<Maximized> {
+		ALL,
+		LEFT,
+		RIGHT,
+		LEFT_TOP,
+		RIGHT_TOP,
+		LEFT_BOTTOM,
+		RIGHT_BOTTOM,
+		NONE
+	}
 
 }

@@ -21,6 +21,7 @@ import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+import main.App;
 import util.Sort;
 import util.access.fieldvalue.ObjectField;
 import util.access.fieldvalue.ObjectField.ColumnField;
@@ -36,7 +37,6 @@ import static main.App.Build.appTooltip;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
-import static util.type.Util.getEnumConstants;
 import static util.type.Util.invokeMethodP0;
 
 /**
@@ -73,15 +73,15 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 
 	private TableColumnInfo columnState;
-	private final Class<F> type;
+	protected final Class<T> type;
+	protected final Class<F> fieldType;
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
-	public FieldedTable(Class<F> type) {
+	public FieldedTable(Class<T> type, Class<F> fieldType) {
 		super();
-
-		if (!noØ(type).isEnum()) throw new IllegalArgumentException("Fields must be an enum");
 		this.type = type;
+		this.fieldType = fieldType;
 
 		// install comparator updating part I
 		getSortOrder().addListener((ListChangeListener<Object>) this::updateComparator);
@@ -100,21 +100,14 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	}
 
 	/**
-	 * Returns all fields of this table. The fields are all values of the
-	 * field enum that are string representable.
+	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<F> getFields() {
-		return filter(getEnumConstants(type), ObjectField::isTypeStringRepresentable);
-	}
-
-	/**
-	 * Similar to {@link #getFields()}, but includes fields that are not derived
-	 * from the value. Such as index column.
-	 */
-	public List<ObjectField<? super F>> getFieldsC() {
-		List<ObjectField<? super F>> l = filter(getEnumConstants(type), ObjectField::isTypeStringRepresentable);
-		l.addAll(filter(getEnumConstants(ColumnField.class), ObjectField::isTypeStringRepresentable));
-		return l;
+		return stream(App.APP.classFields.get(type))
+			.filter(ObjectField::isTypeStringRepresentable)
+			.map(f -> (F) f)    // TODO: fix
+			.sorted(by(e -> e.name()))
+			.toList();
 	}
 
 	public void setColumnFactory(Ƒ1<F,TableColumn<T,?>> columnFactory) {
@@ -293,7 +286,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	 * <p/>
 	 * Works even when field's respective column is invisible.
 	 * <p/>
-	 * Note, that the field must support sorting - return Comparable type.
+	 * Note, that the field must support sorting - return Comparable fieldType.
 	 */
 	public void sortBy(F field) {
 		getSortOrder().clear();
@@ -364,7 +357,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	}
 
 	private F nameToF(String name) {
-		return ColumnField.INDEX.name().equals(name) ? null : Parser.DEFAULT.ofS(type, keyNameColMapper.apply(name)).getOr(null);
+		return ColumnField.INDEX.name().equals(name) ? null : Parser.DEFAULT.ofS(fieldType, keyNameColMapper.apply(name)).getOr(null);
 	}
 
 	private ObjectField<? super T> nameToCF(String name) {

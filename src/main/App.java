@@ -100,6 +100,7 @@ import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
+import util.access.fieldvalue.ObjectField.ColumnField;
 import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
@@ -434,7 +435,17 @@ public class App extends Application implements Configurable {
 		// add optional object fields
 		classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
 		classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
-		classFields.add(MetadataGroup.class, set(getEnumConstants(MetadataGroup.Field.class)));
+		classFields.add(MetadataGroup.class,
+			MetadataGroup.Field.ALBUMS,
+			MetadataGroup.Field.AVG_RATING,
+			MetadataGroup.Field.ITEMS,
+			MetadataGroup.Field.LENGTH,
+			MetadataGroup.Field.SIZE,
+			MetadataGroup.Field.VALUE,
+			MetadataGroup.Field.W_RATING,
+			MetadataGroup.Field.YEAR
+		);
+		classFields.add(File.class, set(getEnumConstants(ColumnField.class)));
 		classFields.add(File.class, set(getEnumConstants(FileField.class)));
 
 		// add optional object class -> string converters

@@ -1,15 +1,9 @@
 package audio.tagging;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import javafx.util.Duration;
-
 import audio.Player;
+import java.util.*;
+import java.util.stream.Stream;
+import javafx.util.Duration;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.dev.TODO;
@@ -17,13 +11,11 @@ import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.RangeYear;
-
 import static java.util.stream.Collectors.toSet;
-import static util.Util.capitalizeStrong;
-import static util.type.Util.mapEnumConstantName;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.equalNonNull;
 import static util.functional.Util.groupBy;
+import static util.functional.Util.setRO;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -137,7 +129,7 @@ public final class MetadataGroup {
         return new FileSize(size);
     }
 
-    /** {@link getFilesize()} in bytes */
+    /** {@link #getFileSize()} in bytes */
     public long getFileSizeInB() {
         return size;
     }
@@ -173,27 +165,37 @@ public final class MetadataGroup {
                 ", wighted rating: " + getWeighRating()+ ", year: " + getYear();
     }
 
-/***************************** COMPANION CLASS ********************************/
+    public static class Field implements ObjectField<MetadataGroup> {
+        public static final Field VALUE = new Field(Object.class, MetadataGroup::getValue,"Value", "Song field to group by");
+        public static final Field ITEMS = new Field(Long.class, MetadataGroup::getItemCount,"Items", "Number of songs in the group");
+        public static final Field ALBUMS = new Field(Long.class, MetadataGroup::getAlbumCount, "Albums", "Number of albums in the group");
+        public static final Field LENGTH = new Field(Duration.class, MetadataGroup::getLength, "Length", "Total length of the group");
+        public static final Field SIZE = new Field(FileSize.class, MetadataGroup::getFileSize, "Size", "Total file size of the group");
+        public static final Field AVG_RATING = new Field(Double.class, MetadataGroup::getAvgRating, "Avg rating", "Average rating of the group = sum(rating)/items");
+        public static final Field W_RATING = new Field(Double.class, MetadataGroup::getWeighRating, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items");
+        public static final Field YEAR = new Field(RangeYear.class, MetadataGroup::getYear, "Year", "Year or years of songs in the group");
+        public static final Set<Field> FIELDS = setRO(VALUE, ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING, YEAR);
 
-    public enum Field implements ObjectField<MetadataGroup> {
-        VALUE(Object.class, MetadataGroup::getValue,"Song field to group by"),
-        ITEMS(Long.class, MetadataGroup::getItemCount,"Number of songs in the group"),
-        ALBUMS(Long.class, MetadataGroup::getAlbumCount,"Number of albums in the group"),
-        LENGTH(Duration.class, MetadataGroup::getLength,"Total length of the group"),
-        SIZE(FileSize.class, MetadataGroup::getFileSize,"Total file size of the group"),
-        AVG_RATING(Double.class, MetadataGroup::getAvgRating,"Average rating of the group = sum(rating)/items"),
-        W_RATING(Double.class, MetadataGroup::getWeighRating,"Weighted rating of the group = sum(rating) = avg_rating*items"),
-        YEAR(RangeYear.class, MetadataGroup::getYear,"Year or years of songs in the group");
-
+        private final String name;
         private final String desc;
-        private final Ƒ1<MetadataGroup,?> extr;
+        private final Ƒ1<MetadataGroup,?> extractor;
         private final Class type;
 
-        <T> Field(Class<T> type, Ƒ1<MetadataGroup,? extends T> extractor, String description) {
-            mapEnumConstantName(this, c -> capitalizeStrong(c.name().replace('_', ' ')));
+        <T> Field(Class<T> type, Ƒ1<MetadataGroup,? extends T> extractor, String name, String description) {
+            this.name = name;
             this.desc = description;
-            this.extr = extractor;
+            this.extractor = extractor;
             this.type = type;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
 
         @Override
@@ -203,7 +205,7 @@ public final class MetadataGroup {
 
         @Override
         public Object getOf(MetadataGroup mg) {
-            return extr.apply(mg);
+            return extractor.apply(mg);
         }
 
         public String toString(MetadataGroup group) {
@@ -214,7 +216,7 @@ public final class MetadataGroup {
             return this==VALUE ? field.toString() : toString();
         }
 
-        public static Field valueOfEnumString(String s) {
+        public static Field valueOf(String s) {
             if (ITEMS.name().equals(s)) return ITEMS;
             if (ALBUMS.name().equals(s)) return ALBUMS;
             if (LENGTH.name().equals(s)) return LENGTH;
@@ -236,17 +238,10 @@ public final class MetadataGroup {
 
         @Override
         public String toS(Object o, String empty_val) {
-            switch(this) {
-                case VALUE : return o==null || "".equals(o) ? "<none>" : o.toString();
-                case ITEMS :
-                case ALBUMS :
-                case LENGTH :
-                case SIZE :
-                case AVG_RATING :
-                case W_RATING : return o.toString();
-                case YEAR : throw new SwitchException(this); // year case should never execute
-                default : throw new SwitchException(this);
-            }
+            if (this==VALUE)  return o==null || "".equals(o) ? "<none>" : o.toString();
+            if (this==ITEMS || this==ALBUMS || this==LENGTH || this==SIZE || this==AVG_RATING || this==W_RATING) return o.toString();
+            if (this==YEAR) throw new SwitchException(this); // year case should never execute
+            throw new SwitchException(this);
         }
 
         @Override

@@ -1,18 +1,5 @@
 package libraryView;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.NodeOrientation;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.input.Dragboard;
-import javafx.scene.layout.AnchorPane;
-import javafx.util.Callback;
-
 import audio.Player;
 import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
@@ -28,6 +15,20 @@ import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
 import gui.objects.tablecell.NumberRatingCellFactory;
 import gui.objects.tablerow.ImprovedTableRow;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.input.Dragboard;
+import javafx.scene.layout.AnchorPane;
+import javafx.util.Callback;
 import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Input;
@@ -46,7 +47,6 @@ import util.file.Environment;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import web.SearchUriBuilder;
-
 import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.Metadata.Field.CATEGORY;
 import static audio.tagging.MetadataGroup.Field.*;
@@ -147,7 +147,7 @@ public class LibraryView extends FXMLController {
 
 
         // set up table columns
-        table.setKeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
+        table.setKeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString(mf));
@@ -298,7 +298,7 @@ public class LibraryView extends FXMLController {
         });
         // update filters
         table.filterPane.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));    // TODO: we shouldn't be setting it here
 
         setItems(in_items.getValue());
     }

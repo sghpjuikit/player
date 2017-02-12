@@ -204,7 +204,7 @@ public class FunctorPool {
 			add(f.name(), Metadata.class, f.getType(), f::getOf);
 		for (PlaylistItem.Field f : PlaylistItem.Field.values())
 			add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
-		for (MetadataGroup.Field f : MetadataGroup.Field.values())
+		for (MetadataGroup.Field f : MetadataGroup.Field.FIELDS)
 			add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
 	}
 

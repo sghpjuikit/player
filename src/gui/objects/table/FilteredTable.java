@@ -61,7 +61,6 @@ import static util.reactive.Util.sizeOf;
  */
 public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
 
-	final Class<T> type;
 	public F primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
@@ -83,9 +82,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	 * @param backing_list non null backing list of items to be displayed in the table
 	 */
 	public FilteredTable(Class<T> type, F main_field, ObservableList<T> backing_list) {
-		super((Class<F>) main_field.getClass());
-
-		this.type = type;
+		super(type, (Class<F>) main_field.getClass());
 
 		allItems = noØ(backing_list);
 		filteredItems = new FilteredList<>(allItems);

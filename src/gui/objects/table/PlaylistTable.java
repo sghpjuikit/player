@@ -60,7 +60,7 @@ import static util.reactive.Util.maintain;
  * @author Martin Polakovic
  */
 @TODO(purpose = READABILITY, note = "dragging duplicate code for empty table case")
-public class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
+public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	private static final String STYLE_CORRUPT = "corrupt";
 	private static final String STYLE_PLAYED = "played";
@@ -89,14 +89,21 @@ public class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field
 
 		// initialize column factories
 		setColumnFactory(f -> {
-			TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
-			c.setCellValueFactory(f==NAME || f==LENGTH
-				? new PropertyValueFactory<>(f.name().toLowerCase())
-				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
-			);
-			c.setCellFactory(column -> buildDefaultCell(f));
-			c.setResizable(true);
-			return c;
+			if (f instanceof PlaylistItem.Field) {
+				TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
+				c.setCellValueFactory(f==NAME || f==LENGTH
+					? new PropertyValueFactory<>(f.name().toLowerCase())
+					: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
+				);
+				c.setCellFactory(column -> buildDefaultCell(f));
+				c.setResizable(true);
+				return c;
+			} else {
+				TableColumn<PlaylistItem,?> c = new TableColumn<>(f.toString());
+				c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
+				c.setCellFactory(column -> buildDefaultCell(f));
+				return c;
+			}
 		});
 		setColumnState(getDefaultColumnInfo());
 		columnName = (TableColumn<PlaylistItem,String>) getColumn(NAME).get();

@@ -62,13 +62,12 @@ import static util.type.Util.invokeMethodP0;
  * <p/>
  *
  * @param <T> type of element in the table, must be aware of its fields
- * @param <F> field of the T to access the fields
  * @author Martin Polakovic
  */
-public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> {
+public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private Ƒ1<F,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
-	private Ƒ1<F,TableColumn<T,?>> colFact;
+	private Ƒ1<ObjectField<T>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
+	private Ƒ1<ObjectField<? super T>,TableColumn<T,?>> colFact;
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 
 	private TableColumnInfo columnState;
@@ -99,31 +98,30 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	/**
 	 * Returns all fields of this table. The fields are string representable.
 	 */
-	public List<F> getFields() {
+	public List<ObjectField<T>> getFields() {
 		return stream(App.APP.classFields.get(type))
 			.filter(ObjectField::isTypeStringRepresentable)
-			.map(f -> (F) f)    // TODO: fix
-			.sorted(by(e -> e.name()))
+			.sorted(by(ObjectField::name))
 			.toList();
 	}
 
-	public void setColumnFactory(Ƒ1<F,TableColumn<T,?>> columnFactory) {
+	public void setColumnFactory(Ƒ1<ObjectField<? super T>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==null ? columnIndex : columnFactory.call(f);
+			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : columnFactory.call(f);
 			c.setUserData(f);
 			return c;
 		};
 	}
 
-	public Callback<F,TableColumn<T,?>> getColumnFactory() {
+	public Callback<ObjectField<? super T>,TableColumn<T,?>> getColumnFactory() {
 		return colFact;
 	}
 
-	public void setColumnStateFactory(Ƒ1<F,ColumnInfo> columnStateFactory) {
+	public void setColumnStateFactory(Ƒ1<ObjectField<T>,ColumnInfo> columnStateFactory) {
 		colStateFact = columnStateFactory;
 	}
 
-	public Function<F,ColumnInfo> getColumnStateFactory() {
+	public Function<ObjectField<T>,ColumnInfo> getColumnStateFactory() {
 		return colStateFact;
 	}
 
@@ -139,7 +137,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 		TableColumn<T,?> c = getColumn(f).orElse(null);
 		if (v) {
 			if (c==null) {
-				c = f==ColumnField.INDEX ? columnIndex : colFact.call((F) f);
+				c = f==ColumnField.INDEX ? columnIndex : colFact.call(f);
 				c.setPrefWidth(columnState.columns.get(f.name()).width);
 				c.setVisible(v);
 				getColumns().add(c);
@@ -287,7 +285,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	 * <p/>
 	 * Note, that the field must support sorting - return Comparable fieldType.
 	 */
-	public void sortBy(F field) {
+	public void sortBy(ObjectField<T> field) {
 		getSortOrder().clear();
 		getItems().sort(field.comparator());
 	}
@@ -298,7 +296,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	 * javafx.scene.control.TableColumn.SortType)}, but uses
 	 * {@link #getColumn(util.access.fieldvalue.ObjectField)} for column lookup.
 	 */
-	public void sortBy(F field, SortType type) {
+	public void sortBy(ObjectField<T> field, SortType type) {
 		getColumn(field).ifPresent(c -> sortBy(c, type));
 		updateComparator(null);
 	}
@@ -314,7 +312,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	 * <li> sets alignment to CENTER_LEFT for Strings and CENTER_RIGHT otherwise
 	 * </ul>
 	 */
-	public <R> TableCell<T,R> buildDefaultCell(F f) {
+	public <R> TableCell<T,R> buildDefaultCell(ObjectField<? super T> f) {
 		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
 		TableCell<T,R> cell = new TableCell<>() {
 			@Override
@@ -346,7 +344,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	@SuppressWarnings({"unchecked", "unused"})
 	private void updateComparator(Object ignored) {
 		Comparator<? super T> c = getSortOrder().stream().map(column -> {
-			F field = (F) column.getUserData();
+			ObjectField<T> field = (ObjectField<T>) column.getUserData();
 			Sort sort = Sort.of(column.getSortType());
 			return sort.cmp(field.comparator());
 		})
@@ -355,7 +353,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 		itemsComparator.setValue(c);
 	}
 
-	private F nameToF(String name) {
+	private ObjectField<T> nameToF(String name) {
 		String fieldName = keyNameColMapper.apply(name);
 		return getFields().stream()
 			.filter(f -> f.name().equals(fieldName)).findAny()

@@ -281,7 +281,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	private final ObservableList<Node> icons;
 	private final DoubleProperty tableContentGap;
 	private final StackPane tablePane = new StackPane();
-	private FilteredTable<?,?> table;
+	private FilteredTable<?> table;
 	private final StackPane iconPaneComplex = new StackPane();
 
 /* ---------- HELPER ------------------------------------------------------------------------------------------------ */
@@ -346,7 +346,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 			Collection<Object> items = (Collection) data;
 			Class itemType = getCollectionType(items);
 			if (App.APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
-				FilteredTable<Object,?> t = new FilteredTable<>(itemType, null);
+				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
 				t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {

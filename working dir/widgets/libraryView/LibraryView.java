@@ -100,7 +100,7 @@ import static util.reactive.Util.maintain;
 public class LibraryView extends FXMLController {
 
     private @FXML AnchorPane root;
-    private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(MetadataGroup.class, VALUE);
+    private final FilteredTable<MetadataGroup> table = new FilteredTable<>(MetadataGroup.class, VALUE);
 
     // input/output
     private Output<MetadataGroup> out_sel;
@@ -151,17 +151,29 @@ public class LibraryView extends FXMLController {
         table.setKeyNameColMapper(name-> ColumnField.INDEX.name().equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
 //        table.setKeyNameColMapper(name-> Field.FIELD_NAMES.contains(name) ? MetadataGroup.Field.VALUE.name() : name);
         table.setColumnFactory(f -> {
-            Metadata.Field mf = fieldFilter.getValue();
-            TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString(mf));
-            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
-            Pos a = f.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
-            c.setCellFactory(f==AVG_RATING
-                ? (Callback) APP.ratingCell.getValue()
-                : f==W_RATING
-                ? (Callback) new NumberRatingCellFactory()
-                : col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
-            );
-            return c;
+            if (f instanceof MetadataGroup.Field) {
+                MetadataGroup.Field mgf = (MetadataGroup.Field) f;
+                Metadata.Field mf = fieldFilter.getValue();
+                TableColumn<MetadataGroup,?> c = new TableColumn<>(mgf.toString(mf));
+                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(mgf.getOf(cf.getValue())));
+                Pos a = mgf.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
+                c.setCellFactory(mgf==AVG_RATING
+                        ? (Callback) APP.ratingCell.getValue()
+                        : mgf==W_RATING
+                        ? (Callback) new NumberRatingCellFactory()
+                        : col -> {
+                        TableCell cel = table.buildDefaultCell(mgf);
+                        cel.setAlignment(a);
+                        return cel;
+                    }
+                );
+                return c;
+            } else {
+                TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString());
+                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
+                c.setCellFactory(column -> table.buildDefaultCell(f));
+                return c;
+            }
         });
         // maintain rating column cell style
         APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
@@ -225,7 +237,7 @@ public class LibraryView extends FXMLController {
 
         // resizing
         table.setColumnResizePolicy(resize -> {
-            FilteredTable<MetadataGroup,?> t = table;   // (FilteredTable) resize.getTable()
+            FilteredTable<MetadataGroup> t = table;   // (FilteredTable) resize.getTable()
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
             t.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(t.calculateIndexColumnWidth()));

@@ -59,9 +59,9 @@ import static util.reactive.Util.sizeOf;
  *
  * @author Martin Polakovic
  */
-public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F> {
+public class FilteredTable<T> extends FieldedTable<T> {
 
-	public F primaryFilterField;
+	public ObjectField<T> primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
 	private final SortedList<T> sortedItems;
@@ -71,7 +71,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	 * @param type exact type of the item displayed in the table
 	 * @param main_field to be chosen as main and default search field or null
 	 */
-	public FilteredTable(Class<T> type, F main_field) {
+	public FilteredTable(Class<T> type, ObjectField<T> main_field) {
 		this(type, main_field, observableArrayList());
 	}
 
@@ -81,7 +81,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	 * gui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
 	 * @param backing_list non null backing list of items to be displayed in the table
 	 */
-	public FilteredTable(Class<T> type, F main_field, ObservableList<T> backing_list) {
+	public FilteredTable(Class<T> type, ObjectField<T> main_field, ObservableList<T> backing_list) {
 		super(type);
 
 		allItems = noØ(backing_list);
@@ -299,11 +299,11 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 	};
 
 	/** Table's filter node. */
-	public class Filter extends FieldedPredicateChainItemNode<T,F> {
+	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T>> {
 
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
 			super(() -> {
-				FieldedPredicateItemNode<T,F> g = new FieldedPredicateItemNode<>(
+				FieldedPredicateItemNode<T,ObjectField<T>> g = new FieldedPredicateItemNode<>(
 					in -> Functors.pool.getIO(in, Boolean.class),
 					in -> Functors.pool.getPrefIO(in, Boolean.class)
 				);
@@ -317,14 +317,13 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 		}
 	}
 
-	private PredicateData<F> getPrimaryFilterPredicate() {
+	private PredicateData<ObjectField<T>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(primaryFilterField).map(PredicateData::ofField).orElse(null);
 	}
 
-	private List<PredicateData<F>> getFilterPredicates(Class<T> filterType) {
+	private List<PredicateData<ObjectField<T>>> getFilterPredicates(Class<T> filterType) {
 		return stream(App.APP.classFields.get(filterType))
 			.filter(ObjectField::isTypeStringRepresentable)
-			.map(f -> (F) f)    // TODO: fix
 			.map(PredicateData::ofField)
 			.sorted(by(e -> e.name))
 			.toList();
@@ -370,7 +369,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 		 * text matching will be done by this field. Its column cell data must be
 		 * String (or search will be ignored) and column should be visible.
 		 */
-		private F field;
+		private ObjectField<T> field;
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
@@ -399,7 +398,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 		}
 
 		/** Sets fields to be used in search. Default is main field. */
-		public void setColumn(F field) {
+		public void setColumn(ObjectField<T> field) {
 			// TODO
 			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
@@ -436,7 +435,7 @@ public class FilteredTable<T, F extends ObjectField<T>> extends FieldedTable<T,F
 /* --------------------- SORT --------------------------------------------------------------------------------------- */
 
 	@Override
-	public void sortBy(F field) {
+	public void sortBy(ObjectField<T> field) {
 		getSortOrder().clear();
 		allItems.sort(field.comparator());
 	}

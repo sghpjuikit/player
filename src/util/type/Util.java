@@ -284,9 +284,14 @@ public interface Util {
 		// iteration will continue on upper level.
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType)t).getActualTypeArguments();
-			if (genericTypes.length>0 && genericTypes[0] instanceof Class)
-				return (Class)genericTypes[0];
-			else return null;
+			if (genericTypes.length>0) {
+				if (genericTypes[0] instanceof Class)
+					return (Class)genericTypes[0];
+				if (genericTypes[0] instanceof ParameterizedType)
+					return (Class) ((ParameterizedType) genericTypes[0]).getRawType();
+				return null;
+			} else
+				return null;
 		}
 
 		if (t instanceof Class) {

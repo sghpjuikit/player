@@ -1,13 +1,15 @@
 package audio.playlist;
 
+import audio.Item;
+import audio.tagging.Metadata;
 import java.io.IOException;
 import java.net.URI;
-
+import java.util.HashSet;
+import java.util.Set;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.media.Media;
-
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -17,9 +19,6 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-
-import audio.Item;
-import audio.tagging.Metadata;
 import services.database.Db;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
@@ -28,13 +27,10 @@ import util.file.AudioFileFormat.Use;
 import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.units.FormattedDuration;
-
-import static util.Util.capitalizeStrong;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
 import static util.dev.Util.throwIfFxThread;
 import static util.file.AudioFileFormat.Use.APP;
-import static util.type.Util.mapEnumConstantName;
 
 /**
  * Defines item in playlist.
@@ -360,36 +356,55 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return i;
     }
 
-    /**
-     *
-     */
-    public enum Field implements ObjectField<PlaylistItem> {
-        NAME(PlaylistItem::getName,"'Song artist' - 'Song title'"),
-        TITLE(PlaylistItem::getTitle,"Song title"),
-        ARTIST(PlaylistItem::getArtist,"Song artist"),
-        LENGTH(PlaylistItem::getTime,"Song length"),
-        PATH(PlaylistItem::getPath,"Song file path"),
-        FORMAT(PlaylistItem::getFormat,"Song file type"),;
+    public static class Field implements ObjectField<PlaylistItem> {
 
-        private final String desc;
-        private final Ƒ1<PlaylistItem,?> extr;
+        public static final Set<Field> FIELDS = new HashSet<>();
+        public static final Field NAME = new Field(PlaylistItem::getName, "Name", "'Song artist' - 'Song title'");
+        public static final Field TITLE = new Field(PlaylistItem::getTitle, "Title", "Song title");
+        public static final Field ARTIST = new Field(PlaylistItem::getArtist, "Artist", "Song artist");
+        public static final Field LENGTH = new Field(PlaylistItem::getTime, "Time", "Song length");
+        public static final Field PATH = new Field(PlaylistItem::getPath, "Path", "Song file path");
+        public static final Field FORMAT = new Field(PlaylistItem::getFormat, "Format", "Song file type");
 
-        Field(Ƒ1<PlaylistItem,?> extractor, String description) {
-            mapEnumConstantName(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
-                            ? "Time"
-                            : capitalizeStrong(constant.name().replace('_', ' ')));
-            this.desc = description;
-            this.extr = extractor;
+        private final String name;
+        private final String description;
+        private final Ƒ1<PlaylistItem,?> extractor;
+
+        Field(Ƒ1<PlaylistItem,?> extractor, String name, String description) {
+            this.name = name;
+            this.description = description;
+            this.extractor = extractor;
+            FIELDS.add(this);
+        }
+
+        public static Field valueOf(String s) {
+            if (NAME.name().equals(s)) return NAME;
+            if (TITLE.name().equals(s)) return TITLE;
+            if (ARTIST.name().equals(s)) return ARTIST;
+            if (LENGTH.name().equals(s)) return LENGTH;
+            if (PATH.name().equals(s)) return PATH;
+            if (FORMAT.name().equals(s)) return FORMAT;
+            throw new SwitchException(s);
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
 
         @Override
         public String description() {
-            return desc;
+            return description;
         }
 
         @Override
         public Object getOf(PlaylistItem p) {
-            return extr.apply(p);
+            return extractor.apply(p);
         }
 
         /**
@@ -418,15 +433,9 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
         @Override
         public String toS(Object o, String empty_val) {
-            switch(this) {
-                case NAME :
-                case TITLE :
-                case ARTIST : return "".equals(o) ? empty_val : o.toString();
-                case LENGTH :
-                case PATH :
-                case FORMAT : return o.toString();
-                default : throw new SwitchException(this);
-            }
+            if (this==NAME || this==TITLE || this==ARTIST) return "".equals(o) ? empty_val : o.toString();
+            if(this==LENGTH || this==PATH || this==FORMAT) return o.toString();
+            throw new SwitchException(this);
         }
 
         @Override

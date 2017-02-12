@@ -30,6 +30,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import layout.widget.Widget.Info;
+import layout.widget.WidgetFactory;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
@@ -119,7 +120,7 @@ public class LibraryView extends FXMLController {
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<Metadata.Field>(CATEGORY,
-        () -> filter(Metadata.Field.values(), Field::isTypeStringRepresentable),
+        () -> filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
         this::applyData
     );
 
@@ -147,7 +148,8 @@ public class LibraryView extends FXMLController {
 
 
         // set up table columns
-        table.setKeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
+        table.setKeyNameColMapper(name-> ColumnField.INDEX.name().equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
+//        table.setKeyNameColMapper(name-> Field.FIELD_NAMES.contains(name) ? MetadataGroup.Field.VALUE.name() : name);
         table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString(mf));
@@ -188,7 +190,7 @@ public class LibraryView extends FXMLController {
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         m.getItems().addAll(
             buildSingleSelectionMenu(
-                list(Metadata.Field.values()),
+                list(Metadata.Field.FIELDS),
                 null,
                 Metadata.Field::name,
                 fieldFilter::setNapplyValue
@@ -199,7 +201,7 @@ public class LibraryView extends FXMLController {
         // add menu items
         table.menuRemove.getItems().addAll(
             menuItem("Remove selected groups from library", () -> Db.removeItems(degroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", () -> Db.removeItems(degroup(table.getItems().stream().filter(mg -> mg.isPlaying())))),
+            menuItem("Remove playing group from library", () -> Db.removeItems(degroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
             menuItem("Remove all groups from library", () -> Db.removeItems(degroup(table.getItems())))
         );
 
@@ -331,7 +333,7 @@ public class LibraryView extends FXMLController {
         List<MetadataGroup> mgs = table.getSelectedOrAllItems(orAll).collect(toList());
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
-        return mgs.stream().anyMatch(mg -> mg.isAll())
+        return mgs.stream().anyMatch(MetadataGroup::isAll)
 			? list
 			: mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
@@ -421,14 +423,14 @@ public class LibraryView extends FXMLController {
                 new Menu("Show in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
-	                    f -> f.nameGui(),
+                        WidgetFactory::nameGui,
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongReader)c.getController()).read(m.getValue()))
                     )
                 ),
                 new Menu("Edit tags in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
-	                    f -> f.nameGui(),
+                        WidgetFactory::nameGui,
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),

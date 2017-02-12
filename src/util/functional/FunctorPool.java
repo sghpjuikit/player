@@ -199,10 +199,11 @@ public class FunctorPool {
 		addPredicatesComparable(Double.class, 0d);
 		addPredicatesComparable(Float.class, 0f);
 
+		// TODO: read from APP.classFields
 		// fielded values
-		for (Metadata.Field f : Metadata.Field.values())
+		for (Metadata.Field f : Metadata.Field.FIELDS)
 			add(f.name(), Metadata.class, f.getType(), f::getOf);
-		for (PlaylistItem.Field f : PlaylistItem.Field.values())
+		for (PlaylistItem.Field f : PlaylistItem.Field.FIELDS)
 			add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
 		for (MetadataGroup.Field f : MetadataGroup.Field.FIELDS)
 			add(f.name(), MetadataGroup.class, f.getType(), f::getOf);

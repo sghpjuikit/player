@@ -165,7 +165,7 @@ public class MetadataReader{
                 }
 
                 em.getTransaction().commit();
-                runFX(Db::updateInMemoryDBfromPersisted);
+                runFX(Db::updateInMemoryDbFromPersisted);
 
                 // update progress
 	            updateMessage(all.size(), processed.size());
@@ -214,7 +214,7 @@ public class MetadataReader{
                 }
 
                 em.getTransaction().commit();
-                runFX(Db::updateInMemoryDBfromPersisted);
+                runFX(Db::updateInMemoryDbFromPersisted);
 
                 // update state
                 updateMessage(all,completed,removed);

@@ -202,7 +202,7 @@ public class Player {
 
             // update library
             Db.updatePer(ms);
-            Db.updateInMemoryDBfromPersisted();
+            Db.updateInMemoryDbFromPersisted();
 
             Async.runFX(() -> {
                 // update all playlist items referring to this updated metadata

@@ -15,7 +15,6 @@ import static java.util.stream.Collectors.toSet;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.equalNonNull;
 import static util.functional.Util.groupBy;
-import static util.functional.Util.setRO;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -166,6 +165,7 @@ public final class MetadataGroup {
     }
 
     public static class Field implements ObjectField<MetadataGroup> {
+        public static final Set<Field> FIELDS = new HashSet<>();
         public static final Field VALUE = new Field(Object.class, MetadataGroup::getValue,"Value", "Song field to group by");
         public static final Field ITEMS = new Field(Long.class, MetadataGroup::getItemCount,"Items", "Number of songs in the group");
         public static final Field ALBUMS = new Field(Long.class, MetadataGroup::getAlbumCount, "Albums", "Number of albums in the group");
@@ -174,7 +174,6 @@ public final class MetadataGroup {
         public static final Field AVG_RATING = new Field(Double.class, MetadataGroup::getAvgRating, "Avg rating", "Average rating of the group = sum(rating)/items");
         public static final Field W_RATING = new Field(Double.class, MetadataGroup::getWeighRating, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items");
         public static final Field YEAR = new Field(RangeYear.class, MetadataGroup::getYear, "Year", "Year or years of songs in the group");
-        public static final Set<Field> FIELDS = setRO(VALUE, ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING, YEAR);
 
         private final String name;
         private final String desc;
@@ -186,6 +185,18 @@ public final class MetadataGroup {
             this.desc = description;
             this.extractor = extractor;
             this.type = type;
+            FIELDS.add(this);
+        }
+
+        public static Field valueOf(String s) {
+            if (ITEMS.name().equals(s)) return ITEMS;
+            if (ALBUMS.name().equals(s)) return ALBUMS;
+            if (LENGTH.name().equals(s)) return LENGTH;
+            if (SIZE.name().equals(s)) return SIZE;
+            if (AVG_RATING.name().equals(s)) return AVG_RATING;
+            if (W_RATING.name().equals(s)) return W_RATING;
+            if (YEAR.name().equals(s)) return YEAR;
+            else return VALUE;
         }
 
         @Override
@@ -214,17 +225,6 @@ public final class MetadataGroup {
 
         public String toString(Metadata.Field field) {
             return this==VALUE ? field.toString() : toString();
-        }
-
-        public static Field valueOf(String s) {
-            if (ITEMS.name().equals(s)) return ITEMS;
-            if (ALBUMS.name().equals(s)) return ALBUMS;
-            if (LENGTH.name().equals(s)) return LENGTH;
-            if (SIZE.name().equals(s)) return SIZE;
-            if (AVG_RATING.name().equals(s)) return AVG_RATING;
-            if (W_RATING.name().equals(s)) return W_RATING;
-            if (YEAR.name().equals(s)) return YEAR;
-            else return VALUE;
         }
 
         @Override

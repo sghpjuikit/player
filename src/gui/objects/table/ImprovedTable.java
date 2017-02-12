@@ -22,6 +22,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import util.Util;
+import util.access.fieldvalue.ObjectField.ColumnField;
 import static java.lang.Math.*;
 import static util.Util.zeroPad;
 import static util.graphics.Util.computeFontWidth;
@@ -58,12 +59,13 @@ public class ImprovedTable<T> extends TableView<T> {
 		}
 	};
 
-	protected final TableColumn<T,Void> columnIndex = new TableColumn<>("#");
+	protected final TableColumn<T,Void> columnIndex = new TableColumn<>("#");	// TODO: use proper factory
 
 	public ImprovedTable() {
 		columnIndex.setCellFactory(buildIndexColumnCellFactory());
 		columnIndex.setSortable(false);
 		columnIndex.setResizable(false);
+		columnIndex.setUserData(ColumnField.INDEX);
 		getColumns().add(columnIndex);
 	}
 

@@ -1,6 +1,10 @@
 
 package audio.tagging;
 
+import audio.Item;
+import audio.Player;
+import audio.playback.PLAYBACK;
+import audio.tagging.chapter.Chapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -10,11 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
-
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -34,24 +36,13 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import audio.Item;
-import audio.Player;
-import audio.playback.PLAYBACK;
 import services.notif.Notifier;
-import audio.tagging.chapter.Chapter;
-import util.file.AudioFileFormat;
 import util.SwitchException;
 import util.dev.TODO;
+import util.file.AudioFileFormat;
 import util.parsing.Parser;
 import util.units.NofX;
-
-import static audio.tagging.Metadata.SEPARATOR_GROUP;
-import static audio.tagging.Metadata.TAGID_COLOR;
-import static audio.tagging.Metadata.TAGID_LIB_ADDED;
-import static audio.tagging.Metadata.TAGID_PLAYED_FIRST;
-import static audio.tagging.Metadata.TAGID_PLAYED_LAST;
-import static audio.tagging.Metadata.TAGID_TAGS;
+import static audio.tagging.Metadata.*;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
@@ -62,9 +53,7 @@ import static util.Util.clip;
 import static util.Util.emptyOr;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.functional.Util.list;
-import static util.functional.Util.split;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 
 /**
  *
@@ -719,61 +708,61 @@ public class MetadataWriter extends MetaItem {
     }
 
     public void setFieldS(Metadata.Field field, String data) {
-        switch(field) {
-            case PATH :
-            case FILENAME :
-            case FORMAT :
-            case FILESIZE :
-            case ENCODING :
-            case BITRATE :
-            case CHANNELS :
-            case SAMPLE_RATE :
-            case LENGTH : return;
-            case ENCODER : setEncoder(data); break;
-            case TITLE : setTitle(data); break;
-            case ALBUM : setAlbum(data); break;
-            case ARTIST : setArtist(data); break;
-            case ALBUM_ARTIST : setAlbum_artist(data); break;
-            case COMPOSER : setComposer(data); break;
-            case PUBLISHER : setPublisher(data); break;
-            case TRACK : setTrack(data); break;
-            case TRACKS_TOTAL : setTracks_total(data); break;
-            case TRACK_INFO :
-                NofX a = NofX.fromString(data);
-                setTrack(String.valueOf(a.n));
-                setTracks_total(String.valueOf(a.of));
-                break;
-            case DISC : setDisc(data); break;
-            case DISCS_TOTAL : setDiscs_total(data); break;
-            case DISCS_INFO :
-                NofX b = NofX.fromString(data);
-                setTrack(String.valueOf(b.n));
-                setTracks_total(String.valueOf(b.of));
-                break;
-            case GENRE : setGenre(data); break;
-            case YEAR : setYear(data); break;
-            case COVER :
-            case COVER_INFO : return;
-            case RATING : setRatingPercent(data); break;
-            case RATING_RAW : setRating(data); break;
-            case PLAYCOUNT : setPlaycount(data); break;
-            case CATEGORY : setCategory(data); break;
-            case COMMENT : setComment(data); break;
-            case LYRICS : setLyrics(data); break;
-            case MOOD : setMood(data); break;
-            case COLOR : setCustomField(TAGID_COLOR,data); break;
-            case TAGS : setCustomField(TAGID_TAGS,data); break;
-            case CHAPTERS : return;
-            case CUSTOM1 : setCustom1(data); break;
-            case CUSTOM2 : setCustom2(data); break;
-            case CUSTOM3 : setCustom3(data); break;
-            case CUSTOM4 : setCustom4(data); break;
-            case CUSTOM5 : setCustom5(data); break;
-            case FIRST_PLAYED : setCustomField(TAGID_PLAYED_FIRST,data); break;
-            case LAST_PLAYED : setCustomField(TAGID_PLAYED_LAST,data); break;
-            case ADDED_TO_LIBRARY : setCustomField(TAGID_LIB_ADDED,data); break;
-            default : throw new SwitchException(field);
+        if (field==Metadata.Field.PATH ||
+            field==Metadata.Field.FILENAME ||
+            field==Metadata.Field.FORMAT ||
+            field==Metadata.Field.FILESIZE ||
+            field==Metadata.Field.ENCODING ||
+            field==Metadata.Field.BITRATE ||
+            field==Metadata.Field.CHANNELS ||
+            field==Metadata.Field.SAMPLE_RATE ||
+            field==Metadata.Field.LENGTH) return;
+        if (field==Metadata.Field.ENCODER) { setEncoder(data); return; }
+        if (field==Metadata.Field.TITLE) { setTitle(data); return; }
+        if (field==Metadata.Field.ALBUM) { setAlbum(data); return; }
+        if (field==Metadata.Field.ARTIST) { setArtist(data); return; }
+        if (field==Metadata.Field.ALBUM_ARTIST) { setAlbum_artist(data); return; }
+        if (field==Metadata.Field.COMPOSER) { setComposer(data); return; }
+        if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
+        if (field==Metadata.Field.TRACK) { setTrack(data); return; }
+        if (field==Metadata.Field.TRACKS_TOTAL) { setTracks_total(data); return; }
+        if (field==Metadata.Field.TRACK_INFO) {
+            NofX a = NofX.fromString(data);
+            setTrack(String.valueOf(a.n));
+            setTracks_total(String.valueOf(a.of));
+            return;
         }
+        if (field==Metadata.Field.DISC) { setDisc(data); return; }
+        if (field==Metadata.Field.DISCS_TOTAL) { setDiscs_total(data); return; }
+        if (field==Metadata.Field.DISCS_INFO) {
+            NofX b = NofX.fromString(data);
+            setTrack(String.valueOf(b.n));
+            setTracks_total(String.valueOf(b.of));
+            return;
+        }
+        if (field==Metadata.Field.GENRE) { setGenre(data); return; }
+        if (field==Metadata.Field.YEAR) { setYear(data); return; }
+        if (field==Metadata.Field.COVER) return;
+        if (field==Metadata.Field.COVER_INFO) return;
+        if (field==Metadata.Field.RATING) { setRatingPercent(data); return; }
+        if (field==Metadata.Field.RATING_RAW) { setRating(data); return; }
+        if (field==Metadata.Field.PLAYCOUNT) { setPlaycount(data); return; }
+        if (field==Metadata.Field.CATEGORY) { setCategory(data); return; }
+        if (field==Metadata.Field.COMMENT) { setComment(data); return; }
+        if (field==Metadata.Field.LYRICS) { setLyrics(data); return; }
+        if (field==Metadata.Field.MOOD) { setMood(data); return; }
+        if (field==Metadata.Field.COLOR) { setCustomField(TAGID_COLOR,data); return; }
+        if (field==Metadata.Field.TAGS) { setCustomField(TAGID_TAGS,data); return; }
+        if (field==Metadata.Field.CHAPTERS) return;
+        if (field==Metadata.Field.CUSTOM1) { setCustom1(data); return; }
+        if (field==Metadata.Field.CUSTOM2) { setCustom2(data); return; }
+        if (field==Metadata.Field.CUSTOM3) { setCustom3(data); return; }
+        if (field==Metadata.Field.CUSTOM4) { setCustom4(data); return; }
+        if (field==Metadata.Field.CUSTOM5) { setCustom5(data); return; }
+        if (field==Metadata.Field.FIRST_PLAYED) { setCustomField(TAGID_PLAYED_FIRST,data); return; }
+        if (field==Metadata.Field.LAST_PLAYED) { setCustomField(TAGID_PLAYED_LAST,data); return; }
+        if (field==Metadata.Field.ADDED_TO_LIBRARY) { setCustomField(TAGID_LIB_ADDED,data); return; }
+        throw new SwitchException(field);
     }
 
 /*******************************************************************************/

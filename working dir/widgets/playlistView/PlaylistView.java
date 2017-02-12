@@ -197,7 +197,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             menuItem("Save playlist as...", this::savePlaylist)
         );
         Menu sortM = new Menu("Order by");
-        stream(Field.values())
+        stream(Field.FIELDS)
                 .map(f -> menuItem(f.toStringEnum(), () -> table.sortBy(f)))
                 .forEach(sortM.getItems()::add);
         table.menuOrder.getItems().add(0, sortM);

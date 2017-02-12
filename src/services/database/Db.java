@@ -6,6 +6,7 @@
 
 package services.database;
 
+import audio.tagging.Metadata.Field;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
@@ -63,8 +64,8 @@ public class Db {
 
                     // populate metadata fields strings if empty
                     if (string_pool.getStrings("album").isEmpty() && !items_byId.isEmpty()) {
-                        stream(Metadata.Field.values())
-                                .filter(f -> f.isAutoCompleteable())
+                        stream(Metadata.Field.FIELDS)
+                                .filter(Field::isAutoCompletable)
                                 .forEach(f -> {
                                     Set<String> pool = string_pool.getStrings(f.name());
                                     items_byId.stream()
@@ -111,7 +112,7 @@ public class Db {
     }
 
     public static boolean exists(URI uri) {
-        return em==null ? false : em.find(Metadata.class, uri.toString())!=null;
+        return em!=null && em.find(Metadata.class, uri.toString())!=null;
     }
 
     /**
@@ -153,10 +154,10 @@ public class Db {
         });
         em.getTransaction().commit();
 
-        MetadataWriter.use(l,w -> w.setLibraryAddedNowIfEmpty());
+        MetadataWriter.use(l, MetadataWriter::setLibraryAddedNowIfEmpty);
 
         // update model
-        updateInMemoryDBfromPersisted();
+        updateInMemoryDbFromPersisted();
     }
 
     public static void removeItems(Collection<? extends Item> items) {
@@ -170,7 +171,7 @@ public class Db {
         });
         em.getTransaction().commit();
         // update model
-        updateInMemoryDBfromPersisted();
+        updateInMemoryDbFromPersisted();
     }
 
     public static void removeAllItems() {
@@ -198,7 +199,7 @@ public class Db {
     /**
      * Thread safe.
      */
-    public static void updateInMemoryDBfromPersisted() {
+    public static void updateInMemoryDbFromPersisted() {
         setInMemoryDB(getAllItems());
     }
 
@@ -231,8 +232,8 @@ public class Db {
      */
     public static StringStore string_pool;
 
-    public static boolean autocompltn_contains = true;
-    public static final Ƒ2<String,String,Boolean> autocmplt_filter = (text,phrase) -> autocompltn_contains
+    public static boolean autocompletionContains = true;
+    public static final Ƒ2<String,String,Boolean> autocompletionFilter = (text, phrase) -> autocompletionContains
             ? text.contains(phrase) : text.startsWith(phrase);
 
     /******************************************************************************/

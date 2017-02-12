@@ -19,7 +19,7 @@ public class ObjectFieldMap {
 	private final ClassMap<Set> cache = new ClassMap<>();
 	private final ClassMap<Set> cache2 = new ClassMap<>();
 
-	public <T> void add(Class<T> c, Collection<ObjectField<T>> fields) {
+	public <T> void add(Class<T> c, Collection<? extends ObjectField<T>> fields) {
 		noØ(c, fields);
 		fields.forEach(field -> add(c,field));
 	}

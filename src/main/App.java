@@ -433,20 +433,11 @@ public class App extends Application implements Configurable {
 		x.useAttributeFor(Widget.class, "name");
 
 		// add optional object fields
-		classFields.add(PlaylistItem.class, set(getEnumConstants(PlaylistItem.Field.class)));
-		classFields.add(Metadata.class, set(getEnumConstants(Metadata.Field.class)));
-		classFields.add(MetadataGroup.class,
-			MetadataGroup.Field.ALBUMS,
-			MetadataGroup.Field.AVG_RATING,
-			MetadataGroup.Field.ITEMS,
-			MetadataGroup.Field.LENGTH,
-			MetadataGroup.Field.SIZE,
-			MetadataGroup.Field.VALUE,
-			MetadataGroup.Field.W_RATING,
-			MetadataGroup.Field.YEAR
-		);
-		classFields.add(File.class, set(getEnumConstants(ColumnField.class)));
-		classFields.add(File.class, set(getEnumConstants(FileField.class)));
+		classFields.add(PlaylistItem.class, PlaylistItem.Field.FIELDS);
+		classFields.add(Metadata.class, Metadata.Field.FIELDS);
+		classFields.add(MetadataGroup.class, MetadataGroup.Field.FIELDS);
+		classFields.add(Object.class, ColumnField.FIELDS);
+		classFields.add(File.class, FileField.FIELDS);
 
 		// add optional object class -> string converters
 		className.addNoLookup(Void.class, "Nothing");
@@ -490,13 +481,14 @@ public class App extends Application implements Configurable {
 			}
 		});
 		instanceInfo.add(App.class, (v,map) -> map.put("Name", v.name));
+		// TODO: read from classFieds
 		instanceInfo.add(Metadata.class, (m,map) ->
-			stream(Metadata.Field.values())
+			stream(Metadata.Field.FIELDS)
 					.filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
 					.forEach(f -> map.put(f.name(), m.getFieldS(f)))
 		);
 		instanceInfo.add(PlaylistItem.class, p ->
-			stream(PlaylistItem.Field.values())
+			stream(PlaylistItem.Field.FIELDS)
 					.filter(TypedValue::isTypeString)
 					.toMap(ObjectField::name, f -> (String)f.getOf(p))
 		);

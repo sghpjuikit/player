@@ -27,7 +27,6 @@ import util.access.fieldvalue.ObjectField;
 import util.access.fieldvalue.ObjectField.ColumnField;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
-import util.parsing.Parser;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
@@ -74,14 +73,12 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 
 	private TableColumnInfo columnState;
 	protected final Class<T> type;
-	protected final Class<F> fieldType;
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
-	public FieldedTable(Class<T> type, Class<F> fieldType) {
+	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
-		this.fieldType = fieldType;
 
 		// install comparator updating part I
 		getSortOrder().addListener((ListChangeListener<Object>) this::updateComparator);
@@ -113,8 +110,7 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	public void setColumnFactory(Ƒ1<F,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==null ? columnIndex : columnFactory.call(f);
-			c.setUserData(f==null ? ColumnField.INDEX : f);
-			c.setSortable(f!=null);
+			c.setUserData(f);
 			return c;
 		};
 	}
@@ -161,7 +157,9 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 		List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
 		state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
 			// get or build column
-			TableColumn<T,?> tc = getColumn(nameToCF(c.name)).orElseGet(() -> colFact.call(nameToF(c.name)));
+			TableColumn<T,?> tc = c.name.equals(ColumnField.INDEX.name())
+				? columnIndex
+				: colFact.call(nameToF(c.name));
 			// set width
 			tc.setPrefWidth(c.width);
 			// set visibility
@@ -197,7 +195,8 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 			defColInfo = new TableColumnInfo();
 			defColInfo.nameKeyMapper = keyNameColMapper;
 			defColInfo.columns.addAll(colinfos);
-			// insert index column state
+			// insert index column state manually
+			defColInfo.columns.removeIf(f -> f.name.equals(ColumnField.INDEX.name()));
 			defColInfo.columns.forEach(t -> t.position++);
 			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
 			// leave sort order empty
@@ -357,7 +356,10 @@ public class FieldedTable<T, F extends ObjectField<T>> extends ImprovedTable<T> 
 	}
 
 	private F nameToF(String name) {
-		return ColumnField.INDEX.name().equals(name) ? null : Parser.DEFAULT.ofS(fieldType, keyNameColMapper.apply(name)).getOr(null);
+		String fieldName = keyNameColMapper.apply(name);
+		return getFields().stream()
+			.filter(f -> f.name().equals(fieldName)).findAny()
+			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
 	}
 
 	private ObjectField<? super T> nameToCF(String name) {

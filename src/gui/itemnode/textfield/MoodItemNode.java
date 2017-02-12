@@ -24,7 +24,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
     public MoodItemNode() {
         super(Parser.DEFAULT.toConverterOf(String.class));
         setEditable(true);
-	    autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocmplt_filter.apply(t,p.getUserText())));
+	    autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocompletionFilter.apply(t,p.getUserText())));
     }
 
     /** @return the position for the picker to show on */

@@ -1,5 +1,8 @@
 package util.access.fieldvalue;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.xmp.XmpDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,92 +10,117 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.util.Date;
-
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.xmp.XmpDirectory;
-
+import java.util.HashSet;
+import java.util.Set;
 import main.App;
+import util.SwitchException;
 import util.file.FileType;
 import util.file.Util;
 import util.file.mimetype.MimeType;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
-
 import static util.Util.localDateTimeFromMillis;
-import static util.type.Util.mapEnumConstantName;
 
 /**
- *
  * @author Martin Polakovic
  */
-public enum FileField implements ObjectField<File> {
+public class FileField implements ObjectField<File> {
 
-    PATH("Path", File::getPath, String.class),
-    NAME("Name", Util::getName, String.class),
-    NAME_FULL("Filename", Util::getNameFull, String.class),
-    EXTENSION("Extension", Util::getSuffix, String.class),
-    SIZE("Size", FileSize::new, FileSize.class),
-    TIME_MODIFIED("Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class),
-    TIME_CREATED("Time Created", f -> {
-        try {
-            return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
-	                    .creationTime();
-        } catch (IOException e) {
-            return null;
-        }
-    }, FileTime.class),
-	TIME_CREATED_FROM_TAG("Time Created (metadata)", f -> {
+	public static final Set<FileField> FIELDS = new HashSet<>();
+	public static final FileField PATH = new FileField("Path", "Path", File::getPath, String.class);
+	public static final FileField NAME = new FileField("Name", "Name", Util::getName, String.class);
+	public static final FileField NAME_FULL = new FileField("Filename", "Filename", Util::getNameFull, String.class);
+	public static final FileField EXTENSION = new FileField("Extension", "Extension", Util::getSuffix, String.class);
+	public static final FileField SIZE = new FileField("Size", "Size", FileSize::new, FileSize.class);
+	public static final FileField TIME_MODIFIED = new FileField("Time Modified", "Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class);
+	public static final FileField TIME_CREATED = new FileField("Time Created", "Time Created", f -> {
+		try {
+			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
+				.creationTime();
+		} catch (IOException e) {
+			return null;
+		}
+	}, FileTime.class);
+	public static final FileField TIME_CREATED_FROM_TAG = new FileField("Time Created (tag)", "Time Created (metadata)", f -> {
 		try {
 			return ImageMetadataReader
-				       .readMetadata(f)
-					   .getFirstDirectoryOfType(XmpDirectory.class)
-					   .getDate(XmpDirectory.TAG_CREATE_DATE);
-		} catch (IOException | ImageProcessingException | NullPointerException e) {
+				.readMetadata(f)
+				.getFirstDirectoryOfType(XmpDirectory.class)
+				.getDate(XmpDirectory.TAG_CREATE_DATE);
+		} catch (IOException|ImageProcessingException|NullPointerException e) {
 //			log(FileField.class).error("Could not read image xmp metadata for {}", f, e);
 			return null;
 		}
-	}, Date.class),
-    TIME_ACCESSED("Time Accessed", f -> {
-        try {
-            return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
-	                    .lastAccessTime();
-        } catch (IOException e) {
-            return null;
-        }
-    }, FileTime.class),
-    TYPE("Type", FileType::of, FileType.class),
-    MIME("Mime Type", App.APP.mimeTypes::ofFile, MimeType.class),
-    MIME_GROUP("Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
+	}, Date.class);
+	public static final FileField TIME_ACCESSED = new FileField("Time Accessed", "Time Accessed", f -> {
+		try {
+			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
+				.lastAccessTime();
+		} catch (IOException e) {
+			return null;
+		}
+	}, FileTime.class);
+	public static final FileField TYPE = new FileField("Type", "Type", FileType::of, FileType.class);
+	public static final FileField MIME = new FileField("Mime Type", "Mime Type", App.APP.mimeTypes::ofFile, MimeType.class);
+	public static final FileField MIME_GROUP = new FileField("Mime Group", "Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
 
-    private final String description;
-    private final Ƒ1<File,?> mapper;
-    private final Class<?> type;
 
-    <T> FileField(String description, Ƒ1<File,T> mapper, Class<T> type){
-        mapEnumConstantName(this, util.Util::enumToHuman);
-        this.mapper = mapper;
-        this.description = description;
-        this.type = type;
-    }
+	private final String name;
+	private final String description;
+	private final Ƒ1<File,?> mapper;
+	private final Class<?> type;
 
-    @Override
-    public Object getOf(File value) {
-        return mapper.apply(value);
-    }
+	<T> FileField(String name, String description, Ƒ1<File,T> extractor, Class<T> type) {
+		this.name = name;
+		this.description = description;
+		this.mapper = extractor;
+		this.type = type;
+		FIELDS.add(this);
+	}
 
-    @Override
-    public String description() {
-        return description;
-    }
+	public static FileField valueOf(String s) {
+		if (PATH.name().equals(s)) return PATH;
+		if (NAME.name().equals(s)) return NAME;
+		if (NAME_FULL.name().equals(s)) return NAME_FULL;
+		if (EXTENSION.name().equals(s)) return EXTENSION;
+		if (SIZE.name().equals(s)) return SIZE;
+		if (TIME_MODIFIED.name().equals(s)) return TIME_MODIFIED;
+		if (TIME_CREATED.name().equals(s)) return TIME_CREATED;
+		if (TIME_CREATED_FROM_TAG.name().equals(s)) return TIME_CREATED_FROM_TAG;
+		if (TIME_ACCESSED.name().equals(s)) return TIME_ACCESSED;
+		if (TYPE.name().equals(s)) return TYPE;
+		if (MIME.name().equals(s)) return MIME;
+		if (MIME_GROUP.name().equals(s)) return MIME_GROUP;
+		throw new SwitchException(s);
+	}
 
-    @Override
-    public String toS(Object o, String empty_val) {
-        return o==null ? empty_val : o.toString();
-    }
+	@Override
+	public String name() {
+		return name;
+	}
 
-    @Override
-    public Class getType() {
-        return type;
-    }
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	@Override
+	public Object getOf(File value) {
+		return mapper.apply(value);
+	}
+
+	@Override
+	public String description() {
+		return description;
+	}
+
+	@Override
+	public String toS(Object o, String empty_val) {
+		return o==null ? empty_val : o.toString();
+	}
+
+	@Override
+	public Class getType() {
+		return type;
+	}
 }

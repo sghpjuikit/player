@@ -1,6 +1,14 @@
 
 package audio.tagging;
 
+import audio.Item;
+import audio.playlist.PlaylistItem;
+import audio.playlist.PlaylistManager;
+import audio.tagging.chapter.Chapter;
+import gui.objects.image.cover.Cover;
+import gui.objects.image.cover.Cover.CoverSource;
+import gui.objects.image.cover.FileCover;
+import gui.objects.image.cover.ImageCover;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -10,15 +18,12 @@ import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.FieldKey;
@@ -33,15 +38,6 @@ import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
-
-import audio.Item;
-import audio.playlist.PlaylistItem;
-import audio.playlist.PlaylistManager;
-import audio.tagging.chapter.Chapter;
-import gui.objects.image.cover.Cover;
-import gui.objects.image.cover.Cover.CoverSource;
-import gui.objects.image.cover.FileCover;
-import gui.objects.image.cover.ImageCover;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.file.AudioFileFormat;
@@ -53,7 +49,6 @@ import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.NofX;
-
 import static audio.tagging.Metadata.Field.COVER_INFO;
 import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
@@ -65,7 +60,6 @@ import static util.dev.Util.log;
 import static util.file.Util.EMPTY_URI;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
-import static util.type.Util.mapEnumConstantName;
 
 /**
  * Information about audio file.
@@ -163,7 +157,7 @@ public final class Metadata extends MetaItem<Metadata> {
     @Id
     private String uri = Util.EMPTY_URI.toString();
 
-            // header fields
+    // header fields
     private long filesize = 0;
     private String encoding = "";
     private int bitrate = -1;
@@ -171,11 +165,12 @@ public final class Metadata extends MetaItem<Metadata> {
     private String channels = "";
     private String sample_rate = "";
     private double duration = 0;
-            // tag fields
+
+    // tag fields
     private String title = "";
     private String album = "";
     private String artist = "";
-            @Transient
+    @Transient
     private List<String> artists = null; // unsupported as of now
     private String album_artist = "";
     private String composer = "";
@@ -186,17 +181,18 @@ public final class Metadata extends MetaItem<Metadata> {
     private int discs_total = -1;
     private String genre = "";
     private int year = -1;
-            @Transient
+    @Transient
     private Artwork cover = null;
     private int rating = -1;
-            @Transient
+    @Transient
     private double ratingP = -1;
     private int playcount = -1;
     private String category = "";
     private String comment = "";
     private String lyrics = "";
     private String mood = "";
-            // some custom fields contain synthetic field's values
+
+    // some custom fields contain synthetic field's values
     private String custom1 = "";
     private String custom2 = "";
     private String custom3 = "";
@@ -208,7 +204,6 @@ public final class Metadata extends MetaItem<Metadata> {
     private String libraryAdded = "";
     private String color = "";
     private String tags = "";
-
 
     // public - this type of metadata is simply a conversion, harmless & we need
     // to allow the access from Item subclasses
@@ -930,11 +925,12 @@ public final class Metadata extends MetaItem<Metadata> {
 	    return localDateTimeFromMillis(libraryAdded);
     }
 
-    private static final Field[] STRING_FIELDS = stream(Field.values())
+    private static final Field[] STRING_FIELDS = stream(Field.FIELDS)
                 .filter(f -> String.class.equals(f.getType()))
                 .filter(f -> f!=FULLTEXT && f!=COVER_INFO)  // prevents StackOverflowException
                 .toArray(Field[]::new);
 
+    // TODO: cache
     public String getFulltext() {
         return stream(STRING_FIELDS)
                 .map(f -> (String)f.getOf(this))
@@ -1030,8 +1026,10 @@ public final class Metadata extends MetaItem<Metadata> {
      * @return comprehensive information about all string representable fields
      */
     public String getInfo() {
-        return stream(Field.values()).filter(Field::isTypeStringRepresentable)
-            .map(f -> f.name() + ": " + getField(f)).collect(joining("\n"));
+        return stream(Field.FIELDS)
+            .filter(Field::isTypeStringRepresentable)
+            .map(f -> f.name() + ": " + getField(f))
+            .collect(joining("\n"));
     }
 
     @Override
@@ -1068,64 +1066,67 @@ public final class Metadata extends MetaItem<Metadata> {
     /**
      *
      */
-    public enum Field implements ObjectField<Metadata> {
+    public static class Field implements ObjectField<Metadata> {
 
-        PATH(Metadata::getPath,"Song location"),
-        FILENAME(Metadata::getFilename,"Song file name without suffix"),
-        FORMAT(Metadata::getFormat,"Song file type "),
-        FILESIZE(Metadata::getFilesize,"Song file size"),
-        ENCODING(Metadata::getEncodingType,"Song encoding"),
-        BITRATE(Metadata::getBitrate,"Bits per second of the song - quality aspect."),
-        ENCODER(Metadata::getEncoder,"Song encoder"),
-        CHANNELS(Metadata::getChannels,"Number of channels"),
-        SAMPLE_RATE(Metadata::getSampleRate,"Sample frequency"),
-        LENGTH(Metadata::getLength,"Song length"),
-        TITLE(Metadata::getTitle,"Song title"),
-        ALBUM(Metadata::getAlbum,"Song album"),
-        ARTIST(Metadata::getArtist,"Artist of the song"),
-        ALBUM_ARTIST(Metadata::getAlbumArtist,"Artist of the song album"),
-        COMPOSER(Metadata::getComposer,"Composer of the song"),
-        PUBLISHER(Metadata::getPublisher,"Publisher of the album"),
-        TRACK(Metadata::getTrack,"Song number within album"),
-        TRACKS_TOTAL(Metadata::getTracksTotal,"Number of songs in the album"),
-        TRACK_INFO(Metadata::getTrackInfo,"Complete song number in format: track/track total"),
-        DISC(Metadata::getDisc,"Disc number within album"),
-        DISCS_TOTAL(Metadata::getDiscsTotal,"Number of discs in the album"),
-        DISCS_INFO(Metadata::getDiscInfo,"Complete disc number in format: disc/disc total"),
-        GENRE(Metadata::getGenre,"Genre of the song"),
-        YEAR(Metadata::getYear,"Year the album was published"),
-        COVER(Metadata::getCoverOfTag,"Cover of the song"),
-        COVER_INFO(Metadata::getCoverInfo,"Cover information"),
-        RATING(Metadata::getRatingPercent,"Song rating in 0-1 range"),
-        RATING_RAW(Metadata::getRating,"Song rating tag value. Depends on tag type"),
-        PLAYCOUNT(Metadata::getPlaycount,"Number of times the song was played."),
-        CATEGORY(Metadata::getCategory,"Category of the song. Arbitrary"),
-        COMMENT(Metadata::getComment,"User comment of the song. Arbitrary"),
-        LYRICS(Metadata::getLyrics,"Lyrics for the song"),
-        MOOD(Metadata::getMood,"Mood the song evokes"),
-        COLOR(Metadata::getColor,"Color the song evokes"),
-        TAGS(Metadata::getTags,"Tags associated with this song"),
-        CHAPTERS(Metadata::getChapters,"Comments at specific time points of the song"),
-        FULLTEXT(Metadata::getFulltext,"All possible fields merged into single text. Use for searching."),
-        CUSTOM1(Metadata::getCustom1,"Custom field 1. Reserved for chapters."),
-        CUSTOM2(Metadata::getCustom2,"Custom field 2. Reserved for color."),
-        CUSTOM3(Metadata::getCustom3,"Custom field 3. Reserved for playback."),
-        CUSTOM4(Metadata::getCustom4,"Custom field 4"),
-        CUSTOM5(Metadata::getCustom5,"Custom field 5"),
-        LAST_PLAYED(Metadata::getTimePlayedLast,"Marks time the song was played the last time."),
-        FIRST_PLAYED(Metadata::getTimePlayedFirst,"Marks time the song was played the first time."),
-        ADDED_TO_LIBRARY(Metadata::getTimeLibraryAdded,"Marks time the song was added to the library.");
+        public static final Set<Field> FIELDS = new HashSet<>();
+        public static final Set<String> FIELD_NAMES = new HashSet<>();
 
-        private static final Set<Field> NOT_AUTO_COMPLETABLE = EnumSet.of(
+        public static final Field PATH = new Field(Metadata::getPath, "Path", "Song location");
+        public static final Field FILENAME = new Field(Metadata::getFilename, "Filename", "Song file name without suffix");
+        public static final Field FORMAT = new Field(Metadata::getFormat, "Format", "Song file type ");
+        public static final Field FILESIZE = new Field(Metadata::getFilesize, "Filesize", "Song file size");
+        public static final Field ENCODING = new Field(Metadata::getEncodingType, "Encoding", "Song encoding");
+        public static final Field BITRATE = new Field(Metadata::getBitrate, "Bitrate", "Bits per second of the song - quality aspect.");
+        public static final Field ENCODER = new Field(Metadata::getEncoder, "Encoder", "Song encoder");
+        public static final Field CHANNELS = new Field(Metadata::getChannels, "Channels", "Number of channels");
+        public static final Field SAMPLE_RATE = new Field(Metadata::getSampleRate, "Sample_rate", "Sample frequency");
+        public static final Field LENGTH = new Field(Metadata::getLength, "Length", "Song length");
+        public static final Field TITLE = new Field(Metadata::getTitle, "Title", "Song title");
+        public static final Field ALBUM = new Field(Metadata::getAlbum, "Album", "Song album");
+        public static final Field ARTIST = new Field(Metadata::getArtist, "Artist", "Artist of the song");
+        public static final Field ALBUM_ARTIST = new Field(Metadata::getAlbumArtist, "Album_artist", "Artist of the song album");
+        public static final Field COMPOSER = new Field(Metadata::getComposer, "Composer", "Composer of the song");
+        public static final Field PUBLISHER = new Field(Metadata::getPublisher, "Publisher", "Publisher of the album");
+        public static final Field TRACK = new Field(Metadata::getTrack, "Track", "Song number within album");
+        public static final Field TRACKS_TOTAL = new Field(Metadata::getTracksTotal, "Tracks_total", "Number of songs in the album");
+        public static final Field TRACK_INFO = new Field(Metadata::getTrackInfo, "Track_info", "Complete song number in format: track/track total");
+        public static final Field DISC = new Field(Metadata::getDisc, "Disc", "Disc number within album");
+        public static final Field DISCS_TOTAL = new Field(Metadata::getDiscsTotal, "Discs_total", "Number of discs in the album");
+        public static final Field DISCS_INFO = new Field(Metadata::getDiscInfo, "Discs_info", "Complete disc number in format: disc/disc total");
+        public static final Field GENRE = new Field(Metadata::getGenre, "Genre", "Genre of the song");
+        public static final Field YEAR = new Field(Metadata::getYear, "Year", "Year the album was published");
+        public static final Field COVER = new Field(Metadata::getCoverOfTag, "Cover", "Cover of the song");
+        public static final Field COVER_INFO = new Field(Metadata::getCoverInfo, "Cover_info", "Cover information");
+        public static final Field RATING = new Field(Metadata::getRatingPercent, "Rating", "Song rating in 0-1 range");
+        public static final Field RATING_RAW = new Field(Metadata::getRating, "Rating_raw", "Song rating tag value. Depends on tag type");
+        public static final Field PLAYCOUNT = new Field(Metadata::getPlaycount, "Playcount", "Number of times the song was played.");
+        public static final Field CATEGORY = new Field(Metadata::getCategory, "Category", "Category of the song. Arbitrary");
+        public static final Field COMMENT = new Field(Metadata::getComment, "Comment", "User comment of the song. Arbitrary");
+        public static final Field LYRICS = new Field(Metadata::getLyrics, "Lyrics", "Lyrics for the song");
+        public static final Field MOOD = new Field(Metadata::getMood, "Mood", "Mood the song evokes");
+        public static final Field COLOR = new Field(Metadata::getColor, "Color", "Color the song evokes");
+        public static final Field TAGS = new Field(Metadata::getTags, "Tags", "Tags associated with this song");
+        public static final Field CHAPTERS = new Field(Metadata::getChapters, "Chapters", "Comments at specific time points of the song");
+        public static final Field FULLTEXT = new Field(Metadata::getFulltext, "Fulltext", "All possible fields merged into single text. Use for searching.");
+        public static final Field CUSTOM1 = new Field(Metadata::getCustom1, "Custom1", "Custom field 1. Reserved for chapters.");
+        public static final Field CUSTOM2 = new Field(Metadata::getCustom2, "Custom2", "Custom field 2. Reserved for color.");
+        public static final Field CUSTOM3 = new Field(Metadata::getCustom3, "Custom3", "Custom field 3. Reserved for playback.");
+        public static final Field CUSTOM4 = new Field(Metadata::getCustom4, "Custom4", "Custom field 4");
+        public static final Field CUSTOM5 = new Field(Metadata::getCustom5, "Custom5", "Custom field 5");
+        public static final Field LAST_PLAYED = new Field(Metadata::getTimePlayedLast, "Last_played", "Marks time the song was played the last time.");
+        public static final Field FIRST_PLAYED = new Field(Metadata::getTimePlayedFirst, "First_played", "Marks time the song was played the first time.");
+        public static final Field ADDED_TO_LIBRARY = new Field(Metadata::getTimeLibraryAdded, "Added_to_library", "Marks time the song was added to the library.");
+
+        private static final Set<Field> NOT_AUTO_COMPLETABLE = setRO(
             TITLE,RATING_RAW,
             COMMENT,LYRICS,COLOR,PLAYCOUNT,PATH,FILENAME,FILESIZE,ENCODING,
             LENGTH,TRACK,TRACKS_TOTAL,TRACK_INFO,DISC,DISCS_TOTAL,DISCS_INFO,
             COVER,COVER_INFO,RATING,CHAPTERS
         );
-        private static final Set<Field> VISIBLE = EnumSet.of(
+        private static final Set<Field> VISIBLE = setRO(
             TITLE,ALBUM,ARTIST,LENGTH,TRACK_INFO,DISCS_INFO,RATING,PLAYCOUNT
         );
-        private static final Set<Field> NOT_STRING_REPRESENTABLE = EnumSet.of(
+        private static final Set<Field> NOT_STRING_REPRESENTABLE = setRO(
             COVER, // can not be converted to string
             COVER_INFO, // requires cover to load (would kill performance).
             CHAPTERS, // raw string form unsuitable for viewing
@@ -1153,18 +1154,80 @@ public final class Metadata extends MetaItem<Metadata> {
                 GROUPS_RATING[i] = i*5/100d;
         }
 
-        private final String desc;
-        private final Ƒ1<Metadata,?> extr;
+        private final String name;
+        private final String description;
+        private final Ƒ1<Metadata,?> extractor;
 
-        Field(Ƒ1<Metadata,?> extractor, String description) {
-            mapEnumConstantName(this, util.Util::enumToHuman);
-            this.desc = description;
-            this.extr = extractor;
+        Field(Ƒ1<Metadata,?> extractor, String name, String description) {
+            this.name = name;
+            this.description = description;
+            this.extractor = extractor;
+            FIELDS.add(this);
+            FIELD_NAMES.add(name);
+        }
+
+        public static Field valueOf(String s) {
+            if (PATH.name().equals(s)) return PATH;
+            if (FILENAME.name().equals(s)) return FILENAME;
+            if (FORMAT.name().equals(s)) return FORMAT;
+            if (FILESIZE.name().equals(s)) return FILESIZE;
+            if (ENCODING.name().equals(s)) return ENCODING;
+            if (BITRATE.name().equals(s)) return BITRATE;
+            if (ENCODER.name().equals(s)) return ENCODER;
+            if (CHANNELS.name().equals(s)) return CHANNELS;
+            if (SAMPLE_RATE.name().equals(s)) return SAMPLE_RATE;
+            if (LENGTH.name().equals(s)) return LENGTH;
+            if (TITLE.name().equals(s)) return TITLE;
+            if (ALBUM.name().equals(s)) return ALBUM;
+            if (ARTIST.name().equals(s)) return ARTIST;
+            if (ALBUM_ARTIST.name().equals(s)) return ALBUM_ARTIST;
+            if (COMPOSER.name().equals(s)) return COMPOSER;
+            if (PUBLISHER.name().equals(s)) return PUBLISHER;
+            if (TRACK.name().equals(s)) return TRACK;
+            if (TRACKS_TOTAL.name().equals(s)) return TRACKS_TOTAL;
+            if (TRACK_INFO.name().equals(s)) return TRACK_INFO;
+            if (DISC.name().equals(s)) return DISC;
+            if (DISCS_TOTAL.name().equals(s)) return DISCS_TOTAL;
+            if (DISCS_INFO.name().equals(s)) return DISCS_INFO;
+            if (GENRE.name().equals(s)) return GENRE;
+            if (YEAR.name().equals(s)) return YEAR;
+            if (COVER.name().equals(s)) return COVER;
+            if (COVER_INFO.name().equals(s)) return COVER_INFO;
+            if (RATING.name().equals(s)) return RATING;
+            if (RATING_RAW.name().equals(s)) return RATING_RAW;
+            if (PLAYCOUNT.name().equals(s)) return PLAYCOUNT;
+            if (CATEGORY.name().equals(s)) return CATEGORY;
+            if (COMMENT.name().equals(s)) return COMMENT;
+            if (LYRICS.name().equals(s)) return LYRICS;
+            if (MOOD.name().equals(s)) return MOOD;
+            if (COLOR.name().equals(s)) return COLOR;
+            if (TAGS.name().equals(s)) return TAGS;
+            if (CHAPTERS.name().equals(s)) return CHAPTERS;
+            if (FULLTEXT.name().equals(s)) return FULLTEXT;
+            if (CUSTOM1.name().equals(s)) return CUSTOM1;
+            if (CUSTOM2.name().equals(s)) return CUSTOM2;
+            if (CUSTOM3.name().equals(s)) return CUSTOM3;
+            if (CUSTOM4.name().equals(s)) return CUSTOM4;
+            if (CUSTOM5.name().equals(s)) return CUSTOM5;
+            if (LAST_PLAYED.name().equals(s)) return LAST_PLAYED;
+            if (FIRST_PLAYED.name().equals(s)) return FIRST_PLAYED;
+            if (ADDED_TO_LIBRARY.name().equals(s)) return ADDED_TO_LIBRARY;
+            throw new SwitchException(s);
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
 
         @Override
         public String description() {
-            return desc;
+            return description;
         }
 
         @Override
@@ -1174,21 +1237,21 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public Object getOf(Metadata m) {
-            return extr.apply(m);
+            return extractor.apply(m);
         }
 
         public Object getGroupedOf(Metadata m) {
             // Note that groups must include the 'empty' group for when the value is empty
 
             if (this==FILESIZE) {
-                // filesize can not have empty value, every file has some size.
+                // file size can not have empty value, every file has some size.
                 return GROUPS_FILESIZE[64 - Long.numberOfLeadingZeros(m.filesize - 1)];
             }
             if (this==RATING) {
                 if (m.rating==EMPTY.rating) return -1d; // empty group
                 return GROUPS_RATING[(int)(m.getRatingPercent()*100/5)];
             }
-            return extr.apply(m);
+            return extractor.apply(m);
         }
 
         public boolean isFieldEmpty(Metadata m) {
@@ -1197,18 +1260,14 @@ public final class Metadata extends MetaItem<Metadata> {
 
         @Override
         public Class getType() {
-            // Because empty fields may return null, we can not rely on Metadata.EMPTY, so we handle
+            // Because empty fields may return null, we can not always rely on Metadata.EMPTY, so we handle
             // those fields manually.
-            switch(this) {
-                case BITRATE: return Bitrate.class;
-                case COLOR: return Color.class;
-                case YEAR: return Year.class;
-                case FULLTEXT: return String.class;
-                case FIRST_PLAYED:
-                case LAST_PLAYED:
-                case ADDED_TO_LIBRARY: return LocalDateTime.class;
-                default : return Metadata.EMPTY.getField(this).getClass();
-            }
+            if (this==BITRATE) return Bitrate.class;
+            if (this==COLOR) return Color.class;
+            if (this==YEAR) return Year.class;
+            if (this==FULLTEXT) return String.class;
+            if (this==FIRST_PLAYED || this==LAST_PLAYED || this==ADDED_TO_LIBRARY) return LocalDateTime.class;
+            return Metadata.EMPTY.getField(this).getClass();
         }
 
         /**
@@ -1219,23 +1278,18 @@ public final class Metadata extends MetaItem<Metadata> {
         @Override
         public boolean isTypeNumberNonegative() { return true; }
 
-        public boolean isAutoCompleteable() {
+        public boolean isAutoCompletable() {
             return isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this);
         }
 
         @Override
         public String toS(Object o, String empty_val) {
             if (o==null || "".equals(o)) return empty_val;
-            switch(this) {
-                case RATING_RAW : return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
-                case RATING : return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", (double)o);
-                case DISC :
-                case DISCS_TOTAL :
-                case TRACK :
-                case TRACKS_TOTAL :
-                case PLAYCOUNT : return equalNull(getOf(EMPTY),o) ? empty_val : o.toString();
-                default : return o.toString();
-            }
+            if (this==RATING_RAW) return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
+            if (this==RATING) return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", (double)o);
+            if (this==DISC || this==DISCS_TOTAL || this==TRACK || this==TRACKS_TOTAL || this==PLAYCOUNT)
+                return equalNull(getOf(EMPTY),o) ? empty_val : o.toString();
+            return o.toString();
         }
 
         @Override

@@ -30,6 +30,8 @@ import static util.graphics.Util.selectRows;
 import static util.type.Util.getFieldValue;
 
 /**
+ *
+ *
  * @author Martin Polakovic
  */
 public class ImprovedTable<T> extends TableView<T> {
@@ -59,14 +61,14 @@ public class ImprovedTable<T> extends TableView<T> {
 		}
 	};
 
-	protected final TableColumn<T,Void> columnIndex = new TableColumn<>("#");	// TODO: use proper factory
+	protected final TableColumn<T,Void> columnIndex = new TableColumn<>("#");    // TODO: use proper factory
 
 	public ImprovedTable() {
 		columnIndex.setCellFactory(buildIndexColumnCellFactory());
 		columnIndex.setSortable(false);
 		columnIndex.setResizable(false);
 		columnIndex.setUserData(ColumnField.INDEX);
-		getColumns().add(columnIndex);
+//		getColumns().add(columnIndex);
 	}
 
 	/** @return height of columns header or 0 if invisible. */

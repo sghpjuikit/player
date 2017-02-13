@@ -12,26 +12,26 @@ import javafx.scene.control.skin.VirtualFlow;
  */
 public abstract class CustomVirtualContainerBase<C extends Control, I extends IndexedCell> extends SkinBase<C> {
 
-    /** The virtualized container which handles the layout and scrolling of all the cells. */
-    final VirtualFlow<I> flow;
+	/** The virtualized container which handles the layout and scrolling of all the cells. */
+	final VirtualFlow<I> flow;
 
-    /**
-     *
-     * @param control
-     */
-    public CustomVirtualContainerBase(final C control) {
-        super(control);
-        flow = createVirtualFlow();
-    }
+	/**
+	 *
+	 * @param control
+	 */
+	public CustomVirtualContainerBase(final C control) {
+		super(control);
+		flow = createVirtualFlow();
+	}
 
-    abstract void updateRowCount();
+	abstract void updateRowCount();
 
-    /**
-     * Enables skin subclasses to provide a custom VirtualFlow implementation,
-     * rather than have VirtualContainerBase instantiate the default instance.
-     */
-    protected VirtualFlow<I> createVirtualFlow() {
-        return new VirtualFlow<>();
-    }
+	/**
+	 * Enables skin subclasses to provide a custom VirtualFlow implementation,
+	 * rather than have VirtualContainerBase instantiate the default instance.
+	 */
+	protected VirtualFlow<I> createVirtualFlow() {
+		return new VirtualFlow<>();
+	}
 
 }

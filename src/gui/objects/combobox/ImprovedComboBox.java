@@ -1,20 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.objects.combobox;
 
+import gui.objects.search.Search;
 import java.util.function.Function;
-
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
-
-import gui.objects.search.Search;
-
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static util.dev.Util.noØ;
@@ -32,26 +24,29 @@ import static util.dev.Util.noØ;
  */
 public class ImprovedComboBox<T> extends ComboBox<T> {
 
-    /**
-     * String converter for cell value factory. Default is Object::toString
-     */ public final Function<T,String> toStringConverter;
-    /**
-     * Text for when no value is selected. Default {@code "<none>"}
-     */ public final String emptyText;
+	/**
+	 * String converter for cell value factory. Default is Object::toString
+	 */
+	public final Function<T,String> toStringConverter;
+	/**
+	 * Text for when no value is selected. Default {@code "<none>"}
+	 */
+	public final String emptyText;
 	/**
 	 * Item search. Has no graphics.
-	 */ private final Search search = new Search() {
+	 */
+	protected final Search search = new Search() {
 		@Override
 		public void onSearch(String s) {
 			searchQuery.set(s);
 			@SuppressWarnings("unchecked")
-			ListView<T> items = (ListView)((ComboBoxListViewSkin)getSkin()).getPopupContent();
+			ListView<T> items = (ListView) ((ComboBoxListViewSkin) getSkin()).getPopupContent();
 			// scroll to match
 			if (!getItems().isEmpty()) {
-				for (int i=0; i<getItems().size(); i++) {
+				for (int i = 0; i<getItems().size(); i++) {
 					T e = getItems().get(i);
 					String es = toStringConverter.apply(e);
-					if (matches(es,searchQuery.get())) {
+					if (matches(es, searchQuery.get())) {
 						items.scrollTo(i);
 						// items.getSelectionModel().select(i); // TODO: make this work reasonably well
 						break;
@@ -67,60 +62,61 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	};
 
 	/** Equivalent to {@code this(Object::toString)}. */
-    public ImprovedComboBox() {
-        this(Object::toString);
-    }
+	public ImprovedComboBox() {
+		this(Object::toString);
+	}
 
 	/** Equivalent to {@code this(Object::toString, "<none>")}. */
-    public ImprovedComboBox(Function<T,String> toS) {
-        this(toS, "<none>");
-    }
+	public ImprovedComboBox(Function<T,String> toS) {
+		this(toS, "<none>");
+	}
 
 	/**
 	 * @param toS to string converter (it will never receive null)
 	 * @param empty_text text to use for null value
 	 */
-    public ImprovedComboBox(Function<T,String> toS, String empty_text) {
-        noØ(toS, empty_text);
+	public ImprovedComboBox(Function<T,String> toS, String empty_text) {
+		noØ(toS, empty_text);
 
-	    emptyText = empty_text;
-        toStringConverter = toS;
+		emptyText = empty_text;
+		toStringConverter = toS;
 
-        // we need to set the converter specifically or the combobox cell wont get updated sometimes
-        setConverter(new javafx.util.StringConverter<>() {
-            @Override
-            public String toString(T object) {
-                return object==null ? empty_text : toStringConverter.apply(object);
-            }
+		// we need to set the converter specifically or the combobox cell wont get updated sometimes
+		setConverter(new javafx.util.StringConverter<>() {
+			@Override
+			public String toString(T object) {
+				return object==null ? empty_text : toStringConverter.apply(object);
+			}
 
-            @Override
-            public T fromString(String string) {
-                return (T) string;
-            }
-        });
-        setCellFactory(view -> new ListCell<>(){ // do not use ComboBoxListCell! causes problems!
-            @Override
-            public void updateItem(T item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? "<none>" : toStringConverter.apply(item));
-            }
-        });
-        setButtonCell(getCellFactory().call(null));
-        setValue(null);
+			@Override
+			public T fromString(String string) {
+				return null;
+			}
+		});
+		setCellFactory(view -> new ListCell<>() { // do not use ComboBoxListCell! causes problems!
+			@Override
+			public void updateItem(T item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? "<none>" : toStringConverter.apply(item));
+			}
+		});
+		setButtonCell(getCellFactory().call(null));
+		setValue(null);
 
-        // search
-        addEventHandler(KEY_TYPED, search::onKeyTyped);
-        addEventFilter(KEY_PRESSED, search::onKeyPressed);
-        addEventFilter(KEY_PRESSED, search::onEscPressHide);
+		// search
+		addEventHandler(KEY_TYPED, search::onKeyTyped);
+		addEventFilter(KEY_PRESSED, search::onKeyPressed);
+		addEventFilter(KEY_PRESSED, search::onEscPressHide);
 
-        // improved keyboard UX
-        addEventHandler(KEY_PRESSED, e -> {
-	        if (!e.isConsumed() && e.getCode()==KeyCode.SPACE && !isShowing() && !getItems().isEmpty()) {
-		        show();
-		        ListView<T> items = (ListView)((ComboBoxListViewSkin)getSkin()).getPopupContent();
-		        items.requestFocus();
-	        }
-        });
-    }
+		// improved keyboard UX
+		addEventHandler(KEY_PRESSED, e -> {
+			if (!e.isConsumed() && e.getCode()==KeyCode.SPACE && !isShowing() && !getItems().isEmpty()) {
+				show();
+				@SuppressWarnings("unchecked")
+				ListView<T> items = (ListView) ((ComboBoxListViewSkin) getSkin()).getPopupContent();
+				items.requestFocus();
+			}
+		});
+	}
 
 }

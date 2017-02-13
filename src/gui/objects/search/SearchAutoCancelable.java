@@ -1,15 +1,12 @@
 package gui.objects.search;
 
 import java.util.function.BiPredicate;
-
 import javafx.util.Duration;
-
 import util.Util;
 import util.access.V;
 import util.async.executor.FxTimer;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-
 import static gui.objects.search.SearchAutoCancelable.Match.CONTAINS;
 import static javafx.util.Duration.millis;
 import static util.type.Util.mapEnumConstantName;
@@ -32,13 +29,13 @@ public abstract class SearchAutoCancelable extends Search {
 	public static boolean isIgnoreCase = true;
 
 	protected long searchTime = -1;
-	protected final FxTimer searchAutocanceller = new FxTimer(3000,1,this::cancel);
+	protected final FxTimer searchAutoCanceller = new FxTimer(3000, 1, this::cancel);
 
 	@Override
 	public boolean matches(String text, String query) {
 		String t = isIgnoreCase ? text.toLowerCase() : text;
 		String q = isIgnoreCase ? query.toLowerCase() : query;
-		return matcher.getValue().predicate.test(t,q);
+		return matcher.getValue().predicate.test(t, q);
 	}
 
 	public enum Match {

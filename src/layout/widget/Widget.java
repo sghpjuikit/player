@@ -1,5 +1,6 @@
 package layout.widget;
 
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.File;
 import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
@@ -10,14 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import javafx.scene.Node;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-
 import layout.Component;
 import layout.area.ContainerNode;
 import layout.area.IOLayer;
@@ -26,6 +20,8 @@ import layout.widget.controller.Controller;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.access.V;
 import util.conf.CachedCompositeConfigurable;
 import util.conf.Config;
@@ -33,7 +29,6 @@ import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.dev.Dependency;
 import util.type.Util;
-
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
@@ -58,7 +53,7 @@ import static util.functional.Util.*;
 public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
-	private static final Set<String> ignoredConfigs = set("Is preferred","Is ignored","Custom name"); // avoids data duplication
+	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
 
 	// Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
 	// appropriate factory)
@@ -74,11 +69,15 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * still point to the old factory, holding true to the description of this field.
 	 */
 	@Dependency("name - acceesed using reflection by name")
-	@XStreamOmitField public final WidgetFactory<?> factory;
-	@XStreamOmitField protected Node root;
-	@XStreamOmitField protected C controller;
+	@XStreamOmitField
+	public final WidgetFactory<?> factory;
+	@XStreamOmitField
+	protected Node root;
+	@XStreamOmitField
+	protected C controller;
 
-	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
+	@XStreamOmitField
+	private HashMap<String,Config<Object>> configs = new HashMap<>();
 
 	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
 	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
@@ -86,14 +85,17 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	//
 	// I think this is the best and most painless way to wire widget with area & container (parent)
 	// All the pseudo wiring through Controller is pure chaos.
-	@XStreamOmitField @Deprecated public Container parentTemp;
+	@XStreamOmitField
+	@Deprecated
+	public Container parentTemp;
 	/**
-	 *  Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
-	 *  field properly. There is no restriction where widget is loaded, so this field may be null.
-	 *  <p/>
-	 *  This field allows widget to control its lifecycle and context from its controller.
+	 * Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
+	 * field properly. There is no restriction where widget is loaded, so this field may be null.
+	 * <p/>
+	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
-	@XStreamOmitField public ContainerNode areaTemp;
+	@XStreamOmitField
+	public ContainerNode areaTemp;
 
 	// configuration
 
@@ -154,6 +156,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * manually
 	 * </ul>
 	 * {@inheritDoc}
+	 *
 	 * @return graphical content of this widget
 	 */
 	@Override
@@ -179,12 +182,12 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 					controller.refresh();
 
 					updateIO();
-				} catch(Exception e) {
+				} catch (Exception e) {
 					ex = e;
 				}
 				if (root==null) {
 					root = Widget.EMPTY().load();
-					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(),ex);
+					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), ex);
 				}
 			}
 		}
@@ -204,8 +207,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		C c;
 		try {
 			c = (C) cc.newInstance();
-		} catch(IllegalAccessException | InstantiationException e) {
-			LOGGER.error("Widget controller creation failed {}",cc,e);
+		} catch (IllegalAccessException|InstantiationException e) {
+			LOGGER.error("Widget controller creation failed {}", cc, e);
 			return null;
 		}
 
@@ -215,7 +218,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			Util.getField(c.getClass(), "widget"); // we use this as a check, throws Exception on fail
 			Util.setField(c, "widget", this); // executes only if the field exists
 		} catch (NoSuchFieldException ex) {
-
+			// TODO: warn developer
 		}
 
 		// generate inputs
@@ -230,24 +233,24 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 				boolean isvoid = params==0;
 				Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
 				Consumer i_action = isvoid
-					?   value -> {
+					? value -> {
 							if (value!=null)
 								throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
 							try {
 								m.setAccessible(true);
 								m.invoke(c);
 								m.setAccessible(false);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
+							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
+								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
 							}
 						}
-					:   value -> {
+					: value -> {
 							try {
 								m.setAccessible(true);
 								m.invoke(c, value);
 								m.setAccessible(false);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
+							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
+								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
 							}
 						};
 				c.getInputs().create(i_name, i_type, i_action);
@@ -267,8 +270,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * Do not check the output of this method for null! Receiving null implies
 	 * wrong use of this method.
 	 *
-	 * @return controller of the widget or null if widget has not been loaded
-	 * yet.
+	 * @return controller of the widget or null if widget has not been loaded yet.
 	 */
 	public C getController() {
 		return controller;
@@ -301,13 +303,14 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 	/** Creates a launcher for this widget with default (no predefined) settings. */
 	public void exportFxwlDefault(File dir) {
-		File f = new File(dir,name + ".fxwl");
+		File f = new File(dir, name + ".fxwl");
 		boolean ok = writeFile(f, name);
-		if (!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
+		if (!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name, f);
 	}
 
 	/**
 	 * Sets state of this widget to that of a target widget's.
+	 *
 	 * @param w widget to copy state from
 	 */
 	public void setStateFrom(Widget<C> w) {
@@ -334,7 +337,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 /******************************************************************************/
 
-
 	/**
 	 * Returns whether this widget is empty.
 	 * <p/>
@@ -356,7 +358,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	}
 
 	@Override
-	public Map<String, Config<Object>> getFieldsMap() {
+	public Map<String,Config<Object>> getFieldsMap() {
 		return configs;
 	}
 
@@ -364,7 +366,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	public String toString() {
 		return getClass() + " " + name;
 	}
-
 
 	/**
 	 * @return empty widget. Use to inject fake widget instead null value.
@@ -383,16 +384,16 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().getInputs().getInputs().forEach(i ->
-				properties.put("io"+i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
+					properties.put("io" + i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
-		// Otherwise we still have the deserialized inputs/outputs leave them as they are
+			// Otherwise we still have the deserialized inputs/outputs leave them as they are
 		} else {}
 
 		// Prepare configs
 		// If widget is loaded, we serialize name:value pairs
 		if (isLoaded) {
 			storeConfigs();
-		// Otherwise we still have the deserialized name:value pairs and leave them as they are
+			// Otherwise we still have the deserialized name:value pairs and leave them as they are
 		} else {}
 
 		return this;
@@ -401,9 +402,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	/**
 	 * Invoked just after deserialization.
 	 *
-	 * @implSpec
-	 * Resolve object by initializing non-deserializable fields or providing an
-	 * alternative instance (e.g. to adhere to singleton pattern).
+	 * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
+	 * adhere to singleton pattern).
 	 */
 	protected Object readResolve() throws ObjectStreamException {
 		super.readResolve();
@@ -416,9 +416,9 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 		// accumulate serialized inputs for later deserialiation when all widgets are ready
 		properties.entrySet().stream()
-				  .filter(e -> e.getKey().startsWith("io"))
-				  .map(e -> new IO(this,e.getKey().substring(2), (String)e.getValue()))
-				  .forEach(ios::add);
+				.filter(e -> e.getKey().startsWith("io"))
+				.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
+				.forEach(ios::add);
 
 		return this;
 	}
@@ -448,7 +448,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		}
 	}
 
-/******************************************************************************/
+	/******************************************************************************/
 
 	static class IO {
 		public final Widget widget;
@@ -458,7 +458,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		IO(Widget widget, String name, String outputs) {
 			this.widget = widget;
 			this.input_name = name;
-			this.outputs_ids.addAll(map(split(outputs,":",x->x),Output.Id::fromString));
+			this.outputs_ids.addAll(map(split(outputs, ":", x -> x), Output.Id::fromString));
 		}
 	}
 
@@ -467,10 +467,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
 		Map<Output.Id,Output<?>> os = APP.widgetManager.findAll(OPEN)
-					 .filter(w -> w.controller != null)
-					 .peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
-					 .flatMap(w -> w.controller.getOutputs().getOutputs().stream())
-					 .collect(Collectors.toMap(i->i.id, i->i));
+				.filter(w -> w.controller!=null)
+				.peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
+				.flatMap(w -> w.controller.getOutputs().getOutputs().stream())
+				.collect(Collectors.toMap(i -> i.id, i -> i));
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {
@@ -504,7 +504,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		// suffering from badly designed (recursive) widget loading again...
 		runLater(IOLayer::relayout);
 	}
-
 
 	/** Widget metadata. Passed from code to program. Use on controller class. */
 	@Retention(value = RUNTIME)
@@ -581,6 +580,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		DEVELOPMENT,
 		UNKNOWN
 	}
+
 	public enum LoadType {
 		AUTOMATIC, MANUAL
 	}

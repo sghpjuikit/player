@@ -49,7 +49,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected Supplier<C> chainedFactory; // final
     protected boolean homogeneous = true;
-    protected boolean inconsistent_state = true;
+    public boolean inconsistent_state = true;
     protected BiPredicate<Integer,V> isHomogeneous = (i,v) -> false;
 
 

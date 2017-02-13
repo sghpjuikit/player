@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package gui.objects.grid;
 
 import javafx.beans.property.SimpleObjectProperty;
@@ -36,49 +37,49 @@ import javafx.scene.control.Skin;
  *
  * @see GridView
  */
-public class GridCell<T,F> extends IndexedCell<T> {
+public class GridCell<T, F> extends IndexedCell<T> {
 
 	public GridCell() {
 		getStyleClass().add("grid-cell");
 	}
 
-    @Override
-    public void updateIndex(int i) {
-	    if (getIndex()==i) return;
+	@Override
+	public void updateIndex(int i) {
+		if (getIndex()==i) return;
 
-        super.updateIndex(i);
+		super.updateIndex(i);
 
-        GridView<T,F> grid = getGridView();
-        T item = grid.getItemsShown().get(i);
-        updateItem(item, item == null);
-        updateSelected(i == grid.implGetSkin().selectedCI);
-    }
+		GridView<T,F> grid = getGridView();
+		T item = grid.getItemsShown().get(i);
+		updateItem(item, item==null);
+		updateSelected(i==grid.implGetSkin().selectedCI);
+	}
 
-    @Override
-    protected Skin<?> createDefaultSkin() {
-        return new GridCellSkin<>(this);
-    }
+	@Override
+	protected Skin<?> createDefaultSkin() {
+		return new GridCellSkin<>(this);
+	}
 
 	/**
-     * The {@link GridView} that this GridCell exists within.
-     */
-    public SimpleObjectProperty<GridView<T,F>> gridViewProperty() {
-        return gridView;
-    }
+	 * The {@link GridView} that this GridCell exists within.
+	 */
+	public SimpleObjectProperty<GridView<T,F>> gridViewProperty() {
+		return gridView;
+	}
 
-    private final SimpleObjectProperty<GridView<T,F>> gridView = new SimpleObjectProperty<>(this, "gridView");
+	private final SimpleObjectProperty<GridView<T,F>> gridView = new SimpleObjectProperty<>(this, "gridView");
 
-    /**
-     * Sets the {@link GridView} that this GridCell exists within.
-     */
-    public final void updateGridView(GridView<T,F> gridView) {
-        this.gridView.set(gridView);
-    }
+	/**
+	 * Sets the {@link GridView} that this GridCell exists within.
+	 */
+	public final void updateGridView(GridView<T,F> gridView) {
+		this.gridView.set(gridView);
+	}
 
-    /**
-     * Returns the {@link GridView} that this GridCell exists within.
-     */
-    public GridView<T,F> getGridView() {
-        return gridView.get();
-    }
+	/**
+	 * Returns the {@link GridView} that this GridCell exists within.
+	 */
+	public GridView<T,F> getGridView() {
+		return gridView.get();
+	}
 }

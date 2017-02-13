@@ -1,24 +1,24 @@
-
 package gui.objects.picker;
 
+import gui.objects.Text;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.*;
-
-import gui.objects.Text;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.parsing.ToStringConverter;
-
 import static java.lang.Math.*;
+import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -42,185 +42,186 @@ import static util.graphics.Util.setScaleXY;
  * <p/>
  * Elements will be represented graphically depending on the cell factory.
  * <p/>
+ *
  * @author Martin Polakovic
  */
 public class Picker<E> {
 
-    /** Style class for cell. */
-    public static final String STYLE_CLASS = "item-picker";
-    public static final List<String> CELL_STYLE_CLASS = asList("block","item-picker-element");
-    /** Default on select action. Does nothing. */
-    public static final Consumer DEF_onSelect = item -> {};
-    /** Default on cancel action. Does nothing. */
-    public static final Runnable DEF_onCancel = () -> {};
-    /** Default text factory. Uses null safe version of object's toString() method. */
-    public static final ToStringConverter DEF_textCoverter = Objects::toString;
-    /** Default text factory. Returns empty string. */
-    public static final ToStringConverter DEF_infoCoverter = item -> "";
-    /** Default Item supplier. Returns empty stream. */
-    public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
+	/** Style class for cell. */
+	public static final String STYLE_CLASS = "item-picker";
+	public static final List<String> CELL_STYLE_CLASS = asList("block", "item-picker-element");
+	/** Default on select action. Does nothing. */
+	public static final Consumer DEF_onSelect = item -> {};
+	/** Default on cancel action. Does nothing. */
+	public static final Runnable DEF_onCancel = () -> {};
+	/** Default text factory. Uses null safe version of object's toString() method. */
+	public static final ToStringConverter DEF_textCoverter = Objects::toString;
+	/** Default text factory. Returns empty string. */
+	public static final ToStringConverter DEF_infoCoverter = item -> "";
+	/** Default Item supplier. Returns empty stream. */
+	public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
 
-    public boolean consumeCancelClick = false;
+	public boolean consumeCancelClick = false;
 
-    private final CellPane tiles = new CellPane();
-    public final ScrollPane root = new ScrollPane(tiles);
+	private final CellPane tiles = new CellPane();
+	public final ScrollPane root = new ScrollPane(tiles);
 
-    /**
-     * Procedure executed when item is selected passing the item as parameter.
-     * Default implementation does nothing. Must not be null;
-     */
-    public Consumer<E> onSelect = DEF_onSelect;
-    /**
-     * Procedure executed when no item is selected. Invoked when user cancels
-     * the picking by right click.
-     * Default implementation does nothing. Must not be null;
-     * <p/>
-     * For example one might want to close this picker when no item is selected.
-     */
-    public Runnable onCancel = DEF_onCancel;
-    /**
-     * Text factory.
-     * Creates string representation of the item.
-     * Default implementation is {@link Picker#DEF_textCoverter}
-     * Must not be null.
-     */
-    public ToStringConverter<E> textCoverter = DEF_textCoverter;
-    /**
-     * Info text factory.
-     * Creates string representation of the item.
-     * Default implementation is {@link Picker#DEF_infoCoverter}
-     * Must not be null.
-     */
-    public ToStringConverter<E> infoCoverter = DEF_infoCoverter;
-    /**
-     * Item supplier. Fetches the items as a stream.
-     * Default implementation returns empty stream. Must not be null;
-     */
-    public Supplier<Stream<E>> itemSupply = (Supplier)DEF_itemSupply;
-    /**
-     * Cell factory.
-     * Creates graphic representation of the item.
-     * Also might define minimum and maximum item size.
-     * Must not be null;
-     */
-    public Ƒ1<E,Pane> cellFactory = item -> {
-        String text = textCoverter.toS(item);
-        Label l = new Label(text);
-        StackPane cell = new StackPane(l);
-        cell.setMinSize(90, 30);
-        cell.getStyleClass().setAll(CELL_STYLE_CLASS);
+	/**
+	 * Procedure executed when item is selected passing the item as parameter.
+	 * Default implementation does nothing. Must not be null;
+	 */
+	public Consumer<E> onSelect = DEF_onSelect;
+	/**
+	 * Procedure executed when no item is selected. Invoked when user cancels
+	 * the picking by right click.
+	 * Default implementation does nothing. Must not be null;
+	 * <p/>
+	 * For example one might want to close this picker when no item is selected.
+	 */
+	public Runnable onCancel = DEF_onCancel;
+	/**
+	 * Text factory.
+	 * Creates string representation of the item.
+	 * Default implementation is {@link Picker#DEF_textCoverter}
+	 * Must not be null.
+	 */
+	public ToStringConverter<E> textCoverter = DEF_textCoverter;
+	/**
+	 * Info text factory.
+	 * Creates string representation of the item.
+	 * Default implementation is {@link Picker#DEF_infoCoverter}
+	 * Must not be null.
+	 */
+	public ToStringConverter<E> infoCoverter = DEF_infoCoverter;
+	/**
+	 * Item supplier. Fetches the items as a stream.
+	 * Default implementation returns empty stream. Must not be null;
+	 */
+	public Supplier<Stream<E>> itemSupply = (Supplier) DEF_itemSupply;
+	/**
+	 * Cell factory.
+	 * Creates graphic representation of the item.
+	 * Also might define minimum and maximum item size.
+	 * Must not be null;
+	 */
+	public Ƒ1<E,Pane> cellFactory = item -> {
+		String text = textCoverter.toS(item);
+		Label l = new Label(text);
+		StackPane cell = new StackPane(l);
+		cell.setMinSize(90, 30);
+		cell.getStyleClass().setAll(CELL_STYLE_CLASS);
 
-        // set up info pane
-        String info = infoCoverter.toS(item);
-        if (!info.isEmpty()) {
-            // info content
-            Node content = cell.getChildren().get(0);
-            Text ta = new Text(info);
-                 ta.setMouseTransparent(true);
-                 ta.setTextAlignment(JUSTIFY);
-            ScrollPane sp = layScrollVText(ta);
-            cell.getChildren().add(sp);
-            cell.setPadding(new Insets(20));
-            // animation
-            Anim anim = new Anim(millis(300), x -> {
-                sp.setOpacity(x);
-                content.setOpacity(1-x);
-                setScaleXY(sp, 0.5 + 0.5*x);
-            });
-            anim.applier.accept(0d);
-            cell.hoverProperty().addListener((o,ov,nv) -> anim.playFromDir(nv));
-        }
+		// set up info pane
+		String info = infoCoverter.toS(item);
+		if (!info.isEmpty()) {
+			// info content
+			Node content = cell.getChildren().get(0);
+			Text ta = new Text(info);
+			ta.setMouseTransparent(true);
+			ta.setTextAlignment(JUSTIFY);
+			ScrollPane sp = layScrollVText(ta);
+			cell.getChildren().add(sp);
+			cell.setPadding(new Insets(20));
+			// animation
+			Anim anim = new Anim(millis(300), x -> {
+				sp.setOpacity(x);
+				content.setOpacity(1 - x);
+				setScaleXY(sp, 0.5 + 0.5*x);
+			});
+			anim.applier.accept(0d);
+			cell.hoverProperty().addListener((o, ov, nv) -> anim.playFromDir(nv));
+		}
 
-        return cell;
-    };
+		return cell;
+	};
 
-    public Picker() {
-        root.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        root.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);  // leave resizable
-        root.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        root.setPannable(false);  // forbid mouse panning (can cause unwanted horizontal scrolling)
-        root.setFitToWidth(true); // make content horizontally resize with scroll pane
-        root.setHbarPolicy(NEVER);  // thus no need for horizontal scrollbar
-        root.setOnMouseClicked(e -> {
-            // right click runs cancel, sometimes its important to consume the event, sometimes
-            // it is important for it to pass through. so I left it configurable until I find a
-            // better way
-            if (e.getButton()==SECONDARY) {
-                onCancel.run();
-                if (consumeCancelClick) e.consume();
-            }
-        });
-        root.getStyleClass().add(STYLE_CLASS);
-    }
+	public Picker() {
+		root.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+		root.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);  // leave resizable
+		root.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+		root.setPannable(false);  // forbid mouse panning (can cause unwanted horizontal scrolling)
+		root.setFitToWidth(true); // make content horizontally resize with scroll pane
+		root.setHbarPolicy(NEVER);  // thus no need for horizontal scrollbar
+		root.setOnMouseClicked(e -> {
+			// right click runs cancel, sometimes its important to consume the event, sometimes
+			// it is important for it to pass through. so I left it configurable until I find a
+			// better way
+			if (e.getButton()==SECONDARY) {
+				onCancel.run();
+				if (consumeCancelClick) e.consume();
+			}
+		});
+		root.getStyleClass().add(STYLE_CLASS);
+	}
 
-    public void buildContent() {
-        tiles.getChildren().clear();
-        // get items
-        itemSupply.get()
-            // & sort
-            .sorted(byNC(textCoverter::toS))
-            // & create cells
-            .forEach( item -> {
-                Node cell = cellFactory.apply(item);
-                     cell.setOnMouseClicked( e -> {
-                         if (e.getButton()==PRIMARY) {
-                            onSelect.accept(item);
-                            e.consume();
-                         }
-                     });
-                tiles.getChildren().add(cell);
-            });
+	public void buildContent() {
+		tiles.getChildren().clear();
+		// get items
+		itemSupply.get()
+			// & sort
+			.sorted(byNC(textCoverter::toS))
+			// & create cells
+			.forEach(item -> {
+				Node cell = cellFactory.apply(item);
+				cell.setOnMouseClicked(e -> {
+					if (e.getButton()==PRIMARY) {
+						onSelect.accept(item);
+						e.consume();
+					}
+				});
+				tiles.getChildren().add(cell);
+			});
 
-        // animate & show
-        int s = getCells().size();
-        Anim.par(getCells(), (i,n) -> seq(
-            new Anim(n::setOpacity).dur(i*(750/s)).intpl(0),
-            new Anim(n::setOpacity).dur(500).intpl(x -> sqrt(x))
-        )).play();
-    }
+		// animate & show
+		int s = getCells().size();
+		Anim.par(getCells(), (i, n) -> seq(
+			new Anim(n::setOpacity).dur(i*(750/s)).intpl(0),
+			new Anim(n::setOpacity).dur(500).intpl(x -> sqrt(x))
+		)).play();
+	}
 
-    public Region getNode() {
-        buildContent();
-        return root;
-    }
+	public Region getNode() {
+		buildContent();
+		return root;
+	}
 
-    public List<Region> getCells() {
-        return (List) list(tiles.getChildren());
-    }
+	public List<Region> getCells() {
+		return (List) list(tiles.getChildren());
+	}
 
-    private class CellPane extends TilePane {
+	private class CellPane extends TilePane {
 
-        @Override
-        protected void layoutChildren() {
-            double width = root.getWidth();
-            double height = root.getHeight();
+		@Override
+		protected void layoutChildren() {
+			double width = root.getWidth();
+			double height = root.getHeight();
 
-            int gap = 5;
-            int elements = getChildren().size();
-            double min_cell_w = max(1,getCells().get(0).getMinWidth());
-            double min_cell_h = max(1,getCells().get(0).getMinHeight());
-            // if (elements==0) return;
+			int gap = 5;
+			int elements = getChildren().size();
+			double min_cell_w = max(1, getCells().get(0).getMinWidth());
+			double min_cell_h = max(1, getCells().get(0).getMinHeight());
+			// if (elements==0) return;
 
-            int c = width>height ? (int) ceil(sqrt(elements)) : (int) floor(sqrt(elements));
-                c = width<c*min_cell_w ? (int)floor(width/min_cell_w) : c;
-            final int columns = max(1,c);
+			int c = width>height ? (int) ceil(sqrt(elements)) : (int) floor(sqrt(elements));
+			c = width<c*min_cell_w ? (int) floor(width/min_cell_w) : c;
+			final int columns = max(1, c);
 
-            int rows = (int) ceil(elements/(double)columns);
+			int rows = (int) ceil(elements/(double) columns);
 
-            double sumgapy = (rows-1) * gap;
-            final double cell_height = height<rows*min_cell_h ? min_cell_h : (height-sumgapy)/rows-1/(double)rows;
+			double sumgapy = (rows - 1)*gap;
+			final double cell_height = height<rows*min_cell_h ? min_cell_h : (height - sumgapy)/rows - 1/(double) rows;
 
-            double W = rows*(cell_height+gap)-gap>height ? width-15 : width; // take care of scrollbar
-            double sumgapx = (columns-1) * gap;  // n elements have n-1 gaps
-            final double cell_width = (W-sumgapx)/columns;
+			double W = rows*(cell_height + gap) - gap>height ? width - 15 : width; // take care of scrollbar
+			double sumgapx = (columns - 1)*gap;  // n elements have n-1 gaps
+			final double cell_width = (W - sumgapx)/columns;
 
-            forEachWithI(getCells(), (i,n) -> {
-                double x = i%columns * (cell_width+gap);
-                double y = i/columns * (cell_height+gap);
-                n.relocate(x,y);
-                n.resize(cell_width, cell_height);
-            });
-        }
+			forEachWithI(getCells(), (i, n) -> {
+				double x = i%columns*(cell_width + gap);
+				double y = i/columns*(cell_height + gap);
+				n.relocate(x, y);
+				n.resize(cell_width, cell_height);
+			});
+		}
 
-    }
+	}
 }

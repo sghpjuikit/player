@@ -29,10 +29,12 @@
 
 package gui.objects.picker;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.transformation.FilteredList;
@@ -47,11 +49,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.icon.Icon;
-import gui.objects.popover.PopOver;
-
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
@@ -94,31 +91,31 @@ public class FontSelectorDialog extends PopOver<VBox> {
 		private FontPosture posture;
 		private FontWeight weight;
 
-		public FontStyle( FontWeight weight, FontPosture posture ) {
-			this.posture = posture == null? FontPosture.REGULAR: posture;
+		public FontStyle(FontWeight weight, FontPosture posture) {
+			this.posture = posture==null ? FontPosture.REGULAR : posture;
 			this.weight = weight;
 		}
 
 		public FontStyle() {
-			this( null, null);
+			this(null, null);
 		}
 
 		public FontStyle(String styles) {
 			this();
-			String[] fontStyles = (styles == null? "": styles.trim().toUpperCase()).split(" ");
-			for (String style: fontStyles) {
+			String[] fontStyles = (styles==null ? "" : styles.trim().toUpperCase()).split(" ");
+			for (String style : fontStyles) {
 				FontWeight w = FontWeight.findByName(style);
-				if ( w != null ) {
+				if (w!=null) {
 					weight = w;
 				} else {
 					FontPosture p = FontPosture.findByName(style);
-					if ( p != null ) posture = p;
+					if (p!=null) posture = p;
 				}
 			}
 		}
 
 		public FontStyle(Font font) {
-			this( font.getStyle());
+			this(font.getStyle());
 		}
 
 		public FontPosture getPosture() {
@@ -129,53 +126,56 @@ public class FontSelectorDialog extends PopOver<VBox> {
 			return weight;
 		}
 
-
-		@Override public int hashCode() {
+		@Override
+		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((posture == null) ? 0 : posture.hashCode());
-			result = prime * result + ((weight == null) ? 0 : weight.hashCode());
+			result = prime*result + ((posture==null) ? 0 : posture.hashCode());
+			result = prime*result + ((weight==null) ? 0 : weight.hashCode());
 			return result;
 		}
 
-		@Override public boolean equals(Object that) {
-			if (this == that)
+		@Override
+		public boolean equals(Object that) {
+			if (this==that)
 				return true;
-			if (that == null)
+			if (that==null)
 				return false;
-			if (getClass() != that.getClass())
+			if (getClass()!=that.getClass())
 				return false;
 			FontStyle other = (FontStyle) that;
-			if (posture != other.posture)
+			if (posture!=other.posture)
 				return false;
-			if (weight != other.weight)
+			if (weight!=other.weight)
 				return false;
 			return true;
 		}
 
 		private static String makePretty(Object o) {
-			String s = o == null? "": o.toString();
-			if ( !s.isEmpty()) {
+			String s = o==null ? "" : o.toString();
+			if (!s.isEmpty()) {
 				s = s.replace("_", " ");
 				s = s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
 			}
 			return s;
 		}
 
-		@Override public String toString() {
-			return String.format("%s %s", makePretty(weight), makePretty(posture) ).trim();
+		@Override
+		public String toString() {
+			return String.format("%s %s", makePretty(weight), makePretty(posture)).trim();
 		}
 
-		private <T extends Enum<T>> int compareEnums( T e1, T e2) {
-			if ( e1 == e2 ) return 0;
-			if ( e1 == null ) return -1;
-			if ( e2 == null ) return 1;
+		private <T extends Enum<T>> int compareEnums(T e1, T e2) {
+			if (e1==e2) return 0;
+			if (e1==null) return -1;
+			if (e2==null) return 1;
 			return e1.compareTo(e2);
 		}
 
-		@Override public int compareTo(FontStyle fs) {
-			int result = compareEnums(weight,fs.weight);
-			return (result != 0 )? result: compareEnums(posture,fs.posture);
+		@Override
+		public int compareTo(FontStyle fs) {
+			int result = compareEnums(weight, fs.weight);
+			return (result!=0) ? result : compareEnums(posture, fs.posture);
 		}
 
 	}
@@ -185,8 +185,9 @@ public class FontSelectorDialog extends PopOver<VBox> {
 		private static final double VGAP = 5;
 
 		private static final Predicate<Object> MATCH_ALL = t -> true;
-		private static final Double[] fontSizes = new Double[] {8d,9d,11d,12d,14d,16d,18d,20d,22d,24d,26d,28d,36d,48d,72d};
-		private static List<FontStyle> getFontStyles(String fontFamily ) {
+		private static final Double[] fontSizes = new Double[]{8d, 9d, 11d, 12d, 14d, 16d, 18d, 20d, 22d, 24d, 26d, 28d, 36d, 48d, 72d};
+
+		private static List<FontStyle> getFontStyles(String fontFamily) {
 			Set<FontStyle> set = new HashSet<>();
 			for (String f : Font.getFontNames(fontFamily)) {
 				set.add(new FontStyle(f.replace(fontFamily, "")));
@@ -250,10 +251,9 @@ public class FontSelectorDialog extends PopOver<VBox> {
 				}
 			});
 
+			ChangeListener<Object> sampleRefreshListener = (o, ov, nv) -> refreshSample();
 
-			ChangeListener<Object> sampleRefreshListener = (o,ov,nv) -> refreshSample();
-
-			fontListView.selectionModelProperty().get().selectedItemProperty().addListener((o,ov,nv) -> {
+			fontListView.selectionModelProperty().get().selectedItemProperty().addListener((o, ov, nv) -> {
 				String fontFamily = listSelection(fontListView, null);
 				styleListView.setItems(observableArrayList(getFontStyles(fontFamily)));
 				refreshSample();
@@ -277,8 +277,9 @@ public class FontSelectorDialog extends PopOver<VBox> {
 					bind(fontListView.widthProperty(), styleListView.widthProperty(), sizeListView.widthProperty());
 				}
 
-				@Override protected double computeValue() {
-					return fontListView.getWidth() + styleListView.getWidth() + sizeListView.getWidth() + 3 * HGAP;
+				@Override
+				protected double computeValue() {
+					return fontListView.getWidth() + styleListView.getWidth() + sizeListView.getWidth() + 3*HGAP;
 				}
 			};
 			StackPane sampleStack = new StackPane(sample);
@@ -294,7 +295,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 		}
 
 		public void setFont(Font font) {
-			Font f = font == null ? Font.getDefault() : font;
+			Font f = font==null ? Font.getDefault() : font;
 			selectInList(fontListView, f.getFamily());
 			selectInList(styleListView, new FontStyle(f));
 			selectInList(sizeListView, f.getSize());
@@ -302,7 +303,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 
 		public Font getFont() {
 			FontStyle style = listSelection(styleListView, null);
-			if (style == null) {
+			if (style==null) {
 				return Font.font(
 					listSelection(fontListView, null),
 					listSelection(sizeListView, 12.0));

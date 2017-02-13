@@ -196,8 +196,8 @@ public final class UiContext {
 			// try to deserialize normally
 			if (w==null)
 				w = App.APP.serializators.fromXML(Component.class, launcher)
-					.ifError(e -> LOGGER.error("Could not load component", e))
-					.get();
+						.ifError(e -> LOGGER.error("Could not load component", e))
+						.get();
 
 			// try to build widget using just launcher filename
 			if (w==null) {

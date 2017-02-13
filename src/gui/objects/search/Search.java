@@ -6,7 +6,6 @@ import javafx.css.PseudoClass;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
-
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.util.Duration.millis;
@@ -22,23 +21,23 @@ import static util.Util.removeLastChar;
  * }</pre>
  */
 public abstract class Search {
-	public static final PseudoClass SEARCHMATCHPC = getPseudoClass("searchmatch");
-	public static final PseudoClass SEARCHMATCHNOTPC = getPseudoClass("searchmatchnot");
+	public static final PseudoClass PC_SEARCH_MATCH = getPseudoClass("searchmatch");
+	public static final PseudoClass PC_SEARCH_MATCH_NOT = getPseudoClass("searchmatchnot");
 
 	protected long searchTime = -1;
 	protected Duration searchTimeMax = millis(500);
 	/**
 	 * Text against which the records are being matched against.
 	 * Can be empty or consist of only whitespaces.
-	 */ public final StringProperty searchQuery = new SimpleStringProperty("");
+	 */
+	public final StringProperty searchQuery = new SimpleStringProperty("");
 	protected KeyCode pressedKeyCode;
 
 	/**
 	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event.
 	 *
-	 * @apiNote Use as event filter in form of method reference.
-	 *
 	 * @param e event to handle
+	 * @apiNote Use as event filter in form of method reference.
 	 */
 	public void onKeyPressed(KeyEvent e) {
 		pressedKeyCode = e.getCode();
@@ -47,13 +46,13 @@ public abstract class Search {
 	/**
 	 * Note: must be called on {@link KeyEvent#KEY_TYPED} event.
 	 *
-	 * @apiNote Use as event handler in form of method reference.
-	 *
 	 * @param e event to handle
+	 * @apiNote Use as event handler in form of method reference.
 	 */
 	public void onKeyTyped(KeyEvent e) {
 		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER) return;
-		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
+		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown())
+			return;
 		if ((!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE))) return;
 
 		KeyCode k = pressedKeyCode;
@@ -61,8 +60,8 @@ public abstract class Search {
 		if (!letter.isEmpty()) {
 			// update scroll text
 			long now = System.currentTimeMillis();
-			boolean append = searchTime == -1 || now - searchTime < searchTimeMax.toMillis();
-			searchQuery.set(k == BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get() + letter : letter);
+			boolean append = searchTime==-1 || now - searchTime<searchTimeMax.toMillis();
+			searchQuery.set(k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get() + letter : letter);
 			searchTime = now;
 			onSearch(searchQuery.get());
 			e.consume();
@@ -73,9 +72,8 @@ public abstract class Search {
 	 * Cancels search and consumes even iff event's key code is {@link KeyCode#ESCAPE}
 	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event.
 	 *
-	 * @apiNote Use as event filter in form of method reference.
-	 *
 	 * @param e event to handle
+	 * @apiNote Use as event filter in form of method reference.
 	 */
 	public void onEscPressHide(KeyEvent e) {
 		if (e.getCode()==ESCAPE && isActive()) {

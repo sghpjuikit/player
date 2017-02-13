@@ -24,16 +24,16 @@ import static util.Util.localDateTimeFromMillis;
 /**
  * @author Martin Polakovic
  */
-public class FileField implements ObjectField<File> {
+public class FileField<T> implements ObjectField<File,T> {
 
-	public static final Set<FileField> FIELDS = new HashSet<>();
-	public static final FileField PATH = new FileField("Path", "Path", File::getPath, String.class);
-	public static final FileField NAME = new FileField("Name", "Name", Util::getName, String.class);
-	public static final FileField NAME_FULL = new FileField("Filename", "Filename", Util::getNameFull, String.class);
-	public static final FileField EXTENSION = new FileField("Extension", "Extension", Util::getSuffix, String.class);
-	public static final FileField SIZE = new FileField("Size", "Size", FileSize::new, FileSize.class);
-	public static final FileField TIME_MODIFIED = new FileField("Time Modified", "Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class);
-	public static final FileField TIME_CREATED = new FileField("Time Created", "Time Created", f -> {
+	public static final Set<FileField<?>> FIELDS = new HashSet<>();
+	public static final FileField<String> PATH = new FileField<>("Path", "Path", File::getPath, String.class);
+	public static final FileField<String> NAME = new FileField<>("Name", "Name", Util::getName, String.class);
+	public static final FileField<String> NAME_FULL = new FileField<>("Filename", "Filename", Util::getNameFull, String.class);
+	public static final FileField<String> EXTENSION = new FileField<>("Extension", "Extension", Util::getSuffix, String.class);
+	public static final FileField<FileSize> SIZE = new FileField<>("Size", "Size", FileSize::new, FileSize.class);
+	public static final FileField<LocalDateTime> TIME_MODIFIED = new FileField<>("Time Modified", "Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class);
+	public static final FileField<FileTime> TIME_CREATED = new FileField<>("Time Created", "Time Created", f -> {
 		try {
 			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
 				.creationTime();
@@ -41,7 +41,7 @@ public class FileField implements ObjectField<File> {
 			return null;
 		}
 	}, FileTime.class);
-	public static final FileField TIME_CREATED_FROM_TAG = new FileField("Time Created (tag)", "Time Created (metadata)", f -> {
+	public static final FileField<Date> TIME_CREATED_FROM_TAG = new FileField<>("Time Created (tag)", "Time Created (metadata)", f -> {
 		try {
 			return ImageMetadataReader
 				.readMetadata(f)
@@ -52,7 +52,7 @@ public class FileField implements ObjectField<File> {
 			return null;
 		}
 	}, Date.class);
-	public static final FileField TIME_ACCESSED = new FileField("Time Accessed", "Time Accessed", f -> {
+	public static final FileField<FileTime> TIME_ACCESSED = new FileField<>("Time Accessed", "Time Accessed", f -> {
 		try {
 			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
 				.lastAccessTime();
@@ -60,17 +60,17 @@ public class FileField implements ObjectField<File> {
 			return null;
 		}
 	}, FileTime.class);
-	public static final FileField TYPE = new FileField("Type", "Type", FileType::of, FileType.class);
-	public static final FileField MIME = new FileField("Mime Type", "Mime Type", App.APP.mimeTypes::ofFile, MimeType.class);
-	public static final FileField MIME_GROUP = new FileField("Mime Group", "Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
+	public static final FileField<FileType> TYPE = new FileField<>("Type", "Type", FileType::of, FileType.class);
+	public static final FileField<MimeType> MIME = new FileField<>("Mime Type", "Mime Type", App.APP.mimeTypes::ofFile, MimeType.class);
+	public static final FileField<String> MIME_GROUP = new FileField<>("Mime Group", "Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
 
 
 	private final String name;
 	private final String description;
-	private final Ƒ1<File,?> mapper;
+	private final Ƒ1<? super File,? extends T> mapper;
 	private final Class<?> type;
 
-	<T> FileField(String name, String description, Ƒ1<File,T> extractor, Class<T> type) {
+	FileField(String name, String description, Ƒ1<? super File,? extends T> extractor, Class<T> type) {
 		this.name = name;
 		this.description = description;
 		this.mapper = extractor;
@@ -78,7 +78,7 @@ public class FileField implements ObjectField<File> {
 		FIELDS.add(this);
 	}
 
-	public static FileField valueOf(String s) {
+	public static FileField<?> valueOf(String s) {
 		if (PATH.name().equals(s)) return PATH;
 		if (NAME.name().equals(s)) return NAME;
 		if (NAME_FULL.name().equals(s)) return NAME_FULL;
@@ -105,7 +105,7 @@ public class FileField implements ObjectField<File> {
 	}
 
 	@Override
-	public Object getOf(File value) {
+	public T getOf(File value) {
 		return mapper.apply(value);
 	}
 
@@ -115,7 +115,7 @@ public class FileField implements ObjectField<File> {
 	}
 
 	@Override
-	public String toS(Object o, String empty_val) {
+	public String toS(T o, String empty_val) {
 		return o==null ? empty_val : o.toString();
 	}
 

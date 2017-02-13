@@ -1,30 +1,29 @@
 package appLauncher;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.objects.grid.GridCell;
+import gui.objects.grid.GridView;
+import gui.objects.hierarchy.Item;
 import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.grid.GridCell;
-import gui.objects.grid.GridView;
-import gui.objects.hierarchy.Item;
-import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.Sort;
 import util.SwitchException;
 import util.access.V;
+import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
@@ -39,7 +38,6 @@ import util.file.FileType;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.validation.Constraint;
-
 import static appLauncher.AppLauncher.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static appLauncher.AppLauncher.CellSize.NORMAL;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
@@ -49,7 +47,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
-import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
 import static util.dev.Util.throwIfNotFxThread;
 import static util.file.FileSort.DIR_FIRST;
@@ -99,7 +96,7 @@ public class AppLauncher extends ClassController {
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final V<FileField> sortBy = new V<>(NAME, this::resort);
+    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> resort());
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
@@ -182,7 +179,7 @@ public class AppLauncher extends ClassController {
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
              sortHomo = sort.get(); // sorts each group separately
-        FileField field = sortBy.get(); // precompute once for consistency and performance
+        FileField<?> field = sortBy.get(); // precompute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
                          cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);

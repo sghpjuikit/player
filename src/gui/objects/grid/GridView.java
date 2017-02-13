@@ -116,7 +116,7 @@ public class GridView<T,F> extends Control {
 
     private boolean scrollFlag = true;
 
-	public ObjectField<F> primaryFilterField;
+	public ObjectField<F,?> primaryFilterField;
 	public final Search search = new Search();
 
     /** Creates a default, empty GridView control. */

@@ -16,7 +16,7 @@ import static util.functional.Util.IS;
  *
  * @author Martin Polakovic
  */
-public class FieldedPredicateChainItemNode<T,F extends ObjectField<T>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
+public class FieldedPredicateChainItemNode<T,F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 
     private final List<PredicateData<F>> data = new ArrayList<>();
 

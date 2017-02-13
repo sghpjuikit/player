@@ -20,7 +20,6 @@ import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
-import javafx.util.Callback;
 import main.App;
 import util.Sort;
 import util.access.fieldvalue.ObjectField;
@@ -66,8 +65,8 @@ import static util.type.Util.invokeMethodP0;
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private Ƒ1<ObjectField<T>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
-	private Ƒ1<ObjectField<? super T>,TableColumn<T,?>> colFact;
+	private Ƒ1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
+	private Ƒ1<? super ObjectField<T,?>, ? extends TableColumn<T,?>> colFact;
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 
 	private TableColumnInfo columnState;
@@ -98,30 +97,30 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	/**
 	 * Returns all fields of this table. The fields are string representable.
 	 */
-	public List<ObjectField<T>> getFields() {
+	public List<ObjectField<T,?>> getFields() {
 		return stream(App.APP.classFields.get(type))
 			.filter(ObjectField::isTypeStringRepresentable)
 			.sorted(by(ObjectField::name))
 			.toList();
 	}
 
-	public void setColumnFactory(Ƒ1<ObjectField<? super T>,TableColumn<T,?>> columnFactory) {
+	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>, TableColumn<T,Object>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : columnFactory.call(f);
+			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn)((Ƒ1)columnFactory).call(f);
 			c.setUserData(f);
 			return c;
 		};
 	}
 
-	public Callback<ObjectField<? super T>,TableColumn<T,?>> getColumnFactory() {
-		return colFact;
+	public <X> Ƒ1<? super ObjectField<? super T,X>, TableColumn<T,X>> getColumnFactory() {
+		return (Ƒ1) colFact;
 	}
 
-	public void setColumnStateFactory(Ƒ1<ObjectField<T>,ColumnInfo> columnStateFactory) {
+	public void setColumnStateFactory(Ƒ1<ObjectField<T,?>,ColumnInfo> columnStateFactory) {
 		colStateFact = columnStateFactory;
 	}
 
-	public Function<ObjectField<T>,ColumnInfo> getColumnStateFactory() {
+	public Function<ObjectField<T,?>,ColumnInfo> getColumnStateFactory() {
 		return colStateFact;
 	}
 
@@ -129,11 +128,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		keyNameColMapper = columnNameToKeyMapper;
 	}
 
-	public boolean isColumnVisible(ObjectField<? super T> f) {
+	public boolean isColumnVisible(ObjectField<T,?> f) {
 		return getColumn(f).isPresent();
 	}
 
-	public void setColumnVisible(ObjectField<? super T> f, boolean v) {
+	public void setColumnVisible(ObjectField<T,?> f, boolean v) {
 		TableColumn<T,?> c = getColumn(f).orElse(null);
 		if (v) {
 			if (c==null) {
@@ -204,7 +203,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			// build new table column menu
 			defColInfo.columns.streamV()
 				.map(c -> {
-					ObjectField<? super T> f = nameToCF(c.name);
+					ObjectField<T,?> f = nameToCF(c.name);
 					SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible, v -> setColumnVisible(f, v));
 					String d = f.description();
 					if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
@@ -250,11 +249,12 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return getColumns().stream().filter(filter).findFirst();
 	}
 
-	public Optional<TableColumn<T,?>> getColumn(ObjectField<? super T> f) {
-		return getColumn(c -> c.getUserData()==f);
+	@SuppressWarnings("unchecked")
+	public <R> Optional<TableColumn<T,R>> getColumn(ObjectField<? super T,R> f) {
+		return getColumn(c -> c.getUserData()==f).map(c -> (TableColumn<T,R>) c);
 	}
 
-	public void refreshColumn(ObjectField<? super T> f) {
+	public void refreshColumn(ObjectField<? super T,?> f) {
 		getColumn(f).ifPresent(this::refreshColumn);
 	}
 
@@ -285,7 +285,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * <p/>
 	 * Note, that the field must support sorting - return Comparable fieldType.
 	 */
-	public void sortBy(ObjectField<T> field) {
+	public void sortBy(ObjectField<T,?> field) {
 		getSortOrder().clear();
 		getItems().sort(field.comparator());
 	}
@@ -296,7 +296,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * javafx.scene.control.TableColumn.SortType)}, but uses
 	 * {@link #getColumn(util.access.fieldvalue.ObjectField)} for column lookup.
 	 */
-	public void sortBy(ObjectField<T> field, SortType type) {
+	public void sortBy(ObjectField<T,?> field, SortType type) {
 		getColumn(field).ifPresent(c -> sortBy(c, type));
 		updateComparator(null);
 	}
@@ -308,15 +308,15 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * <p/>
 	 * This cell factory
 	 * <ul>
-	 * <li> sets text using {@link ObjectField#toS(java.lang.Object, java.lang.String)}
+	 * <li> sets text using {@link ObjectField#toS(Object, String)}
 	 * <li> sets alignment to CENTER_LEFT for Strings and CENTER_RIGHT otherwise
 	 * </ul>
 	 */
-	public <R> TableCell<T,R> buildDefaultCell(ObjectField<? super T> f) {
+	public <X> TableCell<T,X> buildDefaultCell(ObjectField<? super T,X> f) {
 		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-		TableCell<T,R> cell = new TableCell<>() {
+		TableCell<T,X> cell = new TableCell<>() {
 			@Override
-			protected void updateItem(R item, boolean empty) {
+			protected void updateItem(X item, boolean empty) {
 				super.updateItem(item, empty);
 				setText(empty ? "" : f.toS(getTableRow().getItem(), item, ""));
 			}
@@ -325,11 +325,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return cell;
 	}
 
-	public static <T, R> TableCell<T,R> defaultCell(ObjectField<? super T> f) {
+	public static <T,X> TableCell<T,X> defaultCell(ObjectField<? super T,X> f) {
 		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-		TableCell<T,R> cell = new TableCell<>() {
+		TableCell<T,X> cell = new TableCell<>() {
 			@Override
-			protected void updateItem(R item, boolean empty) {
+			protected void updateItem(X item, boolean empty) {
 				super.updateItem(item, empty);
 				setText(empty ? "" : f.toS(getTableRow().getItem(), item, ""));
 			}
@@ -344,7 +344,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	@SuppressWarnings({"unchecked", "unused"})
 	private void updateComparator(Object ignored) {
 		Comparator<? super T> c = getSortOrder().stream().map(column -> {
-			ObjectField<T> field = (ObjectField<T>) column.getUserData();
+			ObjectField<T,?> field = (ObjectField<T,?>) column.getUserData();
 			Sort sort = Sort.of(column.getSortType());
 			return sort.cmp(field.comparator());
 		})
@@ -353,14 +353,14 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		itemsComparator.setValue(c);
 	}
 
-	private ObjectField<T> nameToF(String name) {
+	private ObjectField<T,?> nameToF(String name) {
 		String fieldName = keyNameColMapper.apply(name);
 		return getFields().stream()
 			.filter(f -> f.name().equals(fieldName)).findAny()
 			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
 	}
 
-	private ObjectField<? super T> nameToCF(String name) {
-		return ColumnField.INDEX.name().equals(name) ? ColumnField.INDEX : nameToF(name);
+	private ObjectField<T,?> nameToCF(String name) {
+		return ColumnField.INDEX.name().equals(name) ? (ObjectField) ColumnField.INDEX : nameToF(name);
 	}
 }

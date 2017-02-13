@@ -105,7 +105,7 @@ import static util.reactive.Util.maintain;
 public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
-	private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
+	private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), new Spinner()) {
         Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         @Override
@@ -128,7 +128,7 @@ public class Library extends FXMLController implements SongReader {
     public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(editable = EditMode.APP) @Constraint.FileType(FileActor.ANY)
     private File lastFile = null;
@@ -176,11 +176,11 @@ public class Library extends FXMLController implements SongReader {
 
         // set up table columns
         table.setColumnFactory(f -> {
-            TableColumn<Metadata,?> c = new TableColumn<>(f.toString());
-            c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
-            c.setCellFactory(f==RATING
+            TableColumn<Metadata,Object> c = new TableColumn<>(f.toString());
+            c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
+            c.setCellFactory(f==(Metadata.Field)RATING
                 ? (Callback) APP.ratingCell.getValue()
-                : col -> table.buildDefaultCell(f)
+                : column -> table.buildDefaultCell(f)
             );
             return c;
         });
@@ -211,8 +211,8 @@ public class Library extends FXMLController implements SongReader {
                     // show context menu
                     contextMenu.show(table, e);
                 })
-                // additional css styleclasses
-                .styleRuleAdd("played", m -> Player.playingItem.get().same(m)) // dont use mthod reference!
+                // additional css style classes
+                .styleRuleAdd("played", m -> Player.playingItem.get().same(m)) // don't use method reference!
         );
         // maintain playing item css by refreshing column
         d(Player.playingItem.onUpdate(o -> table.updateStyleRules()));
@@ -319,7 +319,7 @@ public class Library extends FXMLController implements SongReader {
 	        });
     }
 
-    private static final TableContextMenuR<Metadata,FilteredTable<Metadata,Metadata.Field>> contextMenu = new TableContextMenuR<> (
+    private static final TableContextMenuR<Metadata,FilteredTable<Metadata>> contextMenu = new TableContextMenuR<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Play items", e ->
@@ -348,9 +348,9 @@ public class Library extends FXMLController implements SongReader {
                         f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongWriter)c.getController()).read(m.getValue()))
                     )
                 ),
-                menuItem("Explore items's directory", e -> {
-                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile));
-                }),
+                menuItem("Explore items's directory", e ->
+                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile))
+                ),
                 new Menu("Explore items's directory in",null,
                     menuItems(
                     	APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)).toList(),

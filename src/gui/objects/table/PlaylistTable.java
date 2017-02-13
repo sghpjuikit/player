@@ -89,25 +89,19 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// initialize column factories
 		setColumnFactory(f -> {
-			if (f instanceof PlaylistItem.Field) {
-				TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
-				c.setCellValueFactory(f==NAME || f==LENGTH
-					? new PropertyValueFactory<>(f.name().toLowerCase())
-					: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
-				);
-				c.setCellFactory(column -> buildDefaultCell(f));
-				c.setResizable(true);
-				return c;
-			} else {
-				TableColumn<PlaylistItem,?> c = new TableColumn<>(f.toString());
-				c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
-				c.setCellFactory(column -> buildDefaultCell(f));
-				return c;
-			}
+			TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
+			boolean hasPropertyGetter = f==(PlaylistItem.Field)NAME || f==(PlaylistItem.Field)LENGTH;
+			c.setCellValueFactory(hasPropertyGetter
+				? new PropertyValueFactory<>(f.name().toLowerCase())
+				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
+			);
+			c.setCellFactory(column -> buildDefaultCell(f));
+			c.setResizable(true);
+			return c;
 		});
 		setColumnState(getDefaultColumnInfo());
-		columnName = (TableColumn<PlaylistItem,String>) getColumn(NAME).get();
-		columnTime = (TableColumn<PlaylistItem,FormattedDuration>) getColumn(LENGTH).get();
+		columnName = getColumn(NAME).get();
+		columnTime = getColumn(LENGTH).get();
 
 		// initialize row factories
 		setRowFactory(t -> new ImprovedTableRow<>() {
@@ -119,7 +113,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 					if (getItem()==null)
 						selectNone();
 				});
-				// left double ckick -> play
+				// left double click -> play
 				onLeftDoubleClick((r, e) -> getPlaylist().playItem(r.getItem()));
 				// right click -> show context menu
 				onRightSingleClick((r, e) -> {

@@ -35,7 +35,7 @@ import static util.functional.Util.*;
  *
  * @author Martin Polakovic
  */
-public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueNode<Predicate<V>> {
+public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
 
     // Normally we would use this predicate builder:
     //     (field,filter) -> element -> filter.test(element.getField(field));
@@ -173,7 +173,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V>> extends ValueN
 		public final Class type;
 		public final T value;
 
-		public static <A, V extends ObjectField<A>> PredicateData<V> ofField(V field) {
+		public static <V,T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
 			return new PredicateData<>(field.name(), field.getType(), field);
 		}
 

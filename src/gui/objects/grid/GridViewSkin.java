@@ -30,6 +30,7 @@ package gui.objects.grid;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
@@ -339,11 +340,11 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     };
 
     /** Table's filter node. */
-    public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F>> {
+    public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
 
         private Filter(Class<F> filterType, FilteredList<T> filterList) {
             super(() -> {
-                FieldedPredicateItemNode<F,ObjectField<F>> g = new FieldedPredicateItemNode<>(
+                FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(
                     in -> Functors.pool.getIO(in, Boolean.class),
                     in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
@@ -384,14 +385,18 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
         }
     }
 
-    private PredicateData<ObjectField<F>> getPrimaryFilterPredicate() {
-	    return Optional.ofNullable(getSkinnable().primaryFilterField).map(PredicateData::ofField).orElse(null);
+    private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
+	    return Optional.ofNullable(getSkinnable().primaryFilterField)
+			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) (field) -> PredicateData.ofField(field))
+			.map(f -> (PredicateData<ObjectField<F,Object>>)f)
+			.orElse(null);
     }
 
-	private List<PredicateData<ObjectField<F>>> getFilterPredicates(Class<F> filterType) {
+	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
 		return stream(App.APP.classFields.get(filterType))
 			       .filter(ObjectField::isTypeStringRepresentable)
-			       .map(PredicateData::ofField)
+			       .map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) (field) -> PredicateData.ofField(field))
+				   .map(f -> (PredicateData<ObjectField<F,Object>>)f)
 			       .sorted(by(e -> e.name))
 			       .toList();
 	}

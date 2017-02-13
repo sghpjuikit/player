@@ -164,23 +164,23 @@ public final class MetadataGroup {
                 ", wighted rating: " + getWeighRating()+ ", year: " + getYear();
     }
 
-    public static class Field implements ObjectField<MetadataGroup> {
-        public static final Set<Field> FIELDS = new HashSet<>();
-        public static final Field VALUE = new Field(Object.class, MetadataGroup::getValue,"Value", "Song field to group by");
-        public static final Field ITEMS = new Field(Long.class, MetadataGroup::getItemCount,"Items", "Number of songs in the group");
-        public static final Field ALBUMS = new Field(Long.class, MetadataGroup::getAlbumCount, "Albums", "Number of albums in the group");
-        public static final Field LENGTH = new Field(Duration.class, MetadataGroup::getLength, "Length", "Total length of the group");
-        public static final Field SIZE = new Field(FileSize.class, MetadataGroup::getFileSize, "Size", "Total file size of the group");
-        public static final Field AVG_RATING = new Field(Double.class, MetadataGroup::getAvgRating, "Avg rating", "Average rating of the group = sum(rating)/items");
-        public static final Field W_RATING = new Field(Double.class, MetadataGroup::getWeighRating, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items");
-        public static final Field YEAR = new Field(RangeYear.class, MetadataGroup::getYear, "Year", "Year or years of songs in the group");
+    public static class Field<T> implements ObjectField<MetadataGroup,T> {
+        public static final Set<Field<?>> FIELDS = new HashSet<>();
+        public static final Field<Object> VALUE = new Field<>(Object.class, MetadataGroup::getValue,"Value", "Song field to group by");
+        public static final Field<Long> ITEMS = new Field<>(Long.class, MetadataGroup::getItemCount,"Items", "Number of songs in the group");
+        public static final Field<Long> ALBUMS = new Field<>(Long.class, MetadataGroup::getAlbumCount, "Albums", "Number of albums in the group");
+        public static final Field<Duration> LENGTH = new Field<>(Duration.class, MetadataGroup::getLength, "Length", "Total length of the group");
+        public static final Field<FileSize> SIZE = new Field<>(FileSize.class, MetadataGroup::getFileSize, "Size", "Total file size of the group");
+        public static final Field<Double> AVG_RATING = new Field<>(Double.class, MetadataGroup::getAvgRating, "Avg rating", "Average rating of the group = sum(rating)/items");
+        public static final Field<Double> W_RATING = new Field<>(Double.class, MetadataGroup::getWeighRating, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items");
+        public static final Field<RangeYear> YEAR = new Field<>(RangeYear.class, MetadataGroup::getYear, "Year", "Year or years of songs in the group");
 
         private final String name;
         private final String desc;
-        private final Ƒ1<MetadataGroup,?> extractor;
+        private final Ƒ1<? super MetadataGroup,? extends T> extractor;
         private final Class type;
 
-        <T> Field(Class<T> type, Ƒ1<MetadataGroup,? extends T> extractor, String name, String description) {
+        Field(Class<T> type, Ƒ1<? super MetadataGroup,? extends T> extractor, String name, String description) {
             this.name = name;
             this.desc = description;
             this.extractor = extractor;
@@ -188,7 +188,7 @@ public final class MetadataGroup {
             FIELDS.add(this);
         }
 
-        public static Field valueOf(String s) {
+        public static Field<?> valueOf(String s) {
             if (ITEMS.name().equals(s)) return ITEMS;
             if (ALBUMS.name().equals(s)) return ALBUMS;
             if (LENGTH.name().equals(s)) return LENGTH;
@@ -215,7 +215,7 @@ public final class MetadataGroup {
         }
 
         @Override
-        public Object getOf(MetadataGroup mg) {
+        public T getOf(MetadataGroup mg) {
             return extractor.apply(mg);
         }
 
@@ -237,7 +237,7 @@ public final class MetadataGroup {
         }
 
         @Override
-        public String toS(Object o, String empty_val) {
+        public String toS(T o, String empty_val) {
             if (this==VALUE)  return o==null || "".equals(o) ? "<none>" : o.toString();
             if (this==ITEMS || this==ALBUMS || this==LENGTH || this==SIZE || this==AVG_RATING || this==W_RATING) return o.toString();
             if (this==YEAR) throw new SwitchException(this); // year case should never execute
@@ -245,7 +245,7 @@ public final class MetadataGroup {
         }
 
         @Override
-        public String toS(MetadataGroup v, Object o, String empty_val) {
+        public String toS(MetadataGroup v, T o, String empty_val) {
             if (this==VALUE) {
                 if (v==null || v.all_flag) return "<any>";
                 return v.getField().toS(o, "<none>");

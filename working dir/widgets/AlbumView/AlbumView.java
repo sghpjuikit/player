@@ -1,11 +1,18 @@
 package AlbumView;
 
+import audio.playlist.PlaylistManager;
+import audio.tagging.Metadata;
+import audio.tagging.MetadataGroup;
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import gui.objects.grid.GridCell;
+import gui.objects.grid.GridView;
+import gui.objects.image.Thumbnail;
+import gui.objects.image.cover.Cover;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -17,14 +24,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-
-import audio.playlist.PlaylistManager;
-import audio.tagging.Metadata;
-import audio.tagging.MetadataGroup;
-import gui.objects.grid.GridCell;
-import gui.objects.grid.GridView;
-import gui.objects.image.Thumbnail;
-import gui.objects.image.cover.Cover;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.controller.io.Input;
@@ -39,9 +38,10 @@ import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.functional.Util;
 import util.graphics.drag.DragUtil;
-
 import static AlbumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static AlbumView.AlbumView.CellSize.NORMAL;
+import static audio.tagging.Metadata.Field.ALBUM;
+import static audio.tagging.MetadataGroup.Field.VALUE;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -53,6 +53,7 @@ import static util.dev.Util.throwIfNotFxThread;
 import static util.functional.Util.*;
 import static util.graphics.Util.bgr;
 import static util.graphics.Util.setAnchor;
+import static util.reactive.Util.doOnceIfNonNull;
 
 /**
  * Logger widget controller.
@@ -87,7 +88,7 @@ public class AlbumView extends ClassController {
 	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
 	public AlbumView() {
-		view.primaryFilterField = MetadataGroup.Field.VALUE;
+		view.primaryFilterField = VALUE;
 		view.setCellFactory(grid -> new AlbumCell());
 		view.selectedItem.onChange(item -> {
 			out_sel.setValue(item== null ? null : item.items);
@@ -98,6 +99,13 @@ public class AlbumView extends ClassController {
 		view.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER)
 				playSelected();
+		});
+
+		// update filters of VALUE type, we must wat until skin has been built
+		doOnceIfNonNull(view.skinProperty(), skin -> {
+			Metadata.Field f = ALBUM;
+			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
+			view.implGetSkin().filter.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
 		});
 	}
 
@@ -111,7 +119,7 @@ public class AlbumView extends ClassController {
 	/** Populates metadata groups to table from metadata list. */
 	private void setItems(List<Metadata> list) {
 		if (list==null) return;
-		fut(Metadata.Field.ALBUM)
+		fut(ALBUM)
 			.use(f -> {
 				List<MetadataGroup> mgs = MetadataGroup.groupsOf(f,list).collect(toList());
 				List<Metadata> fl = filterList(list,true);
@@ -181,7 +189,7 @@ public class AlbumView extends ClassController {
     private boolean sel_ignore_canturnback = true;
     private Set sel_old;
     // restoring selection from previous session, we serialize string
-    // representation and try to restre when application runs again
+    // representation and try to restore when application runs again
     // we restore only once
     @IsConfig(name = "Last selected", editable = EditMode.APP)
     private String sel_last = "null";

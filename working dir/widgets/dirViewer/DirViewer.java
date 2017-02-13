@@ -55,7 +55,6 @@ import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
-import static util.access.fieldvalue.FileField.NAME;
 import static util.async.Async.*;
 import static util.dev.Util.throwIfNotFxThread;
 import static util.file.FileSort.DIR_FIRST;
@@ -120,7 +119,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final V<FileField> sortBy = new V<>(NAME, this::resort);
+    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> resort());
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
@@ -280,7 +279,7 @@ public class DirViewer extends ClassController {
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
 	         sortHomo = sort.get();                 // sorts each group separately
-        FileField field = sortBy.get();             // pre-compute, do not compute in comparator
+        FileField<?> field = sortBy.get();             // pre-compute, do not compute in comparator
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
                          cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.cmp(c))));
         return cmpHetero.thenComparing(cmpHomo);

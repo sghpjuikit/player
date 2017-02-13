@@ -1015,7 +1015,7 @@ public final class Metadata extends MetaItem<Metadata> {
         return o==null ? no_val : f.toS(o,no_val);
     }
 
-    public Field getMainField() { return Field.TITLE; }
+    public Field<?> getMainField() { return Field.TITLE; }
 
 /******************************* AS OBJECT ************************************/
 
@@ -1066,56 +1066,56 @@ public final class Metadata extends MetaItem<Metadata> {
     /**
      *
      */
-    public static class Field implements ObjectField<Metadata> {
+    public static class Field<T> implements ObjectField<Metadata,T> {
 
-        public static final Set<Field> FIELDS = new HashSet<>();
+        public static final Set<Field<?>> FIELDS = new HashSet<>();
         public static final Set<String> FIELD_NAMES = new HashSet<>();
 
-        public static final Field PATH = new Field(Metadata::getPath, "Path", "Song location");
-        public static final Field FILENAME = new Field(Metadata::getFilename, "Filename", "Song file name without suffix");
-        public static final Field FORMAT = new Field(Metadata::getFormat, "Format", "Song file type ");
-        public static final Field FILESIZE = new Field(Metadata::getFilesize, "Filesize", "Song file size");
-        public static final Field ENCODING = new Field(Metadata::getEncodingType, "Encoding", "Song encoding");
-        public static final Field BITRATE = new Field(Metadata::getBitrate, "Bitrate", "Bits per second of the song - quality aspect.");
-        public static final Field ENCODER = new Field(Metadata::getEncoder, "Encoder", "Song encoder");
-        public static final Field CHANNELS = new Field(Metadata::getChannels, "Channels", "Number of channels");
-        public static final Field SAMPLE_RATE = new Field(Metadata::getSampleRate, "Sample_rate", "Sample frequency");
-        public static final Field LENGTH = new Field(Metadata::getLength, "Length", "Song length");
-        public static final Field TITLE = new Field(Metadata::getTitle, "Title", "Song title");
-        public static final Field ALBUM = new Field(Metadata::getAlbum, "Album", "Song album");
-        public static final Field ARTIST = new Field(Metadata::getArtist, "Artist", "Artist of the song");
-        public static final Field ALBUM_ARTIST = new Field(Metadata::getAlbumArtist, "Album_artist", "Artist of the song album");
-        public static final Field COMPOSER = new Field(Metadata::getComposer, "Composer", "Composer of the song");
-        public static final Field PUBLISHER = new Field(Metadata::getPublisher, "Publisher", "Publisher of the album");
-        public static final Field TRACK = new Field(Metadata::getTrack, "Track", "Song number within album");
-        public static final Field TRACKS_TOTAL = new Field(Metadata::getTracksTotal, "Tracks_total", "Number of songs in the album");
-        public static final Field TRACK_INFO = new Field(Metadata::getTrackInfo, "Track_info", "Complete song number in format: track/track total");
-        public static final Field DISC = new Field(Metadata::getDisc, "Disc", "Disc number within album");
-        public static final Field DISCS_TOTAL = new Field(Metadata::getDiscsTotal, "Discs_total", "Number of discs in the album");
-        public static final Field DISCS_INFO = new Field(Metadata::getDiscInfo, "Discs_info", "Complete disc number in format: disc/disc total");
-        public static final Field GENRE = new Field(Metadata::getGenre, "Genre", "Genre of the song");
-        public static final Field YEAR = new Field(Metadata::getYear, "Year", "Year the album was published");
-        public static final Field COVER = new Field(Metadata::getCoverOfTag, "Cover", "Cover of the song");
-        public static final Field COVER_INFO = new Field(Metadata::getCoverInfo, "Cover_info", "Cover information");
-        public static final Field RATING = new Field(Metadata::getRatingPercent, "Rating", "Song rating in 0-1 range");
-        public static final Field RATING_RAW = new Field(Metadata::getRating, "Rating_raw", "Song rating tag value. Depends on tag type");
-        public static final Field PLAYCOUNT = new Field(Metadata::getPlaycount, "Playcount", "Number of times the song was played.");
-        public static final Field CATEGORY = new Field(Metadata::getCategory, "Category", "Category of the song. Arbitrary");
-        public static final Field COMMENT = new Field(Metadata::getComment, "Comment", "User comment of the song. Arbitrary");
-        public static final Field LYRICS = new Field(Metadata::getLyrics, "Lyrics", "Lyrics for the song");
-        public static final Field MOOD = new Field(Metadata::getMood, "Mood", "Mood the song evokes");
-        public static final Field COLOR = new Field(Metadata::getColor, "Color", "Color the song evokes");
-        public static final Field TAGS = new Field(Metadata::getTags, "Tags", "Tags associated with this song");
-        public static final Field CHAPTERS = new Field(Metadata::getChapters, "Chapters", "Comments at specific time points of the song");
-        public static final Field FULLTEXT = new Field(Metadata::getFulltext, "Fulltext", "All possible fields merged into single text. Use for searching.");
-        public static final Field CUSTOM1 = new Field(Metadata::getCustom1, "Custom1", "Custom field 1. Reserved for chapters.");
-        public static final Field CUSTOM2 = new Field(Metadata::getCustom2, "Custom2", "Custom field 2. Reserved for color.");
-        public static final Field CUSTOM3 = new Field(Metadata::getCustom3, "Custom3", "Custom field 3. Reserved for playback.");
-        public static final Field CUSTOM4 = new Field(Metadata::getCustom4, "Custom4", "Custom field 4");
-        public static final Field CUSTOM5 = new Field(Metadata::getCustom5, "Custom5", "Custom field 5");
-        public static final Field LAST_PLAYED = new Field(Metadata::getTimePlayedLast, "Last_played", "Marks time the song was played the last time.");
-        public static final Field FIRST_PLAYED = new Field(Metadata::getTimePlayedFirst, "First_played", "Marks time the song was played the first time.");
-        public static final Field ADDED_TO_LIBRARY = new Field(Metadata::getTimeLibraryAdded, "Added_to_library", "Marks time the song was added to the library.");
+        public static final Field<String> PATH = new Field<>(Metadata::getPath, "Path", "Song location");
+        public static final Field<String> FILENAME = new Field<>(Metadata::getFilename, "Filename", "Song file name without suffix");
+        public static final Field<AudioFileFormat> FORMAT = new Field<>(Metadata::getFormat, "Format", "Song file type ");
+        public static final Field<FileSize> FILESIZE = new Field<>(Metadata::getFilesize, "Filesize", "Song file size");
+        public static final Field<String> ENCODING = new Field<>(Metadata::getEncodingType, "Encoding", "Song encoding");
+        public static final Field<Bitrate> BITRATE = new Field<>(Metadata::getBitrate, "Bitrate", "Bits per second of the song - quality aspect.");
+        public static final Field<String> ENCODER = new Field<>(Metadata::getEncoder, "Encoder", "Song encoder");
+        public static final Field<String> CHANNELS = new Field<>(Metadata::getChannels, "Channels", "Number of channels");
+        public static final Field<String> SAMPLE_RATE = new Field<>(Metadata::getSampleRate, "Sample_rate", "Sample frequency");
+        public static final Field<FormattedDuration> LENGTH = new Field<>(Metadata::getLength, "Length", "Song length");
+        public static final Field<String> TITLE = new Field<>(Metadata::getTitle, "Title", "Song title");
+        public static final Field<String> ALBUM = new Field<>(Metadata::getAlbum, "Album", "Song album");
+        public static final Field<String> ARTIST = new Field<>(Metadata::getArtist, "Artist", "Artist of the song");
+        public static final Field<String> ALBUM_ARTIST = new Field<>(Metadata::getAlbumArtist, "Album_artist", "Artist of the song album");
+        public static final Field<String> COMPOSER = new Field<>(Metadata::getComposer, "Composer", "Composer of the song");
+        public static final Field<String> PUBLISHER = new Field<>(Metadata::getPublisher, "Publisher", "Publisher of the album");
+        public static final Field<Integer> TRACK = new Field<>(Metadata::getTrack, "Track", "Song number within album");
+        public static final Field<Integer> TRACKS_TOTAL = new Field<>(Metadata::getTracksTotal, "Tracks_total", "Number of songs in the album");
+        public static final Field<NofX> TRACK_INFO = new Field<>(Metadata::getTrackInfo, "Track_info", "Complete song number in format: track/track total");
+        public static final Field<Integer> DISC = new Field<>(Metadata::getDisc, "Disc", "Disc number within album");
+        public static final Field<Integer> DISCS_TOTAL = new Field<>(Metadata::getDiscsTotal, "Discs_total", "Number of discs in the album");
+        public static final Field<NofX> DISCS_INFO = new Field<>(Metadata::getDiscInfo, "Discs_info", "Complete disc number in format: disc/disc total");
+        public static final Field<String> GENRE = new Field<>(Metadata::getGenre, "Genre", "Genre of the song");
+        public static final Field<Year> YEAR = new Field<>(Metadata::getYear, "Year", "Year the album was published");
+        public static final Field<Cover> COVER = new Field<>(Metadata::getCoverOfTag, "Cover", "Cover of the song");
+        public static final Field<String> COVER_INFO = new Field<>(Metadata::getCoverInfo, "Cover_info", "Cover information");
+        public static final Field<Double> RATING = new Field<>(Metadata::getRatingPercent, "Rating", "Song rating in 0-1 range");
+        public static final Field<Integer> RATING_RAW = new Field<>(Metadata::getRating, "Rating_raw", "Song rating tag value. Depends on tag type");
+        public static final Field<Integer> PLAYCOUNT = new Field<>(Metadata::getPlaycount, "Playcount", "Number of times the song was played.");
+        public static final Field<String> CATEGORY = new Field<>(Metadata::getCategory, "Category", "Category of the song. Arbitrary");
+        public static final Field<String> COMMENT = new Field<>(Metadata::getComment, "Comment", "User comment of the song. Arbitrary");
+        public static final Field<String> LYRICS = new Field<>(Metadata::getLyrics, "Lyrics", "Lyrics for the song");
+        public static final Field<String> MOOD = new Field<>(Metadata::getMood, "Mood", "Mood the song evokes");
+        public static final Field<Color> COLOR = new Field<>(Metadata::getColor, "Color", "Color the song evokes");
+        public static final Field<String> TAGS = new Field<>(Metadata::getTags, "Tags", "Tags associated with this song");
+        public static final Field<List<Chapter>> CHAPTERS = new Field<>(Metadata::getChapters, "Chapters", "Comments at specific time points of the song");
+        public static final Field<String> FULLTEXT = new Field<>(Metadata::getFulltext, "Fulltext", "All possible fields merged into single text. Use for searching.");
+        public static final Field<String> CUSTOM1 = new Field<>(Metadata::getCustom1, "Custom1", "Custom field 1. Reserved for chapters.");
+        public static final Field<String> CUSTOM2 = new Field<>(Metadata::getCustom2, "Custom2", "Custom field 2. Reserved for color.");
+        public static final Field<String> CUSTOM3 = new Field<>(Metadata::getCustom3, "Custom3", "Custom field 3. Reserved for playback.");
+        public static final Field<String> CUSTOM4 = new Field<>(Metadata::getCustom4, "Custom4", "Custom field 4");
+        public static final Field<String> CUSTOM5 = new Field<>(Metadata::getCustom5, "Custom5", "Custom field 5");
+        public static final Field<LocalDateTime> LAST_PLAYED = new Field<>(Metadata::getTimePlayedLast, "Last_played", "Marks time the song was played the last time.");
+        public static final Field<LocalDateTime> FIRST_PLAYED = new Field<>(Metadata::getTimePlayedFirst, "First_played", "Marks time the song was played the first time.");
+        public static final Field<LocalDateTime> ADDED_TO_LIBRARY = new Field<>(Metadata::getTimeLibraryAdded, "Added_to_library", "Marks time the song was added to the library.");
 
         private static final Set<Field> NOT_AUTO_COMPLETABLE = setRO(
             TITLE,RATING_RAW,
@@ -1156,9 +1156,9 @@ public final class Metadata extends MetaItem<Metadata> {
 
         private final String name;
         private final String description;
-        private final Ƒ1<Metadata,?> extractor;
+        private final Ƒ1<? super Metadata,? extends T> extractor;
 
-        Field(Ƒ1<Metadata,?> extractor, String name, String description) {
+        Field(Ƒ1<? super Metadata,? extends T> extractor, String name, String description) {
             this.name = name;
             this.description = description;
             this.extractor = extractor;
@@ -1166,7 +1166,7 @@ public final class Metadata extends MetaItem<Metadata> {
             FIELD_NAMES.add(name);
         }
 
-        public static Field valueOf(String s) {
+        public static Field<?> valueOf(String s) {
             if (PATH.name().equals(s)) return PATH;
             if (FILENAME.name().equals(s)) return FILENAME;
             if (FORMAT.name().equals(s)) return FORMAT;
@@ -1236,7 +1236,7 @@ public final class Metadata extends MetaItem<Metadata> {
         }
 
         @Override
-        public Object getOf(Metadata m) {
+        public T getOf(Metadata m) {
             return extractor.apply(m);
         }
 
@@ -1283,7 +1283,7 @@ public final class Metadata extends MetaItem<Metadata> {
         }
 
         @Override
-        public String toS(Object o, String empty_val) {
+        public String toS(T o, String empty_val) {
             if (o==null || "".equals(o)) return empty_val;
             if (this==RATING_RAW) return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
             if (this==RATING) return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", (double)o);

@@ -10,11 +10,14 @@ import static util.dev.Util.noØ;
 import static util.functional.Util.by;
 
 /**
+ * @param <V> type of value this field extracts from
+ * @param <T> type of this field and the type of the extracted value
+ *
  * @author Martin Polakovic
  */
-public interface ObjectField<V> extends TypedValue {
+public interface ObjectField<V,T> extends TypedValue {
 
-	Object getOf(V value);
+	T getOf(V value);
 
 	/** Returns description of the field. */
 	String description();
@@ -45,7 +48,7 @@ public interface ObjectField<V> extends TypedValue {
 	 * Used as string converter for fielded values. For example in tables.
 	 * When the object signifies empty value, empty string is returned.
 	 */
-	String toS(Object o, String empty_val);
+	String toS(T o, String empty_val);
 
 	/**
 	 * Returns a comparator comparing by the value extracted by this field or {@link util.functional.Util#SAME} if
@@ -77,7 +80,7 @@ public interface ObjectField<V> extends TypedValue {
 			: (Comparator) util.functional.Util.SAME;
 	}
 
-	default String toS(V v, Object o, String empty_val) {
+	default String toS(V v, T o, String empty_val) {
 		return ObjectField.this.toS(o, empty_val);
 	}
 
@@ -124,7 +127,7 @@ public interface ObjectField<V> extends TypedValue {
 		return (this instanceof Enum) ? ((Enum) this).ordinal() : 1;
 	}
 
-	class ColumnField implements ObjectField<Object> {
+	class ColumnField implements ObjectField<Object,Void> {
 
 		public static final Set<ColumnField> FIELDS = new HashSet<>();
 		public static final ColumnField INDEX = new ColumnField("#", "Index of the item in the list");
@@ -154,8 +157,8 @@ public interface ObjectField<V> extends TypedValue {
 		}
 
 		@Override
-		public Object getOf(Object value) {
-			throw new UnsupportedOperationException("Not supported yet.");
+		public Void getOf(Object value) {
+			return null;
 		}
 
 		@Override
@@ -164,8 +167,8 @@ public interface ObjectField<V> extends TypedValue {
 		}
 
 		@Override
-		public String toS(Object o, String empty_val) {
-			throw new UnsupportedOperationException("Not supported yet.");
+		public String toS(Void o, String empty_val) {
+			return "";
 		}
 
 		@Override

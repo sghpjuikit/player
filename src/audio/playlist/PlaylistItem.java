@@ -356,28 +356,28 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         return i;
     }
 
-    public static class Field implements ObjectField<PlaylistItem> {
+    public static class Field<T> implements ObjectField<PlaylistItem,T> {
 
-        public static final Set<Field> FIELDS = new HashSet<>();
-        public static final Field NAME = new Field(PlaylistItem::getName, "Name", "'Song artist' - 'Song title'");
-        public static final Field TITLE = new Field(PlaylistItem::getTitle, "Title", "Song title");
-        public static final Field ARTIST = new Field(PlaylistItem::getArtist, "Artist", "Song artist");
-        public static final Field LENGTH = new Field(PlaylistItem::getTime, "Time", "Song length");
-        public static final Field PATH = new Field(PlaylistItem::getPath, "Path", "Song file path");
-        public static final Field FORMAT = new Field(PlaylistItem::getFormat, "Format", "Song file type");
+        public static final Set<Field<?>> FIELDS = new HashSet<>();
+        public static final Field<String> NAME = new Field<>(PlaylistItem::getName, "Name", "'Song artist' - 'Song title'");
+        public static final Field<String> TITLE = new Field<>(PlaylistItem::getTitle, "Title", "Song title");
+        public static final Field<String> ARTIST = new Field<>(PlaylistItem::getArtist, "Artist", "Song artist");
+        public static final Field<FormattedDuration> LENGTH = new Field<>(PlaylistItem::getTime, "Time", "Song length");
+        public static final Field<String> PATH = new Field<>(PlaylistItem::getPath, "Path", "Song file path");
+        public static final Field<AudioFileFormat> FORMAT = new Field<>(PlaylistItem::getFormat, "Format", "Song file type");
 
         private final String name;
         private final String description;
-        private final Ƒ1<PlaylistItem,?> extractor;
+        private final Ƒ1<? super PlaylistItem,? extends T> extractor;
 
-        Field(Ƒ1<PlaylistItem,?> extractor, String name, String description) {
+        Field(Ƒ1<? super PlaylistItem,? extends T> extractor, String name, String description) {
             this.name = name;
             this.description = description;
             this.extractor = extractor;
             FIELDS.add(this);
         }
 
-        public static Field valueOf(String s) {
+        public static Field<?> valueOf(String s) {
             if (NAME.name().equals(s)) return NAME;
             if (TITLE.name().equals(s)) return TITLE;
             if (ARTIST.name().equals(s)) return ARTIST;
@@ -403,7 +403,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         }
 
         @Override
-        public Object getOf(PlaylistItem p) {
+        public T getOf(PlaylistItem p) {
             return extractor.apply(p);
         }
 
@@ -432,7 +432,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         public boolean isTypeNumberNonegative() { return true; }
 
         @Override
-        public String toS(Object o, String empty_val) {
+        public String toS(T o, String empty_val) {
             if (this==NAME || this==TITLE || this==ARTIST) return "".equals(o) ? empty_val : o.toString();
             if(this==LENGTH || this==PATH || this==FORMAT) return o.toString();
             throw new SwitchException(this);

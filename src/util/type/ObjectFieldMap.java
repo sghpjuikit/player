@@ -19,18 +19,18 @@ public class ObjectFieldMap {
 	private final ClassMap<Set> cache = new ClassMap<>();
 	private final ClassMap<Set> cache2 = new ClassMap<>();
 
-	public <T> void add(Class<T> c, Collection<? extends ObjectField<T>> fields) {
+	public <T> void add(Class<T> c, Collection<? extends ObjectField<T,?>> fields) {
 		noØ(c, fields);
 		fields.forEach(field -> add(c,field));
 	}
 
-	public <T> void add(Class<T> c, ObjectField<T>... fields) {
+	public <T> void add(Class<T> c, ObjectField<T,?>... fields) {
 		noØ(c, fields);
 		stream(fields).forEach(field -> add(c,field));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> void add(Class<T> c, ObjectField<T> field) {
+	public <T> void add(Class<T> c, ObjectField<T,?> field) {
 		noØ(c, field);
 		fields.computeIfAbsent(c, key -> new HashSet<>()).add(field);
 		cache.remove(c);
@@ -38,13 +38,13 @@ public class ObjectFieldMap {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Set<ObjectField<T>> get(Class<T> c) {
+	public <T> Set<ObjectField<T,?>> get(Class<T> c) {
 		noØ(c);
 		return (Set) cache.computeIfAbsent(c, key -> stream(fields.getElementsOfSuperV(key)).flatMap(Set::stream).toSet());
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Set<ObjectField<T>> getExact(Class<T> c) {
+	public <T> Set<ObjectField<T,?>> getExact(Class<T> c) {
 		noØ(c);
 		return (Set) cache2.computeIfAbsent(c, key -> stream(fields.getElementsOf(key)).flatMap(Set::stream).toSet());
 	}

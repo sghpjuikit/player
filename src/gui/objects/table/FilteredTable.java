@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -61,7 +62,7 @@ import static util.reactive.Util.sizeOf;
  */
 public class FilteredTable<T> extends FieldedTable<T> {
 
-	public ObjectField<T> primaryFilterField;
+	public ObjectField<T,?> primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
 	private final SortedList<T> sortedItems;
@@ -71,7 +72,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * @param type exact type of the item displayed in the table
 	 * @param main_field to be chosen as main and default search field or null
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T> main_field) {
+	public FilteredTable(Class<T> type, ObjectField<T,?> main_field) {
 		this(type, main_field, observableArrayList());
 	}
 
@@ -81,7 +82,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * gui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
 	 * @param backing_list non null backing list of items to be displayed in the table
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T> main_field, ObservableList<T> backing_list) {
+	public FilteredTable(Class<T> type, ObjectField<T,?> main_field, ObservableList<T> backing_list) {
 		super(type);
 
 		allItems = noØ(backing_list);
@@ -299,11 +300,11 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	};
 
 	/** Table's filter node. */
-	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T>> {
+	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
 
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
 			super(() -> {
-				FieldedPredicateItemNode<T,ObjectField<T>> g = new FieldedPredicateItemNode<>(
+				FieldedPredicateItemNode<T,ObjectField<T,Object>> g = new FieldedPredicateItemNode<>(
 					in -> Functors.pool.getIO(in, Boolean.class),
 					in -> Functors.pool.getPrefIO(in, Boolean.class)
 				);
@@ -317,15 +318,19 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 	}
 
-	private PredicateData<ObjectField<T>> getPrimaryFilterPredicate() {
-		return Optional.ofNullable(primaryFilterField).map(PredicateData::ofField).orElse(null);
+	private PredicateData<ObjectField<T,Object>> getPrimaryFilterPredicate() {
+		return Optional.ofNullable(primaryFilterField)
+			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
+			.map(f -> (PredicateData<ObjectField<T,Object>>)f)
+			.orElse(null);
 	}
 
-	private List<PredicateData<ObjectField<T>>> getFilterPredicates(Class<T> filterType) {
+	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
 		return stream(App.APP.classFields.get(filterType))
 			.filter(ObjectField::isTypeStringRepresentable)
-			.map(PredicateData::ofField)
+			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
+			.map(f -> (PredicateData<ObjectField<T,Object>>)f)
 			.toList();
 	}
 
@@ -369,7 +374,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		 * text matching will be done by this field. Its column cell data must be
 		 * String (or search will be ignored) and column should be visible.
 		 */
-		private ObjectField<T> field;
+		private ObjectField<T,?> field;
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
@@ -387,7 +392,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			TableColumn c = field==null ? null : getColumn(field).orElse(null);
 			if (c!=null && !getItems().isEmpty() && c.getCellData(0) instanceof String) {
 				for (int i = 0; i<getItems().size(); i++) {
-					String item = (String) field.getOf(getItems().get(i));
+					String item = (String) field.getOf(getItems().get(i));	// TODO: make compile-time safe
 					if (matches(item, searchQuery.get())) {
 						scrollToCenter(i);
 						updateSearchStyles();
@@ -398,7 +403,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		/** Sets fields to be used in search. Default is main field. */
-		public void setColumn(ObjectField<T> field) {
+		public void setColumn(ObjectField<T,?> field) {
 			// TODO
 			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
@@ -435,7 +440,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 /* --------------------- SORT --------------------------------------------------------------------------------------- */
 
 	@Override
-	public void sortBy(ObjectField<T> field) {
+	public void sortBy(ObjectField<T,?> field) {
 		getSortOrder().clear();
 		allItems.sort(field.comparator());
 	}
@@ -469,7 +474,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					int j = getIndex();
 					String txt;
 					if (zeropadIndex.get()) {
-						int i = showOriginalIndex.get() ? filteredItems.getSourceIndex(j) : j;      // BUG HERE  // TODO: ?
+						int i = showOriginalIndex.get() ? filteredItems.getSourceIndex(j) : j;
 						txt = zeroPad(i + 1, getMaxIndex(), '0');
 					} else
 						txt = String.valueOf(j + 1);

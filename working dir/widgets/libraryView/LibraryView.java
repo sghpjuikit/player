@@ -119,7 +119,7 @@ public class LibraryView extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
-    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<Metadata.Field>(CATEGORY,
+    public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<Metadata.Field<?>>(CATEGORY,
         () -> filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
         this::applyData
     );
@@ -152,10 +152,10 @@ public class LibraryView extends FXMLController {
 //        table.setKeyNameColMapper(name-> Field.FIELD_NAMES.contains(name) ? MetadataGroup.Field.VALUE.name() : name);
         table.setColumnFactory(f -> {
             if (f instanceof MetadataGroup.Field) {
-                MetadataGroup.Field mgf = (MetadataGroup.Field) f;
+                MetadataGroup.Field<?> mgf = (MetadataGroup.Field) f;
                 Metadata.Field mf = fieldFilter.getValue();
-                TableColumn<MetadataGroup,?> c = new TableColumn<>(mgf.toString(mf));
-                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(mgf.getOf(cf.getValue())));
+                TableColumn<MetadataGroup,Object> c = new TableColumn<>(mgf.toString(mf));
+                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(mgf.getOf(cf.getValue())));
                 Pos a = mgf.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
                 c.setCellFactory(mgf==AVG_RATING
                         ? (Callback) APP.ratingCell.getValue()
@@ -169,8 +169,8 @@ public class LibraryView extends FXMLController {
                 );
                 return c;
             } else {
-                TableColumn<MetadataGroup,?> c = new TableColumn<>(f.toString());
-                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(f.getOf(cf.getValue())));
+                TableColumn<MetadataGroup,Object> c = new TableColumn<>(f.toString());
+                c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
                 c.setCellFactory(column -> table.buildDefaultCell(f));
                 return c;
             }
@@ -182,7 +182,7 @@ public class LibraryView extends FXMLController {
 
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
-                // additional css styleclasses
+                // additional css style classes
                 .styleRuleAdd("played", MetadataGroup::isPlaying)
                 // add behavior
                 .onLeftDoubleClick((row,e) -> playSelected())
@@ -304,7 +304,7 @@ public class LibraryView extends FXMLController {
         // rebuild value column
         // TODO: this should be fully type safe
         table.getColumn(VALUE).ifPresent(c -> {
-            TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
+            TableColumn<MetadataGroup,Object> t = table.getColumnFactory().call(VALUE);
             c.setText(t.getText());
             c.setCellValueFactory((Callback)t.getCellValueFactory());
             c.setCellFactory((Callback)t.getCellFactory());

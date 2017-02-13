@@ -754,8 +754,10 @@ public interface Util {
 	/**
 	 * @return the latest mouse position
 	 */
+	// TODO: return Try
 	static Point2D getMousePosition() {
-		Point p = MouseInfo.getPointerInfo().getLocation();
+		PointerInfo pi = MouseInfo.getPointerInfo();		// this can be null sometimes for some reason
+		Point p = pi==null ? new Point(0, 0) : pi.getLocation();
 		return new Point2D(p.getX(), p.getY());
 	}
 

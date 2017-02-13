@@ -45,7 +45,6 @@ import util.graphics.Icons;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR_ALT;
 import static java.lang.Math.ceil;
-import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -70,7 +69,7 @@ public class RatingSkin extends SkinBase<Rating> {
 			return;
 
 		double v = calculateRating(e.getSceneX(), e.getSceneY());
-		updateRating(v);
+		updateClip(v);
 
 		e.consume();
 	};
@@ -79,7 +78,7 @@ public class RatingSkin extends SkinBase<Rating> {
 			return;
 
 		double v = calculateRating(e.getSceneX(), e.getSceneY());
-		updateRating(v);
+		updateClip(v);
 		old_rating = v;
 
 		// fire rating changed event
@@ -94,10 +93,10 @@ public class RatingSkin extends SkinBase<Rating> {
 
 		recreateButtons();
 
-		registerChangeListener(r.rating, e -> updateRating(r.rating.get()));
+		registerChangeListener(r.rating, e -> updateClip(r.rating.get()));
 		registerChangeListener(r.icons, e -> recreateButtons());
-		registerChangeListener(r.updateOnHover, e -> updateRating(r.rating.get()));
-		registerChangeListener(r.partialRating, e -> updateRating(r.rating.get()));
+		registerChangeListener(r.updateOnHover, e -> updateClip(r.rating.get()));
+		registerChangeListener(r.partialRating, e -> updateClip(r.rating.get()));
 
 		// remember rating and return to old after mouse hover ends
 		r.addEventHandler(MOUSE_ENTERED, e -> {
@@ -108,7 +107,7 @@ public class RatingSkin extends SkinBase<Rating> {
 		r.addEventHandler(MOUSE_EXITED, e -> {
 			e.consume();
 			if (r.updateOnHover.get())
-				updateRating(old_rating);
+				updateClip(old_rating);
 		});
 	}
 
@@ -129,7 +128,7 @@ public class RatingSkin extends SkinBase<Rating> {
 		foregroundContainer.getChildren().add(f);
 		backgroundContainer.getChildren().add(b);
 
-		updateRating(getSkinnable().rating.get());
+		updateClip(getSkinnable().rating.get());
 	}
 
 	// returns rating based on scene relative mouse position
@@ -137,8 +136,8 @@ public class RatingSkin extends SkinBase<Rating> {
 		// get 0-1 position value
 		final Rating r = getSkinnable();
 		final Point2D b = backgroundContainer.sceneToLocal(sceneX, sceneY);
-		double leftP = backgroundContainer.getPadding().getLeft();
-		double rightP = backgroundContainer.getPadding().getRight();
+		double leftP = backgroundContainer.snappedLeftInset();
+		double rightP = backgroundContainer.snappedRightInset();
 		double w = r.getWidth() - leftP - rightP;
 		double x = b.getX() - leftP;
 		x = clip(0, x, w);
@@ -154,17 +153,10 @@ public class RatingSkin extends SkinBase<Rating> {
 		return nv;
 	}
 
-	// sets rating to thespecfied one and updates both skin & skinnable
-	private void updateRating(double v) {
-		// wont update sometimes without runlater
-		runLater(() -> updateClip(v));
-		updateClip(v);
-	}
-
 	// updates the skin to the current values
 	private void updateClip(double v) {
 		final Rating r = getSkinnable();
-		double w = r.getWidth() - (snappedLeftInset() + snappedRightInset());
+		double w = r.getWidth() - (backgroundContainer.snappedLeftInset() + backgroundContainer.snappedRightInset());
 		double x = w*v;
 
 		foregroundClipRect.setWidth(x);
@@ -184,5 +176,11 @@ public class RatingSkin extends SkinBase<Rating> {
 		l.setOnMouseMoved(mouseMoveHandler);
 		l.setOnMouseClicked(mouseClickHandler);
 		return l;
+	}
+
+	@Override
+	protected void layoutChildren(double x, double y, double w, double h) {
+		super.layoutChildren(x, y, w, h);
+		updateClip(getSkinnable().rating.get());
 	}
 }

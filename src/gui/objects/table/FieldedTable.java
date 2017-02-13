@@ -66,7 +66,7 @@ import static util.type.Util.invokeMethodP0;
 public class FieldedTable<T> extends ImprovedTable<T> {
 
 	private Ƒ1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
-	private Ƒ1<? super ObjectField<T,?>, ? extends TableColumn<T,?>> colFact;
+	private Ƒ1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 
 	private TableColumnInfo columnState;
@@ -104,15 +104,15 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.toList();
 	}
 
-	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>, TableColumn<T,Object>> columnFactory) {
+	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,Object>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn)((Ƒ1)columnFactory).call(f);
+			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((Ƒ1) columnFactory).call(f);
 			c.setUserData(f);
 			return c;
 		};
 	}
 
-	public <X> Ƒ1<? super ObjectField<? super T,X>, TableColumn<T,X>> getColumnFactory() {
+	public <X> Ƒ1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
 		return (Ƒ1) colFact;
 	}
 
@@ -325,7 +325,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return cell;
 	}
 
-	public static <T,X> TableCell<T,X> defaultCell(ObjectField<? super T,X> f) {
+	public static <T, X> TableCell<T,X> defaultCell(ObjectField<? super T,X> f) {
 		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
 		TableCell<T,X> cell = new TableCell<>() {
 			@Override

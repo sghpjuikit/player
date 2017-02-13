@@ -1,14 +1,13 @@
 package gui.itemnode;
 
+import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import util.access.fieldvalue.ObjectField;
-
+import util.functional.Functors.Ƒ1;
 import static util.functional.Util.IS;
 
 /**
@@ -18,20 +17,17 @@ import static util.functional.Util.IS;
  */
 public class FieldedPredicateChainItemNode<T,F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 
-    private final List<PredicateData<F>> data = new ArrayList<>();
+    protected Supplier<PredicateData<F>> supplier;
+    protected final List<PredicateData<F>> data = new ArrayList<>();
 
-    public FieldedPredicateChainItemNode(Supplier<FieldedPredicateItemNode<T,F>> chainedFactory) {
-        this(1,chainedFactory);
-    }
-
-    public FieldedPredicateChainItemNode(int i, Supplier<FieldedPredicateItemNode<T,F>> chainedFactory) {
-        super(i, chainedFactory);
-
+    public FieldedPredicateChainItemNode(Ƒ1<FieldedPredicateChainItemNode<T,F>,FieldedPredicateItemNode<T,F>> chainedFactory) {
+        super(0, Integer.MAX_VALUE, null);
+        this.chainedFactory = () -> chainedFactory.apply(this);
         inconsistent_state = false;
         generateValue();
     }
 
-    protected List<PredicateData<F>> getData() {
+    public List<PredicateData<F>> getData() {
         return data;
     }
 
@@ -44,7 +40,12 @@ public class FieldedPredicateChainItemNode<T,F extends ObjectField<T,Object>> ex
     }
 
     public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
+        this.supplier = supplier;
         chain.forEach(g -> g.chained.setPrefTypeSupplier(supplier));
+    }
+
+    public Supplier<PredicateData<F>> getPrefTypeSupplier() {
+        return supplier;
     }
 
     public boolean isEmpty() {
@@ -53,7 +54,7 @@ public class FieldedPredicateChainItemNode<T,F extends ObjectField<T,Object>> ex
 
     public void clear() {
         inconsistent_state = true;
-        chain.setAll(chain.get(0));
+        if (!chain.isEmpty()) chain.setAll(chain.get(0));   // TODO: handle properly
         chain.forEach(c -> c.chained.clear());
         inconsistent_state = false;
         generateValue();

@@ -1,9 +1,12 @@
 package gui.itemnode;
 
+import de.jensd.fx.glyphs.GlyphIcons;
+import gui.itemnode.ItemNode.ValueNode;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -14,14 +17,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import de.jensd.fx.glyphs.GlyphIcons;
-import gui.itemnode.ItemNode.ValueNode;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.Build.appTooltip;
@@ -74,12 +72,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         this.chainedFactory = chainedFactory;
         growTo(len);
         maxChainLength.addListener((o,ov,nv) -> {
-            int m = nv.intValue();
-            if (m<chain.size()) {
-                chain.setAll(chain.subList(0, m));
-                generateValue();
-            }
-            chain.forEach(Link::updateIcons);
+            if (nv.intValue()<ov.intValue())
+                shrinkTo(nv.intValue());
         });
         chain.addListener((Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
         inconsistent_state = false;
@@ -127,6 +121,14 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         generateValue();
     }
 
+    public void shrinkTo(int n) {
+        if (n<chain.size()) {
+            chain.setAll(chain.stream().limit(n).collect(toList()));
+            generateValue();
+            chain.forEach(Link::updateIcons);
+        }
+    }
+
     /** {@inheritDoc} */
     @Override
     public VBox getNode() {
@@ -140,7 +142,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      */
     @Override
     public void focus() {
-        chain.get(chain.size()-1).chained.focus();
+        if (!chain.isEmpty())
+            chain.get(chain.size()-1).chained.focus();
     }
 
     protected void generateValue() {

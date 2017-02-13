@@ -303,16 +303,17 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
 
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
-			super(() -> {
+			super(THIS -> {
 				FieldedPredicateItemNode<T,ObjectField<T,Object>> g = new FieldedPredicateItemNode<>(
 					in -> Functors.pool.getIO(in, Boolean.class),
 					in -> Functors.pool.getPrefIO(in, Boolean.class)
 				);
-				g.setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
-				g.setData(getFilterPredicates(filterType));
+				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
+				g.setData(THIS.getData());
 				return g;
 			});
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
+			growTo1();
 			onItemChange = filterList::setPredicate;
 			setData(getFilterPredicates(filterType));
 		}
@@ -321,7 +322,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	private PredicateData<ObjectField<T,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(primaryFilterField)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
-			.map(f -> (PredicateData<ObjectField<T,Object>>)f)
+			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
 			.orElse(null);
 	}
 
@@ -330,7 +331,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			.filter(ObjectField::isTypeStringRepresentable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
-			.map(f -> (PredicateData<ObjectField<T,Object>>)f)
+			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
 			.toList();
 	}
 
@@ -392,7 +393,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			TableColumn c = field==null ? null : getColumn(field).orElse(null);
 			if (c!=null && !getItems().isEmpty() && c.getCellData(0) instanceof String) {
 				for (int i = 0; i<getItems().size(); i++) {
-					String item = (String) field.getOf(getItems().get(i));	// TODO: make compile-time safe
+					String item = (String) field.getOf(getItems().get(i));    // TODO: make compile-time safe
 					if (matches(item, searchQuery.get())) {
 						scrollToCenter(i);
 						updateSearchStyles();
@@ -419,7 +420,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		private void updateSearchStyles() {
-			if (isCancelable) searchAutocanceller.start(cancelActivityDelay);
+			if (isCancelable) searchAutoCanceller.start(cancelActivityDelay);
 			updateSearchStyleRowsNoReset();
 		}
 
@@ -429,10 +430,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				T t = row.getItem();
 				Object o = t==null ? null : field.getOf(t);
 				boolean isMatch = o instanceof String && matches((String) o, searchQuery.get());
-				row.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch);
-				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(SEARCHMATCHPC, searchOn && isMatch));
-				row.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch);
-				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(SEARCHMATCHNOTPC, searchOn && !isMatch));
+				row.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
+				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch));
+				row.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);
+				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch));
 			}
 		}
 	}

@@ -297,12 +297,9 @@ public class LibraryView extends FXMLController {
 	/******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "unused"})
     private void applyData(Object o) {
-        Metadata.Field f = fieldFilter.getValue();
-
         // rebuild value column
-        // TODO: this should be fully type safe
         table.getColumn(VALUE).ifPresent(c -> {
             TableColumn<MetadataGroup,Object> t = table.getColumnFactory().call(VALUE);
             c.setText(t.getText());
@@ -310,9 +307,15 @@ public class LibraryView extends FXMLController {
             c.setCellFactory((Callback)t.getCellFactory());
             table.refreshColumn(c);
         });
+
         // update filters
+        Metadata.Field f = fieldFilter.getValue();
+        table.filterPane.inconsistent_state = true;
         table.filterPane.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-        table.filterPane.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));    // TODO: we shouldn't be setting it here
+        table.filterPane.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.shrinkTo(0);
+        table.filterPane.growTo1();
+        table.filterPane.clear();
 
         setItems(in_items.getValue());
     }

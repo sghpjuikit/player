@@ -104,8 +104,12 @@ public class AlbumView extends ClassController {
 		// update filters of VALUE type, we must wat until skin has been built
 		doOnceIfNonNull(view.skinProperty(), skin -> {
 			Metadata.Field f = ALBUM;
+			view.implGetSkin().filter.inconsistent_state = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
 			view.implGetSkin().filter.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
+			view.implGetSkin().filter.shrinkTo(0);
+			view.implGetSkin().filter.growTo1();
+			view.implGetSkin().filter.clear();
 		});
 	}
 

@@ -28,6 +28,7 @@ import util.functional.Util;
 
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 
 /**
@@ -95,7 +96,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
         negB.tooltip(negTooltip);
     }
 
-    // TODO: this should be advertied that supplier can return null
+    // TODO: this should be advertized that supplier can return null
     public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
         prefTypeSupplier = supplier;
     }
@@ -178,6 +179,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
 		}
 
 		public PredicateData(String name, Class type, T value) {
+		    noØ(name, type, value);
 			this.name = name;
 			this.type = type;
 			this.value = value;

@@ -343,18 +343,19 @@ public class GridViewSkin<T,F> implements Skin<GridView> {
     public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
 
         private Filter(Class<F> filterType, FilteredList<T> filterList) {
-            super(() -> {
+            super(THIS -> {
                 FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(
                     in -> Functors.pool.getIO(in, Boolean.class),
                     in -> Functors.pool.getPrefIO(in, Boolean.class)
                 );
-                g.setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
-                g.setData(getFilterPredicates(filterType));
+                g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
+                g.setData(THIS.getData());
                 return g;
             });
             setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
             onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
             setData(getFilterPredicates(filterType));
+            growTo1();
 
 	        EventHandler<KeyEvent> filterKeyHandler = e -> {
 		        KeyCode k = e.getCode();

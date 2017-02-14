@@ -3622,7 +3622,7 @@ check-icon-disabling:selected {
  */
 .thumbnail-border {
     -fx-border-color: black;
-    -fx-border-width: 2;
+    -fx-border-width: 4;
 }
 
 
@@ -3806,7 +3806,7 @@ check-icon-disabling:selected {
 }
 
 .rating-button:max {
-    -fx-fill: derive(-fx-def-font-color,50%);;
+    -fx-fill: derive(-fx-def-font-color,50%);
 }
 
 /*
@@ -4083,11 +4083,12 @@ check-icon-disabling:selected {
 .grid-cell {
     -fx-border-width: 0;
     -fx-padding: 0;
+    -fx-background-color: rgba(0,0,0,0.2);
 }
 
 .grid-cell:selected {
-    -fx-background-insets: -4 -4 6 -4;
-    -fx-background-color: black;
+    -fx-background-insets: -2;
+    -fx-background-color: rgba(0,0,0,0.4);
     -fx-padding: -2;
 }
 

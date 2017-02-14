@@ -274,3 +274,10 @@
    -fx-background-color: -fx-pane-color;
    -fx-padding: 6;
 }
+
+
+.grid-cell:selected {
+    -fx-background-insets: -2;
+    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-padding: -2;
+}

@@ -110,6 +110,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 		double horizontalCellSpacing = (w - columns*cellWidth)/(columns + 1);
 		double xPos = 0;
 		double yPos = 0;
+		double cellOffsetX = xPos + cellWidth + horizontalCellSpacing;
 		for (Node child : getChildren()) {
 			child.resizeRelocate(
 				snapPosition(xPos + horizontalCellSpacing),
@@ -117,7 +118,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 				snapSize(cellWidth),
 				snapSize(cellHeight)
 			);
-			xPos = xPos + cellWidth + horizontalCellSpacing;
+			xPos += cellOffsetX;
 		}
 	}
 

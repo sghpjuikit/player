@@ -244,8 +244,12 @@
  -Dprism.order=sw
  -Dprism.verbose="true"
  -Dprism.allowhidpi="true"
- -Dglass.win.minHiDPI=1
+ -Dglass.win.uiScale=[NNN%|NNNdpi|N.NNN]
+ -Dglass.win.renderScale=[NNN%|NNNdpi|N.NNN]
  -Dglass.win.renderScale=1
+ -Dglass.win.minHiDPI=NNN (A Windows DPI value)
+ -Dglass.win.minHiDPI=1
+ -Dglass.win.forceIntegerRenderScale=[true|false]
  -Djavafx.pulseLogger=true // javafx pulse debug
  -Djavafx.animation.fullspeed=true
  -Djavafx.animation.framerate=120

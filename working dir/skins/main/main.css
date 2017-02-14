@@ -3622,7 +3622,7 @@ check-icon-disabling:selected {
  */
 .thumbnail-border {
     -fx-border-color: black;
-    -fx-border-width: 4;
+    -fx-border-width: 2;
 }
 
 

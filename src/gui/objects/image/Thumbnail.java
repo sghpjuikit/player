@@ -197,14 +197,10 @@ public class Thumbnail extends ImageNode {
 		root.setPrefSize(width, height);
 		root.setMaxSize(width, height);
 		imageView.getStyleClass().add(image_styleclass);
-//        imageView.setManaged(false);
 		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
 		img_border.setMouseTransparent(true);
 		img_border.setManaged(false);
-
-//        root.setSnapToPixel(false);
-//        img_border.setSnapToPixel(false);
 
 		// update ratios
 		ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));

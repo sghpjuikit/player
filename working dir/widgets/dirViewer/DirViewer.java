@@ -1,10 +1,9 @@
 package dirViewer;
 
-import gui.objects.grid.GridCell;
+import gui.objects.grid.GridFileThumbCell;
+import gui.objects.grid.GridFileThumbCell.AnimateOn;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
-import gui.objects.image.ImageNode.ImageSize;
-import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,22 +14,13 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.LazyR;
 import util.Sort;
-import util.SwitchException;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
-import util.animation.Anim;
-import util.async.executor.EventReducer;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
@@ -39,16 +29,16 @@ import util.conf.IsConfig.EditMode;
 import util.file.Environment;
 import util.file.FileSort;
 import util.functional.Functors.PƑ0;
+import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
 import util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static dirViewer.DirViewer.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static dirViewer.DirViewer.CellSize.NORMAL;
+import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static java.util.Comparator.nullsLast;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
-import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static layout.widget.Widget.Group.OTHER;
@@ -56,7 +46,6 @@ import static main.App.APP;
 import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
 import static util.async.Async.*;
-import static util.dev.Util.throwIfNotFxThread;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.*;
@@ -72,8 +61,8 @@ import static util.graphics.Util.setAnchor;
         name = "Dir Viewer",
         description = "Displays directory hierarchy and files as thumbnails in a "
                 + "vertically scrollable grid. Intended as simple library",
-        howto = "",
-        notes = "",
+//        howto = "",
+//        notes = "",
         version = "0.5",
         year = "2015",
         group = OTHER
@@ -92,7 +81,14 @@ public class DirViewer extends ClassController {
 	@IsConfig(name = "Location recursive", info = "Merges all location content recursively into single union location")
 	final V<Boolean> filesAll = new V<>(false, f -> revisitCurrent());
 
-    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, NORMAL.width, NORMAL.height, 5, 5);
+    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+    final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
+    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
+    @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
+    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
+
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
@@ -105,21 +101,18 @@ public class DirViewer extends ClassController {
     );
     private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
 
-    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(grid));
-    @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
-    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
+
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     final VarEnum<String> filter = new VarEnum<String>("File - all", () -> map(filters, f -> f.name), v -> {
 	    filterPredicate.set(buildFilter());
 	    revisitCurrent();
     });
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    final V<Sort> sort = new V<>(ASCENDING, this::resort);
+    final V<Sort> sort = new V<>(ASCENDING, this::applySort);
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
-    final V<FileSort> sort_file = new V<>(DIR_FIRST, this::resort);
+    final V<FileSort> sort_file = new V<>(DIR_FIRST, this::applySort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> resort());
+    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
@@ -167,7 +160,7 @@ public class DirViewer extends ClassController {
     @Override
     public void refresh() {
         initialized = true;
-        cellSize.applyValue();
+        applyCellSize();
         // temporary bug fix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
@@ -189,10 +182,6 @@ public class DirViewer extends ClassController {
     }
 
     private void visit(Item dir) {
-        visit(dir, null);
-    }
-
-    private void visit(Item dir, Item scrollTo) {
         if (!initialized) return;
         if (item != null) item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition();
         if (item == dir) return;
@@ -210,7 +199,7 @@ public class DirViewer extends ClassController {
                         grid.implGetSkin().getFlow().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
-                    run(millis(500), () -> grid.requestFocus());
+                    run(millis(500), grid::requestFocus);
                 }, FX)
                 .showProgress(getWidget().getWindow().taskAdd())
                 .run();
@@ -269,10 +258,15 @@ public class DirViewer extends ClassController {
         }
     }
 
+    void applyCellSize() {
+        grid.setCellWidth(cellSize.get().width);
+        grid.setCellHeight(cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT);
+    }
+
     /**
      * Resorts grid's items according to current sort criteria.
      */
-    private void resort() {
+    private void applySort() {
         grid.getItemsRaw().sort(buildSortComparator());
     }
 
@@ -285,7 +279,7 @@ public class DirViewer extends ClassController {
         return cmpHetero.thenComparing(cmpHomo);
     }
 
-    private boolean filter(File f) {
+    private boolean applyFilter(File f) {
         return !f.isHidden() && f.canRead() && filterPredicate.get().apply(f);
     }
 
@@ -294,135 +288,33 @@ public class DirViewer extends ClassController {
      * it, but both vertically & horizontally. This avoids loading all files at once and allows
      * unlimited scaling.
      */
-    private class Cell extends GridCell<Item, File> {
-        Pane root;
-        Label name;
-        Thumbnail thumb;
-        EventReducer<Item> setCoverLater = EventReducer.toLast(100, item -> executorThumbs.execute(task(() -> {
-            sleep(10); // gives FX thread some space to avoid lag under intense workload
-            runFX(() -> {
-                if (item == getItem())
-                    setCoverNow(item);
-            });
-        })));
-
-        @Override
-        protected void updateItem(Item item, boolean empty) {
-            if (getItem() == item) return;
-            super.updateItem(item, empty);
-
-            if (item == null) {
-                // empty cell has no graphics
-                // we do not clear the content of the graphics however
-                setGraphic(null);
-            } else {
-                if (root == null) {
-                    // we create graphics only once and only when first requested
-                    createGraphics();
-                    // we set graphics only once (when creating it)
-                    setGraphic(root);
-                }
-                // if cell was previously empty, we set graphics back
-                // this improves performance compared to setting it every time
-                if (getGraphic() != root) setGraphic(root);
-
-                // set name
-                name.setText(getName(item.val));
-                // set cover
-                // The item caches the cover Image, so it is only loaded once. That is a heavy op.
-                // This method can be called very frequently and:
-                //     - block ui thread when scrolling
-                //     - reduce ui performance when resizing
-                // Solved by delaying the image loading & drawing, which reduces subsequent
-                // invokes into single update (last).
-	            boolean loadLater = item.cover_loadedFull;
-                if (loadLater) setCoverNow(item);
-                else setCoverLater(item);
-            }
+    private class Cell extends GridFileThumbCell {
+        public Cell() {
+            super(DirViewer.this.executorThumbs, DirViewer.this.executorImage);
         }
 
         @Override
-        public void updateSelected(boolean selected) {
-            super.updateSelected(selected);
-            if (thumb != null && thumb.image.get() != null) thumb.animationPlayPause(selected);
+        protected AnimateOn computeAnimateOn() {
+            return animateThumbOn.get();
         }
 
-        private void createGraphics() {
-            name = new Label();
-            name.setAlignment(Pos.CENTER);
-            thumb = new Thumbnail() {
-                @Override
-                protected Object getRepresentant() {
-                    return getItem() == null ? null : getItem().val;
-                }
+        @Override
+        protected double computeCellTextHeight() {
+            return CELL_TEXT_HEIGHT;
+        }
+
+        @Override
+        protected void onAction(Item i, boolean edit) {
+            doubleClickItem(i, edit);
+        }
+
+        @Override
+        protected Runnable computeTask(Runnable r) {
+            final long id = visitId.get();
+            return () -> {
+                if (id == visitId.get())
+                    r.run();
             };
-            thumb.getPane().setOnMouseClicked(e -> {
-                if (e.getButton() == PRIMARY && e.getClickCount() == 2) {
-                    doubleClickItem(getItem(), e.isShiftDown());
-                    e.consume();
-                }
-            });
-            thumb.getPane().hoverProperty().addListener((o, ov, nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0, 0, 0.2, 0) : null));
-            root = new Pane(thumb.getPane(), name) {
-                // Cell layout should be fast - gets called multiple times on grid resize.
-                // Why not use custom pane for more speed if we can.
-                @Override
-                protected void layoutChildren() {
-                    double w = getWidth();
-                    double h = getHeight();
-                    thumb.getPane().resizeRelocate(0, 0, w, h - CELL_TEXT_HEIGHT);
-                    name.resizeRelocate(0, h - CELL_TEXT_HEIGHT, w, CELL_TEXT_HEIGHT);
-                }
-            };
-            root.setPadding(Insets.EMPTY);
-            root.setMinSize(-1, -1);
-            root.setPrefSize(-1, -1);
-            root.setMaxSize(-1, -1);
-        }
-
-        /**
-         * Begins loading cover for the item. If item changes meanwhile, the result is stored
-         * (it will not need to load again) to the old item, but not showed.
-         * <p/>
-         * Thumbnail quality may be decreased to achieve good performance, while loading high
-         * quality thumbnail in the bgr. Each phase uses its own executor.
-         * <p/>
-         * Must be called on FX thread.
-         */
-        private void setCoverNow(Item item) {
-	        throwIfNotFxThread();
-	        if (item.cover_loadedFull) {
-		        setCoverPost(item, true, item.cover_file, item.cover);
-	        } else {
-                ImageSize size = thumb.calculateImageLoadSize();
-	            double w = size.width, h = size.height;
-	            // load thumbnail
-	            executorThumbs.execute(task(() ->
-	                item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-	            ));
-	            // load high quality thumbnail
-	            executorImage.execute(task(() ->
-	                item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-	            ));
-	        }
-        }
-
-	    private void setCoverLater(Item item) {
-		    throwIfNotFxThread();
-		    thumb.loadImage((File) null); // prevent displaying old content before cover loads
-		    setCoverLater.push(item);
-	    }
-
-	    /** Finished loading of the cover. */
-        private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
-            runFX(() -> {
-                if (item == getItem()) { // prevents content inconsistency
-                    boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, imgFile, img);
-                    thumb.loadImage(img, imgFile);
-                    if (animate)
-                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
-                }
-            });
         }
     }
 
@@ -439,7 +331,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected boolean filterChildFile(File f) {
-            return DirViewer.this.filter(f);
+            return DirViewer.this.applyFilter(f);
         }
     }
 
@@ -509,45 +401,16 @@ public class DirViewer extends ClassController {
                 .orElseGet(() -> stream(filters).findAny(f -> "File - all".equals(f.name)).get());
     }
 
-    private Runnable task(Runnable r) {
-        final long id = visitId.get();
-        return () -> {
-            if (id == visitId.get())
-                r.run();
-        };
-    }
-
     enum CellSize {
-        SMALL(80, 100 + CELL_TEXT_HEIGHT),
-        NORMAL(160, 200 + CELL_TEXT_HEIGHT),
-        LARGE(240, 300 + CELL_TEXT_HEIGHT),
-        GIANT(400, 500 + CELL_TEXT_HEIGHT);
+        SMALL(80),
+        NORMAL(160),
+        LARGE(240),
+        GIANT(400);
 
         final double width;
-        final double height;
 
-        CellSize(double width, double height) {
+        CellSize(double width) {
             this.width = width;
-            this.height = height;
-        }
-
-        void apply(GridView<?, ?> grid) {
-            grid.setCellWidth(width);
-            grid.setCellHeight(height);
-        }
-    }
-    enum AnimateOn {
-        IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
-
-        public boolean needsAnimation(Cell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
-            if (this == IMAGE_CHANGE)
-                return cell.thumb.image.get() != img;
-            else if (this == IMAGE_CHANGE_FROM_EMPTY)
-                return cell.thumb.image.get() == null && img != null;
-            else if (this == IMAGE_CHANGE_1ST_TIME)
-                return !imgAlreadyLoaded && img != null;
-            else
-                throw new SwitchException(this);
         }
     }
 }

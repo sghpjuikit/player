@@ -6,6 +6,7 @@ import audio.tagging.MetadataGroup;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
+import gui.objects.image.ImageNode.ImageSize;
 import gui.objects.image.Thumbnail;
 import gui.objects.image.cover.Cover;
 import java.io.File;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
@@ -23,7 +23,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.controller.io.Input;
@@ -37,6 +36,7 @@ import util.async.executor.EventReducer;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.functional.Util;
+import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import static AlbumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static AlbumView.AlbumView.CellSize.NORMAL;
@@ -51,7 +51,6 @@ import static util.async.Async.*;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.throwIfNotFxThread;
 import static util.functional.Util.*;
-import static util.graphics.Util.bgr;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.doOnceIfNonNull;
 
@@ -65,8 +64,8 @@ import static util.reactive.Util.doOnceIfNonNull;
 		name = "AlbumView",
 		description = "Displays console output by listening to System.out, which contains all of the "
 				+ "application logging.",
-		howto = "",
-		notes = "",
+//		howto = "",
+//		notes = "",
 		version = "1",
 		year = "2015",
 		group = Widget.Group.DEVELOPMENT
@@ -75,17 +74,19 @@ public class AlbumView extends ClassController {
 
 	static final double CELL_TEXT_HEIGHT = 40;
 
+	@IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+	final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
+	@IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+	final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
+	@IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
+	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
+
 	Output<MetadataGroup> out_sel;
 	Output<List<Metadata>> out_sel_met;
 	Input<List<Metadata>> in_items;
-	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, NORMAL.width, NORMAL.height, 5, 5);
+	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
 	final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
 	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
-
-	@IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-	final V<CellSize> cellSize = new V<>(NORMAL, s -> s.apply(view));
-	@IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
-	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
 	public AlbumView() {
 		view.primaryFilterField = VALUE;
@@ -118,6 +119,16 @@ public class AlbumView extends ClassController {
 		in_items = getInputs().create("To display", List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
+	}
+
+	@Override
+	public void refresh() {
+		applyCellSize();
+	}
+
+	void applyCellSize() {
+		view.setCellWidth(cellSize.get().width);
+		view.setCellHeight((cellSize.get().width/cellSizeRatio.get().ratio)+CELL_TEXT_HEIGHT);
 	}
 
 	/** Populates metadata groups to table from metadata list. */
@@ -351,7 +362,6 @@ public class AlbumView extends ClassController {
 					return getItem();
 				}
 			};
-			thumb.getPane().hoverProperty().addListener((o, ov, nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0, 0, 0.2, 0) : null));
 			thumb.setDragEnabled(false);
 			thumb.getPane().setOnDragDetected(e -> {
 				if (e.getButton()==MouseButton.PRIMARY && view.selectedItem.get()!=null) {
@@ -377,11 +387,10 @@ public class AlbumView extends ClassController {
 					name.resizeRelocate(0, h - CELL_TEXT_HEIGHT, w, CELL_TEXT_HEIGHT);
 				}
 			};
-			root.setBackground(bgr(new Color(0,0,0,0.2)));
-			root.setPadding(Insets.EMPTY);
 			root.setMinSize(-1, -1);
 			root.setPrefSize(-1, -1);
 			root.setMaxSize(-1, -1);
+			root.hoverProperty().addListener((o, ov, nv) -> root.setEffect(nv ? new ColorAdjust(0, 0, 0.15, 0) : null));
 		}
 
 		/**
@@ -398,15 +407,15 @@ public class AlbumView extends ClassController {
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
-	            double width = cellSize.get().width,
-	                   height = cellSize.get().height - CELL_TEXT_HEIGHT;
+				ImageSize size = thumb.calculateImageLoadSize();
+				double w = size.width, h = size.height;
 	            // load thumbnail
 	            executorThumbs.execute(() ->
-	                item.loadCover(false, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            );
 	            // load high quality thumbnail
 	            executorImage.execute(() ->
-	                item.loadCover(true, width, height, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            );
 	        }
 		}
@@ -421,7 +430,7 @@ public class AlbumView extends ClassController {
 		private void setCoverPost(Album item, boolean imgAlreadyLoaded, File imgFile, Image img) {
             runFX(() -> {
                 if (item == getItem()) { // prevents content inconsistency
-                    boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, imgFile, img);
+                    boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, img);
                     thumb.loadImage(img, imgFile);
                     if (animate)
                         new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
@@ -431,29 +440,22 @@ public class AlbumView extends ClassController {
 	}
 
 	enum CellSize {
-		SMALL(100, 100 + CELL_TEXT_HEIGHT),
-		NORMAL(200, 200 + CELL_TEXT_HEIGHT),
-		LARGE(300, 300 + CELL_TEXT_HEIGHT),
-		GIANT(450, 450 + CELL_TEXT_HEIGHT);
+		SMALL(100),
+		NORMAL(200),
+		LARGE(300),
+		GIANT(450);
 
 		final double width;
-		final double height;
 
-		CellSize(double width, double height) {
+		CellSize(double width) {
 			this.width = width;
-			this.height = height;
-		}
-
-		void apply(GridView<?, ?> grid) {
-			grid.setCellWidth(width);
-			grid.setCellHeight(height);
 		}
 	}
 
 	enum AnimateOn {
 		IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
 
-		public boolean needsAnimation(AlbumCell cell, boolean imgAlreadyLoaded, File imgFile, Image img) {
+		public boolean needsAnimation(AlbumCell cell, boolean imgAlreadyLoaded, Image img) {
 			if (this == IMAGE_CHANGE)
 				return cell.thumb.image.get() != img;
 			else if (this == IMAGE_CHANGE_FROM_EMPTY)

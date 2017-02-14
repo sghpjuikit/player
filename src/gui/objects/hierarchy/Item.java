@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
 import unused.TriConsumer;
@@ -32,8 +33,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public Image cover;                     // cover cache
 	public File cover_file;                 // cover file cache
 	public boolean coverFile_loaded;
-	public boolean cover_loadedThumb;
-	public volatile boolean cover_loadedFull;
+	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
+	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
 	public double lastScrollPosition;
 
 	public Item(Item parent, File value, FileType valueType) {
@@ -53,8 +54,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		cover = null;
 		cover_file = null;
 		coverFile_loaded = false;
-		cover_loadedThumb = false;
-		cover_loadedFull = false;
+		cover_loadedThumb.set(false);
+		cover_loadedFull.set(false);
 		lastScrollPosition = -1;
 	}
 
@@ -141,30 +142,31 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (file==null) {
 			if (!wasCoverFile_loaded && cover_file==null && (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk"))) {
 				cover = IconExtractor.getFileIcon(val);
-				cover_loadedFull = cover_loadedThumb = true;
+				cover_loadedFull.set(true);
+				cover_loadedThumb.set(true);
 				action.accept(false, null, cover);
 			}
 		} else {
 			if (full) {
 				// Normally, we would use: boolean was_loaded = cover_loadedFull;
 				// but that would cause animation to be played again, which we do not want
-				boolean was_loaded = cover_loadedThumb || cover_loadedFull;
-				if (!cover_loadedFull) {
+				boolean wasLoaded = cover_loadedThumb.get() || cover_loadedFull.get();
+				if (!cover_loadedFull.get()) {
 					Image img = loadImageFull(file, width, height);
 					if (img!=null) {
 						cover = img;
-						action.accept(was_loaded, file, cover);
+						action.accept(wasLoaded, file, cover);
 					}
-					cover_loadedFull = true;
+					cover_loadedFull.set(true);
 				}
 			} else {
-				boolean was_loaded = cover_loadedThumb;
-				if (!cover_loadedThumb) {
+				boolean wasLoaded = cover_loadedThumb.get();
+				if (!wasLoaded) {
 					Image imgCached = Thumbnail.getCached(file, width, height);
 					cover = imgCached!=null ? imgCached : loadImageThumb(file, width, height);
-					cover_loadedThumb = true;
+					cover_loadedThumb.set(true);
 				}
-				action.accept(was_loaded, file, cover);
+				action.accept(wasLoaded, file, cover);
 			}
 		}
 	}

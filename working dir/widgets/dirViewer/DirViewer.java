@@ -4,6 +4,7 @@ import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
 import gui.objects.grid.GridView;
 import gui.objects.hierarchy.Item;
+import gui.objects.image.Thumbnail.FitFrom;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -87,6 +88,8 @@ public class DirViewer extends ClassController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
     @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
+    @IsConfig(name = "Fit image from", info = "Determines whather image will be fit from inside or outside.")
+    final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
@@ -301,6 +304,12 @@ public class DirViewer extends ClassController {
         @Override
         protected double computeCellTextHeight() {
             return CELL_TEXT_HEIGHT;
+        }
+
+        @Override
+        protected void computeGraphics() {
+            super.computeGraphics();
+            thumb.fitFrom.bind(fitFrom);
         }
 
         @Override

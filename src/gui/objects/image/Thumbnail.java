@@ -14,6 +14,7 @@ import javafx.animation.Timeline;
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -159,6 +160,7 @@ public class Thumbnail extends ImageNode {
 	 */
 	public final ObjectProperty<Image> image = imageView.imageProperty();
 	private File imageFile = null;
+	public final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
 
 	/**
 	 * Constructor.
@@ -197,7 +199,7 @@ public class Thumbnail extends ImageNode {
 		root.setPrefSize(width, height);
 		root.setMaxSize(width, height);
 		imageView.getStyleClass().add(image_styleclass);
-		imageView.setFitHeight(-1);
+		imageView.setFitHeight(1000);
 		imageView.setFitWidth(-1);
 		img_border.setMouseTransparent(true);
 		img_border.setManaged(false);
@@ -207,6 +209,31 @@ public class Thumbnail extends ImageNode {
 		imageView.imageProperty().addListener((o, ov, nv) ->
 			ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
 		);
+
+		fitFrom.addListener((o,ov,nv) -> {
+			if (imageView.getImage()!=null) {
+				setImg(imageView.getImage(), loadId);
+//				Image i = imageView.getImage();
+//				if (fitFrom.get()==FitFrom.INSIDE) {
+//					imageView.setViewport(null);
+//				} else {
+//					boolean isImgBigger = i.getWidth()>imageView.getLayoutBounds().getWidth() && i.getHeight()>imageView.getLayoutBounds().getHeight();
+//					if (isImgBigger) {
+//						if (ratioTHUMB.get()<ratioIMG.get()) {
+//							double uiImgWidth = i.getHeight()*ratioTHUMB.get();
+//							double x = (i.getWidth() - uiImgWidth)/2;
+//							imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
+//						}
+//						if (ratioTHUMB.get()>ratioIMG.get()) {
+//							double uiImgHeight = i.getWidth()/ratioTHUMB.get();
+//							double y = (i.getHeight() - uiImgHeight)/2;
+//							imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
+//						}
+//					}
+//				}
+//				imageView.setImage(i);
+			}
+		});
 
 		// initialize values
 //        imageView.setCache(false);
@@ -308,12 +335,37 @@ public class Thumbnail extends ImageNode {
 		// ignore outdated loadings
 		if (id!=loadId) return;
 
+		// viewport
+		if (i!=null) {
+			if (fitFrom.get()==FitFrom.INSIDE) {
+				imageView.setViewport(null);
+			} else {
+				boolean isImgBigger = i.getWidth()>imageView.getLayoutBounds().getWidth() && i.getHeight()>imageView.getLayoutBounds().getHeight();
+				if (isImgBigger) {
+					if (ratioTHUMB.get()<ratioIMG.get()) {
+						double uiImgWidth = i.getHeight()*ratioTHUMB.get();
+						double x = (i.getWidth() - uiImgWidth)/2;
+						imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
+					}
+					if (ratioTHUMB.get()>ratioIMG.get()) {
+						double uiImgHeight = i.getWidth()/ratioTHUMB.get();
+						double y = (i.getHeight() - uiImgHeight)/2;
+						imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
+					}
+				} else {
+					imageView.setViewport(null);
+				}
+			}
+		}
+
 		imageView.setImage(i);
+
 		if (i!=null) {
 			maxImgW.set(i.getWidth()*maxScaleFactor);
 			maxImgH.set(i.getHeight()*maxScaleFactor);
 		}
 //        if (borderToImage)
+
 		root.layout();
 
 		// animation
@@ -650,5 +702,9 @@ public class Thumbnail extends ImageNode {
 		public final boolean menuDisabled = file==null;
 		public final boolean fsDisabled = fsImageFile==null || !ImageFileFormat.isSupported(fsImageFile);
 		public final Thumbnail thumbnail = Thumbnail.this;
+	}
+
+	public enum FitFrom {
+		INSIDE, OUTSIDE
 	}
 }

@@ -52,6 +52,7 @@ import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
 import static util.graphics.Util.menuItem;
+import static util.reactive.Util.doOnceIf;
 import static util.type.Util.getFieldValue;
 
 /**
@@ -114,8 +115,7 @@ public class Thumbnail extends ImageNode {
 	public static Duration animDur = millis(100);
 
 	protected final ImageView imageView = new ImageView();
-	protected final Pane img_border = new Pane();
-	protected final StackPane root = new StackPane(imageView, img_border) {
+	protected final StackPane root = new StackPane(imageView) {
 		@Override
 		protected void layoutChildren() {
 			// lay out image
@@ -129,23 +129,27 @@ public class Thumbnail extends ImageNode {
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();
 
+			applyViewPort(imageView.getImage());
+
 			// lay out border
-			if (borderToImage && imageView.getImage()!=null) {
-				if (ratioIMG.get()>ratioTHUMB.get()) {
-					double borderW = imgW;
-					double borderWgap = (W - borderW)/2;
-					double borderH = imgW/ratioIMG.get();
-					double borderHgap = (H - borderH)/2;
-					img_border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+			if (isBorderVisible) {
+				if (borderToImage && imageView.getImage()!=null) {
+					if (ratioIMG.get()>ratioTHUMB.get()) {
+						double borderW = imgW;
+						double borderWgap = (W - borderW)/2;
+						double borderH = imgW/ratioIMG.get();
+						double borderHgap = (H - borderH)/2;
+						border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+					} else {
+						double borderW = imgH*ratioIMG.get();
+						double borderWgap = (W - borderW)/2;
+						double borderH = imgH;
+						double borderHgap = (H - borderH)/2;
+						border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+					}
 				} else {
-					double borderW = imgH*ratioIMG.get();
-					double borderWgap = (W - borderW)/2;
-					double borderH = imgH;
-					double borderHgap = (H - borderH)/2;
-					img_border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+					border.resizeRelocate(0, 0, W, H);
 				}
-			} else {
-				img_border.resizeRelocate(0, 0, W, H);
 			}
 		}
 	};
@@ -183,26 +187,17 @@ public class Thumbnail extends ImageNode {
 		loadImage(img);
 	}
 
-	/** Use to create more specific thumbnail object from the getM go. */
-	public Thumbnail(Image img, double size) {
-		this(size, size);
-		loadImage(img);
-	}
-
 	/**
 	 * Use if you need different size than default thumbnail size and the image
 	 * is expected to change during life cycle.
 	 */
 	public Thumbnail(double width, double height) {
-
 		root.setMinSize(width, height);
 		root.setPrefSize(width, height);
 		root.setMaxSize(width, height);
 		imageView.getStyleClass().add(image_styleclass);
-		imageView.setFitHeight(1000);
+		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
-		img_border.setMouseTransparent(true);
-		img_border.setManaged(false);
 
 		// update ratios
 		ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));
@@ -210,37 +205,14 @@ public class Thumbnail extends ImageNode {
 			ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
 		);
 
-		fitFrom.addListener((o,ov,nv) -> {
-			if (imageView.getImage()!=null) {
-				setImg(imageView.getImage(), loadId);
-//				Image i = imageView.getImage();
-//				if (fitFrom.get()==FitFrom.INSIDE) {
-//					imageView.setViewport(null);
-//				} else {
-//					boolean isImgBigger = i.getWidth()>imageView.getLayoutBounds().getWidth() && i.getHeight()>imageView.getLayoutBounds().getHeight();
-//					if (isImgBigger) {
-//						if (ratioTHUMB.get()<ratioIMG.get()) {
-//							double uiImgWidth = i.getHeight()*ratioTHUMB.get();
-//							double x = (i.getWidth() - uiImgWidth)/2;
-//							imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
-//						}
-//						if (ratioTHUMB.get()>ratioIMG.get()) {
-//							double uiImgHeight = i.getWidth()/ratioTHUMB.get();
-//							double y = (i.getHeight() - uiImgHeight)/2;
-//							imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
-//						}
-//					}
-//				}
-//				imageView.setImage(i);
-			}
-		});
+		fitFrom.addListener((o,ov,nv) -> applyViewPort(imageView.getImage()));
 
 		// initialize values
 //        imageView.setCache(false);
 		setSmooth(true);
 		setPreserveRatio(true);
 		setBorderToImage(false);
-		setBorderVisible(true);
+		setBorderVisible(false);
 		setBackgroundVisible(true);
 		setDragEnabled(true);
 		setContextMenuOn(true);
@@ -312,14 +284,7 @@ public class Thumbnail extends ImageNode {
 		if (i==null) {
 			setImg(null, id);
 		} else {
-			if (i.getProgress()==1) {
-				setImg(i, id);
-			} else {
-				i.progressProperty().addListener((o, ov, nv) -> {
-					if (nv.doubleValue()==1)
-						setImg(i, id);
-				});
-			}
+			doOnceIf(i.progressProperty(), p -> p.doubleValue()==1, p -> setImg(i, id));
 		}
 	}
 
@@ -335,7 +300,31 @@ public class Thumbnail extends ImageNode {
 		// ignore outdated loadings
 		if (id!=loadId) return;
 
-		// viewport
+		applyViewPort(i);
+		imageView.setImage(i);
+
+		if (i!=null) {
+			maxImgW.set(i.getWidth()*maxScaleFactor);
+			maxImgH.set(i.getHeight()*maxScaleFactor);
+		}
+
+		root.layout();
+
+		// animation
+		if (i!=null) {
+			Object animWrapper = getFieldValue(i, "animation");
+			animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
+			animationPause();
+		}
+	}
+
+	public ImageSize calculateImageLoadSize() {
+		return calculateImageLoadSize(root);
+	}
+
+/* ---------- VIEWPORT ---------------------------------------------------------------------------------------------- */
+
+	private void applyViewPort(Image i) {
 		if (i!=null) {
 			if (fitFrom.get()==FitFrom.INSIDE) {
 				imageView.setViewport(null);
@@ -357,27 +346,6 @@ public class Thumbnail extends ImageNode {
 				}
 			}
 		}
-
-		imageView.setImage(i);
-
-		if (i!=null) {
-			maxImgW.set(i.getWidth()*maxScaleFactor);
-			maxImgH.set(i.getHeight()*maxScaleFactor);
-		}
-//        if (borderToImage)
-
-		root.layout();
-
-		// animation
-		if (i!=null) {
-			Object animWrapper = getFieldValue(i, "animation");
-			animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
-			animationPause();
-		}
-	}
-
-	public ImageSize calculateImageLoadSize() {
-		return calculateImageLoadSize(root);
 	}
 
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
@@ -449,6 +417,71 @@ public class Thumbnail extends ImageNode {
 		return root;
 	}
 
+/* ---------- BORDER ------------------------------------------------------------------------------------------------ */
+
+	/**
+	 * Whether border envelops thumbnail or image specifically.
+	 * <p/>
+	 * This is important for when the picture does not have the same aspect ratio
+	 * as the thumbnail. Setting the border for thumbnail (false) will frame
+	 * the thumbnail without respect for image size. Conversely, setting the border
+	 * to image (true) will frame image itself, but the thumbnail itself will not
+	 * be resized to image size, therefore leaving empty space either horizontally
+	 * or vertically.
+	 */
+	private boolean borderToImage = false;
+	private boolean isBorderVisible = false;
+	private Pane border;
+
+	/** Returns value of {@link #borderToImage}. */
+	public boolean isBorderToImage() {
+		return borderToImage;
+	}
+
+	/** Sets the {@link #borderToImage}. */
+	public void setBorderToImage(boolean val) {
+		if (borderToImage==val) return;
+		borderToImage = val;
+		if (isBorderVisible) root.layout();
+	}
+
+	public void setBorderVisible(boolean val) {
+		if (isBorderVisible==val) return;
+		isBorderVisible = val;
+
+		if (val) {
+			border = createBorder();
+			root.getChildren().add(border);
+		} else {
+			root.getChildren().remove(border);
+			border = null;
+		}
+	}
+
+	private Pane createBorder() {
+		Pane b = new Pane();
+		b.setMouseTransparent(true);
+		b.setManaged(false);
+		b.getStyleClass().add(border_styleclass);
+		return b;
+	}
+
+/* ---------- BACKGROUND -------------------------------------------------------------------------------------------- */
+
+	// TODO: use custom style classes for this
+	/**
+	 * Sets visibility of the background. The bgr is visible only when the image
+	 * size ratio and thumbnail size ratio does not match.
+	 * Default value is true. Invisible background becomes transparent.
+	 * Stylizable with css.
+	 */
+	public void setBackgroundVisible(boolean val) {
+		if (val) {
+			if (!root.getStyleClass().contains(bgr_styleclass))
+				root.getStyleClass().add(bgr_styleclass);
+		} else root.getStyleClass().remove(bgr_styleclass);
+	}
+
 /* ---------- properties -------------------------------------------------------------------------------------------- */
 
 	private double maxScaleFactor = 1.3;
@@ -472,47 +505,6 @@ public class Thumbnail extends ImageNode {
 	public void setMaxScaleFactor(double val) {
 		if (val<1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
 		maxScaleFactor = val;
-	}
-
-	/**
-	 * Whether border envelops thumbnail or image specifically.
-	 * This is important for when the picture does not have the same aspect ratio
-	 * as the thumbnail. Setting the border for thumbnail (false) will frame
-	 * the thumbnail without respect for image size. Conversely, setting the border
-	 * to image (true) will frame image itself, but the thumbnail itself will not
-	 * be resized to image size, therefore leaving empty space either horizontally
-	 * or vertically.
-	 */
-	private boolean borderToImage = false;
-
-	/** Returns value of {@link #borderToImage}. */
-	public boolean isBorderToImage() {
-		return borderToImage;
-	}
-
-	/** Sets the {@link #borderToImage}. */
-	public void setBorderToImage(boolean val) {
-		if (borderToImage==val) return;
-		borderToImage = val;
-		root.layout();
-	}
-
-	public void setBorderVisible(boolean val) {
-		if (val) img_border.getStyleClass().add(border_styleclass);
-		else img_border.getStyleClass().remove(border_styleclass);
-	}
-
-	/**
-	 * Sets visibility of the background. The bgr is visible only when the image
-	 * size ratio and thumbnail size ratio does not match.
-	 * Default value is true. Invisible background becomes transparent.
-	 * Stylizable with css.
-	 */
-	public void setBackgroundVisible(boolean val) {
-		if (val) {
-			if (!root.getStyleClass().contains(bgr_styleclass))
-				root.getStyleClass().add(bgr_styleclass);
-		} else root.getStyleClass().remove(bgr_styleclass);
 	}
 
 	/**

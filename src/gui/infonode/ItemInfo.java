@@ -35,12 +35,12 @@ public class ItemInfo extends AnchorPane implements SongReader {
     }
 
     public ItemInfo(boolean include_cover) {
-        // load fxml part
         new ConventionFxmlLoader(ItemInfo.class,this).loadNoEx();
 
         if (include_cover) {
             // create
             thumb = new Thumbnail();
+            thumb.setBorderVisible(true);
             coverContainer.getChildren().add(thumb.getPane());
             setAnchors(thumb.getPane(),0d);
         } else {

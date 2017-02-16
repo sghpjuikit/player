@@ -53,6 +53,7 @@ public final class Layouts extends ClassController {
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
 
+        thumb.setBorderVisible(true);
         infoT.setWrappingWidth(200);
         box.getChildren().add(3, infoT);
 

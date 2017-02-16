@@ -362,6 +362,7 @@ public class AlbumView extends ClassController {
 					return getItem();
 				}
 			};
+			thumb.setBorderVisible(true);
 			thumb.setDragEnabled(false);
 			thumb.getPane().setOnDragDetected(e -> {
 				if (e.getButton()==MouseButton.PRIMARY && view.selectedItem.get()!=null) {

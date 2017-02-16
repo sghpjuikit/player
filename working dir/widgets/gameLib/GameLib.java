@@ -113,6 +113,7 @@ public class GameLib extends FXMLController {
         game = g;
         if (g==null) return;
 
+        cover.setBorderVisible(true);
         titleL.setText(g.getName());
         info_text.toFront();
         info_text.setTextAlignment(JUSTIFY);

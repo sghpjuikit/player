@@ -33,6 +33,7 @@ import util.functional.Functors.PƑ0;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
+import util.reactive.Util;
 import util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static dirViewer.DirViewer.CellSize.NORMAL;
@@ -309,7 +310,7 @@ public class DirViewer extends ClassController {
         @Override
         protected void computeGraphics() {
             super.computeGraphics();
-            thumb.fitFrom.bind(fitFrom);
+            Util.maintain(fitFrom, thumb.fitFrom);
         }
 
         @Override

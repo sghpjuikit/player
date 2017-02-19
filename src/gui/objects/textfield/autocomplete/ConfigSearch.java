@@ -194,6 +194,10 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 			return new ΛEntry(nameΛ, infoΛ, graphicsΛ, runΛ);
 		}
 
+		static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<String> seachTextΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+			return new ΛEntry(nameΛ, infoΛ, seachTextΛ, graphicsΛ, runΛ);
+		}
+
 		static Entry of(Config<?> config) {
 			return new ConfigEntry(config);
 		}
@@ -223,12 +227,18 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 		class ΛEntry implements Entry {
 			private final Ƒ0<String> nameΛ;
 			private final Ƒ0<String> infoΛ;
+			private final Ƒ0<String> searchTextΛ;
 			private final Ƒ0<Node> graphicsΛ;
 			private final Runnable runΛ;
 
 			public ΛEntry(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<Node> graphicsΛ, Runnable runΛ) {
+				this(nameΛ, infoΛ, nameΛ, graphicsΛ, runΛ);
+			}
+
+			public ΛEntry(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<String> searchTextΛ, Ƒ0<Node> graphicsΛ, Runnable runΛ) {
 				this.nameΛ = nameΛ;
 				this.infoΛ = infoΛ;
+				this.searchTextΛ = searchTextΛ;
 				this.graphicsΛ = graphicsΛ;
 				this.runΛ = runΛ;
 			}
@@ -246,6 +256,11 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 			@Override
 			public String getInfo() {
 				return infoΛ.get();
+			}
+
+			@Override
+			public String getSearchText() {
+				return searchTextΛ.get();
 			}
 
 			@Override

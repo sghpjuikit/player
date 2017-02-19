@@ -752,12 +752,14 @@ public class App extends Application implements Configurable {
 				private List<File> apps;
 				private final Supplier<Stream<ConfigSearch.Entry>> src = () -> apps.stream()
 						.map(f ->
-						  ConfigSearch.Entry.of(
-						      () -> "Run app: " + f.getName(),
-						      () -> Environment.open(f),
-						      () -> new Icon(MaterialIcon.APPS
-						      )
-						  )
+							ConfigSearch.Entry.of(
+								() -> "Run app: " + f.getName(),
+								() -> "Runs application: " + f.getAbsolutePath(),
+								f::getAbsolutePath,
+								() -> Environment.open(f),
+								() -> new Icon(MaterialIcon.APPS
+								)
+							)
 						);
 
 				@Override
@@ -773,8 +775,8 @@ public class App extends Application implements Configurable {
 
 				void computeFiles() {
 					apps = searchDir.get()==null
-							? list()
-							: getFilesR(searchDir.get(), searchDepth.get(), f -> f.getPath().endsWith(".exe")).collect(toList());
+						? list()
+						: getFilesR(searchDir.get(), searchDepth.get(), f -> f.getPath().endsWith(".exe")).collect(toList());
 				}
 			}
 		);

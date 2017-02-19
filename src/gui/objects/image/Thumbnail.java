@@ -72,10 +72,9 @@ import static util.type.Util.getFieldValue;
  * The image retains aspect ratio and is always fully visible inside this thumbnail.
  * If the aspect ratio of this thumbnail differs from that of the image, there
  * will be empty space left on left+right or top+bottom. Image is center - aligned.
- * <li> File aware. File (representing the image) can be set in addition
- * to the the image, which is useful for context menu
- * <li> Aspect ratio aware. See {@link #ratioTHUMB} and {@link #ratioIMG}. Used
- * for layout.
+ * <li> Data aware. Object the image is representing (file or any domain object, i.e.: album) can be set and queried.
+ * <li> File aware. The underlying file of the image (if available) can be provided.
+ * <li> Aspect ratio aware. See {@link #fitFrom}, {@link #ratioTHUMB} and {@link #ratioIMG}. Used for layout.
  * <li> Resolution aware. The images are loaded only up to required size to
  * reduce memory. For details see {@link ImageNode#LOAD_COEFFICIENT} and
  * {@link ImageNode#calculateImageLoadSize(javafx.scene.layout.Region) }.
@@ -126,10 +125,10 @@ public class Thumbnail extends ImageNode {
 			imageView.setFitWidth(imgW);
 			imageView.setFitHeight(imgH);
 
+			applyViewPort(imageView.getImage());
+
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();
-
-			applyViewPort(imageView.getImage());
 
 			// lay out border
 			if (isBorderVisible) {
@@ -473,7 +472,7 @@ public class Thumbnail extends ImageNode {
 	 * Sets visibility of the background. The bgr is visible only when the image
 	 * size ratio and thumbnail size ratio does not match.
 	 * Default value is true. Invisible background becomes transparent.
-	 * Stylizable with css.
+	 * Styleable with css.
 	 */
 	public void setBackgroundVisible(boolean val) {
 		if (val) {

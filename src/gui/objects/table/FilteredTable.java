@@ -46,7 +46,6 @@ import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
-import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHorizontally;
@@ -251,9 +250,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	/******************************* BOTTOM CONTROLS ******************************/
 
-	@util.dev.TODO(purpose = ILL_DEPENDENCY, note = "Hardcoded size for consistency, not good")
-	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS, 18).embedded());
-	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS, 18).embedded());
+	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
+	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
 		menuItem("Select inverse", this::selectAll),
 		menuItem("Select all", this::selectInverse),

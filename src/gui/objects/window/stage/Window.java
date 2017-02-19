@@ -12,13 +12,12 @@ import java.util.Set;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -302,6 +301,8 @@ public class Window extends WindowBase {
 			}
 		});
 
+		setTitle("");
+
 		Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
 		Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
@@ -339,7 +340,7 @@ public class Window extends WindowBase {
 			+ "\tDouble right click : Toggle hide header on/off.\n"
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
-			+ "\tContent right drag : drag tabs.");
+			+ "\tContent right drag : drag tabs.").size(13);
 
 		// left header
 		leftHeaderBox.getChildren().addAll(
@@ -353,18 +354,16 @@ public class Window extends WindowBase {
 		Icon onTopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTOp);
 		maintain(alwaysOnTop, mapB(SQUARE, SQUARE_ALT), onTopB::icon);
-		Icon fullsB = new Icon(null, 17, "Fullscreen\n\nExpand window to span whole screen and "
-			+ "put it on top", this::toggleFullscreen);
+		Icon fullsB = new Icon(null, 13, "Fullscreen\n\nExpand window to span whole screen and "
+			+ "put it on top", this::toggleFullscreen).scale(1.3);
 		maintain(fullscreen, mapB(FULLSCREEN_EXIT, FULLSCREEN), fullsB::icon);
 		Icon minB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
-//        maintain(minB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minB::icon);
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
 		Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is is main, "
 			+ "application closes as well.", this::close);
-//        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, 5)
+		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, 13).scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
 		maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
 		maintain(isMain, v -> mainB.tooltip(v
@@ -372,7 +371,7 @@ public class Window extends WindowBase {
 			: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 
 		// right header
-		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, minB, maxB, closeB);
+		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
 	}
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
@@ -481,8 +480,6 @@ public class Window extends WindowBase {
 	@FXML
 	private Region rBorder;
 	@FXML
-	private ImageView iconI;
-	@FXML
 	private Label titleL;
 	@FXML
 	private HBox leftHeaderBox;
@@ -546,20 +543,19 @@ public class Window extends WindowBase {
 	 * Set title for this window shown in the header.
 	 */
 	public void setTitle(String text) {
+		if (text==null || text.isEmpty()) {
+			leftHeaderBox.getChildren().remove(titleL);
+		} else {
+			leftHeaderBox.getChildren().remove(titleL);
+			leftHeaderBox.getChildren().add(0, titleL);
+			titleL.setPadding(new Insets(5, 0, 0, 5));
+		}
 		titleL.setText(text);
 	}
 
 	/** Set title alignment. */
 	public void setTitlePosition(Pos align) {
 		BorderPane.setAlignment(titleL, align);
-	}
-
-	/**
-	 * Set icon. Null clears.
-	 */
-	public void setIcon(Image img) {
-		iconI.setImage(img);
-		leftHeaderBox.getChildren().remove(iconI);
 	}
 
 	/**

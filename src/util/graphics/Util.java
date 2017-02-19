@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -35,14 +34,11 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
-
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
-
 import util.dev.Dependency;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
-
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -709,6 +705,7 @@ public interface Util {
 	 * doable using owner stage with UTILITY style).
 	 * </ul>
 	 */
+	@TODO(purpose = BUG, note = "JavaFX scaling problem")
 	static Stage createFMNTStage(Screen screen) {
 		// Using owner stage of UTILITY style is the only way to get a 'top level'
 		// window with no taskbar.
@@ -716,16 +713,27 @@ public interface Util {
 			  owner.setOpacity(0); // make sure it will never be visible
 			  owner.setWidth(5); // stay small to leave small footprint, just in case
 			  owner.setHeight(5);
+			  owner.setX(screen.getBounds().getMinX()+1);	// owner and child should be on the same screen
+			  owner.setY(screen.getBounds().getMinY()+1);
 			  owner.show(); // must be 'visible' for the hack to work
 
 		Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
 		s.initOwner(owner);
 		s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
-		s.setX(screen.getVisualBounds().getMinX()); // screen does not necessarily start at [0,0] !!
-		s.setY(screen.getVisualBounds().getMinY());
-		s.setWidth(screen.getVisualBounds().getWidth()); // fullscreen...
-		s.setHeight(screen.getVisualBounds().getHeight());
 		s.setAlwaysOnTop(true); // maybe not needed, but just in case
+
+		s.show();	// part of the workaround below
+
+		s.setX(screen.getBounds().getMinX()); // screen does not necessarily start at [0,0]
+		s.setY(screen.getBounds().getMinY());
+
+		// On screen setup with varying screen dpi, javaFX may use wrong dpi, lading to wrong Stage size,
+		// so we manually work around this
+//		 s.setWidth(screen.getBounds().getWidth()); // fullscreen...
+//		 s.setHeight(screen.getBounds().getHeight());
+		s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
+		s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
+
 		// Going fullscreen actually breaks things.
 		// We do not need fullscreen, we use UNDECORATED stage of maximum size. Fullscreen
 		// was supposed to be more of a final nail to prevent possible focus stealing.
@@ -734,8 +742,7 @@ public interface Util {
 		// and the consequent disappearance of the window (nearly impossible to bring it
 		// back). This is even when using modality on the window or even its owner stage.
 		//
-		// Fortunately things work as they should using things like we do. Pray the moment
-		// they do not wont occur though.
+		// Fortunately things work as they should using things like we do.
 		//
 		// s.setFullScreen(true); // just in case
 		// s.setFullScreenExitHint(""); // completely annoying, remove

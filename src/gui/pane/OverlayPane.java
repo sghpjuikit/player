@@ -1,5 +1,8 @@
 package gui.pane;
 
+import gui.objects.icon.Icon;
+import gui.objects.window.stage.Window;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -12,14 +15,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-
-import gui.objects.icon.Icon;
-import gui.objects.window.stage.Window;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.reactive.SetƑ;
-
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -80,7 +79,7 @@ public abstract class OverlayPane<T> extends StackPane {
 			e.consume();
 		});
 
-		resizeB = new Icon(RESIZE_BOTTOM_RIGHT, 20);
+		resizeB = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
 		resizeB.setCursor(Cursor.SE_RESIZE);
 		resizeB.setVisible(false);
 	}
@@ -134,11 +133,24 @@ public abstract class OverlayPane<T> extends StackPane {
 			if (!getChildren().contains(content)) {
 				getChildren().setAll(content, layStack(resizeB, Pos.BOTTOM_RIGHT));
 				content.getStyleClass().add(CONTENT_STYLECLASS);
-				maintain(content.prefWidthProperty(), ((StackPane) resizeB.getParent()).maxWidthProperty());
-				maintain(content.prefHeightProperty(), ((StackPane) resizeB.getParent()).maxHeightProperty());
-				maintain(content.paddingProperty(), ((StackPane) resizeB.getParent()).paddingProperty());
+				resizeB.getParent().setManaged(false);
+				maintain(content.paddingProperty(), ((StackPane)resizeB.getParent()).paddingProperty());
 				resizeB.getParent().setMouseTransparent(true);
 			}
+		}
+	}
+
+	@Override
+	protected void layoutChildren() {
+		super.layoutChildren();
+
+		if (getChildren().contains(resizeB.getParent())) {
+			resizeB.getParent().resizeRelocate(
+					content.getLayoutX(),
+					content.getLayoutY(),
+					content.getWidth(),
+					content.getHeight()
+			);
 		}
 	}
 
@@ -150,11 +162,12 @@ public abstract class OverlayPane<T> extends StackPane {
 	}
 
 	public void makeResizableByUser() {
+		if (resizeB.isVisible()) return;
 		resizeB.setVisible(true);
-		new PolarResize().install(this, content);
+		new PolarResize().install(resizeB, this, content);
 	}
 
-	/* ---------- ANIMATION ----------------------------------------------------------------------------------------- */
+/* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
 	private Display displayForHide; // prevents inconsistency in start() and stop(), see use
 	private Anim animation = new Anim(30, this::animDo).dur(millis(200)).intpl(x -> x*x); // lowering fps can help on fullHD+ resolutions
@@ -301,24 +314,41 @@ public abstract class OverlayPane<T> extends StackPane {
 
 	private class PolarResize {
 		boolean isActive = false;
+		Point2D offset = null;
 
-		public void install(Node eventEmitter, Pane child) {
-			child.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
-			child.addEventHandler(MOUSE_PRESSED, e -> {
-				double cornerSize = 30;
-				Pane n = (Pane) e.getSource();
-				if (e.getX() >= n.getWidth()-cornerSize && e.getY() >= n.getHeight()-cornerSize)
-					isActive = true;
+		/**
+		 * @param dragActivator some child node or null to use corner of the resizable
+		 * @param eventEmitter the node that has mouse event handlers installed
+		 * @param resizable the node that will resize
+		 */
+		public void install(Node dragActivator, Node eventEmitter, Pane resizable) {
+			resizable.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+			resizable.addEventHandler(MOUSE_PRESSED, e -> {
+				if (dragActivator!=null) {
+					// drag by a resizable Node
+					if (dragActivator.contains(resizeB.sceneToLocal(e.getSceneX(), e.getSceneY()))) {
+						isActive = true;
+						offset = new Point2D(resizable.getWidth(), resizable.getHeight()).subtract(resizable.sceneToLocal(e.getSceneX(), e.getSceneY()));
+					}
+				} else {
+					// drag by corner
+					double cornerSize = 30;
+					Pane n = (Pane) e.getSource();
+					if (e.getX()>=n.getWidth() - cornerSize && e.getY()>=n.getHeight() - cornerSize) {
+						isActive = true;
+						offset = new Point2D(resizable.getWidth(), resizable.getHeight()).subtract(resizable.sceneToLocal(e.getSceneX(), e.getSceneY()));
+					}
+				}
 			});
 			eventEmitter.addEventHandler(MOUSE_RELEASED, e -> isActive = false);
 			eventEmitter.addEventHandler(MOUSE_DRAGGED, e -> {
 				if (isActive) {
 					Pane n = (Pane) e.getSource();
-					child.setPrefSize(
-						2 * (e.getX() - n.getLayoutBounds().getWidth() / 2),
-						2 * (e.getY() - n.getLayoutBounds().getHeight() / 2)
+					resizable.setPrefSize(
+						2 * (e.getX()+offset.getX() - n.getLayoutBounds().getWidth() / 2),
+						2 * (e.getY()+offset.getY() - n.getLayoutBounds().getHeight() / 2)
 					);
-					//					child.setMaxSize(getContent().getPrefWidth(), getContent().getPrefHeight());
+					// resizable.setMaxSize(getContent().getPrefWidth(), getContent().getPrefHeight());
 					e.consume();
 				}
 			});

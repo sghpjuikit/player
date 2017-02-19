@@ -3185,6 +3185,7 @@
     -fx-fill: -fx-def-font-color;
     -glyph-name: "CLOSE";
     -glyph-size: 12;
+    -glyph-gap: 0;
 }
 
 .icon:hover,

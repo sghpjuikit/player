@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.*?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <fx:root id="root" prefHeight="400.0" prefWidth="600.0" styleClass="window" type="AnchorPane"
          xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
@@ -33,8 +32,6 @@
             </BorderPane>
             <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false"
                   spacing="8.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
-                <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true"
-                           preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0"/>
                 <Label fx:id="titleL" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
                         <Insets left="10.0"/>

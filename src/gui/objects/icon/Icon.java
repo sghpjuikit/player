@@ -78,9 +78,10 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		return new Anim(millis(150), p -> setScaleXY(i.node, s*(1 + 0.1*p*p), 1 + 0.1*p*p));
 	};
 	private static final String STYLECLASS = "icon";
-	private static final Double DEFAULT_ICON_SIZE = 12.0;
+	private static final Double DEFAULT_ICON_SIZE = 12d;
+	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
-	private static final EventHandler<Event> CONSUMER = Event::consume;
+	private static final EventHandler<Event> EVENT_CONSUMER = Event::consume;
 
 	// load fonts
 	static {
@@ -96,7 +97,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	}
 
 	public static Icon createInfoIcon(String text) {
-		return new Icon(INFO, 13, "Help", e -> {
+		return new Icon(INFO).tooltip("Help").onClick(e -> {
 			PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
 			helpP.show((Node) e.getSource());
 			helpP.getContentNode().setWrappingWidth(400);
@@ -108,8 +109,13 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	private final Text node = new Text();
 	private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text
-	private final ObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
-	private final ObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", 12);
+	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
+	private boolean isGlyphSetProgrammatically = false;
+	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
+	private boolean isGlyphSizeSetProgrammatically = false;
+	private final SimpleStyleableObjectProperty<Number> gap = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_GAP, Icon.this, "glyphGap", DEFAULT_ICON_GAP);
+	private boolean isGlyphGapSetProgrammatically = false;
+	private double glyphScale = 1;
 
 	public Icon() {
 		this(null, -1);
@@ -129,10 +135,12 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
 		glyphSizeProperty().addListener((o, ov, nv) -> updateSize());
+		glyphGapProperty().addListener((o, ov, nv) -> updateSize());
 		glyphStyleProperty().addListener((o, ov, nv) -> updateStyle());
 		glyphNameProperty().addListener((o, ov, nv) -> updateIcon());
 
 		node.getStyleClass().clear();
+		node.getStyleClass().add(STYLECLASS);
 		styleclass(STYLECLASS);
 		if (size!=-1) size(size);
 		if (i!=null) icon(i);
@@ -146,7 +154,15 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		node.setManaged(false);
 		getChildren().add(node);
 
-		hoverProperty().addListener((o, ov, nv) -> select(nv)); // mouse hover animation
+		// mouse hover animation
+		// unfortunately, when effects such as drop shadow are enabled, this hover does not work properly
+		// hoverProperty().addListener((o, ov, nv) -> select(nv));
+		addEventHandler(MouseEvent.MOUSE_EXITED, e -> select(false));
+		addEventHandler(MouseEvent.MOUSE_ENTERED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
+		addEventHandler(MouseEvent.MOUSE_MOVED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
+
+		// debug
+		// setBackground(bgr(Color.color(Math.random(),Math.random(),Math.random())));
 	}
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -165,8 +181,8 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	protected void layoutChildren() {
 		super.layoutChildren();
 		double w = getWidth(), h = getHeight();
-		double gapH = (w - node.getBoundsInParent().getWidth())/2;
-		double gapV = (h - node.getBoundsInParent().getHeight())/2;
+		double gapH = (w - node.getLayoutBounds().getWidth())/2;
+		double gapV = (h - node.getLayoutBounds().getHeight())/2;
 		node.relocate(gapH, gapV);
 	}
 
@@ -185,16 +201,17 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	/******************************************************************************/
 
 	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));
+	private boolean isSelected = false;
 
 	public void select(boolean value) {
+		if (value==isSelected) return;
+		isSelected = value;
 		pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
+		node.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
 		ra.get(this, Ahover).playFromDir(value);
 	}
 
 	/********************************* FLUENT API *********************************/
-	private boolean isGlyphSetProgrammatically = false;
-	private boolean isGlyphSizeSetProgrammatically = false;
-	private boolean isGlyphFillSetProgrammatically = false;
 
 	@SuppressWarnings("unchecked")
 	public I icon(GlyphIcons i) {
@@ -208,6 +225,20 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	public I size(double s) {
 		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s);
+		return (I) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public I gap(double g) {
+		isGlyphGapSetProgrammatically = true;
+		setGlyphGap(g);
+		return (I) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public I scale(double s) {
+		glyphScale = s;
+		updateSize();
 		return (I) this;
 	}
 
@@ -303,8 +334,8 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		});
 
 		// TODO: remove
-		removeEventHandler(Event.ANY, CONSUMER);
-		if (action!=null) addEventHandler(Event.ANY, CONSUMER);
+		removeEventHandler(Event.ANY, EVENT_CONSUMER);
+		if (action!=null) addEventHandler(Event.ANY, EVENT_CONSUMER);
 
 		return (I) this;
 	}
@@ -411,6 +442,19 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	public final void setGlyphName(String glyphName) { icon.setValue(glyphName); }
 
+	public final ObjectProperty<Number> glyphGapProperty() {
+		return gap;
+	}
+
+	public final Number getGlyphGap() {
+		return glyphGapProperty().getValue();
+	}
+
+	public final void setGlyphGap(Number gap) {
+		gap = (gap==null) ? DEFAULT_ICON_GAP : gap;
+		glyphGapProperty().setValue(gap);
+	}
+
 	public final ObjectProperty<Number> glyphSizeProperty() {
 		return size;
 	}
@@ -443,10 +487,10 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	public FontAwesomeIcon getDefaultGlyph() { return ADJUST; }
 
 	private void updateSize() {
-		double size = getGlyphSize().doubleValue();
-		Font f = new Font(node.getFont().getFamily(), size);
+		double glyphSize = getGlyphSize().doubleValue();
+		Font f = new Font(node.getFont().getFamily(), glyphScale*glyphSize);
 		node.setFont(f);
-		setMinPrefMaxSize(this, size*0.8);
+		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
 	}
 
 	private void updateIcon() {
@@ -511,7 +555,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 			@Override
 			public StyleableProperty<String> getStyleableProperty(Icon styleable) {
-				return (StyleableProperty) styleable.glyphNameProperty();
+				return styleable.icon;
 			}
 
 			@Override
@@ -528,7 +572,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 			@Override
 			public StyleableProperty<Number> getStyleableProperty(Icon styleable) {
-				return (StyleableProperty) styleable.glyphSizeProperty();
+				return styleable.size;
 			}
 
 			@Override
@@ -537,9 +581,26 @@ public class Icon<I extends Icon<?>> extends StackPane {
 			}
 		};
 
+		CssMetaData<Icon,Number> GLYPH_GAP = new CssMetaData<>("-glyph-gap", StyleConverter.getSizeConverter(), DEFAULT_ICON_GAP) {
+			@Override
+			public boolean isSettable(Icon styleable) {
+				return !styleable.isGlyphGapSetProgrammatically && (styleable.gap==null || !styleable.gap.isBound());
+			}
+
+			@Override
+			public StyleableProperty<Number> getStyleableProperty(Icon styleable) {
+				return styleable.gap;
+			}
+
+			@Override
+			public Number getInitialValue(Icon styleable) {
+				return DEFAULT_ICON_GAP;
+			}
+		};
+
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(StackPane.getClassCssMetaData())
 			.filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
-			.append(FILL, GLYPH_NAME, GLYPH_SIZE)
+			.append(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP)
 			.toList());
 	}
 

@@ -1,9 +1,11 @@
 <configuration>
+    <!-- the name of the appender is referenced from java code, do not change-->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_DIR}/log_contents.log</File>
         <!-- deny all events with a level below WARN, that is TRACE-INFO
         for the record the levels are: TRACE, DEBUG, INFO, WARN, ERROR-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+          <!-- overridden in java-->
           <level>WARN</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
@@ -19,7 +21,12 @@
         </encoder>
     </appender>
 
+    <!-- the name of the appender is referenced from java code, do not change-->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- overridden in java-->
+            <level>DEBUG</level>
+        </filter>
         <encoder>
             <!-- {0} log only class name (no packages)-->
             <pattern>%d{mm:ss.SSS} %.-1level [%15.-15thread] %logger{0} - %msg%n</pattern>

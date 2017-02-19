@@ -1,15 +1,14 @@
 package main;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.core.spi.FilterAttachable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.LogManager;
@@ -361,6 +360,17 @@ public class App extends Application implements Configurable {
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
 
+	@IsConfig(name = "log level (console)", group = "Logging", info = "Logging level for logging to console")
+	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
+			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
+			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
+	);
+
+	@IsConfig(name = "log level (file)", group = "Logging", info = "Logging level for logging to file")
+	public final VarEnum<Level> logLevelCFile = new VarEnum<Level>(Level.WARN,
+			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
+			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
+	);
 
 	public App() {
 		if (APP==null) APP = this;
@@ -956,6 +966,7 @@ public class App extends Application implements Configurable {
 		Db.stop();
 		Action.stopActionListening();
 		appCommunicator.stop();
+		Runtime.getRuntime().halt(0);
 	}
 
 	/** Closes this app normally. Invokes {@link #stop()} as a result. */
@@ -986,6 +997,16 @@ public class App extends Application implements Configurable {
 	}
 
 /******************************************************************************/
+
+	private void changeLogBackLoggerAppenderLevel(String appenderName, Level level) {
+		Optional.ofNullable((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME))
+				.map(logger -> logger.getAppender(appenderName))
+				.map(FilterAttachable::getCopyOfAttachedFiltersList)
+				.flatMap(filters -> filters.stream().findFirst())
+				.filter(filter -> filter instanceof ch.qos.logback.classic.filter.ThresholdFilter)
+				.map(filter -> ((ch.qos.logback.classic.filter.ThresholdFilter)filter))
+				.ifPresent(filter -> filter.setLevel(level.toString()));
+	}
 
 	public List<String> fetchParameters() {
 		// Note: Parameters are never null, but if the application is created manually from other class

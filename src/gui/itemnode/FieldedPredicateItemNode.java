@@ -5,27 +5,23 @@
  */
 package gui.itemnode;
 
-import java.util.ArrayList;
+import gui.itemnode.ItemNode.ValueNode;
+import gui.objects.combobox.ImprovedComboBox;
+import gui.objects.icon.CheckIcon;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-
-import gui.itemnode.ItemNode.ValueNode;
-import gui.objects.combobox.ImprovedComboBox;
-import gui.objects.icon.CheckIcon;
 import util.access.fieldvalue.ObjectField;
 import util.collections.list.PrefList;
 import util.functional.Functors.PƑ;
 import util.functional.Util;
-
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.dev.Util.noØ;
@@ -56,18 +52,13 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
     // isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
     // where null.equals(null) would return true, basically: element.hasDefaultValue(field).
     // However, in my opinion, isNull predicate does not lose its value completely.
-    private static <V,F extends ObjectField> Predicate<V> predicate(F field, Function<Object,Boolean> filter) {
-            // debug
-            // if (field==Metadata.Field.FIRST_PLAYED) {
-            //     System.out.println((filter==ISØ) + " " + (filter==ISNTØ) + " " + (filter==IS) + " " + (filter==ISNT));
-            // }
-            return Util.isAny(filter, ISØ,ISNTØ,IS,ISNT)
-                    // the below could be made more OOP by adding predicate methods to FieldEnum
-                    ? element -> filter.apply(field.getOf(element))
-                    : element -> {
-                          Object o = field.getOf(element);
-                          return o==null ? false : filter.apply(o);
-                      };
+    private static <V,T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T,Boolean> filter) {
+		return Util.isAny(filter, ISØ,ISNTØ,IS,ISNT)
+				? element -> filter.apply(field.getOf(element))
+				: element -> {
+					T o = field.getOf(element);
+					return o==null ? false : filter.apply(o);
+				};
     }
 
     private static final Tooltip negTooltip = new Tooltip("Negate");
@@ -114,16 +105,17 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
      * @param classes
      */
     public void setData(List<PredicateData<F>> classes) {
-	    List<PredicateData<F>> cs = new ArrayList<>(classes);
-        // cs.removeIf(e -> pPool.call(unPrimitivize(e.type)).isEmpty()); // remove unsupported
+	    List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).toList();
         inconsistentState = true;
         typeCB.getItems().setAll(cs);
         inconsistentState = false;
 
 	    PredicateData<F> v =  Optional.ofNullable(prefTypeSupplier)
 			.map(Supplier::get)
-			.orElseGet(() -> cs.isEmpty() ? null : cs.get(0));
-	    // TODO: handle v==null
+			.flatMap(pd -> cs.stream().filter(d -> d.value.equals(pd.value)).findAny())
+			.or(() -> cs.stream().findFirst())
+			.orElse(null);
+
         typeCB.setValue(v);
     }
 
@@ -157,7 +149,7 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
         Function<Object,Boolean> p = config.getValue();
         F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
         if (p!=null && o!=null) {
-            Predicate<V> pr = predicate(o, p);
+            Predicate<V> pr = predicate((ObjectField) o, p);
             if (negB.selected.getValue()) pr = pr.negate();
             changeValue(pr);
         }
@@ -167,7 +159,6 @@ public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends Valu
     public Node getNode() {
         return root;
     }
-
 
 	public static class PredicateData<T> {
 		public final String name;

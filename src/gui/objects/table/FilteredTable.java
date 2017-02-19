@@ -32,7 +32,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import main.App;
 import util.access.fieldvalue.ObjectField;
-import util.dev.TODO;
 import util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
@@ -47,7 +46,6 @@ import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
-import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Purpose.ILL_DEPENDENCY;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
@@ -458,7 +456,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 /* --------------------- HELPER ------------------------------------------------------------------------------------- */
 
-	@TODO(purpose = BUG)
 	@Override
 	protected Callback<TableColumn<T,Void>,TableCell<T,Void>> buildIndexColumnCellFactory() {
 		return (column -> new TableCell<>() {
@@ -473,13 +470,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					setText(null);
 				else {
 					int j = getIndex();
-					String txt;
-					if (zeropadIndex.get()) {
-						int i = showOriginalIndex.get() ? filteredItems.getSourceIndex(j) : j;
-						txt = zeroPad(i + 1, getMaxIndex(), '0');
-					} else
-						txt = String.valueOf(j + 1);
-
+					int i = showOriginalIndex.get() ? filteredItems.getSourceIndex(j) : j;
+					String txt = zeropadIndex.get()
+						? zeroPad(i + 1, getMaxIndex(), '0')
+						: String.valueOf(i + 1);
 					setText(txt + ".");
 				}
 			}

@@ -48,7 +48,7 @@ public class Player {
 
     public static final PlayerState state = PlayerState.deserialize();
 
-    public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(1, 3, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
+    public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(4, 8, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
             Thread t = new Thread(r);
                    t.setDaemon(true); // do not prevent application closing
                    t.setName("tagging-thread");

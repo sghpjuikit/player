@@ -74,7 +74,7 @@ public class SystemOutListener extends PrintStream {
 			// for (int i=0 ; i<len ; i++) write(b[off + i]);
 			sout.write(b, off, len);
 			if (!listeners.isEmpty()) {
-				String s = new String(b); // encoding!?
+				String s = new String(b, off, len, StandardCharsets.UTF_8);
 				runFX(() -> listeners.forEach(l -> l.accept(s)));
 			}
 		}

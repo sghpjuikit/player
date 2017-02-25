@@ -18,55 +18,31 @@
  */
 package audio.playback.player.xtrememp.audio;
 
+import audio.playback.PLAYBACK;
+import audio.playback.player.xtrememp.dsp.DigitalSignalSynchronizer;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.BooleanControl;
-import javax.sound.sampled.Control;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
 import javafx.util.Duration;
-
+import javax.sound.sampled.*;
+import javazoom.spi.PropertiesContainer;
 import org.kc7bfi.jflac.sound.spi.FlacAudioFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
-
-import audio.playback.PLAYBACK;
-import audio.playback.player.xtrememp.dsp.DigitalSignalSynchronizer;
-import javazoom.spi.PropertiesContainer;
 import util.dev.TODO;
-
 import static util.dev.TODO.Purpose.BUG;
+import static util.dev.Util.log;
+import static util.dev.Util.throwIfFxThread;
 
 /**
  *
@@ -138,16 +114,16 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     protected void notifyEvent(Playback state, Map properties) {
+        long position = getPosition() - oldPosition;
         for (PlaybackListener listener : listeners) {
-            PlaybackEventLauncher launcher = new PlaybackEventLauncher(this,
-                    state, getPosition() - oldPosition, properties, listener);
-            launcher.start();
+            new PlaybackEventLauncher(this, state, position, properties, listener).start();
         }
         LOGGER.info("{}", state);
     }
 
     private void reset() {
         if (sourceDataLine != null) {
+            throwIfFxThread();
             sourceDataLine.flush();
             sourceDataLine.close();
             sourceDataLine = null;
@@ -186,6 +162,7 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     protected void init() throws PlayerException {
+        throwIfFxThread();
         notifyEvent(Playback.BUFFERING);
         int oldState = state;
         state = AudioSystem.NOT_SPECIFIED;
@@ -214,6 +191,7 @@ public class AudioPlayer implements Callable<Void> {
      */
     @SuppressWarnings("unchecked")
     protected void initAudioInputStream() throws PlayerException {
+        throwIfFxThread();
         // Close any previous opened audio stream before creating a new one.
         closeStream();
         if (audioInputStream == null) {
@@ -330,6 +308,7 @@ public class AudioPlayer implements Callable<Void> {
      * @throws PlayerException
      */
     protected void initSourceDataLine() throws PlayerException {
+        throwIfFxThread();
         if (sourceDataLine == null) {
             try {
                 LOGGER.info("Create Source Data Line");
@@ -623,6 +602,7 @@ public class AudioPlayer implements Callable<Void> {
 
     @Override
     public Void call() throws PlayerException {
+        throwIfFxThread();
         LOGGER.info("Decoding thread started");
         int nBytesRead = 0;
         int audioDataLength = READ_BUFFER_SIZE;
@@ -688,6 +668,7 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     private void awaitTermination() {
+        throwIfFxThread();
         if (future != null && !future.isDone()) {
             try {
                 future.get();
@@ -703,6 +684,7 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     public void play() throws PlayerException {
+        throwIfFxThread();
         lock.lock();
         try {
             switch (state) {
@@ -724,6 +706,7 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     public void pause() {
+        throwIfFxThread();
         if (sourceDataLine != null) {
             if (state == PLAY) {
                 state = PAUSE;
@@ -733,6 +716,7 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     public void stop() {
+        throwIfFxThread();
         if (state != STOP) {
             int oldState = state;
             state = STOP;
@@ -750,19 +734,36 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     public void seek(Duration d) {
-        int bytelen = getByteLength();
+        throwIfFxThread();
+
+        // TODO: get rid of this workaround
+        if (audioInputStream==null && d.equals(Duration.ZERO)) {
+            try {
+                state = STOP;
+                play();
+            } catch (PlayerException e) {
+                log(AudioPlayer.class).error("Could not seek, because could not start playing", e);
+            }
+            return;
+        }
+
+        int bytesAll = getByteLength();
         double total = getDuration();
         double tobe = d.toMillis()*1000/total;
         double is = (getPosition())/total;
                is = PLAYBACK.state.currentTime.get().toMillis()/PLAYBACK.state.duration.get().toMillis();
+
+        long bytesTo = (long)(tobe*bytesAll);
+        long bytesBy = (long)((tobe-is)*bytesAll);
         try {
-            seek((long)(tobe*bytelen),(long)((tobe-is)*bytelen));
+            seek(bytesTo, bytesBy);
         } catch (PlayerException ex) {
             LOGGER.error("",ex);
         }
     }
 
     private long seek(long to, long by) throws PlayerException {
+        throwIfFxThread();
         long pos = getPosition();
         long skipped = 0;
         if (audioSource instanceof File) {
@@ -771,7 +772,7 @@ public class AudioPlayer implements Callable<Void> {
 
             if ((bytesLength <= 0) || (to >= bytesLength)) {
                 notifyEvent(Playback.EOM);
-                LOGGER.info("Seeking - invalif seek position. Pos: {} total: {}", to,bytesLength);
+                LOGGER.info("Seeking - invalid seek position. Pos: {} total: {}", to,bytesLength);
                 return skipped;
             }
 
@@ -801,46 +802,56 @@ public class AudioPlayer implements Callable<Void> {
     }
 
     private long doSeek(long to, long by) throws IOException, PlayerException {
-        if (audioInputStream==null)
+        throwIfFxThread();
+        if (audioInputStream==null || by ==0)
             return 0;
 
         // To explain, stream supports 'seeking' forward only, using skip().
-        // To seek backwards it needs to support marking, which allows reseting to 0
+        // To seek backwards it needs to support marking, which allows resetting to 0
         // and then skipping  to where we wanted
         boolean isForward = by > 0;
-//        if (isForward) {
-//            // Unfortunately this is bugged - skips 0. Disabled for now.
-//            return audioInputStream.skip(by);
-//        } else {
+        boolean isForwardOptimizationEnabled = false;
+        if (isForward && isForwardOptimizationEnabled) {
+            // Unfortunately this is bugged - skips 0. Disabled for now.
+            return audioInputStream.skip(to);
+        } else {
             // This impl. performs very badly even for single seek. Concecutive seeking is big fail.
-            System.out.println("seekin debug: is mark supported: " + audioInputStream.markSupported());
+            System.out.println("seeking debug: is mark supported: " + audioInputStream.markSupported());
             if (audioInputStream.markSupported()) {
                 audioInputStream.reset();
                 return audioInputStream.skip(to);
             } else {
-                initAudioInputStream();
-                long skipped = audioInputStream.skip(to);
-                initSourceDataLine();
-                return skipped;
+				initAudioInputStream();
+				long skipped = audioInputStream.skip(to);
+				initSourceDataLine();
+				return skipped;
             }
-//        }
+        }
     }
 
     @TODO(purpose = BUG)
     protected void closeStream() {
+        throwIfFxThread();
         if (audioInputStream != null) {
             try {
-                audioInputStream.close(); // bugged, see below
+                audioInputStream.close();
+                // Bug fix
+                // close() wont release file (file descriptor in FileInputStream) sometimes, this would prevent entire
+                // OS from accessing the file until garbage collector is ran or this app terminates
+                // apparently a widespread java bug, java devs dont care
+                //
+                // System.gc(); // call gc manually to release file immediately
+                //
+                // Calling garbage collector halts the entire application and completely shits on UX (in our case the
+                // lag took 1 second and even hanged some system processes, because we were polling mouse position)
+                audioInputStream.close();   // This actually works when we call it enough times - yes, i'm serious
+                audioInputStream.close();   // This actually works when we call it enough times - yes, i'm serious
+                audioInputStream.close();   // This actually works when we call it enough times - yes, i'm serious
                 audioInputStream = null;
                 LOGGER.info("Stream closed");
             } catch (IOException ex) {
                 LOGGER.error("Cannot close stream", ex);
             }
-            // bug fix, close() wont release file sometimes, this would prevent
-            // this app and whole OS from accessing the file until this app
-            // terminates
-            // apparently a widespread java bug, java devs dont care
-            System.gc();
         }
     }
 }

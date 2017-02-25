@@ -3542,7 +3542,7 @@ check-icon-disabling:selected {
 
 /* Popover header - rectangular area at the top of the content. */
 .popover-root > .content > .popover-header {
-    -fx-padding: 3 8 0 8;
+    -fx-padding: 3 8 8 8;
 }
 
 /* Popover header title. */

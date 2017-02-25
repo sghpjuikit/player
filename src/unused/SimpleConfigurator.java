@@ -58,7 +58,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	@FXML private Label warnLabel;
 
 	private final Icon okB = new Icon(OctIcon.CHECK, 25);
-	private final double anchor;
+	private final double anchorOk, anchorWarn = 20;
 	private final List<ConfigField<T>> configFields = new ArrayList<>();
 	public final Configurable<T> configurable;
 	/**
@@ -97,8 +97,8 @@ public class SimpleConfigurator<T> extends AnchorPane {
 
 		okPane.getChildren().add(okB);
 		fieldsPane.setMaxHeight(Screen.getPrimary().getBounds().getHeight()*0.7);
-		anchor = AnchorPane.getBottomAnchor(fieldsPane);
-		setOkButtonVisible(hasAction.get());
+		anchorOk = AnchorPane.getBottomAnchor(fieldsPane);
+		setOkButton(hasAction.get());
 
 		// set configs
 		configFields.clear();
@@ -147,22 +147,29 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		return validation;
 	}
 
-	private void showWarnButton(Try<T,String> validation) {
-		if (validation.isError()) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
-		okB.icon(validation.isOk() ? OctIcon.CHECK : FontAwesomeIcon.EXCLAMATION_TRIANGLE);
-		okB.setMouseTransparent(validation.isError());
-		buttonPane.setBottom(validation.isOk() ? null : warnLabel);
-		// buttonPane.setPadding(validation.isOk() ? Insets.EMPTY : new Insets(10,0,10,0)); // TODO: popup !resize
-		if (validation.isError()) warnLabel.setText(validation.getError());
-	}
-
 	public void focusFirstConfigField() {
 		if (!configFields.isEmpty())
 			configFields.get(0).focus();
 	}
 
-	private void setOkButtonVisible(boolean val) {
+	private void showWarnButton(Try<T,String> validation) {
+		if (validation.isError()) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+		okB.icon(validation.isOk() ? OctIcon.CHECK : FontAwesomeIcon.EXCLAMATION_TRIANGLE);
+		okB.setMouseTransparent(validation.isError());
+		buttonPane.setBottom(validation.isOk() ? null : warnLabel);
+		updateAnchor();
+		if (validation.isError()) warnLabel.setText(validation.getError());
+	}
+
+	private void setOkButton(boolean val) {
 		buttonPane.setVisible(val);
-		AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
+		updateAnchor();
+	}
+
+	private void updateAnchor() {
+		boolean isOkVisible = buttonPane.isVisible();
+		boolean isWarnVisible = buttonPane.getBottom()!=null;
+		double a = (isOkVisible ? anchorOk : 0d) + (isWarnVisible ? anchorWarn : 0d);
+		AnchorPane.setBottomAnchor(fieldsPane, a);
 	}
 }

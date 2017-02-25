@@ -113,7 +113,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse "
 			+ "click outside of this popup.";
 		Icon pinB = new Icon(null, 11, pinBt, () -> p.setAutoHide(!p.isAutoHide()));
-		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::setIcon);
+		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
 
 		HBox headerControls = new HBox(closeB);
 		headerControls.setSpacing(5);
@@ -159,6 +159,9 @@ public class PopOverSkin implements Skin<PopOver> {
 		header.setLeft(title);
 		header.setRight(headerControls);
 		header.getStyleClass().add(HEADER_STYLECLASS);
+		BorderPane.setAlignment(title, Pos.CENTER_LEFT);
+		BorderPane.setAlignment(headerControls, Pos.CENTER_RIGHT);
+
 		// header visibility
 		maintain(p.headerVisible, b -> b ? header : null, content.topProperty());
 

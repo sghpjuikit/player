@@ -14,7 +14,7 @@
     <padding>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
     </padding>
-    <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="90.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <AnchorPane id="Content" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
             <padding>
                 <Insets />

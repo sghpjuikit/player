@@ -3183,7 +3183,7 @@
  */
 .icon {
     -fx-fill: -fx-def-font-color;
-    -glyph-name: "CLOSE";
+    -glyph-name: "FontAwesome.CLOSE";
     -glyph-size: 12;
     -glyph-gap: 0;
 }
@@ -3219,10 +3219,10 @@
  * pseudoclasses: selected
  */
 .check-icon {
-   -glyph-name: TOGGLE_OFF;
+   -glyph-name: "FontAwesome.TOGGLE_OFF;"
 }
 .check-icon:selected {
-   -glyph-name: TOGGLE_ON;
+   -glyph-name: "FontAwesome.TOGGLE_ON";
 }
 
 /** 
@@ -3242,10 +3242,10 @@ check-icon-disabling:selected {
  * inherits: .check-icon
  */
 .filter-negate-icon {
-   -glyph-name: CIRCLE;
+   -glyph-name: "FontAwesome.CIRCLE";
 }
 .filter-negate-icon:selected {
-   -glyph-name: CIRCLE_ALT;
+   -glyph-name: "FontAwesome.CIRCLE_ALT";
 }
 
 /***********************************************************************************************************************
@@ -3717,23 +3717,23 @@ check-icon-disabling:selected {
  * inherits: .icon
  */
 .config-field-ok-button {
-    -glyph-name: CHECK;
+    -glyph-name: "FontAwesome.CHECK";
 }
 
 .boolean-config-field {}
 
 .override-config-field {
-    -glyph-name: CHECKBOX_MULTIPLE_BLANK_OUTLINE;
+    -glyph-name: "MaterialDesignIcons.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
 }
 .override-config-field:selected {
-    -glyph-name: CHECKBOX_MULTIPLE_BLANK;
+    -glyph-name: "MaterialDesignIcons.CHECKBOX_MULTIPLE_BLANK";
 }
 
 .shortcut-global-config-field {
-    -glyph-name: CAST;
+    -glyph-name: "MaterialDesignIcons.CAST";
 }
 .shortcut-global-config-field:selected {
-    -glyph-name: CAST_CONNECTED;
+    -glyph-name: "MaterialDesignIcons.CAST_CONNECTED";
 }
 
 /** 
@@ -3741,7 +3741,7 @@ check-icon-disabling:selected {
  * inherits: .icon
  */
 .config-field-warn-button {
-    -glyph-name: EXCLAMATION_TRIANGLE;
+    -glyph-name: "FontAwesome.EXCLAMATION_TRIANGLE";
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
@@ -3767,13 +3767,13 @@ check-icon-disabling:selected {
 
 /* Effect type chooser button for effect config field. */
 .effect-config-field-type-button {
-    -glyph-name: AUTO_FIX;
+    -glyph-name: "MaterialDesignIcons.AUTO_FIX";
     -glyph-size: 11;
 }
 
 /* Effect properties button for effect config field. */
 .effect-config-field-conf-button {
-    -glyph-name: GEAR;
+    -glyph-name: "FontAwesome.GEAR";
     -glyph-size: 11;
 }
 
@@ -3858,11 +3858,11 @@ check-icon-disabling:selected {
 /* inherits: checkicon-menu-item-icon */
 .checkicon-menu-item-icon-single-selection {
     visibility: hidden;
-    -glyph-name: "CHECK";
+    -glyph-name: "FontAwesome.CHECK";
 }
 .checkicon-menu-item-icon-single-selection:selected {
     visibility: visible;
-    -glyph-name: "CHECK";
+    -glyph-name: "FontAwesome.CHECK";
 }
 
 /* hide the arrow if no children */
@@ -3887,7 +3887,7 @@ check-icon-disabling:selected {
 .inode,
 .onode,
 .ionode {
-    -glyph-name: TOGGLE_RIGHT;
+    -glyph-name: "FontAwesome.TOGGLE_RIGHT";
     -glyph-size: 10;
 }
 

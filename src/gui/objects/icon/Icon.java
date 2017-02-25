@@ -42,6 +42,7 @@ import util.LazyR;
 import util.SwitchException;
 import util.action.Action;
 import util.animation.Anim;
+import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
 import util.parsing.Parser;
@@ -109,7 +110,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	private final Text node = new Text();
 	private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text
-	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
+	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.apply(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
 	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
 	private boolean isGlyphSizeSetProgrammatically = false;
@@ -383,19 +384,26 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	GlyphIcons glyph = null;    // cache
 
-	// the problem is the name is not necessarily unique across different fonts
-	// however the cache already guarantees correct icon when loading programmatically
-	// css however remains a problem and should be reimplemented to  ICON_PACK_NAME.ICON_NAME
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
-		if (glyph==null || !glyph.name().equalsIgnoreCase(n)) {
-			glyph = (GlyphIcons) stream(FontAwesomeIcon.class, WeatherIcon.class, MaterialDesignIcon.class, MaterialIcon.class, OctIcon.class)
-				.flatMap(c -> stream(getEnumConstants(c)))
-				.filter(i -> ((GlyphIcons) i).name().equalsIgnoreCase(n))
-				.findFirst().orElseGet(this::getDefaultGlyph);
-		}
+		if (glyph==null || !GLYPHS.keyMapper.apply(glyph).equals(n))
+			glyph = GLYPHS.getOrSupply(n, this::getDefaultGlyph);
 		return glyph;
 	}
+
+	/**
+	 * Collection of all glyphs mapped to a unique names that identify them.
+	 */
+	private static final MapSet<String,GlyphIcons> GLYPHS = stream(
+				FontAwesomeIcon.class,
+				WeatherIcon.class,
+				MaterialDesignIcon.class,
+				MaterialIcon.class,
+				OctIcon.class
+			)
+			.flatMap(c -> stream(getEnumConstants(c)))
+			.select(GlyphIcons.class)
+			.toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name()));
 
 	public final void setFill(Paint value) {
 		node.setFill(value);
@@ -481,7 +489,8 @@ public class Icon<I extends Icon<?>> extends StackPane {
 
 	public final void setIcon(GlyphIcons i) {
 		glyph = i;
-		setGlyphName(i==null ? "null" : i.name());
+		if (i==null) isGlyphSetProgrammatically = false;
+		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.apply(i));
 	}
 
 	public FontAwesomeIcon getDefaultGlyph() { return ADJUST; }

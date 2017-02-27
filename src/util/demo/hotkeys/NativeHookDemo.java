@@ -6,10 +6,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.*;
-
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.NativeInputEvent;
@@ -24,10 +22,9 @@ import org.jnativehook.mouse.NativeMouseWheelListener;
 /**
  * A demonstration of how to use the JNativeHook library (https://github.com/kwhat/jnativehook).
  *
- * @author	Alexander Barker (<a href="mailto:alex@1stleg.com">alex@1stleg.com</a>)
- * @version	2.0
- * @since	1.0
- *
+ * @author Alexander Barker (<a href="mailto:alex@1stleg.com">alex@1stleg.com</a>)
+ * @version 2.0
+ * @since 1.0
  * @see GlobalScreen
  * @see NativeKeyListener
  */
@@ -131,7 +128,6 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 		scrollPane.setPreferredSize(new Dimension(375, 125));
 		add(scrollPane, BorderLayout.CENTER);
 
-
 		// Disable parent logger and set the desired level.
 		logger.setUseParentHandlers(false);
 		logger.setLevel(Level.ALL);
@@ -157,10 +153,9 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == menuItemQuit) {
+		if (e.getSource()==menuItemQuit) {
 			this.dispose();
-		}
-		else if (e.getSource() == menuItemClear) {
+		} else if (e.getSource()==menuItemClear) {
 			txtEventInfo.setText("");
 		}
 	}
@@ -171,19 +166,17 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 	public void itemStateChanged(ItemEvent e) {
 		ItemSelectable item = e.getItemSelectable();
 
-		if (item == menuItemEnable) {
+		if (item==menuItemEnable) {
 			try {
 				// Keyboard checkbox was changed, adjust listeners accordingly.
-				if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (e.getStateChange()==ItemEvent.SELECTED) {
 					// Initialize native hook.  This is done on window open because the
 					// listener requires the txtEventInfo object to be constructed.
 					GlobalScreen.registerNativeHook();
-				}
-				else {
+				} else {
 					GlobalScreen.unregisterNativeHook();
 				}
-			}
-			catch (NativeHookException ex) {
+			} catch (NativeHookException ex) {
 				txtEventInfo.append("Error: " + ex.getMessage() + "\n");
 			}
 
@@ -192,40 +185,32 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 
 			// Set enable/disable the sub-menus based on the enable menu item's state.
 			menuSubListeners.setEnabled(menuItemEnable.getState());
-		}
-		else if (item == menuItemKeyboardEvents) {
+		} else if (item==menuItemKeyboardEvents) {
 			// Keyboard checkbox was changed, adjust listeners accordingly
-			if (e.getStateChange() == ItemEvent.SELECTED) {
+			if (e.getStateChange()==ItemEvent.SELECTED) {
 				GlobalScreen.addNativeKeyListener(this);
-			}
-			else {
+			} else {
 				GlobalScreen.removeNativeKeyListener(this);
 			}
-		}
-		else if (item == menuItemButtonEvents) {
+		} else if (item==menuItemButtonEvents) {
 			// Button checkbox was changed, adjust listeners accordingly
-			if (e.getStateChange() == ItemEvent.SELECTED) {
+			if (e.getStateChange()==ItemEvent.SELECTED) {
 				GlobalScreen.addNativeMouseListener(this);
-			}
-			else {
+			} else {
 				GlobalScreen.removeNativeMouseListener(this);
 			}
-		}
-		else if (item == menuItemMotionEvents) {
+		} else if (item==menuItemMotionEvents) {
 			// Motion checkbox was changed, adjust listeners accordingly
-			if (e.getStateChange() == ItemEvent.SELECTED) {
+			if (e.getStateChange()==ItemEvent.SELECTED) {
 				GlobalScreen.addNativeMouseMotionListener(this);
-			}
-			else {
+			} else {
 				GlobalScreen.removeNativeMouseMotionListener(this);
 			}
-		}
-		else if (item == menuItemWheelEvents) {
+		} else if (item==menuItemWheelEvents) {
 			// Motion checkbox was changed, adjust listeners accordingly
-			if (e.getStateChange() == ItemEvent.SELECTED) {
+			if (e.getStateChange()==ItemEvent.SELECTED) {
 				GlobalScreen.addNativeMouseWheelListener(this);
-			}
-			else {
+			} else {
 				GlobalScreen.removeNativeMouseWheelListener(this);
 			}
 		}
@@ -305,13 +290,12 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 
 		try {
 			//Clean up the history to reduce memory consumption.
-			if (txtEventInfo.getLineCount() > 100) {
+			if (txtEventInfo.getLineCount()>100) {
 				txtEventInfo.replaceRange("", 0, txtEventInfo.getLineEndOffset(txtEventInfo.getLineCount() - 1 - 100));
 			}
 
 			txtEventInfo.setCaretPosition(txtEventInfo.getLineStartOffset(txtEventInfo.getLineCount() - 1));
-		}
-		catch (BadLocationException ex) {
+		} catch (BadLocationException ex) {
 			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
 		}
 	}
@@ -375,8 +359,7 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 
 		try {
 			txtEventInfo.setCaretPosition(txtEventInfo.getLineStartOffset(txtEventInfo.getLineCount() - 1));
-		}
-		catch (BadLocationException ex) {
+		} catch (BadLocationException ex) {
 			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
 		}
 
@@ -396,8 +379,7 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 		// Clean up the native hook.
 		try {
 			GlobalScreen.unregisterNativeHook();
-		}
-		catch (NativeHookException ex) {
+		} catch (NativeHookException ex) {
 			ex.printStackTrace();
 		}
 		System.runFinalization();
@@ -411,22 +393,22 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 	 */
 	public static void main(String[] args) {
 		StringBuffer copyright = new StringBuffer("\n")
-			.append("JNativeHook: Global keyboard and mouse hooking for Java.\n")
-			.append("Copyright (C) 2006-2016 Alexander Barker.  All Rights Received.\n")
-			.append("https://github.com/kwhat/jnativehook/\n")
-			.append("\n")
-			.append("JNativeHook is free software: you can redistribute it and/or modify\n")
-			.append("it under the terms of the GNU Lesser General Public License as published\n")
-			.append("by the Free Software Foundation, either version 3 of the License, or\n")
-			.append("(at your option) any later version.\n")
-			.append("\n")
-			.append("JNativeHook is distributed in the hope that it will be useful,\n")
-			.append("but WITHOUT ANY WARRANTY; without even the implied warranty of\n")
-			.append("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n")
-			.append("GNU General Public License for more details.\n")
-			.append("\n")
-			.append("You should have received a copy of the GNU Lesser General Public License\n")
-			.append("along with this program.  If not, see <http://www.gnu.org/licenses/>.\n");
+				.append("JNativeHook: Global keyboard and mouse hooking for Java.\n")
+				.append("Copyright (C) 2006-2016 Alexander Barker.  All Rights Received.\n")
+				.append("https://github.com/kwhat/jnativehook/\n")
+				.append("\n")
+				.append("JNativeHook is free software: you can redistribute it and/or modify\n")
+				.append("it under the terms of the GNU Lesser General Public License as published\n")
+				.append("by the Free Software Foundation, either version 3 of the License, or\n")
+				.append("(at your option) any later version.\n")
+				.append("\n")
+				.append("JNativeHook is distributed in the hope that it will be useful,\n")
+				.append("but WITHOUT ANY WARRANTY; without even the implied warranty of\n")
+				.append("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n")
+				.append("GNU General Public License for more details.\n")
+				.append("\n")
+				.append("You should have received a copy of the GNU Lesser General Public License\n")
+				.append("along with this program.  If not, see <http://www.gnu.org/licenses/>.\n");
 		System.out.println(copyright);
 
 		SwingUtilities.invokeLater(NativeHookDemo::new);
@@ -443,12 +425,12 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 			StringBuilder line = new StringBuilder();
 
 			line.append(new Date(record.getMillis()))
-				.append(" ")
-				.append(record.getLevel().getLocalizedName())
-				.append(":\t")
-				.append(formatMessage(record));
+					.append(" ")
+					.append(record.getLevel().getLocalizedName())
+					.append(":\t")
+					.append(formatMessage(record));
 
-			if (record.getThrown() != null) {
+			if (record.getThrown()!=null) {
 				try {
 					StringWriter sw = new StringWriter();
 					PrintWriter pw = new PrintWriter(sw);
@@ -456,8 +438,7 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 					pw.close();
 					line.append(sw.toString());
 					sw.close();
-				}
-				catch (Exception ex) { /* Do Nothing */ }
+				} catch (Exception ex) { /* Do Nothing */ }
 			}
 
 			return line.toString();

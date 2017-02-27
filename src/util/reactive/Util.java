@@ -6,16 +6,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.stage.Screen;
-
 import org.reactfx.Subscription;
-
 import static org.reactfx.EventStreams.valuesOf;
 import static util.dev.Util.noØ;
 
@@ -25,33 +22,33 @@ import static util.dev.Util.noØ;
 public interface Util {
 
 	static <O> Subscription changes(ObservableValue<O> o, BiConsumer<? super O,? super O> u) {
-		ChangeListener<O> l = (b,ov,nv) -> u.accept(ov,nv);
+		ChangeListener<O> l = (b, ov, nv) -> u.accept(ov, nv);
 		o.addListener(l);
 		return () -> o.removeListener(l);
 	}
 
-	static <O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
+	static <O, V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
 		u.accept(m.apply(o.getValue()));
 		return valuesOf(o).map(m).subscribe(u);
 	}
 
 	static <O> Subscription maintain(ObservableValue<O> o, Consumer<? super O> u) {
-		ChangeListener<O> l = (b,ov,nv) -> u.accept(nv);
+		ChangeListener<O> l = (b, ov, nv) -> u.accept(nv);
 		u.accept(o.getValue());
 		o.addListener(l);
 		return () -> o.removeListener(l);
 	}
 
-	static <O,V> Subscription maintain(ObservableValue<O> o, Function<? super O, ? extends V> m, WritableValue<? super V> w) {
+	static <O, V> Subscription maintain(ObservableValue<O> o, Function<? super O,? extends V> m, WritableValue<? super V> w) {
 		w.setValue(m.apply(o.getValue()));
-		ChangeListener<O> l = (x,ov,nv) -> w.setValue(m.apply(nv));
+		ChangeListener<O> l = (x, ov, nv) -> w.setValue(m.apply(nv));
 		o.addListener(l);
 		return () -> o.removeListener(l);
 	}
 
-	static <O1,O2> Subscription maintain(ObservableValue<O1> o1, ObservableValue<O2> o2, BiConsumer<? super O1, ? super O2> u) {
-		ChangeListener<O1> l1 = (b,ov,nv) -> u.accept(nv, o2.getValue());
-		ChangeListener<O2> l2 = (b,ov,nv) -> u.accept(o1.getValue(), nv);
+	static <O1, O2> Subscription maintain(ObservableValue<O1> o1, ObservableValue<O2> o2, BiConsumer<? super O1,? super O2> u) {
+		ChangeListener<O1> l1 = (b, ov, nv) -> u.accept(nv, o2.getValue());
+		ChangeListener<O2> l2 = (b, ov, nv) -> u.accept(o1.getValue(), nv);
 		u.accept(o1.getValue(), o2.getValue());
 		o1.addListener(l1);
 		o2.addListener(l2);
@@ -63,7 +60,7 @@ public interface Util {
 
 	static <O> Subscription maintain(ObservableValue<? extends O> o, WritableValue<O> w) {
 		w.setValue(o.getValue());
-		ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);
+		ChangeListener<O> l = (x, ov, nv) -> w.setValue(nv);
 		o.addListener(l);
 		return () -> o.removeListener(l);
 	}
@@ -145,7 +142,7 @@ public interface Util {
 	static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onAdded, ListChangeListener<T> onRemoved) {
 		noØ(onAdded, onRemoved);
 		return change -> {
-			while(change.next()) {
+			while (change.next()) {
 				if (!change.wasPermutated() && !change.wasUpdated()) {
 					if (change.wasAdded()) onAdded.onChanged(change);
 					if (change.wasAdded()) onRemoved.onChanged(change);
@@ -163,7 +160,7 @@ public interface Util {
 	static <T> ListChangeListener<T> listChangeListener(ListChangeListener<T> onChange) {
 		noØ(onChange);
 		return change -> {
-			while(change.next()) {
+			while (change.next()) {
 				onChange.onChanged(change);
 			}
 		};
@@ -173,7 +170,7 @@ public interface Util {
 	static <T> ListChangeListener<T> listChangeHandlerEach(Consumer<T> addedHandler, Consumer<T> removedHandler) {
 		noØ(addedHandler, removedHandler);
 		return change -> {
-			while(change.next()) {
+			while (change.next()) {
 				if (!change.wasPermutated() && !change.wasUpdated()) {
 					if (change.wasAdded()) change.getRemoved().forEach(removedHandler);
 					if (change.wasAdded()) change.getAddedSubList().forEach(addedHandler);
@@ -186,7 +183,7 @@ public interface Util {
 	static <T> ListChangeListener<T> listChangeHandler(Consumer<List<? extends T>> addedHandler, Consumer<List<? extends T>> removedHandler) {
 		noØ(addedHandler, removedHandler);
 		return change -> {
-			while(change.next()) {
+			while (change.next()) {
 				if (!change.wasPermutated() && !change.wasUpdated()) {
 					if (change.wasAdded()) removedHandler.accept(change.getRemoved());
 					if (change.wasAdded()) addedHandler.accept(change.getAddedSubList());

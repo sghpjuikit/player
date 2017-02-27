@@ -1,5 +1,9 @@
 package util.graphics.drag;
 
+import audio.Item;
+import audio.SimpleItem;
+import audio.tagging.MetadataGroup;
+import de.jensd.fx.glyphs.GlyphIcons;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -11,18 +15,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-
-import audio.Item;
-import audio.SimpleItem;
-import audio.tagging.MetadataGroup;
-import de.jensd.fx.glyphs.GlyphIcons;
 import layout.Component;
 import layout.widget.controller.io.Output;
 import util.async.future.Fut;
@@ -31,7 +29,6 @@ import util.file.AudioFileFormat.Use;
 import util.file.ImageFileFormat;
 import util.file.Util;
 import util.functional.Functors.Ƒ1;
-
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -46,7 +43,6 @@ import static util.file.Util.getFilesAudio;
 import static util.functional.Util.*;
 
 /**
- *
  * @author Martin Polakovic
  */
 public final class DragUtil {
@@ -71,7 +67,7 @@ public final class DragUtil {
 
 	public static void installDrag(Node node, GlyphIcons icon, Supplier<String> description, Predicate<DragEvent> condition, Predicate<DragEvent> exc, Consumer<DragEvent> action, Ƒ1<DragEvent,Bounds> area) {
 		// accept drag if desired
-		node.addEventHandler(DRAG_OVER,accept(condition,exc));
+		node.addEventHandler(DRAG_OVER, accept(condition, exc));
 		// handle drag & clear data
 		node.addEventHandler(DRAG_DROPPED, e -> {
 			if (condition.test(e)) {
@@ -81,7 +77,7 @@ public final class DragUtil {
 			}
 		});
 		// show hint
-		DragPane.install(node,icon,description,condition,exc,area);
+		DragPane.install(node, icon, description, condition, exc, area);
 	}
 
 /* ---------- DATA FORMATS ------------------------------------------------------------------------------------------ */
@@ -102,7 +98,7 @@ public final class DragUtil {
 /* ---------- HANDLERS ---------------------------------------------------------------------------------------------- */
 
 	public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond) {
-		return accept(cond,false);
+		return accept(cond, false);
 	}
 
 	public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond, boolean orConsume) {
@@ -111,7 +107,7 @@ public final class DragUtil {
 
 	public static EventHandler<DragEvent> accept(Predicate<? super DragEvent> cond, Predicate<DragEvent> orConsume) {
 		return e -> {
-			if (cond.test(e) && !orConsume.test(e) ) {
+			if (cond.test(e) && !orConsume.test(e)) {
 				e.acceptTransferModes(ANY);
 				e.consume();
 			}
@@ -125,16 +121,28 @@ public final class DragUtil {
 	/** Always accepts and consumes drag over event. */
 	public static final EventHandler<DragEvent> anyDragAcceptHandler = accept(IS);
 
-	/** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent)} as predicate. */
+	/**
+	 * {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent)} as
+	 * predicate.
+	 */
 	public static final EventHandler<DragEvent> componentDragAcceptHandler = accept(DragUtil::hasComponent);
 
-	/** {@link #accept(java.util.function.Predicate) } using {@link #hasAudio(javafx.scene.input.DragEvent) } as predicate. */
+	/**
+	 * {@link #accept(java.util.function.Predicate) } using {@link #hasAudio(javafx.scene.input.DragEvent) } as
+	 * predicate.
+	 */
 	public static final EventHandler<DragEvent> audioDragAcceptHandler = accept(DragUtil::hasAudio);
 
-	/** {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as predicate. */
+	/**
+	 * {@link #accept(java.util.function.Predicate) } using {@link #hasImage(javafx.scene.input.DragEvent) ) } as
+	 * predicate.
+	 */
 	public static final EventHandler<DragEvent> imgFileDragAcceptHandler = accept(DragUtil::hasImage);
 
-	/** {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as predicate. */
+	/**
+	 * {@link #accept(java.util.function.Predicate) } using {@link #hasComponent(javafx.scene.input.DragEvent) } as
+	 * predicate.
+	 */
 	public static final EventHandler<DragEvent> widgetOutputDragAcceptHandler = accept(DragUtil::hasWidgetOutput);
 
 /* ---------- ANY --------------------------------------------------------------------------------------------------- */
@@ -209,6 +217,7 @@ public final class DragUtil {
 
 	/**
 	 * Returns text from dragboard.
+	 *
 	 * @return string in dragboard or "" if none.
 	 */
 	public static String getText(DragEvent e) {
@@ -245,7 +254,7 @@ public final class DragUtil {
 		db.setContent(singletonMap(DF_WIDGET_OUTPUT, ""));   // fake data
 	}
 
-	/** Returns widget output from dragboard or runtime exceptin if none. */
+	/** Returns widget output from dragboard or runtime exception if none. */
 	public static Output getWidgetOutput(DragEvent e) {
 		if (!hasWidgetOutput(e))
 			throw new RuntimeException("No widget output in data available.");
@@ -282,7 +291,7 @@ public final class DragUtil {
 		if (includeFiles) {
 			HashMap<DataFormat,Object> c = new HashMap<>();
 			c.put(DF_ITEMS, "");   // fake data
-			c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
+			c.put(FILES, filterMap(items, Item::isFileBased, Item::getFile));
 			db.setContent(c);
 		}
 	}
@@ -312,17 +321,15 @@ public final class DragUtil {
 
 		if (hasItemList(e)) {
 			o.addAll(getItemsList(e));
-		} else
-		if (d.hasFiles()) {
-			getFilesAudio(d.getFiles(),Use.APP,Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
-		} else
-		if (d.hasUrl()) {
+		} else if (d.hasFiles()) {
+			getFilesAudio(d.getFiles(), Use.APP, Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
+		} else if (d.hasUrl()) {
 			String url = d.getUrl();
 			// watch out for non audio urls, we must filter those out, or
 			// we could cause subtle bugs
-			if (AudioFileFormat.isSupported(url,Use.APP))
+			if (AudioFileFormat.isSupported(url, Use.APP))
 				Optional.of(new SimpleItem(URI.create(url)))  // is not this dangerous?
-						.filter(i->!i.isCorrupt(Use.APP)) // is not this pointless?
+						.filter(i -> !i.isCorrupt(Use.APP)) // is not this pointless?
 						.ifPresent(o::add);
 		}
 		return o;
@@ -337,8 +344,8 @@ public final class DragUtil {
 	public static boolean hasAudio(DragEvent e) {
 		Dragboard d = e.getDragboard();
 		return (d.hasFiles() && Util.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
-					(d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
-						 hasItemList(e);
+				(d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(), Use.APP)) ||
+				hasItemList(e);
 	}
 
 	/**
@@ -350,7 +357,7 @@ public final class DragUtil {
 	public static boolean hasImage(DragEvent e) {
 		Dragboard d = e.getDragboard();
 		return (d.hasFiles() && Util.containsImageFiles(d.getFiles())) ||
-					(d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+				(d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
 	}
 
 	/**
@@ -380,8 +387,8 @@ public final class DragUtil {
 		}
 		if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
 			return futUrl(d.getUrl());
-		}
-		return fut(null);
+		} else
+			return Fut.fut(null);
 	}
 
 	// workaround method, remove
@@ -425,12 +432,12 @@ public final class DragUtil {
 		}
 		if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
 			String url = d.getUrl();
-			return fut(() -> {
+			return Fut.futWith(() -> {
 				try {
 					File f = Util.saveFileTo(url, APP.DIR_TEMP);
-						 f.deleteOnExit();
+					f.deleteOnExit();
 					return singletonList(f);
-				} catch(IOException ex) {
+				} catch (IOException ex) {
 					return listRO();
 				}
 			});
@@ -460,19 +467,19 @@ public final class DragUtil {
 		}
 		if (d.hasFiles()) {
 			List<File> files = d.getFiles();
-			return fut(() -> getFilesAudio(files,Use.APP,MAX_VALUE).map(SimpleItem::new));
+			return Fut.futWith(() -> getFilesAudio(files, Use.APP, MAX_VALUE).map(SimpleItem::new));
 		}
 		if (d.hasUrl()) {
 			String url = d.getUrl();
-			return AudioFileFormat.isSupported(url,Use.APP)
-						? fut(Stream.of(new SimpleItem(URI.create(url))))
-						: fut(Stream.empty());
+			return AudioFileFormat.isSupported(url, Use.APP)
+					? fut(Stream.of(new SimpleItem(URI.create(url))))
+					: fut(Stream.empty());
 		}
 		return fut(Stream.empty());
 	}
 
 	private static Fut<File> futUrl(String url) {
-		return fut(() -> {
+		return Fut.futWith(() -> {
 			try {
 				// this can all fail when the certificate is not trusted
 				// security is fine, but user does not care if a site he uses wont work due to this...
@@ -480,10 +487,10 @@ public final class DragUtil {
 				//
 				// https://code.google.com/p/jsslutils/wiki/SSLContextFactory
 				File f = Util.saveFileTo(url, APP.DIR_TEMP);
-					 f.deleteOnExit();
+				f.deleteOnExit();
 				return f;
-			} catch(IOException e) {
-				log(DragUtil.class).error("Could not download from url",e);
+			} catch (IOException e) {
+				log(DragUtil.class).error("Could not download from url", e);
 				return null;
 			}
 		});

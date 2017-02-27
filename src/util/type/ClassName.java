@@ -3,7 +3,6 @@ package util.type;
 import util.collections.map.ClassMap;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class ClassName {

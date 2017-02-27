@@ -22,7 +22,6 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 
 /**
- *
  * @author Jens Deters
  */
 public interface InputConstraints {
@@ -30,7 +29,7 @@ public interface InputConstraints {
 	static void noLeadingAndTrailingBlanks(final TextInputControl textField) {
 		textField.addEventFilter(KeyEvent.KEY_TYPED, createNoLeadingBlanksInputHandler());
 		textField.focusedProperty().addListener(o ->
-			textField.setText(textField.getText().trim())
+				textField.setText(textField.getText().trim())
 		);
 	}
 
@@ -41,7 +40,7 @@ public interface InputConstraints {
 	static void noBlanks(final TextInputControl textField) {
 		textField.addEventFilter(KeyEvent.KEY_TYPED, createNoBlanksInputHandler());
 		textField.focusedProperty().addListener(o ->
-			textField.setText(textField.getText().trim())
+				textField.setText(textField.getText().trim())
 		);
 	}
 
@@ -50,9 +49,9 @@ public interface InputConstraints {
 	}
 
 	static void numbersOnly(final TextInputControl textField, int maxLength, boolean negative, boolean floating) {
-		textField.addEventFilter(KeyEvent.KEY_TYPED, createNumbersOnlyInputHandler(negative ? 1+maxLength : maxLength, negative, floating));
+		textField.addEventFilter(KeyEvent.KEY_TYPED, createNumbersOnlyInputHandler(negative ? 1 + maxLength : maxLength, negative, floating));
 		textField.focusedProperty().addListener(o ->
-			textField.setText(textField.getText().trim())
+				textField.setText(textField.getText().trim())
 		);
 	}
 
@@ -71,7 +70,7 @@ public interface InputConstraints {
 		return (KeyEvent event) -> {
 			if (event.getSource() instanceof TextInputControl) {
 				TextInputControl textField = (TextInputControl) event.getSource();
-				if (" ".equals(event.getCharacter()) && textField.getCaretPosition() == 0) {
+				if (" ".equals(event.getCharacter()) && textField.getCaretPosition()==0) {
 					event.consume();
 				}
 			}
@@ -107,7 +106,7 @@ public interface InputConstraints {
 		return e -> {
 			if (e.getSource() instanceof TextInputControl) {
 				TextInputControl textField = (TextInputControl) e.getSource();
-				if (textField.getText().length() >= maxLength || !e.getCharacter().matches(pattern)) {
+				if (textField.getText().length()>=maxLength || !e.getCharacter().matches(pattern)) {
 					e.consume();
 				}
 			}

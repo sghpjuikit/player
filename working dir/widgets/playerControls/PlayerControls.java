@@ -220,9 +220,9 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
             status.setText(newStatus.toString());
 
             if (newStatus == Status.PLAYING) {
-                f3.setIcon(PAUSE);
+                f3.icon(PAUSE);
             } else {
-                f3.setIcon(PLAY);
+                f3.icon(PLAY);
             }
         }
     }
@@ -233,7 +233,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
             LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
             "Loop mode: off", "Loop mode: loop playlist", "Loop mode: loop song", "Play mode: random")
         );
-        loopB.setIcon(mapRef(looping,
+        loopB.icon(mapRef(looping,
             LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
             REPEAT_OFF, MaterialDesignIcon.REPEAT, REPEAT_ONCE, RANDOM)
         );
@@ -241,9 +241,9 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
 
     private void muteChanged(boolean mute, double volume) {
         if (mute) {
-            muteB.setIcon(VOLUME_OFF);
+            muteB.icon(VOLUME_OFF);
         } else {
-            muteB.setIcon(volume>0.5 ? VOLUME_UP : VOLUME_DOWN);
+            muteB.icon(volume>0.5 ? VOLUME_UP : VOLUME_DOWN);
         }
     }
 

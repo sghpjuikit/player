@@ -30,7 +30,7 @@ import javafx.stage.StageStyle;
  * @see <a href="http://gist.github.com/jewelsea/1441960">gist.github.com/jewelsea/1441960</a>
  */
 public class LayoutDemo extends Application {
-	private final ObservableList<Shape>     shapes        = FXCollections.observableArrayList();
+	private final ObservableList<Shape> shapes = FXCollections.observableArrayList();
 	private final ObservableList<ShapePair> intersections = FXCollections.observableArrayList();
 	private final ObjectProperty<BoundsType> selectedBoundsType = new SimpleObjectProperty<>(BoundsType.LAYOUT_BOUNDS);
 
@@ -44,7 +44,7 @@ public class LayoutDemo extends Application {
 
 		// define some objects to manipulate on the scene.
 		Circle greenCircle = new Circle(100, 100, 50, Color.FORESTGREEN); greenCircle.setId("Green Circle");
-		Circle redCircle   = new Circle(300, 200, 50, Color.FIREBRICK);   redCircle.setId("Red Circle");
+		Circle redCircle = new Circle(300, 200, 50, Color.FIREBRICK); redCircle.setId("Red Circle");
 
 		Line line = new Line(25, 300, 375, 200); line.setId("Line");
 		line.setStrokeLineCap(StrokeLineCap.ROUND);
@@ -52,7 +52,7 @@ public class LayoutDemo extends Application {
 		line.setStrokeWidth(5);
 
 		final Anchor anchor1 = new Anchor("Anchor 1", line.startXProperty(), line.startYProperty());
-		final Anchor anchor2 = new Anchor("Anchor 2", line.endXProperty(),   line.endYProperty());
+		final Anchor anchor2 = new Anchor("Anchor 2", line.endXProperty(), line.endYProperty());
 
 		final Group group = new Group(greenCircle, redCircle, line, anchor1, anchor2);
 
@@ -65,11 +65,11 @@ public class LayoutDemo extends Application {
 		testIntersections();
 
 		// enable dragging for the scene objects.
-		Circle[] circles = { greenCircle, redCircle, anchor1, anchor2 };
+		Circle[] circles = {greenCircle, redCircle, anchor1, anchor2};
 		for (Circle circle : circles) {
 			enableDrag(circle);
-			circle.centerXProperty().addListener((o,ov,nv) -> testIntersections());
-			circle.centerYProperty().addListener((o,ov,nv) -> testIntersections());
+			circle.centerXProperty().addListener((o, ov, nv) -> testIntersections());
+			circle.centerYProperty().addListener((o, ov, nv) -> testIntersections());
 		}
 
 		// define an overlay to show the layout bounds of the scene's shapes.
@@ -90,7 +90,7 @@ public class LayoutDemo extends Application {
 		stage.setScene(scene);
 		stage.show();
 
-		createUtilityWindow(stage, layoutBoundsOverlay, new Shape[] { greenCircle, redCircle });
+		createUtilityWindow(stage, layoutBoundsOverlay, new Shape[]{greenCircle, redCircle});
 	}
 
 	// update the list of intersections.
@@ -102,8 +102,8 @@ public class LayoutDemo extends Application {
 			for (Shape dest : shapes) {
 				ShapePair pair = new ShapePair(src, dest);
 				if ((!(pair.a instanceof Anchor) && !(pair.b instanceof Anchor))
-					    && !intersections.contains(pair)
-					    && pair.intersects(selectedBoundsType.get())) {
+						&& !intersections.contains(pair)
+						&& pair.intersects(selectedBoundsType.get())) {
 					intersections.add(pair);
 				}
 			}
@@ -137,7 +137,9 @@ public class LayoutDemo extends Application {
 	}
 
 	/** A helper enumeration of the various types of bounds we can work with. */
-	private enum BoundsType { LAYOUT_BOUNDS, BOUNDS_IN_LOCAL, BOUNDS_IN_PARENT }
+	private enum BoundsType {
+		LAYOUT_BOUNDS, BOUNDS_IN_LOCAL, BOUNDS_IN_PARENT
+	}
 
 	/** A translucent overlay display rectangle to show the bounds of a Shape. */
 	private class BoundsDisplay extends Rectangle {
@@ -159,15 +161,15 @@ public class LayoutDemo extends Application {
 		// set the type of the shape's bounds to monitor for the bounds display.
 		void monitorBounds(final BoundsType boundsType) {
 			// remove the shape's previous boundsType.
-			if (boundsChangeListener != null) {
+			if (boundsChangeListener!=null) {
 				final ReadOnlyObjectProperty<Bounds> oldBounds;
 				switch (selectedBoundsType.get()) {
-					case LAYOUT_BOUNDS:    oldBounds = monitoredShape.layoutBoundsProperty();   break;
-					case BOUNDS_IN_LOCAL:  oldBounds = monitoredShape.boundsInLocalProperty();  break;
+					case LAYOUT_BOUNDS: oldBounds = monitoredShape.layoutBoundsProperty(); break;
+					case BOUNDS_IN_LOCAL: oldBounds = monitoredShape.boundsInLocalProperty(); break;
 					case BOUNDS_IN_PARENT: oldBounds = monitoredShape.boundsInParentProperty(); break;
 					default: oldBounds = null;
 				}
-				if (oldBounds != null) {
+				if (oldBounds!=null) {
 					oldBounds.removeListener(boundsChangeListener);
 				}
 			}
@@ -175,8 +177,8 @@ public class LayoutDemo extends Application {
 			// determine the shape's bounds for the given boundsType.
 			final ReadOnlyObjectProperty<Bounds> bounds;
 			switch (boundsType) {
-				case LAYOUT_BOUNDS:    bounds = monitoredShape.layoutBoundsProperty();   break;
-				case BOUNDS_IN_LOCAL:  bounds = monitoredShape.boundsInLocalProperty();  break;
+				case LAYOUT_BOUNDS: bounds = monitoredShape.layoutBoundsProperty(); break;
+				case BOUNDS_IN_LOCAL: bounds = monitoredShape.boundsInLocalProperty(); break;
 				case BOUNDS_IN_PARENT: bounds = monitoredShape.boundsInParentProperty(); break;
 				default: bounds = null;
 			}
@@ -185,7 +187,7 @@ public class LayoutDemo extends Application {
 			updateBoundsDisplay(bounds.get());
 
 			// keep the visual bounds display based upon the new bounds and keep it in sync.
-			boundsChangeListener = (o,ov,nv) -> updateBoundsDisplay(nv);
+			boundsChangeListener = (o, ov, nv) -> updateBoundsDisplay(nv);
 			bounds.addListener(boundsChangeListener);
 		}
 
@@ -214,9 +216,11 @@ public class LayoutDemo extends Application {
 	}
 
 	/** Records relative x and y co-ordinates. */
-	private class Delta { double x, y; }
+	private class Delta {
+		double x, y;
+	}
 
-	 /** Records a pair of (possibly) intersecting shapes. */
+	/** Records a pair of (possibly) intersecting shapes. */
 	private class ShapePair {
 		private Shape a, b;
 
@@ -225,12 +229,12 @@ public class LayoutDemo extends Application {
 		}
 
 		boolean intersects(BoundsType boundsType) {
-			if (a == b) return false;
+			if (a==b) return false;
 
 			a.intersects(b.getBoundsInLocal());
 			switch (boundsType) {
-				case LAYOUT_BOUNDS:    return a.getLayoutBounds().intersects(b.getLayoutBounds());
-				case BOUNDS_IN_LOCAL:  return a.getBoundsInLocal().intersects(b.getBoundsInLocal());
+				case LAYOUT_BOUNDS: return a.getLayoutBounds().intersects(b.getLayoutBounds());
+				case BOUNDS_IN_LOCAL: return a.getBoundsInLocal().intersects(b.getBoundsInLocal());
 				case BOUNDS_IN_PARENT: return a.getBoundsInParent().intersects(b.getBoundsInParent());
 				default: return false;
 			}
@@ -246,13 +250,13 @@ public class LayoutDemo extends Application {
 			if (this==other) return true;
 			if (!(other instanceof ShapePair)) return false;
 			ShapePair o = (ShapePair) other;
-			return (a == o.a && b == o.b) || (a == o.b) &&  (b == o.a);
+			return (a==o.a && b==o.b) || (a==o.b) && (b==o.a);
 		}
 
 		@Override
 		public int hashCode() {
-			int result = a != null ? a.hashCode() : 0;
-			result = 31 * result + (b != null ? b.hashCode() : 0);
+			int result = a!=null ? a.hashCode() : 0;
+			result = 31*result + (b!=null ? b.hashCode() : 0);
 			return result;
 		}
 	}
@@ -268,19 +272,19 @@ public class LayoutDemo extends Application {
 		// define content for the intersections utility panel.
 		final ListView<ShapePair> intersectionView = new ListView<>(intersections);
 		final Label instructions = new Label(
-			                                    "Click on any circle in the scene to the left to drag it around."
+				"Click on any circle in the scene to the left to drag it around."
 		);
 		instructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 		instructions.setStyle("-fx-font-weight: bold; -fx-text-fill: darkgreen;");
 
 		final Label intersectionInstructions = new Label(
-			                                                "Any intersecting bounds in the scene will be reported below."
+				"Any intersecting bounds in the scene will be reported below."
 		);
 		instructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
 		// add the ability to set a translate value for the circles.
 		final CheckBox translateNodes = new CheckBox("Translate circles");
-		translateNodes.selectedProperty().addListener((o,ov,nv) -> {
+		translateNodes.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Shape shape : transformableShapes) {
 					shape.setTranslateY(100);
@@ -297,12 +301,12 @@ public class LayoutDemo extends Application {
 
 		// add the ability to add an effect to the circles.
 		final Label modifyInstructions = new Label(
-			                                          "Modify visual display aspects."
+				"Modify visual display aspects."
 		);
 		modifyInstructions.setStyle("-fx-font-weight: bold;");
 		modifyInstructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 		final CheckBox effectNodes = new CheckBox("Add an effect to circles");
-		effectNodes.selectedProperty().addListener((o,ov,nv) -> {
+		effectNodes.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Shape shape : transformableShapes) {
 					shape.setEffect(new DropShadow());
@@ -319,7 +323,7 @@ public class LayoutDemo extends Application {
 
 		// add the ability to add a stroke to the circles.
 		final CheckBox strokeNodes = new CheckBox("Add outside strokes to circles");
-		strokeNodes.selectedProperty().addListener((o,ov,nv) -> {
+		strokeNodes.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Shape shape : transformableShapes) {
 					shape.setStroke(Color.LIGHTSEAGREEN);
@@ -349,8 +353,8 @@ public class LayoutDemo extends Application {
 
 		// create a toggle group for the bounds type to use.
 		ToggleGroup boundsToggleGroup = new ToggleGroup();
-		final RadioButton useLayoutBounds   = new RadioButton("Use Layout Bounds");
-		final RadioButton useBoundsInLocal  = new RadioButton("Use Bounds in Local");
+		final RadioButton useLayoutBounds = new RadioButton("Use Layout Bounds");
+		final RadioButton useBoundsInLocal = new RadioButton("Use Bounds in Local");
 		final RadioButton useBoundsInParent = new RadioButton("Use Bounds in Parent");
 		useLayoutBounds.setToggleGroup(boundsToggleGroup);
 		useBoundsInLocal.setToggleGroup(boundsToggleGroup);
@@ -359,7 +363,7 @@ public class LayoutDemo extends Application {
 		boundsToggles.getChildren().addAll(useLayoutBounds, useBoundsInLocal, useBoundsInParent);
 
 		// change the layout bounds display depending on which bounds type has been selected.
-		useLayoutBounds.selectedProperty().addListener((o,ov,nv) -> {
+		useLayoutBounds.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Node overlay : boundsOverlay.getChildren()) {
 					((BoundsDisplay) overlay).monitorBounds(BoundsType.LAYOUT_BOUNDS);
@@ -368,7 +372,7 @@ public class LayoutDemo extends Application {
 				testIntersections();
 			}
 		});
-		useBoundsInLocal.selectedProperty().addListener((o,ov,nv) -> {
+		useBoundsInLocal.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Node overlay : boundsOverlay.getChildren()) {
 					((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_LOCAL);
@@ -377,7 +381,7 @@ public class LayoutDemo extends Application {
 				testIntersections();
 			}
 		});
-		useBoundsInParent.selectedProperty().addListener((o,ov,nv) -> {
+		useBoundsInParent.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
 				for (Node overlay : boundsOverlay.getChildren()) {
 					((BoundsDisplay) overlay).monitorBounds(BoundsType.BOUNDS_IN_PARENT);
@@ -390,11 +394,11 @@ public class LayoutDemo extends Application {
 
 		WebView boundsExplanation = new WebView();
 		boundsExplanation.getEngine().loadContent(
-			"<html><body bgcolor='darkseagreen' fgcolor='lightgrey' style='font-size:12px'><dl>" +
-				"<dt><b>Layout Bounds</b></dt><dd>The boundary of the shape.</dd><br/>" +
-				"<dt><b>Bounds in Local</b></dt><dd>The boundary of the shape and effect.</dd><br/>" +
-				"<dt><b>Bounds in Parent</b></dt><dd>The boundary of the shape, effect and transforms.<br/>The co-ordinates of what you see.</dd>" +
-				"</dl></body></html>"
+				"<html><body bgcolor='darkseagreen' fgcolor='lightgrey' style='font-size:12px'><dl>" +
+						"<dt><b>Layout Bounds</b></dt><dd>The boundary of the shape.</dd><br/>" +
+						"<dt><b>Bounds in Local</b></dt><dd>The boundary of the shape and effect.</dd><br/>" +
+						"<dt><b>Bounds in Parent</b></dt><dd>The boundary of the shape, effect and transforms.<br/>The co-ordinates of what you see.</dd>" +
+						"</dl></body></html>"
 		);
 		boundsExplanation.setPrefWidth(100);
 		boundsExplanation.setMinHeight(130);

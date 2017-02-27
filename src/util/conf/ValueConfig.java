@@ -1,10 +1,8 @@
 package util.conf;
 
 import java.util.function.Consumer;
-
 import util.conf.Config.ConfigBase;
 import util.conf.IsConfig.EditMode;
-
 import static util.dev.Util.noØ;
 
 /**
@@ -37,127 +35,125 @@ import static util.dev.Util.noØ;
  * value and then provide the result.
  *
  * @param <V> - type of value - wrapped object
- *
  * @author Martin Polakovic
  */
 public final class ValueConfig<V> extends ConfigBase<V> {
 
-    private V value;
-    private Consumer<V> applier;
+	private V value;
+	private Consumer<V> applier;
 
-    public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, EditMode editable, Consumer<V> applier) {
-        super(type, name, gui_name, value, category, info, editable);
-        this.value = value;
-        this.applier = applier;
-    }
+	public ValueConfig(Class<V> type, String name, String gui_name, V value, String category, String info, EditMode editable, Consumer<V> applier) {
+		super(type, name, gui_name, value, category, info, editable);
+		this.value = value;
+		this.applier = applier;
+	}
 
-    public ValueConfig(Class<V> type, String name, V value) {
-        super(type, name, name, value, "", "", EditMode.USER);
-        this.value = value;
-    }
+	public ValueConfig(Class<V> type, String name, V value) {
+		super(type, name, name, value, "", "", EditMode.USER);
+		this.value = value;
+	}
 
-    public ValueConfig(Class<V> type, String name, V value, Consumer<V> applier) {
-        super(type, name, name, value, "", "", EditMode.USER);
-        this.value = value;
-        this.applier = applier;
-    }
+	public ValueConfig(Class<V> type, String name, V value, Consumer<V> applier) {
+		super(type, name, name, value, "", "", EditMode.USER);
+		this.value = value;
+		this.applier = applier;
+	}
 
-    public ValueConfig(Class<V> type, String name, V value, String info) {
-        super(type, name, name, value, "", info, EditMode.USER);
-        this.value = value;
-    }
+	public ValueConfig(Class<V> type, String name, V value, String info) {
+		super(type, name, name, value, "", info, EditMode.USER);
+		this.value = value;
+	}
 
-    public ValueConfig(Class<V> type, String name, V value, String info, Consumer<V> applier) {
-        super(type, name, name, value, "", info, EditMode.USER);
-        this.value = value;
-        this.applier = applier;
-    }
+	public ValueConfig(Class<V> type, String name, V value, String info, Consumer<V> applier) {
+		super(type, name, name, value, "", info, EditMode.USER);
+		this.value = value;
+		this.applier = applier;
+	}
 
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * Note that if the value changed see {@link #setValue(java.lang.Object)},
-     * the returned object reference will most likely be entirely new one.
-     * Do not store the old object in order to avoid using this getter and directly
-     * access the value with the expectation it will have changed. What is changing
-     * is the object itself not its value (if you wish to only change the value
-     * use {@link PropertyConfig}). After the change the result can only be
-     * obtained by calling this method and the old results will not == equal
-     * with it anymore.
-     *
-     * @return the wrapped value. Never null. The wrapped value must no be
-     * null.
-     */
-    @Override
-    public V getValue() {
-        return value;
-    }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Note that if the value changed see {@link #setValue(java.lang.Object)},
+	 * the returned object reference will most likely be entirely new one.
+	 * Do not store the old object in order to avoid using this getter and directly
+	 * access the value with the expectation it will have changed. What is changing
+	 * is the object itself not its value (if you wish to only change the value
+	 * use {@link PropertyConfig}). After the change the result can only be
+	 * obtained by calling this method and the old results will not == equal
+	 * with it anymore.
+	 *
+	 * @return the wrapped value. Never null. The wrapped value must no be null.
+	 */
+	@Override
+	public V getValue() {
+		return value;
+	}
 
-    /** {@inheritDoc}
-     * <p/>
-     * Note that if the value changed see {@link #setValue(java.lang.Object)},
-     * the returned object reference will most likely be entirely new one.
-     * Do not store the old object in order to avoid using this getter and directly
-     * access the value with the expectation it will have changed. What is changing
-     * is the object itself not its value (if you wish to only change the value
-     * use {@link PropertyConfig}). After the change the result can only be
-     * obtained by calling this method and the old results will not == equal
-     * with it anymore.
-     *
-     * @throws NullPointerException if param null. The wrapped value must no be
-     * null.
-     */
-    @Override
-    public void setValue(V val) {
-	    noØ(val);
-        value = val;
-    }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Note that if the value changed see {@link #setValue(java.lang.Object)},
+	 * the returned object reference will most likely be entirely new one.
+	 * Do not store the old object in order to avoid using this getter and directly
+	 * access the value with the expectation it will have changed. What is changing
+	 * is the object itself not its value (if you wish to only change the value
+	 * use {@link PropertyConfig}). After the change the result can only be
+	 * obtained by calling this method and the old results will not == equal
+	 * with it anymore.
+	 *
+	 * @throws NullPointerException if param null. The wrapped value must no be null.
+	 */
+	@Override
+	public void setValue(V val) {
+		noØ(val);
+		value = val;
+	}
 
-    /**
-     * {@inheritDoc}
-     * Runs the associated applier to apply the changes of the value or to
-     * simply execute its code. Does nothing if no applier available.
-     * <p/>
-     * Mostly called automatically by the object/framework doing the modification.
-     * <p/>
-     * Equivalent to: return applier==null ? true : getApplier().call(value);
-     */
-    @Override
-    public void applyValue(V val) {
-        if (applier!=null) applier.accept(val);
-    }
+	/**
+	 * {@inheritDoc}
+	 * Runs the associated applier to apply the changes of the value or to
+	 * simply execute its code. Does nothing if no applier available.
+	 * <p/>
+	 * Mostly called automatically by the object/framework doing the modification.
+	 * <p/>
+	 * Equivalent to: return applier==null ? true : getApplier().call(value);
+	 */
+	@Override
+	public void applyValue(V val) {
+		if (applier!=null) applier.accept(val);
+	}
 
-    /**
-     * @return the applier
-     */
-    public Consumer<V> getApplier() {
-        return applier;
-    }
+	/**
+	 * @return the applier
+	 */
+	public Consumer<V> getApplier() {
+		return applier;
+	}
 
-    /**
-     * Sets applier. The applies takes a parameter which is value of this Config
-     * and applies it and returns whether the application was a success.
-     * @param applier Runnable to apply the changes of the value or to
-     * simply execute some code when there is intention to apply the value.
-     * The runnable is called in {@link #applyValue()} method.
-     * <p/>
-     * For example apply a different css stylesheet to a gui or the application.
-     */
-    public void setApplier(Consumer<V> applier) {
-        this.applier = applier;
-    }
+	/**
+	 * Sets applier. The applies takes a parameter which is value of this Config
+	 * and applies it and returns whether the application was a success.
+	 *
+	 * @param applier Runnable to apply the changes of the value or to simply execute some code when there is intention
+	 * to apply the value. The runnable is called in {@link #applyValue()} method.
+	 * <p/>
+	 * For example apply a different css stylesheet to a gui or the application.
+	 */
+	public void setApplier(Consumer<V> applier) {
+		this.applier = applier;
+	}
 
-    /**
-     * Equivalent to this==o
-     */
-    @Override
-    public boolean equals(Object o) {
-        return this==o;
-    }
+	/**
+	 * Equivalent to this==o
+	 */
+	@Override
+	public boolean equals(Object o) {
+		return this==o;
+	}
 
-    @Override
-    public int hashCode() {
-	    return System.identityHashCode(this);
-    }
+	@Override
+	public int hashCode() {
+		return System.identityHashCode(this);
+	}
 
 }

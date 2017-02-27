@@ -1,19 +1,17 @@
 package util.serialize.xstream;
 
-import java.net.URI;
-
+import audio.playlist.PlaylistItem;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
-import audio.playlist.PlaylistItem;
+import java.net.URI;
 
 /**
  * @author Martin Polakovic
- * 
- * Converter class used for de/serializing PlaylistItem class with XStream.
+ *         <p>
+ *         Converter class used for de/serializing PlaylistItem class with XStream.
  */
 public class PlaylistItemConverter implements Converter {
 	@Override

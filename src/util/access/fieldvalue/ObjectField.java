@@ -12,10 +12,9 @@ import static util.functional.Util.by;
 /**
  * @param <V> type of value this field extracts from
  * @param <T> type of this field and the type of the extracted value
- *
  * @author Martin Polakovic
  */
-public interface ObjectField<V,T> extends TypedValue {
+public interface ObjectField<V, T> extends TypedValue<T> {
 
 	T getOf(V value);
 
@@ -76,8 +75,8 @@ public interface ObjectField<V,T> extends TypedValue {
 	default <C extends Comparable<? super C>> Comparator<V> comparator(Function<Comparator<? super C>,Comparator<? super C>> comparatorTransformer) {
 		noØ(comparatorTransformer);
 		return Comparable.class.isAssignableFrom(getType())
-			? by(o -> (C) getOf(o), comparatorTransformer)
-			: (Comparator) util.functional.Util.SAME;
+				? by(o -> (C) getOf(o), comparatorTransformer)
+				: (Comparator) util.functional.Util.SAME;
 	}
 
 	default String toS(V v, T o, String empty_val) {
@@ -127,7 +126,7 @@ public interface ObjectField<V,T> extends TypedValue {
 		return (this instanceof Enum) ? ((Enum) this).ordinal() : 1;
 	}
 
-	class ColumnField implements ObjectField<Object,Void> {
+	class ColumnField implements ObjectField<Object,Integer> {
 
 		public static final Set<ColumnField> FIELDS = new HashSet<>();
 		public static final ColumnField INDEX = new ColumnField("#", "Index of the item in the list");
@@ -157,7 +156,7 @@ public interface ObjectField<V,T> extends TypedValue {
 		}
 
 		@Override
-		public Void getOf(Object value) {
+		public Integer getOf(Object value) {
 			return null;
 		}
 
@@ -167,12 +166,12 @@ public interface ObjectField<V,T> extends TypedValue {
 		}
 
 		@Override
-		public String toS(Void o, String empty_val) {
+		public String toS(Integer o, String empty_val) {
 			return "";
 		}
 
 		@Override
-		public Class getType() {
+		public Class<Integer> getType() {
 			return Integer.class;
 		}
 	}

@@ -1,21 +1,17 @@
 package util.serialize.xstream;
 
-import java.util.UUID;
-
-import javafx.scene.media.MediaPlayer.Status;
-import javafx.util.Duration;
-
+import audio.playback.PlaybackState;
+import audio.playlist.sequence.PlayingSequence;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
-import audio.playback.PlaybackState;
-import audio.playlist.sequence.PlayingSequence;
+import java.util.UUID;
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class PlaybackStateConverter implements Converter {
@@ -24,6 +20,7 @@ public class PlaybackStateConverter implements Converter {
 	public boolean canConvert(Class type) {
 		return type.equals(PlaybackState.class);
 	}
+
 	@Override
 	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
 		PlaybackState state = (PlaybackState) value;
@@ -58,6 +55,7 @@ public class PlaybackStateConverter implements Converter {
 		writer.setValue(String.valueOf(state.rate.get()));
 		writer.endNode();
 	}
+
 	@Override
 	public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
 		reader.moveDown();

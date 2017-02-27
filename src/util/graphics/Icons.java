@@ -1,9 +1,11 @@
 package util.graphics;
 
-import javafx.scene.control.*;
-import javafx.scene.text.Text;
-
 import de.jensd.fx.glyphs.GlyphIcons;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.text.Text;
 
 /**
  * @author Martin Polakovic
@@ -27,7 +29,7 @@ public class Icons {
 
 	private static Text createIcon(GlyphIcons icon, String iconSize) {
 		Text t = new Text(icon.characterToString());
-		t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getFontFamily(), iconSize));
+		t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;", icon.getFontFamily(), iconSize));
 		t.getStyleClass().add("icon");
 		return t;
 	}
@@ -35,10 +37,10 @@ public class Icons {
 	public static Text createIcon(GlyphIcons icon, int icons, int size) {
 		String s = icon.characterToString();
 		StringBuilder sb = new StringBuilder(icons);
-		for (int i=0; i<icons; i++) sb.append(s);
+		for (int i = 0; i<icons; i++) sb.append(s);
 
 		Text t = new Text(sb.toString());
-		t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getFontFamily(), size));
+		t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;", icon.getFontFamily(), size));
 		t.getStyleClass().add("icon");
 		return t;
 	}
@@ -46,10 +48,10 @@ public class Icons {
 	public static Label createIconLabel(GlyphIcons icon, String text, int iconSize, String fontSize, ContentDisplay contentDisplay) {
 		Text iconLabel = createIcon(icon, String.valueOf(iconSize));
 		Label l = new Label(text);
-			  l.setStyle("-fx-font-size: " + fontSize);
-			  l.setGraphic(iconLabel);
-			  l.setContentDisplay(contentDisplay);
-			  l.setPrefSize(iconSize, iconSize);
+		l.setStyle("-fx-font-size: " + fontSize);
+		l.setGraphic(iconLabel);
+		l.setContentDisplay(contentDisplay);
+		l.setPrefSize(iconSize, iconSize);
 		return l;
 	}
 

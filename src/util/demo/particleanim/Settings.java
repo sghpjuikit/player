@@ -17,7 +17,7 @@ public class Settings {
 	// emitter parameters
 	public static int PARTICLES_PER_ITERATION = 50;
 	public static int EMITTER_WIDTH = (int) SCENE_WIDTH;
-	public static double EMITTER_LOCATION_Y = SCENE_HEIGHT / 2;
+	public static double EMITTER_LOCATION_Y = SCENE_HEIGHT/2;
 
 	// particle parameters
 	public static int PARTICLE_WIDTH = 40;
@@ -29,5 +29,5 @@ public class Settings {
 	public static double REPELLER_STRENGTH = 500;
 
 	// gravity. use negative if you want the particles to always go up, eg new Vector2D( 0,-0.04);
-	public static Vector2D FORCE_GRAVITY = new Vector2D( 0,0);
+	public static Vector2D FORCE_GRAVITY = new Vector2D(0, 0);
 }

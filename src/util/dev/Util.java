@@ -6,9 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javafx.application.Platform;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,30 +80,29 @@ public interface Util {
 			throw new IllegalStateException("Non final field forbidden. Field=" + f.getDeclaringClass() + "." + f.getName());
 	}
 
-
 	static void measureTime(Runnable r) {
 		long t = System.currentTimeMillis();
 		r.run();
-		System.out.println((System.currentTimeMillis()-t));
+		System.out.println((System.currentTimeMillis() - t));
 	}
 
 	static <T> T measureTime(Supplier<T> r) {
 		long t = System.currentTimeMillis();
 		T o = r.get();
-		System.out.println((System.currentTimeMillis()-t));
+		System.out.println((System.currentTimeMillis() - t));
 		return o;
 	}
 
 	static <T> void measureTime(T val, Consumer<T> r) {
 		long t = System.currentTimeMillis();
 		r.accept(val);
-		System.out.println((System.currentTimeMillis()-t));
+		System.out.println((System.currentTimeMillis() - t));
 	}
 
-	static <I,O> O measureTime(I in, Function<I,O> r) {
+	static <I, O> O measureTime(I in, Function<I,O> r) {
 		long t = System.currentTimeMillis();
 		O o = r.apply(in);
-		System.out.println((System.currentTimeMillis()-t));
+		System.out.println((System.currentTimeMillis() - t));
 		return o;
 	}
 
@@ -127,6 +124,6 @@ public interface Util {
 
 	/** Prints names of all currently running non daemon threads. */
 	static void printNonDaemonThreads() {
-		 activeThreads().filter(t->!t.isDaemon()).forEach(t -> System.out.println(t.getName()));
+		activeThreads().filter(t -> !t.isDaemon()).forEach(t -> System.out.println(t.getName()));
 	}
 }

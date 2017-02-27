@@ -1,5 +1,6 @@
 package services;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -7,13 +8,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import org.reactfx.Subscription;
-
 import util.collections.map.ClassMap;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class ServiceManager {
@@ -72,12 +70,10 @@ public class ServiceManager {
 				});
 	}
 
-
-
 	private <S> S instantiate(Class<S> type) {
 		try {
-			return type.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			return type.getConstructor().newInstance();
+		} catch (InstantiationException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
 			throw new RuntimeException("Could not instantiate service " + type, e);
 		}
 	}

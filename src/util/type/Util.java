@@ -9,14 +9,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import javafx.beans.value.ObservableValue;
-
-import org.atteo.classindex.ClassIndex;
-
 import one.util.streamex.StreamEx;
+import org.atteo.classindex.ClassIndex;
 import unused.TriConsumer;
-
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 
@@ -33,7 +29,7 @@ public interface Util {
 	}
 
 	static <T> T build(Supplier<? extends T> constructor, Consumer<? super T> postAction) {
-		T t  = constructor.get();
+		T t = constructor.get();
 		postAction.accept(t);
 		return t;
 	}
@@ -65,7 +61,7 @@ public interface Util {
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
 						if (isNoneØ(property, propertyName, propertyType))
 							action.accept(property, propertyName, propertyType);
-					} catch(IllegalAccessException | InvocationTargetException e) {
+					} catch (IllegalAccessException|InvocationTargetException e) {
 						log(Util.class).error("Could not obtain property '{}' from object", propertyName);
 					}
 				}
@@ -92,7 +88,7 @@ public interface Util {
 	static <T> T instantiateOrThrow(Class<T> type) throws RuntimeException {
 		try {
 			return type.getConstructor().newInstance();
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException  | NoSuchMethodException e) {
+		} catch (InstantiationException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
 			throw new RuntimeException("Could not instantiate " + type + " using default constructor. It must be declared and accessible.");
 		}
 	}
@@ -121,7 +117,7 @@ public interface Util {
 
 		Class superClazz = clazz.getSuperclass();
 		// get super class' fields recursively
-		if (superClazz != null) fields.addAll(getAllFields(superClazz));
+		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
 		return fields;
 	}
@@ -138,7 +134,7 @@ public interface Util {
 
 		Class superClazz = clazz.getSuperclass();
 		// get super class' fields recursively
-		if (superClazz != null) methods.addAll(getAllMethods(superClazz));
+		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 
 		return methods;
 	}
@@ -147,7 +143,7 @@ public interface Util {
 
 	/** Finds all declared methods in the class that are annotated by annotation of specified type. */
 	static <A extends Annotation> Method getMethodAnnotated(Class<?> type, Class<A> ca) {
-		for (Method m: type.getDeclaredMethods()) {
+		for (Method m : type.getDeclaredMethods()) {
 			A a = m.getAnnotation(ca);
 			if (a!=null) return m;
 		}
@@ -157,7 +153,7 @@ public interface Util {
 	/** Finds all declared constructors in the class that are annotated by annotation of specified type. */
 	@SuppressWarnings("unchecked")
 	static <A extends Annotation, T> Constructor<T> getConstructorAnnotated(Class<T> type, Class<A> ca) {
-		for (Constructor<?> m: type.getDeclaredConstructors()) {
+		for (Constructor<?> m : type.getDeclaredConstructors()) {
 			A a = m.getAnnotation(ca);
 			if (a!=null) return (Constructor<T>) m; // safe right? what else can the constructor return than T ?
 		}
@@ -166,6 +162,7 @@ public interface Util {
 
 	/**
 	 * Returns all superclasses and interfaces.
+	 *
 	 * @return list containing all superclasses
 	 * @see #getSuperClassesInc(Class)
 	 */
@@ -175,6 +172,7 @@ public interface Util {
 
 	/**
 	 * Returns all superclasses and interfaces and the class.
+	 *
 	 * @return list containing the class and all its superclasses
 	 * @see #getSuperClasses(Class)
 	 */
@@ -260,8 +258,8 @@ public interface Util {
 	 * parameter type is available it is returned. Otherwise the inspection continues. In case of no
 	 * success, null is returned
 	 *
-	 * @return class of the 1st generic parameter of the specified type or of some of its supertype or
-	 * null if none found.
+	 * @return class of the 1st generic parameter of the specified type or of some of its supertype or null if none
+	 * found.
 	 */
 	static Class getGenericPropertyType(Type t) {
 		// TODO: fix this returning null for EventHandlerProperty
@@ -283,10 +281,10 @@ public interface Util {
 		// there. We just return generic type if it is available. If not we return null and the
 		// iteration will continue on upper level.
 		if (t instanceof ParameterizedType) {
-			Type[] genericTypes = ((ParameterizedType)t).getActualTypeArguments();
+			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
 			if (genericTypes.length>0) {
 				if (genericTypes[0] instanceof Class)
-					return (Class)genericTypes[0];
+					return (Class) genericTypes[0];
 				if (genericTypes[0] instanceof ParameterizedType)
 					return (Class) ((ParameterizedType) genericTypes[0]).getRawType();
 				return null;
@@ -297,14 +295,14 @@ public interface Util {
 		if (t instanceof Class) {
 			// recursively traverse class hierarchy until we find ParameterizedType
 			// and return result if not null.
-			Type supertype = ((Class)t).getGenericSuperclass();
+			Type supertype = ((Class) t).getGenericSuperclass();
 			Class output = null;
 			if (supertype!=null && supertype!=Object.class)
 				output = getGenericPropertyType(supertype);
 			if (output!=null) return output;
 
 			// else try interfaces
-			Type[] superinterfaces = ((Class)t).getGenericInterfaces();
+			Type[] superinterfaces = ((Class) t).getGenericInterfaces();
 			for (Type superinterface : superinterfaces) {
 				if (superinterface instanceof ParameterizedType) {
 					output = getGenericPropertyType(superinterface);
@@ -332,15 +330,15 @@ public interface Util {
 	/**
 	 * Returns field named n in class c.
 	 *
-	 * @implSpec the field can be declared in the class or any of its superclasses
-	 * as opposed to standard reflection behavior which checks only the specified class
+	 * @implSpec the field can be declared in the class or any of its superclasses as opposed to standard reflection
+	 * behavior which checks only the specified class
 	 */
 	static Field getField(Class c, String n) throws NoSuchFieldException {
 		// get all fields of the class (but not inherited fields)
 		Field f = null;
 		try {
 			f = c.getDeclaredField(n);
-		} catch (NoSuchFieldException | SecurityException ex) {
+		} catch (NoSuchFieldException|SecurityException ex) {
 			// ignore
 		}
 
@@ -348,7 +346,7 @@ public interface Util {
 
 		// get super class' fields recursively
 		Class<?> superClazz = c.getSuperclass();
-		if (superClazz != null) return getField(superClazz, n);
+		if (superClazz!=null) return getField(superClazz, n);
 		else throw new NoSuchFieldException();
 	}
 
@@ -365,7 +363,7 @@ public interface Util {
 			f = getField(o.getClass(), name);
 			f.setAccessible(true);
 			return (T) f.get(o);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return null;
 		} finally {
 			if (f!=null) f.setAccessible(false);
@@ -375,9 +373,9 @@ public interface Util {
 	/**
 	 * Set field named f of the object o to value v.
 	 *
-	 * @implSpec the field can be declared in the class or any of its super classes
-	 * as opposed to standard reflection behavior which checks only the specified class
 	 * @throws RuntimeException if reflection error occurs
+	 * @implSpec the field can be declared in the class or any of its super classes as opposed to standard reflection
+	 * behavior which checks only the specified class
 	 */
 	static void setField(Object o, String f, Object v) {
 		setField(o.getClass(), o, f, v);
@@ -385,18 +383,17 @@ public interface Util {
 
 	/**
 	 * Set field named f of the object o declared in class c to value v.
-
 	 *
-	 * @implSpec the field can be declared in the class or any of its super classes
-	 * as opposed to standard reflection behavior which checks only the specified class
 	 * @throws RuntimeException if reflection error occurs
+	 * @implSpec the field can be declared in the class or any of its super classes as opposed to standard reflection
+	 * behavior which checks only the specified class
 	 */
 	static void setField(Class c, Object o, String name, Object v) {
 		Field f = null;
 		try {
-			f = getField(c,name);
+			f = getField(c, name);
 			f.setAccessible(true);
-			f.set(o,v);
+			f.set(o, v);
 		} catch (Exception x) {
 			throw new RuntimeException(x);
 		} finally {
@@ -407,15 +404,15 @@ public interface Util {
 	/**
 	 * Returns method named m in class c.
 	 *
-	 * @implSpec the method can be declared in the class or any of its superclasses
-	 * as opposed to standard reflection behavior which checks only the specified class
+	 * @implSpec the method can be declared in the class or any of its superclasses as opposed to standard reflection
+	 * behavior which checks only the specified class
 	 */
 	static Method getMethod(Class<?> c, String n, Class<?>... params) throws NoSuchMethodException {
 		// get all methods of the class (but not inherited methods)
 		Method m = null;
 		try {
 			m = c.getDeclaredMethod(n, params);
-		} catch (NoSuchMethodException | SecurityException ex) {
+		} catch (NoSuchMethodException|SecurityException ex) {
 			// ignore
 		}
 
@@ -423,7 +420,7 @@ public interface Util {
 
 		// get super class' methods recursively
 		Class<?> superClazz = c.getSuperclass();
-		if (superClazz != null) return getMethod(superClazz, n, params);
+		if (superClazz!=null) return getMethod(superClazz, n, params);
 		else throw new NoSuchMethodException();
 	}
 
@@ -434,7 +431,7 @@ public interface Util {
 			m = getMethod(o.getClass(), name);
 			m.setAccessible(true);
 			return m.invoke(o);
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (NoSuchMethodException|SecurityException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 			throw new RuntimeException("Failed to invoke method: " + name, e);
 		} finally {
 			if (m!=null) m.setAccessible(false);
@@ -442,13 +439,13 @@ public interface Util {
 	}
 
 	/** Invokes method with no parameters on given object and returns the result. */
-	static <T,P> Object invokeMethodP1(T o, String name, Class<P> paramType, P param) {
+	static <T, P> Object invokeMethodP1(T o, String name, Class<P> paramType, P param) {
 		Method m = null;
 		try {
 			m = getMethod(o.getClass(), name, paramType);
 			m.setAccessible(true);
 			return m.invoke(o, param);
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (NoSuchMethodException|SecurityException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 			throw new RuntimeException("Failed to invoke method '" + name + "' for " + param.getClass(), e);
 		} finally {
 			if (m!=null) m.setAccessible(false);
@@ -482,7 +479,7 @@ public interface Util {
 	 * @param mapper function to apply on the constant
 	 * @throws RuntimeException if reflection error occurs
 	 */
-	static <E extends Enum<E>> void mapEnumConstantName(E constant, Function<E, String> mapper) {
+	static <E extends Enum<E>> void mapEnumConstantName(E constant, Function<E,String> mapper) {
 		setField(constant.getClass().getSuperclass(), constant, "name", mapper.apply(constant));
 	}
 
@@ -498,6 +495,7 @@ public interface Util {
 	}
 
 	// TODO: make generic
+
 	/**
 	 * Returns enum constants of an enum class in declared order. Works for
 	 * enums with class method bodies (where Enum.getEnumConstants) does not work.

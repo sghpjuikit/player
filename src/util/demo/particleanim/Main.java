@@ -3,7 +3,6 @@ package util.demo.particleanim;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -82,12 +81,12 @@ public class Main extends Application {
 	private void prepareObjects() {
 
 		// add attractors
-		for (int i = 0; i < Settings.ATTRACTOR_COUNT; i++) {
+		for (int i = 0; i<Settings.ATTRACTOR_COUNT; i++) {
 			addAttractors();
 		}
 
 		// add repellers
-		for (int i = 0; i < Settings.REPELLER_COUNT; i++) {
+		for (int i = 0; i<Settings.REPELLER_COUNT; i++) {
 			addRepellers();
 		}
 
@@ -102,13 +101,13 @@ public class Main extends Application {
 			public void handle(long now) {
 
 				// add new particles
-				for (int i = 0; i < Settings.PARTICLES_PER_ITERATION; i++) {
+				for (int i = 0; i<Settings.PARTICLES_PER_ITERATION; i++) {
 					addParticle();
 				}
 
 				// apply force: gravity
 				allParticles.forEach(sprite ->
-					sprite.applyForce(Settings.FORCE_GRAVITY)
+						sprite.applyForce(Settings.FORCE_GRAVITY)
 				);
 
 				// apply force: wind depending on attractor position
@@ -116,7 +115,7 @@ public class Main extends Application {
 					double dx = Utils.map(attractor.getLocation().x, 0, Settings.SCENE_WIDTH, -0.2, 0.2);
 					Vector2D windForce = new Vector2D(dx, 0);
 					allParticles.stream().parallel().forEach(sprite ->
-						sprite.applyForce(windForce)
+							sprite.applyForce(windForce)
 					);
 				}
 
@@ -177,7 +176,7 @@ public class Main extends Application {
 	private void addParticle() {
 
 		// random location
-		double x = Settings.SCENE_WIDTH / 2 + random.nextDouble() * Settings.EMITTER_WIDTH - Settings.EMITTER_WIDTH / 2;
+		double x = Settings.SCENE_WIDTH/2 + random.nextDouble()*Settings.EMITTER_WIDTH - Settings.EMITTER_WIDTH/2;
 		double y = Settings.EMITTER_LOCATION_Y;
 
 		// dimensions
@@ -187,8 +186,8 @@ public class Main extends Application {
 		// create motion data
 		Vector2D location = new Vector2D(x, y);
 
-		double vx = random.nextGaussian() * 0.3;
-		double vy = random.nextGaussian() * 0.3 - 1.0;
+		double vx = random.nextGaussian()*0.3;
+		double vy = random.nextGaussian()*0.3 - 1.0;
 		Vector2D velocity = new Vector2D(vx, vy);
 
 		Vector2D acceleration = new Vector2D(0, 0);
@@ -204,8 +203,8 @@ public class Main extends Application {
 	private void addAttractors() {
 
 		// center attractor
-		double x = Settings.SCENE_WIDTH / 2;
-		double y = Settings.SCENE_HEIGHT - Settings.SCENE_HEIGHT / 4;
+		double x = Settings.SCENE_WIDTH/2;
+		double y = Settings.SCENE_HEIGHT - Settings.SCENE_HEIGHT/4;
 
 		// dimensions
 		double width = 100;
@@ -229,8 +228,8 @@ public class Main extends Application {
 	private void addRepellers() {
 
 		// center attractor
-		double x = Settings.SCENE_WIDTH / 2;
-		double y = Settings.SCENE_HEIGHT - Settings.SCENE_HEIGHT / 4 + 110;
+		double x = Settings.SCENE_WIDTH/2;
+		double y = Settings.SCENE_HEIGHT - Settings.SCENE_HEIGHT/4 + 110;
 
 		// dimensions
 		double width = 100;

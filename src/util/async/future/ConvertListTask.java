@@ -3,22 +3,18 @@ package util.async.future;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javafx.application.Platform;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
-
 import util.async.future.ConvertListTask.Result;
-
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNotFxThread;
 
 /**
- *
  * @author Martin Polakovic
  */
-public abstract class ConvertListTask<T,R> extends FTask<Collection<? extends T>,Result<T,R>> {
+public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T>,Result<T,R>> {
 
 	private final StringBuffer sb = new StringBuffer(40);
 	private final AtomicLong skippedUpdate = new AtomicLong(-1);
@@ -27,7 +23,7 @@ public abstract class ConvertListTask<T,R> extends FTask<Collection<? extends T>
 	public ConvertListTask(String title) {
 		updateTitle(noØ(title));
 		updateMessage("Progress: -");
-		updateProgress(0,1);
+		updateProgress(0, 1);
 	}
 
 	public final ReadOnlyLongProperty skippedProperty() {
@@ -36,9 +32,9 @@ public abstract class ConvertListTask<T,R> extends FTask<Collection<? extends T>
 	}
 
 	protected void updateSkipped(long skippedCount) {
-		if(Platform.isFxApplicationThread()) {
+		if (Platform.isFxApplicationThread()) {
 			skipped.set(skippedCount);
-		} else if(skippedUpdate.getAndSet(skippedCount) == -1) {
+		} else if (skippedUpdate.getAndSet(skippedCount)==-1) {
 			Platform.runLater(() -> {
 				long var1 = skippedUpdate.getAndSet(-1);
 				skipped.set(var1);
@@ -55,7 +51,7 @@ public abstract class ConvertListTask<T,R> extends FTask<Collection<? extends T>
 		updateMessage(sb.toString());
 	}
 
-	public static class Result<T,R> {
+	public static class Result<T, R> {
 		public final List<T> all;
 		public final List<T> processed;
 		public final List<R> converted;

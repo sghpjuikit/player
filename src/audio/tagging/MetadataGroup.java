@@ -228,11 +228,11 @@ public final class MetadataGroup {
         }
 
         @Override
-        public Class getType() {
+        public Class<T> getType() {
             return type;
         }
 
-        public Class getType(Metadata.Field field) {
+        public Class<? extends T> getType(Metadata.Field field) {
             return (this==VALUE) ? field.getType() : getType();
         }
 

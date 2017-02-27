@@ -619,7 +619,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
             // restrain input
             if (field.isTypeNumber())
-                InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
+                InputConstraints.numbersOnly(c, !field.isTypeNumberNoNegative(), field.isTypeFloatingNumber());
 
             // if not committable yet, enable committable & set text to tag value on click
             c.setOnMouseClicked(e -> {

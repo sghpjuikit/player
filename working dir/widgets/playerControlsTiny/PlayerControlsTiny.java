@@ -220,7 +220,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
             LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
             "Loop mode: off", "Loop mode: loop playlist", "Loop mode: loop song", "Play mode: random")
         );
-        loopB.setIcon(mapRef(looping,
+        loopB.icon(mapRef(looping,
             LoopMode.OFF, LoopMode.PLAYLIST, LoopMode.SONG, LoopMode.RANDOM,
             REPEAT_OFF, MaterialDesignIcon.REPEAT, REPEAT_ONCE, RANDOM)
         );

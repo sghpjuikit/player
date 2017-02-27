@@ -11,7 +11,7 @@ public class Vector2D {
 	}
 
 	public double magnitude() {
-		return Math.sqrt(x * x + y * y);
+		return Math.sqrt(x*x + y*y);
 	}
 
 	public void add(Vector2D v) {
@@ -36,13 +36,13 @@ public class Vector2D {
 
 	public void normalize() {
 		double m = magnitude();
-		if (m != 0 && m != 1) {
+		if (m!=0 && m!=1) {
 			div(m);
 		}
 	}
 
 	public void limit(double max) {
-		if (magnitude() > max) {
+		if (magnitude()>max) {
 			normalize();
 			multiply(max);
 		}
@@ -50,7 +50,7 @@ public class Vector2D {
 
 	public double angle() {
 		double angle = Math.atan2(-y, x);
-		return -1 * angle;
+		return -1*angle;
 	}
 
 	static public Vector2D subtract(Vector2D v1, Vector2D v2) {

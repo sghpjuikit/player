@@ -2,21 +2,22 @@ package services;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import util.access.V;
 import util.conf.CachedConfigurable;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.conf.IsConfig;
-import util.access.V;
 
 /**
- *
  * @author Martin Polakovic
  */
 public interface Service extends Configurable {
 	void start();
+
 	boolean isRunning();
+
 	void stop();
+
 	default boolean isSupported() { return true; }
 
 	default boolean isDependency() { return false; }
@@ -29,7 +30,7 @@ public interface Service extends Configurable {
 		private final V<Boolean> enabled;
 
 		public ServiceBase(boolean isEnabled) {
-			 enabled = new V<>(isEnabled, this::enable);
+			enabled = new V<>(isEnabled, this::enable);
 		}
 
 		private void enable(boolean isToBeRunning) {
@@ -41,7 +42,7 @@ public interface Service extends Configurable {
 		}
 
 		@Override
-		public Map<String, Config<Object>> getFieldsMap() {
+		public Map<String,Config<Object>> getFieldsMap() {
 			return configs;
 		}
 	}

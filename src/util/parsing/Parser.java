@@ -1,5 +1,7 @@
 package util.parsing;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.StringSplitParser;
 import java.io.File;
 import java.lang.reflect.*;
 import java.net.URI;
@@ -15,15 +17,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import javafx.scene.effect.Effect;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.StringSplitParser;
 import util.SwitchException;
 import util.collections.map.ClassMap;
 import util.conf.Configurable;
@@ -33,7 +31,6 @@ import util.functional.Try;
 import util.functional.Util;
 import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
-
 import static java.lang.Double.parseDouble;
 import static java.util.stream.Collectors.joining;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -47,6 +44,7 @@ import static util.functional.Util.*;
 import static util.type.Util.getConstructorAnnotated;
 import static util.type.Util.getMethodAnnotated;
 
+// TODO: fix the many warnings in this class
 /**
  * Multi-type bidirectional Object-String converter.
  *
@@ -89,7 +87,7 @@ public abstract class Parser {
 		};
 	}
 
-/******************************************************************************/
+	/******************************************************************************/
 
 	private static final String DELIMITER_CONFIG_VALUE = "-";
 	private static final String DELIMITER_CONFIG_NAME = ":";
@@ -97,10 +95,12 @@ public abstract class Parser {
 
 	/**
 	 * Default to string parser, which calls objects toString() or returns null constant.
-	 */ public static final Function<Object,String> DEFAULT_TOS = o -> o==null ? CONSTANT_NULL : o.toString();
+	 */
+	public static final Function<Object,String> DEFAULT_TOS = o -> o==null ? CONSTANT_NULL : o.toString();
 	/**
 	 * Default from string parser. Always returns null.
-	 */ public static final Function<String,Try<Object,String>> DEFAULT_FROM = o -> error("Object has no from-text converter");
+	 */
+	public static final Function<String,Try<Object,String>> DEFAULT_FROM = o -> error("Object has no from-text converter");
 	/**
 	 * Fx parser.
 	 * Used when {@link StringParseStrategy.To#FX} or {link StringParseStrategy.From#FX}.
@@ -111,7 +111,8 @@ public abstract class Parser {
 	 * setting the bean values in the string to respective javafx beans of the object.
 	 * <p/>
 	 * The exact string format is subject to change. Dont rely on it.
-	 */ public static final Parser FX = new Parser() {
+	 */
+	public static final Parser FX = new Parser() {
 
 		@Override
 		public <T> Try<T,String> ofS(Class<T> type, String text) {
@@ -119,22 +120,23 @@ public abstract class Parser {
 			try {
 				String[] vals = text.split(DELIMITER_CONFIG_VALUE);
 				Class<?> objecttype = Class.forName(vals[0]);
-				if (type!=null && !type.isAssignableFrom(objecttype)) throw new Exception(); // optimization, avoids next line
+				if (type!=null && !type.isAssignableFrom(objecttype))
+					throw new Exception(); // optimization, avoids next line
 				T v = (T) objecttype.newInstance();
 				Configurable c = Configurable.configsFromFxPropertiesOf(v);
 				stream(vals).skip(1)
-							.forEach(str -> {
-								try {
-									String[] nameval = str.split(DELIMITER_CONFIG_NAME);
-									if (nameval.length!=2) return; // ignore
-									String name = nameval[0], val = nameval[1];
-									c.setField(name, val);
-								} catch(Exception e){
-									throw new RuntimeException(e.getMessage(), e);
-								}
-							});
+						.forEach(str -> {
+							try {
+								String[] nameval = str.split(DELIMITER_CONFIG_NAME);
+								if (nameval.length!=2) return; // ignore
+								String name = nameval[0], val = nameval[1];
+								c.setField(name, val);
+							} catch (Exception e) {
+								throw new RuntimeException(e.getMessage(), e);
+							}
+						});
 				return ok(v);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				log(Parser.class).warn("Parsing failed, class={} text={}", type, text, e);
 				return error(e.getMessage());
 			}
@@ -144,15 +146,16 @@ public abstract class Parser {
 		public <T> String toS(T o) {
 			// improve performance by not creating any Config, premature optimization
 			return o.getClass().getName() + DELIMITER_CONFIG_VALUE +
-				   Configurable.configsFromFxPropertiesOf(o).getFields().stream()
-							   .map(c -> c.getName() + DELIMITER_CONFIG_NAME + c.getValueS())
-							   .collect(joining(DELIMITER_CONFIG_VALUE));
+					Configurable.configsFromFxPropertiesOf(o).getFields().stream()
+							.map(c -> c.getName() + DELIMITER_CONFIG_NAME + c.getValueS())
+							.collect(joining(DELIMITER_CONFIG_VALUE));
 		}
 
 	};
 	/**
 	 * Default to/from string parser with get-go support for several classes.
-	 */ public static final DefaultParser DEFAULT = new DefaultParser();
+	 */
+	public static final DefaultParser DEFAULT = new DefaultParser();	// TODO: fix possible deadlock here
 
 	static {
 		Class<? extends Throwable> nfe = NumberFormatException.class;
@@ -160,37 +163,37 @@ public abstract class Parser {
 		Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
 
 		DEFAULT.addParsef(Boolean.class, DEFAULT_TOS, Boolean::valueOf);
-		DEFAULT.addParsef(boolean.class, String::valueOf,Boolean::valueOf);
-		DEFAULT.addParser(Integer.class, DEFAULT_TOS, tryF(Integer::valueOf,nfe));
-		DEFAULT.addParser(int.class, String::valueOf, tryF(Integer::valueOf,nfe));
-		DEFAULT.addParser(Double.class, DEFAULT_TOS, tryF(Double::valueOf,nfe));
-		DEFAULT.addParser(double.class, String::valueOf, tryF(Double::valueOf,nfe));
-		DEFAULT.addParser(Short.class, DEFAULT_TOS, tryF(Short::valueOf,nfe));
-		DEFAULT.addParser(short.class, String::valueOf, tryF(Short::valueOf,nfe));
-		DEFAULT.addParser(Long.class, DEFAULT_TOS, tryF(Long::valueOf,nfe));
-		DEFAULT.addParser(long.class, String::valueOf, tryF(Long::valueOf,nfe));
-		DEFAULT.addParser(Float.class, DEFAULT_TOS, tryF(Float::valueOf,nfe));
-		DEFAULT.addParser(float.class, String::valueOf, tryF(Float::valueOf,nfe));
-		DEFAULT.addParser(Character.class, DEFAULT_TOS, tryF(s -> s.charAt(0),obe));
-		DEFAULT.addParser(char.class, String::valueOf, tryF(s -> s.charAt(0),obe));
-		DEFAULT.addParser(Byte.class, DEFAULT_TOS, tryF(Byte::valueOf,nfe));
-		DEFAULT.addParser(byte.class, String::valueOf, tryF(Byte::valueOf,nfe));
+		DEFAULT.addParsef(boolean.class, String::valueOf, Boolean::valueOf);
+		DEFAULT.addParser(Integer.class, DEFAULT_TOS, tryF(Integer::valueOf, nfe));
+		DEFAULT.addParser(int.class, String::valueOf, tryF(Integer::valueOf, nfe));
+		DEFAULT.addParser(Double.class, DEFAULT_TOS, tryF(Double::valueOf, nfe));
+		DEFAULT.addParser(double.class, String::valueOf, tryF(Double::valueOf, nfe));
+		DEFAULT.addParser(Short.class, DEFAULT_TOS, tryF(Short::valueOf, nfe));
+		DEFAULT.addParser(short.class, String::valueOf, tryF(Short::valueOf, nfe));
+		DEFAULT.addParser(Long.class, DEFAULT_TOS, tryF(Long::valueOf, nfe));
+		DEFAULT.addParser(long.class, String::valueOf, tryF(Long::valueOf, nfe));
+		DEFAULT.addParser(Float.class, DEFAULT_TOS, tryF(Float::valueOf, nfe));
+		DEFAULT.addParser(float.class, String::valueOf, tryF(Float::valueOf, nfe));
+		DEFAULT.addParser(Character.class, DEFAULT_TOS, tryF(s -> s.charAt(0), obe));
+		DEFAULT.addParser(char.class, String::valueOf, tryF(s -> s.charAt(0), obe));
+		DEFAULT.addParser(Byte.class, DEFAULT_TOS, tryF(Byte::valueOf, nfe));
+		DEFAULT.addParser(byte.class, String::valueOf, tryF(Byte::valueOf, nfe));
 		DEFAULT.addParsef(String.class, s -> s, s -> s);
 		DEFAULT.addParser(StringSplitParser.class, DEFAULT_TOS, tryF(StringSplitParser::new, iae));
 		DEFAULT.addParser(Year.class, DEFAULT_TOS, tryF(Year::parse, DateTimeParseException.class));
-		DEFAULT.addParsef(File.class, DEFAULT_TOS,File::new);
+		DEFAULT.addParsef(File.class, DEFAULT_TOS, File::new);
 		DEFAULT.addParser(URI.class, DEFAULT_TOS, tryF(URI::create, iae));
 		DEFAULT.addParser(Pattern.class, DEFAULT_TOS, tryF(Pattern::compile, PatternSyntaxException.class));
 		DEFAULT.addParser(Font.class,
-			f -> String.format("%s, %s", f.getName(),f.getSize()),
-			tryF(s -> {
-				int i = s.indexOf(',');
-				String name = s.substring(0, i);
-				FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
-				FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
-				double size = parseDouble(s.substring(i+2));
-				return Font.font(name, weight, style, size);
-			}, nfe,obe)
+				f -> String.format("%s, %s", f.getName(), f.getSize()),
+				tryF(s -> {
+					int i = s.indexOf(',');
+					String name = s.substring(0, i);
+					FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
+					FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
+					double size = parseDouble(s.substring(i + 2));
+					return Font.font(name, weight, style, size);
+				}, nfe, obe)
 		);
 		DEFAULT.addParser(LocalDateTime.class, DEFAULT_TOS, tryF(LocalDateTime::parse, DateTimeException.class));
 		DEFAULT.addParserOfS(Duration.class, tryF(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
@@ -200,22 +203,22 @@ public abstract class Parser {
 		DEFAULT.addParser(Class.class, Class::getName, tryF(text -> {
 			try {
 				return Class.forName(text);
-			} catch (ClassNotFoundException | LinkageError ex) {
+			} catch (ClassNotFoundException|LinkageError ex) {
 				return null;
 			}
 		}, Exception.class));
 		DEFAULT.addParsef(Functors.PƑ.class, f -> f.name + "," + f.in + "," + f.out, text -> {
-			List<String> data = split(text,",");
+			List<String> data = split(text, ",");
 			if (data.size()!=3) return null;
 			String name = data.get(0);
 			Class<?> in = DEFAULT.ofS(Class.class, data.get(1)).getOr(null);
 			Class<?> out = DEFAULT.ofS(Class.class, data.get(2)).getOr(null);
 			if (name==null || in==null || out==null) return null;
-			return Functors.pool.getPF(name,in,out);
+			return Functors.pool.getPF(name, in, out);
 		});
 	}
 
-/******************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 	/**
 	 * Default parser implementation storing individual type parsers in a map. This means:
@@ -295,7 +298,7 @@ public abstract class Parser {
 
 		@SuppressWarnings("unchecked")
 		public <T> void addParserToS(Class<T> c, Function<? super T,String> parser) {
-			parsersToS.put(c, v -> ok(parser.apply((T)v)));
+			parsersToS.put(c, v -> ok(parser.apply((T) v)));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -306,8 +309,8 @@ public abstract class Parser {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> Try<T,String> ofS(Class<T> c, String s) {
-			noØ(c,"Parsing type must be specified!");
-			noØ(s,"Parsing null not allowed!");
+			noØ(c, "Parsing type must be specified!");
+			noØ(s, "Parsing null not allowed!");
 			if (CONSTANT_NULL.equals(s)) return ok(null);
 			return (Try) getParserOfS(c).apply(s);
 		}
@@ -317,8 +320,8 @@ public abstract class Parser {
 		public <T> String toS(T o) {
 			if (o==null) return CONSTANT_NULL;
 //            String s = ((Function<T,Try<String,String>>)getParserToS(o.getClass())).apply(o).getOr(null);
-			String s = ((Function<T,Try<String,String>>)getParserToS(o.getClass())).apply(o).getOr(null);
-			return noNull(s,CONSTANT_NULL);
+			String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
+			return noNull(s, CONSTANT_NULL);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -333,23 +336,23 @@ public abstract class Parser {
 		@SuppressWarnings("unchecked")
 		private <T> Function<String,Try<? extends T,String>> findOfSparser(Class<T> c) {
 			return (Function) noNull(
-				() -> parsersFromS.getElementOfSuper(c),
-				() -> buildOfSParser(c),
-				() -> DEFAULT_FROM
+					() -> parsersFromS.getElementOfSuper(c),
+					() -> buildOfSParser(c),
+					() -> DEFAULT_FROM
 			);
 		}
 
 		@SuppressWarnings("unchecked")
 		private <T> Function<? super T,Try<String,String>> findToSparser(Class<T> c) {
 			return (Function) noNull(
-				() -> parsersToS.getElementOfSuper(c),
-				() -> buildToSParser(c),
-				() -> DEFAULT_TOS.andThen(Try::ok)
+					() -> parsersToS.getElementOfSuper(c),
+					() -> buildToSParser(c),
+					() -> DEFAULT_TOS.andThen(Try::ok)
 			);
 		}
 	}
 
-/******************************************************************************/
+	/******************************************************************************/
 
 	private static <T> Function<String,Try<T,String>> buildOfSParser(Class<T> type) {
 		Function<String,Try<T,String>> ofS = null;
@@ -358,7 +361,7 @@ public abstract class Parser {
 		if (ofS==null && a!=null) {
 			From strategy = a.from();
 			if (strategy==From.NONE) {
-				throw new IllegalArgumentException("Failed to create from string converter. Class '"+ type +"'s parsing strategy forbids parsing from string.");
+				throw new IllegalArgumentException("Failed to create from string converter. Class '" + type + "'s parsing strategy forbids parsing from string.");
 			} else if (strategy==From.ANNOTATED_METHOD) {
 				Invokable<T> invokable = null;  // in class T returns ?
 
@@ -391,7 +394,7 @@ public abstract class Parser {
 		}
 		// try to fall back to fromString method
 		if (ofS==null) {
-			Method m = getMethodStatic("fromString",type);
+			Method m = getMethodStatic("fromString", type);
 			if (m!=null) ofS = parserOfM(m, String.class, type, null, null);
 		}
 
@@ -406,30 +409,30 @@ public abstract class Parser {
 				String constant = a.constant();
 				return in -> ok(constant);
 			} else if (strategy==To.NONE) {
-				throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"'s parsing strategy forbids parsing to string.");
+				throw new IllegalArgumentException("Failed to create to string converter. Class '" + c + "'s parsing strategy forbids parsing to string.");
 			} else if (strategy==To.ANNOTATED_METHOD) {
-				Method m = getMethodAnnotated(c,ParsesToString.class);
+				Method m = getMethodAnnotated(c, ParsesToString.class);
 				if (m==null || m.getReturnType()!=String.class || (!m.isVarArgs() && m.getParameterCount()>1) || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
 					throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because suitable method was not found: " + m);
 				boolean pass_params = m.getParameterCount()==1;
 				Function<T,String> f = pass_params
-					? in -> {
-						try {
-							return (String) m.invoke(in,in);
-						} catch(IllegalAccessException | InvocationTargetException e ) {
-							throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+						? in -> {
+							try {
+								return (String) m.invoke(in, in);
+							} catch (IllegalAccessException|InvocationTargetException e) {
+								throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+							}
 						}
-					}
-					: in -> {
-						try {
-							return (String) m.invoke(in);
-						} catch(IllegalAccessException | InvocationTargetException e ) {
-							throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
-						}
-					};
+						: in -> {
+							try {
+								return (String) m.invoke(in);
+							} catch (IllegalAccessException|InvocationTargetException e) {
+								throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+							}
+						};
 				return noExWrap(m, a, ParseDir.TOS, f);
 			} else if (strategy==To.TO_STRING_METHOD) {
-				return (Function)DEFAULT_TOS.andThen(Try::ok);
+				return (Function) DEFAULT_TOS.andThen(Try::ok);
 			} else if (strategy==To.FX) {
 				return in -> ok(FX.toS(in));
 			} else {
@@ -452,7 +455,7 @@ public abstract class Parser {
 		try {
 			return type.getDeclaredMethod("valueOf", String.class);
 //            if (m.getReturnType().equals(type)) throw new NoSuchMethodException();
-		} catch ( NoSuchMethodException ex) {
+		} catch (NoSuchMethodException ex) {
 			return null;
 		}
 	}
@@ -467,36 +470,39 @@ public abstract class Parser {
 		}
 	}
 
-	private static <I,O> Function<I,Try<O,String>> parserOfI(Invokable<O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
+	private static <I, O> Function<I,Try<O,String>> parserOfI(Invokable<O> m, Class<I> itype, Class<O> otype, StringParseStrategy a, ParseDir dir) {
 		Collection<Parameter> params = m.getParameters();
 		if (params.size()>1)
 			throw new IllegalArgumentException("Parser method/constructor must take 0 or 1 parameter");
 
 		// exceptions (we will make union of those annotated and those known to be thrown
 		Set<Class<?>> ecs = new HashSet<>();
-		if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+		if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
+		else ecs.add(Exception.class);
 		if (m!=null) ecs.addAll(m.getExceptionTypes());
 
 		boolean no_input = params.isEmpty();
 		return no_input
-			?   in -> {
+				? in -> {
 					try {
 						return ok(m.invoke(null));
-					} catch(IllegalAccessException | InvocationTargetException e ) {
+					} catch (IllegalAccessException|InvocationTargetException e) {
 						for (Class<?> ec : ecs) {
-							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return errorOf(e.getCause().getCause());
+							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+								return errorOf(e.getCause().getCause());
 							if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
 							if (ec.isInstance(e)) return errorOf(e);
 						}
 						throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
 					}
 				}
-			:   in -> {
+				: in -> {
 					try {
 						return ok(m.invoke(null, in));
-					} catch(IllegalAccessException | InvocationTargetException e ) {
+					} catch (IllegalAccessException|InvocationTargetException e) {
 						for (Class<?> ec : ecs) {
-							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return errorOf(e.getCause().getCause());
+							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+								return errorOf(e.getCause().getCause());
 							if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
 							if (ec.isInstance(e)) return errorOf(e);
 						}
@@ -505,31 +511,34 @@ public abstract class Parser {
 				};
 	}
 
-	private static <I,O> Function<I,Try<O,String>> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
+	private static <I, O> Function<I,Try<O,String>> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
 		Set<Class<?>> ecs = new HashSet<>();
-		if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom())); else ecs.add(Exception.class);
+		if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
+		else ecs.add(Exception.class);
 		if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
 		boolean isSupplier = i==Void.class || i==void.class || i==null;
 		boolean isStatic = Modifier.isStatic(m.getModifiers());
 		return isSupplier
-			?   in -> {
+				? in -> {
 					try {
 						return ok((O) m.invoke(null));
-					} catch(IllegalAccessException | InvocationTargetException e ) {
+					} catch (IllegalAccessException|InvocationTargetException e) {
 						for (Class<?> ec : ecs) {
-							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return errorOf(e.getCause().getCause());
+							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+								return errorOf(e.getCause().getCause());
 							if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
 							if (ec.isInstance(e)) return errorOf(e);
 						}
 						throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
 					}
 				}
-			:   in -> {
+				: in -> {
 					try {
 						return ok((O) m.invoke(null, in));
-					} catch(IllegalAccessException | InvocationTargetException e ) {
+					} catch (IllegalAccessException|InvocationTargetException e) {
 						for (Class<?> ec : ecs) {
-							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) return errorOf(e.getCause().getCause());
+							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+								return errorOf(e.getCause().getCause());
 							if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
 							if (ec.isInstance(e)) return errorOf(e);
 						}
@@ -550,7 +559,7 @@ public abstract class Parser {
 				try {
 					Object[] p = isInputParam ? new Object[]{in} : new Object[]{};
 					return ok(c.newInstance(p));
-				} catch (ExceptionInInitializerError | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (ExceptionInInitializerError|InstantiationException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 					for (Class<?> ec : ecs) {
 						if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) {
 							return errorOf(e.getCause().getCause());
@@ -565,12 +574,12 @@ public abstract class Parser {
 					throw new RuntimeException("String '" + in + "' parsing failed to invoke constructor in class " + c.getDeclaringClass(), e);
 				}
 			};
-		  } catch (NoSuchMethodException | SecurityException e) {
-			  throw new RuntimeException("Parser cant find constructor suitable for parsing " + type + " with parameters" + Util.toS(", ",params), e);
-		  }
+		} catch (NoSuchMethodException|SecurityException e) {
+			throw new RuntimeException("Parser cant find constructor suitable for parsing " + type + " with parameters" + Util.toS(", ", params), e);
+		}
 	}
 
-	private static <I,O> Ƒ1<I,Try<O,String>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
+	private static <I, O> Ƒ1<I,Try<O,String>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
 		Set<Class<?>> ecs = new HashSet<>();
 		if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
 		if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
@@ -579,17 +588,19 @@ public abstract class Parser {
 
 	private interface Invokable<I> {
 		I invoke(Object... params) throws IllegalAccessException, InvocationTargetException;
+
 		Collection<Parameter> getParameters();
+
 		Collection<Class<? extends Throwable>> getExceptionTypes();
 
 		static <T> Invokable<T> of(Constructor<T> c) {
 			return new Invokable<>() {
 				@Override
-				public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
+				public final T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
 					try {
 						// We must skip the null object receiver - 1st parameter
 						return c.newInstance(stream(params).skip(1).toArray());
-					} catch (IllegalArgumentException | InstantiationException e) {
+					} catch (IllegalArgumentException|InstantiationException e) {
 						throw new InvocationTargetException(e);
 					}
 				}
@@ -625,6 +636,7 @@ public abstract class Parser {
 			};
 		}
 	}
+
 	private enum ParseDir {
 		TOS, OFS
 	}

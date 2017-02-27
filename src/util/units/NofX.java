@@ -1,24 +1,22 @@
 package util.units;
 
 import java.util.regex.PatternSyntaxException;
-
 import util.parsing.ParsesFromString;
 import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-
 import static java.util.Objects.hash;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /** Defines number within an amount. For example 15/20. */
 @StringParseStrategy(
-	from = From.ANNOTATED_METHOD,
-	to = TO_STRING_METHOD,
-	exFrom = { PatternSyntaxException.class, NumberFormatException.class, ArrayIndexOutOfBoundsException.class}
+		from = From.ANNOTATED_METHOD,
+		to = TO_STRING_METHOD,
+		exFrom = {PatternSyntaxException.class, NumberFormatException.class, ArrayIndexOutOfBoundsException.class}
 )
 public class NofX implements Comparable<NofX> {
 	public final int n;
-	public final int of ;
+	public final int of;
 
 	public NofX(int n, int of) {
 		this.n = n;
@@ -45,7 +43,7 @@ public class NofX implements Comparable<NofX> {
 	public boolean equals(Object ob) {
 		if (this==ob) return true;
 		if (ob instanceof NofX) {
-			NofX o = (NofX)ob;
+			NofX o = (NofX) ob;
 			return n==o.n && of==o.of;
 		}
 		return false;
@@ -53,7 +51,7 @@ public class NofX implements Comparable<NofX> {
 
 	@Override
 	public int hashCode() {
-		return hash(n,of);
+		return hash(n, of);
 	}
 
 	@ParsesFromString

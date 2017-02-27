@@ -416,11 +416,12 @@ public final class PlaylistItem extends Item<PlaylistItem> {
         public boolean isTypeStringRepresentable() { return true; }
 
         /** {@inheritDoc} */
+        @SuppressWarnings("unchecked")
         @Override
-        public Class getType() {
-            if (this==FORMAT) return AudioFileFormat.class;
-            else if (this==LENGTH) return FormattedDuration.class;
-            else return String.class;
+        public Class<T> getType() {
+            if (this==FORMAT) return (Class<T>) AudioFileFormat.class;
+            else if (this==LENGTH) return (Class<T>) FormattedDuration.class;
+            else return (Class<T>) String.class;
         }
 
         /**
@@ -429,7 +430,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
          * {@inheritDoc}
          */
         @Override
-        public boolean isTypeNumberNonegative() { return true; }
+        public boolean isTypeNumberNoNegative() { return true; }
 
         @Override
         public String toS(T o, String empty_val) {

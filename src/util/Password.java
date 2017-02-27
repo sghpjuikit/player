@@ -10,11 +10,11 @@ public final class Password {
 		set(text);
 	}
 
-	public String get(){
+	public String get() {
 		return value;
 	}
 
-	public void set(String in){
+	public void set(String in) {
 		value = in;
 	}
 

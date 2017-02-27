@@ -3,7 +3,6 @@ package util.parsing;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static util.parsing.StringParseStrategy.From.NONE;
@@ -27,10 +26,13 @@ public @interface StringParseStrategy {
 
 	/** Defines strategy for parsing object from String. */
 	From from() default NONE;
+
 	/** Defines strategy for parsing object to String. */
 	To to() default TO_STRING_METHOD;
+
 	/** Use along with {@link To#CONSTANT}. */
 	String constant() default "";
+
 	/**
 	 * Use when to string strategy relies on a method that can throw an
 	 * exception. Here it is possible to specify all exceptions regarding the
@@ -47,7 +49,8 @@ public @interface StringParseStrategy {
 	 * Default value is empty array.
 	 */
 	Class<? extends Exception>[] exTo() default {};
-	/** Same as {@link #exTo() } but for parsing from string instead.*/
+
+	/** Same as {@link #exTo() } but for parsing from string instead. */
 	Class<? extends Exception>[] exFrom() default {};
 
 	/** Defines strategy for parsing object from String. */

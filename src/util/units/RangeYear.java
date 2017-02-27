@@ -1,7 +1,6 @@
 package util.units;
 
 import java.time.Year;
-
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 
@@ -21,8 +20,8 @@ public class RangeYear {
 		if (year==-1) {
 			hasUnspecified = true;
 		} else {
-			min = min(min,year);
-			max = max(max,year);
+			min = min(min, year);
+			max = max(max, year);
 		}
 	}
 
@@ -60,7 +59,7 @@ public class RangeYear {
 			if (min==max)
 				return (hasUnspecified ? "? " : "") + max;
 
-		// has >1 specific value
+				// has >1 specific value
 			else {
 				return min + (hasUnspecified ? " ? " : " - ") + max;
 			}

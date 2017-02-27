@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package util.conf;
 
 import java.util.ArrayList;
@@ -17,33 +11,35 @@ import java.util.Collection;
  * Configurable.
  * <p/>
  * New introduced method returns the internal sub configurable.
+ *
  * @author Martin Polakovic
  */
 public interface CompositeConfigurable<T> extends Configurable<T> {
 
-    /** {@inheritDoc} */
-    @Override
-    default Collection<Config<T>> getFields() {
-        Collection<Config<T>> l = new ArrayList<>(Configurable.super.getFields());
-        getSubConfigurable().forEach(c->c.getFields().forEach(l::add));
-        return l;
-    }
+	/** {@inheritDoc} */
+	@Override
+	default Collection<Config<T>> getFields() {
+		Collection<Config<T>> l = new ArrayList<>(Configurable.super.getFields());
+		getSubConfigurable().forEach(c -> c.getFields().forEach(l::add));
+		return l;
+	}
 
-    /** {@inheritDoc} */
-    @Override
-    default Config getField(String name) {
-        Config f = Configurable.super.getField(name);
-        if (f!=null) return f;
-        for (Configurable c : getSubConfigurable()) {
-            f = c.getField(name);
-            if (f!=null) return f;
-        }
-        return null;
-    }
+	/** {@inheritDoc} */
+	@Override
+	default Config<T> getField(String name) {
+		Config<T> f = Configurable.super.getField(name);
+		if (f!=null) return f;
+		for (Configurable<T> c : getSubConfigurable()) {
+			f = c.getField(name);
+			if (f!=null) return f;
+		}
+		return null;
+	}
 
-    /**
-     * Returns configurables composing this object.
-     * @return collection of subocnfigurable, never null
-     */
-    Collection<Configurable<T>> getSubConfigurable();
+	/**
+	 * Returns configurables composing this object.
+	 *
+	 * @return collection of subocnfigurable, never null
+	 */
+	Collection<Configurable<T>> getSubConfigurable();
 }

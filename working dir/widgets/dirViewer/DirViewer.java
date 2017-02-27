@@ -11,10 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.LazyR;
@@ -52,6 +56,7 @@ import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.*;
 import static util.functional.Util.*;
+import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchor;
 
 /**
@@ -311,6 +316,20 @@ public class DirViewer extends ClassController {
         protected void computeGraphics() {
             super.computeGraphics();
             Util.maintain(fitFrom, thumb.fitFrom);
+
+            String KEY_TOOLTIP_SHOWN = "";
+            Label nameL = new Label();
+            Label sizeL = new Label();
+            Label resL = new Label();
+            Tooltip t = new Tooltip();
+            Tooltip.install(root, t);
+            t.setOnShowing(e -> {
+                if (!root.getProperties().containsKey(KEY_TOOLTIP_SHOWN));
+                    t.setGraphic(layVertically(5, Pos.CENTER_LEFT, nameL, sizeL, resL));
+                nameL.setText("Name: " + Optional.ofNullable(thumb.getFile()).map(File::getName).orElse("unknown"));
+                resL.setText("Resolution: " + Optional.ofNullable(thumb.getImage()).map(i -> i.getWidth() + "x" + i.getHeight()).orElse("unknown"));
+                sizeL.setText("Size: " + Optional.ofNullable(thumb.getFile()).map(f -> FileField.SIZE.getOf(f).toString()).orElse("unknown"));
+            });
         }
 
         @Override

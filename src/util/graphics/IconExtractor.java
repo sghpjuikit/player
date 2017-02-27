@@ -4,17 +4,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-
-import javax.swing.filechooser.FileSystemView;
-
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-
+import javax.swing.filechooser.FileSystemView;
 import util.LazyR;
 import util.R;
 import util.file.Util;
 import util.file.WindowsShortcut;
-
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
@@ -31,9 +27,9 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 public class IconExtractor {
 
 	private static final R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
-	private static final HashMap<String, Image> mapOfFileExtToSmallIcon = new HashMap<>();
+	private static final HashMap<String,Image> mapOfFileExtToSmallIcon = new HashMap<>();
 
-	private static javax.swing.Icon getJSwingIconFromFileSystem(File file) {
+	private static javax.swing.Icon getSwingIconFromFileSystem(File file) {
 
 		// Windows
 		return helperFileSystemView.get().getSystemIcon(file);
@@ -56,26 +52,26 @@ public class IconExtractor {
 		return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
 			javax.swing.Icon swingIcon = null;
 			if (file.exists()) {
-				swingIcon = getJSwingIconFromFileSystem(file);
+				swingIcon = getSwingIconFromFileSystem(file);
 			} else {
 				File tempFile = null;
 				try {
 					tempFile = File.createTempFile("icon", ext);
-					swingIcon = getJSwingIconFromFileSystem(tempFile);
+					swingIcon = getSwingIconFromFileSystem(tempFile);
 				} catch (IOException ignored) {
 					// Cannot create temporary file.
 				} finally {
-					if (tempFile != null) tempFile.delete();
+					if (tempFile!=null) tempFile.delete();
 				}
 			}
-			return jswingIconToImage(swingIcon);
+			return swingIconToImage(swingIcon);
 		});
 	}
 
-	private static Image jswingIconToImage(javax.swing.Icon jswingIcon) {
-		if (jswingIcon==null) return null;
-		BufferedImage image = new BufferedImage(jswingIcon.getIconWidth(), jswingIcon.getIconHeight(), TYPE_INT_ARGB);
-		jswingIcon.paintIcon(null, image.getGraphics(), 0, 0);
+	private static Image swingIconToImage(javax.swing.Icon swingIcon) {
+		if (swingIcon==null) return null;
+		BufferedImage image = new BufferedImage(swingIcon.getIconWidth(), swingIcon.getIconHeight(), TYPE_INT_ARGB);
+		swingIcon.paintIcon(null, image.getGraphics(), 0, 0);
 		return SwingFXUtils.toFXImage(image, null);
 	}
 
@@ -118,16 +114,16 @@ public class IconExtractor {
 
 	private static Image imageAwtToFx(java.awt.Image awtImage) {
 		if (awtImage==null) return null;
-		BufferedImage bimg;
+		BufferedImage imgB;
 		if (awtImage instanceof BufferedImage) {
-			bimg = (BufferedImage) awtImage ;
+			imgB = (BufferedImage) awtImage ;
 		} else {
-			bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-			Graphics2D graphics = bimg.createGraphics();
+			imgB = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D graphics = imgB.createGraphics();
 			graphics.drawImage(awtImage, 0, 0, null);
 			graphics.dispose();
 		}
-		return SwingFXUtils.toFXImage(bimg, null);
+		return SwingFXUtils.toFXImage(imgB, null);
 	}
 
 	private static void imageAwtToFx(java.awt.Image awtImage, Consumer<Image> then) {
@@ -135,23 +131,23 @@ public class IconExtractor {
 			then.accept(null);
 			return;
 		}
-		BufferedImage bimg;
+		BufferedImage imgB;
 		if (awtImage instanceof BufferedImage) {
-			bimg = (BufferedImage) awtImage ;
+			imgB = (BufferedImage) awtImage ;
 		} else {
-			bimg = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-			Graphics2D graphics = bimg.createGraphics();
+			imgB = new BufferedImage(awtImage.getWidth(null), awtImage.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D graphics = imgB.createGraphics();
 			graphics.drawImage(awtImage, 0, 0, null);
 			graphics.dispose();
 		}
-		runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
+		runFX(() -> then.accept(SwingFXUtils.toFXImage(imgB, null)));
 	}
 
 	private static Image imageSwingToFx(javax.swing.Icon swingIcon) {
 		if (swingIcon==null) return null;
-		BufferedImage bimg = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(),BufferedImage.TYPE_INT_ARGB);
-		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
-		return SwingFXUtils.toFXImage(bimg, null);
+		BufferedImage imgB = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(),BufferedImage.TYPE_INT_ARGB);
+		swingIcon.paintIcon(null, imgB.getGraphics(), 0, 0);
+		return SwingFXUtils.toFXImage(imgB, null);
 	}
 
 	private static void imageSwingToFx(javax.swing.Icon swingIcon, Consumer<Image> then) {
@@ -159,9 +155,9 @@ public class IconExtractor {
 			then.accept(null);
 			return;
 		}
-		BufferedImage bimg = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-		swingIcon.paintIcon(null, bimg.getGraphics(), 0, 0);
-		runFX(() -> then.accept(SwingFXUtils.toFXImage(bimg, null)));
+		BufferedImage imgB = new BufferedImage(swingIcon.getIconWidth(),swingIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+		swingIcon.paintIcon(null, imgB.getGraphics(), 0, 0);
+		runFX(() -> then.accept(SwingFXUtils.toFXImage(imgB, null)));
 	}
 */
 

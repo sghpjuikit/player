@@ -1,12 +1,6 @@
-
 package util.conf;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Marks a method as an applier method for a {@link IsConfig}. The method becomes
@@ -55,14 +49,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface AppliesConfig {
 
-    /**
-     * Associates annotated method as an applier of the field specified by this
-     * String as its name. If the value is empty the annotation will be ignored.
-     * Default value is empty - "".
-     * <p/>
-     * The value must match exactly with the name of the field annotated by
-     * {@link IsConfig}, not the name value of that annotation.
-     * @return
-     */
-    String value() default "";
+	/**
+	 * Associates annotated method as an applier of the field specified by this
+	 * String as its name. If the value is empty the annotation will be ignored.
+	 * Default value is empty - "".
+	 * <p/>
+	 * The value must match exactly with the name of the field annotated by
+	 * {@link IsConfig}, not the name value of that annotation.
+	 */
+	String value() default "";
 }

@@ -1,8 +1,8 @@
 package services;
 
+import gui.objects.window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
@@ -16,20 +16,16 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
 import services.Service.ServiceBase;
+import util.access.V;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-import gui.objects.window.stage.Window;
-import util.access.V;
-
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.App.APP;
 import static util.graphics.Util.setAnchors;
 
 /**
- *
  * @author Martin Polakovic
  */
 @IsConfigurable("Mouse.Effect")
@@ -37,29 +33,29 @@ public class ClickEffect extends ServiceBase {
 
 	// configuration
 	@IsConfig(name = "Show click effect", info = "Show effect on click.")
-	public final V<Boolean> show_clickEffect = new V<>(true,this::applyC);
+	public final V<Boolean> show_clickEffect = new V<>(true, this::applyC);
 	@IsConfig(name = "Click effect duration", info = "Duration of the click effect in milliseconds.")
-	public final V<Double> DURATION = new V<>(350d,this::apply);
+	public final V<Double> DURATION = new V<>(350d, this::apply);
 	@IsConfig(name = "Click effect min", info = "Starting scale value of cursor click effect animation.")
-	public final V<Double> MIN_SCALE = new V<>(0.2d,this::apply);
+	public final V<Double> MIN_SCALE = new V<>(0.2d, this::apply);
 	@IsConfig(name = "Click effect max", info = "Ending scale value of cursor click effect animation.")
-	public final V<Double> MAX_SCALE = new V<>(0.7d,this::apply);
-	@IsConfig(name="Click effect delay", info = "Delay of the click effect in milliseconds.")
-	public final V<Double> DELAY = new V<>(0d,this::apply);
-	@IsConfig(name="Blend Mode", info = "Blending mode for the effect.")
-	public final V<BlendMode> blend_mode = new V<>(BlendMode.SRC_OVER,this::apply);
+	public final V<Double> MAX_SCALE = new V<>(0.7d, this::apply);
+	@IsConfig(name = "Click effect delay", info = "Delay of the click effect in milliseconds.")
+	public final V<Double> DELAY = new V<>(0d, this::apply);
+	@IsConfig(name = "Blend Mode", info = "Blending mode for the effect.")
+	public final V<BlendMode> blend_mode = new V<>(BlendMode.SRC_OVER, this::apply);
 
 	private void applyC() {
 		List<Window> ws = APP.windowManager.windows;
-		if (show_clickEffect.get()) ws.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
+		if (show_clickEffect.get())
+			ws.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
 		else ws.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
 	}
 
 	private void apply() {
 		if (APP.initialized)
-		pool.forEach(Effect::apply);
+			pool.forEach(Effect::apply);
 	}
-
 
 	// handlers to display the effect, set to window's root
 	private final EventHandler<MouseEvent> clickHandler = e -> run(e.getSceneX(), e.getSceneY());
@@ -108,7 +104,7 @@ public class ClickEffect extends ServiceBase {
 			AnchorPane p = (AnchorPane) APP.windowManager.getActiveOrNew().getStage().getScene().getRoot();
 			if (p!=null) {
 				p.getChildren().add(screen);
-				setAnchors(screen,0d);
+				setAnchors(screen, 0d);
 			}
 		});
 	}
@@ -131,13 +127,12 @@ public class ClickEffect extends ServiceBase {
 		});
 	}
 
-
 	public class Effect {
 
 		private final Circle root = new Circle();
 		private final FadeTransition fade = new FadeTransition();
 		private final ScaleTransition scale = new ScaleTransition();
-		private final ParallelTransition anim = new ParallelTransition(root,fade,scale);
+		private final ParallelTransition anim = new ParallelTransition(root, fade, scale);
 		private double scaleB = 1;
 
 		private Effect() {
@@ -151,7 +146,7 @@ public class ClickEffect extends ServiceBase {
 			root.setCache(true);
 			root.setCacheHint(CacheHint.SPEED);
 			root.setMouseTransparent(true);
-			anim.setOnFinished( e -> pool.add(this));
+			anim.setOnFinished(e -> pool.add(this));
 
 			screen.getChildren().add(root);
 

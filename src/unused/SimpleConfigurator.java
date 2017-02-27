@@ -1,9 +1,12 @@
 package unused;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.octicons.OctIcon;
+import gui.itemnode.ConfigField;
+import gui.objects.icon.Icon;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -14,40 +17,31 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.octicons.OctIcon;
-import gui.itemnode.ConfigField;
-import gui.objects.icon.Icon;
 import util.access.V;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.functional.Try;
 import util.graphics.fxml.ConventionFxmlLoader;
-
 import static gui.itemnode.ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON;
 import static javafx.scene.input.KeyCode.ENTER;
 import static util.functional.Util.byNC;
 import static util.functional.Util.stream;
 
 /**
- * Configurable state transformer graphical control. Graphics to configure 
+ * Configurable state transformer graphical control. Graphics to configure
  * {@link util.conf.Configurable}.
  * <p/>
  * When OK button is clicked all changed {@link gui.itemnode.ConfigField}s with un-applied values
  * will be set and applied. Then the specified behavior is executed.
- * 
- * @param <T> Specifies generic type of Configurable for this component. Only
- * use it for singleton configurables or configurables that contain configs with
- * the same value type.
- * <p/>
- * The advantage of using generic version is in accessing the values in the
- * OK button callback. The configurable is provided as a parameter and if this
- * object is generic it will provide correct configurable returning correct
- * values without type casting.
  *
- * @see util.conf.Configurable
+ * @param <T> Specifies generic type of Configurable for this component. Only use it for singleton configurables or
+ * configurables that contain configs with the same value type.
+ * <p/>
+ * The advantage of using generic version is in accessing the values in the OK button callback. The configurable is
+ * provided as a parameter and if this object is generic it will provide correct configurable returning correct values
+ * without type casting.
  * @author Martin Polakovic
+ * @see util.conf.Configurable
  */
 public class SimpleConfigurator<T> extends AnchorPane {
 
@@ -56,8 +50,9 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	@FXML private StackPane okPane;
 	@FXML private ScrollPane fieldsPane;
 	@FXML private Label warnLabel;
-
 	private final Icon okB = new Icon(OctIcon.CHECK, 25);
+
+	@SuppressWarnings("FieldCanBeLocal")
 	private final double anchorOk, anchorWarn = 20;
 	private final List<ConfigField<T>> configFields = new ArrayList<>();
 	public final Configurable<T> configurable;
@@ -67,14 +62,17 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	 * Default implementation does nothing. Must not be null.
 	 * <p/>
 	 * For example one might want to close this control when no item is selected.
-	 */ public final Consumer<? super Configurable<T>> onOK;
+	 */
+	public final Consumer<? super Configurable<T>> onOK;
 	/**
 	 * Denotes whether parent window or popup should close immediately after {@link #onOK} executes.
 	 * Default false.
-	 */ public final V<Boolean> hideOnOk = new V<>(false);
+	 */
+	public final V<Boolean> hideOnOk = new V<>(false);
 	/**
 	 * Denotes whether there is action that user can execute.
-	 */ public final V<Boolean> hasAction = new V<>(false);
+	 */
+	public final V<Boolean> hasAction = new V<>(false);
 
 	public SimpleConfigurator(Config<T> c, Consumer<? super T> on_OK) {
 		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
@@ -82,14 +80,14 @@ public class SimpleConfigurator<T> extends AnchorPane {
 
 	/**
 	 * @param c configurable object
-	 * @param on_OK OK button click actions taking the configurable as input parameter. Affects visibility
-	 * of the OK button. It is only visible if there is an action to execute.
+	 * @param on_OK OK button click actions taking the configurable as input parameter. Affects visibility of the OK
+	 * button. It is only visible if there is an action to execute.
 	 */
 	@SafeVarargs
 	@SuppressWarnings("unchecked")
 	public <C extends Configurable<T>> SimpleConfigurator(C c, Consumer<? super C>... on_OK) {
 		configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
-		onOK = c==null ? cf -> {} : cf -> stream(on_OK).forEach(action -> action.accept((C)cf)); // cas is safe because we know its always C
+		onOK = c==null ? cf -> {} : cf -> stream(on_OK).forEach(action -> action.accept((C) cf)); // cas is safe because we know its always C
 		hasAction.set(on_OK!=null && on_OK.length>0);
 
 		// load fxml part
@@ -104,13 +102,13 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		configFields.clear();
 		fields.getChildren().clear();
 		configurable.getFields().stream()
-			.sorted(byNC(Config::getGuiName))
-			.forEach(f -> {
-				ConfigField<T> cf = ConfigField.create(f);                  // create
-				configFields.add(cf);                                       // add
-				fields.add(cf.createLabel(), 0, configFields.size()-1);  // populate
-				fields.add(cf.getNode(), 1, configFields.size()-1);
-			});
+				.sorted(byNC(Config::getGuiName))
+				.forEach(f -> {
+					ConfigField<T> cf = ConfigField.create(f);                  // create
+					configFields.add(cf);                                       // add
+					fields.add(cf.createLabel(), 0, configFields.size() - 1);  // populate
+					fields.add(cf.getNode(), 1, configFields.size() - 1);
+				});
 		Consumer<Try<T,String>> observer = v -> validate();
 		configFields.forEach(f -> f.observer = observer);
 
@@ -133,7 +131,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		if (validation.isOk()) {
 			configFields.forEach(ConfigField::apply);
 			onOK.accept(configurable);
-			if (hideOnOk.get() && getScene() != null && getScene().getWindow() != null && getScene().getWindow().isShowing()) {
+			if (hideOnOk.get() && getScene()!=null && getScene().getWindow()!=null && getScene().getWindow().isShowing()) {
 				if (getScene().getWindow().isShowing()) getScene().getWindow().hide();
 			}
 		}
@@ -141,8 +139,8 @@ public class SimpleConfigurator<T> extends AnchorPane {
 
 	private Try<T,String> validate() {
 		Try<T,String> validation = configFields.stream()
-						.map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
-						.reduce(Try::and).orElse(Try.ok(null));
+				.map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
+				.reduce(Try::and).orElse(Try.ok(null));
 		showWarnButton(validation);
 		return validation;
 	}

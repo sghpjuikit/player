@@ -1,5 +1,8 @@
 package util;
 
+import gui.itemnode.StringSplitParser;
+import gui.itemnode.StringSplitParser.Split;
+import gui.itemnode.StringSplitParser.SplitData;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,28 +18,20 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.util.Duration;
-
-import org.jaudiotagger.tag.images.Artwork;
-
-import gui.itemnode.StringSplitParser;
-import gui.itemnode.StringSplitParser.Split;
-import gui.itemnode.StringSplitParser.SplitData;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
+import org.jaudiotagger.tag.images.Artwork;
 import util.dev.TODO;
 import util.functional.Try;
-
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toCollection;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -92,7 +87,7 @@ public interface Util {
 	static LocalDateTime localDateTimeFromMillis(long epochMillis) {
 		try {
 			return localDateTimeFromMillis(Instant.ofEpochMilli(epochMillis));
-		} catch(DateTimeException e) {
+		} catch (DateTimeException e) {
 			return null;
 		}
 	}
@@ -104,7 +99,7 @@ public interface Util {
 	static LocalDateTime localDateTimeFromMillis(String epochMillis) {
 		try {
 			return localDateTimeFromMillis(Long.parseLong(epochMillis));
-		} catch(NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			return null;
 		}
 	}
@@ -116,16 +111,16 @@ public interface Util {
 	 * If hours = 0, they are left out.
 	 * Example:
 	 * 01:00:06
-	 *    04:45
-	 *    00:34
+	 * 04:45
+	 * 00:34
 	 *
 	 * @return formatted duration
 	 */
 	static String formatDuration(Duration duration) {
 		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total %60;
-		int minutes = (int)((sec_total-seconds) /60) %60;
-		int hours   = (int)(sec_total-seconds-60*minutes) /3600;
+		int seconds = (int) sec_total%60;
+		int minutes = (int) ((sec_total - seconds)/60)%60;
+		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
 
 		if (hours>99)
 			return String.format("%d:%02d:%02d", hours, minutes, seconds);
@@ -134,7 +129,7 @@ public interface Util {
 		else if (minutes>0)
 			return String.format("%02d:%02d", minutes, seconds);
 		else
-			return String.format("00:%02d",seconds);
+			return String.format("00:%02d", seconds);
 	}
 
 	/**
@@ -144,9 +139,9 @@ public interface Util {
 	 * include_zeros = true.
 	 * If hours = 0, they are left out.
 	 * Example:
-	 *  1:00:06
-	 *     4:45
-	 *       34
+	 * 1:00:06
+	 * 4:45
+	 * 34
 	 *
 	 * @return formatted duration
 	 */
@@ -154,9 +149,9 @@ public interface Util {
 		if (include_zeros) return formatDuration(duration);
 
 		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total %60;
-		int minutes = (int)((sec_total-seconds) /60) %60;
-		int hours   = (int)(sec_total-seconds-60*minutes) /3600;
+		int seconds = (int) sec_total%60;
+		int minutes = (int) ((sec_total - seconds)/60)%60;
+		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
 
 		if (hours>99)
 			return String.format("%3d:%2d:%2d", hours, minutes, seconds);
@@ -165,7 +160,7 @@ public interface Util {
 		else if (minutes>0)
 			return String.format("%2d:%2d", minutes, seconds);
 		else
-			return String.format("%2d",seconds);
+			return String.format("%2d", seconds);
 	}
 
 	/**
@@ -202,7 +197,7 @@ public interface Util {
 	static boolean hasNoReadableText(String s) {
 		if (s==null || s.isEmpty()) return true;
 
-		for (int i=0; i<s.length(); i++)
+		for (int i = 0; i<s.length(); i++)
 			if (!Character.isWhitespace(s.charAt(i)))
 				return false;
 
@@ -242,14 +237,14 @@ public interface Util {
 	}
 
 	static String removeLastChar(String text) {
-		return text.isEmpty() ? text : text.substring(0, text.length()-1);
+		return text.isEmpty() ? text : text.substring(0, text.length() - 1);
 	}
 
 	static String escapeChar(String text, char escaped, char escape) {
-		if (text == null || text.isEmpty()) return text;
+		if (text==null || text.isEmpty()) return text;
 
 		StringBuilder b = new StringBuilder();
-		for (int i=0; i<text.length(); i++) {
+		for (int i = 0; i<text.length(); i++) {
 			char c = text.charAt(i);
 			if (c==escaped) b.append(escape);
 			b.append(c);
@@ -258,14 +253,14 @@ public interface Util {
 	}
 
 	static String unescapeChar(String text, char escaped, char escape) {
-		if (text == null || text.length() <= 1) return text;
+		if (text==null || text.length()<=1) return text;
 
 		StringBuilder b = new StringBuilder();
 		boolean ignore = false;
-		for (int i=0; i<text.length()-1; i++) {
+		for (int i = 0; i<text.length() - 1; i++) {
 			if (ignore) continue;
 			char c = text.charAt(i);
-			char cNext = text.charAt(i+1);
+			char cNext = text.charAt(i + 1);
 			if (c==escape && cNext==escaped) {
 				b.append(cNext);
 				ignore = true;
@@ -274,7 +269,7 @@ public interface Util {
 				ignore = false;
 			}
 		}
-		if (!ignore) b.append(text.charAt(text.length()-1)); // handle last char specially
+		if (!ignore) b.append(text.charAt(text.length() - 1)); // handle last char specially
 
 		return b.toString();
 	}
@@ -284,13 +279,13 @@ public interface Util {
 		s = s.replaceAll("_", " ");
 
 		// remove hash
-		if (s.endsWith("]") && s.lastIndexOf('[') == s.length() - 10) s = s.substring(0, s.length() - 10);
+		if (s.endsWith("]") && s.lastIndexOf('[')==s.length() - 10) s = s.substring(0, s.length() - 10);
 
 		// remove fansub group
 		String group = null;
 		if (s.startsWith("[")) {
 			int i = s.indexOf(']');
-			if (i != -1) {
+			if (i!=-1) {
 				group = s.substring(0, i + 1);
 				s = s.substring(i + 1);
 			}
@@ -300,7 +295,7 @@ public interface Util {
 		s = s.trim();
 
 		// add fansub groups at the end
-		if (group != null) s = s + "." + group;
+		if (group!=null) s = s + "." + group;
 
 		return s;
 	}
@@ -330,33 +325,33 @@ public interface Util {
 	}
 
 	static String addText(String text, String added, StringDirection from) {
-		return from == FROM_START ? added + text : text + added;
+		return from==FROM_START ? added + text : text + added;
 	}
 
 	static String removeChars(String text, int amount, StringDirection from) {
-		return from == FROM_START
+		return from==FROM_START
 				? text.substring(clip(0, amount, text.length() - 1))
 				: text.substring(0, max(text.length() - amount, 0));
 	}
 
 	static String retainChars(String text, int amount, StringDirection from) {
-		return from == FROM_START
+		return from==FROM_START
 				? text.substring(0, min(amount, text.length() - 1))
 				: text.substring(clip(0, text.length() - amount, text.length() - 1));
 	}
 
 	static SplitData split(String text, StringSplitParser splitter) {
 		return splitter.applyM(text).entrySet().stream()
-					   .map(e -> new Split(e.getKey(), e.getValue()))
-					   .collect(toCollection(SplitData::new));
+				.map(e -> new Split(e.getKey(), e.getValue()))
+				.collect(toCollection(SplitData::new));
 	}
 
 	static String splitJoin(String t, StringSplitParser splitter, StringSplitParser joiner) {
-		Map<String, String> splits = splitter.applyM(t);
+		Map<String,String> splits = splitter.applyM(t);
 		List<String> keys = joiner.parse_keys;
 		List<String> seps = joiner.key_separators;
 		StringBuilder o = new StringBuilder("");
-		for (int i = 0; i < keys.size() - 1; i++) {
+		for (int i = 0; i<keys.size() - 1; i++) {
 			if (!splits.containsKey(keys.get(i))) return null;
 			o.append(splits.get(keys.get(i)));
 			o.append(seps.get(i));
@@ -367,7 +362,7 @@ public interface Util {
 	}
 
 	static Character charAt(String x, int i, StringDirection dir) {
-		return i < 0 || i >= x.length() ? null : x.charAt(dir == FROM_START ? i : x.length() - 1 - i);
+		return i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length() - 1 - i);
 	}
 
 	/**
@@ -410,8 +405,6 @@ public interface Util {
 	/**
 	 * Invokes {@link java.net.URLEncoder#encode(String, String)} with {@link java.nio.charset.StandardCharsets#UTF_8}
 	 * .
-	 * @param s
-	 * @return
 	 */
 	static String urlEncodeUtf8(String s) {
 		Charset charset = StandardCharsets.UTF_8; // UTF-8 is url encoding recommended encoding
@@ -426,8 +419,8 @@ public interface Util {
 	/** @return true if the string is palindrome (empty string is palindrome) */
 	static boolean isPalindrome(String s) {
 		int n = s.length();
-		for (int i = 0; i < n/2; i++)
-			if (s.charAt(i) != s.charAt(n-i-1)) return false;
+		for (int i = 0; i<n/2; i++)
+			if (s.charAt(i)!=s.charAt(n - i - 1)) return false;
 		return true;
 	}
 
@@ -451,28 +444,28 @@ public interface Util {
 	 *
 	 * @param file file to load.
 	 * @param width target width.
-	 * @param height target height. Use 0 or negative to use original image size.
-	 * The size will be clipped to original if it is greater.
-	 * @throws IllegalArgumentException when on fx thread
+	 * @param height target height. Use 0 or negative to use original image size. The size will be clipped to original
+	 * if it is greater.
 	 * @return loaded image or null if file null or not a valid image source.
+	 * @throws IllegalArgumentException when on fx thread
 	 */
 	static Image loadImage(File file, double width, double height) {
-		if (file == null) return null;
+		if (file==null) return null;
 
 		if (file.getPath().endsWith("psd")) {
-		   return loadImageFull(file, width, height, false);
+			return loadImageFull(file, width, height, false);
 		} else {
 			return loadImageThumb(file, width, height);
 		}
 	}
 
 	static Image loadImageThumb(File file, double width, double height) {
-		if (file == null) return null;
+		if (file==null) return null;
 
 		// negative values have same effect as 0, 0 loads image at its size
-		int W = max(0,(int)width);
-		int H = max(0,(int)height);
-		boolean loadFullSize = W == 0 && H == 0;
+		int W = max(0, (int) width);
+		int H = max(0, (int) height);
+		boolean loadFullSize = W==0 && H==0;
 
 		// psd special case
 		if (!file.getPath().endsWith("psd")) {
@@ -490,28 +483,28 @@ public interface Util {
 				reader.setInput(input);
 				int ii = reader.getMinIndex(); // 1st image index
 				boolean thumbHas = imgImplHasThumbnail(reader, ii);
-				int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii,0),
-					thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii,0);
+				int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii, 0),
+						thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii, 0);
 				boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
 
 				BufferedImage i;
 				if (thumbUse) {
-					i = reader.readThumbnail(ii,0);
+					i = reader.readThumbnail(ii, 0);
 				} else {
 					ImageReadParam irp = new ImageReadParam();
 					int sw = reader.getWidth(ii)/W;
 					int sh = reader.getHeight(ii)/H;
-					int px = loadFullSize ? 1 : max(1,max(sw,sh)*2/3); // quality == 2/3 == ok, great performance
-					irp.setSourceSubsampling(px,px, 0,0);
-					i = reader.read(ii,irp);
+					int px = loadFullSize ? 1 : max(1, max(sw, sh)*2/3); // quality == 2/3 == ok, great performance
+					irp.setSourceSubsampling(px, px, 0, 0);
+					i = reader.read(ii, irp);
 
 					// scale, also improves quality, very quick
 					if (!loadFullSize)
 						i = imgImplScale(i, W, H, Rendering.SPEED);
-				 }
-				 return SwingFXUtils.toFXImage(i, null);
+				}
+				return SwingFXUtils.toFXImage(i, null);
 
-			} catch(IndexOutOfBoundsException | IOException e) {
+			} catch (IndexOutOfBoundsException|IOException e) {
 				return null;
 			} finally {
 				if (reader!=null) reader.dispose();
@@ -524,15 +517,15 @@ public interface Util {
 	}
 
 	private static Image loadImageFull(File file, double width, double height, boolean thumbLoadedBefore) {
-		if (file == null) return null;
+		if (file==null) return null;
 
 		if (Platform.isFxApplicationThread())
 			util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
 
 		// negative values have same effect as 0, 0 loads image at its size
-		int W = max(0,(int)width);
-		int H = max(0,(int)height);
-		boolean loadFullSize = W == 0 && H == 0;
+		int W = max(0, (int) width);
+		int H = max(0, (int) height);
+		boolean loadFullSize = W==0 && H==0;
 
 		// psd special case
 		if (!file.getPath().endsWith("psd")) {
@@ -547,32 +540,32 @@ public interface Util {
 				reader.setInput(input);
 				int ii = reader.getMinIndex(); // 1st image index
 				boolean thumbHas = imgImplHasThumbnail(reader, ii);
-				int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii,0),
-					thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii,0);
+				int thumbW = thumbHas ? 0 : reader.getThumbnailWidth(ii, 0),
+						thumbH = thumbHas ? 0 : reader.getThumbnailHeight(ii, 0);
 				boolean thumbUse = !loadFullSize && thumbHas && (width<=thumbW && height<=thumbH);
 
 				BufferedImage i;
 				if (thumbUse) {
 					if (thumbLoadedBefore) return null;
-					i = reader.readThumbnail(ii,0);
+					i = reader.readThumbnail(ii, 0);
 				} else {
 					int sw = reader.getWidth(ii)/W;
 					int sh = reader.getHeight(ii)/H;
-					int px = loadFullSize ? 1 : max(1,max(sw,sh)/3);// quality 3 == great, with ok performance
+					int px = loadFullSize ? 1 : max(1, max(sw, sh)/3);// quality 3 == great, with ok performance
 					// max quality is px==1, but quality/performance ratio would suck
 					// the only quality issue is with halftone patterns (e.g. manga),
 					// they really ask for max quality
 					ImageReadParam irp = new ImageReadParam();
-					irp.setSourceSubsampling(px,px, 0,0);
-					i = reader.read(ii,irp);
+					irp.setSourceSubsampling(px, px, 0, 0);
+					i = reader.read(ii, irp);
 
 					// scale, also improves quality, fairly quick
 					if (!loadFullSize)
 						i = imgImplScale(i, W, H, Rendering.QUALITY);
-				 }
-				 return SwingFXUtils.toFXImage(i, null);
+				}
+				return SwingFXUtils.toFXImage(i, null);
 
-			} catch(IndexOutOfBoundsException | IOException e) {
+			} catch (IndexOutOfBoundsException|IOException e) {
 				return null;
 			} finally {
 				if (reader!=null) reader.dispose();
@@ -585,7 +578,7 @@ public interface Util {
 		try {
 			BufferedImage i = Thumbnails.of(image)
 //					.scalingMode(ScalingMode.BICUBIC) // default == best?, javadoc sux...
-					.size(W,H).keepAspectRatio(true)
+					.size(W, H).keepAspectRatio(true)
 					.rendering(rendering)
 					.asBufferedImage();
 			image.flush();
@@ -600,7 +593,7 @@ public interface Util {
 		try {
 			reader.hasThumbnails(ii); // throws exception -> no thumb
 			return true;
-		} catch(IOException | IndexOutOfBoundsException e){
+		} catch (IOException|IndexOutOfBoundsException e) {
 			return false;
 		}
 	}
@@ -616,8 +609,8 @@ public interface Util {
 			int h = dt.map(d -> d.height).getOr(Integer.MAX_VALUE);
 
 			// lets not surpass real size (javafx.scene.Image does that if we do not stop it)
-			int fin_width = min(W,w);
-			int fin_height = min(H,h);
+			int fin_width = min(W, w);
+			int fin_height = min(H, h);
 			return new Image(file.toURI().toString(), fin_width, fin_height, true, true, true);
 		}
 	}
@@ -634,14 +627,14 @@ public interface Util {
 		Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(suffix);
 		if (readers.hasNext()) {
 			ImageReader reader = readers.next();
-			try (ImageInputStream stream = ImageIO.createImageInputStream(f) ) {
+			try (ImageInputStream stream = ImageIO.createImageInputStream(f)) {
 				reader.setInput(stream);
 				int ii = reader.getMinIndex(); // 1st image index
 				int width = reader.getWidth(ii);
 				int height = reader.getHeight(ii);
 				return Try.ok(new Dimension(width, height));
-			} catch (IOException | NullPointerException e) {
-				getLogger(Util.class).warn("Problem finding out image size {}", f ,e);
+			} catch (IOException|NullPointerException e) {
+				getLogger(Util.class).warn("Problem finding out image size {}", f, e);
 				// we need to catch NullPointerException as well, seems to be a bug, stacktrace below:
 				// java.lang.NullPointerException: null
 				//	at java.awt.color.ICC_Profile.activateDeferredProfile(ICC_Profile.java:1092) ~[na:na]
@@ -674,7 +667,7 @@ public interface Util {
 	 */
 	static int log(int base, int number) {
 		short p = 0;
-		while(pow(base, p) <= number)
+		while (pow(base, p)<=number)
 			p++;
 		return p;
 	}
@@ -685,7 +678,7 @@ public interface Util {
 	static int digits(int number) {
 		int x = number;
 		int digits = 0;
-		while (x > 0) {
+		while (x>0) {
 			x /= 10;
 			digits++;
 		}
@@ -704,7 +697,7 @@ public interface Util {
 	static String zeroPad(int n, int max, char ch) {
 		int diff = digits(max) - digits(n);
 		String prefix = "";
-		for (int i=1; i<=diff; i++)
+		for (int i = 1; i<=diff; i++)
 			prefix += ch;
 		return prefix + String.valueOf(n);
 	}
@@ -726,7 +719,7 @@ public interface Util {
 		else if (n<10000) return 9999;
 		else if (n<100000) return 99999;
 		else if (n<1000000) return 999999;
-		else return (int) (pow(10, 1+digits(n))-1);
+		else return (int) (pow(10, 1 + digits(n)) - 1);
 	}
 
 	/**
@@ -741,77 +734,77 @@ public interface Util {
 
 	/** @return {@code max(min,min(i,max))} */
 	static int clip(short min, short i, short max) {
-		return max(min,min(i,max));
+		return max(min, min(i, max));
 	}
 
 	/** @return {@code max(min,min(i,max))} */
 	static int clip(int min, int i, int max) {
-		return max(min,min(i,max));
+		return max(min, min(i, max));
 	}
 
 	/** @return {@code max(min,min(i,max))} */
 	static long clip(long min, long i, long max) {
-		return max(min,min(i,max));
+		return max(min, min(i, max));
 	}
 
 	/** @return {@code max(min,min(i,max))} */
 	static float clip(float min, float i, float max) {
-		return max(min,min(i,max));
+		return max(min, min(i, max));
 	}
 
 	/** @return {@code max(min,min(i,max))} */
 	static double clip(double min, double i, double max) {
-		return max(min,min(i,max));
+		return max(min, min(i, max));
 	}
 
 	/** @return true iff number belongs to the interval inclusive, else false */
 	static boolean isInRangeInc(short i, short min, short max) {
-		return i>=min && i <=max;
+		return i>=min && i<=max;
 	}
 
 	/** @return true iff number belongs to the interval inclusive, else false */
 	static boolean isInRangeInc(int i, int min, int max) {
-		return i>=min && i <=max;
+		return i>=min && i<=max;
 	}
 
 	/** @return true iff number belongs to the interval inclusive, else false */
 	static boolean isInRangeInc(long i, long min, long max) {
-		return i>=min && i <=max;
+		return i>=min && i<=max;
 	}
 
 	/** @return true iff number belongs to the interval inclusive, else false */
 	static boolean isInRangeInc(float i, float min, float max) {
-		return i>=min && i <=max;
+		return i>=min && i<=max;
 	}
 
 	/** @return true iff number belongs to the interval inclusive, else false */
 	static boolean isInRangeInc(double i, double min, double max) {
-		return i>=min && i <=max;
+		return i>=min && i<=max;
 	}
 
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(short i, short min, short max) {
-		return i>min && i <max;
+		return i>min && i<max;
 	}
 
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(int i, int min, int max) {
-		return i>min && i <max;
+		return i>min && i<max;
 	}
 
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(long i, long min, long max) {
-		return i>min && i <max;
+		return i>min && i<max;
 	}
 
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(float i, float min, float max) {
-		return i>min && i <max;
+		return i>min && i<max;
 	}
 
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(double i, double min, double max) {
-		return i>min && i <max;
+		return i>min && i<max;
 	}
 
 	/** @return true iff number is a valid 0-based index of the collection, else false */
@@ -854,19 +847,19 @@ public interface Util {
 
 	/** Returns {@code sqrt(a^2 + b^2)}. */
 	static double pyth(double a, double b) {
-		return sqrt(a*a+b*b);
+		return sqrt(a*a + b*b);
 	}
 
 	/**
 	 * Pops random element from the list, i.e., returns random element from the list and removes it from the list.
-	 * @apiNote this method has side effects
 	 *
 	 * @return random element from the list.
 	 * @throws java.lang.RuntimeException if list empty
+	 * @apiNote this method has side effects
 	 */
 	private static <T> T randPopOf(List<T> list) {
 		throwIf(list.isEmpty());
-		int i = (int)Math.floor(random()*list.size());
+		int i = (int) Math.floor(random()*list.size());
 		T t = list.get(i);
 		list.remove(t);
 		return t;
@@ -883,7 +876,7 @@ public interface Util {
 
 		ArrayList<T> all = new ArrayList<>(source); // we need a copy
 		ArrayList<T> l = new ArrayList<>();
-		for (int i=0; i<amount; i++) l.add(randPopOf(all));
+		for (int i = 0; i<amount; i++) l.add(randPopOf(all));
 		return l;
 	}
 

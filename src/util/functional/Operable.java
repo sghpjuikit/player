@@ -8,30 +8,30 @@ import java.util.stream.Stream;
 
 /**
  * Provides functional methods for object.
- * 
+ *
  * @param <O> Object - self type: {@code X extends Operable<X> }
  */
 @SuppressWarnings("unchecked")
 public interface Operable<O> {
 
 	default O apply(UnaryOperator<O> op) {
-		return op.apply((O)this);
+		return op.apply((O) this);
 	}
 
-	default <R> R apply(Function<O, R> op) {
-		return op.apply((O)this);
+	default <R> R apply(Function<O,R> op) {
+		return op.apply((O) this);
 	}
 
 	default O apply(O e, BinaryOperator<O> op) {
-		return op.apply((O)this, e);
+		return op.apply((O) this, e);
 	}
 
 	default void use(Consumer<O> op) {
-		op.accept((O)this);
+		op.accept((O) this);
 	}
 
 	default O useAnd(Consumer<O> op) {
-		op.accept((O)this);
+		op.accept((O) this);
 		return (O) this;
 	}
 

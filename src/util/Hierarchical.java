@@ -27,7 +27,7 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 		// while (!i.isHRoot())
 		//	  i = i.getHParent();
 
-		while ((p = i.getHParent()) != null)
+		while ((p = i.getHParent())!=null)
 			i = p;
 
 		return i;
@@ -38,8 +38,8 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 		if (this==h) return false;
 		H i = (H) this;
 
-		while ((i = i.getHParent()) != null)
-			if (i == h) return true;
+		while ((i = i.getHParent())!=null)
+			if (i==h) return true;
 		return false;
 	}
 

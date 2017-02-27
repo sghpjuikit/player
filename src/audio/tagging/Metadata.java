@@ -1258,16 +1258,17 @@ public final class Metadata extends MetaItem<Metadata> {
             return equalNull(getOf(m), getOf(EMPTY));
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public Class getType() {
+        public Class<T> getType() {
             // Because empty fields may return null, we can not always rely on Metadata.EMPTY, so we handle
             // those fields manually.
-            if (this==BITRATE) return Bitrate.class;
-            if (this==COLOR) return Color.class;
-            if (this==YEAR) return Year.class;
-            if (this==FULLTEXT) return String.class;
-            if (this==FIRST_PLAYED || this==LAST_PLAYED || this==ADDED_TO_LIBRARY) return LocalDateTime.class;
-            return Metadata.EMPTY.getField(this).getClass();
+            if (this==BITRATE) return (Class<T>) Bitrate.class;
+            if (this==COLOR) return (Class<T>) Color.class;
+            if (this==YEAR) return (Class<T>) Year.class;
+            if (this==FULLTEXT) return (Class<T>) String.class;
+            if (this==FIRST_PLAYED || this==LAST_PLAYED || this==ADDED_TO_LIBRARY) return (Class<T>) LocalDateTime.class;
+            return (Class<T>) Metadata.EMPTY.getField(this).getClass();
         }
 
         /**
@@ -1276,7 +1277,7 @@ public final class Metadata extends MetaItem<Metadata> {
          * {@inheritDoc}
          */
         @Override
-        public boolean isTypeNumberNonegative() { return true; }
+        public boolean isTypeNumberNoNegative() { return true; }
 
         public boolean isAutoCompletable() {
             return isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this);

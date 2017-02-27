@@ -143,12 +143,14 @@ public class GeneralPlayer {
         if (seekDone) lastValidVolume = currentVolume;
         else { if (volumeAnim!=null) volumeAnim.pause(); }
         seekDone = false;
-        new Anim(millis(150), x -> state.volume.set(currentVolume*pow(1-x,2))).then(() -> {
-            doSeek(duration);
-            volumeAnim = new Anim(millis(150), x -> state.volume.set(lastValidVolume*pow(x,2)))
-                    .then(() -> seekDone=true);
-            volumeAnim.playOpen();
-        }).playOpen();
+        new Anim(millis(150), x -> state.volume.set(currentVolume*pow(1-x,2)))
+                .then(() -> {
+                        doSeek(duration);
+                        volumeAnim = new Anim(millis(150), x -> state.volume.set(lastValidVolume*pow(x,2)))
+                                .then(() -> seekDone=true);
+                        volumeAnim.playOpen();
+                })
+                .playOpen();
     }
 
     private void doSeek(Duration duration) {

@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package util.access;
 
 import static util.type.Util.unPrimitivize;
@@ -32,7 +26,7 @@ public interface TypedValue<C> {
      * For example gui text field for this value might want to allow only numeric
      * characters to be inputted.
      *
-     * @return whether type of the value is any class exntemding {@link Number}
+     * @return whether type of the value is any class extending {@link Number}
      * or any of the number type primitives
      */
     default boolean isTypeNumber() {
@@ -48,8 +42,6 @@ public interface TypedValue<C> {
      * <p/>
      * Default implementation checks whether type is Float, float, Double, double
      * or and extending class of them.
-     *
-     * @return
      */
     default boolean isTypeFloatingNumber() {
         Class c = getType();
@@ -61,10 +53,8 @@ public interface TypedValue<C> {
 
     /**
      * Default implementation returns false.
-     *
-     * @return
      */
-    default boolean isTypeNumberNonegative() {
+    default boolean isTypeNumberNoNegative() {
         return false;
     }
 }

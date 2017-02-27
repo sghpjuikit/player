@@ -10,10 +10,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import util.async.Async;
 
 /**
@@ -72,9 +70,9 @@ public class AppInstanceComm {
 			// if (System.getSecurityManager() == null)
 			//     System.setSecurityManager(new RMISecurityManager());
 
-		   Mediator comm = (Mediator) LocateRegistry.getRegistry(PORT).lookup(REGISTRY_NAME);
-		   comm.newInstanceLaunched(params);
-		} catch(NotBoundException | ConnectException e) {
+			Mediator comm = (Mediator) LocateRegistry.getRegistry(PORT).lookup(REGISTRY_NAME);
+			comm.newInstanceLaunched(params);
+		} catch (NotBoundException|ConnectException e) {
 			// no instance is listening -> ignore
 		} catch (RemoteException e) {
 			LOGGER.error("Unable to fire new app instance event.", e);
@@ -84,6 +82,7 @@ public class AppInstanceComm {
 	interface Mediator extends Remote {
 		void newInstanceLaunched(List<String> params) throws RemoteException;
 	}
+
 	class AppMediator extends UnicastRemoteObject implements Mediator {
 
 		public AppMediator() throws RemoteException {

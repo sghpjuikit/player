@@ -7,9 +7,7 @@ import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import javafx.scene.input.KeyCode;
-
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.NativeInputEvent;
@@ -17,10 +15,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import util.Util;
 import util.action.Action;
-
 import static util.functional.Util.list;
 import static util.functional.Util.stream;
 
@@ -95,14 +91,14 @@ public class Hotkeys {
 							// For some reason left BACK_SLASH key (left of the Z key) is not recognized, so we manually se it straight
 							if (e.getRawCode()==226) {
 								e.setKeyCode(43);
-								e.setKeyChar((char)43);
+								e.setKeyChar((char) 43);
 							}
 
 							// Unfortunately, JavaFX key codes and the library raw codes do not match for some keys, so we also
 							// check key name. This combination should be enough for all but rare cases
 							boolean modifierMatches = keyCombo.modifier==e.getModifiers();
 							boolean keysMatch = keyCombo.key.getCode()==e.getRawCode() ||
-								                    keyCombo.key.getName().equalsIgnoreCase(NativeKeyEvent.getKeyText(e.getKeyCode()));
+									keyCombo.key.getName().equalsIgnoreCase(NativeKeyEvent.getKeyText(e.getKeyCode()));
 							if (keysMatch && modifierMatches)
 								keyCombo.press(a, e);
 						});
@@ -141,13 +137,13 @@ public class Hotkeys {
 
 	public void register(Action action, String keys) {
 		int i = keys.lastIndexOf('+');
-		String keyString = (i<0 ? keys : keys.substring(i+1)).trim().toLowerCase().replace('_', ' ');
+		String keyString = (i<0 ? keys : keys.substring(i + 1)).trim().toLowerCase().replace('_', ' ');
 		KeyCode key = stream(KeyCode.values()).findFirst(k -> k.getName().toLowerCase().equals(keyString)).get();
 		register(
-			action, key,
-			stream(KeyCode.ALT, KeyCode.ALT_GRAPH, KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.WINDOWS, KeyCode.COMMAND, KeyCode.META)
-				.filter(k -> Util.containsNoCase(keys, k.name()) || (k==KeyCode.CONTROL && keys.toUpperCase().contains("CTRL")))
-				.toArray(KeyCode[]::new)
+				action, key,
+				stream(KeyCode.ALT, KeyCode.ALT_GRAPH, KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.WINDOWS, KeyCode.COMMAND, KeyCode.META)
+						.filter(k -> Util.containsNoCase(keys, k.name()) || (k==KeyCode.CONTROL && keys.toUpperCase().contains("CTRL")))
+						.toArray(KeyCode[]::new)
 		);
 	}
 
@@ -170,14 +166,14 @@ public class Hotkeys {
 			this.modifiers = modifiers;
 
 			int m = 0;
-			if(stream(modifiers).has(KeyCode.SHIFT)) m += 1;   // right shift
-			if(stream(modifiers).has(KeyCode.CONTROL)) m += 2; // left ctrl
-			if(stream(modifiers).has(KeyCode.WINDOWS)) m += 4;
-			if(stream(modifiers).has(KeyCode.ALT)) m += 8;
+			if (stream(modifiers).has(KeyCode.SHIFT)) m += 1;   // right shift
+			if (stream(modifiers).has(KeyCode.CONTROL)) m += 2; // left ctrl
+			if (stream(modifiers).has(KeyCode.WINDOWS)) m += 4;
+			if (stream(modifiers).has(KeyCode.ALT)) m += 8;
 //			if(stream(modifiers).has(KeyCode.SHIFT)) m += 16;   // right shift
 //			if(stream(modifiers).has(KeyCode.CONTROL)) m += 32; // right ctrl
-			if(stream(modifiers).has(KeyCode.COMMAND)) m += 64;
-			if(stream(modifiers).has(KeyCode.ALT_GRAPH)) m += 128;
+			if (stream(modifiers).has(KeyCode.COMMAND)) m += 64;
+			if (stream(modifiers).has(KeyCode.ALT_GRAPH)) m += 128;
 //			if(stream(modifiers).has(KeyCode.META)) m += 128;
 			this.modifier = m;
 		}

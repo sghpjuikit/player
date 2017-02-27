@@ -17,10 +17,10 @@ public class Utils {
 	 */
 	public static double clamp(double value, double min, double max) {
 
-		if (value < min)
+		if (value<min)
 			return min;
 
-		if (value > max)
+		if (value>max)
 			return max;
 
 		return value;
@@ -30,7 +30,7 @@ public class Utils {
 	 * Map value of a given range to a target range
 	 */
 	public static double map(double value, double currentRangeStart, double currentRangeStop, double targetRangeStart, double targetRangeStop) {
-		return targetRangeStart + (targetRangeStop - targetRangeStart) * ((value - currentRangeStart) / (currentRangeStop - currentRangeStart));
+		return targetRangeStart + (targetRangeStop - targetRangeStart)*((value - currentRangeStart)/(currentRangeStop - currentRangeStart));
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class Utils {
 
 	/**
 	 * Pre-create images with various gradient colors and sizes.
-	 * 
+	 *
 	 * @return pre-created images
 	 */
 	public static Image[] preCreateImages() {
@@ -66,18 +66,18 @@ public class Utils {
 
 		double radius = Settings.PARTICLE_WIDTH;
 
-		for (int i = 0; i < count; i++) {
+		for (int i = 0; i<count; i++) {
 
-			double opacity = (double) i / (double) count;
+			double opacity = (double) i/(double) count;
 
 			// get color depending on lifespan
 			Color color;
-			
+
 			double threshold = 0.9;
 			double threshold2 = 0.4;
-			if (opacity >= threshold) {
+			if (opacity>=threshold) {
 				color = Color.YELLOW.interpolate(Color.WHITE, Utils.map(opacity, threshold, 1, 0, 1));
-			} else if (opacity >= threshold2) {
+			} else if (opacity>=threshold2) {
 				color = Color.RED.interpolate(Color.YELLOW, Utils.map(opacity, threshold2, threshold, 0, 1));
 			} else {
 				color = Color.BLACK.interpolate(Color.RED, Utils.map(opacity, 0, threshold2, 0, 1));

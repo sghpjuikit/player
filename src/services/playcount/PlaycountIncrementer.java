@@ -1,18 +1,15 @@
 package services.playcount;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javafx.util.Duration;
-
-import org.reactfx.Subscription;
-
 import audio.Player;
 import audio.playback.PLAYBACK;
 import audio.playback.PlayTimeHandler;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.util.Duration;
+import org.reactfx.Subscription;
 import services.Service.ServiceBase;
 import services.notif.Notifier;
 import services.tray.TrayService;
@@ -20,7 +17,6 @@ import util.access.V;
 import util.action.IsAction;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-
 import static java.awt.TrayIcon.MessageType.INFO;
 import static javafx.util.Duration.seconds;
 import static main.App.APP;
@@ -32,17 +28,17 @@ import static util.functional.Util.min;
 @IsConfigurable(value = "Playback.Playcount.Incrementing")
 public class PlaycountIncrementer extends ServiceBase {
 
-	@IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-	public final V<PlaycountIncStrategy> when = new V<>(ON_PERCENT,this::apply);
-	@IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
-	public final V<Double> when_percent = new V<>(0.4,this::apply);
-	@IsConfig(name="Increment at time", info = "Time at which playcount is incremented.")
-	public final V<Duration> when_time = new V<>(seconds(5),this::apply);
-	@IsConfig(name="Show notification", info = "Shows notification when playcount is incremented.")
-	public final V<Boolean> show_notif = new V<>(false);
-	@IsConfig(name="Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
-	public final V<Boolean> show_bubble = new V<>(false);
-	@IsConfig(name="Delay writing", info = "Delays writing playcount to tag for more seamless "
+	@IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
+	public final V<PlaycountIncStrategy> when = new V<>(ON_PERCENT, this::apply);
+	@IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
+	public final V<Double> whenPercent = new V<>(0.4, this::apply);
+	@IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
+	public final V<Duration> whenTime = new V<>(seconds(5), this::apply);
+	@IsConfig(name = "Show notification", info = "Shows notification when playcount is incremented.")
+	public final V<Boolean> showNotification = new V<>(false);
+	@IsConfig(name = "Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
+	public final V<Boolean> showBubble = new V<>(false);
+	@IsConfig(name = "Delay writing", info = "Delays writing playcount to tag for more seamless "
 			+ "playback experience. In addition, reduces multiple consecutive increments in a row "
 			+ "to a single operation. The writing happens when different song starts playing "
 			+ "(but the data in the application may update visually even later).")
@@ -104,44 +100,49 @@ public class PlaycountIncrementer extends ServiceBase {
 	@IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
 	public void increment() {
 		Metadata m = Player.playingItem.get();
-		if (!m.isEmpty() && m.isFileBased() ) {
+		if (!m.isEmpty() && m.isFileBased()) {
 			if (delay.get()) {
 				queue.add(m);
-				if (show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
-				if (show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented scheduled", INFO));
+				if (showNotification.get())
+					APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
+				if (showBubble.get())
+					APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented scheduled", INFO));
 			} else {
 				int pc = 1 + m.getPlaycount();
 				MetadataWriter.use(m, w -> w.setPlaycount(pc), ok -> {
 					if (ok) {
-						if (show_notif.get()) APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
-						if (show_bubble.get()) APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented to: " + pc, INFO));
+						if (showNotification.get())
+							APP.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + pc, "Playcount"));
+						if (showBubble.get())
+							APP.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incremented to: " + pc, INFO));
 					}
 				});
 			}
 		}
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	private void apply() {
 		removeOld();
 		if (!running) return;
 
-		if (when.get() == ON_PERCENT) {
-			incHandler = new PlayTimeHandler(total -> total.multiply(when_percent.get()), inc);
+		if (when.get()==ON_PERCENT) {
+			incHandler = new PlayTimeHandler(total -> total.multiply(whenPercent.get()), inc);
 			PLAYBACK.onPlaybackAt.add(incHandler);
-		} else if (when.get() == ON_TIME) {
-			incHandler = new PlayTimeHandler(total -> when_time.get(), inc);
+		} else if (when.get()==ON_TIME) {
+			incHandler = new PlayTimeHandler(total -> whenTime.get(), inc);
 			PLAYBACK.onPlaybackAt.add(incHandler);
-		} else if (when.get() == ON_TIME_AND_PERCENT) {
-			incHandler = new PlayTimeHandler(total -> min(when_time.get(),total.multiply(when_percent.get())), inc);
+		} else if (when.get()==ON_TIME_AND_PERCENT) {
+			incHandler = new PlayTimeHandler(total -> min(whenTime.get(), total.multiply(whenPercent.get())), inc);
 			PLAYBACK.onPlaybackAt.add(incHandler);
-		} else if (when.get() == ON_TIME_OR_PERCENT) {
-			incHandler = new PlayTimeHandler(total -> max(when_time.get(),total.multiply(when_percent.get())), inc);
+		} else if (when.get()==ON_TIME_OR_PERCENT) {
+			incHandler = new PlayTimeHandler(total -> max(whenTime.get(), total.multiply(whenPercent.get())), inc);
 			PLAYBACK.onPlaybackAt.add(incHandler);
-		} else if (when.get() == ON_START) {
+		} else if (when.get()==ON_START) {
 			PLAYBACK.onPlaybackStart.add(inc);
-		} else if (when.get() == ON_END) {
+		} else if (when.get()==ON_END) {
 			PLAYBACK.onPlaybackEnd.add(inc);
-		} else if (when.get() == NEVER) {}
+		} else if (when.get()==NEVER) {}
 	}
 
 	private void removeOld() {
@@ -178,5 +179,5 @@ public class PlaycountIncrementer extends ServiceBase {
 		ON_TIME_AND_PERCENT,
 		/** Never increment. */
 		NEVER
-   }
+	}
 }

@@ -8,12 +8,12 @@ import java.lang.annotation.*;
  * description, editability or visibility.
  * <p/>
  * Any field can be successfully annotated with this annotation. The only absolute
- * requirement is that it must be always initialized when declared to non null 
+ * requirement is that it must be always initialized when declared to non null
  * value.
  * <p/>
  * There are two
  * different use cases. Annotating a static field turns it into application
- * scope configuration field that can be set, applied, serialized and 
+ * scope configuration field that can be set, applied, serialized and
  * deserialized.
  * Second use is for annotating non static instance fields and comes in
  * combination with {@link Configurable} interface that basically exports all
@@ -49,35 +49,40 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface IsConfig {
 	/**
-	 * @return human readable name of the field. Default value is "". If not
-	 * provided, the name will match the name of the annotated field.
-	 */ String name() default "";
-	/**
-	 * @return human readable description of the field. Mostly used for
-	  * tooltips within graphical user interface. Default is "".
-	 */ String info() default "";
-	/**
-	 * @return category of the field belongs to. Use for aggregation of
-	 * the configuration fields. Default value is "". The default value will be
-	 * set from category or name of the class containing the field. See
-	 * {@link IsConfigurable}.
-	 */ String group() default "";
-	/**
-	 * @return the intended editability of the configuration field by the user.
-	 * Should be adhered to by the graphical user interface for example by not
-	 * displaying this config. Default true.
-	 */ EditMode editable() default EditMode.USER;
+	 * @return human readable name of the field. Default value is "". If not provided, the name will match the name of
+	 * the annotated field.
+	 */
+	String name() default "";
 
-	 enum EditMode {
+	/**
+	 * @return human readable description of the field. Mostly used for tooltips within graphical user interface.
+	 * Default is "".
+	 */
+	String info() default "";
+
+	/**
+	 * @return category of the field belongs to. Use for aggregation of the configuration fields. Default value is "".
+	 * The default value will be set from category or name of the class containing the field. See {@link
+	 * IsConfigurable}.
+	 */
+	String group() default "";
+
+	/**
+	 * @return the intended editability of the configuration field by the user. Should be adhered to by the graphical
+	 * user interface for example by not displaying this config. Default true.
+	 */
+	EditMode editable() default EditMode.USER;
+
+	enum EditMode {
 		/**
 		 * Editable by app and user.
-		 */ USER,
+		 */USER,
 		/**
 		 * Editable by app, but not the user.
-		 */ APP,
+		 */APP,
 		/**
 		 * Not editable.
-		 */ NONE;
+		 */NONE;
 
 		/**
 		 * @return true iff not editable

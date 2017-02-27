@@ -1,14 +1,13 @@
 package util.serialize.xstream;
 
-import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WritableValue;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WritableValue;
 
 /**
  * Base class for all property converters.<br>
@@ -30,9 +29,9 @@ public abstract class AbstractPropertyConverter<T> implements Converter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-		if (source != null) {
+		if (source!=null) {
 			T value = ((ObservableValue<T>) source).getValue();
-			if (value != null) {
+			if (value!=null) {
 				writeValue(writer, context, value);
 			}
 		}

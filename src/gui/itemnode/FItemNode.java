@@ -56,7 +56,7 @@ public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
             if (!configs.isEmpty()) HBox.setHgrow(configs.get(configs.size()-1).getNode(), ALWAYS);
             generateValue();
         });
-        fCB.setValue(functionPool.get().getPreferedOrFirst()); // generate
+        fCB.setValue(functionPool.get().getPreferredOrFirst()); // generate
 
         root.getChildren().addAll(fCB,paramB);
     }

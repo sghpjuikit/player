@@ -2,7 +2,6 @@ package util.file.mimetype;
 
 import java.util.Arrays;
 import java.util.Objects;
-
 import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
 
@@ -42,7 +41,7 @@ public class MimeType {
 
 	public String getGroup() {
 		int i = mimeType.indexOf('/');
-		return i<0 ? mimeType : mimeType.substring(0,i);
+		return i<0 ? mimeType : mimeType.substring(0, i);
 	}
 
 	public boolean isOfType(String extension) {
@@ -54,7 +53,7 @@ public class MimeType {
 	}
 
 	public String getExtension() {
-		if (extensions != null && extensions.length > 0) {
+		if (extensions!=null && extensions.length>0) {
 			return extensions[0];
 		}
 
@@ -63,7 +62,7 @@ public class MimeType {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
+		if (this==o) {
 			return true;
 		}
 		if (!(o instanceof MimeType)) {
@@ -76,7 +75,7 @@ public class MimeType {
 	@Override
 	public int hashCode() {
 		int result = mimeType.hashCode();
-		result = 47 * result + Arrays.hashCode(extensions);
+		result = 47*result + Arrays.hashCode(extensions);
 		return result;
 	}
 

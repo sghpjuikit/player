@@ -64,8 +64,9 @@ import static util.graphics.drag.DragUtil.installDrag;
 @IsConfigurable
 public final class Guide implements Configurable {
 
-	private static final String STYLECLASS_TEXT = "guide-text";
+	@SuppressWarnings("FieldCanBeLocal")
 	private final double ICON_SIZE = 40; // TODO: use css style instead
+	private static final String STYLECLASS_TEXT = "guide-text";
 
 	private final List<Hint> hints = new ArrayList<>();
 	private int prev_at = -1;
@@ -321,7 +322,7 @@ public final class Guide implements Configurable {
 		   + "\n\nDrag areas may cover each other! Therefore, if an accept signal is visible, moving "
 		   + "the mouse within the area can still activate different area (child area)."
 		   + "\n\nBelow you can start a tutorial and see the drag behavior by dragging '2' or '3' onto the test UI",
-			 new Icon(PALETTE_ADVANCED,ICON_SIZE,"",() -> {
+			 new Icon(PALETTE_ADVANCED,ICON_SIZE, "", () -> {
 				 Window wd = APP.windowManager.getActiveOrNew();
 				 int i = wd.getTopContainer().getEmptySpot();
 				 wd.getTopContainer().ui.alignTab(i);

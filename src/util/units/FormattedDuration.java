@@ -1,16 +1,13 @@
 package util.units;
 
 import java.util.List;
-
 import javafx.util.Duration;
-
 import util.Util;
 import util.dev.Dependency;
 import util.parsing.ParsesFromString;
 import util.parsing.ParsesToString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-
 import static util.functional.Util.split;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
@@ -19,9 +16,9 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * minutes:seconds format.* Example: 00:00.
  */
 @StringParseStrategy(
-	from = From.ANNOTATED_METHOD,
-	to = TO_STRING_METHOD,
-	exFrom = { IllegalArgumentException.class, NumberFormatException.class }
+		from = From.ANNOTATED_METHOD,
+		to = TO_STRING_METHOD,
+		exFrom = {IllegalArgumentException.class, NumberFormatException.class}
 )
 public class FormattedDuration extends Duration {
 	private static final long serialVersionUID = 11L;
@@ -49,13 +46,13 @@ public class FormattedDuration extends Duration {
 
 		// try parsing in hh:mm:ss format
 		if (s.contains(":")) {
-			List<String> ls = split(s,":");
+			List<String> ls = split(s, ":");
 			int unit = 1000;
 			double Σt = 0;
-			for (int i = ls.size()-1; i>=0; i--) {
-				if (i<ls.size()-1) unit *= 60;
+			for (int i = ls.size() - 1; i>=0; i--) {
+				if (i<ls.size() - 1) unit *= 60;
 				int amount = Integer.parseInt(ls.get(i));
-				if((amount<0) || (unit<=60000 && amount>59))
+				if ((amount<0) || (unit<=60000 && amount>59))
 					throw new IllegalArgumentException("Minutes and seconds must be >0 and <60");
 				int t = unit*amount;
 				Σt += t;
@@ -66,9 +63,9 @@ public class FormattedDuration extends Duration {
 		// parse normally
 
 		int index = -1;
-		for (int i=0; i<s.length(); i++) {
+		for (int i = 0; i<s.length(); i++) {
 			char c = s.charAt(i);
-			if (!Character.isDigit(c) && c != '.' && c != '-') {
+			if (!Character.isDigit(c) && c!='.' && c!='-') {
 				index = i;
 				break;
 			}
@@ -76,7 +73,7 @@ public class FormattedDuration extends Duration {
 
 		double value = Double.parseDouble(index==-1 ? s : s.substring(0, index));
 
-		if (index == -1)
+		if (index==-1)
 			return new FormattedDuration(value);
 		else {
 			String suffix = s.substring(index);

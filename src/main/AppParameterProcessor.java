@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import static java.util.stream.Collectors.toList;
 import static util.functional.Util.ISNTØ;
 
@@ -43,6 +42,7 @@ public class AppParameterProcessor {
 	public interface ParameterProcessor {
 		void process(Collection<String> params);
 	}
+
 	public static class StringParameterProcessor implements ParameterProcessor {
 		private final Predicate<String> isProcessible;
 		private final Consumer<List<String>> processor;
@@ -58,6 +58,7 @@ public class AppParameterProcessor {
 			if (!strings.isEmpty()) processor.accept(strings);
 		}
 	}
+
 	public static class URIParameterProcessor implements ParameterProcessor {
 		private final Predicate<URI> isProcessible;
 		private final Consumer<List<URI>> processor;
@@ -70,21 +71,22 @@ public class AppParameterProcessor {
 		@Override
 		public void process(Collection<String> params) {
 			List<URI> uris = params.stream()
-			   .map(p -> {
-				   try {
-					   if (p.length()>=2 && p.charAt(1)==':')
-						   return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
-					   return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
-				   } catch(IllegalArgumentException | java.io.UnsupportedEncodingException e) {
-					   return null;
-				   }
-			   })
-			   .filter(ISNTØ)
-			   .filter(isProcessible)
-			   .collect(toList());
+					.map(p -> {
+						try {
+							if (p.length()>=2 && p.charAt(1)==':')
+								return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
+							return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
+						} catch (IllegalArgumentException|java.io.UnsupportedEncodingException e) {
+							return null;
+						}
+					})
+					.filter(ISNTØ)
+					.filter(isProcessible)
+					.collect(toList());
 			if (!uris.isEmpty()) processor.accept(uris);
 		}
 	}
+
 	public static class FileParameterProcessor implements ParameterProcessor {
 		private final Predicate<File> isProcessible;
 		private final Consumer<List<File>> processor;
@@ -97,26 +99,26 @@ public class AppParameterProcessor {
 		@Override
 		public void process(Collection<String> params) {
 			List<File> files = params.stream()
-			   .map(p -> {
-				   try {
-					   if (p.length()>=2 && p.charAt(1)==':')
-						   return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
-					   return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
-				   } catch(IllegalArgumentException | java.io.UnsupportedEncodingException e) {
-					   return null;
-				   }
-			   })
-			   .filter(ISNTØ)
-			   .map(u -> {
-				   try {
-					   return new File(u);
-				   } catch(IllegalArgumentException e) {
-					   return null;
-				   }
-			   })
-			   .filter(ISNTØ)
-			   .filter(isProcessible)
-			   .collect(toList());
+					.map(p -> {
+						try {
+							if (p.length()>=2 && p.charAt(1)==':')
+								return URI.create("file:///" + URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
+							return URI.create(java.net.URLEncoder.encode(p, "UTF-8").replace("+", "%20"));
+						} catch (IllegalArgumentException|java.io.UnsupportedEncodingException e) {
+							return null;
+						}
+					})
+					.filter(ISNTØ)
+					.map(u -> {
+						try {
+							return new File(u);
+						} catch (IllegalArgumentException e) {
+							return null;
+						}
+					})
+					.filter(ISNTØ)
+					.filter(isProcessible)
+					.collect(toList());
 			if (!files.isEmpty()) processor.accept(files);
 		}
 	}

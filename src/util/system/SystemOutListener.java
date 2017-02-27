@@ -3,12 +3,11 @@ package util.system;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.reactfx.Subscription;
-
 import static util.async.Async.runFX;
 
 /**
@@ -35,6 +34,7 @@ public class SystemOutListener extends PrintStream {
 
 	/**
 	 * Add listener that will receive the stream data (always on fx thread).
+	 *
 	 * @return action that removes the listener
 	 */
 	public Subscription addListener(Consumer<String> listener) {
@@ -63,11 +63,11 @@ public class SystemOutListener extends PrintStream {
 		@Override
 		public void write(byte[] b, int off, int len) throws IOException {
 			// copied from super.write(...) implementation
-			if (b == null) {
+			if (b==null) {
 				throw new NullPointerException();
-			} else if ((off<0) || (off>b.length) || (len<0) || (off+len >b.length) || (off+len <0)) {
+			} else if ((off<0) || (off>b.length) || (len<0) || (off + len>b.length) || (off + len<0)) {
 				throw new IndexOutOfBoundsException();
-			} else if (len == 0) {
+			} else if (len==0) {
 				return;
 			}
 

@@ -61,15 +61,15 @@ public interface Util {
 	/** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
 	static HBox layHorizontally(double gap, Pos align, Node... nodes) {
 		HBox l = new HBox(gap, nodes);
-			 l.setAlignment(align);
+		l.setAlignment(align);
 		return l;
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
 	static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
 		HBox l = new HBox(gap);
-			 l.setAlignment(align);
-			 l.getChildren().addAll(nodes);
+		l.setAlignment(align);
+		l.getChildren().addAll(nodes);
 		return l;
 	}
 
@@ -82,8 +82,8 @@ public interface Util {
 	 * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
 	 */
 	static HBox layHeaderLeft(double gap, Pos align, Node header, Node content) {
-		HBox l = layHorizontally(gap, align, header,content);
-		HBox.setHgrow(content,ALWAYS);
+		HBox l = layHorizontally(gap, align, header, content);
+		HBox.setHgrow(content, ALWAYS);
 		return l;
 	}
 
@@ -97,22 +97,22 @@ public interface Util {
 	 */
 	static HBox layHeaderRight(double gap, Pos align, Node content, Node header) {
 		HBox l = layHorizontally(gap, align, content, header);
-		HBox.setHgrow(content,ALWAYS);
+		HBox.setHgrow(content, ALWAYS);
 		return l;
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
 	static VBox layVertically(double gap, Pos align, Node... nodes) {
 		VBox l = new VBox(gap, nodes);
-			 l.setAlignment(align);
+		l.setAlignment(align);
 		return l;
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style. */
 	static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
 		VBox l = new VBox(gap);
-			 l.setAlignment(align);
-			 l.getChildren().addAll(nodes);
+		l.setAlignment(align);
+		l.getChildren().addAll(nodes);
 		return l;
 	}
 
@@ -125,8 +125,8 @@ public interface Util {
 	 * Constructs ordinary {@link javafx.scene.layout.VBox}. Convenience constructor for more fluent style.
 	 */
 	static VBox layHeaderTop(double gap, Pos align, Node header, Node content) {
-		VBox l = layVertically(gap, align, header,content);
-		VBox.setVgrow(content,ALWAYS);
+		VBox l = layVertically(gap, align, header, content);
+		VBox.setVgrow(content, ALWAYS);
 		return l;
 	}
 
@@ -140,7 +140,7 @@ public interface Util {
 	 */
 	static VBox layHeaderBottom(double gap, Pos align, Node content, Node header) {
 		VBox l = layVertically(gap, align, content, header);
-		VBox.setVgrow(content,ALWAYS);
+		VBox.setVgrow(content, ALWAYS);
 		return l;
 	}
 
@@ -154,7 +154,7 @@ public interface Util {
 	 */
 	static VBox layHeaderTopBottom(double gap, Pos align, Node headerTop, Node content, Node headerBottom) {
 		VBox l = layVertically(gap, align, headerTop, content, headerBottom);
-		VBox.setVgrow(content,ALWAYS);
+		VBox.setVgrow(content, ALWAYS);
 		return l;
 	}
 
@@ -167,23 +167,23 @@ public interface Util {
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-	static StackPane layStack(Node n,Pos a) {
+	static StackPane layStack(Node n, Pos a) {
 		StackPane l = new StackPane(n);
 		StackPane.setAlignment(n, a);
 		return l;
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-	static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2) {
-		StackPane l = new StackPane(n1,n2);
+	static StackPane layStack(Node n1, Pos a1, Node n2, Pos a2) {
+		StackPane l = new StackPane(n1, n2);
 		StackPane.setAlignment(n1, a1);
 		StackPane.setAlignment(n2, a2);
 		return l;
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-	static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3) {
-		StackPane l = new StackPane(n1,n2,n3);
+	static StackPane layStack(Node n1, Pos a1, Node n2, Pos a2, Node n3, Pos a3) {
+		StackPane l = new StackPane(n1, n2, n3);
 		StackPane.setAlignment(n1, a1);
 		StackPane.setAlignment(n2, a2);
 		StackPane.setAlignment(n3, a3);
@@ -191,8 +191,8 @@ public interface Util {
 	}
 
 	/** Constructs ordinary {@link javafx.scene.layout.StackPane}. Convenience constructor for more fluent style. */
-	static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3, Node n4,Pos a4) {
-		StackPane l = new StackPane(n1,n2,n3,n4);
+	static StackPane layStack(Node n1, Pos a1, Node n2, Pos a2, Node n3, Pos a3, Node n4, Pos a4) {
+		StackPane l = new StackPane(n1, n2, n3, n4);
 		StackPane.setAlignment(n1, a1);
 		StackPane.setAlignment(n2, a2);
 		StackPane.setAlignment(n3, a3);
@@ -216,7 +216,7 @@ public interface Util {
 
 	/** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
 	static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
-												  Node n2, Double top2, Double right2, Double bottom2, Double left2) {
+								Node n2, Double top2, Double right2, Double bottom2, Double left2) {
 		AnchorPane p = new AnchorPane();
 		setAnchor(p, n1, top1, right1, bottom1, left1, n2, top2, right2, bottom2, left2);
 		return p;
@@ -224,8 +224,8 @@ public interface Util {
 
 	/** Constructs ordinary {@link javafx.scene.layout.AnchorPane}. Convenience constructor for more fluent style. */
 	static AnchorPane layAnchor(Node n1, Double top1, Double right1, Double bottom1, Double left1,
-												  Node n2, Double top2, Double right2, Double bottom2, Double left2,
-												  Node n3, Double top3, Double right3, Double bottom3, Double left3) {
+								Node n2, Double top2, Double right2, Double bottom2, Double left2,
+								Node n3, Double top3, Double right3, Double bottom3, Double left3) {
 		AnchorPane p = new AnchorPane();
 		setAnchor(p, n1, top1, right1, bottom1, left1, n2, top2, right2, bottom2, left2, n3, top3, right3, bottom3, left3);
 		return p;
@@ -233,7 +233,7 @@ public interface Util {
 
 	/** Sets {@link AnchorPane} anchors to the same value. Null clears all anchors. */
 	static void setAnchors(Node n, Double a) {
-		if (a == null) {
+		if (a==null) {
 			AnchorPane.clearConstraints(n);
 		} else {
 			AnchorPane.setTopAnchor(n, a);
@@ -246,10 +246,10 @@ public interface Util {
 	/** Sets {@link AnchorPane} anchors. Null clears the respective anchor. */
 	static void setAnchors(Node n, Double top, Double right, Double bottom, Double left) {
 		AnchorPane.clearConstraints(n);
-		if (top != null) AnchorPane.setTopAnchor(n, top);
-		if (right != null) AnchorPane.setRightAnchor(n, right);
-		if (bottom != null) AnchorPane.setBottomAnchor(n, bottom);
-		if (left != null) AnchorPane.setLeftAnchor(n, left);
+		if (top!=null) AnchorPane.setTopAnchor(n, top);
+		if (right!=null) AnchorPane.setRightAnchor(n, right);
+		if (bottom!=null) AnchorPane.setBottomAnchor(n, bottom);
+		if (left!=null) AnchorPane.setLeftAnchor(n, left);
 	}
 
 	/** Sets {@link javafx.scene.layout.AnchorPane} anchors for node. Convenience method for more fluent style. */
@@ -266,15 +266,15 @@ public interface Util {
 
 	/** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
 	static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
-												  Node n2, Double top2, Double right2, Double bottom2, Double left2) {
+						  Node n2, Double top2, Double right2, Double bottom2, Double left2) {
 		setAnchor(pane, n1, top1, right1, bottom1, left1);
 		setAnchor(pane, n2, top2, right2, bottom2, left2);
 	}
 
 	/** Sets {@link javafx.scene.layout.AnchorPane} anchors for nodes. Convenience method for more fluent style. */
 	static void setAnchor(AnchorPane pane, Node n1, Double top1, Double right1, Double bottom1, Double left1,
-												  Node n2, Double top2, Double right2, Double bottom2, Double left2,
-												  Node n3, Double top3, Double right3, Double bottom3, Double left3) {
+						  Node n2, Double top2, Double right2, Double bottom2, Double left2,
+						  Node n3, Double top3, Double right3, Double bottom3, Double left3) {
 		setAnchor(pane, n1, top1, right1, bottom1, left1);
 		setAnchor(pane, n2, top2, right2, bottom2, left2);
 		setAnchor(pane, n3, top3, right3, bottom3, left3);
@@ -302,11 +302,11 @@ public interface Util {
 		// Scrollbar width hardcoded!
 		double reserve = 5;
 		ScrollPane s = new ScrollPane(t);
-				   s.setOnScroll(Event::consume);
-				   s.setPannable(false);
-				   s.setFitToWidth(false);
-				   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-				   s.setHbarPolicy(ScrollBarPolicy.NEVER);
+		s.setOnScroll(Event::consume);
+		s.setPannable(false);
+		s.setFitToWidth(false);
+		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
 		return s;
 	}
@@ -316,21 +316,21 @@ public interface Util {
 	static ScrollPane layScrollVTextCenter(Text t) {
 		double reserve = 5;
 		ScrollPane s = new ScrollPane(new StackPane(t));
-				   s.setOnScroll(Event::consume);
-				   s.setPannable(false);
-				   s.setFitToWidth(false);
-				   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-				   s.setHbarPolicy(ScrollBarPolicy.NEVER);
+		s.setOnScroll(Event::consume);
+		s.setPannable(false);
+		s.setFitToWidth(false);
+		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
 		return s;
 	}
 
-	/** @return simple background with specified solid fill color and no radius or insets.*/
+	/** @return simple background with specified solid fill color and no radius or insets. */
 	static Background bgr(Color c) {
 		return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
 	}
 
-	/** @return simple border with specified color, solid style, no radius and default width.*/
+	/** @return simple border with specified color, solid style, no radius and default width. */
 	static Border border(Color c) {
 		return new Border(new BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
 	}
@@ -367,30 +367,31 @@ public interface Util {
 	/**
 	 * Sets minimal, preferred and maximal width and height of the node to provided values.
 	 * Any bound property will be ignored. Null value will be ignored.
-	 *
+	 * <p>
 	 * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
 	 */
+	@SuppressWarnings("ConstantConditions")
 	static void setMinPrefMaxSize(Node n, Double width, Double height) {
 		if (n instanceof Region) {
 			Region r = (Region) n;
-			boolean wmin  = width!=null  && !r.minWidthProperty().isBound();
-			boolean wpref = width!=null  && !r.prefWidthProperty().isBound();
-			boolean wmax  = width!=null  && !r.maxWidthProperty().isBound();
-			boolean hmin  = height!=null && !r.minHeightProperty().isBound();
+			boolean wmin = width!=null && !r.minWidthProperty().isBound();
+			boolean wpref = width!=null && !r.prefWidthProperty().isBound();
+			boolean wmax = width!=null && !r.maxWidthProperty().isBound();
+			boolean hmin = height!=null && !r.minHeightProperty().isBound();
 			boolean hpref = height!=null && !r.prefHeightProperty().isBound();
-			boolean hmax  = height!=null && !r.maxHeightProperty().isBound();
+			boolean hmax = height!=null && !r.maxHeightProperty().isBound();
 
-			if (hmin && wmin)    r.setMinSize(width,height);
-			else if (hmin)      r.setMinHeight(height);
-			else if (wmin)      r.setMinWidth(height);
+			if (hmin && wmin) r.setMinSize(width, height);
+			else if (hmin) r.setMinHeight(height);
+			else if (wmin) r.setMinWidth(height);
 
-			if (hpref && wpref)  r.setPrefSize(width,height);
-			else if (hpref)     r.setPrefHeight(height);
-			else if (wpref)     r.setPrefWidth(height);
+			if (hpref && wpref) r.setPrefSize(width, height);
+			else if (hpref) r.setPrefHeight(height);
+			else if (wpref) r.setPrefWidth(height);
 
-			if (hmax && wmax)    r.setMaxSize(width,height);
-			else if (hmax)      r.setMaxHeight(height);
-			else if (wmax)      r.setMaxWidth(height);
+			if (hmax && wmax) r.setMaxSize(width, height);
+			else if (hmax) r.setMaxHeight(height);
+			else if (wmax) r.setMaxWidth(height);
 		}
 	}
 
@@ -424,19 +425,21 @@ public interface Util {
 	static void removeFromParent(Node parent, Node child) {
 		if (parent==null || child==null) return;
 		if (parent instanceof Pane) {
-			((Pane)parent).getChildren().remove(child);
+			((Pane) parent).getChildren().remove(child);
 		}
 	}
 
 	static void removeFromParent(Node child) {
 		if (child==null) return;
-		removeFromParent(child.getParent(),child);
+		removeFromParent(child.getParent(), child);
 	}
 
-/**************************************************************************************************/
+	/**************************************************************************************************/
 
 	static void installDragByMouse(Node n) {
-		class P { double x=0, y=0;}
+		class P {
+			double x = 0, y = 0;
+		}
 		P start = new P();
 		n.addEventHandler(DRAG_DETECTED, e -> {
 			start.x = n.getLayoutX() - e.getSceneX();
@@ -473,17 +476,18 @@ public interface Util {
 	}
 
 	/**
-	 * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
-	 * All Tooltips share the same TooltipBehavior instance via a static private member BEHAVIOR, which
-	 * has default values of 1sec for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
+	 * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior. All Tooltips
+	 * share the same TooltipBehavior instance via a static private member BEHAVIOR, which has default values of 1sec
+	 * for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
 	 * <p/>
-	 * This hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
-	 * this custom instance.
+	 * This hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with this
+	 * custom instance.
 	 * <p/>
 	 * More on http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration}.
+	 *
 	 * @deprecated since java 9 b114. Use {@link javafx.scene.control.Tooltip#setHideDelay(javafx.util.Duration)},
-	 * {@link javafx.scene.control.Tooltip#setShowDelay(javafx.util.Duration)} and
-	 * {@link javafx.scene.control.Tooltip#setShowDuration(javafx.util.Duration)} instead.
+	 * {@link javafx.scene.control.Tooltip#setShowDelay(javafx.util.Duration)} and {@link
+	 * javafx.scene.control.Tooltip#setShowDuration(javafx.util.Duration)} instead.
 	 */
 	@Deprecated(since = "9 b114")
 	static void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
@@ -497,25 +501,25 @@ public interface Util {
 					break;
 				}
 			}
-			if (TTBehaviourClass == null) return;
+			if (TTBehaviourClass==null) return;
 
 			@SuppressWarnings("unchecked")
 			Constructor constructor = TTBehaviourClass.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
-			if (constructor == null) return;
+			if (constructor==null) return;
 
 			constructor.setAccessible(true);
 			Object behaviour = constructor.newInstance(
 					new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
 					new Duration(closeDelayInMillis), false);
 			Field behaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
-			if (behaviourField == null) return;
+			if (behaviourField==null) return;
 
 			behaviourField.setAccessible(true);
 			// Object defaultBehavior = behaviourField.get(Tooltip.class); // store default behavior
 			behaviourField.set(Tooltip.class, behaviour);
 
 		} catch (Exception e) {
-			log(Util.class).warn("Aborted customizing tooltip behavior",e);
+			log(Util.class).warn("Aborted customizing tooltip behavior", e);
 		}
 	}
 
@@ -531,15 +535,16 @@ public interface Util {
 	static <T> TableColumn<T,Void> createIndexColumn(String name) {
 		TableColumn<T,Void> c = new TableColumn<>(name);
 		c.setSortable(false);
-		c.setCellFactory(column -> new TableCell<>(){
+		c.setCellFactory(column -> new TableCell<>() {
 			{
 				setAlignment(CENTER_RIGHT);
 			}
+
 			@Override
 			protected void updateItem(Void item, boolean empty) {
 				super.updateItem(item, empty);
 				if (empty) setText(null);
-				else setText(String.valueOf(getIndex()+1)+ ".");
+				else setText(String.valueOf(getIndex() + 1) + ".");
 			}
 		});
 		return c;
@@ -554,15 +559,15 @@ public interface Util {
 	 * @param empty_value empty cell string value
 	 * @return cell factory
 	 */
-	static <T,O> Callback<TableColumn<T,O>, TableCell<T,O>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
+	static <T, O> Callback<TableColumn<T,O>,TableCell<T,O>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
 		return param -> new TableCell<>() {
 			@Override
 			protected void updateItem(O item, boolean empty) {
-				if (item == getItem()) return;
+				if (item==getItem()) return;
 
 				super.updateItem(item, empty);
 
-				if (item == null) {
+				if (item==null) {
 					super.setText(null);
 					super.setGraphic(null);
 				} else if ("".equals(item)) {
@@ -590,7 +595,7 @@ public interface Util {
 	 *
 	 * @param type for cell content.
 	 */
-	static <T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
+	static <T, O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
 		Pos a = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
 		return cellFactoryAligned(a, no_val_text);
 	}
@@ -605,8 +610,8 @@ public interface Util {
 	 * @return cell factory
 	 */
 	@SuppressWarnings("unchecked")
-	static <T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
-		Ƒ1<TableColumn<T,O>, TableCell<T,O>> f = Util.<T,O>EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
+	static <T, O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
+		Ƒ1<TableColumn<T,O>,TableCell<T,O>> f = Util.<T,O>EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
 		return (Ƒ1) f.andApply(cell -> cell.setAlignment(a));
 	}
 
@@ -619,23 +624,20 @@ public interface Util {
 	 * <p/>
 	 * After the method is invoked only the provided rows will be selected - it
 	 * clears any previously selected rows.
-	 *
-	 * @param selectedIndexes
-	 * @param selectionModel
 	 */
 	static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
 		selectionModel.clearSelection();
 		int[] newSelected = new int[selectedIndexes.size()];
-		for (int i = 0; i < selectedIndexes.size(); i++) {
+		for (int i = 0; i<selectedIndexes.size(); i++) {
 			newSelected[i] = selectedIndexes.get(i);
 		}
-		if (newSelected.length != 0) {
+		if (newSelected.length!=0) {
 			selectionModel.selectIndices(newSelected[0], newSelected);
 		}
 	}
 
-	EventHandler<MouseEvent> consumeOnSecondaryButton = e-> {
-		if (e.getButton()== MouseButton.SECONDARY) e.consume();
+	EventHandler<MouseEvent> consumeOnSecondaryButton = e -> {
+		if (e.getButton()==MouseButton.SECONDARY) e.consume();
 	};
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
@@ -661,8 +663,7 @@ public interface Util {
 	 * @param <A> service or action that can facilitates the action
 	 * @param from list of service
 	 * @param toStr service to string converter for menu item text
-	 * @param action item click action, uses service A possibly on some parameter
-	 * like selected table item
+	 * @param action item click action, uses service A possibly on some parameter like selected table item
 	 * @return menu item
 	 */
 	static <A> MenuItem[] menuItems(List<A> from, Function<A,String> toStr, Consumer<A> action) {
@@ -679,7 +680,7 @@ public interface Util {
 		// TODO: jigsaw
 		// return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().computeStringWidth(text, font); // !work since java 9 b114
 		com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font);
-		return text==null || text.isEmpty() ? 0 : text.chars().mapToDouble(c -> fm.getCharWidth((char)c)).sum();
+		return text==null || text.isEmpty() ? 0 : text.chars().mapToDouble(c -> fm.getCharWidth((char) c)).sum();
 	}
 
 	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
@@ -710,19 +711,19 @@ public interface Util {
 		// Using owner stage of UTILITY style is the only way to get a 'top level'
 		// window with no taskbar.
 		Stage owner = new Stage(UTILITY);
-			  owner.setOpacity(0); // make sure it will never be visible
-			  owner.setWidth(5); // stay small to leave small footprint, just in case
-			  owner.setHeight(5);
-			  owner.setX(screen.getBounds().getMinX()+1);	// owner and child should be on the same screen
-			  owner.setY(screen.getBounds().getMinY()+1);
-			  owner.show(); // must be 'visible' for the hack to work
+		owner.setOpacity(0); // make sure it will never be visible
+		owner.setWidth(5); // stay small to leave small footprint, just in case
+		owner.setHeight(5);
+		owner.setX(screen.getBounds().getMinX() + 1);    // owner and child should be on the same screen
+		owner.setY(screen.getBounds().getMinY() + 1);
+		owner.show(); // must be 'visible' for the hack to work
 
 		Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
 		s.initOwner(owner);
 		s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
 		s.setAlwaysOnTop(true); // maybe not needed, but just in case
 
-		s.show();	// part of the workaround below
+		s.show();    // part of the workaround below
 
 		s.setX(screen.getBounds().getMinX()); // screen does not necessarily start at [0,0]
 		s.setY(screen.getBounds().getMinY());
@@ -763,7 +764,7 @@ public interface Util {
 	 */
 	// TODO: return Try
 	static Point2D getMousePosition() {
-		PointerInfo pi = MouseInfo.getPointerInfo();		// this can be null sometimes for some reason
+		PointerInfo pi = MouseInfo.getPointerInfo();        // this can be null sometimes for some reason
 		Point p = pi==null ? new Point(0, 0) : pi.getLocation();
 		return new Point2D(p.getX(), p.getY());
 	}
@@ -780,7 +781,7 @@ public interface Util {
 		// return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 
 		for (Screen scr : Screen.getScreens())
-			if (scr.getBounds().intersects(x,y,1,1))
+			if (scr.getBounds().intersects(x, y, 1, 1))
 				return scr;
 		return Screen.getPrimary();
 	}
@@ -794,7 +795,7 @@ public interface Util {
 	/** Captures screenshot of the entire screen and runs custom action on fx thread. */
 	static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
 		Rectangle2D r = screen.getBounds();
-		screenCaptureAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
+		screenCaptureAndDo((int) r.getMinX(), (int) r.getMinY(), (int) r.getWidth(), (int) r.getHeight(), action);
 	}
 
 	/**
@@ -803,32 +804,30 @@ public interface Util {
 	 */
 	static void screenCaptureAndDo(int x, int y, int w, int h, Consumer<Image> action) {
 		screenCaptureRawAndDo(
-			x, y, w, h,
-			img -> {
-				Image i = img==null ? null : SwingFXUtils.toFXImage(img, new WritableImage(img.getWidth(), img.getHeight()));
-				runFX(() -> action.accept(i));
-			}
+				x, y, w, h,
+				img -> {
+					Image i = img==null ? null : SwingFXUtils.toFXImage(img, new WritableImage(img.getWidth(), img.getHeight()));
+					runFX(() -> action.accept(i));
+				}
 		);
 	}
 
 	/** Captures screenshot of the entire screen and runs custom action on non fx thread. */
 	static void screenCaptureRawAndDo(Screen screen, Consumer<BufferedImage> action) {
 		Rectangle2D r = screen.getBounds();
-		screenCaptureRawAndDo((int)r.getMinX(), (int)r.getMinY(), (int)r.getWidth(), (int)r.getHeight(), action);
+		screenCaptureRawAndDo((int) r.getMinX(), (int) r.getMinY(), (int) r.getWidth(), (int) r.getHeight(), action);
 	}
 
 	/**
-	 * Captures screenshot of the screen of given size and position and runs custom
-	 * action on non fx thread.
+	 * Captures screenshot of the screen of given size and position and runs custom action on non fx thread.
 	 * <p/>
-	 * Based on:
-	 * <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafx-dev-screen-capture-tool</a>
+	 * Based on: <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafx-dev-screen-capture-tool</a>
 	 */
 	static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
 		EventQueue.invokeLater(() -> {
 			try {
 				Robot robot = new Robot();
-				BufferedImage img = robot.createScreenCapture(new Rectangle(x,y,w,h));
+				BufferedImage img = robot.createScreenCapture(new Rectangle(x, y, w, h));
 				action.accept(img);
 			} catch (Exception ex) {
 				log(Util.class).error("Failed to screenshot the screen {}");

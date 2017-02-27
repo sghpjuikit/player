@@ -8,7 +8,6 @@ import java.util.function.UnaryOperator;
  * Reference - object property.
  *
  * @param <V> type of value
- *
  * @author Martin Polakovic
  */
 public class R<V> {
@@ -34,7 +33,7 @@ public class R<V> {
 	}
 
 	public boolean isØ() {
-		return v == null;
+		return v==null;
 	}
 
 	/** Sets value to null. */

@@ -4,11 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
-
 import javafx.geometry.Point2D;
-
 import org.reactfx.Subscription;
-
 import util.async.executor.FxTimer;
 
 /**
@@ -63,6 +60,7 @@ public class MouseCapture {
 		}
 	}
 
+	@SuppressWarnings("SuspiciousMethodCalls")	// its safe, we just leverage Object signature as shortcut
 	private void unsubscribe(Object s) {
 		positionSubscribers.remove(s);
 		velocitySubscribers.remove(s);

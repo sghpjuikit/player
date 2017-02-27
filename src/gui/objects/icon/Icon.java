@@ -65,8 +65,6 @@ import static util.type.Util.getFieldValue;
  *
  * @author Martin Polakovic
  */
-// TODO: support image (imperative for skinning)
-// TODO: improve glyph css to avoid constant interference due to not unique name across different fonts
 public class Icon<I extends Icon<?>> extends StackPane {
 
 	// animation builder, & reusable supplier
@@ -79,6 +77,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		return new Anim(millis(150), p -> setScaleXY(i.node, s*(1 + 0.2*p*p), 1 + 0.2*p*p));
 	};
 	private static final String STYLECLASS = "icon";
+	public static final GlyphIcons DEFAULT_GLYPH = ADJUST;
 	private static final Double DEFAULT_ICON_SIZE = 12d;
 	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
@@ -218,7 +217,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	public I icon(GlyphIcons i) {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
-		setIcon(i);
+		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.apply(i));
 		return (I) this;
 	}
 
@@ -387,7 +386,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
 		if (glyph==null || !GLYPHS.keyMapper.apply(glyph).equals(n))
-			glyph = GLYPHS.getOrSupply(n, this::getDefaultGlyph);
+			glyph = GLYPHS.getOr(n, DEFAULT_GLYPH);
 		return glyph;
 	}
 
@@ -486,14 +485,6 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		Number s = convert(sizeExpr);
 		setGlyphSize(s);
 	}
-
-	public final void setIcon(GlyphIcons i) {
-		glyph = i;
-		if (i==null) isGlyphSetProgrammatically = false;
-		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.apply(i));
-	}
-
-	public FontAwesomeIcon getDefaultGlyph() { return ADJUST; }
 
 	private void updateSize() {
 		double glyphSize = getGlyphSize().doubleValue();

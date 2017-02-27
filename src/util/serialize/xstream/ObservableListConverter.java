@@ -1,11 +1,10 @@
 package util.serialize.xstream;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.collections.CollectionConverter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class ObservableListConverter extends CollectionConverter implements Converter {
 
@@ -21,7 +20,7 @@ public class ObservableListConverter extends CollectionConverter implements Conv
 	@Override
 	protected Object createCollection(Class type) {
 		return ObservableList.class.isAssignableFrom(type)
-			? FXCollections.observableArrayList()
-			: super.createCollection(type);
+				? FXCollections.observableArrayList()
+				: super.createCollection(type);
 	}
 }

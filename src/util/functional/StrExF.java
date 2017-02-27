@@ -16,8 +16,8 @@ import util.parsing.StringParseStrategy.To;
  * @author Martin Polakovic
  */
 @StringParseStrategy(
-	from = From.ANNOTATED_METHOD, to = To.TO_STRING_METHOD,
-	exFrom = {IllegalStateException.class,IllegalArgumentException.class}
+		from = From.ANNOTATED_METHOD, to = To.TO_STRING_METHOD,
+		exFrom = {IllegalStateException.class, IllegalArgumentException.class}
 )
 public class StrExF implements Ƒ1<Double,Double> {
 	private final String ex;
@@ -31,7 +31,7 @@ public class StrExF implements Ƒ1<Double,Double> {
 			ValidationResult v = e.validate(false);
 			if (!v.isValid())
 				throw new Exception(v.getErrors().get(0));
-		} catch(Exception e) {
+		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
 	}

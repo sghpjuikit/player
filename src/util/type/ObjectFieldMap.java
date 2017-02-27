@@ -3,10 +3,8 @@ package util.type;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import util.access.fieldvalue.ObjectField;
 import util.collections.map.ClassMap;
-
 import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
 
@@ -21,12 +19,13 @@ public class ObjectFieldMap {
 
 	public <T> void add(Class<T> c, Collection<? extends ObjectField<T,?>> fields) {
 		noØ(c, fields);
-		fields.forEach(field -> add(c,field));
+		fields.forEach(field -> add(c, field));
 	}
 
-	public <T> void add(Class<T> c, ObjectField<T,?>... fields) {
+	@SafeVarargs
+	public final <T> void add(Class<T> c, ObjectField<T,?>... fields) {
 		noØ(c, fields);
-		stream(fields).forEach(field -> add(c,field));
+		stream(fields).forEach(field -> add(c, field));
 	}
 
 	@SuppressWarnings("unchecked")

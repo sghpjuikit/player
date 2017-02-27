@@ -2,9 +2,7 @@ package util.reactive;
 
 import java.util.HashSet;
 import java.util.function.Consumer;
-
 import org.reactfx.Subscription;
-
 import util.functional.Functors.Ƒ1;
 
 /** Set of consumers/functions taking 1 parameter. For use as a collection of handlers/listeners. */

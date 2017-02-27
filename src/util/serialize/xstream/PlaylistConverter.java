@@ -1,15 +1,13 @@
 package util.serialize.xstream;
 
-import java.util.UUID;
-
+import audio.playlist.Playlist;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.converters.collections.CollectionConverter;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
-
-import audio.playlist.Playlist;
+import java.util.UUID;
 
 public class PlaylistConverter extends CollectionConverter {
 
@@ -19,7 +17,7 @@ public class PlaylistConverter extends CollectionConverter {
 
 	@Override
 	public boolean canConvert(Class type) {
-		return type !=null && Playlist.class.isAssignableFrom(type);
+		return type!=null && Playlist.class.isAssignableFrom(type);
 	}
 
 	@Override

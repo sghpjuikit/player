@@ -3,22 +3,20 @@ package util.reactive;
 import org.reactfx.EventStream;
 import org.reactfx.EventStreamBase;
 import org.reactfx.Subscription;
-
 import util.access.AccessibleValue;
-
 import static org.reactfx.EventStreams.merge;
 
 /**
  * @param <T>
  */
-public class ValueStream<T> extends EventStreamBase<T> implements AccessibleValue<T>{
+public class ValueStream<T> extends EventStreamBase<T> implements AccessibleValue<T> {
 	private T v;
 	private final EventStream<T> source;
 
 	@SuppressWarnings("unchecked")
 	public ValueStream(T initialValue, EventStream<? extends T>... sources) {
 		v = initialValue;
-		this.source = merge((EventStream[])sources);
+		this.source = merge((EventStream[]) sources);
 	}
 
 	@Override

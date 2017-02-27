@@ -8,37 +8,43 @@ import javafx.scene.input.TransferMode;
  * @author Martin Polakovic
  */
 public enum DragType {
-	COPY{
-		@Override public TransferMode[] val() {
-			return new TransferMode[] {TransferMode.COPY};
+	COPY {
+		@Override
+		public TransferMode[] val() {
+			return new TransferMode[]{TransferMode.COPY};
 		}
 	},
-	LINK{
-		@Override public TransferMode[] val() {
-			return new TransferMode[] {TransferMode.LINK};
+	LINK {
+		@Override
+		public TransferMode[] val() {
+			return new TransferMode[]{TransferMode.LINK};
 		}
 	},
-	MOVE{
-		@Override public TransferMode[] val() {
-			return new TransferMode[] {TransferMode.MOVE};
+	MOVE {
+		@Override
+		public TransferMode[] val() {
+			return new TransferMode[]{TransferMode.MOVE};
 		}
 	},
-	ANY{
-		@Override public TransferMode[] val() {
+	ANY {
+		@Override
+		public TransferMode[] val() {
 			return TransferMode.ANY;
 		}
 	},
-	COPYorMOVE{
-		@Override public TransferMode[] val() {
+	COPYorMOVE {
+		@Override
+		public TransferMode[] val() {
 			return TransferMode.COPY_OR_MOVE;
 		}
 	},
-	NONE{
-		@Override public TransferMode[] val() {
+	NONE {
+		@Override
+		public TransferMode[] val() {
 			return TransferMode.NONE;
 		}
 	};
 
-	/** @return array of {@link TransferMode}.*/
+	/** @return array of {@link TransferMode}. */
 	public abstract TransferMode[] val();
 }

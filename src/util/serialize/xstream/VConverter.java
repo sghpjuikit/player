@@ -1,17 +1,14 @@
 package util.serialize.xstream;
 
-import javafx.beans.value.WritableValue;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
-
+import javafx.beans.value.WritableValue;
 import util.access.V;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class VConverter extends AbstractPropertyConverter<Object> implements Converter {

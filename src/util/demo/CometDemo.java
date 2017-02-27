@@ -1,21 +1,20 @@
 package util.demo;
 
+import gui.Gui;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-
-import gui.Gui;
 import main.App;
 
+// TODO: remove
 /**
  * Demo showcasing the comet game widget.
  *
- *
  * @author Martin Polakovic
  */
-public class CometDemo extends Application{
+public class CometDemo extends Application {
 
 	public static void main(String... args) {
 		launch(args);
@@ -28,8 +27,8 @@ public class CometDemo extends Application{
 		app.widgetManager.initialize();
 		Gui.setSkin("Flow");
 		Node comet = app.widgetManager.getFactories().filter(f -> f.name().equals("Comet")).findFirst().get()
-			.create()
-			.load();
+				.create()
+				.load();
 		stage.setWidth(1000);
 		stage.setHeight(800);
 //		stage.setFullScreen(true);

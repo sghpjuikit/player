@@ -1,7 +1,6 @@
 package util.animation;
 
 import java.util.function.LongConsumer;
-
 import javafx.animation.AnimationTimer;
 
 /**
@@ -24,9 +23,8 @@ public class Loop {
 	/**
 	 * Creates a new loop.
 	 *
-	 * @param action behavior to execute. Takes 1 parameter - The timestamp of the current frame
-	 * given in nanoseconds. This value will be the same for all {@code AnimationTimers} called
-	 * during one frame.
+	 * @param action behavior to execute. Takes 1 parameter - The timestamp of the current frame given in nanoseconds.
+	 * This value will be the same for all {@code AnimationTimers} called during one frame.
 	 */
 	public Loop(LongConsumer action) {
 		this.action = action;
@@ -58,7 +56,7 @@ public class Loop {
 	 * AnimationTimer is active.
 	 *
 	 * @param now The timestamp of the current frame given in nanoseconds. This value will be the same for all
-	 *               AnimationTimers called during one frame.
+	 * AnimationTimers called during one frame.
 	 */
 	protected void doLoop(long now) {
 		action.accept(now);

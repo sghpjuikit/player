@@ -1,10 +1,13 @@
 package main;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.objects.icon.Icon;
+import gui.objects.textfield.DecoratedTextField;
+import gui.objects.textfield.autocomplete.ConfigSearch;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -12,18 +15,13 @@ import javafx.scene.Cursor;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.icon.Icon;
-import gui.objects.textfield.DecoratedTextField;
-import gui.objects.textfield.autocomplete.ConfigSearch;
-
 import static javafx.util.Duration.millis;
 
 public class Search {
 	public final Set<Supplier<Stream<ConfigSearch.Entry>>> sources = new HashSet<>();
 	public final ConfigSearch.History history = new ConfigSearch.History();
 
+	@SuppressWarnings("Convert2MethodRef")
 	public TextField build() {
 		DecoratedTextField tf = new DecoratedTextField();
 		Region clearButton = new Region();
@@ -38,10 +36,11 @@ public class Search {
 		tf.right.set(clearB);
 		FadeTransition fade = new FadeTransition(millis(250), clearB);
 		tf.textProperty().addListener(new InvalidationListener() {
-			@Override public void invalidated(Observable arg0) {
+			@Override
+			public void invalidated(Observable arg0) {
 				String text = tf.getText();
-				boolean isTextEmpty = text == null || text.isEmpty();
-				boolean isButtonVisible = fade.getNode().getOpacity() > 0;
+				boolean isTextEmpty = text==null || text.isEmpty();
+				boolean isButtonVisible = fade.getNode().getOpacity()>0;
 
 				if (isTextEmpty && isButtonVisible) {
 					setButtonVisible(false);
@@ -50,9 +49,9 @@ public class Search {
 				}
 			}
 
-			private void setButtonVisible( boolean visible ) {
-				fade.setFromValue(visible? 0.0: 1.0);
-				fade.setToValue(visible? 1.0: 0.0);
+			private void setButtonVisible(boolean visible) {
+				fade.setFromValue(visible ? 0.0 : 1.0);
+				fade.setToValue(visible ? 1.0 : 0.0);
 				fade.play();
 			}
 		});

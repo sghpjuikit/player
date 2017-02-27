@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package util.async.executor;
 
 import java.util.function.Consumer;
-
 import util.functional.Functors.Ƒ2;
 
 /**
@@ -21,207 +15,203 @@ import util.functional.Functors.Ƒ2;
  * <p/>
  * <li>Firing the final event will cause all previous events to be accumulated into one event using
  * a reduction function (by default it simply ignores the events until the last one). It is then
- * fired, when the succession ends. Note the dalay between last consumed event of the succession and
+ * fired, when the succession ends. Note the delay between last consumed event of the succession and
  * the succession ending. It only ends when the timer runs out and future events will start a new
  * succession. Even if the succession has only 1 event, there will still be delay between consuming
  * it and firing it as a reduced event.
- * </ul>
- * For example, one may wish to run an action when first even arrives and then avoid running it
- * again when new events are captured quickly one after another. For this chose {@link #FIRST}.
- * If one needs the most up to date information (perhaps the events update UI), then
- * {@link #LAST} is recommended.
+ *
  * @author Martin Polakovic
  */
 public abstract class EventReducer<E> {
-    protected Consumer<E> action;
-    protected double inter_period;
-    protected final Ƒ2<E,E,E> r;
-    protected E e;
+	protected Consumer<E> action;
+	protected double inter_period;
+	protected final Ƒ2<E,E,E> r;
+	protected E e;
 
-    private EventReducer(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
-        this.inter_period = inter_period;
-        action = handler;
-        r = reduction;
-    }
+	private EventReducer(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+		this.inter_period = inter_period;
+		action = handler;
+		r = reduction;
+	}
 
-    public void push(E event) {
-        e = r==null || e==null ? event : r.apply(e, event);
-        handle();
-    }
+	public void push(E event) {
+		e = r==null || e==null ? event : r.apply(e, event);
+		handle();
+	}
 
-    protected abstract void handle();
+	protected abstract void handle();
 
+	public static <E> EventReducer<E> toFirst(double inter_period, Consumer<E> handler) {
+		return new HandlerFirst<>(inter_period, handler);
+	}
 
+	public static <E> EventReducer<E> toFirst(double inter_period, Runnable handler) {
+		return new HandlerFirst<>(inter_period, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toFirst(double inter_period, Consumer<E> handler) {
-        return new HandlerFirst<>(inter_period, handler);
-    }
+	public static <E> EventReducer<E> toFirstDelayed(double inter_period, Consumer<E> handler) {
+		return new HandlerFirstDelayed<>(inter_period, handler);
+	}
 
-    public static <E> EventReducer<E> toFirst(double inter_period, Runnable handler) {
-        return new HandlerFirst<>(inter_period, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toFirstDelayed(double inter_period, Runnable handler) {
+		return new HandlerFirstDelayed<>(inter_period, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toFirstDelayed(double inter_period, Consumer<E> handler) {
-        return new HandlerFirstDelayed<>(inter_period, handler);
-    }
+	public static <E> EventReducer<E> toLast(double inter_period, Consumer<E> handler) {
+		return new HandlerLast<>(inter_period, null, handler);
+	}
 
-    public static <E> EventReducer<E> toFirstDelayed(double inter_period, Runnable handler) {
-        return new HandlerFirstDelayed<>(inter_period, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toLast(double inter_period, Runnable handler) {
+		return new HandlerLast<>(inter_period, null, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toLast(double inter_period, Consumer<E> handler) {
-        return new HandlerLast<>(inter_period, null, handler);
-    }
+	public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+		return new HandlerLast<>(inter_period, reduction, handler);
+	}
 
-    public static <E> EventReducer<E> toLast(double inter_period, Runnable handler) {
-        return new HandlerLast<>(inter_period, null, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
+		return new HandlerLast<>(inter_period, reduction, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
-        return new HandlerLast<>(inter_period, reduction, handler);
-    }
+	public static <E> EventReducer<E> toEvery(double inter_period, Consumer<E> handler) {
+		return new HandlerEvery<>(inter_period, (a, b) -> b, handler);
+	}
 
-    public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
-        return new HandlerLast<>(inter_period, reduction, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toEvery(double inter_period, Runnable handler) {
+		return new HandlerEvery<>(inter_period, (a, b) -> b, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toEvery(double inter_period, Consumer<E> handler) {
-        return new HandlerEvery<>(inter_period, (a,b) -> b, handler);
-    }
+	public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+		return new HandlerEvery<>(inter_period, reduction, handler);
+	}
 
-    public static <E> EventReducer<E> toEvery(double inter_period, Runnable handler) {
-        return new HandlerEvery<>(inter_period, (a,b) -> b, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
+		return new HandlerEvery<>(inter_period, reduction, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
-        return new HandlerEvery<>(inter_period, reduction, handler);
-    }
+	public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Consumer<E> handler) {
+		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, handler);
+	}
 
-    public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
-        return new HandlerEvery<>(inter_period, reduction, e -> handler.run());
-    }
+	public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Runnable handler) {
+		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, e -> handler.run());
+	}
 
-    public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atleast, Consumer<E> handler) {
-        return new HandlerFirstOfAtLeast<>(inter_period, atleast, handler);
-    }
+	private static class HandlerLast<E> extends EventReducer<E> {
+		private final FxTimer t;
 
-    public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atleast, Runnable handler) {
-        return new HandlerFirstOfAtLeast<>(inter_period, atleast, e -> handler.run());
-    }
+		public HandlerLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+			super(inter_period, reduction, handler);
+			t = new FxTimer(inter_period, 1, () -> action.accept(e));
+		}
 
+		@Override
+		public void handle() {
+			t.start(inter_period);
+		}
 
+	}
 
-    private static class HandlerLast<E> extends EventReducer<E> {
-        private final FxTimer t;
+	private static class HandlerEvery<E> extends EventReducer<E> {
+		private final FxTimer t;
+		private long last = 0;
+		boolean fired = false;
 
-        public HandlerLast(double inter_period, Ƒ2<E, E, E> reduction, Consumer<E> handler) {
-            super(inter_period, reduction, handler);
-            t = new FxTimer(inter_period, 1, () -> action.accept(e));
-        }
+		public HandlerEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+			super(inter_period, reduction, handler);
+			t = new FxTimer(inter_period, 1, tmr -> {
+				action.accept(e);
+				if (fired) tmr.start();
+				fired = false;
+			});
+		}
 
-        @Override
-        public void handle() {
-            t.start(inter_period);
-        }
+		@Override
+		public void handle() {
+			long now = System.currentTimeMillis();
+			long diff = now - last;
+			last = now;
 
-    }
-    private static class HandlerEvery<E> extends EventReducer<E> {
-        private final FxTimer t;
-        private long last = 0;
-        boolean fired = false;
+			if (diff>inter_period) {
+				action.accept(e);
+				fired = false;
+				if (!t.isRunning()) t.start();
+			} else {
+				fired = true;
+			}
+		}
 
-        public HandlerEvery(double inter_period, Ƒ2<E, E, E> reduction, Consumer<E> handler) {
-            super(inter_period, reduction, handler);
-            t = new FxTimer(inter_period, 1, tmr -> {
-                action.accept(e);
-                if (fired) tmr.start();
-                fired = false;
-            });
-        }
+	}
 
-        @Override
-        public void handle() {
-            long now = System.currentTimeMillis();
-            long diff = now-last;
-            last = now;
+	private static class HandlerFirst<E> extends EventReducer<E> {
+		private long last = 0;
 
-            if (diff>inter_period) {
-                action.accept(e);
-                fired = false;
-                if (!t.isRunning()) t.start();
-            } else {
-                fired = true;
-            }
-        }
+		public HandlerFirst(double inter_period, Consumer<E> handler) {
+			super(inter_period, null, handler);
+		}
 
-    }
-    private static class HandlerFirst<E> extends EventReducer<E> {
-        private long last = 0;
+		@Override
+		public void handle() {
+			long now = System.currentTimeMillis();
+			long diff = now - last;
+			last = now;
+			if (diff>inter_period) action.accept(e);
+		}
 
-        public HandlerFirst(double inter_period, Consumer<E> handler) {
-            super(inter_period, null, handler);
-        }
+	}
 
-        @Override
-        public void handle() {
-            long now = System.currentTimeMillis();
-            long diff = now-last;
-            last = now;
-            if (diff > inter_period) action.accept(e);
-        }
+	private static class HandlerFirstDelayed<E> extends EventReducer<E> {
 
-    }
-    private static class HandlerFirstDelayed<E> extends EventReducer<E> {
+		private long last = 0;
+		private final FxTimer t;
 
-        private long last = 0;
-        private final FxTimer t;
+		public HandlerFirstDelayed(double inter_period, Consumer<E> handler) {
+			super(inter_period, null, handler);
+			t = new FxTimer(inter_period, 1, () -> action.accept(e));
+		}
 
-        public HandlerFirstDelayed(double inter_period, Consumer<E> handler) {
-            super(inter_period, null, handler);
-            t = new FxTimer(inter_period, 1, () -> action.accept(e));
-        }
+		@Override
+		public void handle() {
+			long now = System.currentTimeMillis();
+			long diff = now - last;
+			boolean isFirst = diff>=inter_period;
+			if (isFirst && !t.isRunning()) t.start();
 
-        @Override
-        public void handle() {
-            long now = System.currentTimeMillis();
-            long diff = now-last;
-            boolean isFirst = diff >= inter_period;
-            if (isFirst && !t.isRunning()) t.start();
+			last = now;
+		}
 
-            last = now;
-        }
+	}
 
-    }
-    private static class HandlerFirstOfAtLeast<E> extends EventReducer<E> {
-        private long first = 0;
-        private long last = 0;
-        private final double atLeast;
-        private boolean ran = false;
+	private static class HandlerFirstOfAtLeast<E> extends EventReducer<E> {
+		private long first = 0;
+		private long last = 0;
+		private final double atLeast;
+		private boolean ran = false;
 
-        public HandlerFirstOfAtLeast(double inter_period, double atLeast, Consumer<E> handler) {
-            super(inter_period, null, handler);
-            this.atLeast = atLeast;
-        }
+		public HandlerFirstOfAtLeast(double inter_period, double atLeast, Consumer<E> handler) {
+			super(inter_period, null, handler);
+			this.atLeast = atLeast;
+		}
 
-        @Override
-        public void handle() {
-            long now = System.currentTimeMillis();
-            long diff = now-last;
-            boolean isFirst = diff >= inter_period;
+		@Override
+		public void handle() {
+			long now = System.currentTimeMillis();
+			long diff = now - last;
+			boolean isFirst = diff>=inter_period;
 
-            if (isFirst) {
-                first = now;
-                ran = false;
-            }
+			if (isFirst) {
+				first = now;
+				ran = false;
+			}
 
-            boolean islongenough = now-first>= atLeast;
-            if (islongenough && !ran) {
-                action.accept(e);
-                ran = true;
-            }
+			boolean isLongEnough = now - first>=atLeast;
+			if (isLongEnough && !ran) {
+				action.accept(e);
+				ran = true;
+			}
 
-            last = now;
-        }
+			last = now;
+		}
 
-    }
+	}
 }

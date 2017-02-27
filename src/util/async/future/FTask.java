@@ -2,11 +2,8 @@ package util.async.future;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javafx.concurrent.Task;
-
 import util.functional.Functors.Ƒ1;
-
 import static util.dev.Util.log;
 import static util.dev.Util.throwIf;
 
@@ -23,7 +20,7 @@ import static util.dev.Util.throwIf;
  * @param <I> type of input
  * @param <O> type of output
  */
-public abstract class FTask<I,O> extends Task<O> implements Ƒ1<I,O> {
+public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
 	private I input;
 	private boolean isInputAssigned = false;
 	private final AtomicBoolean isInputAssignmentDoable = new AtomicBoolean(true);
@@ -61,9 +58,9 @@ public abstract class FTask<I,O> extends Task<O> implements Ƒ1<I,O> {
 		run();
 		try {
 			return get();
-		} catch (InterruptedException | ExecutionException e) {
+		} catch (InterruptedException|ExecutionException e) {
 			log(FTask.class).error("Task execution failed", e);
-			return null;    // TODO sint throwing runtime exception better ?
+			return null;    // TODO hint throwing runtime exception better ?
 		}
 	}
 

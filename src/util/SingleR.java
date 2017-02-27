@@ -13,15 +13,13 @@ import java.util.function.Supplier;
  *
  * @param <V> type of instance
  * @param <M> type of object the instance relies on
- *
  * @author Martin Polakovic
  */
-public class SingleR<V,M> extends LazyR<V> {
+public class SingleR<V, M> extends LazyR<V> {
 
 	private final BiConsumer<V,M> mutator;
 
 	/**
-	 *
 	 * @param builder produces the instance when it is requested.
 	 */
 	public SingleR(Supplier<V> builder) {
@@ -29,10 +27,8 @@ public class SingleR<V,M> extends LazyR<V> {
 	}
 
 	/**
-	 *
 	 * @param builder produces the instance when it is requested.
-	 * @param mutator mutates instance's state for certain dependency object. use
-	 * null if no mutation is desired.
+	 * @param mutator mutates instance's state for certain dependency object. use null if no mutation is desired.
 	 */
 	public SingleR(Supplier<V> builder, BiConsumer<V,M> mutator) {
 		super(builder);
@@ -41,12 +37,13 @@ public class SingleR<V,M> extends LazyR<V> {
 
 	/**
 	 * Same as {@link #get()}, but mutates the value.
+	 *
 	 * @param mutation_source, use null when type Void
 	 * @return the instance after applying mutation, ever null
 	 */
 	public V getM(M mutation_source) {
 		V v = get();
-		if (mutator != null) mutator.accept(v, mutation_source);
+		if (mutator!=null) mutator.accept(v, mutation_source);
 		return v;
 	}
 

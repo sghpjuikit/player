@@ -1,16 +1,15 @@
 package util.units;
 
 import java.io.File;
-
 import util.dev.Dependency;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-
 import static java.lang.Integer.max;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 // TODO: use subclassing to make UNKNOWN more efficient and safe
+
 /**
  * Simple class for file size handling, used primarily for its string representation.
  * <p/>
@@ -19,9 +18,9 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * @author Martin Polakovic
  */
 @StringParseStrategy(
-	from = From.ANNOTATED_METHOD,
-	to = TO_STRING_METHOD,
-	exFrom = NumberFormatException.class
+		from = From.ANNOTATED_METHOD,
+		to = TO_STRING_METHOD,
+		exFrom = NumberFormatException.class
 )
 public final class FileSize implements Comparable<FileSize> {
 
@@ -43,9 +42,8 @@ public final class FileSize implements Comparable<FileSize> {
 	public static final long MAX = Long.MAX_VALUE;
 	/** Not available value. {@code -1} */
 	public static final long NA = -1;
-	/** Not available string value. {@code "Unknown"}*/
+	/** Not available string value. {@code "Unknown"} */
 	public static final String NAString = "Unknown";
-
 
 	private final long v;
 
@@ -67,7 +65,7 @@ public final class FileSize implements Comparable<FileSize> {
 	 * @throws java.lang.RuntimeException if param smaller than -1
 	 */
 	public FileSize(long bytes) {
-		if (bytes<-1) throw new IllegalArgumentException("File size value must be -1 or larger");
+		if (bytes < -1) throw new IllegalArgumentException("File size value must be -1 or larger");
 		v = bytes;
 	}
 
@@ -84,11 +82,13 @@ public final class FileSize implements Comparable<FileSize> {
 	/**
 	 * Returns file size in bytes. Equivalent to {@code new FileSize(f).inBytes;}, but does not create an object.
 	 *
+	 * @param file non null file to read file size of
 	 * @return size of the file in bytes
+	 * @throws java.lang.RuntimeException if param null
 	 */
-	public static long inBytes(File f) {
-		long l = f.length();
-		return l == 0 ? -1 : l;
+	public static long inBytes(File file) {
+		long l = file.length();
+		return l==0 ? -1 : l;
 	}
 
 	/** @return file size in bytes or -1 if unknown */
@@ -155,18 +155,18 @@ public final class FileSize implements Comparable<FileSize> {
 	@Dependency("Designed to be used in tables, filters and gui.")
 	@Dependency("Supports different units. B - EB")
 	public String toString() {
-		if (v == -1) return NAString;
-		double EB = (v / (double)Ei);
+		if (v==-1) return NAString;
+		double EB = (v/(double) Ei);
 		if (EB>=1) return String.format("%.2f EiB", EB);
-		double PB = (v / (double)Pi);
+		double PB = (v/(double) Pi);
 		if (PB>=1) return String.format("%.2f PiB", PB);
-		double TB = (v / (double)Ti);
+		double TB = (v/(double) Ti);
 		if (TB>=1) return String.format("%.2f TiB", TB);
-		double GB = (v / (double)Gi);
+		double GB = (v/(double) Gi);
 		if (GB>=1) return String.format("%.2f GiB", GB);
-		double MB = (v / (double)Mi);
+		double MB = (v/(double) Mi);
 		if (MB>=1) return String.format("%.2f MiB", MB);
-		double kB = (v / (double)Ki);
+		double kB = (v/(double) Ki);
 		if (kB>1) return String.format("%.2f kiB", kB);
 		else return String.format("%d B", v);
 	}
@@ -180,51 +180,45 @@ public final class FileSize implements Comparable<FileSize> {
 	/** @return true if the value is the same */
 	@Override
 	public boolean equals(Object o) {
-		return (this == o) || (o instanceof FileSize && ((FileSize)o).v == v);
+		return (this==o) || (o instanceof FileSize && ((FileSize) o).v==v);
 	}
 
 	@Override
 	public int hashCode() {
-		return 13 * 3 + (int) (this.v ^ (this.v >>> 32));
+		return 13*3 + (int) (this.v^(this.v>>>32));
 	}
-
 
 	private static long val(String s) throws NumberFormatException {
 		long unit = 1;
 
 		if (s.equals(NAString)) return NA;
-		int b = max(s.indexOf("B"),s.indexOf("b"));
+		int b = max(s.indexOf("B"), s.indexOf("b"));
 		if (b>0) {
-			String prefix = s.substring(b-1, b);
+			String prefix = s.substring(b - 1, b);
 			int skip = 0;
 			if ("k".equalsIgnoreCase(prefix)) {
 				unit = Ki;
 				skip++;
-			} else
-			if ("m".equalsIgnoreCase(prefix)) {
+			} else if ("m".equalsIgnoreCase(prefix)) {
 				unit = Mi;
 				skip++;
-			} else
-			if ("g".equalsIgnoreCase(prefix)) {
+			} else if ("g".equalsIgnoreCase(prefix)) {
 				unit = Gi;
 				skip++;
-			} else
-			if ("t".equalsIgnoreCase(prefix)) {
+			} else if ("t".equalsIgnoreCase(prefix)) {
 				unit = Ti;
 				skip++;
-			} else
-			if ("p".equalsIgnoreCase(prefix)) {
+			} else if ("p".equalsIgnoreCase(prefix)) {
 				unit = Pi;
 				skip++;
-			} else
-			if ("e".equalsIgnoreCase(prefix)) {
+			} else if ("e".equalsIgnoreCase(prefix)) {
 				unit = Ei;
 				skip++;
 			}
-			s = s.substring(0, b-skip).trim();
+			s = s.substring(0, b - skip).trim();
 		}
 
 		double number = Double.parseDouble(s);
-		return (long)(unit*number);
+		return (long) (unit*number);
 	}
 }

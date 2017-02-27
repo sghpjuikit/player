@@ -1,8 +1,9 @@
 package util.reactive;
 
 /**
- <p/>
- @author Martin Polakovic
+ * <p/>
+ *
+ * @author Martin Polakovic
  */
 public class ValueEventSourceN<T> extends ValueEventSource<T> {
 	private T v;
@@ -12,6 +13,7 @@ public class ValueEventSourceN<T> extends ValueEventSource<T> {
 		super(initialValue);
 		empty_val = emptyValue;
 	}
+
 	public ValueEventSourceN(T initialValue) {
 		this(initialValue, initialValue);
 	}

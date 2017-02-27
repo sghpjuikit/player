@@ -14,9 +14,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import util.dev.Util;
-
 import static java.util.stream.Collectors.toMap;
 import static util.Util.hasNoReadableText;
 import static util.Util.hasReadableText;
@@ -40,7 +38,6 @@ public interface Properties {
 		return load(new LineReader(reader));
 	}
 
-
 	static Map<String,String> load(InputStream inStream) {
 		noØ(inStream);
 		return load(new LineReader(inStream));
@@ -48,7 +45,7 @@ public interface Properties {
 
 	private static Map<String,String> load(LineReader lr) {
 		Map<String,String> keyValues = new HashMap<>();
-		char[] convtBuf = new char[1024];
+		char[] convertBuffer = new char[1024];
 		int limit;
 		int keyLen;
 		int valueStart;
@@ -57,30 +54,30 @@ public interface Properties {
 		boolean precedingBackslash;
 
 		try {
-			while ((limit = lr.readLine()) >= 0) {
+			while ((limit = lr.readLine())>=0) {
 				keyLen = 0;
 				valueStart = limit;
 				hasSep = false;
 
 				precedingBackslash = false;
-				while (keyLen < limit) {
+				while (keyLen<limit) {
 					c = lr.lineBuf[keyLen];
 					// need check if escaped.
-					if ((c == '=' || c == ':') && !precedingBackslash) {
+					if ((c=='=' || c==':') && !precedingBackslash) {
 						valueStart = keyLen + 1;
 						hasSep = true;
 						break;
-					} else if ((c == ' ' || c == '\t' || c == '\f') && !precedingBackslash) {
+					} else if ((c==' ' || c=='\t' || c=='\f') && !precedingBackslash) {
 						valueStart = keyLen + 1;
 						break;
 					}
-					precedingBackslash = c == '\\' && !precedingBackslash;
+					precedingBackslash = c=='\\' && !precedingBackslash;
 					keyLen++;
 				}
-				while (valueStart < limit) {
+				while (valueStart<limit) {
 					c = lr.lineBuf[valueStart];
-					if (c != ' ' && c != '\t' && c != '\f') {
-						if (!hasSep && (c == '=' || c == ':')) {
+					if (c!=' ' && c!='\t' && c!='\f') {
+						if (!hasSep && (c=='=' || c==':')) {
 							hasSep = true;
 						} else {
 							break;
@@ -88,8 +85,8 @@ public interface Properties {
 					}
 					valueStart++;
 				}
-				String key = loadConvert(lr.lineBuf, 0, keyLen, convtBuf);
-				String value = loadConvert(lr.lineBuf, valueStart, limit - valueStart, convtBuf);
+				String key = loadConvert(lr.lineBuf, 0, keyLen, convertBuffer);
+				String value = loadConvert(lr.lineBuf, valueStart, limit - valueStart, convertBuffer);
 				keyValues.put(key, value);
 			}
 		} catch (IOException e) {
@@ -100,7 +97,7 @@ public interface Properties {
 	}
 
 	static void save(File file, String comments, Map<String,String> keyValues) {
-		try(FileOutputStream os = new FileOutputStream(file)) {
+		try (FileOutputStream os = new FileOutputStream(file)) {
 			save(os, comments, keyValues);
 		} catch (IOException e) {
 			Util.log(Properties.class).error("Could not save properties into file {}", file, e);
@@ -108,7 +105,7 @@ public interface Properties {
 	}
 
 	static void saveP(File file, String comments, Map<String,Property> keyValues) {
-		try(FileOutputStream os = new FileOutputStream(file)) {
+		try (FileOutputStream os = new FileOutputStream(file)) {
 			saveP(os, comments, keyValues);
 		} catch (IOException e) {
 			Util.log(Properties.class).error("Could not save properties into file {}", file, e);
@@ -117,7 +114,7 @@ public interface Properties {
 
 	static void save(OutputStream out, String comments, Map<String,String> keyValues) {
 		try {
-			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, stream(keyValues).collect(toMap(e -> e.getKey(), e -> new Property("",e.getValue()))));
+			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, stream(keyValues).collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
 		} catch (IOException e) {
 			Util.log(Properties.class).error("Could not save properties into output stream {}", out, e);
 		}
@@ -134,7 +131,7 @@ public interface Properties {
 	static void save(Writer writer, String comments, Map<String,String> keyValues) {
 		try {
 			BufferedWriter bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer);
-			store(bw, comments, false, stream(keyValues).collect(toMap(e -> e.getKey(), e -> new Property("",e.getValue()))));
+			store(bw, comments, false, stream(keyValues).collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
 		} catch (IOException e) {
 			Util.log(Properties.class).error("Could not save properties with writer {}", writer, e);
 		}
@@ -148,23 +145,23 @@ public interface Properties {
 		String cs = System.lineSeparator() + cc;
 		try {
 			keyValues.entrySet().stream()
-				.sorted(byNC(Entry::getKey))
-				.forEach(e -> {
-					boolean hasComment = hasReadableText(e.getValue().comment); // ignore useless comments, just in case
-					String comment = hasComment ? e.getValue().comment.replace("\n", cs) : null; // support multiline
-					String key = saveConvert(e.getKey(), true, escUnicode);
-					String val = saveConvert(e.getValue().value, false, escUnicode); // No need to escape embedded and trailing spaces -> false flag
-					try {
-						if (hasComment) {
-							bw.write(cc + comment);
+					.sorted(byNC(Entry::getKey))
+					.forEach(e -> {
+						boolean hasComment = hasReadableText(e.getValue().comment); // ignore useless comments, just in case
+						String comment = hasComment ? e.getValue().comment.replace("\n", cs) : null; // support multiline
+						String key = saveConvert(e.getKey(), true, escUnicode);
+						String val = saveConvert(e.getValue().value, false, escUnicode); // No need to escape embedded and trailing spaces -> false flag
+						try {
+							if (hasComment) {
+								bw.write(cc + comment);
+								bw.newLine();
+							}
+							bw.write(key + "=" + val);
 							bw.newLine();
+						} catch (IOException x) {
+							throw new ExceptionWrapper(x);
 						}
-						bw.write(key + "=" + val);
-						bw.newLine();
-					} catch (IOException x) {
-						throw new ExceptionWrapper(x);
-					}
-			});
+					});
 		} catch (ExceptionWrapper e) {
 			throw (IOException) e.getCause();
 		}
@@ -175,59 +172,59 @@ public interface Properties {
 	/**
 	 * Converts encoded &#92;uxxxx to unicode chars and changes special saved chars to their original forms
 	 */
-	private static String loadConvert(char[] in, int off, int len, char[] convtBuf) {
-		if (convtBuf.length < len) {
-			int newLen = len * 2;
-			if (newLen < 0) {
+	private static String loadConvert(char[] in, int off, int len, char[] convertBuffer) {
+		if (convertBuffer.length<len) {
+			int newLen = len*2;
+			if (newLen<0) {
 				newLen = Integer.MAX_VALUE;
 			}
-			convtBuf = new char[newLen];
+			convertBuffer = new char[newLen];
 		}
 		char aChar;
-		char[] out = convtBuf;
+		char[] out = convertBuffer;
 		int outLen = 0;
 		int end = off + len;
 
-		while (off < end) {
+		while (off<end) {
 			aChar = in[off++];
-			if (aChar == '\\') {
+			if (aChar=='\\') {
 				aChar = in[off++];
-				if (aChar == 'u') {
+				if (aChar=='u') {
 					// Read the xxxx
-					int value=0;
-					for (int i=0; i<4; i++) {
+					int value = 0;
+					for (int i = 0; i<4; i++) {
 						aChar = in[off++];
 						switch (aChar) {
 							case '0': case '1': case '2': case '3': case '4':
 							case '5': case '6': case '7': case '8': case '9':
-								value = (value << 4) + aChar - '0';
+								value = (value<<4) + aChar - '0';
 								break;
 							case 'a': case 'b': case 'c':
 							case 'd': case 'e': case 'f':
-								value = (value << 4) + 10 + aChar - 'a';
+								value = (value<<4) + 10 + aChar - 'a';
 								break;
 							case 'A': case 'B': case 'C':
 							case 'D': case 'E': case 'F':
-								value = (value << 4) + 10 + aChar - 'A';
+								value = (value<<4) + 10 + aChar - 'A';
 								break;
 							default:
 								throw new IllegalArgumentException(
-									                                  "Malformed \\uxxxx encoding.");
+										"Malformed \\uxxxx encoding.");
 						}
 					}
-					out[outLen++] = (char)value;
+					out[outLen++] = (char) value;
 				} else {
-					if (aChar == 't') aChar = '\t';
-					else if (aChar == 'r') aChar = '\r';
-					else if (aChar == 'n') aChar = '\n';
-					else if (aChar == 'f') aChar = '\f';
+					if (aChar=='t') aChar = '\t';
+					else if (aChar=='r') aChar = '\r';
+					else if (aChar=='n') aChar = '\n';
+					else if (aChar=='f') aChar = '\f';
 					out[outLen++] = aChar;
 				}
 			} else {
 				out[outLen++] = aChar;
 			}
 		}
-		return new String (out, 0, outLen);
+		return new String(out, 0, outLen);
 	}
 
 	/**
@@ -235,37 +232,37 @@ public interface Properties {
 	 */
 	private static String saveConvert(String theString, boolean escapeSpace, boolean escapeUnicode) {
 		int len = theString.length();
-		int bufLen = len * 2;
-		if (bufLen < 0) {
+		int bufLen = len*2;
+		if (bufLen<0) {
 			bufLen = Integer.MAX_VALUE;
 		}
 		StringBuilder outBuffer = new StringBuilder(bufLen);
 
-		for (int x=0; x<len; x++) {
+		for (int x = 0; x<len; x++) {
 			char aChar = theString.charAt(x);
 			// Handle common case first, selecting largest block that
 			// avoids the specials below
-			if ((aChar > 61) && (aChar < 127)) {
-				if (aChar == '\\') {
+			if ((aChar>61) && (aChar<127)) {
+				if (aChar=='\\') {
 					outBuffer.append('\\'); outBuffer.append('\\');
 					continue;
 				}
 				outBuffer.append(aChar);
 				continue;
 			}
-			switch(aChar) {
+			switch (aChar) {
 				case ' ':
-					if (x == 0 || escapeSpace)
+					if (x==0 || escapeSpace)
 						outBuffer.append('\\');
 					outBuffer.append(' ');
 					break;
-				case '\t':outBuffer.append('\\'); outBuffer.append('t');
+				case '\t': outBuffer.append('\\'); outBuffer.append('t');
 					break;
-				case '\n':outBuffer.append('\\'); outBuffer.append('n');
+				case '\n': outBuffer.append('\\'); outBuffer.append('n');
 					break;
-				case '\r':outBuffer.append('\\'); outBuffer.append('r');
+				case '\r': outBuffer.append('\\'); outBuffer.append('r');
 					break;
-				case '\f':outBuffer.append('\\'); outBuffer.append('f');
+				case '\f': outBuffer.append('\\'); outBuffer.append('f');
 					break;
 				case '=': // Fall through
 				case ':': // Fall through
@@ -274,13 +271,13 @@ public interface Properties {
 					outBuffer.append('\\'); outBuffer.append(aChar);
 					break;
 				default:
-					if (((aChar < 0x0020) || (aChar > 0x007e)) & escapeUnicode ) {
+					if (((aChar<0x0020) || (aChar>0x007e))&escapeUnicode) {
 						outBuffer.append('\\');
 						outBuffer.append('u');
-						outBuffer.append(toHex((aChar >> 12) & 0xF));
-						outBuffer.append(toHex((aChar >>  8) & 0xF));
-						outBuffer.append(toHex((aChar >>  4) & 0xF));
-						outBuffer.append(toHex( aChar        & 0xF));
+						outBuffer.append(toHex((aChar>>12)&0xF));
+						outBuffer.append(toHex((aChar>>8)&0xF));
+						outBuffer.append(toHex((aChar>>4)&0xF));
+						outBuffer.append(toHex(aChar&0xF));
 					} else {
 						outBuffer.append(aChar);
 					}
@@ -300,34 +297,34 @@ public interface Properties {
 		char[] uu = new char[6];
 		uu[0] = '\\';
 		uu[1] = 'u';
-		while (current < len) {
+		while (current<len) {
 			char c = comment.charAt(current);
-			if (c > '\u00ff' || c == '\n' || c == '\r') {
-				if (last != current)
+			if (c>'\u00ff' || c=='\n' || c=='\r') {
+				if (last!=current)
 					bw.write(comment.substring(last, current));
-				if (c > '\u00ff') {
-					uu[2] = toHex((c >> 12) & 0xf);
-					uu[3] = toHex((c >>  8) & 0xf);
-					uu[4] = toHex((c >>  4) & 0xf);
-					uu[5] = toHex( c        & 0xf);
+				if (c>'\u00ff') {
+					uu[2] = toHex((c>>12)&0xf);
+					uu[3] = toHex((c>>8)&0xf);
+					uu[4] = toHex((c>>4)&0xf);
+					uu[5] = toHex(c&0xf);
 					bw.write(new String(uu));
 				} else {
 					bw.newLine();
-					if (c == '\r' &&
-						    current != len - 1 &&
-						    comment.charAt(current + 1) == '\n') {
+					if (c=='\r' &&
+							current!=len - 1 &&
+							comment.charAt(current + 1)=='\n') {
 						current++;
 					}
-					if (current == len - 1 ||
-						    (comment.charAt(current + 1) != '#' &&
-							     comment.charAt(current + 1) != '!'))
+					if (current==len - 1 ||
+							(comment.charAt(current + 1)!='#' &&
+									comment.charAt(current + 1)!='!'))
 						bw.write("#");
 				}
 				last = current + 1;
 			}
 			current++;
 		}
-		if (last != current)
+		if (last!=current)
 			bw.write(comment.substring(last, current));
 		bw.newLine();
 		bw.newLine();
@@ -336,16 +333,16 @@ public interface Properties {
 	/**
 	 * Convert a nibble to a hex character
 	 *
-	 * @param   nibble  the nibble to convert.
+	 * @param nibble the nibble to convert.
 	 */
 	private static char toHex(int nibble) {
-		return hexDigit[(nibble & 0xF)];
+		return hexDigit[(nibble&0xF)];
 	}
 
 	/**
 	 * A table of hex digits
 	 */
-	char[] hexDigit = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	char[] hexDigit = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 	/**
 	 * Read in a "logical line" from an InputStream/Reader, skip all comment
@@ -385,12 +382,12 @@ public interface Properties {
 			boolean skipLF = false;
 
 			while (true) {
-				if (inOff >= inLimit) {
-					inLimit = (inStream==null)?reader.read(inCharBuf)
-						          :inStream.read(inByteBuf);
+				if (inOff>=inLimit) {
+					inLimit = (inStream==null) ? reader.read(inCharBuf)
+							: inStream.read(inByteBuf);
 					inOff = 0;
-					if (inLimit <= 0) {
-						if (len == 0 || isCommentLine) {
+					if (inLimit<=0) {
+						if (len==0 || isCommentLine) {
 							return -1;
 						}
 						if (precedingBackslash) {
@@ -399,24 +396,24 @@ public interface Properties {
 						return len;
 					}
 				}
-				if (inStream != null) {
+				if (inStream!=null) {
 					//The line below is equivalent to calling a
 					//ISO8859-1 decoder.
-					c = (char) (0xff & inByteBuf[inOff++]);
+					c = (char) (0xff&inByteBuf[inOff++]);
 				} else {
 					c = inCharBuf[inOff++];
 				}
 				if (skipLF) {
 					skipLF = false;
-					if (c == '\n') {
+					if (c=='\n') {
 						continue;
 					}
 				}
 				if (skipWhiteSpace) {
-					if (c == ' ' || c == '\t' || c == '\f') {
+					if (c==' ' || c=='\t' || c=='\f') {
 						continue;
 					}
-					if (!appendedLineBegin && (c == '\r' || c == '\n')) {
+					if (!appendedLineBegin && (c=='\r' || c=='\n')) {
 						continue;
 					}
 					skipWhiteSpace = false;
@@ -424,40 +421,39 @@ public interface Properties {
 				}
 				if (isNewLine) {
 					isNewLine = false;
-					if (c == '#' || c == '!') {
+					if (c=='#' || c=='!') {
 						isCommentLine = true;
 						continue;
 					}
 				}
 
-				if (c != '\n' && c != '\r') {
+				if (c!='\n' && c!='\r') {
 					lineBuf[len++] = c;
-					if (len == lineBuf.length) {
-						int newLength = lineBuf.length * 2;
-						if (newLength < 0) {
+					if (len==lineBuf.length) {
+						int newLength = lineBuf.length*2;
+						if (newLength<0) {
 							newLength = Integer.MAX_VALUE;
 						}
 						char[] buf = new char[newLength];
 						System.arraycopy(lineBuf, 0, buf, 0, lineBuf.length);
 						lineBuf = buf;
 					}
-					precedingBackslash = c == '\\' && !precedingBackslash;  // flip the preceding backslash flag
-				}
-				else {
+					precedingBackslash = c=='\\' && !precedingBackslash;  // flip the preceding backslash flag
+				} else {
 					// reached EOL
-					if (isCommentLine || len == 0) {
+					if (isCommentLine || len==0) {
 						isCommentLine = false;
 						isNewLine = true;
 						skipWhiteSpace = true;
 						len = 0;
 						continue;
 					}
-					if (inOff >= inLimit) {
+					if (inOff>=inLimit) {
 						inLimit = (inStream==null)
-							          ?reader.read(inCharBuf)
-							          :inStream.read(inByteBuf);
+								? reader.read(inCharBuf)
+								: inStream.read(inByteBuf);
 						inOff = 0;
-						if (inLimit <= 0) {
+						if (inLimit<=0) {
 							if (precedingBackslash) {
 								len--;
 							}
@@ -470,7 +466,7 @@ public interface Properties {
 						skipWhiteSpace = true;
 						appendedLineBegin = true;
 						precedingBackslash = false;
-						if (c == '\r') {
+						if (c=='\r') {
 							skipLF = true;
 						}
 					} else {
@@ -480,11 +476,13 @@ public interface Properties {
 			}
 		}
 	}
+
 	class ExceptionWrapper extends RuntimeException {
 		ExceptionWrapper(Throwable e) {
 			super(e);
 		}
 	}
+
 	class Property {
 		public final String comment, value;
 

@@ -1,11 +1,9 @@
-
 package util.conf;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
 import static util.functional.Util.list;
 
 /**
@@ -20,61 +18,56 @@ import static util.functional.Util.list;
  */
 public class ListConfigurable<T> implements Configurable<T> {
 
-    private final List<Config<T>> cs;
+	private final List<Config<T>> cs;
 
-    public ListConfigurable(Config<T>... configs) {
-        cs = new ArrayList<>();
-	    Collections.addAll(cs, configs);
-    }
+	@SafeVarargs
+	public ListConfigurable(Config<T>... configs) {
+		cs = new ArrayList<>();
+		Collections.addAll(cs, configs);
+	}
 
-    public ListConfigurable(Collection<Config<T>> configs) {
-        cs = list(configs);
-    }
+	public ListConfigurable(Collection<Config<T>> configs) {
+		cs = list(configs);
+	}
 
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * Implementation details:
-     * <p/>
-     * The configs retain their position - are in the order in which they were
-     * added, thus allowing for safe casting, since we know the order.
-     *
-     * @return
-     */
-    @Override
-    public List<Config<T>> getFields() {
-        return cs;
-    }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Implementation details:
+	 * <p/>
+	 * The configs retain their position - are in the order in which they were
+	 * added, thus allowing for safe casting, since we know the order.
+	 */
+	@Override
+	public List<Config<T>> getFields() {
+		return cs;
+	}
 
-    /**
-     * Convenience method. Returns config at specific index within the resulting
-     * list of {@link #getFields() } method.
-     * <p/>
-     * Runs in O(1).
-     * @param at
-     * @return
-     */
-    public Config<T> getField(int at) {
-        return cs.get(at);
-    }
+	/**
+	 * Convenience method. Returns config at specific index within the resulting
+	 * list of {@link #getFields() } method.
+	 * <p/>
+	 * Runs in O(1).
+	 */
+	public Config<T> getField(int at) {
+		return cs.get(at);
+	}
 
-    /**
-     * Adds config at specified position.
-     * @param at
-     * @param config
-     */
-    public void addField(int at, Config<T> config) {
-        cs.add(at, config);
-    }
+	/**
+	 * Adds config at specified position.
+	 */
+	public void addField(int at, Config<T> config) {
+		cs.add(at, config);
+	}
 
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * Implementation details:
-     * Runs in O(n).
-     */
-    @Override
-    public Config<T> getField(String name) {
-        return cs.stream().filter(c -> name.equals(c.getName())).findAny().get();
-    }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Implementation details:
+	 * Runs in O(n).
+	 */
+	@Override
+	public Config<T> getField(String name) {
+		return cs.stream().filter(c -> name.equals(c.getName())).findAny().get();
+	}
 }

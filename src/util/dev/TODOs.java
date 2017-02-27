@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
  * Container annotation for {@link util.dev.TODO}.
  * <p/>
  * Used solely by compiler and has no practical use for developer.
- * 
+ *
  * @author Martin Polakovic
  */
 @Documented

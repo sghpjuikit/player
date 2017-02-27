@@ -8,9 +8,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import one.util.streamex.StreamEx;
-
 import static util.dev.Util.log;
 import static util.file.Util.getSuffix;
 import static util.file.mimetype.MimeType.UNKNOWN;
@@ -18,12 +16,6 @@ import static util.file.mimetype.MimeType.UNKNOWN;
 /**
  * A utility registry of mime types, with lookups by mime type and by file
  * extensions.
- * <p>
- * <p>The constructors, factory methods and load methods are not thread safe,
- * the exception to this is the {@link #getInstance()} method. BLookup methods
- * ({@link #ofType(String)} and {@link #ofExtension(String)}) are
- * thread-safe. Therefore, once initialized, instances may be used concurrently
- * by multiple threads.
  *
  * @author https://github.com/amr/mimetypes
  */
@@ -39,21 +31,21 @@ public class MimeTypes {
 		return new MimeTypes(true);
 	}
 
-	private final Map<String, MimeType> types = new ConcurrentHashMap<>();
-	private final Map<String, MimeType> extensions = new ConcurrentHashMap<>();
+	private final Map<String,MimeType> types = new ConcurrentHashMap<>();
+	private final Map<String,MimeType> extensions = new ConcurrentHashMap<>();
 
 	private MimeTypes(boolean addStandardTypes) {
 		if (addStandardTypes) {
-			try(
-				   InputStream file = MimeTypes.class.getResourceAsStream("mime.types");
-				   InputStreamReader ir = new InputStreamReader(file, "UTF-8");
-				   BufferedReader br = new BufferedReader(ir)
-			){
+			try (
+					InputStream file = MimeTypes.class.getResourceAsStream("mime.types");
+					InputStreamReader ir = new InputStreamReader(file, "UTF-8");
+					BufferedReader br = new BufferedReader(ir)
+			) {
 				String line;
-				while ((line = br.readLine()) != null)
+				while ((line = br.readLine())!=null)
 					if (!line.isEmpty())
 						loadOne(line);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				log(MimeTypes.class).error("Failed to load default mime types", e);
 			}
 		}
@@ -95,8 +87,7 @@ public class MimeTypes {
 	 * the loaded mime type definitions.
 	 *
 	 * @param type lower-case mime type identifier string
-	 * @return Instance of MimeType for the given mime type identifier or null
-	 * if none was found
+	 * @return Instance of MimeType for the given mime type identifier or null if none was found
 	 */
 	public MimeType ofType(String type) {
 		return types.getOrDefault(type, UNKNOWN);

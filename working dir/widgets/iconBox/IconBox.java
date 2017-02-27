@@ -12,7 +12,7 @@ import layout.widget.Widget;
 import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.HorizontalDock;
-import util.access.FunctAccessor;
+import util.access.FAccessor;
 import util.access.VarAction;
 import util.conf.Config;
 import util.conf.Config.VarList;
@@ -50,7 +50,7 @@ public class IconBox extends FXMLController implements HorizontalDock {
             return i;
         }, i ->
         new ListConfigurable(
-            Config.forProperty(Icon.class, "Icon", new FunctAccessor<>(i::icon,i::getGlyph)),
+            Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon,i::getGlyph)),
             Config.forProperty(String.class, "Action",new VarAction(i.getOnClickAction(),i::onClick))
         )
     );

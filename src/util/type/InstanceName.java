@@ -1,12 +1,10 @@
 package util.type;
 
 import java.util.Objects;
-
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class InstanceName {
@@ -19,7 +17,7 @@ public class InstanceName {
 	 * do not have any name registered.
 	 *
 	 * @param c type to add name function to. Use {@link Void} class to handle null (since only null can be an
-	 *          'instance' of Void).
+	 * 'instance' of Void).
 	 * @param parser instance to instance name transformer function
 	 */
 	public <T> void add(Class<T> c, Ƒ1<? super T,String> parser) {
@@ -30,8 +28,7 @@ public class InstanceName {
 	 * Returns name/string representation of the object instance. If none is
 	 * provided, {@link Objects#toString(java.lang.Object)} is used.
 	 *
-	 * @param instance Object to get name of. Can be null, in which case its
-	 * treated as of type {@link Void}.
+	 * @param instance Object to get name of. Can be null, in which case its treated as of type {@link Void}.
 	 * @return computed name of the object instance. Never null.
 	 */
 	@SuppressWarnings("unchecked")

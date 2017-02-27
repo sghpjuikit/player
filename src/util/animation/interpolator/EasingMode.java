@@ -30,16 +30,16 @@ package util.animation.interpolator;
  * @author Christian Schudt
  */
 public enum EasingMode {
-    /**
-     *
-     */
-    EASE_IN,
-    /**
-     *
-     */
-    EASE_OUT,
-    /**
-     *
-     */
-    EASE_BOTH
+	/**
+	 *
+	 */
+	EASE_IN,
+	/**
+	 *
+	 */
+	EASE_OUT,
+	/**
+	 *
+	 */
+	EASE_BOTH
 }

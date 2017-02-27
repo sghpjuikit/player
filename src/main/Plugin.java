@@ -10,7 +10,8 @@ public interface Plugin extends Configurable<Object> {
 	void stop();
 
 	default void activate(boolean active) {
-		if (active) start(); else stop();
+		if (active) start();
+		else stop();
 	}
 
 	boolean isActive();

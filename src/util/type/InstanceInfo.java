@@ -4,14 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
-
 import static java.util.Collections.EMPTY_MAP;
 
 /**
- *
  * @author Martin Polakovic
  */
 public class InstanceInfo {
@@ -23,9 +20,9 @@ public class InstanceInfo {
 	 * Registers info function for specified class..
 	 *
 	 * @param c type to add info extractor to. Use {@link Void} class to handle null (since only null can be an
-	 *          'instance' of Void).
-	 * @param extractor function that transforms instance to map of key value pairs representing information about
-	 *                  the instance
+	 * 'instance' of Void).
+	 * @param extractor function that transforms instance to map of key value pairs representing information about the
+	 * instance
 	 */
 	public <T> void add(Class<T> c, Ƒ1<? super T,Map<String,String>> extractor) {
 		names.put(c, extractor);
@@ -36,9 +33,9 @@ public class InstanceInfo {
 	 * created map to the extractor.
 	 *
 	 * @param c type to add info extractor to. Use {@link Void} class to handle null (since only null can be an
-	 *          'instance' of Void).
-	 * @param extractor function that puts a key value pairs representing information about the instance into
-	 *                  the provided map
+	 * 'instance' of Void).
+	 * @param extractor function that puts a key value pairs representing information about the instance into the
+	 * provided map
 	 */
 	public <T> void add(Class<T> c, BiConsumer<? super T,Map<String,String>> extractor) {
 		names.put(c, (T o) -> {
@@ -52,8 +49,7 @@ public class InstanceInfo {
 	 * Returns name/string representation of the object instance. If none is
 	 * provided, {@link Objects#toString(java.lang.Object)} is used.
 	 *
-	 * @param instance Object to get name of. Can be null, in which case its
-	 * treated as of type {@link Void}.
+	 * @param instance Object to get name of. Can be null, in which case its treated as of type {@link Void}.
 	 * @return computed name of the object instance. Never null.
 	 */
 	@SuppressWarnings("unchecked")

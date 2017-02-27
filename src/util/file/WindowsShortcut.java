@@ -12,17 +12,17 @@ import java.util.Optional;
  * <p/>
  * Written by: (the stack overflow users, obviously!)
  * <br/>
- *   Apache Commons VFS dependency removed by crysxd (why were we using that!?) https://github.com/crysxd
- *   <br/>
- *   Headerified, refactored and commented by Code Bling http://stackoverflow.com/users/675721/code-bling
- *   <br/>
- *   Network file support added by Stefan Cordes http://stackoverflow.com/users/81330/stefan-cordes
- *   Adapted by Sam Brightman http://stackoverflow.com/users/2492/sam-brightman
- *   <br/>
- *   Based on information in 'The Windows Shortcut File Format' by Jesse Hager &lt;jessehager@iname.com&gt;
- *   <br/>
- *   And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by
- *   Joshua Marinacci and Chris Adamson, SBN: 0-596-00907-0, http://www.oreilly.com/catalog/swinghks/
+ * Apache Commons VFS dependency removed by crysxd (why were we using that!?) https://github.com/crysxd
+ * <br/>
+ * Header added, refactored and commented by Code Bling http://stackoverflow.com/users/675721/code-bling
+ * <br/>
+ * Network file support added by Stefan Cordes http://stackoverflow.com/users/81330/stefan-cordes
+ * Adapted by Sam Brightman http://stackoverflow.com/users/2492/sam-brightman
+ * <br/>
+ * Based on information in 'The Windows Shortcut File Format' by Jesse Hager &lt;jessehager@iname.com&gt;
+ * <br/>
+ * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by
+ * Joshua Marinacci and Chris Adamson, SBN: 0-596-00907-0, http://www.oreilly.com/catalog/swinghks/
  */
 public class WindowsShortcut {
 	private boolean isDirectory;
@@ -41,19 +41,15 @@ public class WindowsShortcut {
 	 */
 	public static boolean isPotentialValidLink(File file) throws IOException {
 		final int minimum_length = 0x64;
-		InputStream fis = new FileInputStream(file);
-		boolean isPotentiallyValid = false;
-		try {
-			isPotentiallyValid = file.isFile()
-				                     && file.getName().toLowerCase().endsWith(".lnk")
-				                     && fis.available() >= minimum_length
-				                     && isMagicPresent(getBytes(fis, 32));
-		} finally {
-			fis.close();
+		try (InputStream fis = new FileInputStream(file)) {
+			return file.isFile()
+					&& file.getName().toLowerCase().endsWith(".lnk")
+					&& fis.available()>=minimum_length
+					&& isMagicPresent(getBytes(fis, 32));
 		}
-		return isPotentiallyValid;
 	}
 
+	@SuppressWarnings("TryWithIdenticalCatches")
 	public static WindowsShortcut of(File f) {
 		try {
 			return new WindowsShortcut(f);
@@ -64,9 +60,10 @@ public class WindowsShortcut {
 		}
 	}
 
+	@SuppressWarnings("TryWithIdenticalCatches")
 	public static Optional<File> targetedFile(File f) {
 		try {
-			return Optional.ofNullable(new File(new WindowsShortcut(f).real_file));
+			return Optional.of(new File(new WindowsShortcut(f).real_file));
 		} catch (IOException e) {
 			return Optional.empty();
 		} catch (ParseException e) {
@@ -75,11 +72,8 @@ public class WindowsShortcut {
 	}
 
 	public WindowsShortcut(File file) throws IOException, ParseException {
-		InputStream in = new FileInputStream(file);
-		try {
+		try (InputStream in = new FileInputStream(file)) {
 			parseLink(getBytes(in));
-		} finally {
-			in.close();
 		}
 	}
 
@@ -92,6 +86,7 @@ public class WindowsShortcut {
 
 	/**
 	 * Tests if the shortcut points to a local resource.
+	 *
 	 * @return true if the 'local' bit is set in this shortcut, false otherwise
 	 */
 	public boolean isLocal() {
@@ -100,6 +95,7 @@ public class WindowsShortcut {
 
 	/**
 	 * Tests if the shortcut points to a directory.
+	 *
 	 * @return true if the 'directory' bit is set in this shortcut, false otherwise
 	 */
 	public boolean isDirectory() {
@@ -108,6 +104,7 @@ public class WindowsShortcut {
 
 	/**
 	 * Gets all the bytes from an InputStream
+	 *
 	 * @param in the InputStream from which to read bytes
 	 * @return array of all the bytes contained in 'in'
 	 * @throws IOException if an IOException is encountered while reading the data from the InputStream
@@ -118,6 +115,7 @@ public class WindowsShortcut {
 
 	/**
 	 * Gets up to max bytes from an InputStream
+	 *
 	 * @param in the InputStream from which to read bytes
 	 * @param max maximum number of bytes to read
 	 * @return array of all the bytes contained in 'in'
@@ -127,13 +125,13 @@ public class WindowsShortcut {
 		// read the entire file into a byte buffer
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		byte[] buff = new byte[256];
-		while (max == null || max > 0) {
+		while (max==null || max>0) {
 			int n = in.read(buff);
-			if (n == -1) {
+			if (n==-1) {
 				break;
 			}
 			bout.write(buff, 0, n);
-			if (max != null)
+			if (max!=null)
 				max -= n;
 		}
 		in.close();
@@ -143,13 +141,15 @@ public class WindowsShortcut {
 	private static boolean isMagicPresent(byte[] link) {
 		final int magic = 0x0000004C;
 		final int magic_offset = 0x00;
-		return link.length >= 32 && bytesToDword(link, magic_offset) == magic;
+		return link.length>=32 && bytesToDWord(link, magic_offset)==magic;
 	}
 
 	/**
 	 * Gobbles up link data by parsing it and storing info in member fields
+	 *
 	 * @param link all the bytes from the .lnk file
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	private void parseLink(byte[] link) throws ParseException {
 		try {
 			if (!isMagicPresent(link))
@@ -161,18 +161,14 @@ public class WindowsShortcut {
 			// get the file attributes byte
 			final int file_atts_offset = 0x18;
 			byte file_atts = link[file_atts_offset];
-			byte is_dir_mask = (byte)0x10;
-			if ((file_atts & is_dir_mask) > 0) {
-				isDirectory = true;
-			} else {
-				isDirectory = false;
-			}
+			byte is_dir_mask = (byte) 0x10;
+			isDirectory = (file_atts&is_dir_mask)>0;
 
 			// if the shell settings are present, skip them
 			final int shell_offset = 0x4c;
-			final byte has_shell_mask = (byte)0x01;
+			final byte has_shell_mask = (byte) 0x01;
 			int shell_len = 0;
-			if ((flags & has_shell_mask) > 0) {
+			if ((flags&has_shell_mask)>0) {
 				// the plus 2 accounts for the length marker itself
 				shell_len = bytesToWord(link, shell_offset) + 2;
 			}
@@ -182,7 +178,7 @@ public class WindowsShortcut {
 
 			final int file_location_info_flag_offset_offset = 0x08;
 			int file_location_info_flag = link[file_start + file_location_info_flag_offset_offset];
-			isLocal = (file_location_info_flag & 2) == 0;
+			isLocal = (file_location_info_flag&2)==0;
 			// get the local volume and local system values
 			//final int localVolumeTable_offset_offset = 0x0C;
 			final int basename_offset_offset = 0x10;
@@ -198,7 +194,7 @@ public class WindowsShortcut {
 				int networkVolumeTable_offset = link[file_start + networkVolumeTable_offset_offset] + file_start;
 				int shareName_offset_offset = 0x08;
 				int shareName_offset = link[networkVolumeTable_offset + shareName_offset_offset]
-					                       + networkVolumeTable_offset;
+						+ networkVolumeTable_offset;
 				String shareName = getNullDelimitedString(link, shareName_offset);
 				real_file = shareName + "\\" + finalname;
 			}
@@ -211,7 +207,7 @@ public class WindowsShortcut {
 		int len = 0;
 		// count bytes until the null character (0)
 		while (true) {
-			if (bytes[off + len] == 0) {
+			if (bytes[off + len]==0) {
 				break;
 			}
 			len++;
@@ -224,11 +220,11 @@ public class WindowsShortcut {
 	 * for an Intel only OS.
 	 */
 	private static int bytesToWord(byte[] bytes, int off) {
-		return ((bytes[off + 1] & 0xff) << 8) | (bytes[off] & 0xff);
+		return ((bytes[off + 1]&0xff)<<8)|(bytes[off]&0xff);
 	}
 
-	private static int bytesToDword(byte[] bytes, int off) {
-		return (bytesToWord(bytes, off + 2) << 16) | bytesToWord(bytes, off);
+	private static int bytesToDWord(byte[] bytes, int off) {
+		return (bytesToWord(bytes, off + 2)<<16)|bytesToWord(bytes, off);
 	}
 
 }

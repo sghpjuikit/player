@@ -36,6 +36,7 @@ import static util.file.AudioFileFormat.Use.PLAYBACK;
 import static util.functional.Util.*;
 import static util.type.Util.*;
 
+// TODO: fix all warnings
 public class FunctorPool {
 
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
@@ -202,11 +203,11 @@ public class FunctorPool {
 		// TODO: read from APP.classFields
 		// fielded values
 		for (Metadata.Field f : Metadata.Field.FIELDS)
-			add(f.name(), Metadata.class, f.getType(), f::getOf);
+			add(f.name(), Metadata.class, f.getType(), m -> (f).getOf(m));
 		for (PlaylistItem.Field f : PlaylistItem.Field.FIELDS)
-			add(f.name(), PlaylistItem.class, f.getType(), f::getOf);
+			add(f.name(), PlaylistItem.class, f.getType(), m -> (f).getOf(m));
 		for (MetadataGroup.Field f : MetadataGroup.Field.FIELDS)
-			add(f.name(), MetadataGroup.class, f.getType(), f::getOf);
+			add(f.name(), MetadataGroup.class, f.getType(), m -> (f).getOf(m));
 	}
 
 	public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I, ? extends O> f) {
@@ -278,9 +279,9 @@ public class FunctorPool {
 
 	/** Remove function from the pool. */
 	public void remF(PƑ f) {
-		fsI.deaccumulate(f);
-		fsO.deaccumulate(f);
-		fsIO.deaccumulate(f);
+		fsI.deAccumulate(f);
+		fsO.deAccumulate(f);
+		fsIO.deAccumulate(f);
 	}
 
 	@SuppressWarnings("unckeched")
@@ -323,14 +324,14 @@ public class FunctorPool {
 			List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
 			PrefList ll = l==null ? null : (PrefList) l;
 			if (ll!=null) {
-				if (pref==null && ll.getPreferedOrFirst()!=null) pref = ll.getPreferedOrFirst();
+				if (pref==null && ll.getPreferredOrFirst()!=null) pref = ll.getPreferredOrFirst();
 				pl.addAll(ll);
 			}
 		}
 		Object prefCopy = pref;
 		pl.removeIf(e -> e==prefCopy || e==null);
 		if (pref!=null) pl.addPreferred(pref);
-		if (pl.getPreferedOrFirst()==null && !pl.isEmpty()) {
+		if (pl.getPreferredOrFirst()==null && !pl.isEmpty()) {
 			Object e = pl.get(pl.size()-1);
 			pl.remove(pl.size()-1);
 			pl.addPreferred(e);
@@ -356,17 +357,17 @@ public class FunctorPool {
 
 	public <I> PƑ<I,?> getPrefI(Class<I> i) {
 		PrefList<PƑ<I,?>> pl = getI(i);
-		return pl==null ? null : pl.getPreferedOrFirst();
+		return pl==null ? null : pl.getPreferredOrFirst();
 	}
 
 	public <O> PƑ<?,O> getPrefO(Class<O> o) {
 		PrefList<PƑ<?,O>> l = getO(o);
-		return l==null ? null : l.getPreferedOrFirst();
+		return l==null ? null : l.getPreferredOrFirst();
 	}
 
 	public <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
 		PrefList<PƑ<I,O>> l = getIO(i,o);
-		return l==null ? null : l.getPreferedOrFirst();
+		return l==null ? null : l.getPreferredOrFirst();
 	}
 
 	public <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {

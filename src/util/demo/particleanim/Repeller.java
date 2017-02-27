@@ -11,9 +11,9 @@ import javafx.scene.text.TextBoundsType;
  * A node which calculates a repelling force for particles
  */
 public class Repeller extends Sprite {
-	
+
 	public Repeller(Vector2D location, Vector2D velocity, Vector2D acceleration, double width, double height) {
-		super( location, velocity, acceleration, width, height);
+		super(location, velocity, acceleration, width, height);
 	}
 
 	/**
@@ -21,30 +21,30 @@ public class Repeller extends Sprite {
 	 */
 	@Override
 	public Node createView() {
-		
+
 		Group group = new Group();
-		
-		double radius = width / 2;
-		
-		Circle circle = new Circle( radius);
-		
+
+		double radius = width/2;
+
+		Circle circle = new Circle(radius);
+
 		circle.setCenterX(radius);
 		circle.setCenterY(radius);
-		
+
 		circle.setStroke(Color.YELLOW);
 		circle.setFill(Color.YELLOW.deriveColor(1, 1, 1, 0.3));
 
-		group.getChildren().add( circle);
+		group.getChildren().add(circle);
 
-		Text text = new Text( "Repeller");
+		Text text = new Text("Repeller");
 		text.setStroke(Color.YELLOW);
 		text.setFill(Color.YELLOW);
 		text.setBoundsType(TextBoundsType.VISUAL);
-		
-		text.relocate(radius - text.getLayoutBounds().getWidth() / 2, radius - text.getLayoutBounds().getHeight() / 2);
-		
-		group.getChildren().add( text);
-		
+
+		text.relocate(radius - text.getLayoutBounds().getWidth()/2, radius - text.getLayoutBounds().getHeight()/2);
+
+		group.getChildren().add(text);
+
 		return group;
 	}
 
@@ -59,7 +59,7 @@ public class Repeller extends Sprite {
 		distance = Utils.clamp(distance, 5, 1000); // keep distance within a reasonable range
 
 		// calculate magnitude
-		double force = -1.0 * Settings.REPELLER_STRENGTH / (distance * distance); // repelling force is inversely proportional to distance
+		double force = -1.0*Settings.REPELLER_STRENGTH/(distance*distance); // repelling force is inversely proportional to distance
 
 		// make a vector out of direction and magnitude
 		dir.multiply(force); // get force vector => magnitude * direction
@@ -67,5 +67,5 @@ public class Repeller extends Sprite {
 		return dir;
 
 	}
-	
+
 }

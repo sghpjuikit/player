@@ -1,11 +1,6 @@
 package util.action;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
+import java.lang.annotation.*;
 import org.atteo.classindex.IndexAnnotated;
 
 /**
@@ -21,9 +16,9 @@ import org.atteo.classindex.IndexAnnotated;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface IsActionable {
-    /**
-     *  Provides an optional category name for the actions in the annotated class.
-     *  Otherwise {@link Class#getSimpleName()} will be used instead.
-     */
-    String value() default "";
+	/**
+	 * Provides an optional category name for the actions in the annotated class.
+	 * Otherwise {@link Class#getSimpleName()} will be used instead.
+	 */
+	String value() default "";
 }

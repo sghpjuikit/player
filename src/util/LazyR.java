@@ -1,16 +1,14 @@
 package util;
 
 import java.util.function.Supplier;
-
 import util.functional.Functors;
-
 import static util.dev.Util.noØ;
 
 /**
  * Lazy reference.
  *
  * @param <V> type of instance
- *
+ * <p>
  * Created by Plutonium_ on 3/12/2016.
  */
 public class LazyR<V> extends R<V> {
@@ -20,7 +18,7 @@ public class LazyR<V> extends R<V> {
 
 	/**
 	 * @param builder produces the instance when it is first accessed. Builder can produce null. It will never execute
-	 *                more than once.
+	 * more than once.
 	 */
 	public LazyR(Supplier<V> builder) {
 		noØ(builder);
@@ -54,7 +52,7 @@ public class LazyR<V> extends R<V> {
 		return v;
 	}
 
-	public <M> V get(M m, Functors.Ƒ1<M, V> or) {
+	public <M> V get(M m, Functors.Ƒ1<M,V> or) {
 		if (!isSet) set(or.apply(m));
 		return v;
 	}

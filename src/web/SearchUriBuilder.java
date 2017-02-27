@@ -1,7 +1,6 @@
 package web;
 
 import java.net.URI;
-
 import util.functional.Functors.Ƒ1;
 import util.plugin.IsPluginType;
 

@@ -36,7 +36,7 @@ public class FileField<T> implements ObjectField<File,T> {
 	public static final FileField<FileTime> TIME_CREATED = new FileField<>("Time Created", "Time Created", f -> {
 		try {
 			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
-				.creationTime();
+					.creationTime();
 		} catch (IOException e) {
 			return null;
 		}
@@ -44,9 +44,9 @@ public class FileField<T> implements ObjectField<File,T> {
 	public static final FileField<Date> TIME_CREATED_FROM_TAG = new FileField<>("Time Created (tag)", "Time Created (metadata)", f -> {
 		try {
 			return ImageMetadataReader
-				.readMetadata(f)
-				.getFirstDirectoryOfType(XmpDirectory.class)
-				.getDate(XmpDirectory.TAG_CREATE_DATE);
+					.readMetadata(f)
+					.getFirstDirectoryOfType(XmpDirectory.class)
+					.getDate(XmpDirectory.TAG_CREATE_DATE);
 		} catch (IOException|ImageProcessingException|NullPointerException e) {
 //			log(FileField.class).error("Could not read image xmp metadata for {}", f, e);
 			return null;
@@ -55,7 +55,7 @@ public class FileField<T> implements ObjectField<File,T> {
 	public static final FileField<FileTime> TIME_ACCESSED = new FileField<>("Time Accessed", "Time Accessed", f -> {
 		try {
 			return Files.readAttributes(f.toPath(), BasicFileAttributes.class)
-				.lastAccessTime();
+					.lastAccessTime();
 		} catch (IOException e) {
 			return null;
 		}
@@ -64,11 +64,10 @@ public class FileField<T> implements ObjectField<File,T> {
 	public static final FileField<MimeType> MIME = new FileField<>("Mime Type", "Mime Type", App.APP.mimeTypes::ofFile, MimeType.class);
 	public static final FileField<String> MIME_GROUP = new FileField<>("Mime Group", "Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
 
-
 	private final String name;
 	private final String description;
 	private final Ƒ1<? super File,? extends T> mapper;
-	private final Class<?> type;
+	private final Class<T> type;
 
 	FileField(String name, String description, Ƒ1<? super File,? extends T> extractor, Class<T> type) {
 		this.name = name;
@@ -120,7 +119,7 @@ public class FileField<T> implements ObjectField<File,T> {
 	}
 
 	@Override
-	public Class getType() {
+	public Class<T> getType() {
 		return type;
 	}
 }

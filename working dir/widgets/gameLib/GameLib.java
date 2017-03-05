@@ -1,20 +1,5 @@
 package gameLib;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javafx.animation.Interpolator;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
-
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.Gui;
 import gui.objects.icon.Icon;
@@ -23,6 +8,19 @@ import gui.objects.image.cover.Cover;
 import gui.objects.image.cover.FileCover;
 import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.animation.Interpolator;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import util.SwitchException;
@@ -41,7 +39,6 @@ import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.validation.Constraint;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;

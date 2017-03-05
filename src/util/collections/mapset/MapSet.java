@@ -104,6 +104,7 @@ public class MapSet<K, E> implements Set<E> {
 		return m.isEmpty();
 	}
 
+	@Deprecated
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean contains(Object o) {
@@ -112,6 +113,11 @@ public class MapSet<K, E> implements Set<E> {
 
 	public boolean containsKey(K k) {
 		return m.containsKey(k);
+	}
+
+	@SuppressWarnings("deprecation")
+	public boolean containsValue(E e) {
+		return contains(e);
 	}
 
 	@Override
@@ -158,12 +164,14 @@ public class MapSet<K, E> implements Set<E> {
 		return m.containsKey(key) ? m.get(key) : supplier.get();
 	}
 
+	@Deprecated
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean remove(Object o) {
 		return removeKey(keyMapper.apply((E) o));
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean removeValue(E o) {
 		return remove(o);
 	}
@@ -175,6 +183,7 @@ public class MapSet<K, E> implements Set<E> {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		for (Object e : c)

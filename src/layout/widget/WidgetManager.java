@@ -1,5 +1,8 @@
 package layout.widget;
 
+import gui.objects.window.stage.UiContext;
+import gui.objects.window.stage.Window;
+import gui.objects.window.stage.WindowManager;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,25 +14,18 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Stream;
-
+import javafx.scene.layout.Pane;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
-
-import javafx.scene.layout.Pane;
-
-import org.atteo.classindex.ClassIndex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import gui.objects.window.stage.UiContext;
-import gui.objects.window.stage.Window;
-import gui.objects.window.stage.WindowManager;
 import layout.Component;
 import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
 import one.util.streamex.StreamEx;
+import org.atteo.classindex.ClassIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SwitchException;
 import util.async.executor.EventReducer;
 import util.collections.mapset.MapSet;
@@ -37,7 +33,6 @@ import util.dev.Idempotent;
 import util.file.FileMonitor;
 import util.file.Util;
 import util.functional.Try;
-
 import static java.nio.file.StandardWatchEventKinds.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -63,7 +58,7 @@ public final class WidgetManager {
 	 * widgets files are discovered/deleted/modified.
 	 */
 	public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(WidgetFactory::name);
-	private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetname);
+	private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetName);
 	private boolean initialized = false;
 	private final WindowManager windowManager; // use App instead, but that requires different App initialization
 	private final Consumer<? super String> userErrorLogger;
@@ -120,13 +115,13 @@ public final class WidgetManager {
 
 			FileMonitor.monitorDirsFiles(dirL, f -> f.getPath().endsWith(".fxwl"), (type, fxwl) -> {
 				String name = capitalize(getName(fxwl));
-				if (type == ENTRY_CREATE && !factories.contains(name)) {
+				if (type == ENTRY_CREATE && !factories.containsKey(name)) {
 					LOGGER.info("Discovered widget type: {}", name);
-					factories.computeIfAbsent(name, key -> new WidgetFactory<>(fxwl));
+					factories.computeIfAbsent(name, () -> new WidgetFactory<>(fxwl));
 				}
 				if (type == ENTRY_DELETE && factories.get(name)!=null && factories.get(name).isDelegated) {
 					LOGGER.info("Disposing widget type: {}", name);
-					factories.remove(name);
+					factories.removeKey(name);
 				}
 			});
 		}
@@ -145,8 +140,8 @@ public final class WidgetManager {
 		}
 
 		WidgetFactory<?> wf = new WidgetFactory<>((Class<Controller<?>>) controller_class, dir);
-		boolean was_replaced = factories.containsKey(wf.name());
-		factories.removeKey(wf.name());
+		boolean was_replaced = factories.containsValue(wf);
+		factories.removeValue(wf);
 		factories.add(wf);
 		LOGGER.info("Registering widget factory: {}", wf.name());
 
@@ -169,101 +164,90 @@ public final class WidgetManager {
 	}
 
 	private class WidgetDir {
-		final String widgetname;
-		final File widgetdir;
-		final File classfile;
-		final File srcFile;
-		final File skinFile;
-		FileMonitor classMonitor;
-		FileMonitor srcMonitor;
-		FileMonitor skinsMonitor;
-		boolean monitorOn = false;
+		private final String widgetName;
+		private final File widgetDir;
+		private final File classFile;
+		private final File srcFile;
+		private final File skinFile;
+		private FileMonitor fileMonitor;
 		private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
 			() -> runFX(this::registerExternalFactory));
 		private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
 			() -> runNew(() -> compile(getSrcFiles(),getLibFiles()).ifError(userErrorLogger)));
 
 		WidgetDir(String name, File dir) {
-			this.widgetname = name;
-			this.widgetdir = dir;
-			classfile = new File(widgetdir,widgetname + ".class");
-			srcFile = new File(widgetdir,widgetname + ".java");
-			skinFile = new File(widgetdir,"skin.css");
+			widgetName = name;
+			widgetDir = dir;
+			classFile = new File(widgetDir, widgetName + ".class");
+			srcFile = new File(widgetDir, widgetName + ".java");
+			skinFile = new File(widgetDir,"skin.css");
 		}
 
 		@Idempotent
 		void monitorStart() {
-			if (monitorOn) return;
-			monitorOn = true;
-
-			// monitor source files (any .java file) & recompile on change
-			// Because the widget may be skinned (.css), load from fxml (.fxml) or use any kind of resource
-			// (.jar, .txt, etc.), we will monitor all of the files except for .class, not just .java.
-			classMonitor = FileMonitor.monitorDirsFiles(widgetdir, file -> !file.getPath().endsWith(".class"), (type,file) -> {
+			if (fileMonitor!=null) return;
+			fileMonitor = FileMonitor.monitorDirsFiles(widgetDir, file -> true, (type, file) -> {
 				if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-					LOGGER.info("Widget {} source file changed {}", file,type);
-					// Compile source files, but
-					// - on new thread
-					// - throttle subsequent events (multiple files may be changed at once, multiple events per file
-					//   may be thrown at once (when applications create tmp files while saving)
-					scheduleCompilation.push(null);
-				}
-			});
-			// monitor class file (only the main class' one) & recreate factory on change
-			srcMonitor = FileMonitor.monitorFile(classfile, type -> {
-				if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-					LOGGER.info("Widget {} class file changed {}", widgetname,type);
-					// Register factory, but
-					// - on fx thread
-					// - throttle subsequent events to avoid inconsistent state & overloading ui thread
-					// - give the compilation some time to finish
-					scheduleRefresh.push(null);
-				}
-			});
-			// monitor skin file & reload factory on change
-			srcMonitor = FileMonitor.monitorFile(skinFile, type -> {
-				if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-					LOGGER.info("Widget {} SKIN file changed {}", widgetname,type);
-					// reload skin on all open widgets
-					// run on fx thread
-					runFX(() ->
-						findAll(OPEN).filter(w -> w.getName().equals(widgetname))
-							.forEach(w -> {
-								try {
-									if (w.root instanceof Pane) {
-										((Pane)w.root).getStylesheets().remove(skinFile.toURI().toURL().toExternalForm());
-										((Pane)w.root).getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
+					if (file.getPath().endsWith(".class")) {
+						// monitor class file (only the main class' one) & recreate factory on change
+						if (file.equals(classFile)) {
+							LOGGER.info("Widget {} class file changed {}", widgetName, type);
+							// Register factory, but
+							// - on fx thread
+							// - throttle subsequent events to avoid inconsistent state & overloading ui thread
+							// - give the compilation some time to finish
+							scheduleRefresh.push(null);
+						}
+					} else if (file.equals(skinFile)) {
+						// monitor skin file & on change reload skin on all open widgets
+						LOGGER.info("Widget {} SKIN file changed {}", widgetName,type);
+						runFX(() ->
+							findAll(OPEN).filter(w -> w.getName().equals(widgetName))
+								.forEach(w -> {
+									try {
+										if (w.root instanceof Pane) {
+											((Pane)w.root).getStylesheets().remove(skinFile.toURI().toURL().toExternalForm());
+											((Pane)w.root).getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
+										}
+									} catch (MalformedURLException ex) {
+										java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
 									}
-								} catch (MalformedURLException ex) {
-									java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
-								}
-							})
-					);
+								})
+						);
+					} else {
+						// monitor source files (any .java file) & recompile on change
+						// Because the widget may be skinned (.css), loaded from fxml (.fxml) or use any kind of resource
+						// (.jar, .txt, etc.), we will monitor all of the files except for .class, not just .java.
+						LOGGER.info("Widget {} source file changed {}", file,type);
+						// Compile source files, but
+						// - on new thread
+						// - throttle subsequent events (multiple files may be changed at once, multiple events per file
+						//   may be thrown at once (when applications create tmp files while saving)
+						scheduleCompilation.push(null);
+					}
 				}
 			});
 		}
 
 		@Idempotent
 		void monitorStop() {
-			monitorOn = false;
-			if (classMonitor!=null) classMonitor.stop();
-			if (classMonitor!=null) srcMonitor.stop();
-			if (classMonitor!=null) skinsMonitor.stop();
+			if (fileMonitor!=null) fileMonitor.stop();
+			fileMonitor = null;
 		}
 
 		@Idempotent
 		void dispose() {
 			monitorStop();
-			factories.removeKey(widgetname);
-			monitors.removeKey(widgetname);
+			factories.removeKey(widgetName);
+			monitors.removeKey(widgetName);
 		}
 
 		void registerExternalFactory() {
-			File classFile = new File(widgetdir, widgetname + ".class");
-			File srcFile = new File(widgetdir, widgetname + ".java");
+			File classFile = new File(widgetDir, widgetName + ".class");
+			File srcFile = new File(widgetDir, widgetName + ".java");
 
 			// Source file is available if exists
-			// Class file is available if exists and source file does not. But if both do, classfile must
+			// Class file is available if exists and source file does not. But if both do, class file must
 			// not be outdated, which we check by modification time. This avoids nasty class version
 			// errors as consequently we recompile the source file.
 			boolean srcFile_available = srcFile.exists();
@@ -271,8 +255,8 @@ public final class WidgetManager {
 
 			// If class file is available, we just create factory for it.
 			if (classFile_available) {
-				Class<?> controller_class = loadClass(getName(widgetdir), classFile, getLibFiles());
-				constructFactory(controller_class, widgetdir);
+				Class<?> controller_class = loadClass(getName(widgetDir), classFile, getLibFiles());
+				constructFactory(controller_class, widgetDir);
 			}
 
 			// If only source file is available, compile
@@ -296,15 +280,15 @@ public final class WidgetManager {
 		}
 
 		Stream<File> getSrcFiles() {
-			return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".java"));
+			return listFiles(widgetDir).filter(f -> f.getPath().endsWith(".java"));
 		}
 
 		Stream<File> getClassFiles() {
-			return listFiles(widgetdir).filter(f -> f.getPath().endsWith(".class"));
+			return listFiles(widgetDir).filter(f -> f.getPath().endsWith(".class"));
 		}
 
 		Stream<File> getLibFiles() {
-			return stream(listFiles(widgetdir),listFiles(widgetdir.getParentFile()))
+			return stream(listFiles(widgetDir),listFiles(widgetDir.getParentFile()))
 					   .filter(f -> f.getPath().endsWith(".jar"));
 		}
 
@@ -460,7 +444,7 @@ public final class WidgetManager {
 		return getFactories().flatMap(f -> f.getFeatures().stream()).distinct();
 	}
 
-/******************************************************************************/
+/* --------------------- LOOK UP ------------------------------------------------------------------------------------ */
 
 	/**
 	 * remembers standalone widgets not part of any layout, mostly in popups
@@ -472,7 +456,7 @@ public final class WidgetManager {
 	public Stream<Widget<?>> findAll(WidgetSource source) {
 		switch(source) {
 			case LAYOUT:
-				return getLayouts().flatMap(l -> l.getAllWidgets());
+				return getLayouts().flatMap(Container::getAllWidgets);
 			case STANDALONE:
 			case NO_LAYOUT:
 				return standaloneWidgets.stream();
@@ -528,8 +512,8 @@ public final class WidgetManager {
 		String preferred = getFactories()
 				.filter(filter::test)
 				.filter(w -> !w.isIgnored())
-				.filter(f -> f.isPreferred())
-				.findAny().map(f -> f.nameGui()).orElse("");
+				.filter(WidgetFactory::isPreferred)
+				.findAny().map(WidgetFactory::nameGui).orElse("");
 
 		// get viable widgets - widgets of the feature & of preferred type if any
 		List<Widget<?>> widgets = findAll(source)
@@ -573,10 +557,12 @@ public final class WidgetManager {
 	 * Equivalent to: {@code
 	 * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
 	 */
+	@SuppressWarnings("unchecked")
 	public <F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
 		return find(w -> w.hasFeature(feature), source, ignore).map(w -> (F)w.getController());
 	}
 
+	@SuppressWarnings("unchecked")
 	public <F> Optional<F> find(Class<F> feature, WidgetSource source) {
 		return find(w -> w.hasFeature(feature), source).map(w -> (F)w.getController());
 	}
@@ -651,6 +637,7 @@ public final class WidgetManager {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public enum WidgetTarget {
 		LAYOUT,
 		TAB,
@@ -686,7 +673,6 @@ public final class WidgetManager {
 	/**
 	 * Return all names of all layouts available to the application, including
 	 * serialized layouts in files.
-	 * @return
 	 */
 	public Stream<String> getAllLayoutsNames() {
 		findLayouts();

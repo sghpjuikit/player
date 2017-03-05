@@ -475,7 +475,7 @@ public final class Action extends Config<Action> implements Runnable {
 			window -> {
 				Scene scene = window.getScene();
 				if (scene!=null)
-					Action.getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.unregisterInScene(scene));
+					getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.unregisterInScene(scene));
 			}
 	);
 

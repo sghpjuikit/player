@@ -968,7 +968,6 @@ public class App extends Application implements Configurable {
 		Db.stop();
 		Action.stopActionListening();
 		appCommunicator.stop();
-		Runtime.getRuntime().halt(0);
 	}
 
 	/** Closes this app normally. Invokes {@link #stop()} as a result. */

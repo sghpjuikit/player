@@ -41,11 +41,15 @@ public class Placeholder extends StackPane {
 		);
 	}
 
+	/**
+	 * Use {@link #visibleProperty()} to observe visibility.
+	 */
 	public void showFor(Node n) {
 		Pane p = n instanceof Pane ? (Pane) n : n.getParent()==null ? null : (Pane) n.getParent();
 		if (p!=null && !p.getChildren().contains(this)) {
 //            parent = p;
 //            parent.getChildren().forEach(c -> c.setOpacity(0.2));
+			setVisible(true);
 			p.getChildren().add(this);
 			s = maintain(n.layoutBoundsProperty(), b -> {
 				double w = b.getWidth();
@@ -59,12 +63,19 @@ public class Placeholder extends StackPane {
 		}
 	}
 
+	/**
+	 * Use {@link #visibleProperty()} to observe visibility.
+	 */
 	public void hide() {
 //        if (parent!=null) parent.getChildren().forEach(c -> c.setOpacity(1));
 		if (s!=null) s.unsubscribe();
 		removeFromParent(this);
+		setVisible(false);
 	}
 
+	/**
+	 * Use {@link #visibleProperty()} to observe visibility.
+	 */
 	public void show(Node n, boolean visible) {
 		if (visible) showFor(n);
 		else hide();

@@ -195,7 +195,19 @@ public interface Util {
 	}
 
 	/**
-	 * Converts primitive class to wrapper class.
+	 * Converts class representing primitive type or void to its respective wrapper class.<br/>
+     * This applies to the following 9 types:
+     * <ul>
+     *     <li> {@literal void.class}
+     *     <li> {@literal byte.class}
+     *     <li> {@literal boolean.class}
+     *     <li> {@literal short.class}
+     *     <li> {@literal integer.class}
+     *     <li> {@literal long.class}
+     *     <li> {@literal float.class}
+     *     <li> {@literal double.class}
+     *     <li> {@literal character.class}
+     * </ul>
 	 *
 	 * @param c any class
 	 * @return respective primitive wrapper class of given class or the class itself if it is not primitive.
@@ -211,6 +223,7 @@ public interface Util {
 			if (c.equals(byte.class)) return (Class) Byte.class;
 			if (c.equals(short.class)) return (Class) Short.class;
 			if (c.equals(char.class)) return (Class) Character.class;
+			if (c.equals(void.class)) return (Class) Void.class;
 		}
 		return c;
 	}

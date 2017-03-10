@@ -8,6 +8,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.Timeline;
@@ -531,16 +532,22 @@ public class Thumbnail extends ImageNode {
 
 	private EventHandler<MouseEvent> buildDH() {
 		return e -> {
-			if (e.getButton()==PRIMARY && getFile()!=null) {
-//                TransferMode t = e.isShiftDown() ? TransferMode.MOVE : e.isAltDown() ? TransferMode.
-				Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-				// set drag image
-				if (getImage()!=null) db.setDragView(getImage());
-				// set content
-				HashMap<DataFormat,Object> c = new HashMap<>();
-				Object o = getRepresentant();
-				c.put(FILES, stream(o instanceof File ? o : getFile()).filter(ISNTØ).toList());
-				db.setContent(c);
+			if (e.getButton()==PRIMARY) {
+				Object representant = getRepresentant();
+				File file = getFile();
+				List<File> files = stream(representant instanceof File ? (File) representant : file)
+						.filter(ISNTØ)
+						.toList();
+
+				if (!files.isEmpty()) {
+					Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+					if (getImage()!=null) db.setDragView(getImage());
+
+					HashMap<DataFormat,Object> c = new HashMap<>();
+					c.put(FILES, files);
+					db.setContent(c);
+				}
+
 				e.consume();
 			}
 		};

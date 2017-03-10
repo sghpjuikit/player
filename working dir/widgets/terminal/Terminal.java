@@ -10,7 +10,6 @@ import javafx.scene.paint.Color;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.graphics.drag.Placeholder;
-import static util.functional.Util.list;
 import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;

@@ -3,7 +3,8 @@ package util.graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javax.swing.filechooser.FileSystemView;
@@ -27,7 +28,7 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 public class IconExtractor {
 
 	private static final R<FileSystemView> helperFileSystemView = new LazyR<>(FileSystemView::getFileSystemView);
-	private static final HashMap<String,Image> mapOfFileExtToSmallIcon = new HashMap<>();
+	private static final Map<String,Image> mapOfFileExtToSmallIcon = new ConcurrentHashMap<>();
 
 	private static javax.swing.Icon getSwingIconFromFileSystem(File file) {
 

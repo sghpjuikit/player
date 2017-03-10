@@ -594,7 +594,7 @@ public class App extends Application implements Configurable {
 		actionPane.register(File.class,
 			new FastAction<>("Recycle", "Moves file to recycle bin.",
 				MaterialIcon.DELETE,
-				Environment::deleteFileRecycle),
+				Util::recycleFile),
 			new FastAction<>("Read metadata", "Prints all image metadata to console.",
 				MaterialIcon.IMAGE_ASPECT_RATIO,
 				ImageFileFormat::isSupported,

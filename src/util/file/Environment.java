@@ -291,10 +291,6 @@ public interface Environment {
 		return f!=null ? Try.ok(f) : Try.error();
 	}
 
-	static boolean deleteFileRecycle(File f) {
-		return Desktop.getDesktop().moveToTrash(f);
-	}
-
 	private static void openWindowsExplorerAndSelect(File f) throws IOException {
 		// TODO: make sure the path does not have to be quoted in " like:  "path". Although quoting the path
 		// does cause FileNotFoundException, the explorer.exe does open and select the file. I added the

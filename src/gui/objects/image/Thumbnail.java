@@ -48,7 +48,7 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.file.Environment.copyToSysClipboard;
-import static util.file.Util.deleteFile;
+import static util.file.Util.recycleFile;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 import static util.graphics.Util.getScreen;
@@ -642,7 +642,7 @@ public class Thumbnail extends ImageNode {
 					menuItem("Browse location", e -> Environment.browse(getValue().fsImageFile)),
 					menuItem("Open (in associated program)", e -> Environment.open(getValue().fsImageFile)),
 					menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().fsImageFile)),
-					menuItem("Delete from disc", e -> deleteFile(getValue().fsImageFile)),
+					menuItem("Delete from disc", e -> recycleFile(getValue().fsImageFile)),
 					menuItem("Fullscreen", e -> {
 						File f = getValue().fsImageFile;
 						if (ImageFileFormat.isSupported(f)) {
@@ -655,7 +655,7 @@ public class Thumbnail extends ImageNode {
 					menuItem("Browse location", e -> Environment.browse(getValue().file)),
 					menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
 					menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
-					menuItem("Delete from disc", e -> deleteFile(getValue().file)),
+					menuItem("Delete from disc", e -> recycleFile(getValue().file)),
 					menuItem("Copy as ...", e ->
 						Environment.saveFile(
 							"Copy as...",

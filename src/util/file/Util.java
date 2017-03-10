@@ -1,5 +1,6 @@
 package util.file;
 
+import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -14,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import util.file.AudioFileFormat.Use;
+import util.functional.Try;
 import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static util.Util.filenamizeString;
@@ -399,17 +401,58 @@ public interface Util {
 		}
 	}
 
-	static void deleteFile(File f) {
-		if (!f.exists()) return;
-		try {
-			boolean success = f.delete();
-			if (!success) {
-				log(Util.class).error("Could not delete file {}. Will attempt to delete on app shutdown.", f);
-				f.deleteOnExit();
-			}
-		} catch (SecurityException e) {
-			log(util.Util.class).error("Could not delete file {}", f, e);
+	/**
+	 * Deletes the file by moving it to a recycle bin of the underlying OS.<br/>
+	 * If the file denotes a directory, it will be deleted including its content.
+	 * <p/>
+	 * The file will not be deleted permanently, only recycled, which is what user usually expects to happen. On the
+	 * other hand, an application may want to dispose of the file directly, where {@link #deleteFile(java.io.File)}
+	 * is more suitable.
+	 *
+	 * @param f nonnull file
+	 * @return success if file was deleted or did not exist or error if error occurs during deletion
+	 * @throws java.lang.RuntimeException if parameter null
+	 */
+	static Try<Void,Void> recycleFile(File f) {
+		return Desktop.getDesktop().moveToTrash(f) ? Try.ok() : Try.error();
+	}
+
+	/**
+	 * Deletes the file permanently.<br/>
+	 * If the file denotes a directory, it will be deleted including its content.
+	 * <p/>
+	 * The file will not be recycled, but deleted permanently, which is not what is usually desired when deletion is
+	 * invoked directly by a user. See {@link #recycleFile(java.io.File)}.
+	 *
+	 * @param f nonnull file
+	 * @return success if file was deleted or did not exist or error if error occurs during deletion
+	 * @throws java.lang.RuntimeException if parameter null
+	 */
+	static Try<Void,Exception> deleteFile(File f) {
+		if (f.isDirectory()) {
+			deleteDirContent(f);
 		}
+
+		try {
+			Files.delete(f.toPath());
+			return Try.ok();
+		} catch (NoSuchFileException e) {
+			return Try.ok();
+		} catch (IOException | SecurityException e) {
+			log(Util.class).error("Could not delete file {}", f, e);
+			return Try.error(e);
+		}
+	}
+
+	/**
+	 * Deletes content of the directory, but not directory itself. Does nothing when not a directory.
+	 *
+	 * @param dir nonnull file
+	 * @throws java.lang.RuntimeException if parameter null
+	 */
+	static void deleteDirContent(File dir) {
+		// TODO: improve performance using Walker ?
+		listFiles(dir).forEach(Util::deleteFile);
 	}
 
 	/**
@@ -600,29 +643,6 @@ public interface Util {
 	static String getSuffix(String path) {
 		int p = path.lastIndexOf('.');
 		return (p<=-1) ? "" : path.substring(p + 1);
-	}
-
-	/**
-	 * Deletes the file and if it denotes a directory, all its content too.
-	 *
-	 * @throws java.lang.NullPointerException if parameter null
-	 */
-	static void removeDir(File dir) {
-		if (dir.isDirectory()) {
-			File[] files = dir.listFiles();
-			if (files!=null && files.length>0)
-				for (File aFile : files)
-					removeDir(aFile);
-		}
-		dir.delete();
-	}
-
-	/**
-	 * Deletes content of the directory, but not directory itself. Does nothing
-	 * when not a directory.
-	 */
-	static void removeDirContent(File dir) {
-		listFiles(dir).forEach(Util::removeDir);
 	}
 
 	/**

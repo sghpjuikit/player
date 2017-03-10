@@ -21,6 +21,7 @@ import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import layout.widget.controller.io.InOutput;
 import services.database.Db;
 import util.async.Async;
@@ -44,16 +45,16 @@ import static util.functional.Util.list;
  */
 public class Player {
 
-/********************************************* STATE **********************************************/
-
-    public static final PlayerState state = PlayerState.deserialize();
-
-    public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(4, 8, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
+    // TODO: tweak thread pool to always have 1-2 threads on, but dispose of it entirely when this "service" is not used
+    public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(0, 8, 10, MINUTES, new LinkedBlockingQueue<>(), r -> {
             Thread t = new Thread(r);
                    t.setDaemon(true); // do not prevent application closing
                    t.setName("tagging-thread");
             return t;
         });
+/********************************************* STATE **********************************************/
+
+    public static final PlayerState state = PlayerState.deserialize();
 
     public static void initialize() {
         PLAYBACK.initialize();

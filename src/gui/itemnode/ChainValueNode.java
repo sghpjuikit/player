@@ -275,6 +275,12 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         }
 
         @Override
+        protected void changeValue(V nv) {
+            value = nv;
+            if (onItemChange!=null) onItemChange.accept(nv);
+        }
+
+        @Override
         public V getValue() {
             throw new UnsupportedOperationException();
         }

@@ -93,8 +93,6 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 		else return val;
 	}
 
-	/******************************************************************************/
-
 	@Override
 	default V apply(UnaryOperator<V> op) {
 		return op.apply(getValue());

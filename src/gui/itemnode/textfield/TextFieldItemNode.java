@@ -1,21 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package gui.itemnode.textfield;
 
+import gui.objects.textfield.DecoratedTextField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
-
-import gui.objects.textfield.DecoratedTextField;
 import util.access.AccessibleValue;
 import util.parsing.StringConverter;
 
@@ -50,125 +40,105 @@ import util.parsing.StringConverter;
  */
 public abstract class TextFieldItemNode<T> extends DecoratedTextField implements AccessibleValue<T> {
 
-    T v;
-    private StringConverter<T> converter;
-    private BiConsumer<T,T> onItemChange;
-    private Callback<T,String> valueFactory;
+	T v;
+	private StringConverter<T> converter;
+	private BiConsumer<T,T> onItemChange;
+	private Callback<T,String> valueFactory;
 
-    /**
-     * Constructor. Creates instance of the item text field utilizing parser
-     * of the provided type.
-     */
-    public TextFieldItemNode() {
-        // default implementation of value factory
-        valueFactory = this::itemToString;
+	/**
+	 * Constructor. Creates instance of the item text field utilizing parser
+	 * of the provided type.
+	 */
+	public TextFieldItemNode() {
+		// default implementation of value factory
+		valueFactory = this::itemToString;
 
-        // set the button to the right & action
-        setRight(new ArrowDialogButton());
-        getRight().setOnMouseClicked(e -> onDialogAction());
+		// set the button to the right & action
+		setRight(new ArrowDialogButton());
+		getRight().setOnMouseClicked(e -> onDialogAction());
 
-        setEditable(false);
+		setEditable(false);
 
-        //set same css style as TextField
-        getStyleClass().setAll(STYLE_CLASS());
-    }
+		//set same css style as TextField
+		getStyleClass().setAll(STYLE_CLASS());
+	}
 
+	public TextFieldItemNode(StringConverter<T> converter) {
+		this();
+		this.converter = converter;
+	}
 
-    public TextFieldItemNode(StringConverter<T> converter) {
-        this();
-        this.converter = converter;
-    }
+	/** Behavior to be executed on dialog button click. Should cause an execution of an {@link #setValue(Object)}. */
+	abstract void onDialogAction();
 
-    /** Behavior to be executed on dialog button click. Should cause an execution of an {@link #setValue(Object)}. */
-    abstract void onDialogAction();
+	/**
+	 * Sets item for this text field. Sets text and prompt text according to
+	 * provided implementation. The item change event is fired.
+	 */
+	@Override
+	public void setValue(T value) {
+		T ov = v;
+		if (ov==value || (ov!=null && value!=null && ov.equals(value))) return;
 
-    /**
-     * Sets item for this text field. Sets text and prompt text according to
-     * provided implementation. The item change event is fired.
-     */
-    @Override
-    public void setValue(T value) {
-        T ov = v;
-        if (ov==value || (ov!=null && value!=null && ov.equals(value))) return;
+		v = value;
+		String text = valueFactory.call(value);    // use factory to convert
+		setText(text);
+		setPromptText(text);
+		if (onItemChange!=null) onItemChange.accept(ov, value);
+	}
 
-        v = value;
-        String text = valueFactory.call(value);    // use factory to convert
-        setText(text);
-        setPromptText(text);
-        if (onItemChange!=null) onItemChange.accept(ov,value);
-    }
+	/**
+	 * Sets behavior to execute when item changes. The item change ignores
+	 * equality check and will fire even for same object to be set.
+	 */
+	public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
+		onItemChange = _onFontChange;
+	}
 
-    /**
-     * Sets behavior to execute when item changes. The item change ignores
-     * equality check and will fire even for same object to be set.
-     */
-    public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
-        onItemChange = _onFontChange;
-    }
+	/** @return current value displayed in this text field. */
+	@Override
+	public T getValue() {
+		return v;
+	}
 
-    /** @return current value displayed in this text field. */
-    @Override
-    public T getValue() {
-        return v;
-    }
+	/**
+	 * Sets value factory that specifies how the item will be parsed to
+	 * String. This an alternative to using String Parser.
+	 * Default factory invokes {@link #itemToString} method. Invoking this method
+	 * will override that behavior.
+	 *
+	 * @param factory factory for converting item to string. It takes item as a parameter and returns the String.
+	 */
+	public void setValueFactory(Callback<T,String> factory) {
+		valueFactory = factory;
+	}
 
-    /**
-     * Sets value factory that specifies how the item will be parsed to
-     * String. This an alternative to using String Parser.
-     * Default factory invokes {@link #itemToString} method. Invoking this method
-     * will override that behavior.
-     *
-     * @param factory factory for converting item to string. It takes item as
-     * a parameter and returns the String.
-     */
-    public void setValueFactory(Callback<T,String> factory) {
-        valueFactory = factory;
-    }
+	/**
+	 * Default implementation uses provided parser. Default implementation of the
+	 * value factory invokes this method.
+	 *
+	 * @param item item to convert
+	 * @return String as a representation of the item.
+	 * @throws RuntimeException if no parser is provided
+	 */
+	String itemToString(T item) {
+		if (item!=null) return converter.toS(item);
+		else return "";
+	}
 
-    /**
-     * Default implementation uses provided parser. Default implementation of the
-     * value factory invokes this method.
-     *
-     * @param item item to convert
-     * @return String as a representation of the item.
-     * @throws RuntimeException if no parser is provided
-     */
-    String itemToString(T item) {
-        if (item!=null) return converter.toS(item);
-        else return "";
-    }
+	/**
+	 * Returns style class as text field.
+	 * Should be: text-input, text-field.
+	 */
+	public static List<String> STYLE_CLASS() {
+		// debug (prints: text-input, text-field.)
+		// new TextField().getStyleClass().forEach(System.out::println);
 
-    /**
-     * Returns style class as text field.
-     * Should be: text-input, text-field.
-     */
-    public static List<String> STYLE_CLASS() {
-        // debug (prints: text-input, text-field.)
-        // new TextField().getStyleClass().forEach(System.out::println);
+		// manually
+		List<String> out = new ArrayList<>();
+		out.add("text-input");
+		out.add("text-field");
+		return out;
+	}
 
-        // manually
-        List<String> out = new ArrayList<>();
-                     out.add("text-input");
-                     out.add("text-field");
-        return out;
-    }
-
-    /**
-     * Button for calling dialogs, from within {@link TextFieldItemNode}.
-     * The button has its own css style class "dialog-button".
-     */
-    public static class ArrowDialogButton extends StackPane {
-
-        private static final String STYLE_CLASS = "dialog-button";
-
-        public ArrowDialogButton() {
-            Region r = new Region();
-                   r.getStyleClass().add(STYLE_CLASS);
-                   r.setMinSize(0, 0);
-                   r.setPrefSize(7, 6);
-                   r.setMaxSize(7, 6);
-            setPrefSize(22,22);
-            getChildren().add(r);
-        }
-    }
 }

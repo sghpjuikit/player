@@ -27,10 +27,10 @@ import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.Util.getExistingParent;
 import static util.dev.TODO.Purpose.*;
 import static util.dev.Util.log;
 import static util.file.FileType.DIRECTORY;
+import static util.file.Util.traverseExistingDir;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
 import static util.functional.Util.*;
@@ -259,13 +259,13 @@ public interface Environment {
 		if (type==DIRECTORY) {
 			DirectoryChooser c = new DirectoryChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(getExistingParent(initial, APP.DIR_APP));
+			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
 			File f = c.showDialog(w);
 			return f!=null ? ok(f) : error();
 		} else {
 			FileChooser c = new FileChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(getExistingParent(initial, APP.DIR_APP));
+			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
 			if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 			File f = c.showOpenDialog(w);
 			return f!=null ? ok(f) : error();
@@ -275,7 +275,7 @@ public interface Environment {
 	static Try<List<File>,Void> chooseFiles(String title, File initial, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(getExistingParent(initial, APP.DIR_APP));
+		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		List<File> fs = c.showOpenMultipleDialog(w);
 		return fs!=null && !fs.isEmpty() ? ok(fs) : error();
@@ -284,7 +284,7 @@ public interface Environment {
 	static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(getExistingParent(initial, APP.DIR_APP));
+		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
 		c.setInitialFileName(initialName);
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		File f = c.showSaveDialog(w);

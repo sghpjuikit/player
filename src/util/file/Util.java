@@ -166,6 +166,30 @@ public interface Util {
 	}
 
 	/**
+	 * Find existing file or existing parent.
+	 *
+	 * @param f nullable file
+	 * @returns file itself if exists or its first existing parent recursively or error if null or no parent exists.
+	 */
+	static Try<File,Void> traverseExistingFile(File f) {
+		if (f==null) return Try.error();
+		if (f.exists()) return Try.ok(f);
+		else return traverseExistingFile(f.getParentFile());
+	}
+
+	/**
+	 * Find existing parent.
+	 *
+	 * @param f nullable file
+	 * @returns file's first existing parent recursively or error if null or no parent exists.
+	 */
+	static Try<File,Void> traverseExistingDir(File f) {
+		if (f==null) return Try.error();
+		if (f.exists() && f.isDirectory()) return Try.ok(f);
+		else return traverseExistingDir(f.getParentFile());
+	}
+
+	/**
 	 * Multiple parameter version of {@link #listFiles(java.io.File)} returning an union of the
 	 * respective results with no order guarantees.
 	 *

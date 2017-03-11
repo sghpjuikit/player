@@ -722,16 +722,6 @@ public interface Util {
 		else return (int) (pow(10, 1 + digits(n)) - 1);
 	}
 
-	/**
-	 * Returns file itself if exists or its existing parent recursively. If
-	 * null or no parent exists, returns application location.
-	 */
-	static File getExistingParent(File f, File defaultFile) {
-		if (f==null) return defaultFile;
-		if (f.exists()) return f;
-		else return getExistingParent(f.getParentFile(), defaultFile);
-	}
-
 	/** @return {@code max(min,min(i,max))} */
 	static int clip(short min, short i, short max) {
 		return max(min, min(i, max));

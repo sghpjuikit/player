@@ -913,8 +913,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             public ConfigurableField(T t) {
                 value = t;
-                p.configure(lc.a.toConfigurable.apply(value));
                 p.onChange = () -> chain.onItemChange.accept(null);
+                p.configure(lc.a.toConfigurable.apply(value));
             }
 
             @Override

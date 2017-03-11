@@ -3219,7 +3219,7 @@
  * pseudoclasses: selected
  */
 .check-icon {
-   -glyph-name: "FontAwesome.TOGGLE_OFF;"
+   -glyph-name: "FontAwesome.TOGGLE_OFF";
 }
 .check-icon:selected {
    -glyph-name: "FontAwesome.TOGGLE_ON";

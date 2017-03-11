@@ -11,9 +11,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import main.App;
 import org.reactfx.Subscription;
 import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
+import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig.EditMode;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
@@ -22,12 +24,12 @@ import util.parsing.Parser;
 import util.parsing.StringConverter;
 import util.type.Util;
 import util.validation.Constraint;
+import util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.conf.Config.VarList.NULL_SUPPLIER;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
-import static util.dev.Util.noØ;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
 import static util.functional.Util.*;
@@ -104,6 +106,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	abstract public Set<Constraint<? super T>> getConstraints();
 
 	abstract public Config<T> constraints(Constraint<? super T>... constraints);
+
+	@SuppressWarnings("unchecked")
+	public Config<T> constraints(Collection<Constraint<? super T>> constraints) {
+		return constraints(constraints.toArray(new Constraint[constraints.size()]));
+	}
 
 /******************************* default value ********************************/
 
@@ -254,18 +261,15 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * a wrapper needs to be created (and will be automatically).
 	 * <p/>
 	 * If the value is not a value (its class is supported by ({@link #forProperty(Class, String, Object)}),
-	 * then that method is called.
-	 * or is null, runtime exception is thrown.
+	 * runtime exception is thrown.
 	 */
 	public static <T> Config<T> forValue(Class type, String name, Object value) {
-		noØ(value, "Config can not be created for null");
 		if (value instanceof Config ||
 				value instanceof VarList ||
 				value instanceof Vo ||
 				value instanceof WritableValue ||
 				value instanceof ObservableValue)
-			throw new RuntimeException("Value " + value + "is a property and can"
-					+ "not be turned into Config as value.");
+			throw new RuntimeException("Value " + value + "is a property and can not be turned into Config as value.");
 		return forProperty(type, name, new V<>(value));
 	}
 
@@ -318,7 +322,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		/**
 		 * @throws NullPointerException if val parameter null. The wrapped value must no be null.
 		 */
-		@TODO(note = "make static map for valueEnumerators") ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
+		@TODO(note = "make static map for valueEnumerators")
+		ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
 			this.type = unPrimitivize(type);
 			this.gui_name = gui_name;
 			this.name = name;
@@ -738,17 +743,24 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {
 
 		public final VarList<T> a;
+		public final Ƒ1<? super T,? extends Configurable<?>> toConfigurable;
 
-		@SuppressWarnings("ubnchecked")
-		public ListConfig(String name, IsConfig c, VarList<T> val, String category) {
+		@SuppressWarnings("unchecked")
+		public ListConfig(String name, IsConfig c, VarList<T> val, String category, Set<Constraint<? super T>> constraints) {
 			super((Class) ObservableList.class, name, c, val.getValue(), category);
 			a = val;
+			if (val.nullElements==Elements.NOT_NULL) constraints(new HasNonNullElements());
+			toConfigurable = val.toConfigurable.andApply(configurable -> {
+				if (configurable instanceof Config)
+					((Config) configurable).constraints(constraints);
+			});
 		}
 
-		@SuppressWarnings("ubnchecked")
+		@SuppressWarnings("unchecked")
 		public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, EditMode editable) {
 			super((Class) ObservableList.class, name, gui_name, val.getValue(), category, info, editable);
 			a = val;
+			toConfigurable = val.toConfigurable;
 		}
 
 		public ListConfig(String name, VarList<T> val) {
@@ -825,23 +837,36 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	}
 
 	public static class VarList<T> extends V<ObservableList<T>> {
+
+		public enum Elements {
+			NULLABLE, NOT_NULL
+		}
+
 		static final Object[] EMPTY_ARRAY = {};
 		static final Supplier NULL_SUPPLIER = () -> null;
 
 		public final Class<T> itemType;
 		public final ObservableList<T> list;
 		public final Supplier<? extends T> factory;
-		public final Ƒ1<? super T,? extends Configurable<?>> toConfigurable;
+		private final Ƒ1<? super T,? extends Configurable<?>> toConfigurable;
+		private Elements nullElements;
+
+		public VarList(Class<T> itemType, Elements nullElements) {
+			this(itemType, () -> null, f -> Config.forValue(itemType, App.APP.className.get(itemType), f));
+			this.nullElements = nullElements;
+		}
 
 		// Note: What a strange situation. We must overload varargs constructor for empty case or we run into
 		// runtime problems (NoSuchMethodError) even though compilation succeeds. Compiler/JVM bug?
 		// What's worse we can not
 		// - call this(params...) with no array, or we get compilation error: recursive constructor call
 		// - call this(params..., new T[0]) with empty array, compilation error: can not instantiate T directly
+		@SuppressWarnings("unchecked")
 		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable) {
 			this(itemType, factory, toConfigurable, (T[]) EMPTY_ARRAY);
 		}
 
+		@SafeVarargs
 		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, T... items) {
 			// construct the list and inject it as value (by calling setValue)
 			super(observableArrayList(items));
@@ -851,6 +876,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			this.itemType = itemType;
 			this.factory = factory;
 			this.toConfigurable = toConfigurable;
+			this.nullElements = Elements.NOT_NULL;
 		}
 
 		/** This method does nothing. */
@@ -881,6 +907,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * Adds invalidation listener to the list.
 		 * Returns subscription to dispose of the listening.
 		 */
+		@SuppressWarnings("unchecked")
 		public Subscription onListInvalid(Consumer<ObservableList<T>> listener) {
 			InvalidationListener l = o -> listener.accept((ObservableList<T>) o);
 			list.addListener(l);

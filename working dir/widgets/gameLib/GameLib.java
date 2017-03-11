@@ -31,6 +31,7 @@ import util.async.Async;
 import util.async.executor.FxTimer;
 import util.conf.Config;
 import util.conf.Config.VarList;
+import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.ImageFileFormat;
@@ -97,9 +98,7 @@ public class GameLib extends FXMLController {
 
 	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Location of the library.")
-    final VarList<File> files = new VarList<>(File.class,() -> new File("L:\\games"),f -> Config.forValue(File.class,"File",f));
-
-	final V<File> source = new V<>(new File("L:\\games"), f -> loadGames());
+    final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
 
     volatile GameItem game;
     InfoType at;
@@ -240,8 +239,7 @@ public class GameLib extends FXMLController {
     public void onClose() {}
 
     private void loadGames() {
-//	    List<GameItem> items = stream(files.list).nonNull()
-	    List<GameItem> items = stream(source.get()).nonNull()
+	    List<GameItem> items = stream(files.list).distinct()
 			.flatMap(Util::listFiles)
             .filter(f -> f.isDirectory() && !f.isHidden())
             .map(GameItem::new)

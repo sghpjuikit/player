@@ -117,8 +117,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public void growTo(int n) {
         throwIfNot(n>=0,"Chain length must not be negative");
         throwIfNot(n<=maxChainLength.get(),"Chain length must not be larger than max length");
-        repeat(n-chain.size(),(Runnable)this::addChained);
-        generateValue();
+        if (n>chain.size()) {
+            repeat(n - chain.size(), (Runnable) this::addChained);
+            generateValue();
+        }
     }
 
     public void shrinkTo(int n) {

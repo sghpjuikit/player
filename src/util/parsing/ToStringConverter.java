@@ -1,11 +1,13 @@
 package util.parsing;
 
+import util.functional.Functors.Ƒ1;
+
 /**
  * Object to String converter.
  *
  * @author Martin Polakovic
  */
-public interface ToStringConverter<T> {
+public interface ToStringConverter<T> extends Ƒ1<T,String> {
 
 	/**
 	 * Converts object into string.
@@ -13,4 +15,9 @@ public interface ToStringConverter<T> {
 	 * @return String the object has been converted.
 	 */
 	String toS(T object);
+
+	@Override
+	default String apply(T t) {
+		return toS(t);
+	}
 }

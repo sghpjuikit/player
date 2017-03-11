@@ -141,7 +141,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
     public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT, v -> fields.forEach(f -> f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final V<NodePos> popupPos = new V<>(DownCenter, moodF::setPos);
+    public final V<NodePos> popupPos = moodF.pos;
 
     @Override
     public void init() {

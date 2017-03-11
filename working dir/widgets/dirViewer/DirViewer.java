@@ -29,6 +29,7 @@ import util.access.fieldvalue.FileField;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
+import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.file.Environment;
@@ -82,7 +83,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final VarList<File> files = new VarList<>(File.class, () -> new File("C:\\"), f -> Config.forValue(File.class, "File", f));
+    final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
 	@IsConfig(name = "Location merge", info = "Merges all locations into single union location")
 	final V<Boolean> filesJoin = new V<>(true, f -> revisitCurrent());
 	@IsConfig(name = "Location recursive", info = "Merges all location content recursively into single union location")
@@ -383,9 +384,10 @@ public class DirViewer extends ClassController {
 		                    	return stream();
 		                    }
 		                  })
+                          .distinct()
 	                : filesJoin.get()
-		                  ? listFiles(files.list.stream())
-		                  : files.list.stream();
+		                  ? listFiles(files.list.stream().distinct())
+		                  : files.list.stream().distinct();
         }
 
         @Override

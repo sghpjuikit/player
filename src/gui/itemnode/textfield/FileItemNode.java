@@ -21,16 +21,20 @@ import static util.reactive.Util.maintain;
  * {@link TextFieldItemNode} for {@link File} objects.<br/>
  * Features:
  * <ul>
- * <li> It is possible (but not necessary) to limit the file type to  directory or a file. If the limit is lifted,
- * user can switch the mode to open file or directory dialog.
- * <li> There is also support for drag & drop action.
+ * <li> Optional file type constraint to directory or a file.
+ * <li> User can switch the mode to open file or directory dialog (if the limit is lifted).
+ * <li> Support for drag & drop action.
  * </ul>
  *
  * @author Martin Polakovic
  */
 public class FileItemNode extends TextFieldItemNode<File> {
+
+	/**
+	 * File type constraint.
+	 */
 	public final Constraint.FileActor fileActor;
-	public final V<FileType> type;
+	private final V<FileType> type;
 
 	public FileItemNode(Constraint.FileActor fileActor) {
 		super(Parser.DEFAULT.toConverterOf(File.class));
@@ -54,11 +58,6 @@ public class FileItemNode extends TextFieldItemNode<File> {
 		String title = type.get()==DIRECTORY ? "Choose directory" : "Choose file";
 		Environment.chooseFile(title, type.get(), v, getScene().getWindow())
 				.ifOk(this::setValue);
-	}
-
-	@Override
-	String itemToString(File item) {
-		return item==null ? "<none>" : item.getPath();
 	}
 
 }

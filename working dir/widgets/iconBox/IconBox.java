@@ -42,7 +42,6 @@ public class IconBox extends FXMLController implements HorizontalDock {
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
 
-    @SuppressWarnings("unchecked")
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final VarList<Icon> icons = new VarList<Icon>(Icon.class, () -> {
             Icon i = new Icon(BUS);

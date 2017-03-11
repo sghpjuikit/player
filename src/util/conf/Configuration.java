@@ -268,8 +268,11 @@ public class Configuration {
 		try {
 			throwIfNotFinal(f);                // make sure the field is final
 			f.setAccessible(true);      // make sure the field is accessible
-			if (VarList.class.isAssignableFrom(f.getType()))
-				return new ListConfig<>(name, annotation, (VarList) f.get(instance), group);
+			if (VarList.class.isAssignableFrom(f.getType())) {
+				Class<T> property_type = getGenericPropertyType(f.getGenericType());
+				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
+				return new ListConfig<>(name, annotation, (VarList) f.get(instance), group, constraints);
+			}
 			if (Vo.class.isAssignableFrom(f.getType())) {
 				Vo<T> property = (Vo) f.get(instance);
 				Class<T> property_type = getGenericPropertyType(f.getGenericType());

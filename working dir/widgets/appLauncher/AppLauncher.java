@@ -21,6 +21,7 @@ import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.VarList;
+import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.FileSort;
@@ -59,9 +60,8 @@ public class AppLauncher extends ClassController {
 
     private static final double CELL_TEXT_HEIGHT = 40;
 
-	@Constraint.FileType(DIRECTORY)
     @IsConfig(name = "Location", info = "Add program")
-    final VarList<File> files = new VarList<>(File.class, () -> new File("X:\\"),f -> Config.forValue(File.class,"File",f));
+    final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
@@ -228,7 +228,7 @@ public class AppLauncher extends ClassController {
 
         @Override
         protected Stream<File> children_files() {
-            return files.list.stream();
+            return files.list.stream().distinct();
         }
 
         @Override

@@ -2,6 +2,8 @@ package util.validation;
 
 import java.io.File;
 import java.lang.annotation.*;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.util.Duration;
 import one.util.streamex.StreamEx;
@@ -43,6 +45,7 @@ public interface Constraint<T> {
 		put(NonEmpty.class, (NonEmpty constraint) -> new StringNonEmpty());
 		put(Length.class, (Length constraint) -> new StringLength(constraint.min(), constraint.max()));
 		put(ConstrainsBy.class, (ConstrainsBy constraint) -> instantiateOrThrow(constraint.value()));
+		put(NonNullElements.class, (NonNullElements constraint) -> new HasNonNullElements());
 	}};
 	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> util.type.Util.getGenericInterface(o.getClass(), 0, 0)) {{
 		ClassIndex.getAnnotated(DeclarationType.class);
@@ -186,6 +189,18 @@ public interface Constraint<T> {
 		}
 	}
 
+	class HasNonNullElements implements Constraint<Collection> {
+		@Override
+		public boolean isValid(Collection collection) {
+			return collection.stream().allMatch(Objects::nonNull);
+		}
+
+		@Override
+		public String message() {
+			return "All items of the list must be non null";
+		}
+	}
+
 /* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
 
 	@Documented
@@ -253,4 +268,9 @@ public interface Constraint<T> {
 		int max();
 	}
 
+	@Documented
+	@Target(FIELD)
+	@Retention(RUNTIME)
+	@IsConstraint(Collection.class)
+	@interface NonNullElements {}
 }

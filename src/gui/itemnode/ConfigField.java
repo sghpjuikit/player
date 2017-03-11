@@ -1,5 +1,17 @@
 package gui.itemnode;
 
+import com.sun.javafx.scene.traversal.Direction;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.ChainValueNode.ListConfigField;
+import gui.itemnode.ItemNode.ConfigNode;
+import gui.itemnode.textfield.EffectItemNode;
+import gui.itemnode.textfield.FileItemNode;
+import gui.itemnode.textfield.FontItemNode;
+import gui.objects.combobox.ImprovedComboBox;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
+import gui.objects.textfield.DecoratedTextField;
+import gui.pane.ConfigPane;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -7,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
+import java.util.function.Predicate;
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -26,20 +38,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-
-import com.sun.javafx.scene.traversal.Direction;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.ChainValueNode.ListConfigField;
-import gui.itemnode.ItemNode.ConfigNode;
-import gui.itemnode.textfield.EffectItemNode;
-import gui.itemnode.textfield.FileItemNode;
-import gui.itemnode.textfield.FontItemNode;
-import gui.objects.combobox.ImprovedComboBox;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
-import gui.objects.textfield.DecoratedTextField;
-import gui.pane.ConfigPane;
 import util.Password;
 import util.access.Vo;
 import util.action.Action;
@@ -54,8 +52,8 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.type.Util;
 import util.validation.Constraint;
+import util.validation.Constraint.HasNonNullElements;
 import util.validation.Constraint.NumberMinMax;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.nio.charset.StandardCharsets.*;
 import static java.util.stream.Collectors.toList;
@@ -885,14 +883,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public ListField(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig)c;
+			Predicate<T> p = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance)
+					? Objects::nonNull
+					: (Predicate) IS;
 
             // create chain
-            chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.factory.get()));
+            chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
             // initialize chain - add existing list values to chain
-            lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(v)));
+            lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(lc.a.itemType, v)));
             chain.growTo1();
             // bind list to the chain values (after it was initialized above)
-            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().collect(toList()));
+            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().filter(p).collect(toList()));
         }
 
         @Override
@@ -909,12 +910,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public void refreshItem() {}
 
         class ConfigurableField extends ValueNode<T> {
-            ConfigPane<Object> p = new ConfigPane<>();
+            private final Class<T> type;
+        	private final ConfigPane<Object> p = new ConfigPane<>();
 
-            public ConfigurableField(T t) {
-                value = t;
+            public ConfigurableField(Class<T> type, T value) {
+                this.type = type;
+                this.value = value;
                 p.onChange = () -> chain.onItemChange.accept(null);
-                p.configure(lc.a.toConfigurable.apply(value));
+                p.configure(lc.toConfigurable.apply(this.value));
             }
 
             @Override
@@ -924,9 +927,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             @Override
             public T getValue() {
+            	// TODO: why do we get 1st ConfigField? Makes no sense
+            	Class oType = p.getValuesC().get(0).config.getType();
                 Object o = p.getValuesC().get(0).getValue();
-                if (value.getClass()==o.getClass()) return (T)o;
-                else return super.getValue();
+                if (type==oType) return (T) o;
+                else return value;
             }
 
         }

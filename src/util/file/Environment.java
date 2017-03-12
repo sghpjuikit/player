@@ -6,8 +6,12 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -27,8 +31,10 @@ import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.dev.TODO.Purpose.*;
+import static util.dev.TODO.Purpose.UNIMPLEMENTED;
+import static util.dev.TODO.Purpose.UNTESTED;
 import static util.dev.Util.log;
+import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.traverseExistingDir;
 import static util.functional.Try.error;
@@ -41,8 +47,6 @@ import static util.functional.Util.*;
  *
  * @author Martin Polakovic
  */
-@TODO(purpose = FUNCTIONALITY, note = "support printing, mailing")
-@TODO(note = "File highlighting, test non windows platforms")
 public interface Environment {
 
 	/** Copies the string to system clipboard. Does nothing if null. */
@@ -60,18 +64,89 @@ public interface Environment {
 	}
 
 	/**
+	 * Launches the program represented by the provided file. Does not wait for the program or block.
+	 * <p/>
+	 * Working directory of the program will be set to the parent directory of its file.
+	 * <p/>
+	 * If the program fails to start, it will be attempted to be run (again) with elevated privileges (as an
+	 * administrator) if possible.
+	 *
+	 * @param program executable file of the program
+	 * @param arguments arguments to run the program with
+	 * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
+	 * @throws java.lang.RuntimeException if any param null
+	 */
+	static Try<Void,Exception> runProgram(File program, String... arguments) {
+		noØ(program);
+		File dir = program.getParentFile();
+		List<String> command = new ArrayList<>();
+
+		try {
+			// run this program
+			command.add(program.getAbsoluteFile().getPath());
+
+			// with optional parameter
+			for (String a : arguments)
+				if (!a.isEmpty()) command.add("-" + a);
+
+			new ProcessBuilder(command)
+					.directory(dir)
+					.start();
+
+			return Try.ok();
+		} catch (IOException e) {
+			log(Environment.class).warn("Failed to launch program", e);
+
+			if (Os.getCurrent()==Os.WINDOWS) {
+				// we might have failed due to the program requiring elevation (run
+				// as admin) so we use a little utility we package along
+				log(Environment.class).warn("Attempting to run as administrator...");
+				try {
+					// use elevate.exe to run what we wanted
+					command.add(0, "elevate.exe");
+					log(Environment.class).info("Executing command= {}", command);
+					new ProcessBuilder(command)
+							.directory(dir)
+							.start();
+
+					return Try.ok();
+				} catch (IOException x) {
+					log(Environment.class).error("Failed to launch program", x);
+					Logger.getLogger(Environment.class.getName()).log(Level.SEVERE, null, x);
+					return Try.error(x);
+				}
+			} else {
+				return Try.error(e);
+
+			}
+		}
+	}
+
+	/**
 	 * Runs a command as a process in new background thread.
+	 * <p/>
+	 * This is a non-blocking method.
+	 *
+	 * @param command non null file to open
+	 * @throws java.lang.RuntimeException if any param null
 	 */
 	static void runCommand(String command) {
-		runCommand(command, null);
+		noØ(command);
+		runCommand(noØ(command), null);
 	}
 
 	/**
 	 * Runs a command as a process in new background thread and executes an action right after it launches.
 	 * This allows process monitoring or waiting for it to.
+	 * <p/>
+	 * This is a non-blocking method.
+	 *
+	 * @param command non null command
+	 * @throws java.lang.RuntimeException if command null
 	 */
 	static void runCommand(String command, Consumer<Process> then) {
-		if (command!=null && !command.isEmpty())
+		noØ(command);
+		if (!command.isEmpty())
 			Async.runNew(() -> {
 				try {
 					Process p = Runtime.getRuntime().exec(command);
@@ -82,21 +157,33 @@ public interface Environment {
 			});
 	}
 
-	/** Equivalent to {@code browse(f.toURI()); } */
-	static void browse(File f) {
-		browse(f.toURI());
-	}
-
-	static void browse(File f, boolean openDir) {
-		browse(f.toURI(), openDir);
+	/**
+	 * Equivalent to {@code browse(f.toURI()); }.
+	 *
+	 * @param file non null file to browse
+	 * @throws java.lang.RuntimeException if any param null
+	 */
+	static void browse(File file) {
+		browse(file.toURI());
 	}
 
 	/**
-	 * Browses uri - opens it in its respective browser, e.g. internet browser or file explorer.
-	 * <p/>
-	 * On some platforms the operation may be unsupported.
+	 * Equivalent to {@code browse(f.toURI(), openDir); }.
 	 *
-	 * @param uri to browse
+	 * @param file non null file to browse
+	 * @throws java.lang.RuntimeException if any param null
+	 */
+	static void browse(File file, boolean openDir) {
+		browse(file.toURI(), openDir);
+	}
+
+	/**
+	 * Browses uri - opens it in its respective browser, e.g. predefined internet browser or OS' file browser.
+	 * <p/>
+	 * On some platforms the operation may be unsupported. In that case this method is a no-op.
+	 *
+	 * @param uri non null uri to browse
+	 * @throws java.lang.RuntimeException if any param null
 	 */
 	@TODO(purpose = {UNIMPLEMENTED, UNTESTED}, note = "Non-windows platform impl. naively & untested")
 	static void browse(URI uri) {
@@ -108,6 +195,7 @@ public interface Environment {
 			log(Environment.class).warn("Unsupported operation : " + BROWSE + " uri");
 			return;
 		}
+
 		try {
 			// If uri denotes a file, file explorer should be open, highlighting the file
 			// However Desktop.browse does nothing (a bug?). We have 2 alternatives:
@@ -153,50 +241,66 @@ public interface Environment {
 				});
 	}
 
+	// TODO: if no associated editor exists exception is thrown! fix and use Try
 	/**
-	 * Edits file in default associated editor program. If the file denotes a directory,
-	 * {@link #open(java.io.File)} is called instead.
+	 * Edits file in default associated editor program. If the file denotes a directory, {@link #open(java.io.File)}
+	 * is called instead.
 	 * <p/>
 	 * On some platforms the operation may be unsupported. In that case this method is a no-op.
 	 */
-	// TODO: if no associated editor exists exception is thrown! fix and use Try
-	static void edit(File f) {
+	static void edit(File file) {
+		noØ(file);
+
 		if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(EDIT)) {
 			log(Environment.class).warn("Unsupported operation : " + EDIT + " uri");
 			return;
 		}
 
-		if (f.isDirectory()) {
-			open(f);
+		if (file.isDirectory()) {
+			open(file);
 		} else {
 			try {
-				Desktop.getDesktop().edit(f);
+				Desktop.getDesktop().edit(file);
 			} catch (IOException e) {
-				log(Environment.class).error("Opening file {} in editor failed", f, e);
-				APP.parameterProcessor.process(list(f.getPath())); // try open with this app
+				log(Environment.class).error("Opening file {} in editor failed", file, e);
+				APP.parameterProcessor.process(list(file.getPath())); // try open with this app
 			} catch (IllegalArgumentException e) {
 				// file does not exists, nothing for us to do
 			}
 		}
 	}
 
+	// TODO: if no associated program exists exception is thrown! fix and use Try
 	/**
-	 * Opens file in default associated program.
+	 * Opens the file.<br/>
+	 * If the file is executable, it will be executed, using {@link #runProgram(java.io.File, String...)} <br/>
+	 * Otherwise it will be opened in the default associated program.
 	 * <p/>
 	 * On some platforms the operation may be unsupported. In that case this method is a no-op.
+	 *
+	 * @param file non null file to open
+	 * @throws java.lang.RuntimeException if any param null
 	 */
-	static void open(File f) {
-		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(OPEN)) {
-			try {
-				Desktop.getDesktop().open(f);
-			} catch (IOException e) {
-				log(Environment.class).error("Opening file {} in native app failed", f, e);
-				APP.parameterProcessor.process(list(f.getPath())); // try open with this app
-			} catch (IllegalArgumentException e) {
-				// file does not exists, nothing for us to do
-			}
+	static void open(File file) {
+		noØ(file);
+		if (Files.isExecutable(file.toPath())) {
+			// If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
+			// will be set to the working directory of this application, which is not illegal, but definitely dangerous
+			// Hence, we executable files specifically
+			runProgram(file);
 		} else {
-			log(Environment.class).warn("Unsupported operation : " + OPEN + " file");
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(OPEN)) {
+				try {
+					Desktop.getDesktop().open(file);
+				} catch (IOException e) {
+					log(Environment.class).error("Opening file {} in native app failed", file, e);
+					APP.parameterProcessor.process(list(file.getPath())); // try open with this app
+				} catch (IllegalArgumentException e) {
+					// file does not exists, nothing for us to do
+				}
+			} else {
+				log(Environment.class).warn("Unsupported operation : " + OPEN + " file");
+			}
 		}
 	}
 
@@ -233,6 +337,7 @@ public interface Environment {
 	}
 
 	static void openIn(List<File> files, boolean inApp) {
+		noØ(files);
 		if (files.isEmpty()) return;
 		if (files.size()==1) {
 			openIn(files.get(0), inApp);
@@ -291,14 +396,15 @@ public interface Environment {
 		return f!=null ? Try.ok(f) : Try.error();
 	}
 
-	private static void openWindowsExplorerAndSelect(File f) throws IOException {
+	// TODO: remove & use Desktop#browseFileDirectory instead
+	private static void openWindowsExplorerAndSelect(File file) throws IOException {
 		// TODO: make sure the path does not have to be quoted in " like:  "path". Although quoting the path
 		// does cause FileNotFoundException, the explorer.exe does open and select the file. I added the
 		// quoting after I noticed files with ',' do not work properly, but I have removed the quiting
 		// since its working now. Not sure what is going on.
 		// Anyway, here are some alternatives to play with, in case the problem reappears:
 		// new ProcessBuilder("explorer.exe /select," + f.getPath()).start();
-		Runtime.getRuntime().exec(new String[]{"explorer.exe", "/select,", "\"" + f.getPath() + "\""});
+		Runtime.getRuntime().exec(new String[]{"explorer.exe", "/select,", "\"" + file.getPath() + "\""});
 //        Runtime.getRuntime().exec("explorer.exe /select," + f.getPath());
 	}
 

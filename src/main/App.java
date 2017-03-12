@@ -756,7 +756,7 @@ public class App extends Application implements Configurable {
 								() -> "Run app: " + f.getName(),
 								() -> "Runs application: " + f.getAbsolutePath(),
 								f::getAbsolutePath,
-								() -> Environment.open(f),
+								() -> Environment.runProgram(f),
 								() -> new Icon(MaterialIcon.APPS
 								)
 							)

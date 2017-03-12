@@ -9,10 +9,7 @@ import gui.objects.image.cover.FileCover;
 import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.Interpolator;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -23,13 +20,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
+import main.App;
 import util.SwitchException;
-import util.access.V;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.Async;
 import util.async.executor.FxTimer;
-import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
@@ -50,12 +46,12 @@ import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static layout.widget.Widget.Group.OTHER;
+import static main.App.APP;
 import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
-import static util.dev.Util.log;
 import static util.file.Util.*;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
@@ -93,7 +89,6 @@ public class GameLib extends FXMLController {
     @FXML StackPane outer;
     @FXML Label titleL;
     @FXML Label infoL;
-    FxTimer infoLHider = new FxTimer(7000, 1, () -> infoL.setText(null));
 	Icon editInfoB, playB, exploreB, wikiB;
 
 	@Constraint.FileType(DIRECTORY)
@@ -187,11 +182,7 @@ public class GameLib extends FXMLController {
         });
         playB = new Icon(GAMEPAD, iconSize, null, () -> {
             if (at!=InfoType.PLAY) goTo(InfoType.PLAY);
-            else {
-                String s = game.play();
-                infoL.setText(s);
-                infoLHider.start();
-            }
+            else game.play();
         });
         exploreB = new Icon(FOLDER, iconSize, null, () -> {
             if (at!=InfoType.EXPLORER) goTo(InfoType.EXPLORER);
@@ -333,64 +324,38 @@ public class GameLib extends FXMLController {
             return settings;
         }
 
-        public String play() {
+        public void play() {
             loadMetadata();
-            List<String> command = new ArrayList<>();
-            File exe = null ;
+            File exeTmp = null;
             String pathA = settings.get("pathAbs");
 
             if (pathA!=null) {
-                exe = new File(pathA);
+                exeTmp = new File(pathA);
             }
 
-            if (exe==null) {
+            if (exeTmp==null) {
                 String pathR = settings.get("path");
-                if (pathR==null) return "No path is set up.";
-                // exe = new File(location, pathR); // This does not work when pathR is ot direct child
-                exe = new File(location + File.separator + pathR);
+                if (pathR==null) {
+                    APP.messagePane.show("No path is set up.");
+                    return;
+                }
+                // exe = new File(location, pathR); // This does not work when pathR is to direct child
+                exeTmp = new File(location + File.separator + pathR);
             }
 
-            File dir = exe.getParentFile();
-
-	        try {
-                // run this program
-                command.add("\"" + exe.getName() + "\"");
-
-                // with optional parameter
-                String arg = settings.get("arguments");
-                if (arg!=null) {
-                    arg = arg.replaceAll(", ", ",");
-                    String[] args = arg.split(",",0);
-                    for (String a : args) if (!a.isEmpty()) command.add("-" + a);
-                }
-                // run
-	            command.add(0, "elevate.exe");
-	            log(GameLib.class).info("Executing command={}", command);
-
-                Process p = new ProcessBuilder(command)
-								.directory(dir)
-	                            .start();
-                return "Starting...";
-            } catch (IOException ex) {
-		        log(GameLib.class).warn("Failed to launch program", ex);
-                // we might have failed due to the program requiring elevation (run
-                // as admin) so we use a little utility we package along
-		        log(GameLib.class).warn("Attempting to run as administrator...");
-                try {
-                    // use elevate.exe to run what we wanted
-                    command.add(0, "elevate.exe");
-                    log(GameLib.class).info("Executing command= {}", command);
-                    Process p = new ProcessBuilder(command)
-	                                .directory(dir)
-	                                .start();
-
-                    return "Starting (as administrator)...";
-                } catch (IOException ex1) {
-                	log(GameLib.class).error("Failed to launch program", ex1);
-                    Logger.getLogger(GameItem.class.getName()).log(Level.SEVERE, null, ex1);
-                    return ex.getMessage();
-                }
+            File exe = exeTmp;
+            List<String> arguments = new ArrayList<>();
+            String arg = settings.get("arguments");
+            if (arg!=null) {
+                arg = arg.replaceAll(", ", ",");
+                String[] args = arg.split(",",0);
+                for (String a : args)
+                    if (!a.isEmpty()) arguments.add("-" + a);
             }
+
+            Environment.runProgram(exe, arguments.toArray(new String[arguments.size()]))
+                    .ifError(error -> APP.messagePane.show("Unable to launch program " + exe + ". Reason: " + error.getMessage()));
+
 
         }
 

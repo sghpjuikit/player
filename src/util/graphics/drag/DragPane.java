@@ -179,7 +179,7 @@ public class DragPane extends Placeholder {
 	}
 
 	private DragPane() {
-		super(DEFAULT_ICON, null, null);
+		super(DEFAULT_ICON, "", () -> {});
 		icon.styleclass(STYLECLASS_ICON);
 		getStyleClass().add(STYLECLASS);
 		setMouseTransparent(true);   // must not interfere with events

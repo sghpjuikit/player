@@ -6,7 +6,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -36,6 +35,7 @@ import static util.dev.TODO.Purpose.UNTESTED;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
+import static util.file.Util.getSuffix;
 import static util.file.Util.traverseExistingDir;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
@@ -78,6 +78,8 @@ public interface Environment {
 	 */
 	static Try<Void,Exception> runProgram(File program, String... arguments) {
 		noØ(program);
+		noØ((Object[]) arguments);
+
 		File dir = program.getParentFile();
 		List<String> command = new ArrayList<>();
 
@@ -117,7 +119,6 @@ public interface Environment {
 				}
 			} else {
 				return Try.error(e);
-
 			}
 		}
 	}
@@ -283,7 +284,7 @@ public interface Environment {
 	 */
 	static void open(File file) {
 		noØ(file);
-		if (Files.isExecutable(file.toPath())) {
+		if (isExecutable(file)) {
 			// If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
 			// will be set to the working directory of this application, which is not illegal, but definitely dangerous
 			// Hence, we executable files specifically
@@ -302,6 +303,18 @@ public interface Environment {
 				log(Environment.class).warn("Unsupported operation : " + OPEN + " file");
 			}
 		}
+	}
+
+	// TODO: implement properly
+	/**
+	 *
+	 * @param f non null file
+	 * @return true if the file is an executable file
+	 * @throws java.lang.RuntimeException if any param null
+	 */
+	static boolean isExecutable(File f) {
+		String extension = getSuffix(f);
+		return isContainedIn(extension.toLowerCase(), "exe");
 	}
 
 	static boolean isOpenableInApp(File f) {

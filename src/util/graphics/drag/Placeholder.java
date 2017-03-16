@@ -8,15 +8,15 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.reactfx.Subscription;
+import static util.dev.Util.noØ;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.removeFromParent;
 import static util.reactive.Util.maintain;
 
 /**
- * Pane with a placeholder, mostly showed instead of content when there is none, e.g., "click to
- * add items".
- * <p/>
- * Normally it highlights on hover/mouse over to signal possible interaction.
+ * Placeholder pane. Can invoke action and display its icon and name.<br/>
+ * Useful mostly instead of content when there is none, e.g., "click to add items". Or to highlight on hover/mouse
+ * over to signal possible interaction.
  *
  * @author Martin Polakovic
  */
@@ -30,22 +30,29 @@ public class Placeholder extends StackPane {
 	private Subscription s;
 //	private Pane parent;
 
-	public Placeholder(GlyphIcons icoN, String text, Runnable onClick) {
-		icon.icon(icoN);
-		icon.onClick(onClick);
-		desc.setText(text);
+	/**
+	 * @param actionIcon non null icon
+	 * @param actionName non null action name
+	 * @param action non null action
+	 */
+	public Placeholder(GlyphIcons actionIcon, String actionName, Runnable action) {
+		icon.icon(noØ(actionIcon));
+		desc.setText(noØ(actionName));
+		icon.onClick(noØ(action));
 		getStyleClass().add(STYLECLASS);
-		setOnMouseClicked(e -> { onClick.run(); e.consume(); });
-		getChildren().add(
-				layHeaderBottom(8, Pos.CENTER, icon, desc)
-		);
+		setOnMouseClicked(e -> { action.run(); e.consume(); });
+		getChildren().add(layHeaderBottom(8, Pos.CENTER, icon, desc));
+		setVisible(false);
 	}
 
 	/**
+	 * Shows this placeholder for given node or does nothing if node null.
 	 * Use {@link #visibleProperty()} to observe visibility.
+	 *
+	 * @param n nullable node
 	 */
 	public void showFor(Node n) {
-		Pane p = n instanceof Pane ? (Pane) n : n.getParent()==null ? null : (Pane) n.getParent();
+		Pane p = n instanceof Pane ? (Pane) n : n==null || n.getParent()==null ? null : (Pane) n.getParent();
 		if (p!=null && !p.getChildren().contains(this)) {
 //            parent = p;
 //            parent.getChildren().forEach(c -> c.setOpacity(0.2));

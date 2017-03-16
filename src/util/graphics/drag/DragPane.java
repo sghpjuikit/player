@@ -124,6 +124,7 @@ public class DragPane extends Placeholder {
 							dp.setMinSize(w, h);
 							dp.resizeRelocate(b.getMinX(), b.getMinY(), w, h);
 							dp.toFront();
+							dp.setVisible(true);
 						}
 					}
 					e.consume();
@@ -131,7 +132,7 @@ public class DragPane extends Placeholder {
 			}
 
 			if (area!=null && node.getProperties().containsKey(ACTIVE)) {
-				Pane dp = PANE.getM(d);
+				DragPane dp = PANE.getM(d);
 				Bounds b = area.apply(e);
 				double w = b.getWidth();
 				double h = b.getHeight();
@@ -140,10 +141,11 @@ public class DragPane extends Placeholder {
 				dp.setMinSize(w, h);
 				dp.resizeRelocate(b.getMinX(), b.getMinY(), w, h);
 				dp.toFront();
+				dp.setVisible(true);
 			}
 		});
 		node.addEventHandler(DRAG_EXITED_TARGET, e ->
-				node.getProperties().remove(ACTIVE)
+			node.getProperties().remove(ACTIVE)
 		);
 		node.addEventHandler(DRAG_EXITED, e -> {
 			PANE.get().hide();

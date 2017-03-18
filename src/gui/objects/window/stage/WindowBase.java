@@ -2,7 +2,6 @@ package gui.objects.window.stage;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import gui.Gui;
 import gui.objects.window.Resize;
@@ -230,12 +229,6 @@ public class WindowBase {
 		} else {
 			s.setIconified(val);
 		}
-
-		// focus when de-minimizing
-		// TODO: FIX THIS METHOD!!
-//        if (!val) focus();  // ! working anymore
-//        if (!val) runLater(this::focus);  // ! working anymore
-		if (!val) Async.run(50, this::focus);  // gotta skip few render pulses first...
 	}
 
 	/**
@@ -647,16 +640,12 @@ public class WindowBase {
 		if (Os.getCurrent()!=Os.WINDOWS) return;
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
+			User32 user32 = User32.INSTANCE;
 			String titleOriginal = s.getTitle();
 			String titleUnique = UUID.randomUUID().toString();
 			s.setTitle(titleUnique);
-			long lhwnd = com.sun.glass.ui.Window.getWindows().stream()  // TODO: avoid com.sun
-				.filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
-				.getNativeWindow();
+			HWND hwnd = user32.FindWindow(null, titleUnique);	// find native window by title
 			s.setTitle(titleOriginal);
-			Pointer lpVoid = new Pointer(lhwnd);
-			HWND hwnd = new HWND(lpVoid);
-			User32 user32 = User32.INSTANCE;
 
 			// Prevent window from popping up
 			int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
@@ -688,15 +677,11 @@ public class WindowBase {
 		if (Os.getCurrent()!=Os.WINDOWS) return;
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
+			User32 user32 = User32.INSTANCE;
 			String titleOriginal = s.getTitle();
 			String titleUnique = UUID.randomUUID().toString();
 			s.setTitle(titleUnique);
-			long lhwnd = com.sun.glass.ui.Window.getWindows().stream()
-				.filter(i -> i.getTitle().equals(titleUnique)).findFirst().get()
-				.getNativeWindow();
-			Pointer lpVoid = new Pointer(lhwnd);
-			WinDef.HWND hwnd = new WinDef.HWND(lpVoid);
-			final User32 user32 = User32.INSTANCE;
+			HWND hwnd = user32.FindWindow(null, titleUnique);	// find native window by title
 			s.setTitle(titleOriginal);
 
 			int WS_MINIMIZEBOX = 0x00020000;

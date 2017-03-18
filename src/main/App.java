@@ -305,7 +305,7 @@ public class App extends Application implements Configurable {
 	 */ public final SetƑ onStop = new SetƑ();
 	@IsConfig(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
 	public boolean normalLoad = true;
-	public boolean initialized = false;
+	private boolean isInitialized = false;
 	private boolean close_prematurely = false;
 
 	/**
@@ -389,34 +389,15 @@ public class App extends Application implements Configurable {
 	 */
 	@Override
 	public void init() {
-		// disable java.util.logging logging
-		// Im not sure this is really wise, but otherwise we get a lot of unwanted log content in console from
-		// libraries
-		LogManager.getLogManager().reset();
-
-		// configure slf4 logging
-		LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-		try {
-			JoranConfigurator jc = new JoranConfigurator();
-			jc.setContext(lc);
-			lc.reset();
-			lc.putProperty("LOG_DIR", DIR_LOG.getPath());
-			// override default configuration
-			jc.doConfigure(FILE_LOG_CONFIG);
-		} catch (JoranException ex) {
-			LOGGER.error(ex.getMessage());
-		}
-		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-
-		// log uncaught thread termination exceptions
-		Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
+		configureLogging();
 
 		// Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
 		// trying to run and this instance's run parameters and close prematurely
 		if (getInstances()>1) {
+			LOGGER.info("Multiple app instances detected.");
 			appCommunicator.fireNewInstanceEvent(fetchParameters());
 			close_prematurely = true;
-			LOGGER.info("Multiple app instances detected. App wil close prematurely.");
+			LOGGER.info("App wil close prematurely.");
 		}
 		if (close_prematurely) return;
 
@@ -491,9 +472,8 @@ public class App extends Application implements Configurable {
 			}
 		});
 		instanceInfo.add(App.class, (v,map) -> map.put("Name", v.name));
-		// TODO: read from classFieds
 		instanceInfo.add(Metadata.class, (m,map) ->
-			stream(Metadata.Field.FIELDS)
+				stream(Metadata.Field.FIELDS)
 					.filter(f -> f.isTypeStringRepresentable() && !f.isFieldEmpty(m))
 					.forEach(f -> map.put(f.name(), m.getFieldS(f)))
 		);
@@ -541,7 +521,8 @@ public class App extends Application implements Configurable {
 				"Creates a launcher for this widget with default (no predefined) settings. \n"
 				+ "Opening the launcher with this application will open this "
 				+ "widget as if it were a standalone application.",
-				EXPORT, w -> Environment
+				EXPORT,
+				w -> Environment
 					.chooseFile("Export to...", DIRECTORY, DIR_APP, APP.actionPane.getScene().getWindow())
 					.ifOk(w::exportFxwlDefault)
 			)
@@ -550,7 +531,8 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Export",
 				  "Creates a launcher for this component with current settings. \n"
 				+ "Opening the launcher with this application will open this component as if it were a standalone application.",
-				EXPORT, w -> Environment
+				EXPORT,
+				w -> Environment
 					.chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
 					.ifOk(w::exportFxwl)
 			)
@@ -834,109 +816,114 @@ public class App extends Application implements Configurable {
 			return;
 		}
 
-		try {
-			// discover plugins
-			ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
-			ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
+		isInitialized = Try.tryCatchAll(() -> {
+				// discover plugins
+				ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
+				ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
 
-			widgetManager.initialize();
+				widgetManager.initialize();
 
-			// services must be created before Configuration
-			services.addService(new TrayService());
-			services.addService(new Notifier());
-			services.addService(new PlaycountIncrementer());
-			services.addService(new ClickEffect());
+				// services must be created before Configuration
+				services.addService(new TrayService());
+				services.addService(new Notifier());
+				services.addService(new PlaycountIncrementer());
+				services.addService(new ClickEffect());
 
-			// install actions
-			Action.installActions(
-				this,
-				windowManager,
-				guide,
-				services.getService(PlaycountIncrementer.class).get()
-			);
+				// install actions
+				Action.installActions(
+					this,
+					windowManager,
+					guide,
+					services.getService(PlaycountIncrementer.class).get()
+				);
 
-			actionAppPane.register(App.class,
-				new FastAction<>(
-					"Export widgets",
-					"Creates launcher file in the destination directory for every widget.\n"
-					+ "Launcher file is a file that when opened by this application opens the widget. "
-					+ "If application was not running before, it will not load normally, but will only "
-					+ "open the widget.\n"
-					+ "Essentially, this exports the widgets as 'standalone' applications.",
-					EXPORT,
-					app -> {
-						DirectoryChooser dc = new DirectoryChooser();
-						dc.setInitialDirectory(app.DIR_LAYOUTS);
-						dc.setTitle("Export to...");
-					File dir = dc.showDialog(app.actionAppPane.getScene().getWindow());
-						if (dir!=null) {
-							app.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+				actionAppPane.register(App.class,
+					new FastAction<>(
+						"Export widgets",
+						"Creates launcher file in the destination directory for every widget.\n"
+						+ "Launcher file is a file that when opened by this application opens the widget. "
+						+ "If application was not running before, it will not load normally, but will only "
+						+ "open the widget.\n"
+						+ "Essentially, this exports the widgets as 'standalone' applications.",
+						EXPORT,
+						app -> {
+							DirectoryChooser dc = new DirectoryChooser();
+							dc.setInitialDirectory(app.DIR_LAYOUTS);
+							dc.setTitle("Export to...");
+						File dir = dc.showDialog(app.actionAppPane.getScene().getWindow());
+							if (dir!=null) {
+								app.widgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+							}
 						}
-					}
-				),
-				new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
-				new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
-				new FastAction<>(GITHUB,Action.get("Open on Github")),
-				new FastAction<>(CSS3,Action.get("Open css guide")),
-				new FastAction<>(IMAGE,Action.get("Open icon viewer")),
-				new FastAction<>(FOLDER,Action.get("Open app directory"))
-			);
+					),
+					new FastAction<>(KEYBOARD_VARIANT,Action.get("Show shortcuts")),
+					new FastAction<>(INFORMATION_OUTLINE,Action.get("Show system info")),
+					new FastAction<>(GITHUB,Action.get("Open on Github")),
+					new FastAction<>(CSS3,Action.get("Open css guide")),
+					new FastAction<>(IMAGE,Action.get("Open icon viewer")),
+					new FastAction<>(FOLDER,Action.get("Open app directory"))
+				);
 
-			// gather configs
-			configuration.rawAdd(FILE_SETTINGS);
-			configuration.collectStatic();
-			configuration.collect(Action.getActions());
-			services.forEach(configuration::collect);
-			configuration.collect(this, windowManager, guide, actionPane);
+				// gather configs
+				configuration.rawAdd(FILE_SETTINGS);
+				configuration.collectStatic();
+				configuration.collect(Action.getActions());
+				services.forEach(configuration::collect);
+				configuration.collect(this, windowManager, guide, actionPane);
 
-			// deserialize values (some configs need to apply it, will do when ready)
-			configuration.rawSet();
+				// deserialize values (some configs need to apply it, will do when ready)
+				configuration.rawSet();
 
-			// initializing, the order is important
-			Player.initialize();
+				// initializing, the order is important
+				Player.initialize();
 
-			List<String> ps = fetchParameters();
-			normalLoad &= ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
+				List<String> ps = fetchParameters();
+				normalLoad &= ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
 
-			// use for faster widget testing
-			// Set project to run with application parameters and use widget name
-			// This will only load the widget and start app faster
-			// normalLoad = false;
+				// use for faster widget testing
+				// Set project to run with application parameters and use widget name
+				// This will only load the widget and start app faster
+				// normalLoad = false;
 
-			// load windows, layouts, widgets
-			// we must apply skin before we load graphics, solely because if skin defines custom
-			// Control Skins, it will only have effect when set before control is created
-			// and yes, this means reapplying different skin will have no effect in this regard...
-			configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
-			windowManager.deserialize(normalLoad);
+				// load windows, layouts, widgets
+				// we must apply skin before we load graphics, solely because if skin defines custom
+				// Control Skins, it will only have effect when set before control is created
+				// and yes, this means reapplying different skin will have no effect in this regard...
+				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
+				windowManager.deserialize(normalLoad);
 
-			Db.start();
+				Db.start();
 
-			initialized = true;
+				isInitialized = true;
 
-		} catch(Exception e) {
-			LOGGER.info("Application failed to start", e);
-			LOGGER.error("Application failed to start", e);
-		}
+			})
+			.ifError(e -> {
+				LOGGER.info("Application failed to start", e);
+				LOGGER.error("Application failed to start", e);
+				messagePane.show("Application did not start successfully.");
+			})
+			.ifOk(ignored -> {
+				// initialization is complete -> apply all settings
+				configuration.getFields().forEach(Config::applyValue);
 
-		// initialization is complete -> apply all settings
-		configuration.getFields().forEach(Config::applyValue);
+				// initialize non critical parts
+				if (normalLoad) Player.loadLast();
 
-		// initialize non critical parts
-		if (normalLoad) Player.loadLast();
+				// show guide
+				if (guide.first_time.get()) run(3000, guide::start);
 
-		// show guide
-		if (guide.first_time.get()) run(3000, guide::start);
+				// TODO: implement properly - load with skin
+				// runNew(() -> {
+				//     Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
+				//     ImageCursor c = new ImageCursor(image,3,3);
+				//     runLater(() -> window.getStage().getScene().setCursor(c));
+				// });
 
-		// TODO: implement properly - load with skin
-		// runNew(() -> {
-		//     Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
-		//     ImageCursor c = new ImageCursor(image,3,3);
-		//     runLater(() -> window.getStage().getScene().setCursor(c));
-		// });
+				// process app parameters passed when app started
+				parameterProcessor.process(fetchParameters());
+			})
+			.isOk();
 
-		// process app parameters passed when app started
-		parameterProcessor.process(fetchParameters());
 	}
 
 	/** Starts this application normally if not yet started that way, otherwise has no effect. */
@@ -956,7 +943,7 @@ public class App extends Application implements Configurable {
 	 */
 	@Override
 	public void stop() {
-		if (initialized) {
+		if (isInitialized) {
 			onStop.run();
 			if (normalLoad) Player.state.serialize();
 			if (normalLoad) windowManager.serialize();
@@ -1022,6 +1009,30 @@ public class App extends Application implements Configurable {
 		return params;
 	}
 
+	private void configureLogging() {
+		// disable java.util.logging logging
+		// Im not sure this is really wise, but otherwise we get a lot of unwanted log content in console from
+		// libraries
+		LogManager.getLogManager().reset();
+
+		// configure slf4 logging
+		LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+		try {
+			JoranConfigurator jc = new JoranConfigurator();
+			jc.setContext(lc);
+			lc.reset();
+			lc.putProperty("LOG_DIR", DIR_LOG.getPath());
+			// override default configuration
+			jc.doConfigure(FILE_LOG_CONFIG);
+		} catch (JoranException ex) {
+			LOGGER.error(ex.getMessage());
+		}
+		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+
+		// log uncaught thread termination exceptions
+		Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
+	}
+
 	/**
 	 * Calculates number of instances of this application running on this
 	 * system at this moment. In this context, application instance is considered
@@ -1053,6 +1064,7 @@ public class App extends Application implements Configurable {
 		// Note: I tried to inject some custom property into vm using
 		// vm.getAgentProperties().setProperty(...)  but it appears to be read only. So we handle
 		// the recognition differently.
+
 		int instances = 0;
 		String ud = System.getProperty("user.dir");
 		for (VirtualMachineDescriptor vmd : VirtualMachine.list()) {
@@ -1086,12 +1098,23 @@ public class App extends Application implements Configurable {
 		return instances;
 	}
 
-	/** @return image of the icon of the application. */
+	/** @return image of the icon of the application */
 	public Image getIcon() {
 		return new Image(new File("icon512.png").toURI().toString());
 	}
 
-
+	/** @return images of the icon of the application in all possible sizes */
+	public List<Image> getIcons() {
+		return stream(
+				"icon16.png",
+				"icon32.png",
+				"icon48.png",
+				"icon128.png",
+				"icon256.png",
+				"icon512.png"
+			).map(path -> new Image(new File(path).toURI().toString()))
+			.toList();
+	}
 
 	public static void refreshItemsFromFileJob(List<? extends Item> items) {
 		fut(items)

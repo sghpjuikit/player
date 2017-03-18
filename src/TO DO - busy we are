@@ -52,7 +52,6 @@
   delay a tiny bit (for continued display) and delay hiding a bit more than the bit
 - image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
-- saving multiple playlists is bugged
 - display window snap preview & snap only on mouse release
 - figure out image animation auto-play def behavior & indicative play/pause mechanism
 - LibraryView placeholder does not detect empty table correctly

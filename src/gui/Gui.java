@@ -1,11 +1,13 @@
 
 package gui;
 
+import com.sun.javafx.css.StyleManager;
+import gui.objects.window.stage.Window;
+import gui.objects.window.stage.WindowBase;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.file.WatchService;
 import java.util.*;
-
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -18,19 +20,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.javafx.css.StyleManager;
-
-import gui.objects.window.stage.Window;
-import gui.objects.window.stage.WindowBase;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchPane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -42,7 +36,6 @@ import util.dev.Dependency;
 import util.file.FileMonitor;
 import util.file.Util;
 import util.validation.Constraint;
-
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.io.File.separator;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -50,15 +43,10 @@ import static java.util.stream.Collectors.toList;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
-import static javafx.scene.text.FontPosture.ITALIC;
-import static javafx.scene.text.FontPosture.REGULAR;
-import static javafx.scene.text.FontWeight.BOLD;
-import static javafx.scene.text.FontWeight.NORMAL;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.dev.Util.noØ;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
 import static util.file.Util.listFiles;
@@ -91,7 +79,7 @@ public class Gui {
      * nothing.
      */
     @IsConfig(name = "Font", info = "Application font.")
-    public static final V<Font> font = new V<>(Font.getDefault(), Gui::applyFont);
+    public static final V<Font> font = new V<>(Font.getDefault(), f -> APP.windowManager.windows.forEach(w -> w.setFont(f)));
 
     // non applied configs
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
@@ -205,11 +193,9 @@ public class Gui {
     /** Loads/refreshes whole gui. */
     @IsAction(name = "Reload GUI", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
     public static void refresh() {
-        if (APP.initialized) {
-            skin.applyValue();
-            font.applyValue();
-            loadLayout();
-        }
+        skin.applyValue();
+        font.applyValue();
+        loadLayout();
     }
 
     /** Loads/refreshes active layout. */
@@ -452,35 +438,6 @@ public class Gui {
     }
 
     /*****************************  helper methods ********************************/
-
-    private static void applyFont(Font f) {
-    	noØ(f);
-        // apply only if application initialized correctly
-        if (APP.initialized) {
-            // we need to apply to each window separately
-            APP.windowManager.windows.forEach(w -> {
-                String tmp = f.getStyle().toLowerCase();
-                FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
-                FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;
-                // for some reason javaFX and css values are quite different...
-                String styleS = style==ITALIC ? "italic" : "normal";
-                String weightS = weight==BOLD ? "bold" : "normal";
-                w.getStage().getScene().getRoot().setStyle(
-                        "-fx-font-family: \"" + f.getFamily() + "\";" +
-                                "-fx-font-style: " + styleS + ";" +
-                                "-fx-font-weight: " + weightS + ";" +
-                                "-fx-font-size: " + f.getSize() + ";"
-                );
-            });
-        }
-    }
-
-
-
-
-
-
-
 
     public static final Duration ANIM_DUR = Duration.millis(300);
 

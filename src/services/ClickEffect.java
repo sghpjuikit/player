@@ -53,8 +53,7 @@ public class ClickEffect extends ServiceBase {
 	}
 
 	private void apply() {
-		if (APP.initialized)
-			pool.forEach(Effect::apply);
+		pool.forEach(Effect::apply);
 	}
 
 	// handlers to display the effect, set to window's root

@@ -50,6 +50,15 @@ public interface Try<R, E> {
 		}
 	}
 
+	static Try<Void,Throwable> tryCatchAll(Runnable f) {
+		try {
+			f.run();
+			return ok(null);
+		} catch (Throwable e) {
+			return error(e);
+		}
+	}
+
 	static Try<Void,Throwable> tryR(Runnable f, Class<?>... ecs) {
 		try {
 			f.run();

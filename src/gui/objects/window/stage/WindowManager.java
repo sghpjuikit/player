@@ -191,23 +191,27 @@ public class WindowManager implements Configurable<Object> {
 
     public Window create(Stage owner, StageStyle style, boolean canBeMain) {
         Window w = new Window(owner,style);
+
+		// load fxml part
+        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
+        if (canBeMain && mainWindow==null) setAsMain(w); // TODO: improve main window detection/decision strategy
+        windows.add(w); // add to list of active windows
+
+		w.initialize();
+		w.setFont(Gui.font.get());
         File skinFile = new File(APP.DIR_SKINS.getPath(), Gui.skin.getValue() + separator + Gui.skin.getValue() + ".css");
         try {
             w.root.getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
         } catch (MalformedURLException e) {
 	        LOGGER.error("Could not load skin {}", skinFile, e);
         }
-        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();   // load fxml part
-        if (canBeMain && mainWindow==null) setAsMain(w); // TODO: improve main window detection/decision strategy
-        windows.add(w); // add to list of active windows
-        w.initialize();
 
         // bind properties
         w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));
         w.disposables.add(maintain(window_borderless, w::setBorderless));
         w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
 	    w.getStage().setTitle(APP.name);
-	    w.getStage().getIcons().add(APP.getIcon());
+	    w.getStage().getIcons().addAll(APP.getIcons());
 
         return w;
     }

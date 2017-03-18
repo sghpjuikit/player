@@ -1107,6 +1107,7 @@ public class App extends Application implements Configurable {
 	public List<Image> getIcons() {
 		return stream(
 				"icon16.png",
+				"icon24.png",
 				"icon32.png",
 				"icon48.png",
 				"icon128.png",

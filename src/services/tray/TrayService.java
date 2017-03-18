@@ -49,7 +49,7 @@ public class TrayService extends ServiceBase {
 	private ObservableList<javafx.scene.control.MenuItem> menuItems;
 	private EventHandler<javafx.scene.input.MouseEvent> onClick;
 	private SystemTray tray;
-	private File image = new File(APP.DIR_APP, "icon16.png");
+	private File image = new File(APP.DIR_APP, "icon24.png");
 	private TrayIcon trayIcon;
 	private Stage s;
 
@@ -87,7 +87,7 @@ public class TrayService extends ServiceBase {
 		EventQueue.invokeLater(() -> {
 			try {
 				tray = SystemTray.getSystemTray();
-				trayIcon = new TrayIcon(ImageIO.read(image));
+				trayIcon = new TrayIcon(ImageIO.read(image).getScaledInstance(tray.getTrayIconSize().width, -1, Image.SCALE_SMOOTH));
 				trayIcon.setToolTip(APP.name);
 				trayIcon.addMouseListener(new MouseAdapter() {
 					@Override
@@ -117,7 +117,6 @@ public class TrayService extends ServiceBase {
 							runLater(() -> onClick.handle(me));
 					}
 				});
-				trayIcon.setImageAutoSize(true);    // icon may not show without this
 				tray.add(trayIcon);
 			} catch (AWTException|IOException e) {
 				log(TrayService.class).error("Tray icon initialization failed.", e);

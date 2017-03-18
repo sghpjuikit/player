@@ -78,6 +78,7 @@
   main column taking all space, maybe signal locked columns with icon and add
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off auto-resize columns option
+- make tray and taskbar icons dpi aware
 - refactor
     - DirViewer's GridView Cell implementation
     - Icon - Extract custom stuff to separate Icon classes and clean up generic Icon class.

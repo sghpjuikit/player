@@ -100,6 +100,7 @@ public class WindowBase {
 	 * Needed during window initialization.
 	 * Does not affect content of the window.
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	public void update() {
 		s.setWidth(W.get());
 		s.setHeight(H.get());
@@ -277,7 +278,7 @@ public class WindowBase {
 			case RIGHT_TOP: maximizeRightTop(); break;
 			case LEFT_BOTTOM: maximizeLeftBottom(); break;
 			case RIGHT_BOTTOM: maximizeRightBottom(); break;
-			case NONE: demaximize(); break;
+			case NONE: deMaximize(); break;
 		}
 	}
 
@@ -351,7 +352,7 @@ public class WindowBase {
 		s.setHeight(h);
 	}
 
-	private void demaximize() {
+	private void deMaximize() {
 		MaxProp.set(NONE);
 		// Normally we would use last position, but it is possible that de-maximization happens
 		// not to the same screen as it was maximized on (screen can manually be changed, which
@@ -636,6 +637,7 @@ public class WindowBase {
 	 *
 	 * @apiNote adjusts native window style. Based on: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	public void setNonInteractingOnBottom() {
 		if (Os.getCurrent()!=Os.WINDOWS) return;
 
@@ -672,6 +674,7 @@ public class WindowBase {
 	 *
 	 * @apiNote adjusts native window style.
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	private void fixJavaFxNonDecoratedMinimization() {
 		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
 		if (Os.getCurrent()!=Os.WINDOWS) return;

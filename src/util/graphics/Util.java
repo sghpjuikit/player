@@ -50,6 +50,7 @@ import static javafx.stage.StageStyle.UTILITY;
 import static util.async.Async.runFX;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.log;
+import static util.dev.Util.noØ;
 
 /**
  * Graphic utility methods.
@@ -642,33 +643,51 @@ public interface Util {
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
+	/**
+	 * Creates menu item.
+	 *
+	 * @param text non null text of the menu item
+	 * @param action non null action taking the action even as a parameter
+	 * @return non null menu item
+	 * @throws java.lang.RuntimeException if any param null
+	 */
 	static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
+		noØ(action);
 		MenuItem i = new MenuItem(text);
-		if (action!=null) i.setOnAction(action);
+		i.setOnAction(action);
 		return i;
 	}
 
+	/**
+	 * Creates menu item.
+	 *
+	 * @param text non null text of the menu item
+	 * @param action non null action
+	 * @return non null menu item
+	 * @throws java.lang.RuntimeException if any param null
+	 */
 	static MenuItem menuItem(String text, Runnable action) {
-		return menuItem(text, action==null ? null : a -> action.run());
+		noØ(action);
+		return menuItem(text, a -> action.run());
 	}
 
 	/**
-	 * Generates menu items from list of services or actions. Use to populate
-	 * context menu dynamically.
+	 * Creates menu items from list of source objects. Use to populate context menu dynamically.
 	 * <p/>
-	 * For example context menu that provides menu items for searching given
-	 * text on the web, using different search engines. What we want is to
-	 * generate menu items each executing the same type action.
+	 * For example context menu that provides menu items for searching given text on the web, using different search
+	 * engines. What we want is to generate menu items each executing the same type of action.
 	 *
 	 * @param <A> service or action that can facilitates the action
-	 * @param from list of service
-	 * @param toStr service to string converter for menu item text
-	 * @param action item click action, uses service A possibly on some parameter like selected table item
-	 * @return menu item
+	 * @param from non null list of source objects
+	 * @param toStr non null to string converter producing menu item text
+	 * @param action non null menu item item click action taking the respective source object as parameter
+	 * @return menu items
+	 * @throws java.lang.RuntimeException if any param null
 	 */
 	static <A> MenuItem[] menuItems(List<A> from, Function<A,String> toStr, Consumer<A> action) {
+		noØ(from, toStr, action);
 		return from.stream()
-				.map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
+				.map(t -> menuItem(toStr.apply(t), () -> action.accept(t)))
 				.toArray(MenuItem[]::new);
 	}
 

@@ -28,7 +28,7 @@ import static util.functional.Util.groupBy;
  *
  * @author Martin Polakovic
  */
-public final class MetadataGroup {
+public final class MetadataGroup {  // TODO: make generic by value
     private final Metadata.Field field;
     private final Object val;
     private final long items;
@@ -40,6 +40,10 @@ public final class MetadataGroup {
     private final RangeYear years;
     private final List<Metadata> metadatas;
     private final boolean all_flag;
+
+    public static MetadataGroup groupOfUnrelated(Collection<Metadata> ms) {
+        return new MetadataGroup(Metadata.Field.ALBUM, true, null, ms);
+    }
 
     public static MetadataGroup groupOf(Metadata.Field f, Collection<Metadata> ms) {
         return new MetadataGroup(f, true, getAllValue(f), ms);

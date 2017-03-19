@@ -7,9 +7,8 @@ import audio.tagging.Metadata.Field;
 import audio.tagging.MetadataGroup;
 import gui.Gui;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
-import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.contextmenu.SelectionMenuItem;
-import gui.objects.contextmenu.TableContextMenuMR;
+import gui.objects.contextmenu.TableContextMenuR;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
@@ -23,20 +22,15 @@ import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import layout.widget.Widget.Info;
-import layout.widget.WidgetFactory;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
-import layout.widget.feature.SongReader;
-import layout.widget.feature.SongWriter;
-import main.App;
 import services.database.Db;
 import util.access.VarEnum;
 import util.access.Vo;
@@ -44,11 +38,7 @@ import util.async.executor.ExecuteN;
 import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
-import util.file.Environment;
 import util.graphics.drag.DragUtil;
-import util.parsing.Parser;
-import web.SearchUriBuilder;
-import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.Metadata.Field.CATEGORY;
 import static audio.tagging.MetadataGroup.Field.*;
 import static audio.tagging.MetadataGroup.degroup;
@@ -66,7 +56,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static layout.widget.Widget.Group.LIBRARY;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.async.Async.runLater;
@@ -98,6 +87,8 @@ import static util.reactive.Util.maintain;
     group = LIBRARY
 )
 public class LibraryView extends FXMLController {
+
+    private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private @FXML AnchorPane root;
     private final FilteredTable<MetadataGroup> table = new FilteredTable<>(MetadataGroup.class, VALUE);
@@ -190,8 +181,8 @@ public class LibraryView extends FXMLController {
                     // prep selection for context menu
                     if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
-                    // show context menu
-                    contextMenu.show(this, table, e);
+
+                    contextMenu.show(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()), table, e);
                 })
         );
         // maintain playing item css by refreshing column
@@ -366,6 +357,12 @@ public class LibraryView extends FXMLController {
         play(getSelected());
     }
 
+    // TODO: remove and use a general (and robust) mechanism
+    private void play(List<Metadata> items) {
+        if (items.isEmpty()) return;
+        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
+    }
+
     private List<Metadata> getSelected() {
         return filterList(in_items.getValue(),false);
     }
@@ -419,50 +416,6 @@ public class LibraryView extends FXMLController {
 
 //        sel_ignore = false;
         sel_ignore_canturnback = true;
-    }
-
-/******************************** CONTEXT MENU ********************************/
-
-    private static Menu searchMenu;
-    private static final TableContextMenuMR<Metadata, MetadataGroup, LibraryView> contextMenu = new TableContextMenuMR<>(
-        () -> {
-            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
-            MenuItem[] is = menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),
-                                      q -> "in " + Parser.DEFAULT.toS(q),
-                                      q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
-            searchMenu = new Menu("Search album cover",null,is);
-            m.getItems().addAll(menuItem("Play items", e -> play(m.getValue())),
-                menuItem("Enqueue items", e -> PlaylistManager.use(p -> p.addItems(m.getValue()))),
-                menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
-                menuItem("Remove from library", e -> Db.removeItems(m.getValue())),
-                new Menu("Show in",null,
-                    menuItems(
-                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
-                        WidgetFactory::nameGui,
-                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongReader)c.getController()).read(m.getValue()))
-                    )
-                ),
-                new Menu("Edit tags in",null,
-                    menuItems(
-                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
-                        WidgetFactory::nameGui,
-                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT,c -> ((SongWriter)c.getController()).read(m.getValue()))
-                    )
-                ),
-                searchMenu
-            );
-            return m;
-        }, (menu, w) -> {
-            menu.setValue(w.filerListToSelectedNsort());
-            if (w.fieldFilter.getValue()==ALBUM && menu.getItems().size()==5)
-                menu.getItems().add(searchMenu);
-            if (w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
-                menu.getItems().remove(searchMenu);
-        });
-
-    private static void play(List<Metadata> items) {
-        if (items.isEmpty()) return;
-        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
     }
 
 }

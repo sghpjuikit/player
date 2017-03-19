@@ -358,8 +358,8 @@ public class AlbumView extends ClassController {
 			name.setAlignment(Pos.CENTER);
 			thumb = new Thumbnail() {
 				@Override
-				protected Object getRepresentant() {
-					return getItem();
+				protected MetadataGroup getRepresentant() {
+					return getItem() == null ? null : getItem().items;
 				}
 			};
 			thumb.setBorderVisible(true);

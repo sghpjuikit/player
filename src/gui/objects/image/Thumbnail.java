@@ -3,10 +3,7 @@ package gui.objects.image;
 import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.image.cover.Cover;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +13,6 @@ import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DataFormat;
@@ -25,9 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Screen;
 import javafx.util.Duration;
-import main.App;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SingleR;
@@ -36,9 +30,7 @@ import util.animation.Anim;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.Dependency;
-import util.file.Environment;
 import util.file.ImageFileFormat;
-import util.file.Util;
 import static java.lang.Double.min;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -46,13 +38,8 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
-import static main.App.APP;
-import static util.file.Environment.copyToSysClipboard;
-import static util.file.Util.recycleFile;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
-import static util.graphics.Util.getScreen;
-import static util.graphics.Util.menuItem;
 import static util.reactive.Util.doOnceIf;
 import static util.type.Util.getFieldValue;
 
@@ -66,7 +53,7 @@ import static util.type.Util.getFieldValue;
  * <li> Resizable. The image resizes in layout automatically. For manual resize
  * set preferred, minimal and maximal size of the root {@link #getPane()}.
  * <p/>
- * This size is applied on the root of this thubmnail, which contains the image.
+ * This size is applied on the root of this thumbnail, which contains the image.
  * The image will try to use maximum space available, depending on the aspect
  * ratios of the image and this thumbnail.
  * <p/>
@@ -116,6 +103,7 @@ public class Thumbnail extends ImageNode {
 
 	protected final ImageView imageView = new ImageView();
 	protected final StackPane root = new StackPane(imageView) {
+		@SuppressWarnings("UnnecessaryLocalVariable")
 		@Override
 		protected void layoutChildren() {
 			// lay out image
@@ -136,16 +124,16 @@ public class Thumbnail extends ImageNode {
 				if (borderToImage && imageView.getImage()!=null) {
 					if (ratioIMG.get()>ratioTHUMB.get()) {
 						double borderW = imgW;
-						double borderWgap = (W - borderW)/2;
+						double borderWGap = (W - borderW)/2;
 						double borderH = imgW/ratioIMG.get();
-						double borderHgap = (H - borderH)/2;
-						border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+						double borderHGap = (H - borderH)/2;
+						border.resizeRelocate(borderWGap, borderHGap, borderW, borderH);
 					} else {
 						double borderW = imgH*ratioIMG.get();
-						double borderWgap = (W - borderW)/2;
+						double borderWGap = (W - borderW)/2;
 						double borderH = imgH;
-						double borderHgap = (H - borderH)/2;
-						border.resizeRelocate(borderWgap, borderHgap, borderW, borderH);
+						double borderHGap = (H - borderH)/2;
+						border.resizeRelocate(borderWGap, borderHGap, borderW, borderH);
 					}
 				} else {
 					border.resizeRelocate(0, 0, W, H);
@@ -202,10 +190,10 @@ public class Thumbnail extends ImageNode {
 		// update ratios
 		ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));
 		imageView.imageProperty().addListener((o, ov, nv) ->
-			ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
+				ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
 		);
 
-		fitFrom.addListener((o,ov,nv) -> applyViewPort(imageView.getImage()));
+		fitFrom.addListener((o, ov, nv) -> applyViewPort(imageView.getImage()));
 
 		// initialize values
 //        imageView.setCache(false);
@@ -469,6 +457,7 @@ public class Thumbnail extends ImageNode {
 /* ---------- BACKGROUND -------------------------------------------------------------------------------------------- */
 
 	// TODO: use custom style classes for this
+
 	/**
 	 * Sets visibility of the background. The bgr is visible only when the image
 	 * size ratio and thumbnail size ratio does not match.
@@ -510,9 +499,8 @@ public class Thumbnail extends ImageNode {
 	/**
 	 * Allow image file drag from this thumbnail.
 	 * <p/>
-	 * Dragging is done with left button and only possible if this thumbnail
-	 * has file set. The file will be put into dragboard, use Dataformat.FILES
-	 * to retrieve it.
+	 * Dragging is done with left button and only possible if this thumbnail has file set.
+	 * The file will be put into dragboard, use {@link javafx.scene.input.DataFormat#FILES} to retrieve it.
 	 * <p/>
 	 * The gesture source can be obtained by {@link #getPane()}
 	 * <p/>
@@ -569,7 +557,7 @@ public class Thumbnail extends ImageNode {
 	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> util.graphics.Util.setScaleXY(root, 1 + 0.05*at));
 	private final EventHandler<MouseEvent> hoverHandler = e -> {
 		hoverAnimation.dur(durationOnHover.get());
-		if (isH())
+		if (isHoverable())
 			hoverAnimation.playFromDir(e.getEventType().equals(MOUSE_ENTERED));
 	};
 	/** Hover scaling effect on/off. Default false. */
@@ -587,7 +575,7 @@ public class Thumbnail extends ImageNode {
 		}
 	};
 
-	private boolean isH() {
+	private boolean isHoverable() {
 		return hoverable.get();
 	}
 
@@ -620,84 +608,26 @@ public class Thumbnail extends ImageNode {
 		return ratioIMG;
 	}
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> context_menu = new SingleR<>(
-		() -> new ImprovedContextMenu<ContextMenuData>() {{
-			getItems().setAll(
-				new Menu("Image", null,
-					menuItem("Save the image as ...", e ->
-						Environment.saveFile(
-							"Save image as...",
-							APP.DIR_APP,
-							getValue().iFile==null ? "new_image" : getValue().iFile.getName(),
-							getOwnerWindow(),
-							ImageFileFormat.filter()
-						)
-							.ifOk(file -> Util.writeImage(getValue().image, file))
-					),
-					menuItem("Copy to clipboard", e -> copyToSysClipboard(DataFormat.IMAGE, getValue().image))
-				),
-				new Menu("Image file", null,
-					menuItem("Browse location", e -> Environment.browse(getValue().fsImageFile)),
-					menuItem("Open (in associated program)", e -> Environment.open(getValue().fsImageFile)),
-					menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().fsImageFile)),
-					menuItem("Delete from disc", e -> recycleFile(getValue().fsImageFile)),
-					menuItem("Fullscreen", e -> {
-						File f = getValue().fsImageFile;
-						if (ImageFileFormat.isSupported(f)) {
-							Screen screen = getScreen(getX(), getY());
-							App.openImageFullscreen(f, screen);
-						}
-					})
-				),
-				new Menu("File", null,
-					menuItem("Browse location", e -> Environment.browse(getValue().file)),
-					menuItem("Open (in associated program)", e -> Environment.open(getValue().file)),
-					menuItem("Edit (in associated editor)", e -> Environment.edit(getValue().file)),
-					menuItem("Delete from disc", e -> recycleFile(getValue().file)),
-					menuItem("Copy as ...", e ->
-						Environment.saveFile(
-							"Copy as...",
-							APP.DIR_APP,
-							getValue().file.getName(),
-							getOwnerWindow(),
-							ImageFileFormat.filter()
-						)
-							.ifOk(nf -> {
-								try {
-									Files.copy(getValue().file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
-								} catch (IOException ex) {
-									LOGGER.error("File cpy failed.", ex);
-								}
-							})
-					)
-				)
-			);
-		}},
-		(menu, thumbnail) -> {
-			ContextMenuData data = thumbnail.new ContextMenuData();
-			menu.setValue(data);
-			menu.getItems().get(0).setDisable(data.image==null);
-			menu.getItems().get(1).setDisable(data.fsDisabled);
-			menu.getItems().get(2).setDisable(data.menuDisabled);
-		}
+	private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> contextMenu = new SingleR<>(
+			ImprovedContextMenu::new,
+			(menu, thumbnail) -> menu.setValueAndItems(thumbnail.new ContextMenuData())
 	);
 
 	private final EventHandler<MouseEvent> contextMenuHandler = e -> {
 		if (e.getButton()==SECONDARY) {
-			context_menu.getM(this).show(root, e);
+			contextMenu.getM(this).show(root, e);
 			e.consume();
 		}
 	};
 
-	private class ContextMenuData {
+	public class ContextMenuData {
 		public final Object representant = getRepresentant();
 		public final File file = representant instanceof File ? (File) representant : null;
 		public final File iFile = getFile();
 		public final File fsImageFile = iFile!=null ? iFile : file;
 		public final Image image = getImage();
-		public final boolean menuDisabled = file==null;
 		public final boolean fsDisabled = fsImageFile==null || !ImageFileFormat.isSupported(fsImageFile);
 		public final Thumbnail thumbnail = Thumbnail.this;
 	}

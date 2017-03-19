@@ -4,10 +4,10 @@ import audio.Item;
 import audio.Player;
 import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
+import audio.tagging.MetadataGroup;
 import audio.tagging.MetadataReader;
 import gui.Gui;
 import gui.infonode.InfoTask;
-import gui.objects.contextmenu.ImprovedContextMenu;
 import gui.objects.contextmenu.TableContextMenuR;
 import gui.objects.spinner.Spinner;
 import gui.objects.table.FilteredTable;
@@ -22,7 +22,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
@@ -31,13 +30,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import layout.widget.Widget.Info;
-import layout.widget.WidgetFactory;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
-import layout.widget.feature.FileExplorerFeature;
 import layout.widget.feature.SongReader;
-import layout.widget.feature.SongWriter;
 import main.App;
 import services.database.Db;
 import util.access.Vo;
@@ -54,11 +50,9 @@ import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.FileType;
 import util.graphics.drag.DragUtil;
-import util.parsing.Parser;
 import util.units.FormattedDuration;
 import util.validation.Constraint;
 import util.validation.Constraint.FileActor;
-import web.SearchUriBuilder;
 import static audio.tagging.Metadata.Field.RATING;
 import static audio.tagging.Metadata.Field.TITLE;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -69,7 +63,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
 import static layout.widget.Widget.Group.LIBRARY;
-import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
@@ -103,6 +96,8 @@ import static util.reactive.Util.maintain;
     group = LIBRARY
 )
 public class Library extends FXMLController implements SongReader {
+
+	private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private @FXML AnchorPane root;
 	private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
@@ -208,8 +203,8 @@ public class Library extends FXMLController implements SongReader {
                     // prep selection for context menu
                     if (!r.isSelected())
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
-                    // show context menu
-                    contextMenu.show(table, e);
+
+                    contextMenu.show(MetadataGroup.groupOfUnrelated(table.getSelectedItemsCopy()), table, e);
                 })
                 // additional css style classes
                 .styleRuleAdd("played", m -> Player.playingItem.get().same(m)) // don't use method reference!
@@ -318,56 +313,5 @@ public class Library extends FXMLController implements SongReader {
 	        	return null;
 	        });
     }
-
-    private static final TableContextMenuR<Metadata,FilteredTable<Metadata>> contextMenu = new TableContextMenuR<> (
-        () -> {
-            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu<>();
-            m.getItems().addAll(menuItem("Play items", e ->
-                    PlaylistManager.use(p -> p.setNplay(m.getValue()))
-                ),
-                menuItem("Enqueue items", e ->
-                    PlaylistManager.use(p -> p.addItems(m.getValue()))
-                ),
-                menuItem("Update from file", e ->
-                    App.refreshItemsFromFileJob(m.getValue())
-                ),
-                menuItem("Remove from library", e ->
-                    Db.removeItems(m.getValue())
-                ),
-                new Menu("Show in",null,
-                    menuItems(
-                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
-	                    WidgetFactory::nameGui,
-                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongReader)c.getController()).read(m.getValue()))
-                    )
-                ),
-                new Menu("Edit tags in",null,
-                    menuItems(
-                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
-	                    WidgetFactory::nameGui,
-                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((SongWriter)c.getController()).read(m.getValue()))
-                    )
-                ),
-                menuItem("Explore items's directory", e ->
-                    Environment.browse(m.getValue().stream().filter(Item::isFileBased).map(Item::getFile))
-                ),
-                new Menu("Explore items's directory in",null,
-                    menuItems(
-                    	APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)).toList(),
-	                    WidgetFactory::nameGui,
-                        f -> APP.widgetManager.use(f.nameGui(),NO_LAYOUT, c -> ((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile()))
-                    )
-                ),
-                new Menu("Search album cover",null,
-                    menuItems(APP.plugins.getPlugins(SearchUriBuilder.class),
-                        q -> "in " + Parser.DEFAULT.toS(q),
-                        q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum()))
-                    )
-                )
-               );
-            return m;
-        },
-        (menu,table) -> menu.setValue(table.getSelectedItemsCopy())
-    );
 
 }

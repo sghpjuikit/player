@@ -1,37 +1,27 @@
 package gui.objects.contextmenu;
 
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import javafx.scene.control.TableView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
+import util.SingleR;
 
 /**
  * @author Martin Polakovic
  */
-public class TableContextMenuR<E, TABLE extends TableView<E>> extends TableContextMenuMR<E,E,TABLE> {
+public class TableContextMenuR<M> extends SingleR<ImprovedContextMenu<M>,M> {
 
-	public TableContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {
-		super(builder);
+	public TableContextMenuR() {
+		super(ImprovedContextMenu::new, ImprovedContextMenu::setValueAndItems);
 	}
 
-	public TableContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>,TABLE> mutator) {
-		super(builder, mutator);
+	public void show(M mutator, TableView<?> table, MouseEvent e) {
+		if (!table.getSelectionModel().isEmpty())
+			getM(mutator).show(table, e);
 	}
 
-	/**
-	 * @see #show(javafx.scene.control.TableView, javafx.scene.input.MouseEvent)
-	 */
-	public void show(TABLE table, MouseEvent e) {
-		show(table, table, e);
-	}
-
-	/**
-	 * @see #show(javafx.scene.control.TableView, javafx.scene.input.ContextMenuEvent)
-	 */
-	public void show(TABLE table, ContextMenuEvent e) {
-		show(table, table, e);
+	public void show(M mutator, TableView<?> table, ContextMenuEvent e) {
+		if (!table.getSelectionModel().isEmpty())
+			getM(mutator).show(table, e);
 	}
 
 }

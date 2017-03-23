@@ -48,21 +48,18 @@ public interface Constraint<T> {
 		put(NonNullElements.class, (NonNullElements constraint) -> new HasNonNullElements());
 	}};
 	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> util.type.Util.getGenericInterface(o.getClass(), 0, 0)) {{
-		ClassIndex.getAnnotated(DeclarationType.class);
-		accumulate(
-				StreamEx.of(ClassIndex.getAnnotated(DeclarationType.class).iterator())
-						// report programming errors
-						.map(c -> {
-							if (!Constraint.class.isAssignableFrom(c))
-								throw new RuntimeException("Only subclasses of " + Constraint.class + " can be annotated by " + DeclarationType.class);
-							return (Class<Constraint>) c;
-						})
-						// only implicit
-						.filter(c -> c.getAnnotation(DeclarationType.class).value()==IMPLICIT)
-						// instantiate constraints
-						.map(Util::instantiateOrThrow)
-						.toList()
-		);
+			StreamEx.of(ClassIndex.getAnnotated(DeclarationType.class).iterator())
+					// report programming errors
+					.map(c -> {
+						if (!Constraint.class.isAssignableFrom(c))
+							throw new RuntimeException("Only subclasses of " + Constraint.class + " can be annotated by " + DeclarationType.class);
+						return (Class<Constraint>) c;
+					})
+					// only implicit
+					.filter(c -> c.getAnnotation(DeclarationType.class).value()==IMPLICIT)
+					// instantiate constraints
+					.map(Util::instantiateOrThrow)
+					.forEach(this::accumulate);
 	}};
 
 	@SuppressWarnings("unchecked")

@@ -107,7 +107,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	abstract public Config<T> constraints(Constraint<? super T>... constraints);
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "unused"})
 	public Config<T> constraints(Collection<Constraint<? super T>> constraints) {
 		return constraints(constraints.toArray(new Constraint[constraints.size()]));
 	}
@@ -319,9 +319,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private final T defaultValue;
 		Set<Constraint<? super T>> constraints;
 
-		/**
-		 * @throws NullPointerException if val parameter null. The wrapped value must no be null.
-		 */
 		@TODO(note = "make static map for valueEnumerators")
 		ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
 			this.type = unPrimitivize(type);
@@ -535,6 +532,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 				ApplicableValue.class.cast(value).applyValue();
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void applyValue(T val) {
 			if (value instanceof ApplicableValue)
@@ -671,6 +669,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			defaultOverride_value = property.override.getValue();
 		}
 
+		@SuppressWarnings("unchecked")
 		public Vo<T> getProperty() {
 			return (Vo) value;
 		}

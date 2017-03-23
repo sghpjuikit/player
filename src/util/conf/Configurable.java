@@ -196,9 +196,8 @@ public interface Configurable<T> {
 		if (c!=null) c.setValueS(v);
 	}
 
-	@SuppressWarnings("unchecked")
 	static <E extends ObservableValue & WritableValue> Collection<Config<Object>> configsFromFieldsOf(Object o) {
-		return (Collection) configsOf(o.getClass(), o, false, true);
+		return configsOf(o.getClass(), o, false, true);
 	}
 
 	@SuppressWarnings("unchecked")

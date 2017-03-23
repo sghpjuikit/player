@@ -79,7 +79,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 //                File i = fi.isDone() ? fi.getDone() : null;
 //                boolean same = i!=null && i.equals(except.get());
 
-				File i = DragUtil.getImageNoUrl(e);  // workaround
+				File i = DragUtil.getImageNoUrl(e);
 				return i!=null && i.equals(getFile());  // false if image file is already displayed
 			},
 			e -> {

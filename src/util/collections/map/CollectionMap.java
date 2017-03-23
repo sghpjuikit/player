@@ -1,89 +1,68 @@
 package util.collections.map;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import static java.util.stream.Collectors.toCollection;
 
 /**
- * Map for caching and splitting collections. It splits elements E to cache buckets
- * C based on key K derived from elements E*
+ * Collection based implementation of {@link util.collections.map.AccumulationMap} - values mapped to the same key are
+ * added in a collection (of provided type).
  *
- * @param <E> element that will be split/accumulated
- * @param <K> key extracted from element E to hash cache buckets on.
- * @param <C> cache bucket/accumulation container. A (not necessarily) a collection such as List. Can even be an element
- * E itself. For example a sum. Depends on accumulation strategy. Because of this, elements can not be removed.
  * @author Martin Polakovic
- * @see ListMap
  */
-public class CollectionMap<E, K, C> extends HashMap<K,C> {
-	/**
-	 * Extracts keys from elements. Determines the splitting parts of the caching  strategy, e.g. using a predicate
-	 * would split the original collection on two parts - elements that test true, and elements that test false.
-	 */
-	public Function<? super E,? extends K> keyMapper;
-	/**
-	 * Builds cache bucket/accumulation container when there is none for the given key during accumulation.
-	 */
-	public Supplier<? extends C> cacheFactory;
-	/**
-	 * Defines how the elements will be accumulated into the cache bucket. If the bucket is a collection, you probably
-	 * wish to use {@code (element, collection) -> collection.add(element);}, but different reducing strategies can be
-	 * used, for example {@code (element,sum) -> sum+number;}
-	 */
-	public BiConsumer<? super E,? super C> cacheAccumulator;
+public class CollectionMap<E, K, C extends Collection<E>> extends AccumulationMap<E,K,C> {
 
-	public CollectionMap(Function<? super E,? extends K> keyMapper, Supplier<? extends C> cacheFactory, BiConsumer<? super E,? super C> cacheAccumulator) {
-		this.keyMapper = keyMapper;
-		this.cacheFactory = cacheFactory;
-		this.cacheAccumulator = cacheAccumulator;
+	public CollectionMap(Supplier<? extends C> cacheFactory, Function<E,K> keyMapper) {
+		super(keyMapper, cacheFactory, (e, cache) -> cache.add(e));
 	}
 
-	/** Accumulates given collection into this cache map. The collection remains unaffected. */
-	public void accumulate(Iterable<? extends E> es) {
-		for (E e : es) accumulate(e);
-	}
-
-	public void accumulate(K k, Iterable<? extends E> es) {
-		for (E e : es) accumulate(k, e);
-	}
-
-	/** Accumulates given element into this map. */
-	public void accumulate(E e) {
-		// get key
+	/** De-accumulates (removes) given element from this map. */
+	public void deAccumulate(E e) {
 		K k = keyMapper.apply(e);
-		// get cache storage with key & build new if not yet built
-		C c = computeIfAbsent(k, k1 -> cacheFactory.get());
-		// cache element
-		cacheAccumulator.accept(e, c);
-	}
-
-	public void accumulate(K k, E e) {
-		// get cache storage with key & build new if not yet built
-		C c = computeIfAbsent(k, k1 -> cacheFactory.get());
-		// cache element
-		cacheAccumulator.accept(e, c);
+		C c = get(k);
+		if (c!=null) {
+			c.remove(e);
+		}
 	}
 
 	/**
-	 * Multi key get.
+	 * Multi key get returning the combined content of the cache buckets.
 	 *
-	 * @return list containing of all cache buckets / accumulation containers assigned to keys in the given collection.
+	 * @return list containing all elements of all cache buckets / accumulation containers assigned to keys in the given
+	 * collection.
 	 */
-	public List<C> getCacheOf(Collection<K> keys) {
-		List<C> out = new ArrayList<>();
+	public C getElementsOf(Collection<K> keys) {
+		C out = cacheFactory.get();
 		for (K k : keys) {
 			C c = get(k);
-			if (c!=null) out.add(c);
+			if (c!=null) out.addAll(c);
 		}
 		return out;
 	}
 
-	@Override
-	public void clear() {
-		super.clear();
+	/** Array version of {@link #getElementsOf(java.util.Collection)}. */
+	@SafeVarargs
+	public final C getElementsOf(K... keys) {
+		C out = cacheFactory.get();
+		for (K k : keys) {
+			C c = get(k);
+			if (c!=null) out.addAll(c);
+		}
+		return out;
+	}
+
+	/**
+	 * Same as {@link #getElementsOf(java.util.Collection)}.
+	 * Avoids creating intermediary collection of keys (parameter) and reduce
+	 * memory.
+	 */
+	public C getElementsOf(Stream<K> keys) {
+		return keys.map(this::get)
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
+				.collect(toCollection(cacheFactory));
 	}
 }

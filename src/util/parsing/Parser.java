@@ -485,7 +485,7 @@ public abstract class Parser {
 		return no_input
 				? in -> {
 					try {
-						return ok(m.invoke(null));
+						return ok(m.invoke((Object[]) null));
 					} catch (IllegalAccessException|InvocationTargetException e) {
 						for (Class<?> ec : ecs) {
 							if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))

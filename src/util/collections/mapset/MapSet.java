@@ -6,9 +6,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
-import static util.dev.TODO.Severity.SEVERE;
 
 /**
  * {@link Set} backed by {@link Map} using provided key mapper function for
@@ -104,20 +101,23 @@ public class MapSet<K, E> implements Set<E> {
 		return m.isEmpty();
 	}
 
-	@Deprecated
+	/**
+	 * @throws java.lang.ClassCastException if object not of proper type
+	 * @apiNote Do not use. This is an outdated method that has its generic type information erased at compile time. Use
+	 * {@link #containsKey(Object)} or {@link #containsValue(Object)} instead.
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean contains(Object o) {
-		return m.containsKey(keyMapper.apply((E) o));
+		return containsValue((E) o);
 	}
 
 	public boolean containsKey(K k) {
 		return m.containsKey(k);
 	}
 
-	@SuppressWarnings("deprecation")
 	public boolean containsValue(E e) {
-		return contains(e);
+		return m.containsKey(keyMapper.apply(e));
 	}
 
 	@Override
@@ -157,21 +157,24 @@ public class MapSet<K, E> implements Set<E> {
 	}
 
 	public E getOr(K key, E e) {
-		return m.containsKey(key) ? m.get(key) : e;
+		return m.getOrDefault(key, e);
 	}
 
 	public E getOrSupply(K key, Supplier<E> supplier) {
 		return m.containsKey(key) ? m.get(key) : supplier.get();
 	}
 
-	@Deprecated
+	/**
+	 * @throws java.lang.ClassCastException if object not of proper type
+	 * @apiNote Do not use. This is an outdated method that has its generic type information erased at compile time. Use
+	 * {@link #removeKey(Object)} or {@link #removeValue(Object)} instead.
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean remove(Object o) {
 		return removeKey(keyMapper.apply((E) o));
 	}
 
-	@SuppressWarnings("deprecation")
 	public boolean removeValue(E o) {
 		return remove(o);
 	}
@@ -183,13 +186,12 @@ public class MapSet<K, E> implements Set<E> {
 		return true;
 	}
 
-	@SuppressWarnings("deprecation")
+	/**
+	 * @throws java.lang.ClassCastException if object not of proper type
+	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		for (Object e : c)
-			if (!contains(e))
-				return false;
-		return true;
+		return c.stream().allMatch(this::contains);
 	}
 
 	/**
@@ -200,8 +202,7 @@ public class MapSet<K, E> implements Set<E> {
 	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
 		for (E e : c)
-			if (add(e))
-				modified = true;
+			modified |= add(e);
 		return modified;
 	}
 
@@ -214,21 +215,36 @@ public class MapSet<K, E> implements Set<E> {
 	public final boolean addAll(E... c) {
 		boolean modified = false;
 		for (E e : c)
-			if (add(e))
-				modified = true;
+			modified |= add(e);
 		return modified;
 	}
 
-	@TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
+	/**
+	 * @throws java.lang.ClassCastException if object not of proper type
+	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean modified = false;
+		for (Object o : c) {
+			K k = keyMapper.apply((E) o);
+			if (!containsKey(k)) {
+				removeKey(k);
+				modified = true;
+			}
+		}
+		return modified;
 	}
 
-	@TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
+	/**
+	 * @throws java.lang.ClassCastException if object not of proper type
+	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean modified = false;
+		for (Object o : c)
+			modified |= remove(o);
+		return modified;
 	}
 
 	@Override

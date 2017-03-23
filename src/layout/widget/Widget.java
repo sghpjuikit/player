@@ -70,7 +70,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 */
 	@Dependency("name - acceesed using reflection by name")
 	@XStreamOmitField
-	public final WidgetFactory<?> factory;
+	public final WidgetFactory<?> factory;	// TODO: make type safe
 	@XStreamOmitField
 	protected Node root;
 	@XStreamOmitField
@@ -88,6 +88,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	@XStreamOmitField
 	@Deprecated
 	public Container parentTemp;
+
 	/**
 	 * Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
 	 * field properly. There is no restriction where widget is loaded, so this field may be null.
@@ -123,7 +124,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		return name;
 	}
 
-	@Deprecated
 	public Node getGraphics() {
 		return root;
 	}
@@ -203,11 +203,11 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 	private C instantiateController() {
 		// instantiate controller
-		Class<?> cc = factory.getControllerClass();
+		Class<C> cc = (Class) factory.getControllerClass();
 		C c;
 		try {
-			c = (C) cc.newInstance();
-		} catch (IllegalAccessException|InstantiationException e) {
+			c = cc.getConstructor().newInstance();
+		} catch (IllegalAccessException|InstantiationException|NoSuchMethodException|InvocationTargetException e) {
 			LOGGER.error("Widget controller creation failed {}", cc, e);
 			return null;
 		}

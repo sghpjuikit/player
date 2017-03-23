@@ -391,8 +391,6 @@ public final class DragUtil {
 			return Fut.fut(null);
 	}
 
-	// workaround method, remove
-	@Deprecated(forRemoval = true)
 	public static File getImageNoUrl(DragEvent e) {
 		Dragboard d = e.getDragboard();
 

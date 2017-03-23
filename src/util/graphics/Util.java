@@ -281,9 +281,8 @@ public interface Util {
 		setAnchor(pane, n3, top3, right3, bottom3, left3);
 	}
 
+	// TODO: make sure this works 100%
 	/** Gives the text shape wrapping to its width and scrollable functionalities. */
-	@Deprecated
-	@TODO(purpose = BUG)
 	static ScrollPane layScrollVText(Text t) {
 		// This is how it should be done, but there is a bug.
 		// Unfortunately the pane resizes with the text so we cant bind
@@ -312,8 +311,6 @@ public interface Util {
 		return s;
 	}
 
-	@Deprecated // the behavior may be unpredictable/change in the future
-	@TODO(purpose = BUG)
 	static ScrollPane layScrollVTextCenter(Text t) {
 		double reserve = 5;
 		ScrollPane s = new ScrollPane(new StackPane(t));

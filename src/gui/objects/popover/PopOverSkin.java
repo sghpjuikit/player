@@ -256,13 +256,12 @@ public class PopOverSkin implements Skin<PopOver> {
 		return p;
 	}
 
+	// TODO: use css instead
 	/**
 	 * Sets padding of content within popover. Overrides and defaults to css.
 	 *
 	 * @param i padding
-	 * @deprecated use css
 	 */
-	@Deprecated
 	public void setContentPadding(Insets i) {
 		// set padding from borders
 		content.setPadding(i);

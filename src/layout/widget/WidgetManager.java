@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 import javafx.scene.layout.Pane;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
-import layout.Component;
 import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
@@ -456,7 +455,7 @@ public final class WidgetManager {
 	public Stream<Widget<?>> findAll(WidgetSource source) {
 		switch(source) {
 			case LAYOUT:
-				return getLayouts().flatMap(Container::getAllWidgets);
+				return getLayoutsNoStandalone().flatMap(Container::getAllWidgets);
 			case STANDALONE:
 			case NO_LAYOUT:
 				return standaloneWidgets.stream();
@@ -664,10 +663,11 @@ public final class WidgetManager {
 	 * @return all Layouts in the application.
 	 */
 	public Stream<Layout> getLayouts() {
-		return Stream.concat(
-			windowManager.windows.stream().map(Window::getLayout).filter(ISNTØ),
-			standaloneWidgets.stream().map(Component::getRootParent).filter(ISNTØ).map(c -> (Layout)c)
-		);
+		return windowManager.windows.stream().map(Window::getLayout).filter(ISNTØ);
+	}
+
+	public Stream<Layout> getLayoutsNoStandalone() {
+		return windowManager.windows.stream().map(Window::getLayout).filter(ISNTØ);
 	}
 
 	/**

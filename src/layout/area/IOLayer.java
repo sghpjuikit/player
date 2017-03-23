@@ -5,11 +5,12 @@
  */
 package layout.area;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import gui.Gui;
+import gui.objects.Text;
+import gui.objects.icon.Icon;
+import gui.objects.window.stage.Window;
+import java.util.*;
 import java.util.stream.Stream;
-
 import javafx.animation.PathTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.FXCollections;
@@ -23,12 +24,15 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
-
+import javafx.stage.Stage;
 import layout.container.switchcontainer.SwitchPane;
 import layout.widget.Widget;
 import layout.widget.WidgetManager.WidgetSource;
@@ -37,30 +41,22 @@ import layout.widget.controller.io.InOutput;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
 import layout.widget.controller.io.XPut;
-import gui.Gui;
-import gui.objects.Text;
-import gui.objects.window.stage.Window;
-import gui.objects.icon.Icon;
 import util.animation.Anim;
 import util.collections.map.Map2D;
 import util.collections.map.Map2D.Key;
 import util.graphics.Util;
 import util.graphics.drag.DragUtil;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.pow;
-import static java.lang.Math.random;
-import static java.lang.Math.signum;
+import static java.lang.Math.*;
 import static java.util.stream.Collectors.toList;
 import static javafx.css.PseudoClass.getPseudoClass;
-import static javafx.scene.input.DragEvent.*;
+import static javafx.scene.input.DragEvent.DRAG_ENTERED;
+import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.functional.Util.*;
+import static util.functional.Util.min;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
@@ -77,6 +73,7 @@ public class IOLayer extends StackPane {
     public static final String IOLINE_RUNNER_STYLECLASS = "ioline-runner";
     public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
     public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
+    private static final Object XNODE_KEY = new Object();
 
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
@@ -403,7 +400,6 @@ public class IOLayer extends StackPane {
                 e.consume();
             });
 
-
             if (output!=null) {
                 Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
 
@@ -446,6 +442,7 @@ public class IOLayer extends StackPane {
             graphics = new HBox(8, i,t);
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
+            graphics.getProperties().put(XNODE_KEY, this);
             i.styleclass(INODE_STYLECLASS);
 
             // drag&drop
@@ -479,6 +476,7 @@ public class IOLayer extends StackPane {
             graphics = new HBox(8, t,i);
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_RIGHT);
+            graphics.getProperties().put(XNODE_KEY, this);
             i.styleclass(ONODE_STYLECLASS);
 
             // drag&drop
@@ -497,6 +495,7 @@ public class IOLayer extends StackPane {
             graphics = new VBox(8, i,t);
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
+            graphics.getProperties().put(XNODE_KEY, this);
             i.styleclass(IONODE_STYLECLASS);
 
             // drag&drop

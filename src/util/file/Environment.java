@@ -294,6 +294,11 @@ public interface Environment {
 				try {
 					Desktop.getDesktop().open(file);
 				} catch (IOException e) {
+
+					if (e.getMessage().contains("No application is associated with the specified file for this operation"))
+						// TODO: hadle properly
+						;
+
 					log(Environment.class).error("Opening file {} in native app failed", file, e);
 					APP.parameterProcessor.process(list(file.getPath())); // try open with this app
 				} catch (IllegalArgumentException e) {

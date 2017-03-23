@@ -19,10 +19,12 @@ import java.util.stream.Stream;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ScrollEvent;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.LazyR;
 import util.Sort;
+import util.access.CyclicEnum;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
@@ -153,6 +155,16 @@ public class DirViewer extends ClassController {
         grid.setOnMouseClicked(e -> {
             if (e.getButton() == SECONDARY)
                 visitUp();
+        });
+        grid.addEventFilter(ScrollEvent.SCROLL, e -> {
+            if (e.isShortcutDown()) {
+                if (e.getDeltaY()>0) {
+                    cellSize.setPreviousNapplyValue();
+                } else {
+                    cellSize.setNextNapplyValue();
+                }
+                e.consume();
+            }
         });
 
 		// drag & drop
@@ -432,7 +444,7 @@ public class DirViewer extends ClassController {
                 .orElseGet(() -> stream(filters).findAny(f -> "File - all".equals(f.name)).get());
     }
 
-    enum CellSize {
+    enum CellSize implements CyclicEnum<CellSize> {
         SMALL(80),
         NORMAL(160),
         LARGE(240),

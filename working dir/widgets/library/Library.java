@@ -50,7 +50,7 @@ import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.FileType;
 import util.graphics.drag.DragUtil;
-import util.units.FormattedDuration;
+import util.units.Dur;
 import util.validation.Constraint;
 import util.validation.Constraint.FileActor;
 import static audio.tagging.Metadata.Field.RATING;
@@ -156,7 +156,7 @@ public class Library extends FXMLController implements SongReader {
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double Σms = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(Σms);
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(Σms);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

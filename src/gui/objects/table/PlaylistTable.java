@@ -24,7 +24,7 @@ import org.reactfx.Subscription;
 import util.access.V;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
-import util.units.FormattedDuration;
+import util.units.Dur;
 import static audio.playlist.PlaylistItem.Field.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -55,7 +55,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
 	private final TableColumn<PlaylistItem,String> columnName;
-	private final TableColumn<PlaylistItem,FormattedDuration> columnTime;
+	private final TableColumn<PlaylistItem,Dur> columnTime;
 
 	private double selectionLastScreenY;
 	private ArrayList<Integer> selectionTmp = new ArrayList<>();
@@ -147,7 +147,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 			// column time
 			double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
-			double W3 = computeFontWidth(Gui.font.getValue(), new FormattedDuration(mt).toString()) + 5;
+			double W3 = computeFontWidth(Gui.font.getValue(), new Dur(mt).toString()) + 5;
 
 			columnIndex.setPrefWidth(W1);
 			columnTime.setPrefWidth(W3);

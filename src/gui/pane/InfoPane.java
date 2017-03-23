@@ -21,7 +21,7 @@ import one.util.streamex.EntryStream;
 import util.R;
 import util.Util;
 import util.conf.IsConfigurable;
-import util.units.FormattedDuration;
+import util.units.Dur;
 
 import static gui.objects.icon.Icon.createInfoIcon;
 import static java.util.stream.Collectors.*;
@@ -111,7 +111,7 @@ public class InfoPane extends OverlayPane<Void> {
 			"command",      pInfo.command().orElse(""),
 			"commandline",  pInfo.commandLine().orElse(""),
 			"start time",   pInfo.startInstant().map(i -> Util.localDateTimeFromMillis(i).toString()).orElse(""),
-			"running time", pInfo.totalCpuDuration().map(d -> new FormattedDuration(d.toMillis()).toString()).orElse(""),
+			"running time", pInfo.totalCpuDuration().map(d -> new Dur(d.toMillis()).toString()).orElse(""),
 			"user",         pInfo.user().orElse("")
 			)
 			.collect(collectingAndThen(toList(), list -> props.put("process", list)));

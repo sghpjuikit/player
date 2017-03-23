@@ -3,9 +3,7 @@ package gui.infonode;
 import javafx.concurrent.Task;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
-
 import org.reactfx.Subscription;
-
 import static javafx.concurrent.Worker.State.READY;
 import static javafx.concurrent.Worker.State.SCHEDULED;
 import static util.reactive.Util.maintain;
@@ -42,7 +40,8 @@ public class InfoTask<T extends Task> implements InfoNode<T> {
 	@Override
 	public void bind(T t) {
 		unbind();
-		if (progressIndicator!=null) maintain(t.progressProperty(), p -> t.getState()==SCHEDULED || t.getState()==READY ? 0 : p, progressIndicator.progressProperty());
+		if (progressIndicator!=null)
+			maintain(t.progressProperty(), p -> t.getState()==SCHEDULED || t.getState()==READY ? 0 : p, progressIndicator.progressProperty());
 		if (title!=null) maintain(t.titleProperty(), title.textProperty());
 		if (message!=null) maintain(t.messageProperty(), message.textProperty());
 	}

@@ -10,15 +10,14 @@ import java.util.List;
  */
 public interface Selection<E> {
 
-    /**
-     * Selects an item from list.
-     *
-     * @param size  Size of the list.
-     * @param index Index of currently selected item.
-     * @param item Currently selected item.
-     * @param list List the selection operates on.
-     * @return
-     */
-    E select(int size, int index, E item, List<E> list);
+	/**
+	 * Selects an item from list.
+	 *
+	 * @param size Size of the list.
+	 * @param index Index of currently selected item.
+	 * @param item Currently selected item.
+	 * @param list List the selection operates on.
+	 */
+	E select(int size, int index, E item, List<E> list);
 
 }

@@ -11,6 +11,8 @@ import util.parsing.StringParseStrategy.From;
 import static util.functional.Util.split;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
+// TODO: remove this entire class, its counter productive
+
 /**
  * Duration with overridden toString method, where it is formatted into
  * minutes:seconds format.* Example: 00:00.
@@ -20,16 +22,16 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 		to = TO_STRING_METHOD,
 		exFrom = {IllegalArgumentException.class, NumberFormatException.class}
 )
-public class FormattedDuration extends Duration {
+public class Dur extends Duration {
 	private static final long serialVersionUID = 11L;
 
 	/** Constructor. Initializes to 0. */
-	public FormattedDuration() {
+	public Dur() {
 		super(0);
 	}
 
 	/** Constructor. Initializes to specified value in milliseconds. */
-	public FormattedDuration(double millis) {
+	public Dur(double millis) {
 		super(millis);
 	}
 
@@ -42,7 +44,7 @@ public class FormattedDuration extends Duration {
 	}
 
 	@ParsesFromString
-	public static FormattedDuration valueOf(String s) throws NumberFormatException, IllegalArgumentException {
+	public static Dur valueOf(String s) throws NumberFormatException, IllegalArgumentException {
 
 		// try parsing in hh:mm:ss format
 		if (s.contains(":")) {
@@ -57,7 +59,7 @@ public class FormattedDuration extends Duration {
 				int t = unit*amount;
 				Σt += t;
 			}
-			return new FormattedDuration(Σt);
+			return new Dur(Σt);
 		}
 
 		// parse normally
@@ -74,17 +76,17 @@ public class FormattedDuration extends Duration {
 		double value = Double.parseDouble(index==-1 ? s : s.substring(0, index));
 
 		if (index==-1)
-			return new FormattedDuration(value);
+			return new Dur(value);
 		else {
 			String suffix = s.substring(index);
 			if ("ms".equals(suffix)) {
-				return new FormattedDuration(value);
+				return new Dur(value);
 			} else if ("s".equals(suffix)) {
-				return new FormattedDuration(1000*value);
+				return new Dur(1000*value);
 			} else if ("m".equals(suffix)) {
-				return new FormattedDuration(60000*value);
+				return new Dur(60000*value);
 			} else if ("h".equals(suffix)) {
-				return new FormattedDuration(3600000*value);
+				return new Dur(3600000*value);
 			} else {
 				throw new IllegalArgumentException("Must have suffix from [ms|s|m|h]");
 			}

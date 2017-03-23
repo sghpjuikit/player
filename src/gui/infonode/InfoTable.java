@@ -1,16 +1,12 @@
-
 package gui.infonode;
 
 import java.util.List;
 import java.util.function.BiFunction;
-
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
-
 import org.reactfx.Subscription;
-
 import static org.atteo.evo.inflector.English.plural;
 
 /**
@@ -21,87 +17,89 @@ import static org.atteo.evo.inflector.English.plural;
  */
 public final class InfoTable<E> implements InfoNode<TableView<E>> {
 
-    /**
-     * Default text factory. Provides texts like: <pre>
-     * 'All: 1 item'
-     * 'Selected: 89 items'
-     * </pre>
-     * Custom implementation change or expand the text with additional
-     * information depending on type of table elements.
-     */
-    public static final BiFunction<Boolean,List<?>,String> DEFAULT_TEXT_FACTORY = (all, list) -> {
-        String prefix1 = all ? "All: " : "Selected: ";
-        int s = list.size();
-        return prefix1 + s + " " + plural("item", s);
-    };
+	/**
+	 * Default text factory. Provides texts like: <pre>
+	 * 'All: 1 item'
+	 * 'Selected: 89 items'
+	 * </pre>
+	 * Custom implementation change or expand the text with additional
+	 * information depending on type of table elements.
+	 */
+	public static final BiFunction<Boolean,List<?>,String> DEFAULT_TEXT_FACTORY = (all, list) -> {
+		String prefix1 = all ? "All: " : "Selected: ";
+		int s = list.size();
+		return prefix1 + s + " " + plural("item", s);
+	};
 
-    /**
-     * The graphical text element
-     */
-    public Labeled node;
+	/**
+	 * The graphical text element
+	 */
+	public Labeled node;
 
-    /**
-     * Provides text to the node. The first parameters specifies whether selection
-     * is empty, the other is the list of table items if selection is empty or
-     * selected items if nonempty.
-     */
-    public BiFunction<Boolean,List<E>,String> textFactory = (BiFunction)DEFAULT_TEXT_FACTORY;
+	/**
+	 * Provides text to the node. The first parameters specifies whether selection
+	 * is empty, the other is the list of table items if selection is empty or
+	 * selected items if nonempty.
+	 */
+	@SuppressWarnings("unchecked")
+	public BiFunction<Boolean,List<E>,String> textFactory = (BiFunction) DEFAULT_TEXT_FACTORY;
 
-    private Subscription s;
+	private Subscription s;
 
-    /**
-     * Sets the node and listeners to update the text automatically by monitoring
-     * the table items and selection.
-     */
-    public InfoTable(Labeled node, TableView<E> t) {
-        this(node);
-        bind(t);
-    }
-    public InfoTable(Labeled node) {
-        this.node = node;
-    }
+	/**
+	 * Sets the node and listeners to update the text automatically by monitoring
+	 * the table items and selection.
+	 */
+	public InfoTable(Labeled node, TableView<E> t) {
+		this(node);
+		bind(t);
+	}
 
-    @Override
-    public void setVisible(boolean v) {
-        node.setVisible(v);
-    }
+	public InfoTable(Labeled node) {
+		this.node = node;
+	}
 
-    @Override
-    public void bind(TableView<E> t) {
-        unbind();
+	@Override
+	public void setVisible(boolean v) {
+		node.setVisible(v);
+	}
 
-        ObservableList<E> al = t.getItems();
-        ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
-        // ListChangeListener l = o -> updateText(al, sl);
-        ListChangeListener<E> l = o -> {
-            if (o.next()) {
-                updateText(al, sl);
-            }
-        };
+	@Override
+	public void bind(TableView<E> t) {
+		unbind();
 
-        al.addListener(l);
-        sl.addListener(l);
-        s = () -> al.removeListener(l);
-        s = s.and(() -> sl.removeListener(l));
+		ObservableList<E> al = t.getItems();
+		ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
+		// ListChangeListener l = o -> updateText(al, sl);
+		ListChangeListener<E> l = o -> {
+			if (o.next()) {
+				updateText(al, sl);
+			}
+		};
 
-        updateText(al,sl);
-    }
+		al.addListener(l);
+		sl.addListener(l);
+		s = () -> al.removeListener(l);
+		s = s.and(() -> sl.removeListener(l));
 
-    @Override
-    public void unbind() {
-        if (s != null) s.unsubscribe();
-        s = null;
-    }
+		updateText(al, sl);
+	}
 
-    /**
-     * Updates the text of the node using the text factory.
-     *
-     * @param all all items of the table
-     * @param selected  selected items of the table
-     */
-    public void updateText(List<E> all, List<E> selected) {
-        boolean isAll = selected.isEmpty();
-        List<E> l = isAll ? all : selected;
-        node.setText(textFactory.apply(isAll,l));
-    }
+	@Override
+	public void unbind() {
+		if (s!=null) s.unsubscribe();
+		s = null;
+	}
+
+	/**
+	 * Updates the text of the node using the text factory.
+	 *
+	 * @param all all items of the table
+	 * @param selected selected items of the table
+	 */
+	public void updateText(List<E> all, List<E> selected) {
+		boolean isAll = selected.isEmpty();
+		List<E> l = isAll ? all : selected;
+		node.setText(textFactory.apply(isAll, l));
+	}
 }

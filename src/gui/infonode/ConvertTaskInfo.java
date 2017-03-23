@@ -2,11 +2,8 @@ package gui.infonode;
 
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
-
 import org.reactfx.Subscription;
-
 import util.async.future.ConvertListTask;
-
 import static util.Util.enumToHuman;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.unsubscribe;

@@ -1,2 +1,2 @@
-/* Containes graphical objects that display graphical representation of a value. */
+/* Contains ui objects that display graphical representation of a value. */
 package gui.infonode;

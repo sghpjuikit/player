@@ -41,7 +41,7 @@ import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
 import static audio.tagging.Metadata.Field.CATEGORY;
 import static audio.tagging.MetadataGroup.Field.*;
-import static audio.tagging.MetadataGroup.degroup;
+import static audio.tagging.MetadataGroup.ungroup;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
 import static java.util.stream.Collectors.toList;
@@ -203,9 +203,9 @@ public class LibraryView extends FXMLController {
         table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", () -> Db.removeItems(degroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", () -> Db.removeItems(degroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
-            menuItem("Remove all groups from library", () -> Db.removeItems(degroup(table.getItems())))
+            menuItem("Remove selected groups from library", () -> Db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", () -> Db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
+            menuItem("Remove all groups from library", () -> Db.removeItems(MetadataGroup.ungroup(table.getItems())))
         );
 
         // key actions

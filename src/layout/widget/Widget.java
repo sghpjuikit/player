@@ -203,7 +203,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 	private C instantiateController() {
 		// instantiate controller
-		Class<C> cc = (Class) factory.getControllerClass();
+		@SuppressWarnings("unchecked")
+		Class<C> cc = (Class) factory.getControllerClass(); // TODO: make factory type safe and avoid cast
 		C c;
 		try {
 			c = cc.getConstructor().newInstance();
@@ -436,7 +437,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 		@SuppressWarnings("unchecked")
 		Map<String,String> serialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>()); // preserves existing configs
-		controller.getFields().stream().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
+		controller.getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
 	}
 
 	private void restoreConfigs() {

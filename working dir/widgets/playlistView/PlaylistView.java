@@ -37,7 +37,7 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.ValueConfig;
 import util.type.Util;
-import util.units.FormattedDuration;
+import util.units.Dur;
 import util.validation.Constraint.StringNonEmpty;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
@@ -167,7 +167,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double Σms = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(Σms);
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(Σms);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

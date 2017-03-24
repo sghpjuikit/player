@@ -189,8 +189,13 @@
 
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
-- use the following VM parameters:
-    -Xmx1g
+- java: 1.9b161
+
+- heap: Use at least -Xmx1g, possibly more
+    Large images need more memory. Default heap size WILL cause out of memory
+    exceptions for images of res 6k x 6k px & or size of 10MB...
+
+- VM parameters:
     --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
@@ -210,7 +215,75 @@
     // modularization "all at once" switch (not supported as of jdk9b161)
     --permit-illegal-access
 
-- use the following javac parameters:
+- VM parameters final all:
+    -Dsun.reflect.debugModuleAccessChecks=true
+    --add-exports
+    javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    --add-exports
+    javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    --add-exports
+    javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    --add-exports
+    javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+    --add-exports
+    jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+    --add-exports
+    java.base/sun.nio.ch=ALL-UNNAMED
+    --add-exports
+    java.base/jdk.internal.ref=ALL-UNNAMED
+    --add-opens
+    java.base/java.util=ALL-UNNAMED
+    --add-opens
+    java.base/java.lang.reflect=ALL-UNNAMED
+    --add-opens
+    java.base/java.text=ALL-UNNAMED
+    --add-opens
+    java.base/java.util.stream=ALL-UNNAMED
+    --add-opens
+    java.base/java.lang=ALL-UNNAMED
+    --add-opens
+    java.desktop/java.awt.font=ALL-UNNAMED
+    --add-opens
+    javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
+    --add-opens
+    javafx.graphics/javafx.scene.image=ALL-UNNAMED
+
+- any VM arguments, in order to be used in self-contained app, need to be
+  specified in the build.xml file (Netbeans), for IntelliJ Idea, i have no idea. Fortunately
+  I already have the .exe (which runs the application jar) built and it can be reused. It passes
+  the argument into VM itself.
+
+- additional useful JVM params:
+    -Dprism.order=j2d
+    -Dprism.order=sw
+    -Dprism.verbose="true"
+    -Dprism.allowhidpi="true"
+    -Dglass.win.uiScale=[NNN%|NNNdpi|N.NNN]
+    -Dglass.win.renderScale=[NNN%|NNNdpi|N.NNN]
+    -Dglass.win.renderScale=1
+    -Dglass.win.minHiDPI=NNN (A Windows DPI value)
+    -Dglass.win.minHiDPI=1
+    -Dglass.win.forceIntegerRenderScale=[true|false]
+    -Djavafx.pulseLogger=true // javafx pulse debug
+    -Djavafx.animation.fullspeed=true
+    -Djavafx.animation.framerate=120
+    -Djavafx.animation.pulse=120
+
+- javac (compiler) parameters:
     --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
@@ -230,27 +303,3 @@
     --add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
     --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
     --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
-
-- heap: Use -Xmx1g, possibly more
-  Large images need more memory. Default heap size WILL cause out of memory
-  exceptions for images of res 6k x 6k px & or size of 10MB...
-- any VM arguments, in order to be used in self-contained app, need to be
-  specified in the build.xml file (Netbeans), for IntelliJ Idea, i have no idea. Fortunately
-  I already have the .exe (which runs the application jar) built and it can be reused. It passes
-  the argument into VM itself.
-
-- some useful JVM params to know:
- -Dprism.order=j2d
- -Dprism.order=sw
- -Dprism.verbose="true"
- -Dprism.allowhidpi="true"
- -Dglass.win.uiScale=[NNN%|NNNdpi|N.NNN]
- -Dglass.win.renderScale=[NNN%|NNNdpi|N.NNN]
- -Dglass.win.renderScale=1
- -Dglass.win.minHiDPI=NNN (A Windows DPI value)
- -Dglass.win.minHiDPI=1
- -Dglass.win.forceIntegerRenderScale=[true|false]
- -Djavafx.pulseLogger=true // javafx pulse debug
- -Djavafx.animation.fullspeed=true
- -Djavafx.animation.framerate=120
- -Djavafx.animation.pulse=120

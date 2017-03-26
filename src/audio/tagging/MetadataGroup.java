@@ -247,18 +247,19 @@ public final class MetadataGroup {  // TODO: make generic by value
 			if (this==VALUE) return o==null || "".equals(o) ? "<none>" : o.toString();
 			if (this==ITEMS || this==ALBUMS || this==LENGTH || this==SIZE || this==AVG_RATING || this==W_RATING)
 				return o.toString();
-			if (this==YEAR) throw new SwitchException(this); // year case should never execute
+			if (this==YEAR) {
+				RangeYear y = (RangeYear) o;
+				return y==null || !y.hasSpecific() ? empty_val : y.toString();
+			}
 			throw new SwitchException(this);
 		}
 
-		@SuppressWarnings("unchecked") // TODO: handle better
+		@SuppressWarnings("unchecked") // TODO: handle better, generify this class
 		@Override
 		public String toS(MetadataGroup v, T o, String empty_val) {
 			if (this==VALUE) {
 				if (v==null || v.all_flag) return "<any>";
 				return v.getField().toS(o, "<none>");
-			} else if (this==YEAR) {
-				return v==null || !v.years.hasSpecific() ? empty_val : v.years.toString();
 			} else {
 				return toS(o, empty_val);
 			}

@@ -19,7 +19,7 @@ public class PluginMap {
 	private final Map<Class,List<Class>> m = new HashMap<>();
 
 	public <T> void registerPluginType(Class<T> p) {
-		List<Class> superclasses = Util.getSuperClasses(p);
+		List<Class<?>> superclasses = Util.getSuperClasses(p);
 		boolean exists = superclasses.stream().anyMatch(m::containsKey);
 		if (exists) throw new IllegalStateException("Super class of " + p + " already registered as plugin type.");
 
@@ -27,12 +27,14 @@ public class PluginMap {
 	}
 
 	public <T> void registerPlugin(Class<T> p) {
-		List<Class> superclasses = Util.getSuperClasses(p);
+		List<Class<?>> superclasses = Util.getSuperClasses(p);
 		if (superclasses.isEmpty())
 			throw new IllegalArgumentException("Plugin " + p + " must extend/implement at least one class/interface.");
 
-		superclasses.stream().filter(m::containsKey)
-				.map(m::get).forEach(l -> l.add(p));
+		superclasses.stream()
+				.filter(m::containsKey)
+				.map(m::get)
+				.forEach(l -> l.add(p));
 	}
 
 	public <T> List<T> getPlugins(Class<T> p) {

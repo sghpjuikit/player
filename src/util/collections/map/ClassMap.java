@@ -10,7 +10,7 @@ import util.collections.map.abstr.MapByClass;
 public class ClassMap<E> extends HashMap<Class,E> implements MapByClass<E> {
 
 	@Override
-	public List<E> getElementsOf(Collection<Class> keys) {
+	public List<E> getElementsOf(Collection<Class<?>> keys) {
 		List<E> out = new ArrayList<>();
 		for (Class<?> c : keys) {
 			E e = get(c);
@@ -20,7 +20,7 @@ public class ClassMap<E> extends HashMap<Class,E> implements MapByClass<E> {
 	}
 
 	@Override
-	public List<E> getElementsOf(Class... keys) {
+	public List<E> getElementsOf(Class<?>... keys) {
 		List<E> out = new ArrayList<>();
 		for (Class<?> c : keys) {
 			E e = get(c);

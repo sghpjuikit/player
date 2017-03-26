@@ -166,7 +166,7 @@ public interface Util {
 	 * @return list containing all superclasses
 	 * @see #getSuperClassesInc(Class)
 	 */
-	static List<Class> getSuperClasses(Class<?> c) {
+	static List<Class<?>> getSuperClasses(Class<?> c) {
 		return getSuperClasses(c, list());
 	}
 
@@ -176,11 +176,11 @@ public interface Util {
 	 * @return list containing the class and all its superclasses
 	 * @see #getSuperClasses(Class)
 	 */
-	static List<Class> getSuperClassesInc(Class<?> c) {
+	static List<Class<?>> getSuperClassesInc(Class<?> c) {
 		return getSuperClasses(c, list(c));
 	}
 
-	private static List<Class> getSuperClasses(Class<?> c, List<Class> cs) {
+	private static List<Class<?>> getSuperClasses(Class<?> c, List<Class<?>> cs) {
 		Class<?> sc = c.getSuperclass();
 		if (sc!=null) {
 			cs.add(sc);

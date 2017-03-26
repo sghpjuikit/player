@@ -40,8 +40,8 @@ import static util.type.Util.*;
 public class FunctorPool {
 
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-	private final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
-	private final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
+	private final PrefListMap<PƑ,Class<?>> fsI = new PrefListMap<>(pf -> pf.in);
+	private final PrefListMap<PƑ,Class<?>> fsO = new PrefListMap<>(pf -> pf.out);
 	private final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 	private final Set<Class> cacheStorage = new HashSet<>();
 

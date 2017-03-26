@@ -161,6 +161,7 @@ public class Configuration {
 				+ " Some properties are read-only or have additional value constraints. Such properties will ignore "
 				+ "custom or unfit values";
 
+		// TODO: persist raw properties that are not configs too
 		Properties.saveP(file, comment, stream(getFields()).toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS())));
 	}
 

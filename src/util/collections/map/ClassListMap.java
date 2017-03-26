@@ -10,9 +10,9 @@ import util.collections.map.abstr.MapByClass;
  *
  * @author Martin Polakovic
  */
-public class ClassListMap<E> extends CollectionMap<E,Class,List<E>> implements MapByClass<E> {
+public class ClassListMap<E> extends CollectionMap<E,Class<?>,List<E>> implements MapByClass<E> {
 
-	public ClassListMap(Function<E,Class> keyMapper) {
+	public ClassListMap(Function<E,Class<?>> keyMapper) {
 		super(ArrayList::new, keyMapper);
 	}
 

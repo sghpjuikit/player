@@ -14,10 +14,10 @@ public interface MapByClass<E> {
 	 *
 	 * @return list of all values mapped to any of the keys (in that order).
 	 */
-	List<E> getElementsOf(Collection<Class> keys);
+	List<E> getElementsOf(Collection<Class<?>> keys);
 
 	/** @see #getElementsOf(java.util.Collection) */
-	List<E> getElementsOf(Class... keys);
+	List<E> getElementsOf(Class<?>... keys);
 
 	/**
 	 * Returns elements mapped to one of (in that order):
@@ -29,7 +29,7 @@ public interface MapByClass<E> {
 	 * or empty list if no such mapping exists.
 	 */
 	default List<E> getElementsOfSuper(Class<?> key) {
-		List<Class> keys = getSuperClassesInc(key);
+		List<Class<?>> keys = getSuperClassesInc(key);
 		return getElementsOf(keys);
 	}
 
@@ -47,8 +47,8 @@ public interface MapByClass<E> {
 	 * type.
 	 */
 	default List<E> getElementsOfSuperV(Class<?> key) {
-		List<Class> keys = getSuperClassesInc(key);
-		if (!Void.class.equals(key)) keys.add(Void.class);
+		List<Class<?>> keys = getSuperClassesInc(key);
+		if (Void.class != key) keys.add(Void.class);
 		keys.add(void.class);
 		return getElementsOf(keys);
 	}
@@ -63,8 +63,8 @@ public interface MapByClass<E> {
 	 * or null if no such mapping exists.
 	 */
 	default E getElementOfSuper(Class<?> key) {
-		List<Class> keys = getSuperClassesInc(key);
-		for (Class c : keys) {
+		List<Class<?>> keys = getSuperClassesInc(key);
+		for (Class<?> c : keys) {
 			List<E> es = getElementsOf(c);
 			if (!es.isEmpty())
 				return es.get(0);
@@ -83,8 +83,8 @@ public interface MapByClass<E> {
 	 * or null if no such mapping exists.
 	 */
 	default E getElementOfSuperV(Class<?> key) {
-		List<Class> keys = getSuperClassesInc(key);
-		if (!Void.class.equals(key)) keys.add(Void.class);
+		List<Class<?>> keys = getSuperClassesInc(key);
+		if (Void.class != key) keys.add(Void.class);
 		keys.add(void.class);
 		for (Class c : keys) {
 			List<E> es = getElementsOf(c);

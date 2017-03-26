@@ -506,8 +506,7 @@ public class App extends Application implements Configurable {
 			new FastColAction<>("Set as data",
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
-//				actionPane.converting(Try::ok)  // TODO: Fix this throwing: Error:java: Compilation failed: internal java compiler error
-				actionPane.converting(o -> Try.ok(o))
+				actionPane.converting(Try::ok)
 			),
 			new FastColAction<>("Open in Converter",
 				"Open data in Converter.",

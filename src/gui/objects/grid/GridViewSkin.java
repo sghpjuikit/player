@@ -65,6 +65,7 @@ import static util.functional.Util.by;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderTop;
 import static util.type.Util.invokeMethodP0;
+import static util.type.Util.invokeMethodP1;
 
 public class GridViewSkin<T, F> implements Skin<GridView> {
 
@@ -171,6 +172,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	public GridRow<T,F> createCell() {
 		GridRow<T,F> row = new GridRow<>();
 		row.setGridView(getSkinnable());
+		invokeMethodP1(row, "setEmpty", boolean.class, false);	// in the hopes it will fix cell updating by the flow
 		return row;
 	}
 
@@ -516,20 +518,21 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	@SuppressWarnings("unused")
 	private void scrollTo(int row) {
-		GridRow<T,F> fvc = skin.flow.getFirstVisibleCell();
-		GridRow<T,F> lvc = skin.flow.getLastVisibleCell();
-		boolean isUp = row<=fvc.getIndex();
-		boolean isDown = row>=lvc.getIndex();
-		if (fvc.getIndex()>=row || row>=lvc.getIndex()) {
+		GridRow<T,F> fvr = skin.flow.getFirstVisibleCell();
+		GridRow<T,F> lvr = skin.flow.getLastVisibleCell();
+		boolean isUp = row<=fvr.getIndex();
+		boolean isDown = row>=lvr.getIndex();
+		if (fvr.getIndex()>=row || row>=lvr.getIndex()) {
 			if (isUp) skin.flow.scrollToTop(row);
 			else scrollToBottom(row);
 		}
 	}
 
 	private void scrollToBottom(int row) {
-		GridRow lastRow = skin.flow.getLastVisibleCell();
-		double rowBy = (row - lastRow.getIndex())*skin.flow.getFixedCellSize();
-		double cellBy = lastRow.getLayoutY() + skin.flow.getFixedCellSize() - (double) invokeMethodP0(skin.flow, "getViewportLength");
+		GridRow lvr = skin.flow.getLastVisibleCell();
+		if (lvr == null) return;	// TODO: this should not be necessary
+		double rowBy = (row - lvr.getIndex())*skin.flow.getFixedCellSize();
+		double cellBy = lvr.getLayoutY() + skin.flow.getFixedCellSize() - (double) invokeMethodP0(skin.flow, "getViewportLength");
 		double by = rowBy + cellBy;
 		skin.flow.scrollPixels(by);
 	}

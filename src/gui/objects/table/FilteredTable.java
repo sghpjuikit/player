@@ -131,8 +131,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					} else {
 						filterPane.clear();
 					}
-					e.consume();
+				} else {
+					getSelectionModel().clearSelection();
 				}
+				e.consume();
 			}
 		};
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
@@ -386,13 +388,15 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			APP.actionStream.push("Table search");
 			searchQuery.set(s);
 			// scroll to first found item
-			TableColumn c = field==null ? null : getColumn(field).orElse(null);
+			TableColumn c = field==null ? null : getColumn(field).orElse(null);	// TODO: make sure the column is visible
 			if (c!=null && !getItems().isEmpty() && c.getCellData(0) instanceof String) {
 				for (int i = 0; i<getItems().size(); i++) {
 					String item = (String) field.getOf(getItems().get(i));    // TODO: make compile-time safe
 					if (matches(item, searchQuery.get())) {
 						scrollToCenter(i);
 						updateSearchStyles();
+						getSelectionModel().clearSelection();
+						getSelectionModel().select(i);
 						break;
 					}
 				}
@@ -400,7 +404,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		/** Sets fields to be used in search. Default is main field. */
-		public void setColumn(ObjectField<T,?> field) {
+		public void setColumn(ObjectField<T,?> field) {	// TODO: make compile-time safe
 			// TODO
 			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for

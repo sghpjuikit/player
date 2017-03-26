@@ -173,8 +173,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		});
 
 		// move items on drag
-		// setOnMouseDragged(e -> { // handler !work since java 9
-		// addEventFilter(MOUSE_DRAGGED, e -> { // same here
 		addEventFilter(MOUSE_DRAGGED, e -> {
 			if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
 			// we cant move items when filter on & we cant cancel filter, user would freak out
@@ -206,18 +204,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		});
 
 		// set key-induced actions
-		setOnKeyReleased(e -> {
-			if (e.getCode()==KeyCode.ENTER) {     // play first of the selected
-				if (!getSelectedItems().isEmpty())
-					getPlaylist().playItem(getSelectedItems().get(0));
-			} else if (e.getCode()==KeyCode.DELETE) {    // delete selected
-				List<PlaylistItem> p = getSelectedItemsCopy();
-				getSelectionModel().clearSelection();
-				getPlaylist().removeAll(p);
-			} else if (e.getCode()==KeyCode.ESCAPE) {    // deselect
-				getSelectionModel().clearSelection();
-			}
-		});
 		setOnKeyPressed(e -> {
 			if (e.isControlDown()) {
 				if (e.getCode()==KeyCode.UP) {
@@ -227,6 +213,17 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 //                    table.getFocusModel().focus(-1);
 					moveSelectedItems(1);
 				}
+			}
+			// play selected
+			if (e.getCode()==KeyCode.ENTER) {
+				if (!getSelectedItems().isEmpty())
+					getPlaylist().playItem(getSelectedItems().get(0));
+			}
+			// delete selected
+			if (e.getCode()==KeyCode.DELETE) {
+				List<PlaylistItem> p = getSelectedItemsCopy();
+				getSelectionModel().clearSelection();
+				getPlaylist().removeAll(p);
 			}
 		});
 

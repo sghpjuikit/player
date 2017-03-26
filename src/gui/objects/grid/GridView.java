@@ -557,7 +557,7 @@ public class GridView<T, F> extends Control {
 			for (int i = 0; i<getItemsShown().size(); i++) {
 				String item = filterByMapper.apply(getItemsShown().get(i)).toString();
 				if (matches(item, searchQuery.get())) {
-					implGetSkin().getFlow().scrollTo(i/implGetSkin().computeMaxCellsInRow());
+					implGetSkin().select(i);
 					updateSearchStyles();
 					break;
 				}

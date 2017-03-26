@@ -217,15 +217,16 @@ public class Library extends FXMLController implements SongReader {
 
         // key actions
         table.setOnKeyPressed(e -> {
-            if (e.getCode() == ENTER) {     // play first of the selected
+			// play selected
+            if (e.getCode() == ENTER) {
                 if (!table.getSelectionModel().isEmpty()) {
-                    PlaylistManager.use(pl ->pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
+                    PlaylistManager.use(pl -> pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
                 }
             }
-            else if (e.getCode() == DELETE)    // delete selected
-                Db.removeItems(table.getSelectedItems());
-            else if (e.getCode() == ESCAPE)    // deselect
-                table.getSelectionModel().clearSelection();
+			// delete selected
+            if (e.getCode() == DELETE) {
+				Db.removeItems(table.getSelectedItems());
+			}
         });
 
         // drag&drop from

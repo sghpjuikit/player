@@ -50,8 +50,8 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
+import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
-import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
@@ -61,7 +61,8 @@ import static org.reactfx.EventStreams.changesOf;
 import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static util.graphics.Util.menuItem;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 @Info(
@@ -210,10 +211,14 @@ public class LibraryView extends FXMLController {
 
         // key actions
         table.setOnKeyPressed(e -> {
-            if (e.getCode() == ENTER)        // play first of the selected
+            // play selected
+            if (e.getCode() == ENTER) {
                 playSelected();
-            else if (e.getCode() == ESCAPE)         // deselect
-                table.getSelectionModel().clearSelection();
+            }
+            // delete selected
+            if (e.getCode() == DELETE) {
+                Db.removeItems(stream(table.getSelectedItems()).toFlatList(MetadataGroup::getGrouped));
+            }
         });
 
         // drag&drop from

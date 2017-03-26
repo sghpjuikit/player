@@ -211,6 +211,7 @@
     --add-opens java.desktop/java.awt.font=ALL-UNNAMED
     --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
     --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED
+    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED
 
     // modularization "all at once" switch (not supported as of jdk9b161)
     --permit-illegal-access
@@ -261,6 +262,8 @@
     javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
     --add-opens
     javafx.graphics/javafx.scene.image=ALL-UNNAMED
+    --add-opens
+    javafx.controls/javafx.scene.control=ALL-UNNAMED
 
 - any VM arguments, in order to be used in self-contained app, need to be
   specified in the build.xml file (Netbeans), for IntelliJ Idea, i have no idea. Fortunately

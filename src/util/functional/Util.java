@@ -1180,6 +1180,13 @@ public interface Util {
 		return l;
 	}
 
+	static <T> Optional<T> optional(Supplier<Optional<T>>... suppliers) {
+		return StreamEx.of(suppliers)
+				.map(Supplier::get)
+				.findAny(Optional::isPresent)
+				.orElseGet(Optional::empty);
+	}
+
 	static <T> StreamEx<T> stream() {
 		return StreamEx.empty();
 	}

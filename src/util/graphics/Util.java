@@ -5,8 +5,10 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -432,7 +434,7 @@ public interface Util {
 		removeFromParent(child.getParent(), child);
 	}
 
-	/**************************************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 	static void installDragByMouse(Node n) {
 		class P {
@@ -519,6 +521,17 @@ public interface Util {
 		} catch (Exception e) {
 			log(Util.class).warn("Aborted customizing tooltip behavior", e);
 		}
+	}
+
+/* ---------- TREE -------------------------------------------------------------------------------------------------- */
+
+	static <T> void expandTreeItem(TreeItem<T> item) {
+		Stream.iterate(item, Objects::nonNull, TreeItem::getParent).forEach(i -> i.setExpanded(true));
+	}
+
+	static <T> void expandAndSelectTreeItem(TreeView<T> tree, TreeItem<T> item) {
+		expandTreeItem(item);
+		tree.getSelectionModel().select(item);
 	}
 
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */

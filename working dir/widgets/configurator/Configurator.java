@@ -1,51 +1,49 @@
 package configurator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Stream;
-
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.TreeView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
 import gui.objects.tree.TreeItems;
 import gui.objects.tree.TreeItems.Name;
 import gui.pane.ConfigPane;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.feature.ConfiguringFeature;
+import main.App;
+import one.util.streamex.StreamEx;
 import util.conf.Config;
 import util.conf.Configurable;
-import util.conf.IsConfig;
 import util.graphics.fxml.ConventionFxmlLoader;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.SINGLE;
 import static main.App.APP;
 import static util.functional.Util.map;
+import static util.graphics.Util.expandAndSelectTreeItem;
 
 @Widget.Info(
-	author = "Martin Polakovic",
-	name = "Settings",
-	description = "Provides access to application settings",
-	howto = "Available actions:\n"
-	+ "    Select category\n"
-	+ "    Change setting value: Automatically takes change\n"
-	+ "    Default : Set default value for this setting\n",
-	notes = "To do: generate active widget settings",
-	version = "1",
-	year = "2016",
-	group = Widget.Group.APP
+		author = "Martin Polakovic",
+		name = "Settings",
+		description = "Provides access to application settings",
+		howto = "Available actions:\n"
+				+ "    Select category\n"
+				+ "    Change setting value: Automatically takes change\n"
+				+ "    Default : Set default value for this setting\n",
+		notes = "To do: generate active widget settings",
+		version = "1",
+		year = "2016",
+		group = Widget.Group.APP
 )
 public final class Configurator extends ClassController implements ConfiguringFeature {
 
@@ -54,15 +52,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 	@FXML AnchorPane configsRootPane;
 	private final ConfigPane<Object> configsPane = new ConfigPane<>();
 	private final List<Config> configs = new ArrayList<>();
-
-	@IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
-	public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(Pos.CENTER);
-	// TODO: reuires COnfigPane support for this, easy to do, just boring... someone do this pls
-	// @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-	// public final V<HPos> alignment = new V<>(RIGHT, v -> groupsOld.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
-	// TODO: requires support for injectable widget factory configs to share configs between widget instances of same type
-	// @IsConfig(editable = false)
-	// public final V<String> expanded = new V<>("", v -> {});
+	private final String CONFIG_SELECTION_NAME = "app.settings.selected_group";
 
 	public Configurator() {
 		// create inputs/outputs
@@ -75,18 +65,16 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		configsRootPane.getChildren().setAll(configsPane.getNode());
 		groups.getSelectionModel().setSelectionMode(SINGLE);
 		groups.setCellFactory(TreeItems::buildTreeCell);
-		groups.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-			boolean isSelection = nv!=null;
-			boolean isValueSelected = isSelection && nv.getValue()!=null;
-			if (isValueSelected)
+		groups.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+			if (storeSelection(nv))
 				populateConfigFields(configs.stream().filter(f -> f.getGroup().equals(nv.getValue().pathUp)));
 		});
 
 		// header icons
-		Icon appI = new Icon(HOME,13,"App settings",() -> configure(APP.configuration.getFields())),
-			 reI  = new Icon(REFRESH,13,"Refresh all",this::refresh),
-			 defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
-		controls.getChildren().addAll(appI,new Label("    "),reI,defI);
+		Icon appI = new Icon(HOME, 13, "App settings", () -> configure(APP.configuration.getFields())),
+			reI = new Icon(REFRESH, 13, "Refresh all", this::refresh),
+			defI = new Icon(RECYCLE, 13, "Set all to default", this::defaults);
+		controls.getChildren().addAll(appI, new Label("    "), reI, defI);
 
 		// consume scroll event to prevent other scroll behavior // optional
 		setOnScroll(Event::consume);
@@ -106,8 +94,6 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
 	@Override
 	public void refresh() {
-//		alignment.applyValue();
-//		expanded.applyValue();
 		refreshConfigs();
 	}
 
@@ -117,9 +103,8 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
 		configs.clear();
 		configs.addAll(c);
-		groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c,Config::getGroup))));
-		groups.getRoot().setExpanded(true); // auto-expand for convenience
-		groups.getSelectionModel().select(groups.getRoot());    // select root & invoke #populateConfigFields
+		groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c, Config::getGroup))));
+		restoreSelection();		// invokes #populateConfigFields
 	}
 
 	private void populateConfigFields(Stream<Config> visibleConfigs) {
@@ -128,6 +113,24 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
 	public void refreshConfigs() {
 		configsPane.getValuesC().forEach(ConfigField::refreshItem);
+	}
+
+	private boolean storeSelection(TreeItem<Name> item) {
+		boolean isItemSelected = item!=null;
+		boolean isValueSelected = isItemSelected && item.getValue()!=null;
+		App.APP.configuration.rawAddProperty(CONFIG_SELECTION_NAME, isValueSelected ? item.getValue().pathUp : "");
+		return isValueSelected;
+	}
+
+	private void restoreSelection() {
+		Optional.ofNullable(App.APP.configuration.rawGet().get(CONFIG_SELECTION_NAME))
+				.filter(String.class::isInstance)
+				.flatMap(restoredSelection -> StreamEx
+						.ofTree(groups.getRoot(), item -> item.getChildren().stream())
+						.findAny(item -> item.getValue().pathUp.equals(restoredSelection))
+				)
+				.or(() -> Optional.of(groups.getRoot()))
+				.ifPresent(item -> expandAndSelectTreeItem(groups, item));		// invokes #populateConfigFields
 	}
 
 }

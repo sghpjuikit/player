@@ -18,6 +18,10 @@ public interface ObjectField<V, T> extends TypedValue<T> {
 
 	T getOf(V value);
 
+	default String getOfS(V value, String emptyValue) {
+		return toS(getOf(value), emptyValue);
+	}
+
 	/** Returns description of the field. */
 	String description();
 

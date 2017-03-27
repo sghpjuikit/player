@@ -100,7 +100,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
 		// searching
-		search.field = main_field;
+		search.setColumn(main_field);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
 
 		// filtering
@@ -379,20 +379,15 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		 */
 		private Menu menu = null;
 
-		/**
-		 * Starts search, searching for the specified string in the designated column.
-		 * This column is determined by {@link #field}).
-		 */
 		@Override
 		public void onSearch(String s) {
 			APP.actionStream.push("Table search");
-			searchQuery.set(s);
-			// scroll to first found item
-			TableColumn c = field==null ? null : getColumn(field).orElse(null);	// TODO: make sure the column is visible
-			if (c!=null && !getItems().isEmpty() && c.getCellData(0) instanceof String) {
+			if (!getItems().isEmpty()) {
 				for (int i = 0; i<getItems().size(); i++) {
-					String item = (String) field.getOf(getItems().get(i));    // TODO: make compile-time safe
-					if (matches(item, searchQuery.get())) {
+					T item = getItems().get(i);
+					String itemS = field.getOfS(item, null);
+					boolean isMatch = itemS!=null && matches(itemS, searchQuery.get());
+					if (isMatch) {
 						scrollToCenter(i);
 						updateSearchStyles();
 						getSelectionModel().clearSelection();
@@ -404,8 +399,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		/** Sets fields to be used in search. Default is main field. */
-		public void setColumn(ObjectField<T,?> field) {	// TODO: make compile-time safe
-			// TODO
+		public void setColumn(ObjectField<T,?> field) {
+			// TODO make sure this is always safe
 			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
 			// convenience), this time it plays against us.
@@ -427,14 +422,23 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		private void updateSearchStyleRowsNoReset() {
 			boolean searchOn = isActive();
 			for (TableRow<T> row : getRows()) {
-				T t = row.getItem();
-				Object o = t==null ? null : field.getOf(t);
-				boolean isMatch = o instanceof String && matches((String) o, searchQuery.get());
+				T item = row.getItem();
+				String itemS = item==null ? null : field.getOfS(item, null);
+				boolean isMatch = itemS!=null && matches(itemS, searchQuery.get());
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
 				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch));
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);
 				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch));
 			}
+		}
+
+		private boolean isMenuCreated() {
+			return search.menu!=null;
+		}
+
+		private void buildSearchmenu() {
+			menu = buildSingleSelectionMenu("Search column", getFields(), field, ObjectField::name, this::setColumn);
+			columnMenu.getItems().add(menu);
 		}
 	}
 
@@ -485,17 +489,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	@Override
 	public TableColumnInfo getDefaultColumnInfo() {
 		TableColumnInfo tci = super.getDefaultColumnInfo();
-		boolean needs_creating = search.menu==null;
-		if (needs_creating) {
-			search.menu = buildSingleSelectionMenu(
-				"Search column",
-				filter(getFields(), f -> isContainedIn(f.getType(), String.class, Object.class)), // objects too, they can be strings // TODO
-				search.field,
-				ObjectField::name,
-				field -> search.field = field
-			);
-			columnMenu.getItems().add(search.menu);
-		}
+		if (!search.isMenuCreated()) search.buildSearchmenu();
 		return tci;
 	}
 

@@ -38,7 +38,6 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	protected final Search search = new Search() {
 		@Override
 		public void onSearch(String s) {
-			searchQuery.set(s);
 			@SuppressWarnings("unchecked")
 			ListView<T> items = (ListView) ((ComboBoxListViewSkin) getSkin()).getPopupContent();
 			// scroll to match

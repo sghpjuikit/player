@@ -30,6 +30,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
+import static util.access.fieldvalue.ObjectField.ColumnField.INDEX;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
@@ -117,9 +118,10 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 				styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
 			}
 		});
-		// maintain playing item css by refreshing index column
-		d1 = Player.playingItem.onChange(o -> refreshColumn(columnIndex));
+		// maintain playing item css by refreshing first column
+		d1 = Player.playingItem.onChange(o -> refreshFirstColumn());
 
+		// TODO: algorithm breaks down if TITLE and NAME are both visible, fix
 		// resizing
 		setColumnResizePolicySafe(resize -> {
 			if (resize==null) return true;
@@ -142,21 +144,19 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			double sw = getVScrollbarWidth();
 			double gap = 3;               // prevents horizontal slider from appearing
 
-			// column index
-			double W1 = calculateIndexColumnWidth();
 
-			// column time
-			double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
-			double W3 = computeFontWidth(Gui.font.getValue(), new Dur(mt).toString()) + 5;
+			getColumn(INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
+			getColumn(LENGTH).ifPresent(c -> {
+				double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
+				double width = computeFontWidth(Gui.font.getValue(), new Dur(mt).toString()) + 5;
+				c.setPrefWidth(width);
+			});
 
-			columnIndex.setPrefWidth(W1);
-			columnTime.setPrefWidth(W3);
-
-			List<TableColumn<PlaylistItem,?>> cs = new ArrayList<>(resize.getTable().getColumns());
 			TableColumn<PlaylistItem,?> mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
 			if (mc!=null) {
-				cs.remove(mc);
-				double Σcw = cs.stream().mapToDouble(TableColumnBase::getWidth).sum();
+				double Σcw = resize.getTable().getColumns().stream()
+						.filter(c -> c!=mc)
+						.mapToDouble(TableColumnBase::getWidth).sum();
 				mc.setPrefWidth(tw - Σcw - sw - gap);
 			}
 			return true; // false/true, does not matter

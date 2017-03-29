@@ -236,9 +236,9 @@ public class LibraryView extends FXMLController {
             FilteredTable<MetadataGroup> t = table;   // (FilteredTable) resize.getTable()
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
-            t.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(t.calculateIndexColumnWidth()));
+            t.getColumn(ColumnField.INDEX).ifPresent(i -> i.setPrefWidth(t.computeIndexColumnWidth()));
             // resize main column to span remaining space
-            t.getColumn(VALUE).ifPresent(c->{
+            t.getColumn(VALUE).ifPresent(c -> {
                 double Σcw = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
                 double sw = t.getVScrollbarWidth();
                 c.setPrefWidth(t.getWidth()-(sw+Σcw-c.getWidth()));

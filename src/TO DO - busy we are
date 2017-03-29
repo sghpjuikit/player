@@ -97,7 +97,6 @@
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
-- cant hide index column, shows artifacts                                                           (medium)
 - transparent stage causing massive performance degradation for larger stages                       (major, javaFX bug)
   problem: transparent skins, window shadows & screen mouse effects unsupported 
 - de-activator position | size a bit off when loading first time & into small                       (minor)

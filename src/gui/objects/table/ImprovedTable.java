@@ -61,14 +61,10 @@ public class ImprovedTable<T> extends TableView<T> {
 		}
 	};
 
-	protected final TableColumn<T,Void> columnIndex = new TableColumn<>("#");    // TODO: use proper factory
+	protected final TableColumn<T,Void> columnIndex;
 
 	public ImprovedTable() {
-		columnIndex.setCellFactory(buildIndexColumnCellFactory());
-		columnIndex.setSortable(false);
-		columnIndex.setResizable(false);
-		columnIndex.setUserData(ColumnField.INDEX);
-//		getColumns().add(columnIndex);
+		columnIndex = buildIndexColumn();
 	}
 
 	/** @return height of columns header or 0 if invisible. */
@@ -178,10 +174,16 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/** Refreshes given column. */
 	public <V> void refreshColumn(TableColumn<T,V> c) {
+		if (!getColumns().contains(c)) return;
+
 		// c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
 		Callback<TableColumn<T,V>,TableCell<T,V>> cf = c.getCellFactory();
 		c.setCellFactory(column -> new TableCell<>());
 		c.setCellFactory(cf);
+	}
+
+	public void refreshFirstColumn() {
+		getColumns().stream().findFirst().ifPresent(this::refreshColumn);
 	}
 
 	/** Builds index column. */
@@ -190,6 +192,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		c.setCellFactory(buildIndexColumnCellFactory());
 		c.setSortable(false);
 		c.setResizable(false);
+		c.setUserData(ColumnField.INDEX);
 		return c;
 	}
 
@@ -217,7 +220,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	 * Returns ideal width for index column derived from current max index.
 	 * Mostly used during table/column resizing.
 	 */
-	public double calculateIndexColumnWidth() {
+	public double computeIndexColumnWidth() {
 		// need this weird method to get 9s as 9 is a wide char (font is not always proportional)
 		int s = getMaxIndex();
 		int i = Util.decMin1(s);

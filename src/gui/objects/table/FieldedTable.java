@@ -24,7 +24,6 @@ import main.App;
 import util.Sort;
 import util.access.fieldvalue.ObjectField;
 import util.access.fieldvalue.ObjectField.ColumnField;
-import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -32,7 +31,6 @@ import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static main.App.Build.appTooltip;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.type.Util.invokeMethodP0;
@@ -69,6 +67,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	private Ƒ1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 
+	private TableColumnInfo defColInfo;
 	private TableColumnInfo columnState;
 	protected final Class<T> type;
 	public final Menu columnVisibleMenu = new Menu("Columns");
@@ -128,23 +127,20 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		keyNameColMapper = columnNameToKeyMapper;
 	}
 
-	public boolean isColumnVisible(ObjectField<T,?> f) {
+	public boolean isColumnVisible(ObjectField<? super T,?> f) {
 		return getColumn(f).isPresent();
 	}
 
 	public void setColumnVisible(ObjectField<T,?> f, boolean v) {
 		TableColumn<T,?> c = getColumn(f).orElse(null);
-		if (v) {
-			if (c==null) {
-				c = f==ColumnField.INDEX ? columnIndex : colFact.call(f);
-				c.setPrefWidth(columnState.columns.get(f.name()).width);
-				c.setVisible(v);
-				getColumns().add(c);
-			} else {
-				c.setVisible(v);
-			}
+		if (v && c==null) {
+			c = f==ColumnField.INDEX ? columnIndex : colFact.call(f);
+			c.setPrefWidth(f==ColumnField.INDEX ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
+			c.setVisible(v);
+			getColumns().add(c);
 		} else if (!v && c!=null) {
 			getColumns().remove(c);
+			c.setVisible(false);
 		}
 	}
 
@@ -180,11 +176,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return columnState;
 	}
 
-	private TableColumnInfo defColInfo;
-
-	@TODO(purpose = FUNCTIONALITY, note = "menu needs to be checked menu. However"
-		+ "rather than building it from scratch, get rid of the reflection and"
-		+ "make a skin that does this natively. Not sure what is better option here")
 	public TableColumnInfo getDefaultColumnInfo() {
 		if (defColInfo==null) {
 			// generate column states

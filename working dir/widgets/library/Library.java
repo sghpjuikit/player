@@ -58,7 +58,8 @@ import static audio.tagging.Metadata.Field.TITLE;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
-import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyCode.DELETE;
+import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
@@ -184,8 +185,7 @@ public class Library extends FXMLController implements SongReader {
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
-            table.getColumn(ColumnField.INDEX)
-                 .ifPresent(i -> i.setPrefWidth(table.calculateIndexColumnWidth()));
+			table.getColumn(ColumnField.INDEX).ifPresent(i -> i.setPrefWidth(table.computeIndexColumnWidth()));
             return b;
         });
 

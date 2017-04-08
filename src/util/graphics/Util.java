@@ -743,6 +743,7 @@ public interface Util {
 		owner.setOpacity(0); // make sure it will never be visible
 		owner.setWidth(5); // stay small to leave small footprint, just in case
 		owner.setHeight(5);
+		owner.show();
 		owner.setX(screen.getBounds().getMinX() + 1);    // owner and child should be on the same screen
 		owner.setY(screen.getBounds().getMinY() + 1);
 		owner.show(); // must be 'visible' for the hack to work

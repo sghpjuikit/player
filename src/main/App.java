@@ -108,6 +108,8 @@ import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
 import util.conf.Config.PropertyConfig;
+import util.conf.Config.VarList;
+import util.conf.Config.VarList.Elements;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -724,8 +726,11 @@ public class App extends Application implements Configurable {
 			new SimplePlugin("App Search") {
 
 				@Constraint.FileType(Constraint.FileActor.DIRECTORY)
-				@IsConfig(group = Plugin.CONFIG_GROUP + ".App Search")
-				final V<File> searchDir = new V<>(null, this::computeFiles);
+				@IsConfig(name = "Location", group = Plugin.CONFIG_GROUP + ".App Search",
+						info = "Root directory the contents of to display "
+						+ "This is not a file system browser, and it is not possible to "
+						+ "visit parent of this directory.")
+				final VarList<File> searchDirs = new VarList<>(File.class, Elements.NOT_NULL);
 
 				@IsConfig(group = Plugin.CONFIG_GROUP + ".App Search")
 				final V<Integer> searchDepth = new V<>(2, this::computeFiles);
@@ -736,12 +741,16 @@ public class App extends Application implements Configurable {
 							ConfigSearch.Entry.of(
 								() -> "Run app: " + f.getName(),
 								() -> "Runs application: " + f.getAbsolutePath(),
-								f::getAbsolutePath,
+								() -> "Run app: " + f.getAbsolutePath(),
 								() -> Environment.runProgram(f),
 								() -> new Icon(MaterialIcon.APPS
 								)
 							)
 						);
+
+				{
+					searchDirs.onListInvalid(dirs -> computeFiles());
+				}
 
 				@Override
 				public void onStart() {
@@ -755,9 +764,10 @@ public class App extends Application implements Configurable {
 				}
 
 				void computeFiles() {
-					apps = searchDir.get()==null
-						? list()
-						: getFilesR(searchDir.get(), searchDepth.get(), f -> f.getPath().endsWith(".exe")).collect(toList());
+					apps = searchDirs.list.stream()
+							.distinct()
+							.flatMap(dir -> getFilesR(dir, searchDepth.get(), f -> f.getPath().endsWith(".exe")))
+							.collect(toList());
 				}
 			}
 		);

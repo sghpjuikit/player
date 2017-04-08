@@ -2747,25 +2747,25 @@ interface Utils {
 								})
 								.filter(polygon -> game.settings.voronoiDraw|| game.humans.intelOn.is())
 								// optimization: return edges -> draw edges instead of polygons, we can improve performance
-								 .flatMap(polygon -> {
-									 Coordinate[] cs = polygon.getCoordinates();
-									 double[] xs = new double[cs.length];
-									 double[] ys = new double[cs.length];
-									 for (int j = 0; j < cs.length; j++) {
-										 xs[j] = cs[j].x;
-										 ys[j] = cs[j].y;
-									 }
+								.flatMap(polygon -> {
+									Coordinate[] cs = polygon.getCoordinates();
+									double[] xs = new double[cs.length];
+									double[] ys = new double[cs.length];
+									for (int j = 0; j < cs.length; j++) {
+										xs[j] = cs[j].x;
+										ys[j] = cs[j].y;
+									}
 
-//									 game.drawPolygon(xs,ys,cs.length);
-									 Stream.Builder s = Stream.builder();
-									 for (int j=0; j<cs.length; j++) {
+//									game.drawPolygon(xs,ys,cs.length);
+									Stream.Builder<Lin> s = Stream.builder();
+									for (int j=0; j<cs.length; j++) {
 										int k = j==cs.length-1 ? 0 : j+1;
 										double x1 = xs[j], x2 = xs[k], y1 = ys[j], y2 = ys[k];
 										if ((x1>=0 && y1>=0 && x1<=W && y1<=H) || (x2>=0 && y2>=0 && x2<=W && y2<=H))
 											s.add(new Lin(x1,y1,x2,y2));
-									 }
-									 return s.build();
-								 }).toList();
+									}
+									return s.build();
+								}).toList();
 //						        .groupingBy(x -> x, counting())
 //						        .entrySet().stream()
 //						        .peek(e -> System.out.println(e.getValue()))

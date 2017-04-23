@@ -492,9 +492,12 @@ public interface Util {
 					i = reader.readThumbnail(ii, 0);
 				} else {
 					ImageReadParam irp = new ImageReadParam();
-					int sw = reader.getWidth(ii)/W;
-					int sh = reader.getHeight(ii)/H;
-					int px = loadFullSize ? 1 : max(1, max(sw, sh)*2/3); // quality == 2/3 == ok, great performance
+					int px = 1;
+					if (!loadFullSize) {
+						int sw = reader.getWidth(ii)/W;
+						int sh = reader.getHeight(ii)/H;
+						px = max(1, max(sw, sh)*2/3); // quality == 2/3 == ok, great performance
+					}
 					irp.setSourceSubsampling(px, px, 0, 0);
 					i = reader.read(ii, irp);
 
@@ -549,9 +552,12 @@ public interface Util {
 					if (thumbLoadedBefore) return null;
 					i = reader.readThumbnail(ii, 0);
 				} else {
-					int sw = reader.getWidth(ii)/W;
-					int sh = reader.getHeight(ii)/H;
-					int px = loadFullSize ? 1 : max(1, max(sw, sh)/3);// quality 3 == great, with ok performance
+					int px = 1;
+					if (!loadFullSize) {
+						int sw = reader.getWidth(ii)/W;
+						int sh = reader.getHeight(ii)/H;
+						px = max(1, max(sw, sh)*2/3); // quality == 2/3 == ok, great performance
+					}
 					// max quality is px==1, but quality/performance ratio would suck
 					// the only quality issue is with halftone patterns (e.g. manga),
 					// they really ask for max quality

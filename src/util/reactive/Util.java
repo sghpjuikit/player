@@ -11,6 +11,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import org.reactfx.Subscription;
 import static org.reactfx.EventStreams.valuesOf;
@@ -83,24 +84,45 @@ public interface Util {
 	}
 
 	/**
-	 * Runs action (consuming the property's value) immediately if value non null or sets a one-time
-	 * listener which will run the action when the value changes to non null for the 1st time and
-	 * remove itself.
-	 * <p/>
-	 * It is guaranteed:
-	 * <ul>
-	 * <li> action executes at most once
-	 * <li> action never consumes null
-	 * <li> action executes as soon as the property value is not null - now or in the future
-	 * </ul>
-	 * <p/>
-	 * Used to execute some kind of initialization routine, which requires nonnull value (which is
-	 * not guaranteed to be the case).
+	 * {@link #doOnceIf(javafx.beans.value.ObservableValue, java.util.function.Predicate, java.util.function.Consumer)}
+	 * testing the value for nullity.<br/>
+	 * The action executes when value is not null.
 	 */
 	static <T> Subscription doOnceIfNonNull(ObservableValue<T> property, Consumer<T> action) {
 		return doOnceIf(property, Objects::nonNull, action);
 	}
 
+	/**
+	 * {@link #doOnceIf(javafx.beans.value.ObservableValue, java.util.function.Predicate, java.util.function.Consumer)}
+	 * testing the image for loading being complete.<br/>
+	 * The action executes when image finishes loading. Note that image may be constructed in a way that makes it
+	 * loaded at once, in which case the action runs immediately - in this method.
+	 */
+	static <T> Subscription doOnceIfImageLoaded(Image image, Runnable action) {
+		return doOnceIf(image.progressProperty(), progress -> progress.doubleValue()==1, progress -> action.run());
+	}
+
+	/**
+	 * Runs action (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
+	 * for example to wait for nonnull value.
+	 * <p/>
+	 * The action runs immediately if current value already meets the condition. Otherwise registers a one-time
+	 * listener, which will run the action when the value changes to such that the condition is met.
+	 * <p/>
+	 * It is guaranteed:
+	 * <ul>
+	 * <li> action executes at most once
+	 * </ul>
+	 * It is not guaranteed:
+	 * <ul>
+	 * <li> action will execute - it maye never execute either because the value never met the condition or the
+	 * listener was unregistered manually using the returned subscription.
+	 * </ul>
+	 *
+	 * @param property observable value to consume
+	 * @param condition test the value must pass for the action to execute
+	 * @param action action receiving the value and that runs exactly once when the condition is first met
+	 */
 	static <T> Subscription doOnceIf(ObservableValue<T> property, Predicate<? super T> condition, Consumer<T> action) {
 		if (condition.test(property.getValue())) {
 			action.accept(property.getValue());

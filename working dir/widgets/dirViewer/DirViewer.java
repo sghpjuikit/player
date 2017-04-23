@@ -3,6 +3,7 @@ package dirViewer;
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
 import gui.objects.grid.GridView;
+import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail.FitFrom;
 import java.io.File;
@@ -24,12 +25,10 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import util.LazyR;
 import util.Sort;
-import util.access.CyclicEnum;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.async.future.Fut;
-import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
@@ -40,11 +39,10 @@ import util.functional.Functors.PƑ0;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
-import util.reactive.Util;
 import util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static dirViewer.DirViewer.CellSize.NORMAL;
 import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.Comparator.nullsLast;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -61,6 +59,7 @@ import static util.file.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchor;
+import static util.reactive.Util.maintain;
 
 /**
  *
@@ -205,7 +204,7 @@ public class DirViewer extends ClassController {
 
     private void visit(Item dir) {
         if (!initialized) return;
-        if (item != null) item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition();
+        if (item != null) item.lastScrollPosition = grid.implGetSkin().getPosition();
         if (item == dir) return;
         if (item != null && item.isHChildOf(dir)) item.disposeChildren();
         visitId.incrementAndGet();
@@ -218,7 +217,7 @@ public class DirViewer extends ClassController {
                 .use(cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>= 0)
-                        grid.implGetSkin().getFlow().setPosition(item.lastScrollPosition);
+                        grid.implGetSkin().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
                     run(millis(500), grid::requestFocus);
@@ -295,7 +294,7 @@ public class DirViewer extends ClassController {
     private Comparator<Item> buildSortComparator() {
         Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
 	         sortHomo = sort.get();                 // sorts each group separately
-        FileField<?> field = sortBy.get();             // pre-compute, do not compute in comparator
+        FileField<?> field = sortBy.get();          // pre-compute, do not compute in comparator
         Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
                          cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.cmp(c))));
         return cmpHetero.thenComparing(cmpHomo);
@@ -328,7 +327,7 @@ public class DirViewer extends ClassController {
         @Override
         protected void computeGraphics() {
             super.computeGraphics();
-            Util.maintain(fitFrom, thumb.fitFrom);
+            maintain(fitFrom, thumb.fitFrom);
 
             String KEY_TOOLTIP_SHOWN = "";
             Label nameL = new Label();
@@ -337,7 +336,7 @@ public class DirViewer extends ClassController {
             Tooltip t = new Tooltip();
             Tooltip.install(root, t);
             t.setOnShowing(e -> {
-                if (!root.getProperties().containsKey(KEY_TOOLTIP_SHOWN));
+                if (!root.getProperties().containsKey(KEY_TOOLTIP_SHOWN));  // TODO: WTF
                     t.setGraphic(layVertically(5, Pos.CENTER_LEFT, nameL, sizeL, resL));
                 nameL.setText("Name: " + Optional.ofNullable(thumb.getFile()).map(File::getName).orElse("unknown"));
                 resL.setText("Resolution: " + Optional.ofNullable(thumb.getImage()).map(i -> i.getWidth() + "x" + i.getHeight()).orElse("unknown"));
@@ -442,18 +441,5 @@ public class DirViewer extends ClassController {
         return stream(filters)
                 .findAny(f -> type.equals(f.name))
                 .orElseGet(() -> stream(filters).findAny(f -> "File - all".equals(f.name)).get());
-    }
-
-    enum CellSize implements CyclicEnum<CellSize> {
-        SMALL(80),
-        NORMAL(160),
-        LARGE(240),
-        GIANT(400);
-
-        final double width;
-
-        CellSize(double width) {
-            this.width = width;
-        }
     }
 }

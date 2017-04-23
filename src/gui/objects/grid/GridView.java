@@ -107,7 +107,6 @@ public class GridView<T, F> extends Control {
 	public final ObjectProperty<Comparator<? super T>> itemsComparator;
 
 	public final V<T> selectedItem = new V<>(null);
-	public final V<T> selectedRow = new V<>(null);
 
 	private boolean scrollFlag = true;
 
@@ -156,11 +155,11 @@ public class GridView<T, F> extends Control {
 		addEventFilter(ScrollEvent.ANY, e -> {
 			if (scrollFlag) {
 				Event ne = new ScrollEvent(
-					e.getEventType(), e.getX(), e.getY(), e.getScreenX(), e.getScreenY(),
-					e.isShiftDown(), e.isControlDown(), e.isAltDown(), e.isMetaDown(), e.isDirect(),
-					e.isInertia(), e.getDeltaX(), e.getDeltaY()*factor, e.getTextDeltaX(), e.getTextDeltaY()*factor,
-					e.getTextDeltaXUnits(), e.getTextDeltaX(), e.getTextDeltaYUnits(), e.getTextDeltaY()*factor,
-					e.getTouchCount(), e.getPickResult()
+						e.getEventType(), e.getX(), e.getY(), e.getScreenX(), e.getScreenY(),
+						e.isShiftDown(), e.isControlDown(), e.isAltDown(), e.isMetaDown(), e.isDirect(),
+						e.isInertia(), e.getDeltaX(), e.getDeltaY()*factor, e.getTextDeltaX(), e.getTextDeltaY()*factor,
+						e.getTextDeltaXUnits(), e.getTextDeltaX(), e.getTextDeltaYUnits(), e.getTextDeltaY()*factor,
+						e.getTouchCount(), e.getPickResult()
 				);
 				e.consume();
 				scrollFlag = false;
@@ -453,88 +452,88 @@ public class GridView<T, F> extends Control {
 
 	private interface StyleableProperties {
 		CssMetaData<GridView<?,?>,Number> HORIZONTAL_CELL_SPACING =
-			new CssMetaData<>("-fx-horizontal-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
+				new CssMetaData<>("-fx-horizontal-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
 
-				@Override
-				public Double getInitialValue(GridView<?,?> node) {
-					return node.getHorizontalCellSpacing();
-				}
+					@Override
+					public Double getInitialValue(GridView<?,?> node) {
+						return node.getHorizontalCellSpacing();
+					}
 
-				@Override
-				public boolean isSettable(GridView<?,?> n) {
-					return n.horizontalCellSpacing==null || !n.horizontalCellSpacing.isBound();
-				}
+					@Override
+					public boolean isSettable(GridView<?,?> n) {
+						return n.horizontalCellSpacing==null || !n.horizontalCellSpacing.isBound();
+					}
 
-				@Override
-				@SuppressWarnings("unchecked")
-				public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-					return (StyleableProperty<Number>) n.horizontalCellSpacingProperty();
-				}
-			};
+					@Override
+					@SuppressWarnings("unchecked")
+					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
+						return (StyleableProperty<Number>) n.horizontalCellSpacingProperty();
+					}
+				};
 
 		CssMetaData<GridView<?,?>,Number> VERTICAL_CELL_SPACING =
-			new CssMetaData<>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
+				new CssMetaData<>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter(), 12d) {
 
-				@Override
-				public Double getInitialValue(GridView<?,?> node) {
-					return node.getVerticalCellSpacing();
-				}
+					@Override
+					public Double getInitialValue(GridView<?,?> node) {
+						return node.getVerticalCellSpacing();
+					}
 
-				@Override
-				public boolean isSettable(GridView<?,?> n) {
-					return n.verticalCellSpacing==null || !n.verticalCellSpacing.isBound();
-				}
+					@Override
+					public boolean isSettable(GridView<?,?> n) {
+						return n.verticalCellSpacing==null || !n.verticalCellSpacing.isBound();
+					}
 
-				@Override
-				@SuppressWarnings("unchecked")
-				public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-					return (StyleableProperty<Number>) n.verticalCellSpacingProperty();
-				}
-			};
+					@Override
+					@SuppressWarnings("unchecked")
+					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
+						return (StyleableProperty<Number>) n.verticalCellSpacingProperty();
+					}
+				};
 
 		CssMetaData<GridView<?,?>,Number> CELL_WIDTH =
-			new CssMetaData<>("-fx-cell-width", StyleConverter.getSizeConverter(), 64d) {
+				new CssMetaData<>("-fx-cell-width", StyleConverter.getSizeConverter(), 64d) {
 
-				@Override
-				public Double getInitialValue(GridView<?,?> node) {
-					return node.getCellWidth();
-				}
+					@Override
+					public Double getInitialValue(GridView<?,?> node) {
+						return node.getCellWidth();
+					}
 
-				@Override
-				public boolean isSettable(GridView<?,?> n) {
-					return n.cellWidth==null || !n.cellWidth.isBound();
-				}
+					@Override
+					public boolean isSettable(GridView<?,?> n) {
+						return n.cellWidth==null || !n.cellWidth.isBound();
+					}
 
-				@Override
-				@SuppressWarnings("unchecked")
-				public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-					return (StyleableProperty<Number>) n.cellWidthProperty();
-				}
-			};
+					@Override
+					@SuppressWarnings("unchecked")
+					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
+						return (StyleableProperty<Number>) n.cellWidthProperty();
+					}
+				};
 
 		CssMetaData<GridView<?,?>,Number> CELL_HEIGHT =
-			new CssMetaData<>("-fx-cell-height", StyleConverter.getSizeConverter(), 64d) {
+				new CssMetaData<>("-fx-cell-height", StyleConverter.getSizeConverter(), 64d) {
 
-				@Override
-				public Double getInitialValue(GridView<?,?> node) {
-					return node.getCellHeight();
-				}
+					@Override
+					public Double getInitialValue(GridView<?,?> node) {
+						return node.getCellHeight();
+					}
 
-				@Override
-				public boolean isSettable(GridView<?,?> n) {
-					return n.cellHeight==null || !n.cellHeight.isBound();
-				}
+					@Override
+					public boolean isSettable(GridView<?,?> n) {
+						return n.cellHeight==null || !n.cellHeight.isBound();
+					}
 
-				@Override
-				@SuppressWarnings("unchecked")
-				public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-					return (StyleableProperty<Number>) n.cellHeightProperty();
-				}
-			};
+					@Override
+					@SuppressWarnings("unchecked")
+					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
+						return (StyleableProperty<Number>) n.cellHeightProperty();
+					}
+				};
 
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(Control.getClassCssMetaData())
-			.append(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT)
-			.toList());
+				.append(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT)
+				.toList());
 	}
 
 	/**
@@ -549,7 +548,26 @@ public class GridView<T, F> extends Control {
 		return getClassCssMetaData();
 	}
 
-	public enum SelectionOn {MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS}
+	/** Strategy for cell selection behavior. */
+	public enum SelectionOn {
+		MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS
+	}
+
+	/** Predefined cell sizes. */
+	public enum CellSize {
+		SMALL(80),
+		NORMAL(160),
+		LARGE(240),
+		VERY_LARGE(400),
+		GIANT(600),
+		EXTREME(800);
+
+		public final double width;
+
+		CellSize(double width) {
+			this.width = width;
+		}
+	}
 
 	class Search extends SearchAutoCancelable {
 		@Override

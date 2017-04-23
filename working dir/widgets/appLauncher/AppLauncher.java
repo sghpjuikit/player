@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
 import gui.objects.grid.GridView;
+import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
 import java.io.File;
 import java.util.Comparator;
@@ -19,7 +20,6 @@ import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
-import util.conf.Config;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
@@ -29,10 +29,9 @@ import util.file.FileType;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import util.graphics.drag.Placeholder;
-import util.validation.Constraint;
-import static appLauncher.AppLauncher.CellSize.NORMAL;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static layout.widget.Widget.Group.OTHER;
@@ -44,7 +43,6 @@ import static util.file.FileType.FILE;
 import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
-import static util.validation.Constraint.FileActor.DIRECTORY;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -145,9 +143,9 @@ public class AppLauncher extends ClassController {
                 .use(cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>=0)
-                        grid.implGetSkin().getFlow().setPosition(item.lastScrollPosition);
+                        grid.implGetSkin().setPosition(item.lastScrollPosition);
 
-	                grid.implGetSkin().getFlow().requestFocus();    // fixes focus problem
+	                grid.implGetSkin().requestFocus();    // fixes focus problem
                 },FX)
                 .run();
     }
@@ -241,19 +239,5 @@ public class AppLauncher extends ClassController {
     	return type==FileType.DIRECTORY
 					? Optional.of(new File(f, f.getName() + ".exe"))
 					: Optional.empty();
-    }
-
-    enum CellSize {
-        SMALL (80),
-        NORMAL(160),
-        LARGE (240),
-        GIANT (400);
-
-        final double width;
-
-        CellSize(double width) {
-            this.width = width;
-        }
-
     }
 }

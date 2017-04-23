@@ -1305,7 +1305,7 @@ public class App extends Application implements Configurable {
 						getChildren().add(c.load());
 						// TODO: remove
 						run(millis(500), () ->
-							stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().getFlow().requestFocus())
+							stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().requestFocus())
 						);
 						if (c instanceof Widget) {
 							((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);

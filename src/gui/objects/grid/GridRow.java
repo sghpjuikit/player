@@ -47,7 +47,6 @@ class GridRow<T, F> extends IndexedCell<T> {
 
 		super.updateIndex(i);
 		updateItem(null, false);
-		updateSelected(i==getGridView().implGetSkin().selectedRI);
 	}
 
 	@Override

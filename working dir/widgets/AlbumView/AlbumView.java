@@ -6,6 +6,7 @@ import audio.tagging.MetadataGroup;
 import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
+import gui.objects.grid.GridView.CellSize;
 import gui.objects.image.ImageNode.ImageSize;
 import gui.objects.image.Thumbnail;
 import gui.objects.image.cover.Cover;
@@ -39,9 +40,9 @@ import util.functional.Util;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
 import static AlbumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static AlbumView.AlbumView.CellSize.NORMAL;
 import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.MetadataGroup.Field.VALUE;
+import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -437,19 +438,6 @@ public class AlbumView extends ClassController {
                         new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
                 }
             });
-		}
-	}
-
-	enum CellSize {
-		SMALL(100),
-		NORMAL(200),
-		LARGE(300),
-		GIANT(450);
-
-		final double width;
-
-		CellSize(double width) {
-			this.width = width;
 		}
 	}
 

@@ -80,7 +80,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		skin.flow.setPannable(false);
 		skin.flow.setVertical(true);
 		skin.flow.focusTraversableProperty().bind(control.focusTraversableProperty());
-		skin.flow.setCellFactory(f -> GridViewSkin.this.createCell());
+		skin.flow.setCellFactory(f -> createCell());
 		control.focusedProperty().addListener((o, ov, nv) -> {
 			if (nv) getFlow().requestFocus();
 		});
@@ -127,8 +127,23 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		});
 	}
 
-	public VirtualFlow<GridRow<T,F>> getFlow() {
+	private VirtualFlow<GridRow<T,F>> getFlow() {
 		return skin.flow;
+	}
+
+	// TODO: improve API
+	public double getPosition() {
+		return skin.flow.getPosition();
+	}
+
+	// TODO: improve API
+	public void setPosition(double position) {
+		skin.flow.setPosition(position);
+	}
+
+	// TODO: improve API
+	public void requestFocus() {
+		skin.flow.requestFocus();
 	}
 
 	@Override
@@ -166,10 +181,10 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		} else {
 			flowReconfigureCells();
 		}
-		updateRows(newCount);
+		updateRows();
 	}
 
-	public GridRow<T,F> createCell() {
+	private GridRow<T,F> createCell() {
 		GridRow<T,F> row = new GridRow<>();
 		row.setGridView(getSkinnable());
 		invokeMethodP1(row, "setEmpty", boolean.class, false);	// in the hopes it will fix cell updating by the flow
@@ -244,16 +259,16 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		return 0;
 	}
 
-	@SuppressWarnings("unused") // I've got a feeling this may come useful
-	protected void updateRows(int rowCount) {
+	protected void updateRows() {
 		boolean isAnyVisible = skin.flow.getFirstVisibleCell()!=null;
 		if (!isAnyVisible) return;
 		int indexStart = skin.flow.getFirstVisibleCell().getIndex();
 		int indexEnd = skin.flow.getLastVisibleCell().getIndex();
-		for (int i = indexStart; i<=indexEnd; i++) {
+		int i = 0;
+		for (int rowI = indexStart; rowI<=indexEnd; rowI++, i++) {
 			GridRow<T,F> row = skin.flow.getVisibleCell(i);
 			if (row!=null) {
-				row.updateIndex(i);
+				row.updateIndex(rowI);
 			}
 		}
 	}
@@ -411,8 +426,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	private static final int NO_SELECT = Integer.MIN_VALUE;
 	int selectedCI = NO_SELECT;
-	int selectedRI = NO_SELECT;
-	private GridRow<T,F> selectedR = null;
 	private GridCell<T,F> selectedC = null;
 
 	public void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
@@ -458,12 +471,8 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	public void selectNone() {
 		if (selectedC!=null) selectedC.updateSelected(false);
-		if (selectedR!=null) selectedR.updateSelected(false);
-		getSkinnable().selectedRow.set(null);
 		getSkinnable().selectedItem.set(null);
-		selectedR = null;
 		selectedC = null;
-		selectedRI = NO_SELECT;
 		selectedCI = NO_SELECT;
 	}
 
@@ -506,13 +515,9 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		if (c==null) return;
 
 		selectedCI = i;
-		selectedRI = row;
-		selectedR = r;
 		selectedC = c;
 		selectedC.requestFocus();
-		selectedR.updateSelected(true);
 		selectedC.updateSelected(true);
-		getSkinnable().selectedRow.set(r.getItem());
 		getSkinnable().selectedItem.set(c.getItem());
 	}
 

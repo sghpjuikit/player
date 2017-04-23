@@ -16,13 +16,13 @@ import javafx.scene.shape.StrokeType;
 import main.App;
 import util.SwitchException;
 import util.animation.Anim;
-import util.async.Async;
 import util.async.executor.EventReducer;
 import util.file.Util;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNotFxThread;
+import static util.reactive.Util.doOnceIfImageLoaded;
 
 /**
  * Graphics representing the file. Cells are virtualized just like ListView or TableView does
@@ -35,19 +35,13 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	protected Thumbnail thumb;
 	protected final ExecutorService executorThumbs;
 	protected final ExecutorService executorImage;
-	protected final EventReducer<Item> setCoverLater;
+	protected final EventReducer<Item> setCoverLater;	// TODO: is this necessary?
 
 	public GridFileThumbCell(ExecutorService executorThumbs, ExecutorService executorImage) {
 		noØ(executorThumbs);
 		this.executorThumbs = executorThumbs;
 		this.executorImage = executorImage;
-		setCoverLater = EventReducer.toLast(100, item -> executorThumbs.execute(computeTask(() -> {
-			Async.sleep(10); // gives FX thread some space to avoid lag under intense workload
-			runFX(() -> {
-				if (item==getItem())
-					setCoverNow(item);
-			});
-		})));
+		setCoverLater = EventReducer.toLast(100, this::setCoverNow);
 	}
 
 	protected String computeName(Item item) {
@@ -71,7 +65,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 	@Override
 	protected void updateItem(Item item, boolean empty) {
-		if (getItem()==item) return;
+		if (item==getItem()) return;
 		super.updateItem(item, empty);
 
 		if (item==null) {
@@ -98,8 +92,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			//     - reduce ui performance when resizing
 			// Solved by delaying the image loading & drawing, which reduces subsequent
 			// invokes into single update (last).
-			boolean loadLater = item.cover_loadedFull.get();
-			if (loadLater) setCoverNow(item);
+//			boolean loaded = item.cover_loadedFull.get();	// TODO: do this properly
+			boolean loaded = item.cover_loadedThumb.get();
+			if (loaded) setCoverNow(item);
 			else setCoverLater(item);
 		}
 	}
@@ -130,7 +125,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		double BW = 1;
 		double dpiScalingFix = Math.rint(BW*App.APP.windowManager.screenMaxScaling)/App.APP.windowManager.screenMaxScaling;
 		BW *= dpiScalingFix;
-				;
 		Rectangle r = new Rectangle(1, 1);
 		r.setMouseTransparent(true);
 		r.setFill(null);
@@ -178,7 +172,10 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 */
 	private void setCoverNow(Item item) {
 		throwIfNotFxThread();
-		if (item.cover_loadedFull.get()) {
+
+		if (getItem()!=item) return;
+
+		if (item.cover_loadedThumb.get()) {
 			setCoverPost(item, true, item.cover_file, item.cover);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
@@ -186,15 +183,18 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 			// load thumbnail
 			if (executorThumbs!=null)
-				executorThumbs.execute(computeTask(() ->
-						item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-				));
-
+				executorThumbs.execute(computeTask(() -> {
+					// avoids loading the items in a queue, but not displayed anymore
+					if (getItem()!=item) return;
+					item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img));
+				}));
 			// load high quality thumbnail
 			if (executorImage!=null)
-				executorImage.execute(computeTask(() ->
-						item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
-				));
+				executorImage.execute(computeTask(() -> {
+					// avoids loading the items in a queue, but not displayed anymore
+					if (getItem()!=item) return;
+					item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img));
+				}));
 		}
 	}
 
@@ -210,10 +210,13 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			if (item==getItem()) { // prevents content inconsistency
 				boolean animate = computeAnimateOn().needsAnimation(this, imgAlreadyLoaded, img);
 				thumb.loadImage(img, imgFile);
-				if (animate)
-					new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x*x*x*x).play();
+				if (animate) doOnceIfImageLoaded(img, this::animatedImageLoading);
 			}
 		});
+	}
+
+	private void animatedImageLoading() {
+		new Anim(thumb.getView()::setOpacity).dur(200).intpl(x -> x*x*x*x).play();
 	}
 
 	public enum AnimateOn {

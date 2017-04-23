@@ -30,6 +30,7 @@ package gui.objects.grid;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Skin;
+import static util.Util.getAt;
 
 /**
  * A GridCell is created to represent items in the {@link GridView} {@link gui.objects.grid.GridView#getItemsShown()}
@@ -46,11 +47,10 @@ public class GridCell<T, F> extends IndexedCell<T> {
 	@Override
 	public void updateIndex(int i) {
 		if (getIndex()==i) return;
-
 		super.updateIndex(i);
 
 		GridView<T,F> grid = getGridView();
-		T item = grid.getItemsShown().get(i);
+		T item = getAt(i, grid.getItemsShown());    // TODO: this should not be here
 		updateItem(item, item==null);
 		updateSelected(i==grid.implGetSkin().selectedCI);
 	}

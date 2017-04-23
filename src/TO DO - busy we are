@@ -19,11 +19,9 @@
   - clean up old skins
 - remove all remaining dependencies on internal APIs
 - implement OS handlers // java 9
-- implement delete file to recycle bin // java 9
 - implement browse directory properly // java 9
 - refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
-- implement configurable DirView cell size and shape
 - implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller
@@ -33,7 +31,6 @@
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
 - try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - Configuration should implement Configurable
-- GridView selectDown scroll bug due to cells not ready
 - standalone widgets impl better launching, add
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
     - 1:n binding needs to be able to pick an input strategy USE_SINGLE(MAIN)/USE_LAST/USE_ALL/USE_NONE(FORBID)
@@ -79,11 +76,6 @@
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off auto-resize columns option
 - make tray and taskbar icons dpi aware
-- refactor
-    - DirViewer's GridView Cell implementation
-    - Icon - Extract custom stuff to separate Icon classes and clean up generic Icon class.
-           - Add selectedProperty for easy control and observation.
-    - main.ImageThumbIconTest
 - cleanups
     - Var, Ref, ActionPane.ActionData, SwitchPane configs, Autocomplete
 

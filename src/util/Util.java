@@ -604,11 +604,19 @@ public interface Util {
 		}
 	}
 
-	/** Loads javafx {@link Image}. */
+	/**
+	 * Loads image file into a javaFx's {@link Image}.
+	 * <p/>
+	 * The image loading executes on background thread if called on
+	 * {@link javafx.application.Platform#isFxApplicationThread()} or current thread otherwise, so to not block or
+	 * overwhelm the fx ui thread.
+	 */
 	private static Image imgImplLoadFX(File file, int W, int H, boolean loadFullSize) {
-		if (loadFullSize)
-			return new Image(file.toURI().toString());
-		else {
+		boolean isFxThread = Platform.isFxApplicationThread();
+		boolean backgroundLoading = isFxThread;
+		if (loadFullSize) {
+			return new Image(file.toURI().toString(), backgroundLoading);
+		} else {
 			// find out real image file resolution
 			Try<Dimension,?> dt = getImageDim(file);
 			int w = dt.map(d -> d.width).getOr(Integer.MAX_VALUE);
@@ -617,7 +625,7 @@ public interface Util {
 			// lets not surpass real size (javafx.scene.Image does that if we do not stop it)
 			int fin_width = min(W, w);
 			int fin_height = min(H, h);
-			return new Image(file.toURI().toString(), fin_width, fin_height, true, true, true);
+			return new Image(file.toURI().toString(), fin_width, fin_height, true, true, backgroundLoading);
 		}
 	}
 

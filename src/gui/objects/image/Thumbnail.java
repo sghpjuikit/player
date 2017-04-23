@@ -111,8 +111,14 @@ public class Thumbnail extends ImageNode {
 			double H = getHeight();
 			double imgW = min(W, maxImgW.get());
 			double imgH = min(H, maxImgH.get());
-			imageView.setFitWidth(imgW);
-			imageView.setFitHeight(imgH);
+
+			// fixes scaling when one side with FitFrom.OUTSIDE when one side of the image is smaller than thumbnail
+			boolean needsScaleH = !(isImgSmaller && fitFrom.get()==FitFrom.OUTSIDE && ratioTHUMB.get()>ratioIMG.get());
+			boolean needsScaleW = !(isImgSmaller && fitFrom.get()==FitFrom.OUTSIDE && ratioTHUMB.get()<ratioIMG.get());
+
+			// resize thumbnail
+			if (needsScaleH) imageView.setFitWidth(imgW);
+			if (needsScaleW) imageView.setFitHeight(imgH);
 
 			applyViewPort(imageView.getImage());
 
@@ -153,6 +159,7 @@ public class Thumbnail extends ImageNode {
 	public final ObjectProperty<Image> image = imageView.imageProperty();
 	private File imageFile = null;
 	public final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
+	private boolean isImgSmaller = false;
 
 	/**
 	 * Constructor.
@@ -318,19 +325,16 @@ public class Thumbnail extends ImageNode {
 				imageView.setViewport(null);
 			} else {
 				boolean isImgBigger = i.getWidth()>imageView.getLayoutBounds().getWidth() && i.getHeight()>imageView.getLayoutBounds().getHeight();
-				if (isImgBigger) {
-					if (ratioTHUMB.get()<ratioIMG.get()) {
-						double uiImgWidth = i.getHeight()*ratioTHUMB.get();
-						double x = (i.getWidth() - uiImgWidth)/2;
-						imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
-					}
-					if (ratioTHUMB.get()>ratioIMG.get()) {
-						double uiImgHeight = i.getWidth()/ratioTHUMB.get();
-						double y = (i.getHeight() - uiImgHeight)/2;
-						imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
-					}
-				} else {
-					imageView.setViewport(null);
+				isImgSmaller = !isImgBigger;
+				if (ratioTHUMB.get()<ratioIMG.get()) {
+					double uiImgWidth = i.getHeight()*ratioTHUMB.get();
+					double x = (i.getWidth() - uiImgWidth)/2;
+					imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
+				}
+				if (ratioTHUMB.get()>ratioIMG.get()) {
+					double uiImgHeight = i.getWidth()/ratioTHUMB.get();
+					double y = (i.getHeight() - uiImgHeight)/2;
+					imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
 				}
 			}
 		}

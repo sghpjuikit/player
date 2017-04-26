@@ -2,6 +2,7 @@ package dirViewer;
 
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
+import gui.objects.grid.GridFileThumbCell.ImageLoader;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
@@ -102,7 +103,8 @@ public class DirViewer extends ClassController {
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
+    private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // TODO: experiment with multiple threads
+    private final ImageLoader imageLoader = new ImageLoader(executorThumbs, executorImage);
     boolean initialized = false;
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
@@ -128,7 +130,7 @@ public class DirViewer extends ClassController {
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     File lastVisited = null;
-    Item item = null;   // item, children of which are displayed
+    Item item = null;   // item, children of which are displayedwid wallpap
 
     public DirViewer() {
         files.onListInvalid(list -> revisitTop());
@@ -157,12 +159,20 @@ public class DirViewer extends ClassController {
         });
         grid.addEventFilter(ScrollEvent.SCROLL, e -> {
             if (e.isShortcutDown()) {
-                if (e.getDeltaY()>0) {
-                    cellSize.setPreviousNapplyValue();
-                } else {
-                    cellSize.setNextNapplyValue();
-                }
                 e.consume();
+                boolean isInc = e.getDeltaY()<0 || e.getDeltaX()>0;
+                boolean useFreeStyle = e.isShiftDown();
+                if (useFreeStyle) {
+                    boolean preserveAspectRatio  = true;
+                    double scaleUnit = 1.2, w = grid.getCellWidth(), h = grid.getCellHeight();
+                    double nw = max(50.0, Math.rint(isInc ? w*scaleUnit : w/scaleUnit));
+                    double nh = max(50.0, Math.rint(isInc ? h*scaleUnit : h/scaleUnit));
+                    if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio;
+                    applyCellSize(nw, nh);
+                } else {
+                    if (isInc) cellSize.setPreviousNapplyValue();
+                    else cellSize.setNextNapplyValue();
+                }
             }
         });
 
@@ -280,8 +290,11 @@ public class DirViewer extends ClassController {
     }
 
     void applyCellSize() {
-        grid.setCellWidth(cellSize.get().width);
-        grid.setCellHeight(cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT);
+        grid.setCellSize(cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio + CELL_TEXT_HEIGHT);
+    }
+
+    void applyCellSize(double width, double height) {
+        grid.setCellSize(width, height + CELL_TEXT_HEIGHT);
     }
 
     /**
@@ -311,7 +324,7 @@ public class DirViewer extends ClassController {
      */
     private class Cell extends GridFileThumbCell {
         public Cell() {
-            super(DirViewer.this.executorThumbs, DirViewer.this.executorImage);
+            super(imageLoader);
         }
 
         @Override

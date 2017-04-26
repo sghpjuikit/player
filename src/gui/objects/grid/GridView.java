@@ -188,13 +188,13 @@ public class GridView<T, F> extends Control {
 	}
 
 	@Override
-	protected GridViewSkin<T,F> createDefaultSkin() {
-		return new GridViewSkin<>(this);
+	protected GViewSkin<T,F> createDefaultSkin() {
+		return new GViewSkin<>(this);
 	}
 
 	@SuppressWarnings("unchecked")
-	public GridViewSkin<T,F> implGetSkin() {
-		return (GridViewSkin) getSkin();
+	public GViewSkin<T,F> implGetSkin() {
+		return (GViewSkin) getSkin();
 	}
 
 	public ObservableList<T> getItemsRaw() {
@@ -416,6 +416,11 @@ public class GridView<T, F> extends Control {
 	 */
 	public final double getCellHeight() {
 		return cellHeight==null ? 64.0 : cellHeight.get();
+	}
+
+	public void setCellSize(double cellWidth, double cellHeight) {
+		setCellWidth(cellWidth);
+		setCellHeight(cellHeight);
 	}
 
 	private ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactory = new SimpleObjectProperty<>(this, "cellFactory");

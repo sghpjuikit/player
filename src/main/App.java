@@ -738,8 +738,9 @@ public class App extends Application implements Configurable {
 
 	/**
 	 * Plugin is like Service, but user or developer never uses it directly, hence allows for simpler API. Its basically
-	 * a Runnable which can be started and stopped. In the future Plugin and Service may extend a common supertype and
-	 * share lifecycle management.
+	 * a Runnable which can be started and stopped.
+	 *
+	 * @implNote In the future Plugin and Service may extend a common supertype and share lifecycle management.
 	 */
 	public void installPlugins(Plugin plugin) {
 		String name = "Enable";

@@ -8,16 +8,18 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.control.ProgressIndicator;
 import util.functional.Functors.Ƒ1;
 import static main.App.APP;
 import static util.async.Async.eFX;
+import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
 /**
+ * Future monad implementation.
  * <p/>
+ * Oriented for practicality, not specification (monadic laws) or robustness (API completeness).
+ * This is still work in progress.
  *
  * @author Martin Polakovic
  */
@@ -47,7 +49,7 @@ public class Fut<T> implements Runnable {
 
 	public static <T> Fut<T> futWith(Supplier<T> t) {
 		noØ(t);
-		// TODO: investigate and implement ror remove
+		// TODO: investigate and implement or remove
 //        return new Fut<>().supply(t);
 		return new Fut<>(CompletableFuture.supplyAsync(t));
 	}
@@ -74,14 +76,27 @@ public class Fut<T> implements Runnable {
 
 	@SuppressWarnings("TryWithIdenticalCatches")
 	public T getDone() {
+		try {
+			return f.get();
+		} catch (InterruptedException e) {
+			log(Fut.class).error("Asynchronous computation was interrupted", e);
+			return null;
+		} catch (ExecutionException e) {
+			log(Fut.class).error("Asynchronous computation encountered a problem", e);
+			return null;
+		}
+	}
+
+	@SuppressWarnings("TryWithIdenticalCatches")
+	public T getDoneOrNull() {
 		if (f.isDone()) {
 			try {
 				return f.get();
-			} catch (InterruptedException ex) {
-				Logger.getLogger(Fut.class.getName()).log(Level.SEVERE, null, ex);
+			} catch (InterruptedException e) {
+				log(Fut.class).error("Asynchronous computation was interrupted", e);
 				return null;
-			} catch (ExecutionException ex) {
-				Logger.getLogger(Fut.class.getName()).log(Level.SEVERE, null, ex);
+			} catch (ExecutionException e) {
+				log(Fut.class).error("Asynchronous computation encountered a problem", e);
 				return null;
 			}
 		} else {
@@ -188,7 +203,6 @@ public class Fut<T> implements Runnable {
 	}
 
 	/**
-	 *
 	 * @param p nonnull progress indicator
 	 * @throws java.lang.RuntimeException if any param null
 	 */
@@ -205,8 +219,7 @@ public class Fut<T> implements Runnable {
 	}
 
 	/**
-	 *
-	 * @param condition
+	 * @param condition test that if false, progress will not be displayed
 	 * @param sp function that supplies nonnull progress indicator
 	 * @return this (fluent style)
 	 */

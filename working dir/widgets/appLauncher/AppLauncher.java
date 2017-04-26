@@ -3,6 +3,7 @@ package appLauncher;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
+import gui.objects.grid.GridFileThumbCell.ImageLoader;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
@@ -70,6 +71,7 @@ public class AppLauncher extends ClassController {
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
+    private final ImageLoader imageLoader = new ImageLoader(executorThumbs, null);
     boolean initialized = false;
     private volatile boolean isResizing = false;
 	private final AtomicLong visitId = new AtomicLong(0);
@@ -185,7 +187,7 @@ public class AppLauncher extends ClassController {
      */
     private class Cell extends GridFileThumbCell {
         public Cell() {
-            super(AppLauncher.this.executorThumbs, null);
+            super(imageLoader);
         }
 
         @Override

@@ -467,9 +467,15 @@ public interface Util {
 		int H = max(0, (int) height);
 		boolean loadFullSize = W==0 && H==0;
 
+		// debug
+		// System.out.println("loading image " + W + "x" + H + " " + file);
+
 		// psd special case
 		if (!file.getPath().endsWith("psd")) {
-			return imgImplLoadFX(file, W, H, loadFullSize);
+			Image img = imgImplLoadFX(file, W, H, loadFullSize);
+			// debug
+			// doOnceIfImageLoaded(img, () -> System.out.println("loaded image " + file));
+			return img;
 		} else {
 			if (Platform.isFxApplicationThread())
 				util.dev.Util.log(Util.class).warn("Loading image on FX thread!", new Throwable());
@@ -505,9 +511,13 @@ public interface Util {
 					if (!loadFullSize)
 						i = imgImplScale(i, W, H, Rendering.SPEED);
 				}
-				return SwingFXUtils.toFXImage(i, null);
-
+				Image img = SwingFXUtils.toFXImage(i, null);
+				// debug
+				// doOnceIfImageLoaded(img, () -> System.out.println("loaded image " + file));
+				return img;
 			} catch (IndexOutOfBoundsException|IOException e) {
+				// debug
+				// System.out.println("loaded image NULL");
 				return null;
 			} finally {
 				if (reader!=null) reader.dispose();

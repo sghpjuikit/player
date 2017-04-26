@@ -404,6 +404,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			scrollbar.setMin(1);
 			scrollbar.setValue(0);
 			scrollbar.addEventHandler(MouseEvent.ANY, Event::consume);
+			scrollbar.setVisible(false);
 			getChildren().add(scrollbar);
 
 			// clip
@@ -430,7 +431,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		void changeItems() {
-			System.out.println("items changed " + getSkinnable().getItemsShown().size());
 			buildCells();
 		}
 
@@ -476,6 +476,12 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			boolean wasFocused = isFocused();
 			double w = getWidth();
 			double h = getHeight();
+
+			// update clip
+			clipMask.setX(0);
+			clipMask.setY(0);
+			clipMask.setWidth(w);
+			clipMask.setHeight(h);
 
 			// update position in case resize put it out of view
 			viewStart = min(viewStart, computeMaxViewStart());
@@ -537,12 +543,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 //					}
 				}
 			}
-
-			// update clip
-			clipMask.setX(0);
-			clipMask.setY(0);
-			clipMask.setWidth(w);
-			clipMask.setHeight(h);
 
 			int itemCount = visibleCells.size();
 			if (itemCount==0) return;

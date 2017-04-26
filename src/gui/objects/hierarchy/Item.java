@@ -1,5 +1,6 @@
 package gui.objects.hierarchy;
 
+import gui.objects.image.ImageNode.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
 import unused.TriConsumer;
@@ -136,7 +138,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	public void loadCover(boolean full, double width, double height, TriConsumer<Boolean,File,Image> action) {
+	public void loadCover(boolean full, ImageSize size, TriConsumer<Boolean,File,Image> action, Consumer<Image> afterwards) {
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
 		if (file==null) {
@@ -152,7 +154,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				// but that would cause animation to be played again, which we do not want
 				boolean wasLoaded = cover_loadedThumb.get() || cover_loadedFull.get();
 				if (!cover_loadedFull.get()) {
-					Image img = loadImageFull(file, width, height);
+					Image img = loadImageFull(file, size.width, size.height);
 					if (img!=null) {
 						cover = img;
 						action.accept(wasLoaded, file, cover);
@@ -162,13 +164,14 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			} else {
 				boolean wasLoaded = cover_loadedThumb.get();
 				if (!wasLoaded) {
-					Image imgCached = Thumbnail.getCached(file, width, height);
-					cover = imgCached!=null ? imgCached : loadImageThumb(file, width, height);
+					Image imgCached = Thumbnail.getCached(file, size.width, size.height);
+					cover = imgCached!=null ? imgCached : loadImageThumb(file, size.width, size.height);
 					cover_loadedThumb.set(true);
 				}
 				action.accept(wasLoaded, file, cover);
 			}
 		}
+		afterwards.accept(cover);
 	}
 
 	// guaranteed to execute only once

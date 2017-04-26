@@ -34,9 +34,9 @@ import gui.objects.search.Search;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.control.skin.CellSkinBase;
-import util.dev.Util;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.Util.getAt;
+import static util.dev.Util.log;
 import static util.functional.Util.*;
 
 public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
@@ -50,26 +50,14 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 
 		gridRow = control;
 		grid = gridRow.getGridView();
-		gridSkin = (GridViewSkin<T,F>)grid.getSkin();
+		gridSkin = (GridViewSkin<T,F>) grid.getSkin();
 
 		// Remove any children before creating cells (by default a LabeledText exist and we don't need it)
 		getChildren().clear();
-		updateCells();
 
 		registerChangeListener(gridRow.indexProperty(), e -> updateCells());
 		registerChangeListener(gridRow.widthProperty(), e -> updateCells());
 		registerChangeListener(gridRow.heightProperty(), e -> updateCells());
-	}
-
-	/**
-	 * Returns a cell element at a desired index
-	 *
-	 * @param index The index of the wanted cell element
-	 * @return Cell element if exist else null
-	 */
-	@SuppressWarnings("unchecked")
-	protected GridCell<T,F> getCellAtIndex(int index) {
-		return (GridCell<T,F>) getAt(index, getChildren());
 	}
 
 	protected void updateCells() {
@@ -82,7 +70,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 			int cellCount = totalCellsInGrid==0 ? 0 : endCellIndex-startCellIndex+1;
 
 			if (cellCount<0) {
-				Util.log(GridRowSkin.class).warn("This row with index={} should not exist!", rowIndex);
+				log(GridRowSkin.class).warn("This row with index={} should not exist!", rowIndex);
 				return;
 			}
 			// add more cells if cell count increased
@@ -99,6 +87,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 				cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 				cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
 			}
+			repeat(getChildren().size()-i, x -> getCellAtIndex(getChildren().size()-1-x).updateIndex(-1));
 		}
 	}
 
@@ -131,6 +120,17 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 	@SuppressWarnings("unchecked")
 	public Stream<GridCell<T,F>> getCells() {
 		return getChildren().stream().map(c -> (GridCell<T,F>) c);
+	}
+
+	/**
+	 * Returns a cell element at a desired index
+	 *
+	 * @param index The index of the wanted cell element
+	 * @return Cell element if exist else null
+	 */
+	@SuppressWarnings("unchecked")
+	protected GridCell<T,F> getCellAtIndex(int index) {
+		return (GridCell<T,F>) getAt(index, getChildren());
 	}
 
 	private GridCell<T,F> createCell() {

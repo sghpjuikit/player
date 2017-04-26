@@ -84,6 +84,13 @@ public interface Util {
 	}
 
 	/**
+	 * Prints the value to console immediately and then on every change.
+	 */
+	static <T> Subscription printOnChange(ObservableValue<T> property) {
+		return maintain(property, System.out::println);
+	}
+
+	/**
 	 * {@link #doOnceIf(javafx.beans.value.ObservableValue, java.util.function.Predicate, java.util.function.Consumer)}
 	 * testing the value for nullity.<br/>
 	 * The action executes when value is not null.
@@ -97,6 +104,8 @@ public interface Util {
 	 * testing the image for loading being complete.<br/>
 	 * The action executes when image finishes loading. Note that image may be constructed in a way that makes it
 	 * loaded at once, in which case the action runs immediately - in this method.
+	 *
+	 * @throws java.lang.RuntimeException if any param null
 	 */
 	static <T> Subscription doOnceIfImageLoaded(Image image, Runnable action) {
 		return doOnceIf(image.progressProperty(), progress -> progress.doubleValue()==1, progress -> action.run());

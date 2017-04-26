@@ -1,8 +1,9 @@
-package main;
+package plugin;
 
 import util.conf.Configurable;
 
 public interface Plugin extends Configurable<Object> {
+	// TODO: avoid specifying plugin name in group
 	String CONFIG_GROUP = "Plugins";
 
 	void start();

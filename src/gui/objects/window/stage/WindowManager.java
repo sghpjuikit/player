@@ -1,12 +1,14 @@
 package gui.objects.window.stage;
 
+import gui.Gui;
+import gui.objects.icon.Icon;
+import gui.objects.window.stage.WindowBase.Maximized;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javafx.beans.binding.DoubleBinding;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -22,19 +24,14 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import org.reactfx.Subscription;
-import org.slf4j.Logger;
-
-import gui.Gui;
-import gui.objects.icon.Icon;
-import gui.objects.window.stage.WindowBase.Maximized;
 import layout.Component;
 import layout.container.layout.Layout;
 import layout.widget.Widget;
 import layout.widget.WidgetFactory;
 import layout.widget.feature.HorizontalDock;
 import main.App;
+import org.reactfx.Subscription;
+import org.slf4j.Logger;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -46,9 +43,7 @@ import util.conf.IsConfigurable;
 import util.file.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
 import util.validation.Constraint;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static java.io.File.separator;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -63,6 +58,7 @@ import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
+import static util.file.Util.childOf;
 import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.add1timeEventHandler;
@@ -199,7 +195,7 @@ public class WindowManager implements Configurable<Object> {
 
 		w.initialize();
 		w.setFont(Gui.font.get());
-        File skinFile = new File(APP.DIR_SKINS.getPath(), Gui.skin.getValue() + separator + Gui.skin.getValue() + ".css");
+        File skinFile = childOf(APP.DIR_SKINS, Gui.skin.getValue(), Gui.skin.getValue() + ".css");
         try {
             w.root.getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
         } catch (MalformedURLException e) {

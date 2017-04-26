@@ -42,10 +42,7 @@ import util.Password;
 import util.access.Vo;
 import util.action.Action;
 import util.conf.Config;
-import util.conf.Config.ListConfig;
-import util.conf.Config.OverridablePropertyConfig;
-import util.conf.Config.PropertyConfig;
-import util.conf.Config.ReadOnlyPropertyConfig;
+import util.conf.Config.*;
 import util.conf.Configurable;
 import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
@@ -101,9 +98,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
 
 	@SuppressWarnings("unchecked")
-	private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>(){{
+	private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
 		put(boolean.class, BooleanField::new);
 		put(Boolean.class, BooleanField::new);
+		put(void.class, RunnableField::new);
+		put(Void.class, RunnableField::new);
 		put(String.class, GeneralField::new);
 		put(Action.class, ShortcutField::new);
 		put(Color.class, ColorField::new);
@@ -330,7 +329,32 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
+	private static class RunnableField extends ConfigField<Void> {
+		protected final Icon graphics;
 
+		private RunnableField(Config<Void> c) {
+			super(c);
+
+			boolean isSupported = c instanceof RunnableConfig;
+			RunnableConfig rc = isSupported ? (RunnableConfig) c : null;
+			graphics = new Icon();
+			graphics.styleclass("runnable-config-field");
+			if (isSupported) graphics.onClick(rc);
+		}
+
+		@Override
+		public Icon getControl() {
+			return graphics;
+		}
+
+		@Override
+		public Try<Void,String> get() {
+			return ok(null);
+		}
+
+		@Override
+		public void refreshItem() {}
+	}
 	private static class PasswordField extends ConfigField<Password> {
 		javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
 

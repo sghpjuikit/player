@@ -327,7 +327,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 			setDataInfo(null, false);
 			// obtain data & invoke again
 			data = ((Fut)data)
-					.use(this::setData,FX)
+					.use(FX, this::setData)
 					.showProgress(dataProgress);
 		}
 	}
@@ -458,14 +458,14 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 			doneHide(action);
 		} else {
 			futAfter(fut(data))
-				.then(() -> actionProgress.setProgress(-1),FX)
+				.then(FX, () -> actionProgress.setProgress(-1))
 				.use(action) // run action and obtain output
 				// 1) the actions may invoke some action on FX thread, so we give it some
 				// by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
 				.then(sleeping(millis(150)))
-				.then(() -> actionProgress.setProgress(1),FX)
-				.then(() -> doneHide(action),FX);
+				.then(FX, () -> actionProgress.setProgress(1))
+				.then(FX, () -> doneHide(action));
 		}
 	}
 

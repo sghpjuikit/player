@@ -1,44 +1,5 @@
 package main;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.core.spi.FilterAttachable;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.rmi.RemoteException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.logging.LogManager;
-import java.util.stream.Stream;
-
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.stage.*;
-import javafx.stage.FileChooser.ExtensionFilter;
-
-import org.atteo.classindex.ClassIndex;
-import org.reactfx.EventSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.mapper.Mapper;
-
 import audio.Item;
 import audio.Player;
 import audio.SimpleItem;
@@ -47,10 +8,19 @@ import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import audio.tagging.MetadataReader;
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.spi.FilterAttachable;
 import ch.qos.logback.core.util.StatusPrinter;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.mapper.Mapper;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -78,13 +48,39 @@ import gui.pane.ActionPane.ComplexActionData;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.rmi.RemoteException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.logging.LogManager;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.*;
+import javafx.stage.FileChooser.ExtensionFilter;
 import layout.Component;
 import layout.area.ContainerNode;
 import layout.widget.Widget;
 import layout.widget.WidgetManager;
 import layout.widget.WidgetManager.WidgetSource;
 import layout.widget.feature.*;
-import main.Plugin.SimplePlugin;
+import org.atteo.classindex.ClassIndex;
+import org.reactfx.EventSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import plugin.AppSearchPlugin;
+import plugin.DirSearchPlugin;
+import plugin.Plugin;
 import services.ClickEffect;
 import services.Service;
 import services.ServiceManager;
@@ -108,8 +104,6 @@ import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
 import util.conf.Config.PropertyConfig;
-import util.conf.Config.VarList;
-import util.conf.Config.VarList.Elements;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
@@ -132,7 +126,6 @@ import util.type.ObjectFieldMap;
 import util.units.FileSize;
 import util.validation.Constraint;
 import util.validation.Constraint.StringNonEmpty;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
@@ -159,7 +152,8 @@ import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.file.Environment.*;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.*;
+import static util.file.Util.getFilesAudio;
+import static util.file.Util.isValidatedDirectory;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -647,7 +641,7 @@ public class App extends Application implements Configurable {
 									.map(files -> map(files, SimpleItem::new))
 									.map(task)
 									.showProgress(actionPane.actionProgress)
-									.use(r -> {
+									.use(FX, r -> {
 										if (editInTagger.get()) {
 											List<? extends Item> items = editOnlyAdded.get() ? r.converted : r.all;
 											((SongReader) tagger.get().getController()).read(items);
@@ -657,7 +651,7 @@ public class App extends Application implements Configurable {
 												.map(PlaylistFeature::getPlaylist)
 												.ifPresent(p -> p.addItems(r.all));
 										}
-									}, FX);
+									});
 							}).withText("Execute")
 						),
 						tagger.get().load()
@@ -721,56 +715,8 @@ public class App extends Application implements Configurable {
 		));
 
 		// TODO: implement plugin discovery
-		// TODO: avoid specifying plugin name in group
-		installPlugins(
-			new SimplePlugin("App Search") {
-
-				@Constraint.FileType(Constraint.FileActor.DIRECTORY)
-				@IsConfig(name = "Location", group = Plugin.CONFIG_GROUP + ".App Search",
-						info = "Root directory the contents of to display "
-						+ "This is not a file system browser, and it is not possible to "
-						+ "visit parent of this directory.")
-				final VarList<File> searchDirs = new VarList<>(File.class, Elements.NOT_NULL);
-
-				@IsConfig(group = Plugin.CONFIG_GROUP + ".App Search")
-				final V<Integer> searchDepth = new V<>(2, this::computeFiles);
-
-				private List<File> apps;
-				private final Supplier<Stream<ConfigSearch.Entry>> src = () -> apps.stream()
-						.map(f ->
-							ConfigSearch.Entry.of(
-								() -> "Run app: " + f.getName(),
-								() -> "Runs application: " + f.getAbsolutePath(),
-								() -> "Run app: " + f.getAbsolutePath(),
-								() -> Environment.runProgram(f),
-								() -> new Icon(MaterialIcon.APPS
-								)
-							)
-						);
-
-				{
-					searchDirs.onListInvalid(dirs -> computeFiles());
-				}
-
-				@Override
-				public void onStart() {
-					computeFiles();
-					App.APP.search.sources.add(src);
-				}
-
-				@Override
-				public void onStop() {
-					App.APP.search.sources.remove(src);
-				}
-
-				void computeFiles() {
-					apps = searchDirs.list.stream()
-							.distinct()
-							.flatMap(dir -> getFilesR(dir, searchDepth.get(), f -> f.getPath().endsWith(".exe")))
-							.collect(toList());
-				}
-			}
-		);
+		installPlugins(new AppSearchPlugin());
+		installPlugins(new DirSearchPlugin());
 
 		// listen to other application instance launches
 		try {
@@ -1128,9 +1074,9 @@ public class App extends Application implements Configurable {
 
 	public static void refreshItemsFromFileJob(List<? extends Item> items) {
 		fut(items)
-			.map(is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList(), Player.IO_THREAD)
-			.use(Player::refreshItemsWith, Player.IO_THREAD)
-			.showProgress(APP.windowManager.getActive().map(Window::taskAdd))
+			.map(Player.IO_THREAD, is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList())
+			.use(Player.IO_THREAD, Player::refreshItemsWith)
+			.showProgressOnActiveWindow()
 			.run();
 	}
 
@@ -1145,8 +1091,9 @@ public class App extends Application implements Configurable {
 			action.accept(m);
 		} else {
 			fut(i)
-				.map(MetadataReader::readMetadata,Player.IO_THREAD)
-				.use(action, FX).run();
+				.map(Player.IO_THREAD, MetadataReader::readMetadata)
+				.use(FX, action)
+				.run();
 		}
 	}
 

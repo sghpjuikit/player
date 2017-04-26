@@ -138,15 +138,15 @@ public class AppLauncher extends ClassController {
 //        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
         Fut.fut(item)
-                .map(Item::children,executorIO)
-                .use(cells -> cells.sort(buildSortComparator()),executorIO)
-                .use(cells -> {
+                .map(executorIO, Item::children)
+                .use(executorIO, cells -> cells.sort(buildSortComparator()))
+                .use(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>=0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
 	                grid.implGetSkin().requestFocus();    // fixes focus problem
-                },FX)
+                })
                 .run();
     }
 

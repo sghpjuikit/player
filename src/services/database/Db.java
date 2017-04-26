@@ -10,7 +10,6 @@ import audio.Item;
 import audio.tagging.Metadata;
 import audio.tagging.Metadata.Field;
 import audio.tagging.MetadataWriter;
-import gui.objects.window.stage.Window;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
@@ -51,7 +50,7 @@ public class Db {
 		new Fut<>()
 				// load database
 				.supply(Db::getAllItems)
-				.use(Db::setInMemoryDB, FX)
+				.use(FX, Db::setInMemoryDB)
 				.then(() -> {
 					// load string store
 					List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
@@ -91,7 +90,7 @@ public class Db {
 					em.getTransaction().commit();
 
 				})
-				.showProgress(APP.windowManager.getActive().map(Window::taskAdd))
+				.showProgressOnActiveWindow()
 				.run();
 	}
 

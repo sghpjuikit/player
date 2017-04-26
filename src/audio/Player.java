@@ -328,7 +328,7 @@ public class Player {
 				set(true, val);
 				log(Player.class).info("Current item metadata reused. Same item playing.");
 			}
-			// if preloaded, set
+			// if pre-loaded, set
 			else if (nextMetadataCache.same(item)) {
 				set(true, nextMetadataCache);
 				log(Player.class).info("Current item metadata copied from next item metadata cache.");
@@ -346,7 +346,7 @@ public class Player {
 		private void load(boolean changeType, Item item) {
 			Fut.fut(item)
 					.map(MetadataReader::readMetadata)
-					.use(m -> set(changeType, m.isEmpty() ? item.toMeta() : m), FX);
+					.use(FX, m -> set(changeType, m.isEmpty() ? item.toMeta() : m));
 		}
 
 		private void preloadNext() {
@@ -356,7 +356,7 @@ public class Player {
 			if (next!=null) {
 				Fut.fut(next)
 						.map(MetadataReader::readMetadata)
-						.use(m -> nextMetadataCache = m, FX);
+						.use(FX, m -> nextMetadataCache = m);
 			}
 		}
 	}

@@ -47,6 +47,22 @@ public interface Util {
 	 */
 	Color EMPTY_COLOR = new Color(0, 0, 0, 0);
 
+	static File childOf(File parent, String childName) {
+		return new File(parent, childName);
+	}
+
+	static File childOf(File parent, String childName, String childName2) {
+		return childOf(childOf(parent, childName), childName2);
+	}
+
+	static File childOf(File parent, String childName, String childName2, String childName3) {
+		return childOf(childOf(childOf(parent, childName), childName2), childName3);
+	}
+
+	static File childOf(File parent, String... childNames) {
+		return stream(childNames).foldLeft(parent, Util::childOf);
+	}
+
 	/**
 	 * Returns true if for provided File all conditions are met:
 	 * - is not null
@@ -132,8 +148,7 @@ public interface Util {
 	 */
 	static boolean isValidSkinFile(File f) {
 		String name = Util.getName(f);
-		String path = APP.DIR_SKINS.getPath() + File.separator + name + File.separator + name + ".css";
-		File test = new File(path);
+		File test = childOf(APP.DIR_SKINS, name, name + ".css");
 		return (isValidFile(f) &&                   // is valid
 				f.getPath().endsWith(".css") &&     // is .css
 				f.equals(test));                    // is located in skins folder
@@ -144,7 +159,7 @@ public interface Util {
 		File p2 = p1==null ? null : p1.getParentFile();
 		return (isValidFile(f) &&                   // is valid file
 				f.getPath().endsWith(".fxml") &&    // is .fxml file
-				APP.DIR_WIDGETS.equals(p2));    // is located in skins folder in its rightful folder
+				APP.DIR_WIDGETS.equals(p2));        // is located in skins folder in its rightful folder
 	}
 
 	/**
@@ -371,6 +386,16 @@ public interface Util {
 		return (i==-1) ? p : p.substring(0, i);
 	}
 
+	// TODO: make robust and public
+	private static void createFileIfNotExists(File file) {
+		try {
+			file.getParentFile().mkdirs();
+			file.createNewFile();
+		} catch (IOException e) {
+			log(Util.class).error("Creating file failed: {}", file, e);
+		}
+	}
+
 	/**
 	 * Writes a textual file with specified content, name and location.
 	 *
@@ -386,6 +411,9 @@ public interface Util {
 
 	static boolean writeFile(File file, String content) {
 		if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
+
+		createFileIfNotExists(file);
+
 		try (
 				Writer writerF = new FileWriter(file);
 				Writer writer = new BufferedWriter(writerF)

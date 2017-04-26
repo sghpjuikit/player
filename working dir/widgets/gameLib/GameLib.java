@@ -20,12 +20,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
-import main.App;
 import util.SwitchException;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.Async;
-import util.async.executor.FxTimer;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
@@ -339,6 +337,7 @@ public class GameLib extends FXMLController {
                     APP.messagePane.show("No path is set up.");
                     return;
                 }
+                // TODO
                 // exe = new File(location, pathR); // This does not work when pathR is to direct child
                 exeTmp = new File(location + File.separator + pathR);
             }

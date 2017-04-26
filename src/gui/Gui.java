@@ -37,7 +37,6 @@ import util.file.FileMonitor;
 import util.file.Util;
 import util.validation.Constraint;
 import static gui.Gui.OpenStrategy.INSIDE;
-import static java.io.File.separator;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Interpolator.LINEAR;
@@ -49,6 +48,7 @@ import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
+import static util.file.Util.childOf;
 import static util.file.Util.listFiles;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
@@ -371,7 +371,7 @@ public class Gui {
         } else if (s.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
             setSkinCaspian();
         } else {
-            File skin_file = new File(APP.DIR_SKINS.getPath(), s + separator + s + ".css");
+            File skin_file = childOf(APP.DIR_SKINS, s, s + ".css");
             setSkinExternal(skin_file);
         }
     }
@@ -428,7 +428,7 @@ public class Gui {
     }
 
     public static List<File> getGuiImages() {
-        File location = new File(APP.DIR_SKINS, skin + separator + "Images");
+        File location = childOf(APP.DIR_SKINS, skin.getName(), "Images");
         if (Util.isValidDirectory(location)) {
             return Util.getFilesImage(location, 1).collect(toList());
         } else {

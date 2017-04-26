@@ -305,10 +305,10 @@ public class Library extends FXMLController implements SongReader {
     private void removeInvalid() {
     	Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
 	    Fut.fut(t)
-			.use(taskInfo::showNbind, FX)
+			.use(FX, taskInfo::showNbind)
 			.use(Task::run)
 			.then(sleeping(seconds(5)))
-			.then(() -> hideInfo.playOpenDo(taskInfo::hideNunbind), FX)
+			.then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
 	        .f.exceptionally(x -> {
 	        	x.printStackTrace();
 	        	return null;

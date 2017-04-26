@@ -146,7 +146,7 @@ public class Configuration {
 		String comment = title + " property file" + "\n"
 				+ " Last auto-modified: " + java.time.LocalDateTime.now() + "\n"
 				+ "\n"
-				+ " Properties are in the format: {property path}.{property.name}{separator}{property value}\n"
+				+ " Properties are in the format: {property path}.{property name}{separator}{property value}\n"
 				+ " \t{property path}  must be lowercase with '.' as path separator, e.g.: this.is.a.path\n"
 				+ " \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"
 				+ " \t{separator}      must be ' = ' string\n"
@@ -162,7 +162,10 @@ public class Configuration {
 				+ "custom or unfit values";
 
 		// TODO: persist raw properties that are not configs too
-		Properties.saveP(file, comment, stream(getFields()).toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS())));
+		Map<String, Properties.Property> properties = stream(getFields())
+				.filter(c -> c.getType()!=Void.class)
+				.toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS()));
+		Properties.saveP(file, comment, properties);
 	}
 
 	/**
@@ -298,6 +301,7 @@ public class Configuration {
 		}
 	}
 
+	// TODO: support annotations
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromConfig(Field f, Object instance) {
 		try {

@@ -186,14 +186,14 @@ public class Converter extends ClassController implements Opener, SongWriter {
             List<Item> songs = (List)list(source);
             if (songs.isEmpty()) return;
             Fut.fut()
-               .then(() -> {
+               .then(Player.IO_THREAD, () -> {
                     for (int i=0; i<songs.size(); i++) {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
                     }
 
                     Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList());
-               },Player.IO_THREAD)
+               })
                .showProgress(getWidget().getWindow().taskAdd())
                .run();
         }));

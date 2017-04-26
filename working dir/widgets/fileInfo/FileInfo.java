@@ -210,7 +210,7 @@ public class FileInfo extends FXMLController implements SongReader {
             root, MaterialIcon.DETAILS, "Display",
             DragUtil::hasAudio,
             e -> DragUtil.getSongs(e)
-                         .use(items -> items.findFirst().ifPresent(this::read),FX)
+                         .use(FX, items -> items.findFirst().ifPresent(this::read))
                          .run()
         );
     }

@@ -3720,6 +3720,10 @@ check-icon-disabling:selected {
     -glyph-name: "FontAwesome.CHECK";
 }
 
+.runnable-config-field {
+    -glyph-name: "FontAwesome.REFRESH";
+}
+
 .boolean-config-field {}
 
 .override-config-field {

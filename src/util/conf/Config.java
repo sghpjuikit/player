@@ -391,6 +391,37 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 	}
 
+	/**
+	 * Stateless {@link util.conf.Config} of type {@link java.lang.Void}, with a user invokable action. This is
+	 * useful for giving user the option to invoke a (possibly long running) action at will. As a valueless config,
+	 * there is no need for persistence. The only allowed value is null and it can not change.
+	 */
+	public static final class RunnableConfig extends ConfigBase<Void> implements Runnable {
+
+		private final Runnable action;
+
+		public RunnableConfig(String name, String guiName, String category, String info, Runnable action) {
+			super(Void.class, name, guiName, null, category, info, EditMode.USER);
+			this.action = action;
+		}
+
+		@Override
+		public void applyValue(Void val) {}
+
+		@Override
+		public Void getValue() {
+			return null;
+		}
+
+		@Override
+		public void setValue(Void val) {}
+
+		@Override
+		public void run() {
+			if (action!=null) action.run();
+		}
+	}
+
 	/** {@link Config} wrapping {@link java.lang.reflect.Field}. Can wrap both static or instance fields. */
 	public static class FieldConfig<T> extends ConfigBase<T> {
 

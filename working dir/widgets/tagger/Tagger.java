@@ -1,11 +1,25 @@
 package tagger;
 
+import audio.Item;
+import audio.tagging.Metadata;
+import audio.tagging.MetadataReader;
+import audio.tagging.MetadataWriter;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.textfield.MoodItemNode;
+import gui.itemnode.textfield.TextFieldItemNode;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
+import gui.objects.image.ThumbnailWithAdd;
+import gui.objects.image.cover.Cover;
+import gui.objects.popover.PopOver;
+import gui.objects.popover.PopOver.NodePos;
+import gui.objects.spinner.Spinner;
+import gui.objects.textfield.DecoratedTextField;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
 import java.util.*;
 import java.util.function.Predicate;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -27,22 +41,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-
-import audio.Item;
-import audio.tagging.Metadata;
-import audio.tagging.MetadataReader;
-import audio.tagging.MetadataWriter;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.textfield.MoodItemNode;
-import gui.itemnode.textfield.TextFieldItemNode;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
-import gui.objects.image.ThumbnailWithAdd;
-import gui.objects.image.cover.Cover;
-import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.NodePos;
-import gui.objects.spinner.Spinner;
-import gui.objects.textfield.DecoratedTextField;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
@@ -61,13 +59,11 @@ import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.validation.InputConstraints;
-
 import static audio.tagging.Metadata.Field.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
-import static gui.objects.popover.PopOver.NodePos.DownCenter;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -150,7 +146,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
-        CoverV.onFileDropped = f -> f.use(this::addImg,FX);
+        CoverV.onFileDropped = f -> f.use(FX, this::addImg);
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
 

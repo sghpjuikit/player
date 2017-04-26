@@ -10,6 +10,8 @@ import layout.widget.feature.Feature;
 import main.App;
 import util.file.Util;
 import util.type.ClassName;
+import static util.dev.Util.noØ;
+import static util.file.Util.readFileLines;
 
 /**
  * Factory that creates widgets.
@@ -73,15 +75,22 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 		fxwlFile = null;
 	}
 
-	/** Creates delegated widget factory. */
+	// TODO: this is unsafe and the case of factory not being found must be (forced to be) handled higher up
+	/**
+	 * Creates delegated widget factory.
+	 *
+	 * @throws java.lang.RuntimeException if any param null
+	 */
 	@SuppressWarnings("unchecked")
 	public WidgetFactory(File launcher) {
+		noØ(launcher);
 		String customName = Util.getName(launcher);
-		String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
+		String wn = readFileLines(launcher).limit(1).findAny().orElse("");
 		int i1 = wn.indexOf("name=\"");
 		int i2 = wn.indexOf("\">");
 		wn = wn.substring(i1+"name=\"".length(), i2);
 		WidgetFactory<?> factory = App.APP.widgetManager.factories.get(wn);
+		noØ(factory, "Could not find widget factory=" + wn);
 
 		name = customName;
 		controller_class = (Class<C>) factory.controller_class;
@@ -120,6 +129,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 	 *
 	 * @return new widget instance or null if creation fails.
 	 */
+	@SuppressWarnings("unchecked")
 	public Widget<C> create() {
 		if (isDelegated) {
 			return (Widget) UiContext.instantiateComponent(fxwlFile);

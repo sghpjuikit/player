@@ -53,8 +53,6 @@ import static util.functional.Util.*;
  * <li> list of strings. Each string element represents a single line in the text
  * area. List can be empty, but not null. {@link #getValue() }
  * </ul>
- *
- * @author Martin Polakovic
  */
 @TODO(purpose = FUNCTIONALITY, note = "manual text edits should be part of transformation chain. It "
         + "is doable like this:"

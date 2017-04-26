@@ -5,9 +5,6 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import util.SingleR;
 
-/**
- * @author Martin Polakovic
- */
 public class TableContextMenuR<M> extends SingleR<ImprovedContextMenu<M>,M> {
 
 	public TableContextMenuR() {

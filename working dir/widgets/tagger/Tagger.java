@@ -87,8 +87,7 @@ import static util.functional.Util.*;
  * Can read and write metadata from/into files.
  * Currently supports files only. File types are limited to those supported
  * by the application.
- *
- * @author Martin Polakovic
+ *e @author Martin Polakovic
  */
 @Widget.Info(
     name = "Tagger",

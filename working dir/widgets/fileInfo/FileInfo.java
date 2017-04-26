@@ -65,8 +65,6 @@ import static util.graphics.Util.setAnchor;
 
 /**
  * File info widget controller.
- * <p/>
- * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

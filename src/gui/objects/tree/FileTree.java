@@ -27,7 +27,6 @@ import static main.App.APP;
 import static util.file.Util.listFiles;
 
 /**
- * @author Martin Polakovic
  */
 public class FileTree extends TreeView<File> {
 

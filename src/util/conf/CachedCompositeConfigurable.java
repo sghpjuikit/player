@@ -3,8 +3,6 @@ package util.conf;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * @author Martin Polakovic
  */
 public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T> {
 

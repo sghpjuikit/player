@@ -3,9 +3,6 @@ package util.access;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author Martin Polakovic
- */
 public interface FAccessibleValue<T> extends ApplicableValue<T> {
 
 	@Override

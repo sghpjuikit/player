@@ -17,8 +17,6 @@ import util.async.Async;
 /**
  * Application instance communicator.
  * Facilitates communication between different instances of this application by firing and receiving events.
- *
- * @author Martin Polakovic
  */
 public class AppInstanceComm {
 

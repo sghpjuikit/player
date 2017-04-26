@@ -12,8 +12,6 @@ import org.reactfx.Subscription;
  * simpler (no binding) and with the ability to apply value change.
  * <p/>
  * Does not permit null values.
- *
- * @author Martin Polakovic
  */
 public class V<T> extends SimpleObjectProperty<T> implements ApplicableValue<T> {
 

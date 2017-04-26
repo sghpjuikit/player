@@ -23,9 +23,6 @@ import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.*;
 
-/**
- * @author Martin Polakovic
- */
 @SuppressWarnings("unused")
 public interface Util {
 

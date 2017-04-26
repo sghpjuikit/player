@@ -10,9 +10,6 @@ import util.conf.IsConfigurable;
 import util.validation.Constraint;
 import static main.App.APP;
 
-/**
- * @author Martin Polakovic
- */
 @IsConfigurable("Images")
 public abstract class ImageNode {
 

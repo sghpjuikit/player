@@ -25,9 +25,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.App.APP;
 import static util.graphics.Util.setAnchors;
 
-/**
- * @author Martin Polakovic
- */
 @IsConfigurable("Mouse.Effect")
 public class ClickEffect extends ServiceBase {
 

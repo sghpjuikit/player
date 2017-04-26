@@ -6,8 +6,6 @@ import java.lang.annotation.*;
  * Container annotation for {@link Repeatable} {@link AppliesConfig}.
  * <p/>
  * Used solely by compiler and has no practical use for developer.
- *
- * @author Martin Polakovic
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -13,7 +13,6 @@ import util.functional.Functors.Ƒ1;
  *
  * @param <R> success return value
  * @param <E> error return value
- * @author Martin Polakovic
  */
 public interface Try<R, E> {
 

@@ -12,8 +12,6 @@ import static util.type.Util.getFieldValue;
 
 /**
  * ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover.
- *
- * @author Martin Polakovic
  */
 public class ImprovedScrollBarSkin extends ScrollBarSkin {
 	private boolean isDragged = false;

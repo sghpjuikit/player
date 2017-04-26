@@ -11,9 +11,6 @@ import java.util.stream.Stream;
 import org.reactfx.Subscription;
 import util.collections.map.ClassMap;
 
-/**
- * @author Martin Polakovic
- */
 public class ServiceManager {
 
 	private final ClassMap<Service> services = new ClassMap<>();

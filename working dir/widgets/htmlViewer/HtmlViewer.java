@@ -16,8 +16,6 @@ import static util.graphics.Util.setAnchor;
 
 /**
  * Web browser component.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
 	name = "HtmlEditor",

@@ -71,8 +71,6 @@ import static util.type.Util.build;
 
 /**
  * Action chooser pane. Displays icons representing certain actions.
- *
- * @author Martin Polakovic
  */
 @IsConfigurable("Gui.Action Chooser")
 public class ActionPane extends OverlayPane<Object> implements Configurable<Object> {

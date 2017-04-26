@@ -16,8 +16,6 @@ import static util.functional.Util.*;
 
 /**
  * Data structure for holding complete table column information, mostly for serializing and deserializing purposes.
- *
- * @author Martin Polakovic
  */
 public final class TableColumnInfo {
 

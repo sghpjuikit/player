@@ -13,8 +13,6 @@ import static util.type.Util.getFieldValue;
 
 /**
  * SliderSkin skin that adds animations & improved usability - track expands on mouse hover.
- *
- * @author Martin Polakovic
  */
 public class ImprovedSliderSkin extends SliderSkin {
 

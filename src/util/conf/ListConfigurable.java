@@ -13,8 +13,6 @@ import static util.functional.Util.list;
  * This implementation provides O(n) field access.
  * <p/>
  * Use to access configs by index.
- *
- * @author Martin Polakovic
  */
 public class ListConfigurable<T> implements Configurable<T> {
 

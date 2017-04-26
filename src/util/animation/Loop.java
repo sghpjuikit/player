@@ -7,8 +7,6 @@ import javafx.animation.AnimationTimer;
  * Timer, that executes behavior in each frame while it is running.
  * <p/>
  * The methods {@link #start()} and {@link #stop()} allow to start and stop the timer.
- *
- * @author Martin Polakovic
  */
 public class Loop {
 	private boolean active;

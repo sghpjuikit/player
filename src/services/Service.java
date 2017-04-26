@@ -8,9 +8,6 @@ import util.conf.Config;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 
-/**
- * @author Martin Polakovic
- */
 public interface Service extends Configurable {
 	void start();
 

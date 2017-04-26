@@ -7,9 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.text.Text;
 
-/**
- * @author Martin Polakovic
- */
 public class Icons {
 
 //    static {

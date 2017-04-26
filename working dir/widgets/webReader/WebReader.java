@@ -23,8 +23,6 @@ import static util.type.Util.invokeMethodP1;
 
 /**
  * Web browser component.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
 	name = "WebReader",

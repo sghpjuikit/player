@@ -26,8 +26,6 @@ import static util.file.AudioFileFormat.Use.PLAYBACK;
  * information
  * Represented by {@link #hashCode()} and compared by {@link #equals(java.lang.Object)}
  * </ul>
- *
- * @author Martin Polakovic
  */
 public abstract class Item<CT extends Item> {
 

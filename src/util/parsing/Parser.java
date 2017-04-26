@@ -47,8 +47,6 @@ import static util.type.Util.getMethodAnnotated;
 // TODO: fix the many warnings in this class
 /**
  * Multi-type bidirectional Object-String converter.
- *
- * @author Martin Polakovic
  */
 public abstract class Parser {
 

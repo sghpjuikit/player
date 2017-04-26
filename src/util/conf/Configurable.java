@@ -51,7 +51,7 @@ import static util.type.Util.forEachJavaFXProperty;
  * cast.
  * <p/>
  * If all configs of this configurable contain the same type of value, use this generic parameter.
- * @author Martin Polakovic
+ *
  * @see MapConfigurable
  * @see ListConfigurable
  */

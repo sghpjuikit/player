@@ -2,7 +2,6 @@ package util.access;
 
 /**
  * @param <E> type of value
- * @author Martin Polakovic
  */
 public interface CyclicValue<E> {
 

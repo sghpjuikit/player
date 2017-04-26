@@ -51,9 +51,6 @@ import static util.file.Util.listFiles;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;
 
-/**
- * @author Martin Polakovic
- */
 public class TreeItems {
 
 	public static <T> SimpleTreeItem<T> tree(T o) {

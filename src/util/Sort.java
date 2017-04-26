@@ -6,8 +6,6 @@ import javafx.scene.control.TreeTableColumn;
 
 /**
  * Sort type.
- *
- * @author Martin Polakovic
  */
 public enum Sort {
 	/** From minimal to maximal element. */

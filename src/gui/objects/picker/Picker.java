@@ -41,9 +41,6 @@ import static util.graphics.Util.setScaleXY;
  * Elements will be sorted lexicographically.
  * <p/>
  * Elements will be represented graphically depending on the cell factory.
- * <p/>
- *
- * @author Martin Polakovic
  */
 public class Picker<E> {
 

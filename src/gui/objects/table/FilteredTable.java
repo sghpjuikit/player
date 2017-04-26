@@ -54,8 +54,6 @@ import static util.reactive.Util.sizeOf;
 
 /**
  * Table with a search filter header that supports filtering with provided gui.
- *
- * @author Martin Polakovic
  */
 public class FilteredTable<T> extends FieldedTable<T> {
 

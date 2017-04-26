@@ -28,9 +28,6 @@ import static util.dev.Util.noØ;
 import static util.file.Util.getName;
 import static util.graphics.Util.getScreen;
 
-/**
- * @author Martin Polakovic
- */
 public final class UiContext {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);

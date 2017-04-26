@@ -8,9 +8,6 @@ import com.thoughtworks.xstream.mapper.Mapper;
 import javafx.beans.value.WritableValue;
 import util.access.V;
 
-/**
- * @author Martin Polakovic
- */
 public class VConverter extends AbstractPropertyConverter<Object> implements Converter {
 
 	public VConverter(Mapper mapper) {

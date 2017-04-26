@@ -11,8 +11,6 @@ import static util.file.Environment.copyToSysClipboard;
 /**
  * Displays an icon with its name. Has tooltip displaying additional information.
  * Mouse click copies icon name to system clipboard.
- *
- * @author Martin Polakovic
  */
 public class IconInfo extends VBox {
 

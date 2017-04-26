@@ -21,9 +21,6 @@ import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import static util.Util.localDateTimeFromMillis;
 
-/**
- * @author Martin Polakovic
- */
 public class FileField<T> implements ObjectField<File,T> {
 
 	public static final Set<FileField<?>> FIELDS = new HashSet<>();

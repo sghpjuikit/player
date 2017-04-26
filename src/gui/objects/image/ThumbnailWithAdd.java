@@ -21,8 +21,6 @@ import static util.file.FileType.FILE;
  * <p/>
  * File can be accepted either by using file chooser opened by clicking on this
  * thumbnail, or by file drag&drop.
- *
- * @author Martin Polakovic
  */
 public class ThumbnailWithAdd extends Thumbnail {
 

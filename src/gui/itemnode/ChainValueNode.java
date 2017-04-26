@@ -35,8 +35,6 @@ import static util.functional.Util.repeat;
  * as generic parameter.
  * @param <C> type of chained. This chain will be made of links of chained of
  * exactly this type, either provided manually or constructed using factory.
- *
- * @author Martin Polakovic
  */
 public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 

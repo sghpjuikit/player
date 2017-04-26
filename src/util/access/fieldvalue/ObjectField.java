@@ -12,7 +12,6 @@ import static util.functional.Util.by;
 /**
  * @param <V> type of value this field extracts from
  * @param <T> type of this field and the type of the extracted value
- * @author Martin Polakovic
  */
 public interface ObjectField<V, T> extends TypedValue<T> {
 

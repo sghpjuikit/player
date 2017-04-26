@@ -31,8 +31,6 @@ import static util.functional.Util.IS;
  * <p/>
  * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String,
  * java.util.function.Predicate)}
- *
- * @author Martin Polakovic
  */
 public class DragPane extends Placeholder {
 

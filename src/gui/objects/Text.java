@@ -7,8 +7,6 @@ import javafx.beans.value.ChangeListener;
 /**
  * {@link javafx.scene.text.Text} with a default styleclass "text-shape" and
  * support for automatic wrap width based on contained text value.
- *
- * @author Martin Polakovic
  */
 public class Text extends javafx.scene.text.Text {
 	public static final String STYLECLASS = "text-shape";

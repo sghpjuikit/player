@@ -3,9 +3,6 @@ package util.conf;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * @author Martin Polakovic
- */
 public interface CachedConfigurable<T> extends Configurable<T> {
 
 	Map<String,Config<T>> getFieldsMap();

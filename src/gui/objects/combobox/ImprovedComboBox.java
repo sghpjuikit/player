@@ -19,8 +19,6 @@ import static util.dev.Util.noØ;
  * <li> Better keyboard UX (SPACE key press shows popup)
  * <li> Searching & scrolling when typing
  * </ul>
- *
- * @author Martin Polakovic
  */
 public class ImprovedComboBox<T> extends ComboBox<T> {
 

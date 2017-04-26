@@ -68,8 +68,6 @@ import static util.reactive.Util.onScreenChange;
 
 /**
  * Manages windows.
- *
- * @author Martin Polakovic
  */
 @IsConfigurable("Gui.Window")
 public class WindowManager implements Configurable<Object> {

@@ -2,10 +2,6 @@ package util.access;
 
 import static util.type.Util.unPrimitivize;
 
-/**
- *
- * @author Martin Polakovic
- */
 public interface TypedValue<C> {
 
     /**

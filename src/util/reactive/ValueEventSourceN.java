@@ -1,10 +1,5 @@
 package util.reactive;
 
-/**
- * <p/>
- *
- * @author Martin Polakovic
- */
 public class ValueEventSourceN<T> extends ValueEventSource<T> {
 	private T v;
 	private T empty_val;

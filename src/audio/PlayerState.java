@@ -19,8 +19,6 @@ import static util.functional.Util.stream;
 /**
  * Low level representation of state of player used for serialization of player's state to maintain state across
  * sessions. Immutable.
- *
- * @author Martin Polakovic
  */
 public final class PlayerState {
 

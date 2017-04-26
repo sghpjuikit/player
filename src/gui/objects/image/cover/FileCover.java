@@ -13,8 +13,6 @@ import static util.dev.Util.noØ;
  * This class is fully polymorphic
  * Should never be used directly but instead use the {@link gui.objects.image.cover.Cover} interface
  * and leverage polymorphism.
- *
- * @author Martin Polakovic
  */
 public class FileCover implements Cover {
 	private final File file;

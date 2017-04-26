@@ -59,7 +59,6 @@ import static util.type.Util.invokeMethodP0;
  * <p/>
  *
  * @param <T> type of element in the table, must be aware of its fields
- * @author Martin Polakovic
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 

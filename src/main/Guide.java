@@ -57,10 +57,6 @@ import static util.async.Async.runFX;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.drag.DragUtil.installDrag;
 
-/**
- *
- * @author Martin Polakovic
- */
 @IsConfigurable
 public final class Guide implements Configurable {
 

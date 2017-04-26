@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Contains set of utility methods for development. For example leading to
  * easier bug discovery or stronger runtime checking.
- *
- * @author Martin Polakovic
  */
 public interface Util {
 

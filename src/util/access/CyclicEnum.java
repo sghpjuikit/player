@@ -5,7 +5,6 @@ package util.access;
  *
  * @param <E> {@link Enum} type. It must be the same type as the extending enum. For example: {@code enum MyEnum
  * implements CyclicEnum<MyEnum>}
- * @author Martin Polakovic
  */
 public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
 

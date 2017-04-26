@@ -56,8 +56,6 @@ import static util.dev.Util.noØ;
 
 /**
  * Graphic utility methods.
- *
- * @author Martin Polakovic
  */
 public interface Util {
 

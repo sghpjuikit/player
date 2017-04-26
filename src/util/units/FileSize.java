@@ -14,8 +14,6 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * Simple class for file size handling, used primarily for its string representation.
  * <p/>
  * Simple example of use: {@code new FileSize(bytes).toString() }.
- *
- * @author Martin Polakovic
  */
 @StringParseStrategy(
 		from = From.ANNOTATED_METHOD,

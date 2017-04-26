@@ -33,8 +33,6 @@ import static util.graphics.Util.menuItem;
 /**
  * Provides tray facilities, including tray icon, tray tooltip, tray click
  * actions or tray bubble notification.
- *
- * @author thedoctor
  */
 @IsConfigurable("Tray")
 public class TrayService extends ServiceBase {

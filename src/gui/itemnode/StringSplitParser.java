@@ -40,8 +40,6 @@ import static util.functional.Util.repeat;
  * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string
  * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is
  * not present.
- *
- * @author Martin Polakovic
  */
 public class StringSplitParser implements Function<String, List<String>> {
     public static final char PARRSE_KEY_LIMITER = '%';

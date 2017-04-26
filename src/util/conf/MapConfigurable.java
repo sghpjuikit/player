@@ -12,8 +12,6 @@ import java.util.Map;
  * This implementation provides O(1) field access.
  * <p/>
  * Use to access configs by name.
- *
- * @author Martin Polakovic
  */
 public class MapConfigurable<T> implements Configurable<T> {
 

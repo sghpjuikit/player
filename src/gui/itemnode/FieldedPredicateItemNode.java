@@ -29,8 +29,6 @@ import static util.functional.Util.*;
 
 /**
  * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
- *
- * @author Martin Polakovic
  */
 public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
 

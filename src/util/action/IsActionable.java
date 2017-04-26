@@ -8,8 +8,6 @@ import org.atteo.classindex.IndexAnnotated;
  * {@implSpec}
  * It is necessary to use this annotation, as it marks class to be processed by the annotation processor during
  * compilation. There is no runtime performance lookup overhead. See {@link IndexAnnotated}.
- *
- * @author Martin Polakovic
  */
 @Documented
 @IndexAnnotated

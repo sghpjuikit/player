@@ -20,8 +20,6 @@ import static util.graphics.Util.setAnchors;
  * {@link javafx.scene.layout.TilePane}. The cells are always of specified size,
  * vertical gap as well, but horizontal gap is adjusted so the cells are laid
  * out in the whole horizontal space.
- *
- * @author Martin Polakovic
  */
 public class CellPane extends Pane {
 	double cellW = 100;

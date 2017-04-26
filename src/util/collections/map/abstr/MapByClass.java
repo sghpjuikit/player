@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import static util.type.Util.getSuperClassesInc;
 
-/**
- * @author Martin Polakovic
  */
 public interface MapByClass<E> {
 

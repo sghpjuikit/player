@@ -76,8 +76,6 @@ import static util.reactive.Util.maintain;
  * Convenient way to create wide and diverse property sheets, that take
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
- *
- * @author Martin Polakovic
  */
 abstract public class ConfigField<T> extends ConfigNode<T> {
 

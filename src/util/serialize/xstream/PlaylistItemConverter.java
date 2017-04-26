@@ -9,9 +9,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import java.net.URI;
 
 /**
- * @author Martin Polakovic
- *         <p>
- *         Converter class used for de/serializing PlaylistItem class with XStream.
+ * Converter class used for de/serializing PlaylistItem class with XStream.
  */
 public class PlaylistItemConverter implements Converter {
 	@Override

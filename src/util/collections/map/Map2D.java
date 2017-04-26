@@ -11,8 +11,6 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * 2 dimensional map - map with key consisting of two keys. For key identity, see {@link Key}.
- *
- * @author Martin Polakovic
  */
 public class Map2D<K1, K2, E> extends HashMap<Key<K1,K2>,E> {
 

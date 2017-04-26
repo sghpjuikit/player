@@ -13,7 +13,6 @@ import static org.atteo.evo.inflector.English.plural;
  * Provides information about table items and table item selection.
  *
  * @param <E> type of table element
- * @author Martin Polakovic
  */
 public final class InfoTable<E> implements InfoNode<TableView<E>> {
 

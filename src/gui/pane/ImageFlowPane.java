@@ -22,8 +22,6 @@ import static java.lang.Double.min;
  * <p/>
  * Both image and content can be set invisible. Gap between image and pane can 
  * be set.
- *
- * @author Martin Polakovic
  */
 public class ImageFlowPane extends Pane {
 

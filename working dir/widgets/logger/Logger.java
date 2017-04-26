@@ -19,8 +19,6 @@ import static util.graphics.Util.setMinPrefMaxSize;
 
 /**
  * Logger widget controller.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
 		author = "Martin Polakovic",

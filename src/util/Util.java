@@ -41,8 +41,6 @@ import static util.dev.Util.throwIf;
 
 /**
  * Provides general purpose utility methods.
- *
- * @author _Plutonium
  */
 public interface Util {
 

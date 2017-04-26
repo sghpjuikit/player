@@ -42,9 +42,6 @@ import static util.dev.Util.log;
 import static util.file.Util.getFilesAudio;
 import static util.functional.Util.*;
 
-/**
- * @author Martin Polakovic
- */
 public final class DragUtil {
 
 /* ---------- DRAG -------------------------------------------------------------------------------------------------- */

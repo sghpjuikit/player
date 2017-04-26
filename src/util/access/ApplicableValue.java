@@ -2,9 +2,6 @@ package util.access;
 
 import java.util.function.Consumer;
 
-/**
- * @author Martin Polakovic
- */
 public interface ApplicableValue<V> extends AccessibleValue<V> {
 
 	/**

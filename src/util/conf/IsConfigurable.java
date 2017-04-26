@@ -17,8 +17,6 @@ import org.atteo.classindex.IndexAnnotated;
  * within the annotated class.
  * <p/>
  * For detection purpose, this annotation itself is annotated by {@link IndexAnnotated}.
- *
- * @author Martin Polakovic
  */
 @Documented
 @IndexAnnotated

@@ -29,8 +29,6 @@ import static util.functional.Util.*;
  *
  * @param <I> type of function input
  * @param <O> type of function output
- *
- * @author Martin Polakovic
  */
 public class FItemNode<I,O> extends ValueNode<Ƒ1<I,O>> {
     private final HBox root = new HBox(5);

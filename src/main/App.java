@@ -164,8 +164,6 @@ import static util.type.Util.getEnumConstants;
  * Single instance:<br>
  * Application can only instantiate single instance, any subsequent call to constructor throws
  * an exception.
- *
- * @author Martin Polakovic
  */
 @IsConfigurable("General")
 public class App extends Application implements Configurable {

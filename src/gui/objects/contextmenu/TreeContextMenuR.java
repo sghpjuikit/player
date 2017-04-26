@@ -7,9 +7,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import util.SingleR;
 
-/**
- * @author Martin Polakovic
- */
 public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,TreeView<E>> {
 
 	public TreeContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {

@@ -67,8 +67,6 @@ import static util.reactive.Util.maintain;
  * <p/>
  * This control overrides {@link #layoutChildren()} and some layout properties may not work. For
  * example padding. Use padding on the parent of this control, rather than this control directly.
- *
- * @author Martin Polakovic
  */
 public final class Seeker extends AnchorPane {
 

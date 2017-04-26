@@ -40,8 +40,6 @@ import java.lang.annotation.*;
  * its invocation will not create unexpected exceptions and that if it does the
  * problem could be because of inconsistency between expected and real
  * application state.
- *
- * @author Martin Polakovic
  */
 @Documented
 @Repeatable(AppliesConfigs.class)

@@ -24,8 +24,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * FXML Controller class
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

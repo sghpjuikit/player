@@ -26,7 +26,6 @@ import java.util.stream.Stream;
  * collection, but leveraging arbitrary element identity.
  * Use like this: {@code new MapSet<K,E>(e -> e.identity(), elements) }
  *
- * @author Martin Polakovic
  * @see #keyMapper
  */
 public class MapSet<K, E> implements Set<E> {

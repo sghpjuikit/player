@@ -16,7 +16,6 @@ import util.functional.Operable;
  * accessible vlaue.
  *
  * @param <V> type of accessible value
- * @author Martin Polakovic
  * @see SequentialValue
  * @see Operable
  */

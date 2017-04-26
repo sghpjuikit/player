@@ -65,10 +65,6 @@ import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.drag.DragUtil.installDrag;
 
-/**
- *
- * @author Martin Polakovic
- */
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Image Viewer",

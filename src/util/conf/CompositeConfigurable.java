@@ -11,8 +11,6 @@ import java.util.Collection;
  * Configurable.
  * <p/>
  * New introduced method returns the internal sub configurable.
- *
- * @author Martin Polakovic
  */
 public interface CompositeConfigurable<T> extends Configurable<T> {
 

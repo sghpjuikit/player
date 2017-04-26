@@ -53,10 +53,6 @@ import static util.file.Util.listFiles;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
 
-/**
- *
- * @author Martin Polakovic
- */
 @IsActionable
 @IsConfigurable
 public class Gui {

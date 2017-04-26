@@ -17,8 +17,6 @@ import static util.reactive.Util.maintain;
  * Placeholder pane. Can invoke action and display its icon and name.<br/>
  * Useful mostly instead of content when there is none, e.g., "click to add items". Or to highlight on hover/mouse
  * over to signal possible interaction.
- *
- * @author Martin Polakovic
  */
 public class Placeholder extends StackPane {
 

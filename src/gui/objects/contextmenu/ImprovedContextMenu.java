@@ -49,8 +49,6 @@ import static util.graphics.Util.*;
  * Context menu which contains an object.
  * Usually, this object is set before showing the menu and allows menu items
  * to use this value for action.
- *
- * @author Martin Polakovic
  */
 public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleValue<E> {
 

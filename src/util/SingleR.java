@@ -13,7 +13,6 @@ import java.util.function.Supplier;
  *
  * @param <V> type of instance
  * @param <M> type of object the instance relies on
- * @author Martin Polakovic
  */
 public class SingleR<V, M> extends LazyR<V> {
 

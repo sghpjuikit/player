@@ -55,8 +55,6 @@ import static util.functional.Util.forEachIStream;
  * <p/>
  * See {@link #playClose()} and {@link #playOpen() }.
  * </ul>
- *
- * @author Martin Polakovic
  */
 public class Anim extends Transition {
 

@@ -1,8 +1,5 @@
 package util;
 
-/**
- * @author Michal Szeman
- */
 public final class Password {
 	private String value;
 

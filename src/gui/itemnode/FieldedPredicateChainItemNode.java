@@ -12,8 +12,6 @@ import static util.functional.Util.IS;
 
 /**
  * Chained filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
- *
- * @author Martin Polakovic
  */
 public class FieldedPredicateChainItemNode<T,F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 

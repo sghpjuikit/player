@@ -62,10 +62,6 @@ import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
 
-/**
- *
- * @author Martin Polakovic
- */
 @Widget.Info(
         author = "Martin Polakovic",
         name = "Dir Viewer",

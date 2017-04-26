@@ -18,8 +18,6 @@ import static util.functional.Try.ok;
 
 /**
  * Composition of serializers for the application.
- *
- * @author Martin Polakovic
  */
 public final class AppSerializer {
 

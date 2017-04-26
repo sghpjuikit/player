@@ -62,8 +62,6 @@ import static util.type.Util.getFieldValue;
 
 /**
  * Icon.
- *
- * @author Martin Polakovic
  */
 public class Icon<I extends Icon<?>> extends StackPane {
 

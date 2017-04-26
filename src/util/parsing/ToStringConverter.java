@@ -4,8 +4,6 @@ import util.functional.Functors.Ƒ1;
 
 /**
  * Object to String converter.
- *
- * @author Martin Polakovic
  */
 public interface ToStringConverter<T> extends Ƒ1<T,String> {
 

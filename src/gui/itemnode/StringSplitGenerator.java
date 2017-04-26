@@ -8,10 +8,6 @@ package gui.itemnode;
 import gui.itemnode.ItemNode.ValueNode;
 import javafx.scene.control.TextField;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class StringSplitGenerator extends ValueNode<StringSplitParser> {
     private final TextField root = new TextField();
 

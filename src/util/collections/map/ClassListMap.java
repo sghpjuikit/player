@@ -7,8 +7,6 @@ import util.collections.map.abstr.MapByClass;
 
 /**
  * Multi value per key version of {@link ClassMap}.
- *
- * @author Martin Polakovic
  */
 public class ClassListMap<E> extends CollectionMap<E,Class<?>,List<E>> implements MapByClass<E> {
 

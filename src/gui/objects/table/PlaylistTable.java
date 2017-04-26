@@ -44,8 +44,6 @@ import static util.reactive.Util.maintain;
  * containing played item and corrupted item respectively.
  * <p/>
  * Always call {@link #dispose()}
- *
- * @author Martin Polakovic
  */
 @TODO(purpose = READABILITY, note = "dragging duplicate code for empty table case")
 public class PlaylistTable extends FilteredTable<PlaylistItem> {

@@ -18,9 +18,6 @@ import static util.functional.Util.list;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 
-/**
- * @author Martin Polakovic
- */
 public class EffectItemNode extends TextFieldItemNode<Effect> {
 
 	public static class EffectType {

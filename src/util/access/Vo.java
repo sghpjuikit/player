@@ -7,9 +7,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 
-/**
- * @author Martin Polakovic
- */
 public class Vo<T> implements ObservableValue<T>, WritableValue<T> {
 	public final BooleanProperty override = new SimpleBooleanProperty(true);
 	public final ObjectProperty<T> real = new SimpleObjectProperty<>();

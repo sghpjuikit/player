@@ -16,8 +16,6 @@ import java.lang.annotation.*;
  * In order for the static method to be discovered the class the method resides within
  * must itself be annotated by {@link IsActionable} which auto-discovers the
  * class in order to scan it for action candidate methods.
- *
- * @author Martin Polakovic
  */
 @Documented
 @Repeatable(IsActions.class)

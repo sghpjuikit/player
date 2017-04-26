@@ -10,11 +10,6 @@ import java.util.logging.Logger;
 import util.type.Util;
 import static util.dev.Util.log;
 
-/**
- * <p/>
- *
- * @author Martin Polakovic
- */
 public class PluginMap {
 	private final Map<Class,List<Class>> m = new HashMap<>();
 

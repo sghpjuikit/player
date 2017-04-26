@@ -10,8 +10,6 @@ import javafx.fxml.FXMLLoader;
  * <pre>{@code
  * new ConventionFxmlLoader(this).loadNoEx();
  * }</pre>
- *
- * @author Martin Polakovic
  */
 public class ConventionFxmlLoader extends FXMLLoader {
 

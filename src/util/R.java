@@ -8,7 +8,6 @@ import java.util.function.UnaryOperator;
  * Reference - object property.
  *
  * @param <V> type of value
- * @author Martin Polakovic
  */
 public class R<V> {
 

@@ -38,8 +38,6 @@ import static util.reactive.Util.maintain;
 import static util.reactive.Util.unsubscribe;
 
 /**
- *
- * @author Martin Polakovic
  */
 @IsConfigurable("Shortcuts.Viewer")
 public class ShortcutPane extends OverlayPane<Collection<Action>> {

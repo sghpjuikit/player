@@ -3,8 +3,6 @@ package util;
 /**
  * Runtime exception for switch cases that represent programming error and must never execute. This can defend against
  * code modifications, e.g., adding an enum constant. Use in default case, or case that must never execute.
- *
- * @author Martin Polakovic
  */
 public class SwitchException extends RuntimeException {
 

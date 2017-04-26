@@ -6,7 +6,6 @@ import util.functional.Try;
  * String to Object converter.
  *
  * @param <T> type of object
- * @author Martin Polakovic
  */
 public interface FromStringConverter<T> {
 

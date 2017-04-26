@@ -18,8 +18,6 @@ import static javafx.util.Duration.seconds;
 
 /**
  * Shows audio frequency bars. Animated at 60 fps.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
     author = "Martin Polakovic",

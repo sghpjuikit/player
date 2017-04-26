@@ -46,9 +46,6 @@ import static util.functional.Util.IDENTITY;
  * <li> Void. Functions with void parameter can simulate supplier (no input) or
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
- *
- *
- * @author Martin Polakovic
  */
 public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<Object,Object>> {
 

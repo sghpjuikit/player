@@ -8,8 +8,6 @@ import static java.lang.Integer.min;
  * Represents range of years. Used for its text representation.
  * Accumulates values into range and stores minimum, maximum and specificness - whether any value
  * the range was created for was unspecified/empty, in this case -1.
- *
- * @author Martin Polakovic
  */
 public class RangeYear {
 	private int min = Integer.MAX_VALUE;

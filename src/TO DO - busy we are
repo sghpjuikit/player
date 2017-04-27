@@ -1,7 +1,6 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- remove author tag
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer

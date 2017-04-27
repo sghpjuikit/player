@@ -12,16 +12,11 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.dev.TODO;
 import static javafx.scene.media.MediaPlayer.Status.*;
 import static util.async.Async.runFX;
-import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.log;
 import static util.reactive.Util.maintain;
 
-/**
- * @author Martin Polakovic
- */
 public class JavaFxPlayer implements GeneralPlayer.Play {
 
 	private MediaPlayer player;
@@ -52,12 +47,10 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 		if (player!=null) player.stop();
 	}
 
+	// TODO: Media creation throws MediaException (FileNotFoundException) for valid files containing some special
+	// characters, like á (copypasting in Netbeans produces: 'á' (probably Unicode))
 	@Override
-	@TODO(purpose = BUG, note = "Media creation throws MediaException (FileNotFoundException) for "
-			+ "valid files containing some special characters, like á (copypasting in Netbeans "
-			+ "produces: 'á' (probably Unicode))")
 	public void createPlayback(Item item, PlaybackState state, Runnable onOk, Runnable onFail) {
-
 		Player.IO_THREAD.execute(() -> {
 			Media media;
 			try {

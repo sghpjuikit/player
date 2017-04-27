@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  * @param <C> accumulation bucket. (Not necessarily) a collection such as List. Can even be an element E itself. For
  * example a sum or last added element (per key). Depends on accumulation strategy. Because the type of accumulation
  * bucket is unknown, elements can not be removed. See {@link util.collections.map.CollectionMap}.
- * @author Martin Polakovic
+ *
  * @see CollectionMap
  */
 public class AccumulationMap<E, K, C> extends HashMap<K,C> {

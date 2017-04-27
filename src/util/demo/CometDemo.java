@@ -11,8 +11,6 @@ import main.App;
 // TODO: remove
 /**
  * Demo showcasing the comet game widget.
- *
- * @author Martin Polakovic
  */
 public class CometDemo extends Application {
 

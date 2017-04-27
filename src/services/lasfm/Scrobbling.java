@@ -8,9 +8,6 @@ import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
 import static util.dev.Util.log;
 
-/**
- * @author Michal Szeman
- */
 public class Scrobbling {
 
 	static Session session;

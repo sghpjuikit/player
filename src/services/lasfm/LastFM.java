@@ -16,15 +16,10 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.conf.MapConfigurable;
 import util.conf.ValueConfig;
-import util.dev.TODO;
 import util.validation.Constraint.PasswordNonEmpty;
 import util.validation.Constraint.StringNonEmpty;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.Util.log;
 
-/**
- * @author Michal Szeman
- */
 @IsConfigurable("LastFM")
 public class LastFM {
 
@@ -93,7 +88,7 @@ public class LastFM {
 //        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
 	}
 
-	@TODO(purpose = UNIMPLEMENTED)
+	// TODO: implement
 	public static boolean isLoginSet() {
 		return !"".equals(acquireUserName());
 	}

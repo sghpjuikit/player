@@ -20,8 +20,6 @@ import static util.dev.Util.noØ;
  * <p/>
  * Oriented for practicality, not specification (monadic laws) or robustness (API completeness).
  * This is still work in progress.
- *
- * @author Martin Polakovic
  */
 public class Fut<T> implements Runnable {
 

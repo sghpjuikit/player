@@ -11,9 +11,6 @@ import util.async.future.ConvertListTask.Result;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNotFxThread;
 
-/**
- * @author Martin Polakovic
- */
 public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T>,Result<T,R>> {
 
 	private final StringBuffer sb = new StringBuffer(40);

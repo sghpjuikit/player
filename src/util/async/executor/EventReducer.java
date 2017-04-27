@@ -19,8 +19,6 @@ import util.functional.Functors.Ƒ2;
  * the succession ending. It only ends when the timer runs out and future events will start a new
  * succession. Even if the succession has only 1 event, there will still be delay between consuming
  * it and firing it as a reduced event.
- *
- * @author Martin Polakovic
  */
 public abstract class EventReducer<E> {
 	protected Consumer<E> action;

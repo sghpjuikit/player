@@ -2,8 +2,6 @@ package layout.widget.feature;
 
 /**
  * Capable of writing data to song tags.
- * 
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Song metadata writer",

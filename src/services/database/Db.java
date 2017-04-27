@@ -32,9 +32,6 @@ import static util.file.Util.readFileLines;
 import static util.functional.Util.listRO;
 import static util.functional.Util.stream;
 
-/**
- * @author Martin Polakovic
- */
 public class Db {
 
 	private static final File MOODS_FILE = new File(APP.DIR_RESOURCES, "moods.cfg");

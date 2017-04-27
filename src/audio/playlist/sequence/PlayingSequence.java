@@ -10,8 +10,6 @@ import static util.dev.Util.noØ;
 /**
  * Determines playing items. Provides customizable item selector and also the
  * ability to filter items before the selection takes place.
- *
- * @author Martin Polakovic
  */
 public class PlayingSequence {
 	private ItemSelector<PlaylistItem> selector = LoopMode.PLAYLIST.selector();

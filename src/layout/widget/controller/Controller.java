@@ -48,8 +48,6 @@ import util.conf.CachedConfigurable;
  * - controller frees its resources permanently {@link #close()} invoked
  * - controller is garbage collected
  * </pre>
- *
- * @author Martin Polakovic
  */
 public interface Controller<W extends Widget> extends CachedConfigurable<Object> {
 

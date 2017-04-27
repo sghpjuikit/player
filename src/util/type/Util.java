@@ -18,8 +18,6 @@ import static util.functional.Util.*;
 
 /**
  * Reflection utility methods.
- *
- * @author Martin Polakovic
  */
 public interface Util {
 

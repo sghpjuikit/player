@@ -19,9 +19,6 @@ import static javafx.util.Duration.millis;
 import static util.async.Async.runFX;
 import static util.async.Async.runLater;
 
-/**
- * @author Martin Polakovic
- */
 public class JavaSoundPlayer implements GeneralPlayer.Play {
 
 	private final AudioPlayer p = new AudioPlayer();

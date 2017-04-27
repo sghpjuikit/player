@@ -10,10 +10,6 @@ import org.reactfx.Subscription;
 import layout.area.IOLayer;
 import util.type.typetoken.TypeToken;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class Input<T> extends Put<T> {
 	final String name;
 	final Map<Output<? extends T>,Subscription> sources = new HashMap<>();

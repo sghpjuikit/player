@@ -6,8 +6,6 @@ import util.conf.Configurable;
 
 /**
  * Editor for {@link Configurable}.
- *
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Configurator",

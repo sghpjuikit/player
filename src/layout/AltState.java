@@ -17,8 +17,6 @@ package layout;
  *           }
  *       }
  *   }
- * 
- * @author Martin Polakovic
  */
 public interface AltState {
 

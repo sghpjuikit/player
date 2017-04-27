@@ -38,10 +38,6 @@ import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
-/**
- * <p/>
- * @author Martin Polakovic
- */
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     private static final String laybTEXT = "Maximize & align\n\n"

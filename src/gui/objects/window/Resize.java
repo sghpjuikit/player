@@ -1,8 +1,5 @@
 package gui.objects.window;
 
-/**
- * @author Martin Polakovic
- */
 public enum Resize {
 	N,
 	NE,

@@ -19,10 +19,6 @@ import util.validation.Constraint;
 
 import static util.reactive.Util.maintain;
 
-/**
- *
- * @author Martin Polakovic
- */
 @IsConfigurable("Tabs")
 public class SwitchContainer extends Container<SwitchPane> {
 

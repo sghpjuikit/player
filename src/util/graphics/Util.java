@@ -39,7 +39,6 @@ import javafx.util.Duration;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import util.dev.Dependency;
-import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -50,7 +49,6 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static util.async.Async.runFX;
-import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
@@ -733,7 +731,7 @@ public interface Util {
 	 * doable using owner stage with UTILITY style).
 	 * </ul>
 	 */
-	@TODO(purpose = BUG, note = "JavaFX scaling problem")
+	// TODO: fix scaling screwing up initial window position
 	static Stage createFMNTStage(Screen screen) {
 		// Using owner stage of UTILITY style is the only way to get a 'top level'
 		// window with no taskbar.

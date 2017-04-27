@@ -2,9 +2,6 @@ package util.type;
 
 import util.collections.map.ClassMap;
 
-/**
- * @author Martin Polakovic
- */
 public class ClassName {
 
 	private final ClassMap<String> namesNoSuper = new ClassMap<>();

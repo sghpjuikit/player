@@ -17,8 +17,6 @@ import static javafx.scene.input.MouseEvent.*;
 
 /**
  * Window implemented as a {@link javafx.scene.layout.Pane} for in-application windows.
- *
- * @author Martin Polakovic
  */
 public class WindowPane {
 

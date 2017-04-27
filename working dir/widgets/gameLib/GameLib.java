@@ -55,10 +55,6 @@ import static util.functional.Util.by;
 import static util.functional.Util.stream;
 import static util.validation.Constraint.FileActor.DIRECTORY;
 
-/**
- *
- * @author Martin Polakovic
- */
 @Widget.Info(
     author = "Martin Polakovic",
     name = "GameLib",

@@ -38,10 +38,6 @@ import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
-/**
- *
- * @author Martin Polakovic
- */
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
 
     private static final String actbTEXT = "Actions\n\n"

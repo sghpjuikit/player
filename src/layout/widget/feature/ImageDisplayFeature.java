@@ -3,11 +3,6 @@ package layout.widget.feature;
 import java.io.File;
 import java.util.List;
 
-/**
- * Displays image.
- *
- * @author Martin Polakovic
- */
 @Feature(
 	name = "Image display",
 	description = "Displays image",

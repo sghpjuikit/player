@@ -29,8 +29,6 @@ import static main.App.APP;
 import static util.dev.Util.log;
 
 /**
- * @author Martin Polakovic
- *
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
  */

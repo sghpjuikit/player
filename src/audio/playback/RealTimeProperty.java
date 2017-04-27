@@ -6,9 +6,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 
-/**
- * @author Martin Polakovic
- */
 public final class RealTimeProperty {
 
 	final ObjectProperty<Duration> totalTime;

@@ -5,8 +5,6 @@ import java.net.URI;
 
 /**
  * Simplest {@link Item} implementation. Wraps {@link java.net.URI}. Immutable.
- *
- * @author Martin Polakovic
  */
 public class SimpleItem extends Item {
 

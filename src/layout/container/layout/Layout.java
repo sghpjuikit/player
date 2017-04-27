@@ -22,9 +22,6 @@ import util.file.Util;
 import static main.App.APP;
 import static util.dev.Util.noØ;
 
-/**
- * @author Martin Polakovic
- */
 public final class Layout extends UniContainer {
 
     private static final AppSerializer X = App.APP.serializators;

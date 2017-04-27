@@ -44,8 +44,6 @@ import static util.graphics.drag.DragUtil.installDrag;
  * The component picker is top level picker offering component type choices (all container
  * implementations or widget). If user picks container it will be constructed. If user picks widget
  * option, widget picker will be displayed, constructing widgets.
- *
- * @author Martin Polakovic
  */
 public final class Layouter implements ContainerNode {
 

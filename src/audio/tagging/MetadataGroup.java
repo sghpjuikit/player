@@ -6,13 +6,11 @@ import java.util.stream.Stream;
 import javafx.util.Duration;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
-import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.units.Dur;
 import util.units.FileSize;
 import util.units.RangeYear;
 import static java.util.stream.Collectors.toSet;
-import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.equalNonNull;
 import static util.functional.Util.groupBy;
 
@@ -25,8 +23,6 @@ import static util.functional.Util.groupBy;
  * <p/>
  * The accompanying information are always the same, the only changing variable
  * is the {@link Metadata.Field} according to which the items are grouped.
- *
- * @author Martin Polakovic
  */
 public final class MetadataGroup {  // TODO: make generic by value
 	private final Metadata.Field field;
@@ -151,8 +147,8 @@ public final class MetadataGroup {  // TODO: make generic by value
 	}
 
 	/** Is playing if any of the songs belonging to this group is playing. */
-	@TODO(purpose = BUG, note = "We need to check the contained metadata instead of just comparing the group value")
 	public boolean isPlaying() {
+	// TODO: We need to check the contained metadata instead of just comparing the group value
 		return equalNonNull(field.getOf(Player.playingItem.get()), getValue());
 	}
 
@@ -277,7 +273,7 @@ public final class MetadataGroup {  // TODO: make generic by value
 
 	}
 
-	@util.dev.TODO(note = "this may need some work")
+	// TODO: this may need some work"
 	private static Object getAllValue(Metadata.Field f) {
 		return f.isTypeString() ? "" : null;
 	}

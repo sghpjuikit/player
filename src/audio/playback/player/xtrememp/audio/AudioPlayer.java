@@ -39,8 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.log;
 import static util.dev.Util.throwIfFxThread;
 
@@ -829,12 +827,12 @@ public class AudioPlayer implements Callable<Void> {
         }
     }
 
-    @TODO(purpose = BUG)
     protected void closeStream() {
         throwIfFxThread();
         if (audioInputStream != null) {
             try {
                 audioInputStream.close();
+                // TODO: improve
                 // Bug fix
                 // close() wont release file (file descriptor in FileInputStream) sometimes, this would prevent entire
                 // OS from accessing the file until garbage collector is ran or this app terminates

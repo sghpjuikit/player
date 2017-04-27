@@ -17,7 +17,6 @@ import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig.EditMode;
-import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.parsing.Parser;
@@ -53,7 +52,6 @@ import static util.type.Util.*;
  * methods and implements {@link StringConverter}.
  *
  * @param <T> type of value of this config
- * @author Martin Polakovic
  */
 public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringConverter<T>, TypedValue<T>, EnumerableValue<T> {
 
@@ -319,7 +317,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private final T defaultValue;
 		Set<Constraint<? super T>> constraints;
 
-		@TODO(note = "make static map for valueEnumerators")
+		// TODO: make static map for valueEnumerators
 		ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
 			this.type = unPrimitivize(type);
 			this.gui_name = gui_name;
@@ -973,8 +971,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * <p/>
 	 * Use when wrapping the value is not desired, rather it is defined by a means
 	 * of accessing it.
-	 *
-	 * @author Martin Polakovic
 	 */
 	public static class AccessorConfig<T> extends ConfigBase<T> implements FAccessibleValue<T> {
 

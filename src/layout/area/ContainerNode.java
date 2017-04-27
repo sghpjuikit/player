@@ -11,10 +11,6 @@ import javafx.scene.layout.Pane;
 
 import layout.AltState;
 
-/**
- *
- * @author Martin Polakovic
- */
 public interface ContainerNode extends AltState {
 
     Pane getRoot();

@@ -79,9 +79,6 @@ import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
-/**
- * @author Martin Polakovic
- */
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
 

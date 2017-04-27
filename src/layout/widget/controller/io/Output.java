@@ -8,10 +8,6 @@ import org.reactfx.Subscription;
 
 import util.type.typetoken.TypeToken;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class Output<T> extends Put<T> {
 	public final Id id;
 

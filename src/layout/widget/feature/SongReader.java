@@ -9,8 +9,6 @@ import static util.functional.Util.listRO;
 
 /**
  * Capable of reading data to song tags
- * 
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Song metadata reader",

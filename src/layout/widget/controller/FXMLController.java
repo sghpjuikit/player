@@ -24,8 +24,6 @@ import static util.dev.Util.noØ;
 
 /**
  * Controller for widgets built around fxml files. See {@link javafx.fxml.FXMLLoader}.
- *
- * @author Martin Polakovic
  */
 abstract public class FXMLController implements Controller<Widget<?>> {
 

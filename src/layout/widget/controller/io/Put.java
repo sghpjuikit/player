@@ -12,10 +12,6 @@ import org.reactfx.Subscription;
 
 import util.type.typetoken.TypeToken;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class Put<T> implements XPut<T>, WritableValue<T> {
 
 	public TypeToken<? super T> typeT;  // TODO: fix

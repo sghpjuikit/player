@@ -4,9 +4,6 @@ import gui.objects.image.ImageNode.ImageSize;
 import java.io.File;
 import javafx.scene.image.Image;
 
-/**
- * @author Martin Polakovic
- */
 public interface Cover {
 
 	Cover EMPTY = new Cover() {

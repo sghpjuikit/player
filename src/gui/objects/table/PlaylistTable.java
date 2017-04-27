@@ -22,7 +22,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.reactfx.Subscription;
 import util.access.V;
-import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 import util.units.Dur;
 import static audio.playlist.PlaylistItem.Field.*;
@@ -31,7 +30,6 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
 import static util.access.fieldvalue.ObjectField.ColumnField.INDEX;
-import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;
@@ -45,7 +43,7 @@ import static util.reactive.Util.maintain;
  * <p/>
  * Always call {@link #dispose()}
  */
-@TODO(purpose = READABILITY, note = "dragging duplicate code for empty table case")
+// TODO: fix duplicate code for dragging in case of empty table case
 public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	private static final String STYLE_CORRUPT = "corrupt";

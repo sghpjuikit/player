@@ -12,8 +12,6 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 /**
  * Simple class for media bit rate. Internally represents the value as int.
  * Unit is kbps.
- *
- * @author Martin Polakovic
  */
 @StringParseStrategy(
 		from = From.ANNOTATED_METHOD,

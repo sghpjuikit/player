@@ -19,8 +19,6 @@ import static util.reactive.Util.unsubscribe;
 
 /**
  * Very simple custom {@link ProgressIndicator}.
- *
- * @author Martin Polakovic
  */
 public class Spinner extends ProgressIndicator {
 	private Subscription hidingOnIdle = null;

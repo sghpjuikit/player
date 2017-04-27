@@ -7,7 +7,6 @@ import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,17 +25,9 @@ import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import static audio.tagging.Metadata.EMPTY;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static util.async.Async.FX;
-import static util.async.Async.runNew;
-import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
-import static util.dev.Util.noØ;
-import static util.functional.Util.list;
 
-/**
- * @author Martin Polakovic
- */
 public class Player {
 
 	// TODO: tweak thread pool to always have 1-2 threads on, but dispose of it entirely when this "service" is not used

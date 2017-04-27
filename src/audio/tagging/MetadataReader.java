@@ -17,9 +17,6 @@ import static util.async.Async.runFX;
 import static util.dev.Util.*;
 import static util.functional.Util.stream;
 
-/**
- * @author Martin Polakovic
- */
 public class MetadataReader {
 
 	// TODO: return Try

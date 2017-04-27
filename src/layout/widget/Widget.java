@@ -47,8 +47,6 @@ import static util.functional.Util.*;
  * Widget can be thought of as a wrapper for controller (which may be used as
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
- *
- * @author Martin Polakovic
  */
 public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object> {
 

@@ -10,8 +10,6 @@ import static java.util.stream.Collectors.toCollection;
 /**
  * Collection based implementation of {@link util.collections.map.AccumulationMap} - values mapped to the same key are
  * added in a collection (of provided type).
- *
- * @author Martin Polakovic
  */
 public class CollectionMap<E, K, C extends Collection<E>> extends AccumulationMap<E,K,C> {
 

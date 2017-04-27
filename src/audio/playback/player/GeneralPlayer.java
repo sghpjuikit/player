@@ -30,8 +30,6 @@ import static util.reactive.Util.installSingletonListener;
 /**
  * Audio player which abstracts away from the implementation. It 'uses' actual players and provides
  * some of the higher level features they may lack.
- *
- * @author Martin Polakovic
  */
 public class GeneralPlayer {
 

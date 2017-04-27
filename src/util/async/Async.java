@@ -19,9 +19,6 @@ import static javafx.animation.Animation.INDEFINITE;
 import static util.dev.Util.log;
 import static util.dev.Util.throwIf;
 
-/**
- * @author Martin Polakovic
- */
 public interface Async {
 
 	Consumer<Runnable> FX = Async::runFX;

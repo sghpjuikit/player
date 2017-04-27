@@ -11,9 +11,6 @@ import java.util.UUID;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
-/**
- * @author Martin Polakovic
- */
 public class PlaybackStateConverter implements Converter {
 
 	@Override

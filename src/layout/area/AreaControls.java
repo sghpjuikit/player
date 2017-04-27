@@ -65,8 +65,6 @@ import static util.reactive.Util.maintain;
 
 /**
  * Controls for a widget area.
- *
- * @author Martin Polakovic
  */
 public final class AreaControls {
 

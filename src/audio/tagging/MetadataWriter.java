@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.notif.Notifier;
 import util.SwitchException;
-import util.dev.TODO;
 import util.file.AudioFileFormat;
 import util.parsing.Parser;
 import util.units.NofX;
@@ -52,7 +51,6 @@ import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.Util.clip;
 import static util.Util.emptyOr;
 import static util.async.Async.runFX;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
 
 /**
@@ -60,10 +58,8 @@ import static util.functional.Util.*;
  * for items.
  * <p/>
  * The writer must be instantiated for use. It is reusable for an item.
- *
- * @author Martin Polakovic
  */
-@TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
+// TODO: limit rating bounds value, multiple values, id3 popularimeter mail settings
 public class MetadataWriter extends MetaItem {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataWriter.class);

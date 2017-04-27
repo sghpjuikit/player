@@ -15,8 +15,6 @@ import static util.file.Util.readFileLines;
 
 /**
  * Factory that creates widgets.
- * <p/>
- * @author Martin Polakovic
  */
 @Widget.Info // empty widget info with default values
 public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {

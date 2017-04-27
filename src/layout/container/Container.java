@@ -1,35 +1,30 @@
 package layout.container;
 
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-
 import layout.AltState;
-import layout.area.ContainerNode;
 import layout.Component;
+import layout.area.ContainerNode;
 import layout.container.bicontainer.BiContainer;
 import layout.container.layout.Layout;
 import layout.widget.Widget;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 import util.type.ClassName;
-
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
-import static util.functional.Util.*;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
- * @author Martin Polakovic
  * Component able to store other Components.
  * <p/>
  * The key element for layouts and their modularity.
@@ -132,7 +127,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         return parent;
     }
 
-    @TODO(note = "make private")
+    // TODO: make private
     public void setParent(Container c) {
         parent = c;
         lockedUnder.initLocked(c);

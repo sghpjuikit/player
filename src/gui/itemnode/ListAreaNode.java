@@ -19,6 +19,13 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.SEVERE;
 import static util.functional.Util.*;
 
+// TODO: manual text edits should be part of transformation chain. It
+// is doable like this:
+// - all subsequent edits until another function is used are condensed into single 'function'
+//   which simply returns the edited text. There could be some trouble with syncing the output
+//   and getValue(), but its doable
+// - this will lock all preceding transformations as our edit function can not react on changes
+//   in previous transformations
 /**
  * List editor with transformation ability. Editable area with function editor
  * displaying the list contents.
@@ -51,13 +58,6 @@ import static util.functional.Util.*;
  * area. List can be empty, but not null. {@link #getValue() }
  * </ul>
  */
-@TODO(purpose = FUNCTIONALITY, note = "manual text edits should be part of transformation chain. It "
-		+ "is doable like this:"
-		+ "- all subsequent edits until another function is used are condensed into single 'function' "
-		+ "  which simply returns the edited text. There could be some trouble with syncing the output"
-		+ "  and getValue(), but its doable"
-		+ "- this will lock all preceding transformations as our edit function can not react on changes"
-		+ "  in previous transformations, that is the cost of using it. User's fault.")
 public class ListAreaNode extends ValueNode<List<String>> {
 
 	protected final TextArea textarea = new TextArea();
@@ -183,8 +183,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
 		return root;
 	}
 
-	// very naive, this is just bad...
-	@TODO(purpose = FUNCTIONALITY, severity = SEVERE)
+	// TODO:implement properly, this is just embarrassing
 	private static <E> Class<?> getElementClass(Collection<E> c) {
 		for (E e : c) if (e!=null) return e.getClass();
 		return Void.class;

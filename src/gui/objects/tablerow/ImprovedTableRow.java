@@ -24,8 +24,6 @@ import static util.collections.Tuples.tuple;
  * Note that if the nature of the item's property predicating rows style is not
  * observable (POJO) or is external, all the styles must be applied on change
  * manually. This can be done simply by calling table.refresh();
- *
- * @author Martin Polakovic
  */
 public class ImprovedTableRow<T> extends TableRow<T> {
 

@@ -6,10 +6,6 @@ import layout.widget.feature.Feature;
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;
 
-/**
- *
- * @author Martin Polakovic
- */
 public interface WidgetInfo {
 
 	/**

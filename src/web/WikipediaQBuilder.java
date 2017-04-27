@@ -8,9 +8,6 @@ import util.plugin.IsPlugin;
 import static util.Util.urlEncodeUtf8;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
-/**
- * @author Martin Polakovic
- */
 @IsPlugin
 @StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Wikipedia")
 public class WikipediaQBuilder implements SearchUriBuilder {

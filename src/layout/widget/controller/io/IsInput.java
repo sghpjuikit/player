@@ -13,8 +13,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * produce inputs of type {@link Void}, otherwise the type is decided by the
  * parameter type. When the input gets a value passed in, thw annotated method
  * will be invoked with the value as parameter.
- * 
- * @author Martin Polakovic
  */
 @Documented
 @Retention(RUNTIME)

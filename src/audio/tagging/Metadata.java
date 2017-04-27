@@ -85,8 +85,6 @@ import static util.functional.Util.*;
  * its empty value.
  * <p/>
  * To access any field in a general way, see {@link audio.tagging.Metadata.Field}
- *
- * @author Martin Polakovic
  */
 @Entity(name = "MetadataItem")
 public final class Metadata extends MetaItem<Metadata> {

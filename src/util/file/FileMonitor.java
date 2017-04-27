@@ -9,18 +9,13 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import util.async.executor.EventReducer;
 import util.collections.Tuple2;
-import util.dev.TODO;
 import static java.nio.file.StandardWatchEventKinds.*;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.collections.Tuples.tuple;
-import static util.dev.TODO.Purpose.DOCUMENTATION;
 import static util.dev.Util.log;
 
-/**
- * @author Martin Polakovic
- */
-@TODO(purpose = DOCUMENTATION)
+// TODO: provide documentation
 public class FileMonitor {
 	/**
 	 * Relatively simple to monitor a file? Think again.

@@ -1,8 +1,6 @@
 package util.access;
 
 import java.util.List;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.type.Util.getEnumConstants;
 
 /**
@@ -35,7 +33,8 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 		return next();
 	}
 
-	/******************************************************************************/
+
+	// TODO: prevent overflows
 
 	static int next(int v) { return v + 1; }
 
@@ -57,11 +56,9 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 
 	static short previous(short v) { return (short) (v - 1); }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static Short next(Short v) { return v; }
+	static Short next(Short v) { return (short) (v + 1); }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static Short previous(Short v) { return v; }
+	static Short previous(Short v) { return (short) (v - 1); }
 
 	static boolean next(boolean v) { return !v; }
 
@@ -71,17 +68,13 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 
 	static Boolean previous(Boolean v) { return !v; }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static char next(char v) { return v; }
+	static char next(char v) { return (char) (v+1); }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static char previous(char v) { return v; }
+	static char previous(char v) { return (char) (v+1); }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static Character next(Character v) { return v; }
+	static Character next(Character v) { return (char) (v-1); }
 
-	@TODO(purpose = UNIMPLEMENTED)
-	static Character previous(Character v) { return v; }
+	static Character previous(Character v) { return (char) (v-1); }
 
 	/**
 	 * Returns cyclically next enum constant value from list of all values for

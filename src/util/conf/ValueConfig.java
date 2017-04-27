@@ -35,7 +35,6 @@ import static util.dev.Util.noØ;
  * value and then provide the result.
  *
  * @param <V> - type of value - wrapped object
- * @author Martin Polakovic
  */
 public final class ValueConfig<V> extends ConfigBase<V> {
 

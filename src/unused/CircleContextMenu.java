@@ -2,8 +2,6 @@ package unused;
 
 /**
  * Circular context menu.
- * 
- * @author Martin Polakovic
  */
 public class CircleContextMenu {
     private static double radius = 200;

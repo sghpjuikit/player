@@ -5,10 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class Inputs {
 	private final Map<String,Input<?>> m = new HashMap<>();
 

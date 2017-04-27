@@ -8,9 +8,6 @@ import static util.Util.urlEncodeUtf8;
 import static util.parsing.StringParseStrategy.From.ANNOTATED_METHOD;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
-/**
- * @author Martin Polakovic
- */
 @IsPlugin
 @StringParseStrategy(from = ANNOTATED_METHOD, to = CONSTANT, constant = "Google")
 public class GoogleImageQBuilder implements SearchUriBuilder {

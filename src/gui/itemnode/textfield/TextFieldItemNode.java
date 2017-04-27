@@ -19,7 +19,6 @@ import static util.dev.Util.noØ;
  * chooser expected in form of a pop-up.
  *
  * @param <T> type of the value
- * @author Martin Polakovic
  */
 public abstract class TextFieldItemNode<T> extends DecoratedTextField implements AccessibleValue<T> {
 

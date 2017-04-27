@@ -39,8 +39,6 @@ import static util.functional.Util.stream;
 
 /**
  * Displays animated Voronoi diagram.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
 	author = "Martin Polakovic",

@@ -4,8 +4,6 @@ import audio.playlist.Playlist;
 
 /**
  * Stores list of songs to play.
- * 
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Playlist",

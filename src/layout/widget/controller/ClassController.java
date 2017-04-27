@@ -16,9 +16,6 @@ import layout.widget.controller.io.Inputs;
 import layout.widget.controller.io.Outputs;
 import util.dev.Dependency;
 
-/**
- * @author Martin Polakovic
- */
 abstract public class ClassController extends AnchorPane implements Controller<Widget<?>> {
 
 	@Dependency("DO NOT RENAME - accessed using reflection")

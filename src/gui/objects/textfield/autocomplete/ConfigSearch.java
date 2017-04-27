@@ -27,9 +27,6 @@ import static util.functional.Util.stream;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.setMinPrefMaxSize;
 
-/**
- * @author Martin Polakovic
- */
 public class ConfigSearch extends AutoCompletion<Entry> {
 
 	private final TextField textField;

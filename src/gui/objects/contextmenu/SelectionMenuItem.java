@@ -26,8 +26,6 @@ import static util.functional.Util.map;
  * <li> Observable selection state
  * <li> Custom click implementation
  * </ul>
- *
- * @author Martin Polakovic
  */
 public class SelectionMenuItem extends Menu {
 

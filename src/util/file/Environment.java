@@ -22,7 +22,6 @@ import javafx.stage.Window;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import util.async.Async;
-import util.dev.TODO;
 import util.file.AudioFileFormat.Use;
 import util.functional.Try;
 import util.system.Os;
@@ -30,8 +29,6 @@ import static java.awt.Desktop.Action.*;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
-import static util.dev.TODO.Purpose.UNTESTED;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
@@ -44,8 +41,6 @@ import static util.functional.Util.*;
 /**
  * Provides methods to handle external platform specific tasks. Browsing
  * files, opening files in external apps, clipboard, etc.
- *
- * @author Martin Polakovic
  */
 public interface Environment {
 
@@ -186,7 +181,6 @@ public interface Environment {
 	 * @param uri non null uri to browse
 	 * @throws java.lang.RuntimeException if any param null
 	 */
-	@TODO(purpose = {UNIMPLEMENTED, UNTESTED}, note = "Non-windows platform impl. naively & untested")
 	static void browse(URI uri) {
 		browse(uri, false);
 	}

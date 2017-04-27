@@ -19,8 +19,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Note: external widgets (not packaged in the project jar) have widget factories generated
  * automatically. Using this annotation would either have no effect or potentially cause
  * performance degradation during app start.
- *
- * @author Martin Polakovic
  */
 @Documented
 @IndexAnnotated

@@ -23,10 +23,6 @@ import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static util.functional.Util.toCSList;
 
-/**
- *
- * @author Martin Polakovic
- */
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Layouts",

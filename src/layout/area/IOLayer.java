@@ -61,8 +61,6 @@ import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * Display for {@link layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.
- *
- * @author Martin Polakovic
  */
 public class IOLayer extends StackPane {
 

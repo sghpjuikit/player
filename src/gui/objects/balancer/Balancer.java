@@ -10,8 +10,6 @@ import javafx.scene.shape.Rectangle;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 
-/**
- * @author Martin Polakovic
  */
 public class Balancer extends Control {
 

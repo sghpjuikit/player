@@ -17,8 +17,6 @@ import static util.functional.Util.filter;
  * <li> Auto-completion from set of moods application is aware of
  * <li> Mood picker popup. The position of the picker popup can be customized.
  * </ul>
- *
- * @author Martin Polakovic
  */
 public class MoodItemNode extends TextFieldItemNode<String> {
 

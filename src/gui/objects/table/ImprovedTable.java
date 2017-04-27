@@ -29,11 +29,6 @@ import static util.graphics.Util.computeFontWidth;
 import static util.graphics.Util.selectRows;
 import static util.type.Util.getFieldValue;
 
-/**
- *
- *
- * @author Martin Polakovic
- */
 public class ImprovedTable<T> extends TableView<T> {
 
 	/** Will add zeros to index numbers to maintain length consistency. Default true. */

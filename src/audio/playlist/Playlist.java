@@ -41,9 +41,6 @@ import static util.file.Util.getFilesAudio;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
 
-/**
- * @author Martin Polakovic
- */
 public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 	public final UUID id;

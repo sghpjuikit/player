@@ -88,8 +88,6 @@ import static util.reactive.Util.maintain;
  *            w.show();
  *            w.setLocationCenter();
  * }</pre>
- *
- * @author plutonium
  */
 @IsConfigurable
 public class Window extends WindowBase {

@@ -57,8 +57,6 @@ import static util.reactive.Util.doOnceIfNonNull;
 
 /**
  * Logger widget controller.
- *
- * @author Martin Polakovic
  */
 @Widget.Info(
 		author = "Martin Polakovic",

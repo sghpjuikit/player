@@ -13,9 +13,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.clip;
 import static util.file.AudioFileFormat.mp3;
 
-/**
- * @author Martin Polakovic
- */
 public abstract class MetaItem<CI extends Item> extends Item<CI> {
 
 	/** @return maximal value of the rating. */

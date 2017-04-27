@@ -25,8 +25,6 @@ import static util.reactive.Util.maintain;
  * <li> User can switch the mode to open file or directory dialog (if the limit is lifted).
  * <li> Support for drag & drop action.
  * </ul>
- *
- * @author Martin Polakovic
  */
 public class FileItemNode extends TextFieldItemNode<File> {
 

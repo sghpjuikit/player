@@ -3,9 +3,6 @@ package util.collections.map;
 import java.util.function.Function;
 import util.collections.list.PrefList;
 
-/**
- * @author Martin Polakovic
- */
 public class PrefListMap<E, K> extends CollectionMap<E,K,PrefList<E>> {
 
 	public PrefListMap(Function<E,K> keyMapper) {

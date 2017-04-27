@@ -6,8 +6,6 @@ import static util.file.Util.getCommonRoot;
 
 /**
  * File system viewer.
- * 
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Song info",

@@ -40,7 +40,7 @@ import static util.functional.Util.stream;
  * The advantage of using generic version is in accessing the values in the OK button callback. The configurable is
  * provided as a parameter and if this object is generic it will provide correct configurable returning correct values
  * without type casting.
- * @author Martin Polakovic
+ *
  * @see util.conf.Configurable
  */
 public class SimpleConfigurator<T> extends AnchorPane {

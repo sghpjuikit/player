@@ -12,10 +12,6 @@ import util.type.typetoken.TypeToken;
 
 import static util.reactive.Util.maintain;
 
-/**
- *
- * @author Martin Polakovic
- */
 public class Outputs {
 	private final Map<String,Output<?>> m;
 

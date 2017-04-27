@@ -5,8 +5,6 @@ import java.util.Collection;
 
 /**
  * Displays images.
- *
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Images display",

@@ -4,8 +4,6 @@ import java.util.List;
 
 /**
  * Selector of next or previous item in the list.
- *
- * @author Martin Polakovic
  */
 public class ItemSelector<E> {
 	private final Selection<E> next;

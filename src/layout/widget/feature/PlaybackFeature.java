@@ -2,8 +2,6 @@ package layout.widget.feature;
 
 /**
  * Controls song playback.
- * 
- * @author Martin Polakovic
  */
 @Feature(
 	name = "Playback",

@@ -4,9 +4,6 @@ import java.util.Objects;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
 
-/**
- * @author Martin Polakovic
- */
 public class InstanceName {
 
 	private static final Ƒ1<?,String> DEF = Objects::toString;  // Default implementation must be able to handle null

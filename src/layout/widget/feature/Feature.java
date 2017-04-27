@@ -13,8 +13,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Simply, if implementing an interface tells compiler what an object can do,
  * annotating the interface as a Feature tells the same information to the
  * user of the application.
- *
- * @author Martin Polakovic
  */
 @Retention(RUNTIME)
 @Target(TYPE)

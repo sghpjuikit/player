@@ -32,9 +32,6 @@ import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
-/**
- * @author Martin Polakovic
- */
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 
     private static final PseudoClass COLLAPSED_PC = getPseudoClass("collapsed");

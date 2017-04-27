@@ -16,8 +16,6 @@ import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
- *
- * @author Martin Polakovic
  */
 public class BiContainer extends Container<Splitter> {
 

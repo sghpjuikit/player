@@ -5,8 +5,6 @@ import java.util.List;
 /**
  * Selection logic for selection of next and previous item in a list. Used in
  * combination with {@link ItemSelector}.
- *
- * @author Martin Polakovic
  */
 public interface Selection<E> {
 

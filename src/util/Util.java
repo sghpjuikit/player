@@ -30,13 +30,11 @@ import javax.imageio.stream.ImageInputStream;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import org.jaudiotagger.tag.images.Artwork;
-import util.dev.TODO;
 import util.functional.Try;
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toCollection;
 import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.StringDirection.FROM_START;
-import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.throwIf;
 
 /**
@@ -641,7 +639,6 @@ public interface Util {
 	 * Returns image size in pixels or null if unable to find out. Does not read whole image into
 	 * memory. It still involves i/o.
 	 */
-	@TODO(purpose = BUG, note = "suppressed by catching NullPointerException, dirty hack")
 	static Try<Dimension,Void> getImageDim(File f) {
 		// see more at:
 		// http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
@@ -657,6 +654,7 @@ public interface Util {
 				return Try.ok(new Dimension(width, height));
 			} catch (IOException|NullPointerException e) {
 				getLogger(Util.class).warn("Problem finding out image size {}", f, e);
+				// TODO: fix
 				// we need to catch NullPointerException as well, seems to be a bug, stacktrace below:
 				// java.lang.NullPointerException: null
 				//	at java.awt.color.ICC_Profile.activateDeferredProfile(ICC_Profile.java:1092) ~[na:na]

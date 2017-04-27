@@ -136,15 +136,15 @@ public final class Seeker extends AnchorPane {
 					// if chapter closer than selected one -> select it
 					double dist = abs(e.getX() - selectedChap.getCenterX());
 					minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX() - e.getX()))
-						.map(c -> c!=selectedChap ? c : null)
-						.ifPresentOrElse(addB::select, () -> {
-							if (dist>chapSnapDist.get())
-								addB.unselect();
-						});
+							.map(c -> c!=selectedChap ? c : null)
+							.ifPresentOrElse(addB::select, () -> {
+								if (dist>chapSnapDist.get())
+									addB.unselect();
+							});
 				} else {
 					// if chapter in proximity -> select it
 					minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX() - e.getX()))
-						.ifPresent(addB::select);
+							.ifPresent(addB::select);
 				}
 			}
 			if (addB.isVisible() && !addB.isSelected())
@@ -177,7 +177,7 @@ public final class Seeker extends AnchorPane {
 			r2.setScaleY(scale);
 			seeker.setScaleY(1 + 3*p2);
 		})
-			.intpl(new CircularInterpolator()).delay(150);
+				.intpl(new CircularInterpolator()).delay(150);
 		onHoverChanged(sa::playFromDir);
 	}
 
@@ -442,7 +442,7 @@ public final class Seeker extends AnchorPane {
 			i.styleclass(STYLECLASS_CHAP_ADD_BUTTON);
 			i.setDisable(false);
 			i.tooltip("Create chapter.\n\nCreates a new empty comment at this "
-				+ "position and opens the editor.");
+					+ "position and opens the editor.");
 
 			fade.applier.accept(0d);
 			select.applier.accept(0d);
@@ -589,12 +589,12 @@ public final class Seeker extends AnchorPane {
 				if (0==i)
 					prevB.setDisable(true);
 				helpB = createInfoIcon(
-					"Single click : Close\n"
-						+ "Double L click : Play from this chapter\n"
-						+ "Double R click : Start edit\n"
-						+ "Enter : Apply edit changes\n"
-						+ "Shift + Enter : Append new line\n"
-						+ "Escape : If editing cancel edit, else hide"
+						"Single click : Close\n"
+								+ "Double L click : Play from this chapter\n"
+								+ "Double R click : Start edit\n"
+								+ "Enter : Apply edit changes\n"
+								+ "Shift + Enter : Append new line\n"
+								+ "Escape : If editing cancel edit, else hide"
 				).size(11);
 				// popup
 				p = new PopOver<>(content);

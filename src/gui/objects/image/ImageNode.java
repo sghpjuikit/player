@@ -14,10 +14,10 @@ import static main.App.APP;
 public abstract class ImageNode {
 
 	@IsConfig(name = "Image caching", info = "Will keep every loaded image in "
-		+ "memory. Reduces image loading (except for the first time) but "
-		+ "increases memory. For large images (around 5000px) the effect "
-		+ "is very noticeable. Not worth it if you do not browse large images "
-		+ "or want to minimize RAM usage.")
+			+ "memory. Reduces image loading (except for the first time) but "
+			+ "increases memory. For large images (around 5000px) the effect "
+			+ "is very noticeable. Not worth it if you do not browse large images "
+			+ "or want to minimize RAM usage.")
 	static boolean cache_images = false;
 
 	/**
@@ -35,13 +35,13 @@ public abstract class ImageNode {
 	 * <p/>
 	 */
 	@IsConfig(name = "Image load multiplier", info = "To spare "
-		+ "memory, images are only loaded up to requested size. This defines how many times bigger should the image "
-		+ "load compared to requested size. This serves 3 purposes:"
-		+ "\n\t* Loading images in full size would produce artifacts when they would "
-		+ "need to be down-scaled to small sizes. So do not use large value. "
-		+ "\n\t* Using value 1 would cause image deformations caused by slight size scaling. Avoid values close to 1. "
-		+ "\n\t* You may expect the image to be scalable. This removes potential "
-		+ "blur or artifacts from over-scaling low-resolution version. ")
+			+ "memory, images are only loaded up to requested size. This defines how many times bigger should the image "
+			+ "load compared to requested size. This serves 3 purposes:"
+			+ "\n\t* Loading images in full size would produce artifacts when they would "
+			+ "need to be down-scaled to small sizes. So do not use large value. "
+			+ "\n\t* Using value 1 would cause image deformations caused by slight size scaling. Avoid values close to 1. "
+			+ "\n\t* You may expect the image to be scalable. This removes potential "
+			+ "blur or artifacts from over-scaling low-resolution version. ")
 	@Constraint.MinMax(min = 1, max = 2)
 	public static double LOAD_COEFFICIENT = 1.2;
 

@@ -392,12 +392,12 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	 * Collection of all glyphs mapped to a unique names that identify them.
 	 */
 	private static final MapSet<String,GlyphIcons> GLYPHS = stream(
-				FontAwesomeIcon.class,
-				WeatherIcon.class,
-				MaterialDesignIcon.class,
-				MaterialIcon.class,
-				OctIcon.class
-			)
+			FontAwesomeIcon.class,
+			WeatherIcon.class,
+			MaterialDesignIcon.class,
+			MaterialIcon.class,
+			OctIcon.class
+	)
 			.flatMap(c -> stream(getEnumConstants(c)))
 			.select(GlyphIcons.class)
 			.toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name()));
@@ -597,9 +597,9 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		};
 
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(StackPane.getClassCssMetaData())
-			.filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
-			.append(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP)
-			.toList());
+				.filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
+				.append(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP)
+				.toList());
 	}
 
 	public static List<CssMetaData<? extends Styleable,?>> getClassCssMetaData() {

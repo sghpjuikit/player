@@ -1,10 +1,10 @@
 package gui.pane;
 
+import gui.itemnode.ConfigField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,20 +12,15 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.TextAlignment;
-
-import gui.itemnode.ConfigField;
 import layout.widget.feature.ConfiguringFeature;
 import util.conf.Config;
 import util.conf.Configurable;
-
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static util.functional.Util.byNC;
-import static util.functional.Util.list;
-import static util.functional.Util.stream;
+import static util.functional.Util.*;
 
 public class ConfigPane<T> implements ConfiguringFeature {
-	private final FlowPane root = new FlowPane(5,5);
+	private final FlowPane root = new FlowPane(5, 5);
 	private final List<ConfigField<T>> configs = new ArrayList<>();
 	public Runnable onChange;
 
@@ -39,7 +34,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 	@SuppressWarnings("unchecked")
 	public ConfigPane(Collection<Config<T>> configs) {
 		this.configs.clear();
-		configure((Collection)configs);
+		configure((Collection) configs);
 	}
 
 	public ConfigPane(Configurable<T> configs) {
@@ -65,7 +60,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 				l.setAlignment(Pos.CENTER_RIGHT);
 				l.setTextAlignment(TextAlignment.RIGHT);
 				l.setPadding(new Insets(0, 0, 0, 5));
-				HBox h = new HBox(20, l,cf.getNode());
+				HBox h = new HBox(20, l, cf.getNode());
 				h.setAlignment(CENTER_LEFT);
 				HBox.setHgrow(cf.getNode(), ALWAYS);
 				return h;

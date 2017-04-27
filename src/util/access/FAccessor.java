@@ -3,7 +3,6 @@ package util.access;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
- */
 public class FAccessor<T> implements FAccessibleValue<T> {
 
 	private final Consumer<T> setter;

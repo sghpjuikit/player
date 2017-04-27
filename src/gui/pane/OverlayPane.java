@@ -43,17 +43,20 @@ public abstract class OverlayPane<T> extends StackPane {
 
 	/**
 	 * Display method.
-	 */ @IsConfig(
-		name = "Display method",
-		info = "Can be shown per window or per screen. The latter provides more space as window "
-			  + "usually does not cover entire screen, but can get in the way of other apps.")
+	 */
+	@IsConfig(
+			name = "Display method",
+			info = "Can be shown per window or per screen. The latter provides more space as window "
+					+ "usually does not cover entire screen, but can get in the way of other apps.")
 	public final V<Display> display = new V<>(Display.SCREEN_OF_MOUSE);
 	/**
 	 * Handlers called just after this pane was shown.
-	 */ public final SetƑ onShown = new SetƑ();
+	 */
+	public final SetƑ onShown = new SetƑ();
 	/**
 	 * Handlers called just after this pane was hidden.
-	 */ public final SetƑ onHidden = new SetƑ();
+	 */
+	public final SetƑ onHidden = new SetƑ();
 	private Pane content;
 	private Icon resizeB;
 
@@ -91,11 +94,12 @@ public abstract class OverlayPane<T> extends StackPane {
 
 	/**
 	 * Shows this pane. The content should be set before calling this method.
+	 *
 	 * @see #setContent(javafx.scene.layout.Pane)
 	 */
 	protected void show() {
 		if (!isShown()) {
-			getProperties().put(IS_SHOWN,IS_SHOWN);
+			getProperties().put(IS_SHOWN, IS_SHOWN);
 			animStart();
 		}
 	}
@@ -132,7 +136,7 @@ public abstract class OverlayPane<T> extends StackPane {
 				getChildren().setAll(content, layStack(resizeB, Pos.BOTTOM_RIGHT));
 				content.getStyleClass().add(CONTENT_STYLECLASS);
 				resizeB.getParent().setManaged(false);
-				maintain(content.paddingProperty(), ((StackPane)resizeB.getParent()).paddingProperty());
+				maintain(content.paddingProperty(), ((StackPane) resizeB.getParent()).paddingProperty());
 				resizeB.getParent().setMouseTransparent(true);
 			}
 		}
@@ -170,8 +174,8 @@ public abstract class OverlayPane<T> extends StackPane {
 	private Display displayForHide; // prevents inconsistency in start() and stop(), see use
 	private Anim animation = new Anim(30, this::animDo).dur(millis(200)).intpl(x -> x*x); // lowering fps can help on fullHD+ resolutions
 	private Stage stg = null;
-	private BoxBlur blurBack = new BoxBlur(0,0,3);  // we need best possible quality
-	private BoxBlur blurFront = new BoxBlur(0,0,1); // we do not need quality, hence iterations==1
+	private BoxBlur blurBack = new BoxBlur(0, 0, 3);  // we need best possible quality
+	private BoxBlur blurFront = new BoxBlur(0, 0, 1); // we do not need quality, hence iterations==1
 	private Node opacityNode = null;
 	private Node blurFrontNode = null;
 	private Node blurBackNode = null;
@@ -196,54 +200,54 @@ public abstract class OverlayPane<T> extends StackPane {
 		private void animStart(OverlayPane op) {
 			if (this==WINDOW) {
 				APP.windowManager.getActive().ifPresentOrElse(
-					window -> {
-						// display overlay pane
-						AnchorPane root = window.root;
-						if (!root.getChildren().contains(op)) {
-							root.getChildren().add(op);
-							setAnchors(op,0d);
-							op.toFront();
+						window -> {
+							// display overlay pane
+							AnchorPane root = window.root;
+							if (!root.getChildren().contains(op)) {
+								root.getChildren().add(op);
+								setAnchors(op, 0d);
+								op.toFront();
+							}
+							op.setVisible(true);
+							op.requestFocus();     // 'bug fix' - we need focus or key events wont work
+
+							// apply effects (will be updated in animation)
+							//
+							// blur front performance optimization
+							// We want to apply blur on this overlay pane, but that can be potentially
+							// giant area (tests show HD and beyond can kill fps here). So we just apply
+							// the blur on the content of the overlay pane instead, which is generally
+							// smaller.
+							// More tweaking:
+							// It is possible with the overlay blur to:
+							// - disable (does not look the best)
+							// - decrease blur iteration count (we don not need super blur quality here)
+							// - decrease blur amount
+							//
+							op.opacityNode = window.content;
+							op.blurBackNode = window.subroot;
+							if (!op.getChildren().isEmpty()) op.blurFrontNode = op.getChildren().get(0);
+							op.blurBackNode.setEffect(op.blurBack);
+							op.blurFrontNode.setEffect(op.blurFront);
+
+							// start showing
+							op.animation.playOpenDo(null);
+							op.onShown.run();
+						},
+						() -> {
+							op.displayForHide = SCREEN_OF_MOUSE;
+							SCREEN_OF_MOUSE.animStart(op);
 						}
-						op.setVisible(true);
-						op.requestFocus();     // 'bug fix' - we need focus or key events wont work
-
-						// apply effects (will be updated in animation)
-						//
-						// blur front performance optimization
-						// We want to apply blur on this overlay pane, but that can be potentially
-						// giant area (tests show HD and beyond can kill fps here). So we just apply
-						// the blur on the content of the overlay pane instead, which is generally
-						// smaller.
-						// More tweaking:
-						// It is possible with the overlay blur to:
-						// - disable (does not look the best)
-						// - decrease blur iteration count (we don not need super blur quality here)
-						// - decrease blur amount
-						//
-						op.opacityNode = window.content;
-						op.blurBackNode = window.subroot;
-						if (!op.getChildren().isEmpty()) op.blurFrontNode = op.getChildren().get(0);
-						op.blurBackNode.setEffect(op.blurBack);
-						op.blurFrontNode.setEffect(op.blurFront);
-
-						// start showing
-						op.animation.playOpenDo(null);
-						op.onShown.run();
-					},
-					() -> {
-						op.displayForHide = SCREEN_OF_MOUSE;
-						SCREEN_OF_MOUSE.animStart(op);
-					}
 				);
 			} else {
 				Screen screen = this==SCREEN_OF_WINDOW
-									? APP.windowManager.getActive().map(Window::getScreen).orElseGet(() -> getScreen(APP.mouseCapture.getMousePosition()))
-									: getScreen(APP.mouseCapture.getMousePosition());
+						? APP.windowManager.getActive().map(Window::getScreen).orElseGet(() -> getScreen(APP.mouseCapture.getMousePosition()))
+						: getScreen(APP.mouseCapture.getMousePosition());
 				screenCaptureAndDo(screen, image -> {
 					Pane bgr = new Pane();
-						 bgr.getStyleClass().add("bgr-image");   // replicate app window bgr for style & consistency
+					bgr.getStyleClass().add("bgr-image");   // replicate app window bgr for style & consistency
 					ImageView contentImg = new ImageView(image); // screen screenshot
-					StackPane content = new StackPane(bgr,contentImg); // we will use effect on this
+					StackPane content = new StackPane(bgr, contentImg); // we will use effect on this
 					StackPane root = new StackPane(content); // we will inject overlay pane here
 
 					op.stg = createFMNTStage(screen);
@@ -278,19 +282,19 @@ public abstract class OverlayPane<T> extends StackPane {
 		private void animDo(OverlayPane op, double x) {
 			if (op.opacityNode==null) return; // bug fix, not 100% sure why it is necessary
 
-			op.opacityNode.setOpacity(1-x*0.5);
+			op.opacityNode.setOpacity(1 - x*0.5);
 			op.setOpacity(x);
 			// un-focus bgr
 			op.blurBack.setHeight(15*x*x);
 			op.blurBack.setWidth(15*x*x);
-			op.opacityNode.setScaleX(1-0.02*x);
-			op.opacityNode.setScaleY(1-0.02*x);
+			op.opacityNode.setScaleX(1 - 0.02*x);
+			op.opacityNode.setScaleY(1 - 0.02*x);
 			// focus this
-			op.blurFront.setHeight(20*(1-x*x));
-			op.blurFront.setWidth(20*(1-x*x));
+			op.blurFront.setHeight(20*(1 - x*x));
+			op.blurFront.setWidth(20*(1 - x*x));
 			// zoom in effect - make it appear this pane comes from the front
-			op.setScaleX(1+2*(1-x));
-			op.setScaleY(1+2*(1-x));
+			op.setScaleX(1 + 2*(1 - x));
+			op.setScaleY(1 + 2*(1 - x));
 		}
 
 		private void animEnd(OverlayPane op) {
@@ -343,8 +347,8 @@ public abstract class OverlayPane<T> extends StackPane {
 				if (isActive) {
 					Pane n = (Pane) e.getSource();
 					resizable.setPrefSize(
-						2 * (e.getX()+offset.getX() - n.getLayoutBounds().getWidth() / 2),
-						2 * (e.getY()+offset.getY() - n.getLayoutBounds().getHeight() / 2)
+							2*(e.getX() + offset.getX() - n.getLayoutBounds().getWidth()/2),
+							2*(e.getY() + offset.getY() - n.getLayoutBounds().getHeight()/2)
 					);
 					// resizable.setMaxSize(getContent().getPrefWidth(), getContent().getPrefHeight());
 					e.consume();

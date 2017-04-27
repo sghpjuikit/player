@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gui.itemnode;
 
 import gui.itemnode.ItemNode.ValueNode;
@@ -30,145 +25,144 @@ import static util.functional.Util.*;
 /**
  * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
  */
-public class FieldedPredicateItemNode<V,F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
+public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
 
-    // Normally we would use this predicate builder:
-    //     (field,filter) -> element -> filter.test(element.getField(field));
-    // But element.getField(field) can return null!, which Predicate can not handle on its own.
-    // We end up with null safe alternative:
-    //     (field,filter) -> element -> {
-    //         Object o = element.getField(field);
-    //         return o==null ? false : filter.test(o);
-    //     };
-    // Problem:
-    //    Predicate testing null (o -> o==null) will get bypassed and wont have any effect
-    // leading us to predicate identity preservation and ultimate solution below.
-    //
-    // One could argue predicate isNull is useless in OOP, particularly for filtering, like here,
-    // but ultimately, it has it's place and we should'nt ignore it out of convenience.
-    // In this particular case, where we are filtering FieldedValue, isNull should not be used, rather
-    // isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
-    // where null.equals(null) would return true, basically: element.hasDefaultValue(field).
-    // However, in my opinion, isNull predicate does not lose its value completely.
-    private static <V,T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T,Boolean> filter) {
-		return Util.isAny(filter, ISØ,ISNTØ,IS,ISNT)
+	// Normally we would use this predicate builder:
+	//     (field,filter) -> element -> filter.test(element.getField(field));
+	// But element.getField(field) can return null!, which Predicate can not handle on its own.
+	// We end up with null safe alternative:
+	//     (field,filter) -> element -> {
+	//         Object o = element.getField(field);
+	//         return o==null ? false : filter.test(o);
+	//     };
+	// Problem:
+	//    Predicate testing null (o -> o==null) will get bypassed and wont have any effect
+	// leading us to predicate identity preservation and ultimate solution below.
+	//
+	// One could argue predicate isNull is useless in OOP, particularly for filtering, like here,
+	// but ultimately, it has it's place and we should'nt ignore it out of convenience.
+	// In this particular case, where we are filtering FieldedValue, isNull should not be used, rather
+	// isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
+	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
+	// However, in my opinion, isNull predicate does not lose its value completely.
+	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T,Boolean> filter) {
+		return Util.isAny(filter, ISØ, ISNTØ, IS, ISNT)
 				? element -> filter.apply(field.getOf(element))
 				: element -> {
 					T o = field.getOf(element);
 					return o==null ? false : filter.apply(o);
 				};
-    }
+	}
 
-    private static final Tooltip negTooltip = new Tooltip("Negate");
+	private static final Tooltip negTooltip = new Tooltip("Negate");
 
-    private final ComboBox<PredicateData<F>> typeCB = new ImprovedComboBox<>(t -> t.name);
-    private FItemNode<Object,Boolean> config;
-    private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
-    private final HBox root = new HBox(5,negB,typeCB);
+	private final ComboBox<PredicateData<F>> typeCB = new ImprovedComboBox<>(t -> t.name);
+	private FItemNode<Object,Boolean> config;
+	private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
+	private final HBox root = new HBox(5, negB, typeCB);
 
-    private Supplier<PredicateData<F>> prefTypeSupplier;
-    private boolean inconsistentState = false;
+	private Supplier<PredicateData<F>> prefTypeSupplier;
+	private boolean inconsistentState = false;
 
-    public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
-        root.setAlignment(CENTER_LEFT);
-        typeCB.setVisibleRowCount(25);
-        typeCB.valueProperty().addListener((o,ov,nv) -> {
-            if (inconsistentState) return;
-            if (config!=null) root.getChildren().remove(config.getNode());
-            config = new FItemNode<>(() -> predicatePool.call(nv.type));
-            root.getChildren().add(config.getNode());
-            HBox.setHgrow(config.getNode(), ALWAYS);
-            config.onItemChange = v -> generatePredicate();
-            generatePredicate();
-        });
-        negB.selected.addListener((o,nv,ov) -> generatePredicate());
-        negB.tooltip(negTooltip);
-    }
+	public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
+		root.setAlignment(CENTER_LEFT);
+		typeCB.setVisibleRowCount(25);
+		typeCB.valueProperty().addListener((o, ov, nv) -> {
+			if (inconsistentState) return;
+			if (config!=null) root.getChildren().remove(config.getNode());
+			config = new FItemNode<>(() -> predicatePool.call(nv.type));
+			root.getChildren().add(config.getNode());
+			HBox.setHgrow(config.getNode(), ALWAYS);
+			config.onItemChange = v -> generatePredicate();
+			generatePredicate();
+		});
+		negB.selected.addListener((o, nv, ov) -> generatePredicate());
+		negB.tooltip(negTooltip);
+	}
 
-    // TODO: this should be advertized that supplier can return null
-    public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
-        prefTypeSupplier = supplier;
-    }
+	// TODO: this should be advertized that supplier can return null
+	public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
+		prefTypeSupplier = supplier;
+	}
 
-    /**
-     * Sets chosable data specifying what filter can be generated in form of list
-     * of tri-tuples : displayed name, class, passed object.
-     * <pre>
-     * The name is what will be displayed in the combobox to choose from
-     * The class specifies the type of object the filter is generated for.
-     * The passed object's purpose is to be returned along with the filter, mostly to be used in the generated filter
-     * </pre>
-     * <p/>
-     * If there is no object to pass, use null.
-     * @param classes
-     */
-    public void setData(List<PredicateData<F>> classes) {
-	    List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).toList();
-        inconsistentState = true;
-        typeCB.getItems().setAll(cs);
-        inconsistentState = false;
+	/**
+	 * Sets chosable data specifying what filter can be generated in form of list
+	 * of tri-tuples : displayed name, class, passed object.
+	 * <pre>
+	 * The name is what will be displayed in the combobox to choose from
+	 * The class specifies the type of object the filter is generated for.
+	 * The passed object's purpose is to be returned along with the filter, mostly to be used in the generated filter
+	 * </pre>
+	 * <p/>
+	 * If there is no object to pass, use null.
+	 */
+	public void setData(List<PredicateData<F>> classes) {
+		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).toList();
+		inconsistentState = true;
+		typeCB.getItems().setAll(cs);
+		inconsistentState = false;
 
-	    PredicateData<F> v =  Optional.ofNullable(prefTypeSupplier)
-			.map(Supplier::get)
-			.flatMap(pd -> cs.stream().filter(d -> d.value.equals(pd.value)).findAny())
-			.or(() -> cs.stream().findFirst())
-			.orElse(null);
+		PredicateData<F> v = Optional.ofNullable(prefTypeSupplier)
+				.map(Supplier::get)
+				.flatMap(pd -> cs.stream().filter(d -> d.value.equals(pd.value)).findAny())
+				.or(() -> cs.stream().findFirst())
+				.orElse(null);
 
-        typeCB.setValue(v);
-    }
+		typeCB.setValue(v);
+	}
 
-    /**
-     * Focuses the filter's first parameter's config field if any.
-     * <p/>
-     * {@inheritDoc }
-     */
-    @Override
-    public void focus() {
-        config.focus();
-    }
+	/**
+	 * Focuses the filter's first parameter's config field if any.
+	 * <p/>
+	 * {@inheritDoc }
+	 */
+	@Override
+	public void focus() {
+		config.focus();
+	}
 
-    private boolean empty = true;
+	private boolean empty = true;
 
-    public boolean isEmpty() {
-        return empty;
-    }
+	public boolean isEmpty() {
+		return empty;
+	}
 
-    public void clear() {
-        inconsistentState = true;
-        if (config!=null) config.clear();
-        inconsistentState = false;
-        empty = true;
-        changeValue((Predicate<V>)IS);
-    }
+	public void clear() {
+		inconsistentState = true;
+		if (config!=null) config.clear();
+		inconsistentState = false;
+		empty = true;
+		changeValue((Predicate<V>) IS);
+	}
 
-    private void generatePredicate() {
-        if (inconsistentState) return;
-        empty = false;
-        Function<Object,Boolean> p = config.getValue();
-        F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
-        if (p!=null && o!=null) {
-            Predicate<V> pr = predicate((ObjectField) o, p);
-            if (negB.selected.getValue()) pr = pr.negate();
-            changeValue(pr);
-        }
-    }
+	private void generatePredicate() {
+		if (inconsistentState) return;
+		empty = false;
+		Function<Object,Boolean> p = config.getValue();
+		F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
+		if (p!=null && o!=null) {
+			Predicate<V> pr = predicate((ObjectField) o, p);
+			if (negB.selected.getValue()) pr = pr.negate();
+			changeValue(pr);
+		}
+	}
 
-    @Override
-    public Node getNode() {
-        return root;
-    }
+	@Override
+	public Node getNode() {
+		return root;
+	}
 
 	public static class PredicateData<T> {
 		public final String name;
 		public final Class type;
 		public final T value;
 
-		public static <V,T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
+		public static <V, T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
 			return new PredicateData<>(field.name(), field.getType(), field);
 		}
 
 		public PredicateData(String name, Class type, T value) {
-		    noØ(name, type, value);
+			noØ(name, type, value);
 			this.name = name;
 			this.type = type;
 			this.value = value;

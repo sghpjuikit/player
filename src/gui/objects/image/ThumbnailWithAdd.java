@@ -57,33 +57,33 @@ public class ThumbnailWithAdd extends Thumbnail {
 		root.addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY) {
 				Environment.chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow())
-					.ifOk(file -> {
-						if (onFileDropped!=null)
-							onFileDropped.accept(fut(file));
-					});
+						.ifOk(file -> {
+							if (onFileDropped!=null)
+								onFileDropped.accept(fut(file));
+						});
 				e.consume();
 			}
 		});
 
 		// drag&drop
 		DragUtil.installDrag(
-			root, dragIcon, dragDescription,
-			DragUtil::hasImage,
-			e -> {
-				// why does the Fut (CompletableFuture) compute without running the Fut ???
-				// now the Fut executes over and over because this event fires like that (btw wtf?)
-				// so the below can not be used right now
+				root, dragIcon, dragDescription,
+				DragUtil::hasImage,
+				e -> {
+					// why does the Fut (CompletableFuture) compute without running the Fut ???
+					// now the Fut executes over and over because this event fires like that (btw wtf?)
+					// so the below can not be used right now
 //                Fut<File> fi = getImage(e);
 //                File i = fi.isDone() ? fi.getDone() : null;
 //                boolean same = i!=null && i.equals(except.get());
 
-				File i = DragUtil.getImageNoUrl(e);
-				return i!=null && i.equals(getFile());  // false if image file is already displayed
-			},
-			e -> {
-				if (onFileDropped!=null)
-					onFileDropped.accept(DragUtil.getImage(e));
-			}
+					File i = DragUtil.getImageNoUrl(e);
+					return i!=null && i.equals(getFile());  // false if image file is already displayed
+				},
+				e -> {
+					if (onFileDropped!=null)
+						onFileDropped.accept(DragUtil.getImage(e));
+				}
 		);
 	}
 

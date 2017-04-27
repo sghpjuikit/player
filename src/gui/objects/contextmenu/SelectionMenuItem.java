@@ -120,19 +120,19 @@ public class SelectionMenuItem extends Menu {
 
 	public static <I> List<MenuItem> buildSingleSelectionMenu(List<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
 		List<MenuItem> ms = map(inputs,
-			input -> {
-				SelectionMenuItem m = new SelectionMenuItem(toText.apply(input), input==selected);
-				m.icon.styleclass(STYLECLASS_ICON_SINGLE_SEL);
-				m.setOnMouseClicked(() -> {
-					Menu parent = m.getParentMenu();
-					if (parent!=null) {
-						parent.getItems().forEach(i -> ((SelectionMenuItem) i).selected.setValue(false));
-						m.selected.setValue(true);
-						action.accept(input);
-					}
-				});
-				return m;
-			}
+				input -> {
+					SelectionMenuItem m = new SelectionMenuItem(toText.apply(input), input==selected);
+					m.icon.styleclass(STYLECLASS_ICON_SINGLE_SEL);
+					m.setOnMouseClicked(() -> {
+						Menu parent = m.getParentMenu();
+						if (parent!=null) {
+							parent.getItems().forEach(i -> ((SelectionMenuItem) i).selected.setValue(false));
+							m.selected.setValue(true);
+							action.accept(input);
+						}
+					});
+					return m;
+				}
 		);
 		ms.sort(by(MenuItem::getText));
 		return ms;

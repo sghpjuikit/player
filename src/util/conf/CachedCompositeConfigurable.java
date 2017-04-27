@@ -3,7 +3,6 @@ package util.conf;
 import java.util.Collection;
 import java.util.Map;
 
- */
 public interface CachedCompositeConfigurable<T> extends CompositeConfigurable<T> {
 
 	Map<String,Config<T>> getFieldsMap();

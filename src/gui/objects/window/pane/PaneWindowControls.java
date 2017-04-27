@@ -62,8 +62,8 @@ public class PaneWindowControls extends WindowPane {
 
 		// disable resizing behavior completely when not resizable
 		maintain(resizable, v -> !v, v -> borders.getChildren().stream()
-			.filter(c -> !(c instanceof Pane))
-			.forEach(b -> b.setMouseTransparent(v)));
+				.filter(c -> !(c instanceof Pane))
+				.forEach(b -> b.setMouseTransparent(v)));
 
 //        moveOnDragOf(header);
 

@@ -474,8 +474,8 @@ public class PopOver<N extends Node> extends PopupControl {
 	public void show(ScreenPos pos) {
 		setArrowSize(0); // disable arrow
 		Optional<Window> owneR = APP.windowManager.getFocused()
-			.filter(w -> pos.isAppCentric())
-			.map(WindowBase::getStage);
+				.filter(w -> pos.isAppCentric())
+				.map(WindowBase::getStage);
 		boolean isScreenCentric = !owneR.isPresent();
 		Optional<Window> ownerO = owneR.or(() -> Optional.ofNullable(getOwnerWindow()).filter(Window::isShowing));
 		boolean isOwnerCreated = !ownerO.isPresent() && focusOnShow.get();
@@ -759,7 +759,7 @@ public class PopOver<N extends Node> extends PopupControl {
 			case TOP_RIGHT:
 			case BOTTOM_RIGHT:
 				return getContentNode().prefWidth(-1) - getArrowIndent()
-					- getCornerRadius() - getArrowSize();
+						- getCornerRadius() - getArrowSize();
 			default:
 				return 0;
 		}
@@ -776,7 +776,7 @@ public class PopOver<N extends Node> extends PopupControl {
 			case LEFT_BOTTOM:
 			case RIGHT_BOTTOM:
 				return getContentNode().prefHeight(-1) - getCornerRadius()
-					- getArrowIndent() - getArrowSize();
+						- getArrowIndent() - getArrowSize();
 			default:
 				return 0;
 		}
@@ -896,8 +896,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		public double calcX(PopOver popup) {
 			double W = popup.getSkinn().root.getWidth();
 			Rectangle2D screen = isAppCentric()
-				? null
-				: getScreenForMouse().getBounds();
+					? null
+					: getScreenForMouse().getBounds();
 //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
 			WindowBase app = APP.windowManager.getMain().orElse(null);
 			switch (this) {
@@ -918,8 +918,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		public double calcY(PopOver popup) {
 			double H = popup.getSkinn().root.getHeight();
 			Rectangle2D screen = isAppCentric()
-				? null
-				: getScreenForMouse().getBounds();
+					? null
+					: getScreenForMouse().getBounds();
 //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
 			WindowBase app = APP.windowManager.getMain().orElse(null);
 			switch (this) {
@@ -979,8 +979,8 @@ public class PopOver<N extends Node> extends PopupControl {
 					Rectangle2D top = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinY()).orElse(psb);
 					Rectangle2D bottom = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxY()).orElse(psb);
 					return new Rectangle2D(left.getMinX(), top.getMinY(),
-						right.getMaxX() - left.getMinX(),
-						bottom.getMaxY() - top.getMinY());
+							right.getMaxX() - left.getMinX(),
+							bottom.getMaxY() - top.getMinY());
 				}
 				default: return null;
 			}
@@ -992,7 +992,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	// arrow size support
 	// TODO: make styleable
 	private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,
-		"arrowSize", 9);
+			"arrowSize", 9);
 
 	/**
 	 * Controls the size of the arrow. Default value is 12.
@@ -1033,7 +1033,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	// arrow indent support
 	// TODO: make styleable
 	private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this,
-		"arrowIndent", 12);
+			"arrowIndent", 12);
 
 	/**
 	 * Controls the distance between the arrow and the corners of the pop over.
@@ -1070,7 +1070,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	// TODO: make styleable
 
 	private final DoubleProperty cornerRadius = new SimpleDoubleProperty(this,
-		"cornerRadius", 6);
+			"cornerRadius", 6);
 
 	/**
 	 * Returns the corner radius property for the pop over.
@@ -1102,7 +1102,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	}
 
 	private final ObjectProperty<PopOver.ArrowLocation> arrowLocation = new SimpleObjectProperty<>(
-		this, "arrowLocation", PopOver.ArrowLocation.LEFT_TOP);
+			this, "arrowLocation", PopOver.ArrowLocation.LEFT_TOP);
 
 	/**
 	 * Stores the preferred arrow location. This might not be the actual

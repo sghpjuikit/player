@@ -36,16 +36,16 @@ public final class TableColumnInfo {
 		this();
 		// add columns as visible
 		toIndexedStream(all_columns)
-			.map(p -> new ColumnInfo(p._2, p._1, true, 50))
-			.forEach(columns::add);
+				.map(p -> new ColumnInfo(p._2, p._1, true, 50))
+				.forEach(columns::add);
 	}
 
 	public TableColumnInfo(TableView<?> table) {
 		this();
 		// add visible columns
 		toIndexedStream(table.getColumns())
-			.map(p -> new ColumnInfo(p._1, p._2))
-			.forEach(columns::add);
+				.map(p -> new ColumnInfo(p._1, p._2))
+				.forEach(columns::add);
 		sortOrder.fromTable(table);
 	}
 
@@ -60,14 +60,14 @@ public final class TableColumnInfo {
 		columns.clear();
 		// add visible columns
 		toIndexedStream(table.getColumns())
-			.map(p -> new ColumnInfo(p._1, p._2))
-			.peek(old::remove)
-			.forEach(columns::add);
+				.map(p -> new ColumnInfo(p._1, p._2))
+				.peek(old::remove)
+				.forEach(columns::add);
 		// add invisible columns
 		int i = columns.size();
 		old.stream()
-			.map(p -> new ColumnInfo(p.name, i + p.position, false, p.width))
-			.forEach(columns::add);
+				.map(p -> new ColumnInfo(p.name, i + p.position, false, p.width))
+				.forEach(columns::add);
 
 		sortOrder.fromTable(table);
 	}
@@ -139,12 +139,12 @@ public final class TableColumnInfo {
 			List<TableColumn<T,?>> so = new ArrayList<>();
 			table.getSortOrder().clear();
 			sorts.forEach(t ->
-				stream(table.getColumns())
-					.findAny(c -> t._1.equals(c.getText()))
-					.ifPresent(c -> {
-						c.setSortType(t._2);
-						so.add(c);
-					})
+					stream(table.getColumns())
+							.findAny(c -> t._1.equals(c.getText()))
+							.ifPresent(c -> {
+								c.setSortType(t._2);
+								so.add(c);
+							})
 			);
 			table.getSortOrder().setAll(so);
 		}

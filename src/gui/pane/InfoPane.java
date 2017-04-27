@@ -34,8 +34,6 @@ import static util.functional.Util.by;
 import static util.functional.Util.byNC;
 import static util.graphics.Util.*;
 
-/**
- */
 @IsConfigurable("Shortcut Viewer")
 public class InfoPane extends OverlayPane<Void> {
 

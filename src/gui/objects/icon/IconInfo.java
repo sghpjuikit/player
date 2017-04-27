@@ -34,11 +34,7 @@ public class IconInfo extends VBox {
 		glyph = icon;
 		nameLabel.setText(icon==null ? "" : capitalizeStrong(icon.name()));
 		graphics.icon(icon);
-		graphics.tooltip(icon==null ? "" :
-			icon.name() + "\n" +
-				icon.unicodeToString() + "\n" +
-				icon.getFontFamily()
-		);
+		graphics.tooltip(icon==null ? "" : icon.name() + "\n" + icon.unicodeToString() + "\n" + icon.getFontFamily());
 	}
 
 	public GlyphIcons getGlyph() {

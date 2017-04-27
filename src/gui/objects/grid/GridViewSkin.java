@@ -187,7 +187,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	private GridRow<T,F> createCell() {
 		GridRow<T,F> row = new GridRow<>();
 		row.setGridView(getSkinnable());
-		invokeMethodP1(row, "setEmpty", boolean.class, false);	// in the hopes it will fix cell updating by the flow
+		invokeMethodP1(row, "setEmpty", boolean.class, false);    // in the hopes it will fix cell updating by the flow
 		return row;
 	}
 
@@ -365,8 +365,8 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		private Filter(Class<F> filterType, FilteredList<T> filterList) {
 			super(THIS -> {
 				FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(
-					in -> Functors.pool.getIO(in, Boolean.class),
-					in -> Functors.pool.getPrefIO(in, Boolean.class)
+						in -> Functors.pool.getIO(in, Boolean.class),
+						in -> Functors.pool.getPrefIO(in, Boolean.class)
 				);
 				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
 				g.setData(THIS.getData());
@@ -408,18 +408,18 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(getSkinnable().primaryFilterField)
-			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
-			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
-			.orElse(null);
+				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
+				.orElse(null);
 	}
 
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
 		return stream(App.APP.classFields.get(filterType))
-			.filter(ObjectField::isTypeStringRepresentable)
-			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
-			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
-			.sorted(by(e -> e.name))
-			.toList();
+				.filter(ObjectField::isTypeStringRepresentable)
+				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
+				.sorted(by(e -> e.name))
+				.toList();
 	}
 
 /* ---------- SELECTION --------------------------------------------------------------------------------------------- */
@@ -535,7 +535,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	private void scrollToBottom(int row) {
 		GridRow lvr = skin.flow.getLastVisibleCell();
-		if (lvr == null) return;	// TODO: this should not be necessary
+		if (lvr==null) return;    // TODO: this should not be necessary
 		double rowBy = (row - lvr.getIndex())*skin.flow.getFixedCellSize();
 		double cellBy = lvr.getLayoutY() + skin.flow.getFixedCellSize() - (double) invokeMethodP0(skin.flow, "getViewportLength");
 		double by = rowBy + cellBy;

@@ -66,15 +66,15 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 			int maxCellsInRow = gridSkin.computeMaxCellsInRow();
 			int totalCellsInGrid = grid.getItemsShown().size();
 			int startCellIndex = rowIndex*maxCellsInRow;
-			int endCellIndex = min(startCellIndex + maxCellsInRow-1, max(0,totalCellsInGrid - 1));
-			int cellCount = totalCellsInGrid==0 ? 0 : endCellIndex-startCellIndex+1;
+			int endCellIndex = min(startCellIndex + maxCellsInRow - 1, max(0, totalCellsInGrid - 1));
+			int cellCount = totalCellsInGrid==0 ? 0 : endCellIndex - startCellIndex + 1;
 
 			if (cellCount<0) {
 				log(GridRowSkin.class).warn("This row with index={} should not exist!", rowIndex);
 				return;
 			}
 			// add more cells if cell count increased
-			repeat(cellCount-getChildren().size(), () -> getChildren().add(createCell()));
+			repeat(cellCount - getChildren().size(), () -> getChildren().add(createCell()));
 			// remove surplus cells if cell count decreased
 			if (getChildren().size()>cellCount) getChildren().remove(cellCount, getChildren().size());
 
@@ -87,7 +87,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 				cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 				cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
 			}
-			repeat(getChildren().size()-i, x -> getCellAtIndex(getChildren().size()-1-x).updateIndex(-1));
+			repeat(getChildren().size() - i, x -> getCellAtIndex(getChildren().size() - 1 - x).updateIndex(-1));
 		}
 	}
 
@@ -108,10 +108,10 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 		double cellOffsetX = xPos + cellWidth + horizontalCellSpacing;
 		for (Node child : getChildren()) {
 			child.resizeRelocate(
-				snapPositionX(xPos + horizontalCellSpacing),
-				snapPositionY(yPos + verticalCellSpacing),
-				snapSizeX(cellWidth),
-				snapSizeY(cellHeight)
+					snapPositionX(xPos + horizontalCellSpacing),
+					snapPositionY(yPos + verticalCellSpacing),
+					snapSizeX(cellWidth),
+					snapSizeY(cellHeight)
 			);
 			xPos += cellOffsetX;
 		}

@@ -18,9 +18,12 @@ import static util.graphics.Util.setAnchors;
  */
 public class ItemInfo extends AnchorPane implements SongReader {
 
-	@FXML private Label typeL, indexL, songL, artistL, albumL;
-	@FXML private AnchorPane infoContainer;
-	@FXML private AnchorPane coverContainer;
+	@FXML
+	private Label typeL, indexL, songL, artistL, albumL;
+	@FXML
+	private AnchorPane infoContainer;
+	@FXML
+	private AnchorPane coverContainer;
 	private final Thumbnail thumb;
 
 	public ItemInfo() {

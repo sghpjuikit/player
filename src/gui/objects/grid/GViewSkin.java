@@ -70,7 +70,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				GViewSkin.this.getSkinnable().requestLayout();
 		});
 
-		control.focusedProperty().addListener((o,ov,nv) -> {
+		control.focusedProperty().addListener((o, ov, nv) -> {
 			if (nv) flow.requestFocus();
 		});
 
@@ -384,11 +384,11 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	 * @param <T> type of item
 	 * @param <F> type of cell
 	 */
-	public static class Flow<T,F> extends Pane {
+	public static class Flow<T, F> extends Pane {
 		private final GViewSkin<T,F> skin;
-		private List<GridCell<T,F>> visibleCells = (List)getChildren();
+		private List<GridCell<T,F>> visibleCells = (List) getChildren();
 		private ArrayLinkedList<GridCell<T,F>> cachedCells = new ArrayLinkedList<>();
-		private final Rectangle clipMask = new Rectangle(0,0);
+		private final Rectangle clipMask = new Rectangle(0, 0);
 		private final FlowScrollBar scrollbar;
 		private final Scrolled root;
 		private double viewStart = 0;
@@ -436,7 +436,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 		public GridCell<T,F> getVisibleCellAtIndex(int i) {
 			int indexOffset = computeMinVisibleCellIndex();
-			return getAt(i-indexOffset, visibleCells);
+			return getAt(i - indexOffset, visibleCells);
 		}
 
 		public GridCell<T,F> getFirstVisibleCell() {
@@ -444,7 +444,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public GridCell<T,F> getLastVisibleCell() {
-			return visibleCells.isEmpty() ? null : visibleCells.get(visibleCells.size()-1);
+			return visibleCells.isEmpty() ? null : visibleCells.get(visibleCells.size() - 1);
 		}
 
 		private GridCell<T,F> createCell() {
@@ -489,8 +489,8 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			List<T> items = getSkinnable().getItemsShown();
 			int itemsAllCount = items.size();
 			int indexStart = computeMinVisibleCellIndex();
-			int indexEnd = min(itemsAllCount-1, computeMaxVisibleCellIndex());
-			int itemsVisibleCount = indexEnd-indexStart+1;
+			int indexEnd = min(itemsAllCount - 1, computeMaxVisibleCellIndex());
+			int itemsVisibleCount = indexEnd - indexStart + 1;
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();
 			double scrollableHeight = virtualHeight;
@@ -518,7 +518,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					throwIf(itemsAllCount<=indexEnd);
 
 					// If the cell count decreased, put the removed cells to cache
-					for (int i=visibleCells.size()-1; i>=itemsVisibleCount; i--) {
+					for (int i = visibleCells.size() - 1; i>=itemsVisibleCount; i--) {
 						GridCell<T,F> cell = visibleCells.remove(i);
 //						cell.setItem(null);
 						cell.updateIndex(-1);
@@ -528,7 +528,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					throwIf(visibleCells.size()>itemsVisibleCount);
 
 					// If the cell count increased, populate cells with new ones
-					repeat(itemsVisibleCount-visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
+					repeat(itemsVisibleCount - visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
 //					repeat(itemsVisibleCount-visibleCells.size(), () -> visibleCells.add(createCell()));
 					throwIf(visibleCells.size()!=itemsVisibleCount);
 
@@ -560,11 +560,11 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			int viewStartRI = computeMinVisibleRowIndex();
 			int rowCount = computeVisibleRowCount();
 			int i = 0;
-			for (int rowI=viewStartRI; rowI<viewStartRI+rowCount; rowI++) {
-				double rowStartY = rowI * cellGapHeight;
+			for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
+				double rowStartY = rowI*cellGapHeight;
 				double xPos = 0;
 				double yPos = rowStartY - viewStartY;
-				for (int cellI=rowI*columns; cellI<(rowI+1)*columns; cellI++, i++) {
+				for (int cellI = rowI*columns; cellI<(rowI + 1)*columns; cellI++, i++) {
 //					if (i>=itemCount) break;	// last row may not be full
 					GridCell<T,F> cell = getAt(i, visibleCells);
 					if (cell!=null) {
@@ -630,13 +630,13 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public void scrollByPage(int sign) {
 			if (sign<0) {
 				IndexedCell cell = getFirstVisibleCell();
-				if (cell == null) return;
+				if (cell==null) return;
 				int row = cell.getIndex()/computeMaxCellsInRow();
 				scrollToRowBottom(row);
 			}
 			if (sign>0) {
 				IndexedCell cell = getLastVisibleCell();
-				if (cell == null) return;
+				if (cell==null) return;
 				int row = cell.getIndex()/computeMaxCellsInRow();
 				scrollToRowTop(row);
 			}
@@ -645,13 +645,13 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public void scrollTo01(double to) {
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();
-			double scrollableHeight = virtualHeight-viewHeight;
+			double scrollableHeight = virtualHeight - viewHeight;
 			scrollTo(to*scrollableHeight);
 		}
 
 		public void scrollTo(double to) {
 			double minY = 0;
-			double maxY = max(0,computeRowCount(getSkinnable().getItemsShown())*computeRowHeight()-getHeight());
+			double maxY = max(0, computeRowCount(getSkinnable().getItemsShown())*computeRowHeight() - getHeight());
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
@@ -664,7 +664,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public double computeMaxViewStart() {
-			return max(0,computeRowCount()*computeRowHeight() - getHeight());
+			return max(0, computeRowCount()*computeRowHeight() - getHeight());
 		}
 
 		public int computeMinVisibleRowIndex() {
@@ -672,27 +672,27 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public int computeMinVisibleCellIndex() {
-			return computeMaxCellsInRow() * computeMinVisibleRowIndex();
+			return computeMaxCellsInRow()*computeMinVisibleRowIndex();
 		}
 
 		public int computeMaxVisibleRowIndex() {
-			return (int) Math.ceil((viewStart+getHeight())/computeRowHeight());
+			return (int) Math.ceil((viewStart + getHeight())/computeRowHeight());
 		}
 
 		public int computeMaxVisibleCellIndex() {
-			return -1 + computeMaxCellsInRow() * (computeMaxVisibleRowIndex()+1);
+			return -1 + computeMaxCellsInRow()*(computeMaxVisibleRowIndex() + 1);
 		}
 
 		public int computeMaxVisibleCells() {
-			return computeMaxCellsInRow() * (int) Math.ceil((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) Math.ceil((getHeight())/computeRowHeight());
 		}
 
 		public int computeAvgVisibleCells() {
-			return computeMaxCellsInRow() * (int) Math.rint((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) Math.rint((getHeight())/computeRowHeight());
 		}
 
 		public int computeMaxFullyVisibleCells() {
-			return computeMaxCellsInRow() * (int) Math.floor((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) Math.floor((getHeight())/computeRowHeight());
 		}
 
 		/** @return the number of rows needed to display the whole set of cells */
@@ -756,26 +756,26 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public ArrayLinkedList() {
 			array = new ArrayList<>(50);
 
-			for (int i = 0; i < 50; i++) {
+			for (int i = 0; i<50; i++) {
 				array.add(null);
 			}
 		}
 
 		public T getFirst() {
-			return firstIndex == -1 ? null : array.get(firstIndex);
+			return firstIndex==-1 ? null : array.get(firstIndex);
 		}
 
 		public T getLast() {
-			return lastIndex == -1 ? null : array.get(lastIndex);
+			return lastIndex==-1 ? null : array.get(lastIndex);
 		}
 
 		public void addFirst(T cell) {
 			// if firstIndex == -1 then that means this is the first item in the
 			// list and we need to initialize firstIndex and lastIndex
-			if (firstIndex == -1) {
-				firstIndex = lastIndex = array.size() / 2;
+			if (firstIndex==-1) {
+				firstIndex = lastIndex = array.size()/2;
 				array.set(firstIndex, cell);
-			} else if (firstIndex == 0) {
+			} else if (firstIndex==0) {
 				// we're already at the head of the array, so insert at position
 				// 0 and then increment the lastIndex to compensate
 				array.add(0, cell);
@@ -790,10 +790,10 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public void addLast(T cell) {
 			// if lastIndex == -1 then that means this is the first item in the
 			// list and we need to initialize the firstIndex and lastIndex
-			if (firstIndex == -1) {
-				firstIndex = lastIndex = array.size() / 2;
+			if (firstIndex==-1) {
+				firstIndex = lastIndex = array.size()/2;
 				array.set(lastIndex, cell);
-			} else if (lastIndex == array.size() - 1) {
+			} else if (lastIndex==array.size() - 1) {
 				// we're at the end of the array so need to "add" so as to force
 				// the array to be expanded in size
 				array.add(++lastIndex, cell);
@@ -803,15 +803,15 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public int size() {
-			return firstIndex == -1 ? 0 : lastIndex - firstIndex + 1;
+			return firstIndex==-1 ? 0 : lastIndex - firstIndex + 1;
 		}
 
 		public boolean isEmpty() {
-			return firstIndex == -1;
+			return firstIndex==-1;
 		}
 
 		public T get(int index) {
-			if (index > (lastIndex - firstIndex) || index < 0) {
+			if (index>(lastIndex - firstIndex) || index<0) {
 				// Commented out exception due to RT-29111
 				// throw new java.lang.ArrayIndexOutOfBoundsException();
 				return null;
@@ -821,7 +821,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public void clear() {
-			for (int i = 0; i < array.size(); i++) {
+			for (int i = 0; i<array.size(); i++) {
 				array.set(i, null);
 			}
 
@@ -839,7 +839,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public T remove(int index) {
-			if (index > lastIndex - firstIndex || index < 0) {
+			if (index>lastIndex - firstIndex || index<0) {
 				throw new ArrayIndexOutOfBoundsException();
 			}
 
@@ -847,16 +847,16 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			// item and can simply set it to null in the array and increment
 			// the firstIndex unless there is only one item, in which case
 			// we have to also set first & last index to -1.
-			if (index == 0) {
+			if (index==0) {
 				T cell = array.get(firstIndex);
 				array.set(firstIndex, null);
-				if (firstIndex == lastIndex) {
+				if (firstIndex==lastIndex) {
 					firstIndex = lastIndex = -1;
 				} else {
 					firstIndex++;
 				}
 				return cell;
-			} else if (index == lastIndex - firstIndex) {
+			} else if (index==lastIndex - firstIndex) {
 				// if the index == lastIndex - firstIndex, then we're removing the
 				// last item and can simply set it to null in the array and
 				// decrement the lastIndex
@@ -868,7 +868,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				// item and decrement the lastIndex
 				T cell = array.get(firstIndex + index);
 				array.set(firstIndex + index, null);
-				for (int i = (firstIndex + index + 1); i <= lastIndex; i++) {
+				for (int i = (firstIndex + index + 1); i<=lastIndex; i++) {
 					array.set(i - 1, array.get(i));
 				}
 				array.set(lastIndex--, null);
@@ -885,7 +885,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public Scrolled(ScrollBar scrollbar, Pane content) {
 			this.scrollbar = scrollbar;
 			this.content = content;
-			scrollbar.visibleProperty().addListener((o,ov,nv) -> requestLayout());
+			scrollbar.visibleProperty().addListener((o, ov, nv) -> requestLayout());
 			getChildren().addAll(scrollbar, content);
 		}
 
@@ -895,8 +895,8 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			boolean scrollbarVisible = scrollbar.isVisible();
 			if (scrollbarVisible) {
 				double scrollbarW = scrollbar.getWidth();
-				scrollbar.resizeRelocate(w-scrollbarW, 0, scrollbarW, h);
-				content.resizeRelocate(0, 0, w-scrollbarW, h);
+				scrollbar.resizeRelocate(w - scrollbarW, 0, scrollbarW, h);
+				content.resizeRelocate(0, 0, w - scrollbarW, h);
 			} else {
 				content.resizeRelocate(0, 0, w, h);
 			}
@@ -912,8 +912,8 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public FlowScrollBar(Flow flow) {
 			this.flow = flow;
 
-			valueProperty().addListener((o,ov,nv) -> {
-				if (ov.doubleValue() != nv.doubleValue() && !adjusting && !updating) {
+			valueProperty().addListener((o, ov, nv) -> {
+				if (ov.doubleValue()!=nv.doubleValue() && !adjusting && !updating) {
 					flow.scrollTo01(nv.doubleValue());
 				}
 			});
@@ -934,7 +934,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		public void adjustValue(double pos) {
 			adjusting = true;
 			double oldValue = flow.getPosition();
-			double newValue = getMin() + ((getMax() - getMin()) * clip(0, pos, 1));
+			double newValue = getMin() + ((getMax() - getMin())*clip(0, pos, 1));
 			int direction = (int) Math.signum(newValue - oldValue);
 			flow.scrollByPage(direction);
 			adjusting = false;

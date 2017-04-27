@@ -1,11 +1,9 @@
 package gui.pane;
 
+import gui.objects.image.Thumbnail;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.layout.Pane;
-
-import gui.objects.image.Thumbnail;
-
 import static java.lang.Double.min;
 
 /**
@@ -20,7 +18,7 @@ import static java.lang.Double.min;
  * Content can have minimum size set, which forbids expanding the image if it
  * would shrink the content beyond it.
  * <p/>
- * Both image and content can be set invisible. Gap between image and pane can 
+ * Both image and content can be set invisible. Gap between image and pane can
  * be set.
  */
 public class ImageFlowPane extends Pane {
@@ -44,7 +42,7 @@ public class ImageFlowPane extends Pane {
 		image = i;
 		if (image!=null) {
 			getChildren().add(image.getPane());
-			image.ratioImgProperty().addListener((o,ov,nv) -> layoutChildren());
+			image.ratioImgProperty().addListener((o, ov, nv) -> layoutChildren());
 		}
 		layoutChildren();
 	}
@@ -58,8 +56,8 @@ public class ImageFlowPane extends Pane {
 
 	/** Set image visibility. Default true. */
 	public void setImageVisible(boolean b) {
-	   showImage = b;
-	   layoutChildren();
+		showImage = b;
+		layoutChildren();
 	}
 
 	/** Set content visibility. Default true. */
@@ -90,45 +88,45 @@ public class ImageFlowPane extends Pane {
 		double pr = getPadding().getRight();
 		double pt = getPadding().getTop();
 		double pb = getPadding().getBottom();
-		double W = getWidth()-pl-pr;
-		double H = getHeight()-pt-pb;
+		double W = getWidth() - pl - pr;
+		double H = getHeight() - pt - pb;
 
 		if (showImage && showContent && image!=null && content!=null) {
 			double imgRatio = image.getRatioImg();
 			double thisRatio = W/H;
-			boolean isHorizontal = thisRatio > imgRatio;
+			boolean isHorizontal = thisRatio>imgRatio;
 			if (isHorizontal) {
-				double imgW = min(imgRatio*H,W-minContentWidth);
+				double imgW = min(imgRatio*H, W - minContentWidth);
 
 				image.getPane().setLayoutX(pl);
 				image.getPane().setLayoutY(pt);
 				image.getPane().setMinSize(imgW, H);
 				image.getPane().setPrefSize(imgW, H);
 				image.getPane().setMaxSize(imgW, H);
-				content.setLayoutX(imgW+gap+pl);
+				content.setLayoutX(imgW + gap + pl);
 				content.setLayoutY(pt);
-				content.setMinSize(W-imgW-gap,H);   // why min & max are needed is not clear
-				content.setPrefSize(W-imgW-gap,H);
-				content.setMaxSize(W-imgW-gap,H);
+				content.setMinSize(W - imgW - gap, H);   // why min & max are needed is not clear
+				content.setPrefSize(W - imgW - gap, H);
+				content.setMaxSize(W - imgW - gap, H);
 			} else {
-				double imgH = min(W/imgRatio,H-minContentHeight);
+				double imgH = min(W/imgRatio, H - minContentHeight);
 				image.getPane().setLayoutX(pl);
 				image.getPane().setLayoutY(pt);
 				image.getPane().setMinSize(W, imgH);
 				image.getPane().setPrefSize(W, imgH);
 				image.getPane().setMaxSize(W, imgH);
 				content.setLayoutX(pl);
-				content.setLayoutY(imgH+gap+pt);
-				content.setMinSize(W,H-gap-imgH);
-				content.setPrefSize(W,H-gap-imgH);
-				content.setMaxSize(W,H-gap-imgH);
+				content.setLayoutY(imgH + gap + pt);
+				content.setMinSize(W, H - gap - imgH);
+				content.setPrefSize(W, H - gap - imgH);
+				content.setMaxSize(W, H - gap - imgH);
 			}
 		}
 		if ((!showImage || image==null) && showContent && content!=null) {
-			layoutInArea(content, 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
+			layoutInArea(content, 0 + pl, 0 + pt, W - pl - pr, H - pt - pb, 0, HPos.CENTER, VPos.CENTER);
 		}
 		if (showImage && image!=null && (!showContent || content==null)) {
-			layoutInArea(image.getPane(), 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
+			layoutInArea(image.getPane(), 0 + pl, 0 + pt, W - pl - pr, H - pt - pb, 0, HPos.CENTER, VPos.CENTER);
 		}
 		// if ((!showImage && !showContent) || (image==null && content==null)) {}
 

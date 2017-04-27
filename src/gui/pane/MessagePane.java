@@ -1,17 +1,13 @@
 package gui.pane;
 
+import gui.objects.Text;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
-
-import gui.objects.Text;
-
-import static util.graphics.Util.layScrollVTextCenter;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.Util.*;
 
 public class MessagePane extends OverlayPane<String> {
 

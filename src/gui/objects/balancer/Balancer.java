@@ -10,7 +10,6 @@ import javafx.scene.shape.Rectangle;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 
- */
 public class Balancer extends Control {
 
 	public static String STYLECLASS = "balancer";

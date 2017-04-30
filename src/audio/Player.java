@@ -7,6 +7,7 @@ import audio.playlist.PlaylistManager;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataReader;
 import audio.tagging.MetadataWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,8 +26,13 @@ import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import static audio.tagging.Metadata.EMPTY;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static util.async.Async.FX;
+import static util.async.Async.runNew;
+import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
+import static util.dev.Util.noØ;
+import static util.functional.Util.list;
 
 public class Player {
 
@@ -37,7 +43,8 @@ public class Player {
 		t.setName("tagging-thread");
 		return t;
 	});
-	/********************************************* STATE **********************************************/
+
+/********************************************* STATE **********************************************/
 
 	public static final PlayerState state = PlayerState.deserialize();
 
@@ -71,7 +78,7 @@ public class Player {
 		playingItem.onChange(m -> state.playback.duration.set(m.getLength()));
 		// maintain PLAYED_FIRST_TIME & PLAYED_LAST_TIME metadata
 		// note: for performance reasons we update AFTER song stops playing, not WHEN it starts
-		// as with playcount incrementing, it could discrupt playback, although now we are losing
+		// as with playcount incrementing, it could disrupt playback, although now we are losing
 		// updates on application closing!
 		playingItem.onChange((o, n) -> {
 			MetadataWriter.use(o, w -> {

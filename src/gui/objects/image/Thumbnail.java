@@ -40,6 +40,7 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
+import static util.graphics.Util.setScaleXY;
 import static util.reactive.Util.doOnceIf;
 import static util.type.Util.getFieldValue;
 
@@ -558,7 +559,7 @@ public class Thumbnail extends ImageNode {
 
 	/** Duration of the scaling animation effect when transitioning to hover state. */
 	public final V<Duration> durationOnHover = new V<>(animDur);
-	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> util.graphics.Util.setScaleXY(root, 1 + 0.05*at));
+	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> setScaleXY(root, 1 + 0.05*at));
 	private final EventHandler<MouseEvent> hoverHandler = e -> {
 		hoverAnimation.dur(durationOnHover.get());
 		if (isHoverable())

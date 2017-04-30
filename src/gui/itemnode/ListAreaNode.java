@@ -11,12 +11,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
-import util.dev.TODO;
 import util.functional.Functors;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.dev.TODO.Severity.SEVERE;
 import static util.functional.Util.*;
 
 // TODO: manual text edits should be part of transformation chain. It

@@ -177,7 +177,7 @@ public class WindowPane {
 			}
 			e.consume();
 		});
-		// move on drag - left button - ecluding content area
+		// move on drag - left button - excluding content area
 		n.addEventHandler(MOUSE_RELEASED, e -> {
 			if (_moving.get())
 				_moving.set(false);

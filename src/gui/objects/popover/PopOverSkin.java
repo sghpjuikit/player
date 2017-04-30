@@ -40,8 +40,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
@@ -51,9 +51,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.*;
 import javafx.stage.Window;
+import util.graphics.MouseDrag;
+import util.graphics.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static javafx.beans.binding.Bindings.*;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static util.async.Async.run;
@@ -70,21 +71,15 @@ public class PopOverSkin implements Skin<PopOver> {
 	private static final String TITLE_STYLECLASS = "title";
 	private static final String SHAPE_STYLECLASS = "bgr";
 
-	private double xOffset;
-	private double yOffset;
-
-	private boolean tornOff;
+	private final PopOver<? extends Node> p;
 
 	public final StackPane root;
 	private final Path path;
-	private BorderPane content;
-
+	private final BorderPane content;
 	private final Label title;
-	private BorderPane header;
+	private final BorderPane header;
 
-	private Point2D dragStartLocation;
-
-	private final PopOver<? extends Node> p;
+	private boolean tornOff;
 
 	public PopOverSkin(final PopOver<? extends Node> popover) {
 
@@ -101,17 +96,13 @@ public class PopOverSkin implements Skin<PopOver> {
 				add(multiply(2, p.cornerRadiusProperty()),
 					multiply(2, p.arrowIndentProperty()))));
 
-		// create header & its content
+		// header content
 		title = new Label();
 		title.textProperty().bind(p.title);
 		title.getStyleClass().add(TITLE_STYLECLASS);
-
 		String closeBt = "Close\n\nClose this popup and its content.";
-		Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong)
-			.styleclass("popover-close-button");
-
-		String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse "
-			+ "click outside of this popup.";
+		Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong).styleclass("popover-close-button");
+		String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.";
 		Icon pinB = new Icon(null, 11, pinBt, () -> p.setAutoHide(!p.isAutoHide()));
 		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
 
@@ -161,9 +152,18 @@ public class PopOverSkin implements Skin<PopOver> {
 		header.getStyleClass().add(HEADER_STYLECLASS);
 		BorderPane.setAlignment(title, Pos.CENTER_LEFT);
 		BorderPane.setAlignment(headerControls, Pos.CENTER_RIGHT);
-
 		// header visibility
 		maintain(p.headerVisible, b -> b ? header : null, content.topProperty());
+
+		// footer
+		Icon resizeB = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
+		resizeB.setCursor(Cursor.SE_RESIZE);
+		resizeB.setPadding(new Insets(15));
+		MouseDrag moving = new MouseDrag<>(
+				resizeB, new P(),
+				drag -> drag.data.setXY(p.getPrefWidth(), p.getPrefHeight()),
+				drag -> p.setPrefSize(drag.data.x+drag.diff.x, drag.data.y+drag.diff.y)
+		);
 
 		// the delay in the execution is essential for updatePath to work - unknown reason
 		InvalidationListener uPLd = o -> run(25, this::updatePath);
@@ -193,28 +193,25 @@ public class PopOverSkin implements Skin<PopOver> {
 		// maintain focus style
 		maintain(p.focusedProperty(), v -> p.pseudoClassStateChanged(FOCUSED, v));
 
+		// detaching
+		P dragStartLocation = new P();
+		P dragOffset = new P();
 		root.setOnMousePressed(e -> {
-			if (p.detachable.get()) {
+			if (p.detachable.get() && !moving.isDragging) {
 				tornOff = false;
-
-				xOffset = e.getScreenX();
-				yOffset = e.getScreenY();
-
-				dragStartLocation = new Point2D(xOffset, yOffset);
+				dragOffset.setXY(e.getScreenX(), e.getScreenY());
+				dragStartLocation.setXY(dragOffset.x, dragOffset.y);
 			}
 		});
 		root.setOnMouseDragged(e -> {
-			if (p.detachable.get()) {
-				double deltaX = e.getScreenX() - xOffset;
-				double deltaY = e.getScreenY() - yOffset;
+			if (p.detachable.get() && !moving.isDragging) {
 				Window window = p.getScene().getWindow();
-
+				double deltaX = e.getScreenX() - dragOffset.x;
+				double deltaY = e.getScreenY() - dragOffset.y;
 				window.setX(window.getX() + deltaX);
 				window.setY(window.getY() + deltaY);
-
-				xOffset = e.getScreenX();
-				yOffset = e.getScreenY();
-				if (dragStartLocation.distance(xOffset, yOffset)>20) {
+				dragOffset.setXY(e.getScreenX(), e.getScreenY());
+				if (dragStartLocation.distance(dragOffset)>20) {
 					tornOff = true;
 					updatePath();
 				} else if (tornOff) {
@@ -224,7 +221,7 @@ public class PopOverSkin implements Skin<PopOver> {
 			}
 		});
 		root.setOnMouseReleased(e -> {
-			if (tornOff && !p.detached.get()) {
+			if (tornOff && !p.detached.get() && !moving.isDragging) {
 				tornOff = false;
 				p.detached.set(true);
 			}
@@ -244,6 +241,8 @@ public class PopOverSkin implements Skin<PopOver> {
 
 		root.getChildren().add(path);
 		root.getChildren().add(content);
+		root.getChildren().add(resizeB);
+		StackPane.setAlignment(resizeB, Pos.BOTTOM_RIGHT);
 	}
 
 	@Override

@@ -9,9 +9,9 @@ import java.util.List;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.*;
 import javafx.scene.input.MouseEvent;
-import main.App;
 import util.type.ClassName;
 import static javafx.geometry.Pos.CENTER;
+import static main.App.Build.appTooltip;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
 import static util.functional.Util.list;
@@ -42,8 +42,8 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
 		}
 	}
 
-	private static final Tooltip typeTooltip = App.Build.appTooltip("Choose type of effect");
-	private static final Tooltip propTooltip = App.Build.appTooltip("Configure effect");
+	private static final Tooltip typeTooltip = appTooltip("Choose type of effect");
+	private static final Tooltip propTooltip = appTooltip("Configure effect");
 	public static final List<EffectType> EFFECT_TYPES = list(
 			new EffectType(Blend.class),
 			new EffectType(Bloom.class),

@@ -41,7 +41,6 @@ import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
@@ -54,9 +53,11 @@ import javafx.stage.Window;
 import util.graphics.MouseDrag;
 import util.graphics.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
 import static javafx.beans.binding.Bindings.*;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static main.App.Build.resizeButton;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -156,8 +157,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		maintain(p.headerVisible, b -> b ? header : null, content.topProperty());
 
 		// footer
-		Icon resizeB = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
-		resizeB.setCursor(Cursor.SE_RESIZE);
+		Icon resizeB = resizeButton();
 		resizeB.setPadding(new Insets(15));
 		MouseDrag moving = new MouseDrag<>(
 				resizeB, new P(),

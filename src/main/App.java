@@ -60,6 +60,7 @@ import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -1161,6 +1162,13 @@ public class App extends Application implements Configurable {
 			t.setShowDuration(seconds(10));
 			t.setHideDelay(millis(200));
 			return t;
+		}
+
+		static Icon resizeButton() {
+			// TODO: use css
+			Icon b = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
+			b.setCursor(Cursor.SE_RESIZE);
+			return b;
 		}
 
 	}

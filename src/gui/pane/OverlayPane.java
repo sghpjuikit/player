@@ -19,12 +19,12 @@ import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.reactive.SetƑ;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static main.App.Build.resizeButton;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
@@ -80,7 +80,7 @@ public abstract class OverlayPane<T> extends StackPane {
 			e.consume();
 		});
 
-		resizeB = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
+		resizeB = resizeButton();
 		resizeB.setCursor(Cursor.SE_RESIZE);
 		resizeB.setVisible(false);
 	}

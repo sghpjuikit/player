@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2013, 2015, ControlsFX
+ * Loosely based on ControlsFX:
+ *
+ * Copyright (c) 2013, ControlsFX
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +43,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.*;
 import javafx.event.Event;
-import javafx.scene.Node;
 import javafx.scene.control.Control;
-import javafx.scene.input.ScrollEvent;
 import javafx.util.Callback;
 import org.reactfx.EventStreams;
 import util.access.V;
@@ -55,32 +55,15 @@ import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
-import static util.async.Async.runLater;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
 
 /**
- * A GridView is a virtualized control for displaying items in a
- * visual, scrollable, grid-like fashion. In other words, whereas a ListView
- * shows one {@link javafx.scene.control.ListCell} per row, in a GridView there will be zero or more
- * {@link gui.objects.grid.GridCell} instances on a single row.
+ * A GridView is an 2D virtualized control for displaying items in a 2D grid. It offers similar set of features as
+ * {@link gui.objects.table.FilteredTable}, namely sorting, searching and filtering.
  * <p/>
- * This approach means that the number of GridCell instances
- * instantiated will be a significantly smaller number than the number of
- * items in the GridView items list, as only enough GridCells are created for
- * the visible area of the GridView. This helps to improve performance and
- * reduce memory consumption.
- * <p/>
- * Because each {@link gui.objects.grid.GridCell} extends from {@link javafx.scene.control.Cell}, the same approach
- * of cell factories that is taken in other UI controls is also taken in GridView.
- * This has two main benefits:
- * <ol>
- * <li>GridCells are created on demand and without user involvement,
- * <li>GridCells can be arbitrarily complex. A simple GridCell may just have
- * its {@link gui.objects.grid.GridCell#textProperty() text property} set, whereas a more complex
- * GridCell can have an arbitrarily complex scenegraph set inside its
- * {@link gui.objects.grid.GridCell#graphicProperty() graphic property} (as it accepts any Node).
- * </ol>
+ * This container is virtualized - the number of {@link gui.objects.grid.GridCell} instances depends on the number of
+ * items displayed, not total. This helps to improve performance and reduce memory consumption.
  *
  * @param <T> type of item wrapper to hold cached attributes of the item, can be the item type itself
  * @param <F> type of item displayed in a grid
@@ -107,8 +90,6 @@ public class GridView<T, F> extends Control {
 	public final ObjectProperty<Comparator<? super T>> itemsComparator;
 
 	public final V<T> selectedItem = new V<>(null);
-
-	private boolean scrollFlag = true;
 
 	public ObjectField<F,?> primaryFilterField;
 	public final Search search = new Search();
@@ -146,31 +127,6 @@ public class GridView<T, F> extends Control {
 		itemsComparator = itemsSorted.comparatorProperty();
 
 		getStyleClass().add(DEFAULT_STYLE_CLASS);
-
-		// Decrease scrolling speed
-		// The default scrolling speed is simply too much. On my system its more than a full
-		// vertical 'view' which is very confusing as user loses any indication of scrolling amount.
-		// impl: consume scroll events and re-fire with smaller vertical values
-		double factor = 1/3d;
-		addEventFilter(ScrollEvent.ANY, e -> {
-			if (scrollFlag) {
-				Event ne = new ScrollEvent(
-						e.getEventType(), e.getX(), e.getY(), e.getScreenX(), e.getScreenY(),
-						e.isShiftDown(), e.isControlDown(), e.isAltDown(), e.isMetaDown(), e.isDirect(),
-						e.isInertia(), e.getDeltaX(), e.getDeltaY()*factor, e.getTextDeltaX(), e.getTextDeltaY()*factor,
-						e.getTextDeltaXUnits(), e.getTextDeltaX(), e.getTextDeltaYUnits(), e.getTextDeltaY()*factor,
-						e.getTouchCount(), e.getPickResult()
-				);
-				e.consume();
-				scrollFlag = false;
-				runLater(() -> {
-					if (e.getTarget() instanceof Node) {
-						((Node) e.getTarget()).fireEvent(ne);
-					}
-					scrollFlag = true;
-				});
-			}
-		});
 
 		// search
 		addEventHandler(KEY_TYPED, search::onKeyTyped);

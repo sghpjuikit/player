@@ -93,7 +93,7 @@ public class DirViewer extends ClassController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
     @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
-    @IsConfig(name = "Fit image from", info = "Determines whather image will be fit from inside or outside.")
+    @IsConfig(name = "Fit image from", info = "Determines whether image will be fit from inside or outside.")
     final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
@@ -126,7 +126,7 @@ public class DirViewer extends ClassController {
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     File lastVisited = null;
-    Item item = null;   // item, children of which are displayedwid wallpap
+    Item item = null;   // item, children of which are displayed
 
     public DirViewer() {
         files.onListInvalid(list -> revisitTop());

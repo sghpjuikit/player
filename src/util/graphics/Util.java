@@ -29,6 +29,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -38,6 +39,7 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
+import util.access.V;
 import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
 import static java.time.Duration.ofMillis;
@@ -49,6 +51,7 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static util.async.Async.runFX;
+import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
@@ -643,9 +646,41 @@ public interface Util {
 		}
 	}
 
+/* ---------- Events ------------------------------------------------------------------------------------------------ */
+
 	EventHandler<MouseEvent> consumeOnSecondaryButton = e -> {
 		if (e.getButton()==MouseButton.SECONDARY) e.consume();
 	};
+
+	/**
+	 * Increases or increases the scrolling speed (deltaX/Y, textDeltaX/Y of the {@link ScrollEvent#ANY})
+	 * by a multiplication factor.
+	 */
+	static Subscription multiplyMouseScrollingSpeed(Node node, double factor) {
+		V<Boolean> scrollFlag = new V<>(true);
+		EventHandler<ScrollEvent> h = e -> {
+			if (scrollFlag.get()) {
+				Event ne = new ScrollEvent(
+						e.getEventType(), e.getX(), e.getY(), e.getScreenX(), e.getScreenY(),
+						e.isShiftDown(), e.isControlDown(), e.isAltDown(), e.isMetaDown(), e.isDirect(),
+						e.isInertia(), e.getDeltaX()*factor, e.getDeltaY()*factor, e.getTextDeltaX()*factor, e.getTextDeltaY()*factor,
+						e.getTextDeltaXUnits(), e.getTextDeltaX()*factor, e.getTextDeltaYUnits(), e.getTextDeltaY()*factor,
+						e.getTouchCount(), e.getPickResult()
+				);
+				e.consume();
+				scrollFlag.set(false);
+				runLater(() -> {
+					if (e.getTarget() instanceof Node) {
+						((Node) e.getTarget()).fireEvent(ne);
+					}
+					scrollFlag.set(true);
+				});
+			}
+		};
+		node.addEventFilter(ScrollEvent.ANY, h);
+		return () -> node.removeEventFilter(ScrollEvent.ANY, h);
+
+	}
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 

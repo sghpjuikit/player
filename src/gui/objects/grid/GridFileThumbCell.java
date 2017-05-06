@@ -30,9 +30,8 @@ import static util.dev.Util.*;
 import static util.reactive.Util.doOnceIfImageLoaded;
 
 /**
- * Graphics representing the file. Cells are virtualized just like ListView or TableView does
- * it, but both vertically & horizontally. This avoids loading all files at once and allows
- * unlimited scaling.
+ * {@link gui.objects.grid.GridCell} implementation for file using {@link gui.objects.hierarchy.Item}
+ * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
 public class GridFileThumbCell extends GridCell<Item,File> {
 	protected Pane root;

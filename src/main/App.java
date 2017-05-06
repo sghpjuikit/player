@@ -163,8 +163,7 @@ import static util.type.Util.getEnumConstants;
  * Application. Represents the program.
  * <p/>
  * Single instance:<br>
- * Application can only instantiate single instance, any subsequent call to constructor throws
- * an exception.
+ * Application can only instantiate single instance, any subsequent call to constructor throws an exception.
  */
 @IsConfigurable("General")
 public class App extends Application implements Configurable {

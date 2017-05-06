@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.Event;
@@ -45,50 +44,44 @@ import static util.Util.*;
 import static util.dev.Util.throwIf;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHeaderTop;
+import static util.reactive.Util.listChangeListener;
 import static util.reactive.Util.maintain;
 
 public class GViewSkin<T, F> implements Skin<GridView> {
 
-	private final GridView<T,F> control;
+	private final GridView<T,F> grid;
 	private final Flow<T,F> flow;
 	private final VBox root;
 	private final StackPane filterPane = new StackPane();
 
 	public GViewSkin(GridView<T,F> control) {
-		this.control = control;
+		this.grid = control;
 		this.flow = new Flow<>(this);
 
-		maintain(control.cellHeightProperty(), e -> flow.changeItems());
-		maintain(control.cellWidthProperty(), e -> flow.changeItems());
-		maintain(control.horizontalCellSpacingProperty(), e -> flow.changeItems());
-		maintain(control.verticalCellSpacingProperty(), e -> flow.changeItems());
-		maintain(control.widthProperty(), e -> flow.changeItems());
-		maintain(control.heightProperty(), e -> flow.changeItems());
-		maintain(control.cellFactoryProperty(), e -> flow.changeItems());
-		maintain(control.parentProperty(), e -> {
-			if (getSkinnable().getParent()!=null && getSkinnable().isVisible())
-				GViewSkin.this.getSkinnable().requestLayout();
+		maintain(grid.cellHeightProperty(), e -> flow.changeItems());
+		maintain(grid.cellWidthProperty(), e -> flow.changeItems());
+		maintain(grid.horizontalCellSpacingProperty(), e -> flow.changeItems());
+		maintain(grid.verticalCellSpacingProperty(), e -> flow.changeItems());
+		maintain(grid.widthProperty(), e -> flow.changeItems());
+		maintain(grid.heightProperty(), e -> flow.changeItems());
+		maintain(grid.cellFactoryProperty(), e -> flow.changeItems());
+		maintain(grid.parentProperty(), e -> {
+			if (grid.getParent()!=null && grid.isVisible())
+				grid.requestLayout();
 		});
-
-		control.focusedProperty().addListener((o, ov, nv) -> {
+		grid.focusedProperty().addListener((o, ov, nv) -> {
 			if (nv) flow.requestFocus();
 		});
+		grid.getItemsShown().addListener(listChangeListener(e -> flow.changeItems()));
 
 		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
-		filter = new Filter(control.type, control.itemsFiltered);
-
-		ListChangeListener<T> itemsListener = change -> {
-			if (change.next())
-				flow.changeItems();
-		};
-		getSkinnable().getItemsShown().addListener(itemsListener);
-		flow.changeItems();
+		filter = new Filter(grid.type, grid.itemsFiltered);
 
 		// selection
 		flow.addEventHandler(KEY_PRESSED, e -> {
 			KeyCode c = e.getCode();
 			if (c.isNavigationKey()) {
-				if (control.selectOn.contains(SelectionOn.KEY_PRESS)) {
+				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
 					if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
 					if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
 					if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
@@ -107,10 +100,12 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			}
 		});
 		flow.addEventHandler(MOUSE_CLICKED, e -> {
-			if (control.selectOn.contains(SelectionOn.MOUSE_CLICK))
+			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
 				selectNone();
 			flow.requestFocus();
 		});
+
+		flow.changeItems();
 	}
 
 	// TODO: improve API
@@ -130,7 +125,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 	@Override
 	public GridView<T,F> getSkinnable() {
-		return control;
+		return grid;
 	}
 
 	@Override
@@ -450,7 +445,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		private GridCell<T,F> createCell() {
 			GridView<T,F> grid = getSkinnable();
 			GridCell<T,F> cell = grid.getCellFactory().call(grid);
-			cell.updateGridView(grid);
+			cell.gridView.set(grid);
 			cell.addEventHandler(MOUSE_CLICKED, e -> {
 				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) {
 					getSkinnable().implGetSkin().select(cell);
@@ -575,6 +570,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 								snapSizeY(cellHeight)
 						);
 						cell.updateIndex(cellI);
+						cell.update(getAt(cellI, items), cellI==skin.selectedCI);
 					}
 					xPos += cellGapWidth;
 				}

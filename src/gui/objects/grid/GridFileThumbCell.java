@@ -251,7 +251,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 							.supply(Async.FX, () -> thumb.calculateImageLoadSize())
 							.getDone();
 					boolean isReady = is.width>0 || is.height>0;
-					if (!isReady && getIndex()<0 || getIndex()>=getGridView().getItemsShown().size()) return new ImageSize(-1,-1);
+					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
 					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();
 					if (!isReady) sleep(20);
 					return isReady ? is : null;

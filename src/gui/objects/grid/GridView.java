@@ -598,6 +598,7 @@ public class GridView<T, F> extends Control {
 			updateSearchStyleRowsNoReset();
 		}
 
+		// TODO: move to skin
 		void updateSearchStyleRowsNoReset() {
 			boolean searchOn = isActive();
 			getCellsShown().forEach(cell -> {

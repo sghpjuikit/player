@@ -1,5 +1,5 @@
 /*
- * Based on ControlsFX:
+ * Loosely based on ControlsFX:
  *
  * Copyright (c) 2013, ControlsFX
  * All rights reserved.
@@ -135,7 +135,7 @@ public class GridRowSkin<T, F> extends CellSkinBase<GridRow<T,F>> {
 
 	private GridCell<T,F> createCell() {
 		GridCell<T,F> cell = grid.getCellFactory().call(grid);
-		cell.updateGridView(grid);
+		cell.gridView.set(grid);
 		cell.addEventHandler(MOUSE_CLICKED, e -> {
 			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) {
 				gridSkin.select(cell);

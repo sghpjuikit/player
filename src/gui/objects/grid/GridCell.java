@@ -1,4 +1,6 @@
 /*
+ * Loosely based on ControlsFX:
+ *
  * Copyright (c) 2013, 2015, ControlsFX
  * All rights reserved.
  *
@@ -27,18 +29,21 @@
 
 package gui.objects.grid;
 
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Skin;
-import static util.Util.getAt;
+import util.access.V;
 
 /**
- * A GridCell is created to represent items in the {@link GridView} {@link gui.objects.grid.GridView#getItemsShown()}
- * items list.
+ * A cell of {@link GridView}. It contains single item in the {@link gui.objects.grid.GridView#getItemsShown()} list.
  *
  * @see GridView
  */
 public class GridCell<T, F> extends IndexedCell<T> {
+
+	/**
+	 * {@link gui.objects.grid.GridView} this cell belongs to.
+	 */
+	public final V<GridView<T,F>> gridView = new V<>(null);
 
 	public GridCell() {
 		getStyleClass().add("grid-cell");
@@ -48,11 +53,11 @@ public class GridCell<T, F> extends IndexedCell<T> {
 	public void updateIndex(int i) {
 		if (getIndex()==i) return;
 		super.updateIndex(i);
+	}
 
-		GridView<T,F> grid = getGridView();
-		T item = getAt(i, grid.getItemsShown());    // TODO: this should not be here
+	void update(T item, boolean isSelected) {
 		updateItem(item, item==null);
-		updateSelected(i==grid.implGetSkin().selectedCI);
+		updateSelected(isSelected);
 	}
 
 	@Override
@@ -60,26 +65,4 @@ public class GridCell<T, F> extends IndexedCell<T> {
 		return new GridCellSkin<>(this);
 	}
 
-	/**
-	 * The {@link GridView} that this GridCell exists within.
-	 */
-	public SimpleObjectProperty<GridView<T,F>> gridViewProperty() {
-		return gridView;
-	}
-
-	private final SimpleObjectProperty<GridView<T,F>> gridView = new SimpleObjectProperty<>(this, "gridView");
-
-	/**
-	 * Sets the {@link GridView} that this GridCell exists within.
-	 */
-	public final void updateGridView(GridView<T,F> gridView) {
-		this.gridView.set(gridView);
-	}
-
-	/**
-	 * Returns the {@link GridView} that this GridCell exists within.
-	 */
-	public GridView<T,F> getGridView() {
-		return gridView.get();
-	}
 }

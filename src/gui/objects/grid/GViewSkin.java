@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -140,16 +139,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		return flow.getCells();
 	}
 
-	/**
-	 * Returns the number of rows needed to display the whole set of cells
-	 *
-	 * @return GridView row count
-	 */
-	public int getItemCount() {
-		final ObservableList<?> items = getSkinnable().getItemsShown();
-		return items==null ? 0 : (int) Math.ceil((double) items.size()/flow.computeMaxCellsInRow());
-	}
-
 /* ---------- FILTER ------------------------------------------------------------------------------------------------ */
 
 	/** Filter pane in the top of the table. */
@@ -241,7 +230,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
-		return Optional.ofNullable(getSkinnable().primaryFilterField)
+		return Optional.ofNullable(grid.primaryFilterField)
 				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 				.orElse(null);
@@ -282,7 +271,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 	public void selectDown() {
 		int sel = selectedCI + flow.computeMaxCellsInRow();
-		select(min(getSkinnable().getItemsShown().size() - 1, sel));
+		select(min(grid.getItemsShown().size() - 1, sel));
 	}
 
 	public void selectPageUp() {
@@ -292,7 +281,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 	public void selectPageDown() {
 		int sel = selectedCI + flow.computeAvgVisibleCells();
-		select(min(getSkinnable().getItemsShown().size() - 1, sel));
+		select(min(grid.getItemsShown().size() - 1, sel));
 	}
 
 	public void selectFirst() {
@@ -300,12 +289,12 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	public void selectLast() {
-		select(getSkinnable().getItemsShown().size() - 1);
+		select(grid.getItemsShown().size() - 1);
 	}
 
 	public void selectNone() {
 		if (selectedC!=null) selectedC.updateSelected(false);
-		getSkinnable().selectedItem.set(null);
+		grid.selectedItem.set(null);
 		selectedC = null;
 		selectedCI = NO_SELECT;
 	}
@@ -316,14 +305,14 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	public void select(T item) {
-		select(getSkinnable().getItemsShown().indexOf(item));
+		select(grid.getItemsShown().indexOf(item));
 	}
 
 	/** Select cell (and row it is in) at index. No-op if out of range. */
 	public void select(int i) {
 		if (i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
 
-		int itemCount = getSkinnable().getItemsShown().size();
+		int itemCount = grid.getItemsShown().size();
 		int iMin = 0;
 		int iMax = itemCount - 1;
 		if (itemCount==0 || i==selectedCI || !isInRangeInc(i, iMin, iMax)) return;
@@ -331,7 +320,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		selectNone();
 
 		// find index
-		int rows = getItemCount();
+		int rows = flow.computeRowCount();
 		int cols = flow.computeMaxCellsInRow();
 		int row = i/cols;
 
@@ -349,7 +338,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			selectedC = c;
 			selectedC.requestFocus();
 			selectedC.updateSelected(true);
-			getSkinnable().selectedItem.set(c.getItem());
+			grid.selectedItem.set(c.getItem());
 			flow.requestFocus();
 		});
 	}
@@ -515,7 +504,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					// If the cell count decreased, put the removed cells to cache
 					for (int i = visibleCells.size() - 1; i>=itemsVisibleCount; i--) {
 						GridCell<T,F> cell = visibleCells.remove(i);
-//						cell.setItem(null);
+						cell.setItem(null);
 						cell.updateIndex(-1);
 						cell.updateSelected(false);
 						cachedCells.addLast(cell);
@@ -524,7 +513,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 					// If the cell count increased, populate cells with new ones
 					repeat(itemsVisibleCount - visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
-//					repeat(itemsVisibleCount-visibleCells.size(), () -> visibleCells.add(createCell()));
 					throwIf(visibleCells.size()!=itemsVisibleCount);
 
 //					int i = 0;
@@ -543,7 +531,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			if (itemCount==0) return;
 
 			// update cells
-//			visibleCells.forEach(c -> c.updateIndex(-1));
 			double cellWidth = getSkinnable().getCellWidth();
 			double cellHeight = getSkinnable().getCellHeight();
 			int columns = computeMaxCellsInRow();

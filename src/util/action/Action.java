@@ -20,7 +20,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import util.access.V;
-import util.async.Async;
 import util.collections.mapset.MapSet;
 import util.conf.Config;
 import util.conf.IsConfig;
@@ -32,6 +31,7 @@ import util.validation.Constraint;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
+import static util.async.Async.runFX;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.reactive.Util.doOnceIfNonNull;
@@ -191,7 +191,7 @@ public final class Action extends Config<Action> implements Runnable {
 	 */
 	@Override
 	public void run() {
-		Async.runFX(() -> {
+		runFX(() -> {
 			log(Action.class).info("Executing action {}", name);
 			action.run();
 			APP.actionStream.push(name);

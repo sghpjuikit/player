@@ -102,7 +102,7 @@ public class InfoPane extends OverlayPane<Void> {
 		ProcessHandle p = ProcessHandle.current();
 		ProcessHandle.Info pInfo = p.info();
 		EntryStream.of(
-			"pid",          String.valueOf(p.getPid()),
+			"pid",          String.valueOf(p.pid()),
 			"arguments",    pInfo.arguments().map(args -> String.join(", ", args)).orElse(""),
 			"command",      pInfo.command().orElse(""),
 			"commandline",  pInfo.commandLine().orElse(""),

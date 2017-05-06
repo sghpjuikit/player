@@ -49,8 +49,8 @@ public class DirSearchPlugin extends SimplePlugin {
 	private final AtomicLong isUpdatingCache = new AtomicLong(0);
 	private final File cacheFile = childOf(App.APP.DIR_USERDATA, "plugins", NAME, INDEX_FILE_NAME);
 
-	@IsConfig(name = "Search depth", group = Plugin.CONFIG_GROUP + "." + NAME)
-	final RunnableConfig searchDepth = new RunnableConfig("runsearch", "Update cache", Plugin.CONFIG_GROUP + "." + NAME, "", this::updateCache);
+	@IsConfig(name = "Re-index", group = Plugin.CONFIG_GROUP + "." + NAME)
+	final RunnableConfig searchDepth = new RunnableConfig("reindex", "Update cache", Plugin.CONFIG_GROUP + "." + NAME, "", this::updateCache);
 
 	// TODO: use Path or even better, String
 	private List<File> dirs;
@@ -156,7 +156,7 @@ public class DirSearchPlugin extends SimplePlugin {
 		}
 	}
 
-	// TODO: remove and use fast walking with out File::isDirectory
+	// TODO: remove and use fast walking without File::isDirectory
 	private Stream<File> findDirs2(File dir, long id) {
 		return listFiles(dir)
 			.flatMap(file -> {

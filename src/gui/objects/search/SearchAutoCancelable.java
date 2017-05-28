@@ -32,7 +32,7 @@ public abstract class SearchAutoCancelable extends Search {
 	protected final FxTimer searchAutoCanceller = new FxTimer(3000, 1, this::cancel);
 
 	@Override
-	public boolean matches(String text, String query) {
+	public boolean isMatch(String text, String query) {
 		String t = isIgnoreCase ? text.toLowerCase() : text;
 		String q = isIgnoreCase ? query.toLowerCase() : query;
 		return matcher.getValue().predicate.test(t, q);

@@ -40,14 +40,14 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
-import static util.functional.Util.*;
+import static util.functional.Util.by;
+import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
 import static util.reactive.Util.sizeOf;
@@ -100,6 +100,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		// searching
 		search.setColumn(main_field);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
+		search.installOn(root);
 
 		// filtering
 		primaryFilterField = main_field;
@@ -137,9 +138,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		};
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
 		root.addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
-		root.addEventHandler(KEY_TYPED, search::onKeyTyped);
-		root.addEventFilter(KEY_PRESSED, search::onKeyPressed);
-		root.addEventFilter(KEY_PRESSED, search::onEscPressHide);
+
 		// TODO: fix the overkill
 		root.addEventFilter(Event.ANY, e -> {
 			if (search.isActive())
@@ -378,13 +377,13 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		private Menu menu = null;
 
 		@Override
-		public void onSearch(String s) {
+		public void doSearch(String query) {
 			APP.actionStream.push("Table search");
 			if (!getItems().isEmpty()) {
 				for (int i = 0; i<getItems().size(); i++) {
 					T item = getItems().get(i);
 					String itemS = field.getOfS(item, null);
-					boolean isMatch = itemS!=null && matches(itemS, searchQuery.get());
+					boolean isMatch = itemS!=null && isMatchNth(itemS, query);
 					if (isMatch) {
 						scrollToCenter(i);
 						updateSearchStyles();
@@ -422,7 +421,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			for (TableRow<T> row : getRows()) {
 				T item = row.getItem();
 				String itemS = item==null ? null : field.getOfS(item, null);
-				boolean isMatch = itemS!=null && matches(itemS, searchQuery.get());
+				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
 				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch));
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);
@@ -434,7 +433,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			return search.menu!=null;
 		}
 
-		private void buildSearchmenu() {
+		private void buildSearchMenu() {
 			menu = buildSingleSelectionMenu("Search column", getFields(), field, ObjectField::name, this::setColumn);
 			columnMenu.getItems().add(menu);
 		}
@@ -487,7 +486,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	@Override
 	public TableColumnInfo getDefaultColumnInfo() {
 		TableColumnInfo tci = super.getDefaultColumnInfo();
-		if (!search.isMenuCreated()) search.buildSearchmenu();
+		if (!search.isMenuCreated()) search.buildSearchMenu();
 		return tci;
 	}
 

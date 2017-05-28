@@ -8,7 +8,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static util.dev.Util.noØ;
 
 /**
@@ -35,7 +34,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	 */
 	protected final Search search = new Search() {
 		@Override
-		public void onSearch(String s) {
+		public void doSearch(String query) {
 			@SuppressWarnings("unchecked")
 			ListView<T> items = (ListView) ((ComboBoxListViewSkin) getSkin()).getPopupContent();
 			// scroll to match
@@ -43,7 +42,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 				for (int i = 0; i<getItems().size(); i++) {
 					T e = getItems().get(i);
 					String es = toStringConverter.apply(e);
-					if (matches(es, searchQuery.get())) {
+					if (isMatchNth(es, query)) {
 						items.scrollTo(i);
 						// items.getSelectionModel().select(i); // TODO: make this work reasonably well
 						break;
@@ -53,7 +52,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 		}
 
 		@Override
-		public boolean matches(String text, String query) {
+		public boolean isMatch(String text, String query) {
 			return text.toLowerCase().contains(query.toLowerCase());
 		}
 	};
@@ -101,9 +100,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 		setValue(null);
 
 		// search
-		addEventHandler(KEY_TYPED, search::onKeyTyped);
-		addEventFilter(KEY_PRESSED, search::onKeyPressed);
-		addEventFilter(KEY_PRESSED, search::onEscPressHide);
+		search.installOn(this);
 
 		// improved keyboard UX
 		addEventHandler(KEY_PRESSED, e -> {

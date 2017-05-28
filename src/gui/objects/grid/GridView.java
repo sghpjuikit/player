@@ -53,8 +53,6 @@ import static gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static java.util.Collections.unmodifiableList;
 import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
 
@@ -129,9 +127,7 @@ public class GridView<T, F> extends Control {
 		getStyleClass().add(DEFAULT_STYLE_CLASS);
 
 		// search
-		addEventHandler(KEY_TYPED, search::onKeyTyped);
-		addEventFilter(KEY_PRESSED, search::onKeyPressed);
-		addEventFilter(KEY_PRESSED, search::onEscPressHide);
+		search.installOn(this);
 		addEventFilter(Event.ANY, e -> {
 			if (search.isActive())
 				search.updateSearchStyles();
@@ -532,10 +528,11 @@ public class GridView<T, F> extends Control {
 
 	class Search extends SearchAutoCancelable {
 		@Override
-		public void onSearch(String s) {
+		public void doSearch(String query) {
 			for (int i = 0; i<getItemsShown().size(); i++) {
-				String item = filterByMapper.apply(getItemsShown().get(i)).toString();
-				if (matches(item, searchQuery.get())) {
+				T item = getItemsShown().get(i);
+				String itemS = item==null ? null : filterByMapper.apply(item).toString();
+				if (itemS!=null && isMatchNth(itemS, query)) {
 					implGetSkin().select(i);
 					updateSearchStyles();
 					break;
@@ -558,9 +555,9 @@ public class GridView<T, F> extends Control {
 		void updateSearchStyleRowsNoReset() {
 			boolean searchOn = isActive();
 			getCellsShown().forEach(cell -> {
-				T t = cell.getItem();
-				String item = t==null ? null : filterByMapper.apply(t).toString();
-				boolean isMatch = item!=null && matches(item, searchQuery.get());
+				T item = cell.getItem();
+				String itemS = item==null ? null : filterByMapper.apply(item).toString();
+				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());
 				cell.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
 				cell.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);
 			});

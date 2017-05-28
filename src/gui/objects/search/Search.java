@@ -3,11 +3,15 @@ package gui.objects.search;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.css.PseudoClass;
+import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
+import static java.lang.Math.max;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.util.Duration.millis;
 import static util.Util.removeLastChar;
 
@@ -26,30 +30,41 @@ public abstract class Search {
 
 	protected long searchTime = -1;
 	protected Duration searchTimeMax = millis(500);
+
 	/**
 	 * Text against which the records are being matched against.
 	 * Can be empty or consist of only whitespaces.
 	 */
 	public final StringProperty searchQuery = new SimpleStringProperty("");
-	protected KeyCode pressedKeyCode;
+	private Integer searchIndex = 0;
+	private Integer selectionIndex = 0;
+	private final KeyCode keyCancel = KeyCode.ESCAPE;
+	private final KeyCode keyNextOccurrence = KeyCode.ENTER;
+	private KeyCode pressedKeyCode;
+
 
 	/**
-	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event.
-	 *
-	 * @param e event to handle
-	 * @apiNote Use as event filter in form of method reference.
+	 * Installs the behavior of this search on specified node. This involves adding appropriate event handlers for
+	 * actions like canceling search or traversing search matches.
 	 */
-	public void onKeyPressed(KeyEvent e) {
-		pressedKeyCode = e.getCode();
+	public void installOn(Node targetNode) {
+		targetNode.addEventHandler(KEY_TYPED, this::onKeyTyped);
+		targetNode.addEventFilter(KEY_PRESSED, this::onKeyPress);
 	}
 
 	/**
-	 * Note: must be called on {@link KeyEvent#KEY_TYPED} event.
+	 * Invokes search with specified query.
 	 *
-	 * @param e event to handle
-	 * @apiNote Use as event handler in form of method reference.
+	 * @param query string to match records against
 	 */
-	public void onKeyTyped(KeyEvent e) {
+	public final void search(String query) {
+		search(query, System.currentTimeMillis());
+	}
+
+	/**
+	 * Note: must be called on {@link KeyEvent#KEY_TYPED} event as event handler
+	 */
+	private void onKeyTyped(KeyEvent e) {
 		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER) return;
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown())
 			return;
@@ -61,30 +76,54 @@ public abstract class Search {
 			// update scroll text
 			long now = System.currentTimeMillis();
 			boolean append = searchTime==-1 || now - searchTime<searchTimeMax.toMillis();
-			searchQuery.set(k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get() + letter : letter);
-			searchTime = now;
-			onSearch(searchQuery.get());
+			String query = k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get() + letter : letter;
+			selectionIndex = 0;
+			search(query, now);
 			e.consume();
 		}
 	}
 
 	/**
-	 * Cancels search and consumes even iff event's key code is {@link KeyCode#ESCAPE}
-	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event.
-	 *
-	 * @param e event to handle
-	 * @apiNote Use as event filter in form of method reference.
+	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event as event filter.
 	 */
-	public void onEscPressHide(KeyEvent e) {
-		if (e.getCode()==ESCAPE && isActive()) {
-			cancel();
-			e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+	private void onKeyPress(KeyEvent e) {
+		pressedKeyCode = e.getCode();
+
+		if (isActive()) {
+			if (e.getCode()==keyCancel) {
+				cancel();
+				e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+			}
+			if (e.getCode()==keyNextOccurrence) {
+				if (e.isShiftDown()) selectionIndex = max(0,selectionIndex-1);
+				else selectionIndex++;	// min(matchesCount-1, selectionIndex+1)	// TODO: requires complete search iteration
+
+				search(searchQuery.get());
+				e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+			}
 		}
 	}
 
-	public abstract void onSearch(String s);
+	private void search(String query, long now) {
+		searchQuery.set(query);
+		searchTime = now;
+		searchIndex = 0;
+		doSearch(query);
+	}
 
-	public abstract boolean matches(String text, String query);
+	protected abstract void doSearch(String query);
+
+	protected abstract boolean isMatch(String text, String query);
+
+	protected boolean isMatchNth(String text, String query) {
+		return isMatch(text, query) && isMatchSelected();
+	}
+
+	private boolean isMatchSelected() {
+		boolean b = selectionIndex.equals(searchIndex);
+		searchIndex++;
+		return b;
+	}
 
 	/**
 	 * Returns whether search is active.
@@ -101,5 +140,7 @@ public abstract class Search {
 	 */
 	public void cancel() {
 		searchQuery.set("");
+		searchIndex = 0;
+		selectionIndex = 0;
 	}
 }

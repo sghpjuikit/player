@@ -97,6 +97,7 @@ public class AppLauncher extends ClassController {
 
         files.onListInvalid(list -> visit());
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
+        grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this,grid,0d);

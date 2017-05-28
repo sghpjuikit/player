@@ -44,7 +44,7 @@ public class ColumnField implements ObjectField<Object,Integer> {
 	}
 
 	@Override
-	public String toS(Integer o, String empty_val) {
+	public String toS(Integer o, String substitute) {
 		return "";
 	}
 

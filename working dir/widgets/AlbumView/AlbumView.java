@@ -88,6 +88,7 @@ public class AlbumView extends ClassController {
 	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
 
 	public AlbumView() {
+		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
 		view.setCellFactory(grid -> new AlbumCell());
 		view.selectedItem.onChange(item -> {

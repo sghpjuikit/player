@@ -1306,13 +1306,13 @@ public final class Metadata extends MetaItem<Metadata> {
 		}
 
 		@Override
-		public String toS(T o, String empty_val) {
-			if (o==null || "".equals(o)) return empty_val;
+		public String toS(T o, String substitute) {
+			if (o==null || "".equals(o)) return substitute;
 			if (this==RATING_RAW)
-				return RATING_EMPTY==o ? empty_val : o.toString(); // we leverage Integer caching, hence ==
-			if (this==RATING) return RATINGP_EMPTY.equals(o) ? empty_val : String.format("%.2f", (double) o);
+				return RATING_EMPTY==o ? substitute : o.toString(); // we leverage Integer caching, hence ==
+			if (this==RATING) return RATINGP_EMPTY.equals(o) ? substitute : String.format("%.2f", (double) o);
 			if (this==DISC || this==DISCS_TOTAL || this==TRACK || this==TRACKS_TOTAL || this==PLAYCOUNT)
-				return equalNull(getOf(EMPTY), o) ? empty_val : o.toString();
+				return equalNull(getOf(EMPTY), o) ? substitute : o.toString();
 			return o.toString();
 		}
 

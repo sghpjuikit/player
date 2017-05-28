@@ -239,25 +239,25 @@ public final class MetadataGroup {  // TODO: make generic by value
 		}
 
 		@Override
-		public String toS(T o, String empty_val) {
+		public String toS(T o, String substitute) {
 			if (this==VALUE) return o==null || "".equals(o) ? "<none>" : o.toString();
 			if (this==ITEMS || this==ALBUMS || this==LENGTH || this==SIZE || this==AVG_RATING || this==W_RATING)
 				return o.toString();
 			if (this==YEAR) {
 				RangeYear y = (RangeYear) o;
-				return y==null || !y.hasSpecific() ? empty_val : y.toString();
+				return y==null || !y.hasSpecific() ? substitute : y.toString();
 			}
 			throw new SwitchException(this);
 		}
 
 		@SuppressWarnings("unchecked") // TODO: handle better, generify this class
 		@Override
-		public String toS(MetadataGroup v, T o, String empty_val) {
+		public String toS(MetadataGroup v, T o, String substitute) {
 			if (this==VALUE) {
 				if (v==null || v.all_flag) return "<any>";
 				return v.getField().toS(o, "<none>");
 			} else {
-				return toS(o, empty_val);
+				return toS(o, substitute);
 			}
 		}
 

@@ -111,8 +111,8 @@ public class FileField<T> implements ObjectField<File,T> {
 	}
 
 	@Override
-	public String toS(T o, String empty_val) {
-		return o==null ? empty_val : o.toString();
+	public String toS(T o, String substitute) {
+		return o==null ? substitute : o.toString();
 	}
 
 	@Override

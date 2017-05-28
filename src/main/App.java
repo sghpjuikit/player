@@ -96,7 +96,7 @@ import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
-import util.access.fieldvalue.ObjectField.ColumnField;
+import util.access.fieldvalue.ColumnField;
 import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
@@ -877,7 +877,6 @@ public class App extends Application implements Configurable {
 				parameterProcessor.process(fetchParameters());
 			})
 			.isOk();
-
 	}
 
 	/** Starts this application normally if not yet started that way, otherwise has no effect. */
@@ -1194,6 +1193,7 @@ public class App extends Application implements Configurable {
 		static void openIconViewer() {
 			double iconSize = 45;
 			GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
+			grid.search.field = (object, substitute) -> object==null ? substitute : object.name();
 			grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS));
 			grid.setCellFactory(view -> new GridCell<>() {
 //			    Anim a;

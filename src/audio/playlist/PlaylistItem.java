@@ -397,8 +397,8 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 		public boolean isTypeNumberNoNegative() { return true; }
 
 		@Override
-		public String toS(T o, String empty_val) {
-			if (this==NAME || this==TITLE || this==ARTIST) return "".equals(o) ? empty_val : o.toString();
+		public String toS(T o, String substitute) {
+			if (this==NAME || this==TITLE || this==ARTIST) return "".equals(o) ? substitute : o.toString();
 			if (this==LENGTH || this==PATH || this==FORMAT) return o.toString();
 			throw new SwitchException(this);
 		}

@@ -1,10 +1,7 @@
 package util.access.fieldvalue;
 
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Function;
-import util.SwitchException;
 import util.access.TypedValue;
 import static util.dev.Util.noØ;
 import static util.functional.Util.by;
@@ -13,12 +10,13 @@ import static util.functional.Util.by;
  * @param <V> type of value this field extracts from
  * @param <T> type of this field and the type of the extracted value
  */
-public interface ObjectField<V, T> extends TypedValue<T> {
+public interface ObjectField<V, T> extends TypedValue<T>, StringGetter<V> {
 
 	T getOf(V value);
 
-	default String getOfS(V value, String emptyValue) {
-		return toS(getOf(value), emptyValue);
+	@Override
+	default String getOfS(V value, String substitute) {
+		return toS(getOf(value), substitute);
 	}
 
 	/** Returns description of the field. */
@@ -48,9 +46,9 @@ public interface ObjectField<V, T> extends TypedValue<T> {
 
 	/**
 	 * Used as string converter for fielded values. For example in tables.
-	 * When the object signifies empty value, empty string is returned.
+	 * When the object signifies empty value, a substitute is returned.
 	 */
-	String toS(T o, String empty_val);
+	String toS(T o, String substitute);
 
 	/**
 	 * Returns a comparator comparing by the value extracted by this field or {@link util.functional.Util#SAME} if
@@ -82,8 +80,8 @@ public interface ObjectField<V, T> extends TypedValue<T> {
 				: (Comparator) util.functional.Util.SAME;
 	}
 
-	default String toS(V v, T o, String empty_val) {
-		return ObjectField.this.toS(o, empty_val);
+	default String toS(V v, T o, String substitute) {
+		return ObjectField.this.toS(o, substitute);
 	}
 
 	/**

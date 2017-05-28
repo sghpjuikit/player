@@ -73,7 +73,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	/**
 	 * @param type exact type of the item displayed in the table
-	 * @param main_field field to determine primary filtering field and search column. Can be null Initializes {@link
+	 * @param main_field field to determine primary filtering field and search column. Can be null. Initializes {@link
 	 * gui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
 	 * @param backing_list non null backing list of items to be displayed in the table
 	 */

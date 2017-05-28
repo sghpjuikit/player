@@ -23,7 +23,7 @@ import javafx.scene.layout.Pane;
 import main.App;
 import util.Sort;
 import util.access.fieldvalue.ObjectField;
-import util.access.fieldvalue.ObjectField.ColumnField;
+import util.access.fieldvalue.ColumnField;
 import util.functional.Functors.Ƒ1;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;

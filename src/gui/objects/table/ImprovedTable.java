@@ -22,7 +22,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import util.Util;
-import util.access.fieldvalue.ObjectField.ColumnField;
+import util.access.fieldvalue.ColumnField;
 import static java.lang.Math.*;
 import static util.Util.zeroPad;
 import static util.graphics.Util.computeFontWidth;

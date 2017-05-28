@@ -29,7 +29,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
-import static util.access.fieldvalue.ObjectField.ColumnField.INDEX;
+import static util.access.fieldvalue.ColumnField.INDEX;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
 import static util.graphics.drag.DragUtil.installDrag;

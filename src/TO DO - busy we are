@@ -7,9 +7,9 @@
 - subclass WidgetArea for standalone widget to adjust graphics for popup
 - clean up Action and its keys handling, including the ConfigField
 - clean up ConfigField implementations, observability, validation, value correctness
-- Tagger reimplement validations trough Configs
-- converter transform off when just typing
-- converter default area !set
+- Converter
+    - transform off when just typing
+    - default area !set
 - handle licences properly
 - add and implement properly componentFactories to natively support custom user pseudo-components, also
   solve the Factory name() problem, may wanna move customName property from Widget to Component and make PseudoFactory
@@ -38,6 +38,7 @@
       there have to be default values as well, preferably settable per i/o in widget controller
 - impl filter in Settings
 - DirViewer
+    - make search field configurable + use ObjectField for both cell item and cell value
     - conf gui header
     - implement smart image cache, we must not cache all images, gifs can kill app instantly
     - reload thumbnails when thumb size increase
@@ -66,8 +67,10 @@
 - config field add checkbox list config field, implement for fileInfo
 - volume add linear vs logarithmic option
 - make generic rater control, use in FileInfo
-- tagger add icons to reset and defaults
-- tagger cover loading optimize
+- Tagger
+    - add icons to reset and defaults
+    - cover loading optimize
+    - reimplement validations trough Configs
 - popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random play order

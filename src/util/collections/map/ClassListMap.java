@@ -6,7 +6,7 @@ import java.util.function.Function;
 import util.collections.map.abstr.MapByClass;
 
 /**
- * Multi value per key version of {@link ClassMap}.
+ * Multiple value per key version of {@link util.collections.map.ClassMap}.
  */
 public class ClassListMap<E> extends CollectionMap<E,Class<?>,List<E>> implements MapByClass<E> {
 

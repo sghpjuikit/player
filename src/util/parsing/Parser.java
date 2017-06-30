@@ -112,6 +112,7 @@ public abstract class Parser {
 	 */
 	public static final Parser FX = new Parser() {
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> Try<T,String> ofS(Class<T> type, String text) {
 			// improve performance by not creating any Config/Configurable, premature optimization
@@ -120,7 +121,7 @@ public abstract class Parser {
 				Class<?> objecttype = Class.forName(vals[0]);
 				if (type!=null && !type.isAssignableFrom(objecttype))
 					throw new Exception(); // optimization, avoids next line
-				T v = (T) objecttype.newInstance();
+				T v = (T) objecttype.getConstructor().newInstance();
 				Configurable c = Configurable.configsFromFxPropertiesOf(v);
 				stream(vals).skip(1)
 						.forEach(str -> {
@@ -277,8 +278,8 @@ public abstract class Parser {
 	 */
 	public static class DefaultParser extends Parser {
 
-		private final ClassMap<Function<Object,Try<String,String>>> parsersToS = new ClassMap<>();
-		private final ClassMap<Function<String,Try<Object,String>>> parsersFromS = new ClassMap<>();
+		private final ClassMap<Function<? super Object,Try<String,String>>> parsersToS = new ClassMap<>();
+		private final ClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new ClassMap<>();
 
 		public <T> void addParser(Class<T> c, StringConverter<T> parser) {
 			addParser(c, parser::toS, parser::ofS);
@@ -310,29 +311,29 @@ public abstract class Parser {
 			noØ(c, "Parsing type must be specified!");
 			noØ(s, "Parsing null not allowed!");
 			if (CONSTANT_NULL.equals(s)) return ok(null);
-			return (Try) getParserOfS(c).apply(s);
+			return getParserOfS(c).apply(s);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> String toS(T o) {
 			if (o==null) return CONSTANT_NULL;
-//            String s = ((Function<T,Try<String,String>>)getParserToS(o.getClass())).apply(o).getOr(null);
 			String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
 			return noNull(s, CONSTANT_NULL);
 		}
 
 		@SuppressWarnings("unchecked")
-		private <T> Function<String,Try<? extends T,String>> getParserOfS(Class<T> c) {
-			return (Function) parsersFromS.computeIfAbsent(c, key -> findOfSparser(key));
-		}
-
-		private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
-			return parsersToS.computeIfAbsent(c, this::findToSparser);
+		private <T> Function<? super String,Try<T,String>> getParserOfS(Class<T> c) {
+			return (Function) parsersFromS.computeIfAbsent(c, key -> (Function) findOfSparser(key));
 		}
 
 		@SuppressWarnings("unchecked")
-		private <T> Function<String,Try<? extends T,String>> findOfSparser(Class<T> c) {
+		private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
+			return parsersToS.computeIfAbsent(c, key -> (Function) findToSparser(key));
+		}
+
+		@SuppressWarnings("unchecked")
+		private <T> Function<? super String,Try<T,String>> findOfSparser(Class<T> c) {
 			return (Function) noNull(
 					() -> parsersFromS.getElementOfSuper(c),
 					() -> buildOfSParser(c),
@@ -352,6 +353,7 @@ public abstract class Parser {
 
 	/******************************************************************************/
 
+	@SuppressWarnings("ConstantConditions")
 	private static <T> Function<String,Try<T,String>> buildOfSParser(Class<T> type) {
 		Function<String,Try<T,String>> ofS = null;
 		StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
@@ -360,6 +362,26 @@ public abstract class Parser {
 			From strategy = a.from();
 			if (strategy==From.NONE) {
 				throw new IllegalArgumentException("Failed to create from string converter. Class '" + type + "'s parsing strategy forbids parsing from string.");
+			} else if (strategy==From.SINGLETON) {
+				String fieldName = "INSTANCE";
+				try {
+					Field f = type.getDeclaredField(fieldName);
+					Class<?> fType = f.getType();
+					if (!Modifier.isStatic(f.getModifiers())) throw new NoSuchFieldException(fieldName + " field must be static=" + fType);
+					if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
+
+					ofS = text -> {
+						try {
+							//noinspection unchecked
+							return Try.ok((T) f.get(null));
+						} catch (IllegalAccessException e) {
+							throw new IllegalStateException("Field " + f + " is not accessible");
+						}
+					};
+
+				} catch(NoSuchFieldException e) {
+					throw new IllegalArgumentException("Failed to create from string converter. Singleton class " + type + " has no public static " + fieldName + " field");
+				}
 			} else if (strategy==From.ANNOTATED_METHOD) {
 				Invokable<T> invokable = null;  // in class T returns ?
 
@@ -408,6 +430,8 @@ public abstract class Parser {
 				return in -> ok(constant);
 			} else if (strategy==To.NONE) {
 				throw new IllegalArgumentException("Failed to create to string converter. Class '" + c + "'s parsing strategy forbids parsing to string.");
+			} else if (strategy==To.SINGLETON) {
+				return in -> ok(in.getClass().getName());
 			} else if (strategy==To.ANNOTATED_METHOD) {
 				Method m = getMethodAnnotated(c, ParsesToString.class);
 				if (m==null || m.getReturnType()!=String.class || (!m.isVarArgs() && m.getParameterCount()>1) || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))

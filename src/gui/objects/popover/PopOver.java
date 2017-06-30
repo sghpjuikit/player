@@ -784,6 +784,11 @@ public class PopOver<N extends Node> extends PopupControl {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+	/** Whether resizing by user is allowed. */
+	public final BooleanProperty userResizable = new SimpleBooleanProperty(true);
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
 	// TODO: add css support for the gap value
 	// gap between screen border and the popover
 	// note that the practical value is (GAP-padding)/2 so if padding is 4
@@ -989,10 +994,8 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	/******************************************************************************/
 
-	// arrow size support
 	// TODO: make styleable
-	private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,
-			"arrowSize", 9);
+	private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,"arrowSize", 9);
 
 	/**
 	 * Controls the size of the arrow. Default value is 12.
@@ -1030,10 +1033,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		arrowSizeProperty().set(size);
 	}
 
-	// arrow indent support
 	// TODO: make styleable
-	private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this,
-			"arrowIndent", 12);
+	private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this, "arrowIndent", 12);
 
 	/**
 	 * Controls the distance between the arrow and the corners of the pop over.

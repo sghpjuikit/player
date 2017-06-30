@@ -60,8 +60,7 @@ public class Image extends FXMLController implements ImageDisplayFeature {
             e -> {
                 Fut<File> future = DragUtil.getImage(e);
                 future.use(FX, this::showImage)
-                      .showProgress(!future.isDone(),getWidget().getWindow()::taskAdd)
-                      .run();
+                      .showProgress(!future.isDone(), getWidget().getWindow()::taskAdd);
             }
         );
     }

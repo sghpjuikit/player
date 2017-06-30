@@ -7,12 +7,10 @@ import javafx.scene.control.TableColumn;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-import util.plugin.IsPlugin;
 import static java.lang.Math.round;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as text from '' to '*****'. */
-@IsPlugin
 @StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Text star")
 public class TextStarRatingCellFactory implements RatingCellFactory {
 	private static final String s0 = "";
@@ -35,20 +33,16 @@ public class TextStarRatingCellFactory implements RatingCellFactory {
 
 			@Override
 			protected void updateItem(Double item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty) {
+				super.updateItem(item, empty); if (empty) {
 					setText(null);
 				} else {
-					int r = (int) round(item/0.2);
-					String s;
-					if (r==0) s = s0;
+					int r = (int) round(item/0.2); String s; if (r==0) s = s0;
 					else if (r==1) s = s1;
 					else if (r==2) s = s2;
 					else if (r==3) s = s3;
 					else if (r==4) s = s4;
 					else if (r==5) s = s5;
-					else s = null;
-					setText(s);
+					else s = null; setText(s);
 				}
 			}
 		};

@@ -13,6 +13,7 @@ import util.functional.Try;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static util.dev.Util.log;
+import static util.file.Util.readFileLines;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
 
@@ -51,7 +52,7 @@ public final class AppSerializer {
 	public <T> Try<T,SerializationException> fromXML(Class<T> type, File file) {
 		// pre-processing
 		String varDefinition = "#def ";
-		List<String> lines = util.file.Util.readFileLines(file).collect(toList());
+		List<String> lines = readFileLines(file).collect(toList());
 		Map<String,String> variables = lines.stream()
 				.filter(l -> l.startsWith(varDefinition))
 				.map(l -> l.substring(varDefinition.length()))

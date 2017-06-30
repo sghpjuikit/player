@@ -120,6 +120,7 @@ public interface Util {
 		if (!dir.canRead())
 			validity = dir.setReadable(true);
 		if (!dir.canWrite())
+			// TODO: flawed logic... overwriting previous value
 			validity = dir.setWritable(true);
 
 		return validity;

@@ -46,7 +46,6 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
-import services.database.Db;
 import services.notif.Notifier;
 import util.access.V;
 import util.async.future.Fut;
@@ -521,8 +520,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
                         hideProgress();
                     });
-                })
-            .run();
+                });
         }
     }
 
@@ -636,7 +634,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                Comparator<String> cmp = String::compareTo;
                autoComplete(
                    (TextField)c,
-                   p -> Db.string_pool.getStrings(n).stream()
+                   p -> APP.db.getStringPool().getStrings(n).stream()
                           .filter(a -> a.startsWith(p.getUserText()))
                           .sorted(f!=YEAR ? cmp : cmp.reversed())
                           .collect(toList())

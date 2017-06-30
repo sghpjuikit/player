@@ -238,7 +238,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
 		return stream(App.APP.classFields.get(filterType))
-				.filter(ObjectField::isTypeStringRepresentable)
+				.filter(ObjectField::isTypeString)
 				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 				.sorted(by(e -> e.name))

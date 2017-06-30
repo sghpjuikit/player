@@ -24,6 +24,7 @@ public class Notification extends PopOver<Node> {
 	public Notification() {
 		detached.set(false);
 		detachable.set(false);
+		userResizable.set(false);
 		setHideOnEscape(false);
 		setArrowSize(0);
 		setArrowIndent(0);

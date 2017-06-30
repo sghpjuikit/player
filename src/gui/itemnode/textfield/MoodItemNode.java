@@ -4,10 +4,10 @@ import audio.tagging.Metadata;
 import gui.objects.picker.MoodPicker;
 import gui.objects.popover.PopOver;
 import gui.objects.popover.PopOver.NodePos;
-import services.database.Db;
 import util.access.V;
 import util.parsing.Parser;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
+import static main.App.APP;
 import static util.functional.Util.filter;
 
 /**
@@ -26,7 +26,7 @@ public class MoodItemNode extends TextFieldItemNode<String> {
 	public MoodItemNode() {
 		super(Parser.DEFAULT.toConverterOf(String.class));
 		setEditable(true);
-		autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocompletionFilter.apply(t, p.getUserText())));
+		autoComplete(this, p -> filter(APP.db.getStringPool().getStrings(Metadata.Field.MOOD.name()), t -> APP.db.getAutocompletionFilter().apply(t, p.getUserText())));
 	}
 
 	@Override

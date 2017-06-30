@@ -159,7 +159,6 @@ public abstract class Component {
 		File f = new File(dir,name + ".fxwl");
 		App.APP.serializators.toXML(this, f)
 			.ifError(e -> log(Component.class).error("Failed to export component {}", getName(), e));
-
 	}
 
 	public void swapWith(Container c, int i) {

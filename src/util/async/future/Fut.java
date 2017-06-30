@@ -21,9 +21,10 @@ import static util.dev.Util.noØ;
  * Oriented for practicality, not specification (monadic laws) or robustness (API completeness).
  * This is still work in progress.
  */
-public class Fut<T> implements Runnable {
+@SuppressWarnings({"unused", "UnusedReturnValue"})
+public class Fut<T> {
 
-	public CompletableFuture<T> f;
+	private CompletableFuture<T> f;
 
 	public Fut(CompletableFuture<T> future) {
 		f = future;
@@ -47,8 +48,6 @@ public class Fut<T> implements Runnable {
 
 	public static <T> Fut<T> futWith(Supplier<T> t) {
 		noØ(t);
-		// TODO: investigate and implement or remove
-//        return new Fut<>().supply(t);
 		return new Fut<>(CompletableFuture.supplyAsync(t));
 	}
 
@@ -106,67 +105,65 @@ public class Fut<T> implements Runnable {
 		f.cancel(mayInterruptIfRunning);
 	}
 
-	public final <R> Fut<R> map(Function<? super T,R> action) {
+	public <R> Fut<R> map(Function<? super T,R> action) {
 		return new Fut<>(f.thenApplyAsync(action));
 	}
 
-	public final <R> Fut<R> map(Executor executor, Function<? super T,R> action) {
+	public <R> Fut<R> map(Executor executor, Function<? super T,R> action) {
 		return new Fut<>(f.thenApplyAsync(action, executor));
 	}
 
-	public final <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,R> action) {
+	public <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,R> action) {
 		return new Fut<>(f.thenApplyAsync(action, executor::accept));
 	}
 
-	public final <R> Fut<R> supply(R value) {
+	public <R> Fut<R> supply(R value) {
 		return supply(() -> value);
 	}
 
-	public final <R> Fut<R> supply(Supplier<R> action) {
-		return Fut.this.map(r -> action.get());
+	public <R> Fut<R> supply(Supplier<R> action) {
+		return map(r -> action.get());
 	}
 
-	public final <R> Fut<R> supply(Fut<R> action) {
+	public <R> Fut<R> supply(Fut<R> action) {
 		return new Fut<>(CompletableFuture.<Void>completedFuture(null)
 				.thenCompose(res -> f)
 				.thenCompose(res -> action.f));
 	}
 
-	public final <R> Fut<R> supply(Executor executor, Supplier<R> action) {
-		return Fut.this.map(executor, r -> action.get());
-	}
-
-	public final <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<R> action) {
+	public <R> Fut<R> supply(Executor executor, Supplier<R> action) {
 		return map(executor, r -> action.get());
 	}
 
-	public final Fut<T> use(Consumer<T> action) {
-//        f = f.thenApplyAsync(r -> {action.accept(r); return r; });
-//        return this;
+	public <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<R> action) {
+		return map(executor, r -> action.get());
+	}
+
+	public Fut<T> use(Consumer<T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
 	}
 
-	public final Fut<T> use(Executor executor, Consumer<T> action) {
+	public Fut<T> use(Executor executor, Consumer<T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
 	}
 
-	public final Fut<T> use(Consumer<Runnable> executor, Consumer<T> action) {
+	public Fut<T> use(Consumer<Runnable> executor, Consumer<T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor::accept));
 	}
 
-	public final Fut<T> then(Runnable action) {
+	public Fut<T> then(Runnable action) {
 		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
 	}
 
-	public final Fut<T> then(Executor executor, Runnable action) {
+	public Fut<T> then(Executor executor, Runnable action) {
 		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));
 	}
 
-	public final Fut<T> then(Consumer<Runnable> executor, Runnable action) {
+	public Fut<T> then(Consumer<Runnable> executor, Runnable action) {
 		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
 	}
 
-	public final <R> Fut<R> then(CompletableFuture<R> action) {
+	public <R> Fut<R> then(CompletableFuture<R> action) {
 		return new Fut<>(f.thenComposeAsync(res -> action));
 	}
 
@@ -188,7 +185,7 @@ public class Fut<T> implements Runnable {
 	 * part of its computation. This will cause only that computation to be bound to
 	 * the progress.
 	 */
-	public final Fut<T> showProgress(Optional<ProgressIndicator> p) {
+	public Fut<T> showProgress(Optional<ProgressIndicator> p) {
 		return p.map(this::showProgress).orElse(this);
 	}
 
@@ -196,7 +193,7 @@ public class Fut<T> implements Runnable {
 	 * Invokes {@link #showProgress(java.util.Optional)} using new progress indicator in the currently active window, or
 	 * empty optional if no window is empty.
 	 */
-	public final Fut<T> showProgressOnActiveWindow() {
+	public Fut<T> showProgressOnActiveWindow() {
 		return showProgress(APP.windowManager.getActive().map(Window::taskAdd));
 	}
 
@@ -204,7 +201,7 @@ public class Fut<T> implements Runnable {
 	 * @param p nonnull progress indicator
 	 * @throws java.lang.RuntimeException if any param null
 	 */
-	public final Fut<T> showProgress(ProgressIndicator p) {
+	public Fut<T> showProgress(ProgressIndicator p) {
 		noØ(p);
 		return new Fut<>(CompletableFuture
 				.runAsync(() -> p.setProgress(-1), eFX)
@@ -221,22 +218,21 @@ public class Fut<T> implements Runnable {
 	 * @param sp function that supplies nonnull progress indicator
 	 * @return this (fluent style)
 	 */
-	public final Fut<T> showProgress(boolean condition, Supplier<ProgressIndicator> sp) {
-		if (condition) {
-			return showProgress(sp.get());
-		} else
-			return this;
+	public Fut<T> showProgress(boolean condition, Supplier<ProgressIndicator> sp) {
+		return condition ? showProgress(sp.get()) : this;
 	}
 
 	public <R> Fut<R> thenChain(Ƒ1<Fut<T>,Fut<R>> then) {
 		return then.apply(this);
 	}
-
-	// TODO: remove
-	@Deprecated
-	@Override
-	public void run() {
-		f.thenRunAsync(() -> {}).complete(null);
+	
+	// TODO: shouldnt this be on by default? Solve the problem of common ForkJoinPool consuming exceptions
+	public Fut<T> printExceptions() {
+		f.exceptionally(x -> {
+			x.printStackTrace();
+			return null;
+		});
+		return this;
 	}
 
 }

@@ -1,12 +1,17 @@
 package imageViewer;
 
+import audio.Item;
+import audio.Player;
+import audio.tagging.Metadata;
+import gui.infonode.ItemInfo;
+import gui.objects.icon.Icon;
+import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -19,19 +24,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-
-import audio.Item;
-import audio.Player;
-import audio.tagging.Metadata;
-import gui.infonode.ItemInfo;
-import gui.objects.icon.Icon;
-import gui.objects.image.Thumbnail;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
-import main.App;
+import main.AppActions;
 import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
@@ -39,7 +37,6 @@ import util.async.executor.FxTimer;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
@@ -268,8 +265,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                 if (DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
                          .use(FX, this::showImages)
-                         .showProgress(getWidget().getWindow().taskAdd())
-                         .run();
+                         .showProgress(getWidget().getWindow().taskAdd());
                 }
             }
         );
@@ -329,7 +325,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else App.itemToMeta(i, this::dataChanged);
+        else AppActions.itemToMeta(i, this::dataChanged);
     }
 
     private void dataChanged(Metadata m) {

@@ -34,7 +34,7 @@ import layout.Component;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.container.switchcontainer.SwitchPane;
-import main.App;
+import main.AppBuilders;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -304,7 +304,6 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
-
 		Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
 		Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
@@ -579,7 +578,7 @@ public class Window extends WindowBase {
 	 * @return indicator
 	 */
 	public ProgressIndicator taskAdd() {
-		return App.Build.appProgressIndicator(
+		return AppBuilders.appProgressIndicator(
 			pi -> leftHeaderBox.getChildren().add(pi),      // add indicator to header on start
 			pi -> leftHeaderBox.getChildren().remove(pi)    // remove indicator from header on end
 		);

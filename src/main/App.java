@@ -14,31 +14,20 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.spi.FilterAttachable;
 import ch.qos.logback.core.util.StatusPrinter;
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.mapper.Mapper;
-import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import de.jensd.fx.glyphs.octicons.OctIcon;
-import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
 import gui.infonode.ConvertTaskInfo;
-import gui.objects.grid.GridCell;
-import gui.objects.grid.GridView;
-import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
-import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.ScreenPos;
 import gui.objects.spinner.Spinner;
-import gui.objects.tablecell.RatingCellFactory;
-import gui.objects.tablecell.RatingRatingCellFactory;
+import gui.objects.tablecell.*;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
@@ -60,17 +49,10 @@ import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.*;
-import javafx.stage.FileChooser.ExtensionFilter;
 import layout.Component;
-import layout.area.ContainerNode;
 import layout.widget.Widget;
 import layout.widget.WidgetManager;
 import layout.widget.WidgetManager.WidgetSource;
@@ -82,6 +64,7 @@ import org.slf4j.LoggerFactory;
 import plugin.AppSearchPlugin;
 import plugin.DirSearchPlugin;
 import plugin.Plugin;
+import plugin.ScreenRotator;
 import services.ClickEffect;
 import services.Service;
 import services.ServiceManager;
@@ -89,19 +72,15 @@ import services.database.Db;
 import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
-import unused.SimpleConfigurator;
 import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
+import util.access.fieldvalue.ColumnField;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
-import util.access.fieldvalue.ColumnField;
 import util.action.Action;
 import util.action.IsAction;
-import util.action.IsActionable;
-import util.animation.Anim;
-import util.animation.interpolator.ElasticInterpolator;
 import util.async.future.ConvertListTask;
 import util.conf.*;
 import util.conf.Config.PropertyConfig;
@@ -111,12 +90,9 @@ import util.file.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
 import util.file.mimetype.MimeTypes;
-import util.functional.Functors;
 import util.functional.Try;
 import util.graphics.MouseCapture;
-import util.plugin.IsPlugin;
-import util.plugin.IsPluginType;
-import util.plugin.PluginMap;
+import unused.PluginMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
 import util.system.SystemOutListener;
@@ -126,38 +102,23 @@ import util.type.InstanceName;
 import util.type.ObjectFieldMap;
 import util.units.FileSize;
 import util.validation.Constraint;
-import util.validation.Constraint.StringNonEmpty;
+import web.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
-import static gui.objects.popover.PopOver.ScreenPos.App_Center;
 import static gui.pane.ActionPane.collectionWrap;
-import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static java.util.stream.Collectors.toList;
-import static javafx.geometry.Pos.CENTER;
-import static javafx.geometry.Pos.TOP_CENTER;
-import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.paint.Color.BLACK;
-import static javafx.util.Duration.millis;
-import static javafx.util.Duration.seconds;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
-import static util.Util.urlEncodeUtf8;
 import static util.async.Async.*;
 import static util.async.future.Fut.fut;
-import static util.dev.Util.log;
 import static util.file.Environment.*;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getFilesAudio;
-import static util.file.Util.isValidatedDirectory;
+import static util.file.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.*;
-import static util.type.Util.getEnumConstants;
 
 /**
  * Application. Represents the program.
@@ -303,6 +264,9 @@ public class App extends Application implements Configurable {
 	private boolean close_prematurely = false;
 
 	/**
+	 * Manages persistence and in-memory storage.
+	 */ public final Db db = new Db();
+	/**
 	 * Manages windows.
 	 */ public final WindowManager windowManager = new WindowManager();
 	/**
@@ -353,6 +317,11 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
+
+	// TODO: use a Quality enum LOW/HIGH
+	@Constraint.MinMax(min=10, max=60)
+	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
+	public double animationFps = 60.0;
 
 	@IsConfig(name = "log level (console)", group = "Logging", info = "Logging level for logging to console")
 	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
@@ -551,7 +520,7 @@ public class App extends Application implements Configurable {
 			new FastColAction<>("Remove from library",
 				"Removes all specified items from library. After this library will contain none of these items.",
 				MaterialDesignIcon.DATABASE_MINUS,
-				Db::removeItems // this needs to be asynchronous
+				db::removeItems // this needs to be asynchronous
 			),
 			new FastColAction<>("Show",
 				"Shows items in a table.",
@@ -573,7 +542,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Read metadata", "Prints all image metadata to console.",
 				MaterialIcon.IMAGE_ASPECT_RATIO,
 				ImageFileFormat::isSupported,
-				App.Actions::printAllImageFileMetadata),
+				AppActions::printAllImageFileMetadata),
 			new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
 				MaterialIcon.OPEN_IN_NEW,
 				Environment::open),
@@ -666,7 +635,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Apply skin", "Apply skin on the application.",
 				BRUSH,
 				Util::isValidSkinFile,
-				skin_file -> Gui.setSkin(Util.getName(skin_file))),
+				skin_file -> Gui.setSkin(getName(skin_file))),
 			new FastAction<>("View image", "Opens image in an image viewer widget.",
 				IMAGE,
 				ImageFileFormat::isSupported,
@@ -691,7 +660,7 @@ public class App extends Application implements Configurable {
 		);
 		parameterProcessor.addFileProcessor(
 			Util::isValidSkinFile,
-			fs -> Gui.setSkin(Util.getName(fs.get(0)))
+			fs -> Gui.setSkin(getName(fs.get(0)))
 		);
 		parameterProcessor.addFileProcessor(
 			ImageFileFormat::isSupported,
@@ -706,15 +675,18 @@ public class App extends Application implements Configurable {
 		);
 
 		// add search sources
-		search.sources.addAll(list(
+		search.getSources().addAll(list(
 			() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
 			() -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
 			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		));
 
 		// TODO: implement plugin discovery
-		installPlugins(new AppSearchPlugin());
-		installPlugins(new DirSearchPlugin());
+		installPlugins(
+			new AppSearchPlugin(),
+			new DirSearchPlugin(),
+			new ScreenRotator()
+		);
 
 		// listen to other application instance launches
 		try {
@@ -730,6 +702,7 @@ public class App extends Application implements Configurable {
 		Action.loadCommandActions();
 	}
 
+	// TODO: move out to plugin handling class
 	public void installPlugins(Plugin... plugins) {
 		stream(plugins).forEach(this::installPlugins);
 	}
@@ -748,6 +721,10 @@ public class App extends Application implements Configurable {
 		configuration.collect(new PropertyConfig<>(Boolean.class, name, name, starter, group, info, IsConfig.EditMode.USER));
 		configuration.collect(plugin);
 		Action.installActions(plugin);
+
+		isValidatedDirectory(plugin.getLocation());
+		isValidatedDirectory(plugin.getUserLocation());
+		// TODO: handle error
 	}
 
 	/**
@@ -772,8 +749,19 @@ public class App extends Application implements Configurable {
 
 		isInitialized = Try.tryCatchAll(() -> {
 				// discover plugins
-				ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
-				ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
+				plugins.registerPluginType(SearchUriBuilder.class);
+				plugins.registerPlugin(DuckDuckGoQBuilder.class);
+				plugins.registerPlugin(DuckDuckGoImageQBuilder.class);
+				plugins.registerPlugin(WikipediaQBuilder.class);
+				plugins.registerPlugin(BingImageSearchQBuilder.class);
+				plugins.registerPlugin(GoogleImageQBuilder.class);
+
+				plugins.registerPluginType(RatingCellFactory.class);
+				plugins.registerPlugin(BarRatingCellFactory.class);
+				plugins.registerPlugin(HyphenRatingCellFactory.class);
+				plugins.registerPlugin(TextStarRatingCellFactory.class);
+				plugins.registerPlugin(NumberRatingCellFactory.class);
+				plugins.registerPlugin(RatingRatingCellFactory.class);
 
 				widgetManager.initialize();
 
@@ -784,11 +772,12 @@ public class App extends Application implements Configurable {
 				services.addService(new ClickEffect());
 
 				// install actions
+				// TODO: unify services & managers ?
 				Action.installActions(
 					this,
 					windowManager,
 					guide,
-					services.getService(PlaycountIncrementer.class).get()
+					services.getAllServices()
 				);
 
 				actionAppPane.register(App.class,
@@ -846,7 +835,7 @@ public class App extends Application implements Configurable {
 				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
 				windowManager.deserialize(normalLoad);
 
-				Db.start();
+				db.start();
 
 				isInitialized = true;
 
@@ -905,7 +894,7 @@ public class App extends Application implements Configurable {
 					.filter(Service::isRunning)
 					.forEach(Service::stop);
 		}
-		Db.stop();
+		db.stop();
 		Action.stopActionListening();
 		appCommunicator.stop();
 	}
@@ -1068,376 +1057,6 @@ public class App extends Application implements Configurable {
 				"icon512.png"
 			).map(path -> new Image(new File(path).toURI().toString()))
 			.toList();
-	}
-
-	public static void refreshItemsFromFileJob(List<? extends Item> items) {
-		fut(items)
-			.map(Player.IO_THREAD, is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList())
-			.use(Player.IO_THREAD, Player::refreshItemsWith)
-			.showProgressOnActiveWindow()
-			.run();
-	}
-
-	public static void itemToMeta(Item i, Consumer<Metadata> action) {
-	   if (i.same(Player.playingItem.get())) {
-			action.accept(Player.playingItem.get());
-			return;
-		}
-
-		Metadata m = Db.items_byId.get(i.getId());
-		if (m!=null) {
-			action.accept(m);
-		} else {
-			fut(i)
-				.map(Player.IO_THREAD, MetadataReader::readMetadata)
-				.use(FX, action)
-				.run();
-		}
-	}
-
-	public static void openImageFullscreen(File image, Screen screen) {
-		// find appropriate widget
-		Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
-		if (c==null) return; // one can never know
-		Node cn = c.load();
-		setMinPrefMaxSize(cn, USE_COMPUTED_SIZE); // make sure no settings prevents full size
-		StackPane root = new StackPane(cn);
-		root.setBackground(bgr(BLACK));
-		Stage s = createFMNTStage(screen);
-		s.setScene(new Scene(root));
-		s.show();
-
-		cn.requestFocus(); // for key events to work - just focus some root child
-		root.addEventFilter(KEY_PRESSED, ke -> {
-			if (ke.getCode()==ESCAPE)
-				s.hide();
-		});
-
-		// use widget for image viewing
-		// note: although we know the image size (== screen size) we can not use it
-		//       as widget will use its own size, which can take time to initialize,
-		//       so we need to delay execution
-		Functors.Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
-		Functors.Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
-		if (s.isShowing()) r.apply(); /// execute when/after window is shown
-		else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
-	}
-
-	public interface Build {
-
-		static ProgressIndicator appProgressIndicator() {
-			return appProgressIndicator(null, null);
-		}
-
-		static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
-			Spinner p = new Spinner();
-			Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
-				 a.applier.accept(0d);
-			p.progressProperty().addListener((o,ov,nv) -> {
-				if (nv.doubleValue()==-1) {
-					if (onStart!=null) onStart.accept(p);
-					a.then(null)
-					 .play();
-				}
-				if (nv.doubleValue()==1) {
-					a.then(() -> { if (onFinish!=null) onFinish.accept(p); })
-					 .playClose();
-				}
-			});
-			return p;
-		}
-
-		static Tooltip appTooltip() {
-			return appTooltip("");
-		}
-
-		static Tooltip appTooltip(String text) {
-			Tooltip t = new Tooltip(text);
-			t.setHideOnEscape(true);
-			t.setConsumeAutoHidingEvents(true);
-			// TODO: make configurable
-			t.setShowDelay(seconds(1));
-			t.setShowDuration(seconds(10));
-			t.setHideDelay(millis(200));
-			return t;
-		}
-
-		static Icon resizeButton() {
-			// TODO: use css
-			Icon b = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
-			b.setCursor(Cursor.SE_RESIZE);
-			return b;
-		}
-
-	}
-
-	@IsActionable("Shortcuts")
-	public interface Actions {
-
-		@IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
-		static void openAppGithubPage() {
-			browse(APP.GITHUB_URI);
-		}
-
-		@IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
-		static void openAppLocation() {
-			Environment.open(APP.DIR_APP);
-		}
-
-		@IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
-		static void openCssGuide() {
-			browse(URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html"));
-		}
-
-		@IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
-		static void openIconViewer() {
-			double iconSize = 45;
-			GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
-			grid.search.field = (object, substitute) -> object==null ? substitute : object.name();
-			grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS));
-			grid.setCellFactory(view -> new GridCell<>() {
-//			    Anim a;
-
-				{
-					getStyleClass().add("icon-grid-cell");
-				}
-
-				@Override
-				public void updateItem(GlyphIcons icon, boolean empty) {
-					super.updateItem(icon, empty);
-					IconInfo graphics;
-					if (getGraphic() instanceof IconInfo)
-						graphics = (IconInfo) getGraphic();
-					else {
-						graphics = new IconInfo(null,iconSize);
-						setGraphic(graphics);
-//					    a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
-					}
-					graphics.setGlyph(empty ? null : icon);
-
-					// really cool when scrolling with scrollbar
-					// but when using mouse wheel it is very ugly & distracting
-					// a.play();
-				}
-
-				@Override
-				public void updateSelected(boolean selected) {
-					super.updateSelected(selected);
-					IconInfo graphics = (IconInfo) getGraphic();
-					if (graphics!=null) graphics.select(selected);
-				}
-			});
-			StackPane root = new StackPane(grid);
-			root.setPrefSize(600, 720); // determines popup size
-			List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
-										 MaterialDesignIcon.class,MaterialIcon.class)
-				  .map(c -> {
-					  Button b = new Button(c.getSimpleName());
-					  b.setOnMouseClicked(e -> {
-						  if (e.getButton()==PRIMARY) {
-							  grid.getItemsRaw().setAll(getEnumConstants(c));
-							  e.consume();
-						  }
-					  });
-					  return b;
-				  })
-				  .toList();
-			PopOver o = new PopOver<>(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
-			o.show(App_Center);
-		}
-
-		@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
-		static void openLauncher() {
-			File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
-			Component c = UiContext.instantiateComponent(f);
-			if (c!=null) {
-				OverlayPane<Void> op = new OverlayPane<>() {
-					@Override
-					public void show(Void noValue) {
-						OverlayPane root = this;
-						getChildren().add(c.load());
-						// TODO: remove
-						run(millis(500), () ->
-							stream(((Pane)c.load()).getChildren()).findAny(GridView.class::isInstance).ifPresent(n -> ((GridView)n).implGetSkin().requestFocus())
-						);
-						if (c instanceof Widget) {
-							((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
-							((Widget<?>)c).getController().getFieldOrThrow("closeOnRightClick").setValue(true);
-							((Widget<?>)c).areaTemp = new ContainerNode() {
-								@Override public Pane getRoot() { return root; }
-								@Override public void show() {}
-								@Override public void hide() {}
-								@Override public void close() { root.hide(); }
-							};
-						}
-						super.show();
-					}
-				};
-				op.display.set(SCREEN_OF_MOUSE);
-				op.show(null);
-				c.load().prefWidth(900);
-				c.load().prefHeight(700);
-			}
-		}
-
-		@IsAction(name = "Open settings", desc = "Opens application settings.")
-		static void openSettings() {
-			APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
-		}
-
-		@IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
-		static void openLayoutManager() {
-			APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
-		}
-
-		@IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
-		static void openActions() {
-			APP.actionAppPane.show(App.APP);
-		}
-
-		// TODO: is this even needed anymore? It improves UX, but its kind of unnecessary
-		@IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
-		static void openOpen() {
-//			APP.actionAppPane.show(Void.class, null, false,
-			APP.actionPane.show(Void.class, null, false,
-				new FastAction<>(
-					"Open widget",
-					"Open file chooser to open an exported widget",
-					MaterialIcon.WIDGETS,
-					none -> {
-						FileChooser fc = new FileChooser();
-						fc.setInitialDirectory(APP.DIR_LAYOUTS);
-						fc.getExtensionFilters().add(new ExtensionFilter("component file","*.fxwl"));
-						fc.setTitle("Open widget...");
-						File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
-						if (f!=null) UiContext.launchComponent(f);
-					}
-				),
-				new FastAction<>(
-					"Open skin",
-					"Open file chooser to find a skin",
-					MaterialIcon.BRUSH,
-					none -> {
-						FileChooser fc = new FileChooser();
-						fc.setInitialDirectory(APP.DIR_SKINS);
-						fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
-						fc.setTitle("Open skin...");
-						File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
-						if (f!=null) Gui.setSkinExternal(f);
-					}
-				),
-				new FastAction<>(
-					"Open audio files",
-					"Open file chooser to find a audio files",
-					MaterialDesignIcon.MUSIC_NOTE,
-					none -> {
-						FileChooser fc = new FileChooser();
-						fc.setInitialDirectory(APP.DIR_SKINS);
-						fc.getExtensionFilters().addAll(map(AudioFileFormat.supportedValues(Use.APP), AudioFileFormat::toExtFilter));
-						fc.setTitle("Open audio...");
-						List<File> fs = fc.showOpenMultipleDialog(APP.actionAppPane.getScene().getWindow());
-						// Action pane may auto-close when this action finishes, so we make sure to call
-						// show() after that happens by delaying using runLater
-						if (fs!=null) runLater(() -> APP.actionAppPane.show(fs));
-					}
-				)
-			);
-		}
-
-		@IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
-		static void showShortcuts() {
-			APP.shortcutPane.show(Action.getActions());
-		}
-
-		@IsAction(name = "Show system info", desc = "Display system information.")
-		static void showSysInfo() {
-			APP.actionPane.hide();
-			APP.infoPane.show(null);
-		}
-
-		@IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
-		static void runGarbageCollector() {
-			System.gc();
-		}
-
-		@IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
-		static void runCommand() {
-			SimpleConfigurator sc = new SimpleConfigurator<>(
-				new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
-				(Consumer<String>) Environment::runCommand);
-			PopOver p = new PopOver<>(sc);
-					p.title.set("Run system command ");
-					p.show(ScreenPos.App_Center);
-		}
-
-		@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
-												   "the command as a parameter.")
-		static void runAppCommand() {
-			SimpleConfigurator sc = new SimpleConfigurator<>(
-				new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
-				(String command) -> APP.parameterProcessor.process(list(command)));
-			PopOver p = new PopOver<>(sc);
-					p.title.set("Run app command");
-					p.show(ScreenPos.App_Center);
-		}
-
-		@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
-		@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
-		static void showSearch() {
-			PopOver<TextField> p = new PopOver<>(APP.search.build());
-			p.title.set("Search for an action or option");
-			p.setAutoHide(true);
-			p.show(ScreenPos.App_Center);
-		}
-
-		@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
-		static void openDictionary() {
-			PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
-				new ValueConfig<>(String.class, "Word", "").constraints(new StringNonEmpty()),
-				(String phrase) -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + urlEncodeUtf8(phrase)))
-			));
-			p.title.set("Look up in dictionary...");
-			p.setAutoHide(true);
-			p.show(ScreenPos.App_Center);
-			p.getContentNode().focusFirstConfigField();
-			p.getContentNode().hideOnOk.setValue(true);
-		}
-
-		// TODO: activate only when platform==WINDOWS
-		@IsAction(name = "Rotate display cw", desc = "Rotates display clockwise", keys = "CTRL + ALT + DOWN", global = true)
-		static void rotateDisplayCw() {
-			try {
-				new ProcessBuilder("display.exe", "/rotate:cw").directory(App.APP.DIR_APP).start();
-			} catch (IOException e) {
-				log(App.class).error("Failed to rotate display", e);
-			}
-		}
-
-		// TODO: activate only when platform==WINDOWS
-		@IsAction(name = "Rotate display ccw", desc = "Rotates display counter-clockwise", keys = "CTRL + ALT + UP", global = true)
-		static void rotateDisplayCcw() {
-			try {
-				new ProcessBuilder("display.exe", "/rotate:ccw").directory(App.APP.DIR_APP).start();
-			} catch (IOException e) {
-				log(App.class).error("Failed to rotate display", e);
-			}
-		}
-
-		static void printAllImageFileMetadata(File file) {
-			try {
-				StringBuilder sb = new StringBuilder("Metadata of ").append(file.getPath());
-				com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
-				metadata.getDirectories().forEach(d -> {
-					sb.append("\nName: ").append(d.getName());
-					d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()));
-				});
-				APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
-				System.out.println(sb.toString());
-			} catch (IOException | ImageProcessingException e) {
-				e.printStackTrace();
-			}
-		}
-
 	}
 
 }

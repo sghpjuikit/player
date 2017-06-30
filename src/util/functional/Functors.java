@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
 import javafx.util.Callback;
+import kotlin.Unit;
+import kotlin.jvm.functions.*;
 import util.SwitchException;
 import util.access.V;
 import util.conf.Config;
@@ -13,7 +15,7 @@ import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.type.Util.unPrimitivize;
 
-@SuppressWarnings({"unchecked","unused"})
+@SuppressWarnings({"unchecked","unused","NonAsciiCharacters"})
 public interface Functors {
 
 	FunctorPool pool = new FunctorPool();
@@ -30,8 +32,14 @@ public interface Functors {
 		// default Class<? super I> getTypeOutput() {}
 	}
 
-	interface Ƒ extends Λ, IO<Void,Void>, Runnable {
+	@FunctionalInterface
+	interface Ƒ extends Λ, IO<Void,Void>, Function0<Unit>, Runnable {
 		void apply();
+
+		@Override
+		default Unit invoke() {
+			return Unit.INSTANCE;
+		}
 
 		/** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
 		default void run() {
@@ -44,8 +52,14 @@ public interface Functors {
 	 *
 	 * @param <O> output type
 	 */
-	interface Ƒ0<O> extends Λ, IO<Void,O>, Supplier<O> {
+	@FunctionalInterface
+	interface Ƒ0<O> extends Λ, IO<Void,O>, Function0<O>, Supplier<O> {
 		O apply();
+
+		@Override
+		default O invoke() {
+			return apply();
+		}
 
 		/** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
 		default O get() {
@@ -57,7 +71,7 @@ public interface Functors {
 		}
 
 		/**
-		 * Returns ewuivalent function to this returning no output. The computation will still
+		 * Returns equivalent function to this returning no output. The computation will still
 		 * take place as normal, so this function should have side effects. If it does not, a
 		 * function that does nothing should be used instead of this method.
 		 */
@@ -73,6 +87,7 @@ public interface Functors {
 	 *
 	 * @param <O> output type
 	 */
+	@FunctionalInterface
 	interface Ƒ0E<O, E extends Throwable> extends Λ, IO<Void,O> {
 		O apply() throws E;
 
@@ -95,7 +110,8 @@ public interface Functors {
 	 * method) or consumer (same and in addition ignores output - this is not pointless due to side
 	 * effects - consumer by nature relies on side effects.)
 	 */
-	interface Ƒ1<I, O> extends Λ, IO<I,O>, Function<I,O>, Callback<I,O>, Consumer<I> {
+	@FunctionalInterface
+	interface Ƒ1<I, O> extends Λ, IO<I,O>, Function<I,O>, Function1<I,O>, Callback<I,O>, Consumer<I> {
 
 		static Ƒ1<Void,Void> f1(Runnable r) {
 			return i -> {
@@ -116,7 +132,12 @@ public interface Functors {
 		}
 
 		@Override
-		O apply(I i);
+		O apply(I queryParam);
+
+		@Override
+		default O invoke(I i) {
+			return apply(i);
+		}
 
 		/** Equivalent to {@link #apply(Object)}. Exists for compatibility with {@link Callback}. */
 		@Override
@@ -193,7 +214,7 @@ public interface Functors {
 		}
 
 		/**
-		 * Creates function which runs the action aftewards
+		 * Creates function which runs the action afterwards
 		 *
 		 * @param after action that executes right after computation is done and before returning the output
 		 * @return function identical to this one, but one which runs the runnable after it computes
@@ -207,7 +228,7 @@ public interface Functors {
 			};
 		}
 
-		// this change return type from Consumer to Function in a typesafe way!!
+		// this change return type from Consumer to Function in a type safe way!!
 		@Override
 		default Ƒ1<I,Void> andThen(Consumer<? super I> after) {
 			return i -> {
@@ -271,7 +292,7 @@ public interface Functors {
 		}
 
 		/**
-		 * Returns nullless version of this f, which returns its input instead of null. The input
+		 * Returns nonnull version of this f, which returns its input instead of null. The input
 		 * type must conform to output type! This mostly makes sense when input and output type
 		 * match.
 		 */
@@ -296,7 +317,7 @@ public interface Functors {
 			if (i==NullIn.NULL && o==NullOut.NULL)
 				return in -> in==null ? null : apply(in);
 			if (i==NullIn.APPLY && o==NullOut.NULL)
-				return (Ƒ1) this;
+				return this;
 			if (i==NullIn.APPLY && o==NullOut.INPUT)
 				return in -> {
 					O out = apply(in);
@@ -336,10 +357,11 @@ public interface Functors {
 	/**
 	 * Predicate.
 	 * <p/>
-	 * {@link Ƒ1} can not extend Predicate, doing so would not be typesafe, hence this subclass.
+	 * {@link Ƒ1} can not extend Predicate, doing so would not be type safe, hence this subclass.
 	 * This class also preserves predicate identity during predicate combination operations.
 	 */
 	@SuppressWarnings("unchecked")
+	@FunctionalInterface
 	interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
 
 		/** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Predicate}. */
@@ -384,6 +406,7 @@ public interface Functors {
 	 * <p/>
 	 * Due to the signature, it is impossible to extend {@link Consumer}
 	 */
+	@FunctionalInterface
 	interface Ƒ1E<I, O, E extends Throwable> extends Λ, IO<I,O> {
 		O apply(I i) throws E;
 
@@ -408,6 +431,7 @@ public interface Functors {
 	// this class is ~pointless, although now lambda does not have to return null like in case of F1E,
 	// but now the some method takes parameter of this class. Which will prevent
 	// other F1E from being used!
+	@FunctionalInterface
 	interface ƑEC<I, E extends Throwable> extends Ƒ1E<I,Void,E> {
 
 		@Override
@@ -419,9 +443,15 @@ public interface Functors {
 		void accept(I i) throws E;
 	}
 
-	interface Ƒ2<I, I2, O> extends Λ, IO<I,O>, BiFunction<I,I2,O> {
+	@FunctionalInterface
+	interface Ƒ2<I, I2, O> extends Λ, IO<I,O>, BiFunction<I,I2,O>, Function2<I,I2,O> {
 		@Override
 		O apply(I i, I2 i2);
+
+		@Override
+		default O invoke(I i, I2 i2) {
+			return apply(i, i2);
+		}
 
 		default Ƒ1<I,O> toƑ1(I2 i2) {
 			return (i) -> apply(i, i2);
@@ -439,8 +469,14 @@ public interface Functors {
 		}
 	}
 
-	interface Ƒ3<I, I2, I3, O> extends Λ, IO<I,O> {
+	@FunctionalInterface
+	interface Ƒ3<I, I2, I3, O> extends Λ, IO<I,O>, Function3<I,I2,I3,O> {
 		O apply(I i, I2 i2, I3 i3);
+
+		@Override
+		default O invoke(I i, I2 i2, I3 i3) {
+			return apply(i, i2, i3);
+		}
 
 		default Ƒ2<I,I2,O> toƑ2(I3 i3) {
 			return (i, i2) -> apply(i, i2, i3);
@@ -458,8 +494,14 @@ public interface Functors {
 		}
 	}
 
-	interface Ƒ4<I, I2, I3, I4, O> extends Λ, IO<I,O> {
+	@FunctionalInterface
+	interface Ƒ4<I, I2, I3, I4, O> extends Λ, IO<I,O>, Function4<I,I2,I3,I4,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4);
+
+		@Override
+		default O invoke(I i, I2 i2, I3 i3, I4 i4) {
+			return apply(i, i2, i3, i4);
+		}
 
 		default Ƒ3<I,I2,I3,O> toƑ3(I4 i4) {
 			return (i, i2, i3) -> apply(i, i2, i3, i4);
@@ -477,8 +519,14 @@ public interface Functors {
 		}
 	}
 
-	interface Ƒ5<I, I2, I3, I4, I5, O> extends Λ, IO<I,O> {
+	@FunctionalInterface
+	interface Ƒ5<I, I2, I3, I4, I5, O> extends Λ, IO<I,O>, Function5<I,I2,I3,I4,I5,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
+
+		@Override
+		default O invoke(I i, I2 i2, I3 i3, I4 i4, I5 i5) {
+			return apply(i, i2, i3, i4, i5);
+		}
 
 		default Ƒ4<I,I2,I3,I4,O> toƑ4(I5 i5) {
 			return (i, i2, i3, i4) -> apply(i, i2, i3, i4, i5);
@@ -496,8 +544,14 @@ public interface Functors {
 		}
 	}
 
-	interface Ƒ6<I, I2, I3, I4, I5, I6, O> extends Λ, IO<I,O> {
+	@FunctionalInterface
+	interface Ƒ6<I, I2, I3, I4, I5, I6, O> extends Λ, IO<I,O>, Function6<I,I2,I3,I4,I5,I6,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
+
+		@Override
+		default O invoke(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6) {
+			return apply(i, i2, i3, i4, i5, i6);
+		}
 
 		default Ƒ5<I,I2,I3,I4,I5,O> toƑ5(I6 i6) {
 			return (i, i2, i3, i4, i5) -> apply(i, i2, i3, i4, i5, i6);
@@ -642,7 +696,7 @@ public interface Functors {
 		}
 
 		@Override
-		public List<Parameter<? extends Object>> getParameters() {
+		public List<Parameter<?>> getParameters() {
 			return list(p1);
 		}
 
@@ -664,7 +718,7 @@ public interface Functors {
 		}
 
 		@Override
-		public List<Parameter<? extends Object>> getParameters() {
+		public List<Parameter<?>> getParameters() {
 			return list(p1, p2);
 		}
 
@@ -688,7 +742,7 @@ public interface Functors {
 		}
 
 		@Override
-		public List<Parameter<? extends Object>> getParameters() {
+		public List<Parameter<?>> getParameters() {
 			return list(p1, p2, p3);
 		}
 
@@ -708,7 +762,7 @@ public interface Functors {
 		}
 
 		@Override
-		public List<Parameter<? extends Object>> getParameters() {
+		public List<Parameter<?>> getParameters() {
 			return list(ps);
 		}
 
@@ -732,8 +786,8 @@ public interface Functors {
 		}
 
 		@Override
-		public O apply(I i) {
-			return pf.apply(i, cs.stream().map(Config::getValue).toArray());
+		public O apply(I queryParam) {
+			return pf.apply(queryParam, cs.stream().map(Config::getValue).toArray());
 		}
 
 	}
@@ -750,8 +804,8 @@ public interface Functors {
 		}
 
 		@Override
-		public O apply(I i) {
-			return f.apply(i);
+		public O apply(I queryParam) {
+			return f.apply(queryParam);
 		}
 
 	}

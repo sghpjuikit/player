@@ -229,8 +229,8 @@ public class DirViewer extends ClassController {
                     grid.requestFocus();    // fixes focus problem
                     run(millis(500), grid::requestFocus);
                 })
-                .showProgress(getWidget().getWindow().taskAdd())
-                .run();
+                .showProgress(getWidget().getWindow().taskAdd());
+//                .run();
     }
 
     /**

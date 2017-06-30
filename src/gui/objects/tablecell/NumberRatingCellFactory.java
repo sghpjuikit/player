@@ -7,11 +7,9 @@ import javafx.scene.control.TableColumn;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-import util.plugin.IsPlugin;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as number. */
-@IsPlugin
 @StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Number")
 public class NumberRatingCellFactory implements RatingCellFactory {
 
@@ -27,8 +25,7 @@ public class NumberRatingCellFactory implements RatingCellFactory {
 
 			@Override
 			protected void updateItem(Double item, boolean empty) {
-				super.updateItem(item, empty);
-				setText(empty ? null : String.format("%.2f", item));
+				super.updateItem(item, empty); setText(empty ? null : String.format("%.2f", item));
 			}
 		};
 	}

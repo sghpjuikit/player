@@ -545,7 +545,7 @@ public class Comet extends ClassController {
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
 		final StatsGame stats = new StatsGame();
 
-		private final MotionBlur cee = new MotionBlur( 0, 50);
+		private final MotionBlur cee = new MotionBlur(0, 200);
 		//		private final BoxBlur cee = new BoxBlur(100,2,2);
 		private final Effect cee2 = new Bloom(0.3);
 		private final TimeDouble cceStrengthW = new TimeDouble(0,0.01);
@@ -754,14 +754,17 @@ public class Comet extends ClassController {
 			os.forEach(PO::draw);
 			oss.get(Bullet.class).forEach(Bullet::draw);
 
-			if (cceStrengthW.value>1) cceStrengthW.value = 0;
-			if (cceStrengthH.value>1) cceStrengthH.value = 0;
-			cee.setAngle(cceStrengthH.getAndRun()*360);
-			gc_bgr.applyEffect(cee);
-			gc.applyEffect(cee2);
+			boolean isHighDetails = true;
+			if (isHighDetails) {
+				if (cceStrengthW.value>1) cceStrengthW.value = 0;
+				if (cceStrengthH.value>1) cceStrengthH.value = 0;
+				cee.setAngle(cceStrengthH.getAndRun()*360);
+				gc_bgr.applyEffect(cee);
+				gc.applyEffect(cee2);
 
-			oss.get(Bullet.class).forEach(Bullet::draw);
-			os.forEach(PO::draw);
+				oss.get(Bullet.class).forEach(Bullet::draw);
+				os.forEach(PO::draw);
+			}
 
 			// non-interacting stuff last
 			oss.get(Particle.class).forEach(Particle::draw);

@@ -18,6 +18,7 @@ import util.file.ImageFileFormat;
 import util.graphics.IconExtractor;
 import static util.Util.loadImageFull;
 import static util.Util.loadImageThumb;
+import static util.dev.Util.throwIfFxThread;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getName;
 import static util.file.Util.listFiles;
@@ -139,6 +140,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public void loadCover(boolean full, ImageSize size, TriConsumer<Boolean,File,Image> action, Consumer<Image> afterwards) {
+		throwIfFxThread();
+
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
 		if (file==null) {
@@ -176,6 +179,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	// guaranteed to execute only once
 	protected File getCoverFile() {
+
 		if (coverFile_loaded) return cover_file;
 		coverFile_loaded = true;
 

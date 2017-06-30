@@ -201,7 +201,6 @@ public class WindowManager implements Configurable<Object> {
         }
 
         // bind properties
-        w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));
         w.disposables.add(maintain(window_borderless, w::setBorderless));
         w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
 	    w.getStage().setTitle(APP.name);

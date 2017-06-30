@@ -30,7 +30,7 @@ import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static main.App.Build.appTooltip;
+import static main.AppBuilders.appTooltip;
 import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.type.Util.invokeMethodP0;

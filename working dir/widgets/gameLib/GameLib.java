@@ -34,6 +34,7 @@ import util.file.Util;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.validation.Constraint;
+import web.WikipediaQBuilder;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;
@@ -48,8 +49,7 @@ import static main.App.APP;
 import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+import static util.async.Async.*;
 import static util.file.Util.*;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
@@ -184,7 +184,7 @@ public class GameLib extends FXMLController {
         });
         wikiB = new Icon(WIKIPEDIA, iconSize, null, () -> {
             if (game!=null) {
-                Environment.browse(new web.WikipediaQBuilder().apply(game.getName()));
+                Environment.browse(WikipediaQBuilder.INSTANCE.apply(game.getName()));
                 // in-widget browser
                 // WebView w = new javafx.scene.web.WebView();
                 // file_tree_root.getChildren().add(w);
@@ -348,8 +348,9 @@ public class GameLib extends FXMLController {
                     if (!a.isEmpty()) arguments.add("-" + a);
             }
 
-            Environment.runProgram(exe, arguments.toArray(new String[arguments.size()]))
-                    .ifError(error -> APP.messagePane.show("Unable to launch program " + exe + ". Reason: " + error.getMessage()));
+            Environment
+                .runProgram(exe, arguments.toArray(new String[arguments.size()]))
+                .use(FX, e -> e.ifError(error -> APP.messagePane.show("Unable to launch program " + exe + ". Reason: " + error.getMessage())));
 
 
         }

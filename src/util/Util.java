@@ -424,6 +424,20 @@ public interface Util {
 		return !s.isEmpty() && isPalindrome(s);
 	}
 
+	static Try<BufferedImage,IOException> loadBufferedImage(File file) {
+		try {
+			return Try.ok(ImageIO.read(file));
+		} catch (IOException e) {
+			util.dev.Util.log(Util.class).error("Could not read the image for tray icon.", e);
+			return Try.error(e);
+		}
+	}
+
+	/** Convenience method. Equivalent to: loadImage(file, 0); */
+	static Image loadImage(File file) {
+		return loadImage(file, 0);
+	}
+
 	/** Convenience method. Equivalent to: loadImage(file, size, size); */
 	static Image loadImage(File file, double size) {
 		return loadImage(file, size, size);

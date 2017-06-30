@@ -1,16 +1,5 @@
 package fileInfo;
 
-import java.io.File;
-import java.util.*;
-
-import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.TilePane;
-
 import audio.Item;
 import audio.Player;
 import audio.tagging.Metadata;
@@ -23,13 +12,21 @@ import gui.objects.image.cover.Cover.CoverSource;
 import gui.objects.rating.Rating;
 import gui.pane.ActionPane.SlowAction;
 import gui.pane.ImageFlowPane;
+import java.io.File;
+import java.util.*;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.TilePane;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
-import main.App;
-import services.database.Db;
+import main.AppActions;
 import util.access.V;
 import util.async.executor.EventReducer;
 import util.conf.Config;
@@ -38,7 +35,6 @@ import util.conf.Config.PropertyConfig;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
-
 import static audio.tagging.Metadata.EMPTY;
 import static audio.tagging.Metadata.Field.*;
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
@@ -135,7 +131,7 @@ public class FileInfo extends FXMLController implements SongReader {
     @IsConfig(name = "Show fields", info = "Show fields.")
     public final V<Boolean> showFields = new V<>(true, layout::setContentVisible);
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final V<Boolean> showEmptyFields = new V<>(true, v -> update());
+    public final V<Boolean> showEmptyFields = new V<>(true, this::update);
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
     public final V<Sort> groupFields = new V<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
@@ -209,7 +205,6 @@ public class FileInfo extends FXMLController implements SongReader {
             DragUtil::hasAudio,
             e -> DragUtil.getSongs(e)
                          .use(FX, items -> items.findFirst().ifPresent(this::read))
-                         .run()
         );
     }
 
@@ -263,7 +258,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private void setValue(Item i) {
         if (i==null) setValue(EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
-        else App.itemToMeta(i, this::setValue);
+        else AppActions.itemToMeta(i, this::setValue);
     }
 
     private void setValue(Metadata m) {
@@ -342,7 +337,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
         Collection<Metadata> items = includeAlbum
             // get all known songs from album
-            ? Db.items.o.getValue().stream()
+            ? APP.db.getItems().o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
                 .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
                 .collect(toSet())

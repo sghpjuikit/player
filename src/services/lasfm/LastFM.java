@@ -20,6 +20,8 @@ import util.validation.Constraint.PasswordNonEmpty;
 import util.validation.Constraint.StringNonEmpty;
 import static util.dev.Util.log;
 
+// TODO: make thread-safe
+// TODO: remvoe static, implement Service
 @IsConfigurable("LastFM")
 public class LastFM {
 

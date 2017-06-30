@@ -49,7 +49,7 @@ import static layout.widget.Widget.Group.PLAYLIST;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static main.App.Build.appTooltip;
+import static main.AppBuilders.appTooltip;
 import static util.dev.Util.log;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;

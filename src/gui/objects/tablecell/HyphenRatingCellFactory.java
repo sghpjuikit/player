@@ -7,12 +7,10 @@ import javafx.scene.control.TableColumn;
 import util.parsing.ParsesFromString;
 import util.parsing.StringParseStrategy;
 import util.parsing.StringParseStrategy.From;
-import util.plugin.IsPlugin;
 import static java.lang.Math.round;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as text from '' to '*****'. */
-@IsPlugin
 @StringParseStrategy(from = From.ANNOTATED_METHOD, to = CONSTANT, constant = "Hyphen")
 public class HyphenRatingCellFactory implements RatingCellFactory {
 	private static final String s0 = "";

@@ -791,7 +791,7 @@ public interface Util {
 	 */
 	static <K, T> Map<K,T> mapSlice(Map<K,List<T>> m, int i) {
 		Map<K,T> o = new HashMap<>();
-		m.entrySet().forEach(e -> o.put(e.getKey(), e.getValue().get(i)));
+		m.forEach((key, value) -> o.put(key, value.get(i)));
 		return o;
 	}
 
@@ -1177,6 +1177,7 @@ public interface Util {
 		return l;
 	}
 
+	@SafeVarargs
 	static <T> Optional<T> optional(Supplier<Optional<T>>... suppliers) {
 		return StreamEx.of(suppliers)
 				.map(Supplier::get)
@@ -1357,10 +1358,12 @@ public interface Util {
 	 * @param from the first and smallest key to check
 	 * @return the smallest nonexistent integer key key
 	 */
+	@SuppressWarnings("ConstantConditions")
 	static int findFirstEmptyKey(Map<Integer,?> map, int from) {
 		return IntStreamEx.iterate(from, i -> i + 1).findFirst(i -> !map.containsKey(i)).getAsInt();
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	static int findFirstInt(int from, IntPredicate condition) {
 		return IntStream.iterate(from, i -> i + 1).filter(condition).findFirst().getAsInt();
 	}

@@ -54,7 +54,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static main.App.Build.appTooltip;
+import static main.AppBuilders.appTooltip;
 import static util.functional.Util.stream;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;

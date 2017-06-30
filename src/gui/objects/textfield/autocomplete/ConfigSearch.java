@@ -20,7 +20,7 @@ import layout.widget.WidgetFactory;
 import util.action.Action;
 import util.conf.Config;
 import util.functional.Functors.Ƒ0;
-import static main.App.Build.appTooltip;
+import static main.AppBuilders.appTooltip;
 import static util.Util.containsNoCase;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;

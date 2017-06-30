@@ -57,7 +57,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
 import static javafx.beans.binding.Bindings.*;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static main.App.Build.resizeButton;
+import static main.AppBuilders.resizeButton;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -126,8 +126,8 @@ public class PopOverSkin implements Skin<PopOver> {
 		// content
 		content = new BorderPane();
 		content.getStyleClass().add(CONTENT_STYLECLASS);
-//        maintain(popOver.contentNodeProperty(), n->n, content.centerProperty());
-		maintain(p.contentNodeProperty(), n -> n, n -> {
+//        maintain(popOver.contentNodeProperty(), content.centerProperty());
+		maintain(p.contentNodeProperty(), n -> {
 			content.setCenter(n);
 			// the following fixes some resize bugs
 			content.autosize();
@@ -164,6 +164,7 @@ public class PopOverSkin implements Skin<PopOver> {
 				drag -> drag.data.setXY(p.getPrefWidth(), p.getPrefHeight()),
 				drag -> p.setPrefSize(drag.data.x+drag.diff.x, drag.data.y+drag.diff.y)
 		);
+		maintain(p.userResizable, resizeB.visibleProperty());
 
 		// the delay in the execution is essential for updatePath to work - unknown reason
 		InvalidationListener uPLd = o -> run(25, this::updatePath);

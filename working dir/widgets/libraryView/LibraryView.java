@@ -31,7 +31,6 @@ import layout.widget.Widget.Info;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
-import services.database.Db;
 import util.access.VarEnum;
 import util.access.Vo;
 import util.access.fieldvalue.ColumnField;
@@ -205,9 +204,9 @@ public class LibraryView extends FXMLController {
         table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", () -> Db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", () -> Db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
-            menuItem("Remove all groups from library", () -> Db.removeItems(MetadataGroup.ungroup(table.getItems())))
+            menuItem("Remove selected groups from library", () -> APP.db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", () -> APP.db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
+            menuItem("Remove all groups from library", () -> APP.db.removeItems(MetadataGroup.ungroup(table.getItems())))
         );
 
         // key actions
@@ -218,7 +217,7 @@ public class LibraryView extends FXMLController {
             }
             // delete selected
             if (e.getCode() == DELETE) {
-                Db.removeItems(stream(table.getSelectedItems()).toFlatList(MetadataGroup::getGrouped));
+                APP.db.removeItems(stream(table.getSelectedItems()).toFlatList(MetadataGroup::getGrouped));
             }
         });
 
@@ -335,8 +334,7 @@ public class LibraryView extends FXMLController {
                         out_sel_met.setValue(fl);
                     }
                 });
-            })
-            .run();
+            });
     }
 
     private List<Metadata> filterList(List<Metadata> list, boolean orAll) {
@@ -355,7 +353,7 @@ public class LibraryView extends FXMLController {
  	 */
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filterList(in_items.getValue(),false);
-                       l.sort(Db.library_sorter.get());
+                       l.sort(APP.db.getLibraryComparator().get());
         return l;
     }
 
@@ -366,7 +364,7 @@ public class LibraryView extends FXMLController {
     // TODO: remove and use a general (and robust) mechanism
     private void play(List<Metadata> items) {
         if (items.isEmpty()) return;
-        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
+        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(APP.db.getLibraryComparator().get())));
     }
 
     private List<Metadata> getSelected() {

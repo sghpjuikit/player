@@ -9,10 +9,9 @@ import java.util.function.BiConsumer;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import org.jaudiotagger.audio.AudioFile;
-import services.database.Db;
 import util.async.future.ConvertListTask;
 import util.file.AudioFileFormat.Use;
-import static services.database.Db.em;
+import static main.App.APP;
 import static util.async.Async.runFX;
 import static util.dev.Util.*;
 import static util.functional.Util.stream;
@@ -121,7 +120,8 @@ public class MetadataReader {
 				List<Metadata> converted = new ArrayList<>(all.size());
 				List<Item> skipped = new ArrayList<>(0);
 
-				em.getTransaction().begin();
+				// TODO: encapsulate & make threadsafe
+				APP.db.getEm().getTransaction().begin();
 
 				for (Item item : input) {
 					if (isCancelled()) {
@@ -131,7 +131,7 @@ public class MetadataReader {
 
 					Metadata m;
 					try {
-						m = em.find(Metadata.class, Metadata.metadataID(item.getURI()));
+						m = APP.db.getEm().find(Metadata.class, Metadata.metadataID(item.getURI()));
 						if (m==null) {
 							MetadataWriter.useNoRefresh(item, MetadataWriter::setLibraryAddedNowIfEmpty);
 							m = readMetadata(item);
@@ -139,7 +139,7 @@ public class MetadataReader {
 							if (m.isEmpty()) {
 								skipped.add(item);
 							} else {
-								em.persist(m);
+								APP.db.getEm().persist(m);
 								converted.add(m);
 							}
 						} else {
@@ -157,8 +157,8 @@ public class MetadataReader {
 					updateSkipped(skipped.size());
 				}
 
-				em.getTransaction().commit();
-				runFX(Db::updateInMemoryDbFromPersisted);
+				APP.db.getEm().getTransaction().commit();
+				runFX(APP.db::updateInMemoryDbFromPersisted);
 
 				// update progress
 				updateMessage(all.size(), processed.size());
@@ -186,10 +186,11 @@ public class MetadataReader {
 
 			@Override
 			protected Void call() throws Exception {
-				List<Metadata> libraryItems = stream(Db.getAllItems()).filter(m -> !m.isEmpty() && m.isFileBased()).toList();
+				List<Metadata> libraryItems = stream(APP.db.getAllItems()).filter(m -> !m.isEmpty() && m.isFileBased()).toList();
 				all = libraryItems.size();
 
-				em.getTransaction().begin();
+				// TODO: encapsulate & make threadsafe
+				APP.db.getEm().getTransaction().begin();
 
 				for (Metadata m : libraryItems) {
 					if (isCancelled()) break;
@@ -197,7 +198,7 @@ public class MetadataReader {
 					completed++;
 
 					if (m.isFileBased() && !m.getFile().exists()) {
-						em.remove(m);
+						APP.db.getEm().remove(m);
 						removed++;
 					}
 
@@ -206,8 +207,8 @@ public class MetadataReader {
 					updateProgress(completed, all);
 				}
 
-				em.getTransaction().commit();
-				runFX(Db::updateInMemoryDbFromPersisted);
+				APP.db.getEm().getTransaction().commit();
+				runFX(APP.db::updateInMemoryDbFromPersisted);
 
 				// update state
 				updateMessage(all, completed, removed);

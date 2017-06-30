@@ -35,7 +35,6 @@ import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
 import main.App;
-import services.database.Db;
 import util.access.Vo;
 import util.access.fieldvalue.ColumnField;
 import util.animation.Anim;
@@ -91,7 +90,7 @@ import static util.reactive.Util.maintain;
             "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n" +
             "    Menu bar : Opens additional actions\n",
-    notes = "",
+//    notes = "",
     version = "1",
     year = "2015",
     group = LIBRARY
@@ -165,8 +164,8 @@ public class Library extends FXMLController implements SongReader {
             menuItem("Add directory", this::addDirectory)
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected from library", () -> Db.removeItems(table.getSelectedItems())),
-            menuItem("Remove all from library", () -> Db.removeItems(table.getItems())),
+            menuItem("Remove selected from library", () -> APP.db.removeItems(table.getSelectedItems())),
+            menuItem("Remove all from library", () -> APP.db.removeItems(table.getItems())),
             menuItem("Remove invalid items", this::removeInvalid)
         );
 
@@ -225,7 +224,7 @@ public class Library extends FXMLController implements SongReader {
             }
 			// delete selected
             if (e.getCode() == DELETE) {
-				Db.removeItems(table.getSelectedItems());
+				APP.db.removeItems(table.getSelectedItems());
 			}
         });
 
@@ -243,7 +242,7 @@ public class Library extends FXMLController implements SongReader {
         table.setOnScroll(Event::consume);
 
         // update library comparator
-        maintain(table.itemsComparator, Db.library_sorter);
+        maintain(table.itemsComparator, APP.db.getLibraryComparator());
     }
 
     @Override
@@ -309,10 +308,7 @@ public class Library extends FXMLController implements SongReader {
 			.use(Task::run)
 			.then(sleeping(seconds(5)))
 			.then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
-	        .f.exceptionally(x -> {
-	        	x.printStackTrace();
-	        	return null;
-	        });
+	        .printExceptions();
     }
 
 }

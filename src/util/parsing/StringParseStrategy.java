@@ -69,6 +69,8 @@ public @interface StringParseStrategy {
 		 * javafx property beans of the instance.
 		 */
 		FX,
+		/** Parses consistently into the same instance defined as public static final INSTANCE field of the class. */
+		SINGLETON,
 		/** Parsing strategy undefined. */
 		NONE
 	}
@@ -91,6 +93,8 @@ public @interface StringParseStrategy {
 		 * javafx property beans.
 		 */
 		FX,
+		/** Parses consistently into a constant identifying the object class. */
+		SINGLETON,
 		/** Parsing strategy undefined. */
 		NONE
 	}

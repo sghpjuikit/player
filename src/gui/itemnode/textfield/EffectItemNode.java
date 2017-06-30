@@ -11,7 +11,7 @@ import javafx.scene.effect.*;
 import javafx.scene.input.MouseEvent;
 import util.type.ClassName;
 import static javafx.geometry.Pos.CENTER;
-import static main.App.Build.appTooltip;
+import static main.AppBuilders.appTooltip;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
 import static util.functional.Util.list;

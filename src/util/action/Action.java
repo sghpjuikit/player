@@ -5,10 +5,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 import javafx.application.Platform;
@@ -429,9 +426,9 @@ public final class Action extends Config<Action> implements Runnable {
 
 	@SuppressWarnings("FieldCanBeLocal")
 	@IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
-	private static boolean isGlobalShortcutsSupported = true;
+	private static final boolean isGlobalShortcutsSupported = true;
 	@IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
-	private static boolean isMedialShortcutsSupported = true;
+	private static final boolean isMediaShortcutsSupported = true;
 	private static boolean isRunning = false;
 	private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
 
@@ -578,7 +575,16 @@ public final class Action extends Config<Action> implements Runnable {
 	private static final MapSet<Integer,Action> actions = gatherActions();
 
 	public static void installActions(Object... os) {
-		stream(os).forEach(o -> gatherActions(o).forEach(actions::add));
+		stream(os)
+				.flatMap(o -> {
+					// TODO: refactor out ?
+					if (o instanceof Stream) return (Stream) o;
+					if (o instanceof Optional) return ((Optional)o).stream();
+					if (o instanceof Object[]) return stream(((Object[])o));
+					// if (o instanceof Collection) return ((Collection)o).stream();	// TODO: Objects may extend Collection, disable?
+					return stream(o);
+				})
+				.forEach(o -> gatherActions(o).forEach(actions::add));
 	}
 
 	/** @return all actions of this application */
@@ -718,6 +724,6 @@ public final class Action extends Config<Action> implements Runnable {
 	public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
 
 	@IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = EditMode.NONE)
-	public static String Shortcut_COLAPSE = "Shift+C";
+	public static final String Shortcut_COLAPSE = "Shift+C";
 
 }

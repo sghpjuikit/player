@@ -840,7 +840,6 @@ public interface Util {
 		// TODO: jigsaw
 		// rely on official util (someone hid it..., good work genius)
 		// return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
-
 		for (Screen scr : Screen.getScreens())
 			if (scr.getBounds().intersects(x, y, 1, 1))
 				return scr;

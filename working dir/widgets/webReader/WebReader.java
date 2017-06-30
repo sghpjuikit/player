@@ -5,16 +5,16 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
+import util.access.V;
 import util.access.VarEnum;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.dev.Dependency;
-import web.DuckDuckGoImageQBuilder;
+import web.DuckDuckGoQBuilder;
 import web.SearchUriBuilder;
-
+import web.WebBarInterpreter;
 import static main.App.APP;
 import static util.dev.Util.log;
 import static util.reactive.Util.maintain;
@@ -46,30 +46,33 @@ public class WebReader extends FXMLController {
     public String url = "http://duckduckgo.com/";
 
     @IsConfig(name = "Search engine")
-    private final VarEnum<SearchUriBuilder> searchEngine = new VarEnum<>(new DuckDuckGoImageQBuilder(), () -> APP.plugins.getPlugins(SearchUriBuilder.class));
+    private final VarEnum<SearchUriBuilder> searchEngine = new VarEnum<>(DuckDuckGoQBuilder.INSTANCE, () -> APP.plugins.getPlugins(SearchUriBuilder.class));
+
+    @IsConfig(name = "No background")
+    private final V<Boolean> noBgr = new V<>(false);
 
     @Override
     public void init() {
         engine = webView.getEngine();
 		engine.setUserDataDirectory(APP.DIR_TEMP);
-
-//	    webView.setBlendMode(BlendMode.DIFFERENCE);
-//	    webView.setStyle("-fx-background-color: red;");
-
-        addressBar.setOnKeyPressed( e -> {
+        addressBar.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.ENTER)) {
             	String text = addressBar.getText();
-            	boolean isUrl = text!=null && text.contains(".") ;
-	            loadPage(isUrl ? text : searchEngine.get().apply(text).toASCIIString());
+            	String url = WebBarInterpreter.INSTANCE.toUrlString(text, searchEngine.get());
+	            loadPage(url);
             }
         });
         engine.locationProperty().addListener(o -> {
             url = engine.getLocation();
             addressBar.setText(url);
         });
-	    d(maintain(engine.documentProperty(), doc -> setTransparentBgrColor()));
+	    d(maintain(engine.documentProperty(), doc -> {
+	    	if (noBgr.get())
+	    		setTransparentBgrColor();
+	    }));
 	    getInputs().create("Html", String.class, this::loadHtml);
 	    getInputs().create("Url", String.class, this::loadPage);
+
 
 //	    try {
 ////		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), Gui.skin.get() + separator + Gui.skin.get() + ".css").toURI().toURL().toExternalForm());
@@ -88,8 +91,6 @@ public class WebReader extends FXMLController {
 	        // loadPage(url);
 	        addressBar.setText(url);
         }
-
-	    // setTransparentBgrColor(); // !work, probably due to some initialization
         loadPage(" ");
     }
 
@@ -113,6 +114,7 @@ public class WebReader extends FXMLController {
 		try {
 			// Use reflection to retrieve the WebEngine's private 'page' field.
 			Object webPage = getFieldValue(engine, "page");
+			if (webPage==null) return; // TODO: fix
 			invokeMethodP1(webPage, "setBackgroundColor", int.class, new java.awt.Color(255, 255, 255, 1).getRGB());
 		} catch (Exception e) {
 			log(WebReader.class).error("Could not change background color to transparent", e);

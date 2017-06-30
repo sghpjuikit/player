@@ -35,8 +35,8 @@ public class StrExF implements Ƒ1<Double,Double> {
 	}
 
 	@Override
-	public Double apply(Double i) {
-		return e.setVariable("x", i).evaluate();
+	public Double apply(Double queryParam) {
+		return e.setVariable("x", queryParam).evaluate();
 	}
 
 	@ParsesToString

@@ -28,9 +28,10 @@ import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.Environment;
+import util.math.Portion;
 import util.reactive.SetƑ;
 import util.validation.Constraint;
-import static audio.playback.PlayTimeHandler.at;
+import static audio.playback.PlayTimeHandler.*;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -65,9 +66,7 @@ public final class PLAYBACK implements Configurable {
 	/** Initializes the Playback. */
 	public static void initialize() {
 		player.realTime.initialize();
-		onPlaybackAt.add(at(1, () -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength()))));
-
-		// add end of player behavior
+		onPlaybackAt.add(at(new Portion(1), () -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength()))));
 		onPlaybackEnd.add(() -> {
 			switch (state.loopMode.get()) {
 				case OFF: stop();

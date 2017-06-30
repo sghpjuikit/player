@@ -22,6 +22,7 @@ import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNot;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
+import static util.type.Util.getGenericInterface;
 import static util.type.Util.instantiateOrThrow;
 import static util.validation.Constraint.DeclarationType.Declaration.IMPLICIT;
 
@@ -47,7 +48,7 @@ public interface Constraint<T> {
 		put(ConstrainsBy.class, (ConstrainsBy constraint) -> instantiateOrThrow(constraint.value()));
 		put(NonNullElements.class, (NonNullElements constraint) -> new HasNonNullElements());
 	}};
-	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> util.type.Util.getGenericInterface(o.getClass(), 0, 0)) {{
+	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> getGenericInterface(o.getClass(), 0, 0)) {{
 			StreamEx.of(ClassIndex.getAnnotated(DeclarationType.class).iterator())
 					// report programming errors
 					.map(c -> {

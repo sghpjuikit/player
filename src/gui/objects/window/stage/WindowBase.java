@@ -109,13 +109,13 @@ public class WindowBase {
 		Rectangle2D psb = Screen.getPrimary().getBounds();
 		double sxmin = screens.stream().mapToDouble(s -> s.getBounds().getMinX()).min().orElse(psb.getMinX());
 		double symin = screens.stream().mapToDouble(s -> s.getBounds().getMinY()).min().orElse(psb.getMinY());
-		double sxmax = screens.stream().mapToDouble(s -> s.getBounds().getMaxX()).min().orElse(psb.getMaxX());
-		double symax = screens.stream().mapToDouble(s -> s.getBounds().getMaxY()).min().orElse(psb.getMaxY());
+		double sxmax = screens.stream().mapToDouble(s -> s.getBounds().getMaxX()).max().orElse(psb.getMaxX());
+		double symax = screens.stream().mapToDouble(s -> s.getBounds().getMaxY()).max().orElse(psb.getMaxY());
 		// prevents out of screen position
 		if (Y.get() + H.get()<symin) Y.setValue(symin);
-		if (Y.get()>symax) Y.setValue(symax);
+		if (Y.get()>symax) Y.setValue(symax-H.get());
 		if (X.get() + W.get()<sxmin) X.setValue(sxmin);
-		if (X.get()>sxmax) X.setValue(sxmax);
+		if (X.get()>sxmax) X.setValue(sxmax-W.get());
 
 		s.setX(X.get());
 		s.setY(Y.get());

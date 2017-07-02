@@ -13,7 +13,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.TilePane;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.parsing.ToStringConverter;
@@ -48,15 +47,15 @@ public class Picker<E> {
 	public static final String STYLE_CLASS = "item-picker";
 	public static final List<String> CELL_STYLE_CLASS = asList("block", "item-picker-element");
 	/** Default on select action. Does nothing. */
-	public static final Consumer DEF_onSelect = item -> {};
+	public static final Consumer<Object> DEF_onSelect = item -> {};
 	/** Default on cancel action. Does nothing. */
 	public static final Runnable DEF_onCancel = () -> {};
 	/** Default text factory. Uses null safe version of object's toString() method. */
-	public static final ToStringConverter DEF_textCoverter = Objects::toString;
+	public static final ToStringConverter<Object> DEF_textConverter = Objects::toString;
 	/** Default text factory. Returns empty string. */
-	public static final ToStringConverter DEF_infoCoverter = item -> "";
+	public static final ToStringConverter<Object> DEF_infoConverter = item -> "";
 	/** Default Item supplier. Returns empty stream. */
-	public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
+	public static final Supplier<Stream<?>> DEF_itemSupply = Stream::empty;
 
 	public boolean consumeCancelClick = false;
 
@@ -67,7 +66,7 @@ public class Picker<E> {
 	 * Procedure executed when item is selected passing the item as parameter.
 	 * Default implementation does nothing. Must not be null;
 	 */
-	public Consumer<E> onSelect = DEF_onSelect;
+	public Consumer<? super E> onSelect = DEF_onSelect;
 	/**
 	 * Procedure executed when no item is selected. Invoked when user cancels
 	 * the picking by right click.
@@ -79,22 +78,22 @@ public class Picker<E> {
 	/**
 	 * Text factory.
 	 * Creates string representation of the item.
-	 * Default implementation is {@link Picker#DEF_textCoverter}
+	 * Default implementation is {@link Picker#DEF_textConverter}
 	 * Must not be null.
 	 */
-	public ToStringConverter<E> textCoverter = DEF_textCoverter;
+	public ToStringConverter<? super E> textConverter = DEF_textConverter;
 	/**
 	 * Info text factory.
 	 * Creates string representation of the item.
-	 * Default implementation is {@link Picker#DEF_infoCoverter}
+	 * Default implementation is {@link Picker#DEF_infoConverter}
 	 * Must not be null.
 	 */
-	public ToStringConverter<E> infoCoverter = DEF_infoCoverter;
+	public ToStringConverter<? super E> infoConverter = DEF_infoConverter;
 	/**
 	 * Item supplier. Fetches the items as a stream.
 	 * Default implementation returns empty stream. Must not be null;
 	 */
-	public Supplier<Stream<E>> itemSupply = (Supplier) DEF_itemSupply;
+	public Supplier<? extends Stream<E>> itemSupply = (Supplier) DEF_itemSupply;
 	/**
 	 * Cell factory.
 	 * Creates graphic representation of the item.
@@ -102,14 +101,14 @@ public class Picker<E> {
 	 * Must not be null;
 	 */
 	public Ƒ1<E,Pane> cellFactory = item -> {
-		String text = textCoverter.toS(item);
+		String text = textConverter.toS(item);
 		Label l = new Label(text);
 		StackPane cell = new StackPane(l);
 		cell.setMinSize(90, 30);
 		cell.getStyleClass().setAll(CELL_STYLE_CLASS);
 
 		// set up info pane
-		String info = infoCoverter.toS(item);
+		String info = infoConverter.toS(item);
 		if (!info.isEmpty()) {
 			// info content
 			Node content = cell.getChildren().get(0);
@@ -156,7 +155,7 @@ public class Picker<E> {
 		// get items
 		itemSupply.get()
 			// & sort
-			.sorted(byNC(textCoverter::toS))
+			.sorted(byNC(textConverter::toS))
 			// & create cells
 			.forEach(item -> {
 				Node cell = cellFactory.apply(item);
@@ -186,7 +185,7 @@ public class Picker<E> {
 		return (List) list(tiles.getChildren());
 	}
 
-	private class CellPane extends TilePane {
+	private class CellPane extends Pane {
 
 		@Override
 		protected void layoutChildren() {

@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -44,6 +43,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 
@@ -76,8 +76,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
     /**
      * Creates a new SplitPaneSkin instance, installing the necessary child
      * nodes into the Control {@link Control#getChildren() children} list, as
-     * well as the necessary {@link Node#getInputMap() input mappings} for
-     * handling key, mouse, etc events.
+     * well as the necessary input mappings for handling key, mouse, etc events.
      *
      * @param control The control that this skin should be installed onto.
      */
@@ -86,8 +85,8 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
 //        control.setManaged(false);
         horizontal = getSkinnable().getOrientation() == Orientation.HORIZONTAL;
 
-        contentRegions = FXCollections.observableArrayList();
-        contentDividers = FXCollections.observableArrayList();
+        contentRegions = FXCollections.<Content>observableArrayList();
+        contentDividers = FXCollections.<ContentDivider>observableArrayList();
 
         int index = 0;
         for (Node n: getSkinnable().getItems()) {
@@ -126,9 +125,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
         final double sw = s.getWidth();
         final double sh = s.getHeight();
 
-        if (!s.isVisible() ||
-                (horizontal ? sw == 0 : sh == 0) ||
-                contentRegions.isEmpty()) {
+        if ((horizontal ? sw == 0 : sh == 0) || contentRegions.isEmpty()) {
             return;
         }
 
@@ -227,7 +224,11 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
                 Content c = contentRegions.get(i);
                 double min = horizontal ? c.minWidth(-1) : c.minHeight(-1);
                 percentage = min/minSize;
-                c.setArea(snapSpace(percentage * (horizontal ? w : h)));
+                if (horizontal) {
+                    c.setArea(snapSpaceX(percentage * w));
+                } else {
+                    c.setArea(snapSpaceY(percentage * h));
+                }
                 c.setAvailable(0);
             }
             setupContentAndDividerForLayout();
@@ -236,7 +237,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             return;
         }
 
-        for (int trys = 0; trys < 10; trys++) {
+        for(int trys = 0; trys < 10; trys++) {
             // Compute the area in between each divider.
             ContentDivider previousDivider = null;
             ContentDivider divider = null;
@@ -246,7 +247,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
                     divider = contentDividers.get(i);
                     if (divider.posExplicit) {
                         checkDividerPosition(divider, posToDividerPos(divider, divider.d.getPosition()),
-                                divider.getDividerPos());
+                            divider.getDividerPos());
                     }
                     if (i == 0) {
                         // First panel
@@ -280,12 +281,10 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             double spaceRequested = 0;
             double extraSpace = 0;
             for (Content c: contentRegions) {
-                double max = 0;
-                double min = 0;
-                if (c != null) {
-                    max = horizontal ? c.maxWidth(-1) : c.maxHeight(-1);
-                    min = horizontal ? c.minWidth(-1) : c.minHeight(-1);
-                }
+                if (c == null) continue;
+
+                double max = horizontal ? c.maxWidth(-1) : c.maxHeight(-1);
+                double min = horizontal ? c.minWidth(-1) : c.minHeight(-1);
 
                 if (c.getArea() >= max) {
                     // Add the space that needs to be distributed to the others
@@ -503,6 +502,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
     private void removeContent(Node n) {
         for (Content c: contentRegions) {
             if (c.getContent().equals(n)) {
+                c.dispose();
                 getChildren().remove(c);
                 contentRegions.remove(c);
                 break;
@@ -633,18 +633,19 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
     }
 
     private void initializeDivderEventHandlers(final ContentDivider divider) {
-    	// CHANGED_FROM_SUPER
-        // TODO: do we need to consume all mouse events? // no we dont and YOU WONT!
-        // divider.addEventHandler(MouseEvent.ANY, event -> {
-        //    event.consume();
-        // });
+        // TODO: do we need to consume all mouse events? // no
+        // they only bubble to the skin which consumes them by default
+        divider.addEventHandler(MouseEvent.ANY, event -> {
+//            CHANGED_FROM_SUPER
+//            event.consume();
+        });
 
         divider.setOnMousePressed(e -> {
             if (horizontal) {
                 divider.setInitialPos(divider.getDividerPos());
                 divider.setPressPos(e.getSceneX());
                 divider.setPressPos(getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
-                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX());
+                    ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX());
             } else {
                 divider.setInitialPos(divider.getDividerPos());
                 divider.setPressPos(e.getSceneY());
@@ -656,7 +657,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             double delta = 0;
             if (horizontal) {
                 delta = getSkinnable().getEffectiveNodeOrientation() == NodeOrientation.RIGHT_TO_LEFT
-                        ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX();
+                    ? getSkinnable().getWidth() - e.getSceneX() : e.getSceneX();
             } else {
                 delta = e.getSceneY();
             }
@@ -759,7 +760,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             return size;
         }
 
-        size = snapSize(size);
+        size = horizontal ? snapSizeX(size) : snapSizeY(size);
         int portion = (int)(size)/available.size();
         int remainder;
 
@@ -813,7 +814,7 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             return size;
         }
 
-        size = snapSize(size);
+        size = horizontal ? snapSizeX(size) : snapSizeY(size);
         int portion = (int)(size)/available.size();
         int remainder;
 
@@ -1189,13 +1190,16 @@ public class ImprovedSplitPaneSkin extends SkinBase<SplitPane> {
             clipRect.setHeight(h);
         }
 
+        private void dispose() {
+            getChildren().remove(content);
+        }
+
         @Override protected double computeMaxWidth(double height) {
-            return snapSize(content.maxWidth(height));
+            return snapSizeX(content.maxWidth(height));
         }
 
         @Override protected double computeMaxHeight(double width) {
-            return snapSize(content.maxHeight(width));
+            return snapSizeY(content.maxHeight(width));
         }
     }
 }
-

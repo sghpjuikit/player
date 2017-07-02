@@ -10,8 +10,8 @@ public class WidgetPicker extends Picker<WidgetFactory<?>> {
 	public WidgetPicker() {
 		super();
 		itemSupply = APP.widgetManager::getFactories;
-		textCoverter = WidgetFactory::nameGui;
-		infoCoverter = WidgetInfo::toStr;
+		textConverter = WidgetFactory::nameGui;
+		infoConverter = WidgetInfo::toStr;
 	}
 
 }

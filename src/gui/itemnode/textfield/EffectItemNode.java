@@ -105,7 +105,7 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
 	private void openChooser(MouseEvent me) {
 		Picker<EffectType> w = new Picker<>();
 		w.itemSupply = limitedToType==null ? EFFECT_TYPES::stream : () -> stream(new EffectType(limitedToType), new EffectType(null));
-		w.textCoverter = EffectType::name;
+		w.textConverter = EffectType::name;
 		w.getNode().setPrefSize(300, 500);
 		PopOver<?> p = new PopOver<>(w.getNode());
 		p.title.set("Effect");

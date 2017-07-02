@@ -76,8 +76,8 @@ public final class Layouter implements ContainerNode {
             tuple("FreeForm", this::showFreeform, "Container for unlimited number of widgets. Widgets become 'window-like' - allow "
                     + "manual resizing and reposition. Widgets may overlap. You can make use of autolayout mechanism.")
         );
-        cp.textCoverter = layout_action -> layout_action._1;
-        cp.infoCoverter = layout_action -> layout_action._3;
+        cp.textConverter = layout_action -> layout_action._1;
+        cp.infoConverter = layout_action -> layout_action._3;
         cp.onSelect = layout_action -> closeAndDo(cp.root,layout_action._2);
         cp.onCancel = () -> {
             isCancelPlaying = true;

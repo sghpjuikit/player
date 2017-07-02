@@ -220,10 +220,10 @@ public class Player {
 
 	public static class CurrentItem {
 		private Metadata val = EMPTY;
-		private Metadata nextMetadataCache = EMPTY;
+		private Metadata valNext = EMPTY;
+		private final FxTimer valNextLoader = new FxTimer(400, 1, () -> preloadNext());
 		private final List<BiConsumer<Metadata,Metadata>> changes = new ArrayList<>();
 		private final List<BiConsumer<Metadata,Metadata>> updates = new ArrayList<>();
-		private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
 
 		/**
 		 * Returns the playing item and all its information.
@@ -235,7 +235,7 @@ public class Player {
 			return val;
 		}
 
-		void set(boolean change, Metadata new_metadata) {
+		private void set(boolean change, Metadata new_metadata) {
 			Metadata ov = val;
 			Metadata nv = new_metadata;
 			val = nv;
@@ -327,8 +327,8 @@ public class Player {
 				log(Player.class).info("Current item metadata reused. Same item playing.");
 			}
 			// if pre-loaded, set
-			else if (nextMetadataCache.same(item)) {
-				set(true, nextMetadataCache);
+			else if (valNext.same(item)) {
+				set(true, valNext);
 				log(Player.class).info("Current item metadata copied from next item metadata cache.");
 				// else load
 			} else {
@@ -337,7 +337,7 @@ public class Player {
 			}
 
 			// wait 400ms, preload metadata for next item
-			nextCachePreloader.start();
+			valNextLoader.start();
 		}
 
 		// load metadata, type indicates UPDATE vs CHANGE
@@ -354,7 +354,7 @@ public class Player {
 			if (next!=null) {
 				Fut.fut(next)
 						.map(MetadataReader::readMetadata)
-						.use(FX, m -> nextMetadataCache = m);
+						.use(FX, m -> valNext = m);
 			}
 		}
 	}

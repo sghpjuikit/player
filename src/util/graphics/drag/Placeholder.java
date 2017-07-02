@@ -39,6 +39,7 @@ public class Placeholder extends StackPane {
 		icon.onClick(noØ(action));
 		getStyleClass().add(STYLECLASS);
 		setOnMouseClicked(e -> { action.run(); e.consume(); });
+//		setOnKeyPressed(e -> { if (ENTER) action.run(); e.consume(); });   // TODO: implement sth along these lines
 		getChildren().add(layHeaderBottom(8, Pos.CENTER, icon, desc));
 		setVisible(false);
 	}

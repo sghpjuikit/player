@@ -1,6 +1,8 @@
 
 package layout.area;
 
+import gui.Gui;
+import gui.objects.icon.Icon;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
@@ -9,17 +11,13 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
-
 import layout.AltState;
 import layout.Component;
 import layout.container.Container;
 import layout.container.bicontainer.BiContainer;
 import layout.widget.Widget;
-import gui.Gui;
-import gui.objects.icon.Icon;
 import util.access.V;
 import util.collections.map.PropertyMap;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -160,8 +158,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         });
     }
 
-    Layouter layouter1,layouter2;
-    WidgetArea wa1,wa2;
+    private Layouter layouter1, layouter2;
+    private WidgetArea wa1, wa2;
 
     public void setComponent(int i, Component c) {
         if (i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
@@ -188,7 +186,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         if (Gui.isLayoutMode()) as.show();
 
         r.getChildren().setAll(n);
-        setAnchors(n,0d);
+        setAnchors(n, 0d);
     }
 
     public void setChild1(Component w) {

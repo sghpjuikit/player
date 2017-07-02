@@ -1,5 +1,6 @@
 package layout.widget.controller;
 
+import java.io.File;
 import java.util.List;
 
 import javafx.scene.Node;
@@ -8,6 +9,7 @@ import layout.widget.Widget;
 import layout.widget.controller.io.Inputs;
 import layout.widget.controller.io.Outputs;
 import layout.widget.feature.Feature;
+import util.Locatable;
 import util.conf.CachedConfigurable;
 
 /**
@@ -49,7 +51,7 @@ import util.conf.CachedConfigurable;
  * - controller is garbage collected
  * </pre>
  */
-public interface Controller<W extends Widget> extends CachedConfigurable<Object> {
+public interface Controller<W extends Widget<?>> extends CachedConfigurable<Object>, Locatable {
 
 	/** Loads the widget. Called once, before {@link #init()}. The result is then cached. */
 	default Node loadFirstTime() throws Exception {
@@ -99,7 +101,7 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
 	 * might prevent this controller from being garbage collected.
 	 * Default implementation does nothing.
 	 */
-	default void close(){}
+	default void close() {}
 
 	/**
 	 * @return whether widget displays any content. Empty controller generally
@@ -119,4 +121,13 @@ public interface Controller<W extends Widget> extends CachedConfigurable<Object>
 		return getWidget().factory.getFeatures();
 	}
 
+	@Override
+	default File getLocation() {
+		return getWidget().getLocation();
+	}
+
+	@Override
+	default File getUserLocation() {
+		return getWidget().getUserLocation();
+	}
 }

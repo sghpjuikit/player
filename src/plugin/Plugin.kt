@@ -1,11 +1,12 @@
 package plugin
 
 import main.App
+import util.Locatable
 import util.conf.Configurable
 import util.dev.Idempotent
 import util.file.Util.childOf
 
-interface Plugin: Configurable<Any> {
+interface Plugin: Configurable<Any>, Locatable {
 
     fun getName(): String
 
@@ -22,13 +23,9 @@ interface Plugin: Configurable<Any> {
         else stop()
     }
 
-    fun getLocation() = childOf(App.APP.DIR_APP, "plugins", getName())!!
+    override fun getLocation() = childOf(App.APP.DIR_APP, "plugins", getName())!!
 
-    fun getResource(path: String) = childOf(getLocation(), path)!!
-
-    fun getUserLocation() = childOf(App.APP.DIR_USERDATA, "plugins", getName())!!
-
-    fun getUserResource(path: String) = childOf(getUserLocation(), path)!!
+    override fun getUserLocation() = childOf(App.APP.DIR_USERDATA, "plugins", getName())!!
 
     companion object Factory {
         // TODO: avoid specifying plugin name in group

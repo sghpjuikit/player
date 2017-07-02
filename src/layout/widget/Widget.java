@@ -20,8 +20,10 @@ import layout.widget.controller.Controller;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.Locatable;
 import util.access.V;
 import util.conf.CachedCompositeConfigurable;
 import util.conf.Config;
@@ -48,7 +50,7 @@ import static util.functional.Util.*;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object> {
+public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
@@ -298,6 +300,22 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	/** @return factory information about this widget */
 	public WidgetInfo getInfo() {
 		return factory;
+	}
+
+	@Override
+	public File getLocation() {
+		return factory.location;
+	}
+
+	@Override
+	public File getUserLocation() {
+		return factory.locationUser;
+	}
+
+	@NotNull
+	@Override
+	public File getUserResource(@NotNull String path) {
+		return Locatable.super.getUserResource(path);
 	}
 
 	/** Creates a launcher for this widget with default (no predefined) settings. */

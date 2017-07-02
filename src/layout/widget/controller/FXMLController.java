@@ -42,8 +42,7 @@ abstract public class FXMLController implements Controller<Widget<?>> {
 
 	@Override
 	public Node loadFirstTime() throws Exception {
-//		String name = widget.getName(); // TODO: remove or implement
-		String name = getClass().getSimpleName();
+		String name = getClass().getSimpleName();   // TODO: use directory name ?
 
 		FXMLLoader loader = new FXMLLoader();
 				   loader.setLocation(getResource(name + ".fxml").toURI().toURL());
@@ -55,15 +54,6 @@ abstract public class FXMLController implements Controller<Widget<?>> {
 
 	@Override
 	abstract public void refresh();
-
-	/**
-	 * Returns specified resource file from the widget's location.
-	 * @param filename of the file with extension. For example: "bgr.jpg"
-	 */
-	public File getResource(String filename) {
-		noØ(widget);
-		return new File(widget.factory.location,filename).getAbsoluteFile();
-	}
 
 	public void loadSkin(String filename, Pane root) {
 		try {

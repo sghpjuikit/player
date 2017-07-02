@@ -11,6 +11,7 @@ import main.App;
 import util.file.Util;
 import util.type.ClassName;
 import static util.dev.Util.noØ;
+import static util.file.Util.childOf;
 import static util.file.Util.readFileLines;
 
 /**
@@ -32,6 +33,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 
 	private final Class<C> controller_class;
 	public final File location;
+	public final File locationUser;
 
 	final boolean isDelegated;
 	final File fxwlFile;
@@ -55,7 +57,10 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 	private WidgetFactory(String name, Class<C> type, File location) {
 		this.name = name;
 		this.controller_class = type;
+
+		// TODO: these two should never be null
 		this.location = location;
+		this.locationUser = location == null ? null : childOf(App.APP.DIR_USERDATA, "widgets", location.getName());
 
 		Widget.Info i = type.getAnnotation(Widget.Info.class);
 		if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
@@ -93,6 +98,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 		name = customName;
 		controller_class = (Class<C>) factory.controller_class;
 		location = factory.location;
+		locationUser = factory.locationUser;
 
 		gui_name = customName;
 		description = factory.description();

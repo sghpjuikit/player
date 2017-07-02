@@ -10,7 +10,9 @@ object WebBarInterpreter {
     }
 
     private fun addHttpWwwPrefix(url: String) =
-        if (url.startsWith("http://")) url
+        if (url.startsWithHttp()) url
         else "http://" + (if (url.startsWith("www.")) url else "www.") + url
+
+    fun String.startsWithHttp() = startsWith("http://") || startsWith("https://")
 
 }

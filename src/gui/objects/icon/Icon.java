@@ -14,6 +14,7 @@ import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.popover.PopOver;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -55,6 +56,7 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static main.AppBuilders.appTooltip;
+import static util.functional.Util.setRO;
 import static util.functional.Util.stream;
 import static util.graphics.Util.*;
 import static util.type.Util.getEnumConstants;
@@ -64,6 +66,7 @@ import static util.type.Util.getFieldValue;
  * Icon.
  */
 public class Icon<I extends Icon<?>> extends StackPane {
+
 
 	// animation builder, & reusable supplier
 	private static final Ƒ1<Icon,Anim> Apress = i -> {
@@ -80,6 +83,21 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
 	private static final EventHandler<Event> EVENT_CONSUMER = Event::consume;
+
+	/** Collection of all glyphs types. */
+	public static Set<Class<? extends GlyphIcons>> GLYPH_TYPES = setRO(
+		FontAwesomeIcon.class,
+		WeatherIcon.class,
+		MaterialDesignIcon.class,
+		MaterialIcon.class,
+		OctIcon.class
+	);
+
+	/** Collection of all glyphs mapped to a unique names that identify them. */
+	private static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
+		.flatMap(c -> stream(getEnumConstants(c)))
+		.select(GlyphIcons.class)
+		.toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name()));
 
 	// load fonts
 	static {
@@ -387,20 +405,6 @@ public class Icon<I extends Icon<?>> extends StackPane {
 			glyph = GLYPHS.getOr(n, DEFAULT_GLYPH);
 		return glyph;
 	}
-
-	/**
-	 * Collection of all glyphs mapped to a unique names that identify them.
-	 */
-	private static final MapSet<String,GlyphIcons> GLYPHS = stream(
-			FontAwesomeIcon.class,
-			WeatherIcon.class,
-			MaterialDesignIcon.class,
-			MaterialIcon.class,
-			OctIcon.class
-	)
-			.flatMap(c -> stream(getEnumConstants(c)))
-			.select(GlyphIcons.class)
-			.toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name()));
 
 	public final void setFill(Paint value) {
 		node.setFill(value);

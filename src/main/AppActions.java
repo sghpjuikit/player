@@ -7,15 +7,13 @@ import audio.tagging.MetadataReader;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import de.jensd.fx.glyphs.GlyphIcons;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import de.jensd.fx.glyphs.octicons.OctIcon;
-import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
+import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
 import gui.objects.popover.PopOver.ScreenPos;
@@ -75,26 +73,27 @@ import static util.graphics.Util.*;
 import static util.math.Util.millis;
 import static util.type.Util.getEnumConstants;
 
+@SuppressWarnings("unused")
 @IsActionable("Shortcuts")
-public interface AppActions {
+public class AppActions {
 
 	@IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
-	static void openAppGithubPage() {
+	public void openAppGithubPage() {
 		browse(APP.GITHUB_URI);
 	}
 
 	@IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
-	static void openAppLocation() {
+	public void openAppLocation() {
 		Environment.open(APP.DIR_APP);
 	}
 
 	@IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
-	static void openCssGuide() {
+	public void openCssGuide() {
 		browse(URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html"));
 	}
 
 	@IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
-	static void openIconViewer() {
+	public void openIconViewer() {
 		double iconSize = 45;
 		GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
 		grid.search.field = (object, substitute) -> object==null ? substitute : object.name();
@@ -133,8 +132,7 @@ public interface AppActions {
 		});
 		StackPane root = new StackPane(grid);
 		root.setPrefSize(600, 720); // determines popup size
-		List<Button> groups = stream(FontAwesomeIcon.class,WeatherIcon.class,OctIcon.class,
-									 MaterialDesignIcon.class,MaterialIcon.class)
+		List<Button> groups = stream(Icon.GLYPH_TYPES)
 			  .map(c -> {
 				  Button b = new Button(c.getSimpleName());
 				  b.setOnMouseClicked(e -> {
@@ -151,7 +149,7 @@ public interface AppActions {
 	}
 
 	@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
-	static void openLauncher() {
+	public void openLauncher() {
 		File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
 		Component c = UiContext.instantiateComponent(f);
 		if (c!=null) {
@@ -187,23 +185,23 @@ public interface AppActions {
 	}
 
 	@IsAction(name = "Open settings", desc = "Opens application settings.")
-	static void openSettings() {
+	public void openSettings() {
 		APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
 	}
 
 	@IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
-	static void openLayoutManager() {
+	public void openLayoutManager() {
 		APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
 	}
 
 	@IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
-	static void openActions() {
+	public void openActions() {
 		APP.actionAppPane.show(APP);
 	}
 
 	// TODO: is this even needed anymore? It improves UX, but its kind of unnecessary
 	@IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
-	static void openOpen() {
+	public void openOpen() {
 //			APP.actionAppPane.show(Void.class, null, false,
 		APP.actionPane.show(Void.class, null, false,
 			new FastAction<>(
@@ -251,26 +249,27 @@ public interface AppActions {
 	}
 
 	@IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
-	static void showShortcuts() {
+	public void showShortcuts() {
 		APP.shortcutPane.show(Action.getActions());
 	}
 
 	@IsAction(name = "Show system info", desc = "Display system information.")
-	static void showSysInfo() {
+	public void showSysInfo() {
 		APP.actionPane.hide();
 		APP.infoPane.show(null);
 	}
 
 	@IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
-	static void runGarbageCollector() {
+	public void runGarbageCollector() {
 		System.gc();
 	}
 
 	@IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
-	static void runCommand() {
+	public void runCommand() {
 		SimpleConfigurator sc = new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
-			(Consumer<String>) Environment::runCommand);
+			Environment::runCommand
+		);
 		PopOver p = new PopOver<>(sc);
 				p.title.set("Run system command ");
 				p.show(ScreenPos.App_Center);
@@ -278,7 +277,7 @@ public interface AppActions {
 
 	@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
 											   "the command as a parameter.")
-	static void runAppCommand() {
+	public void runAppCommand() {
 		SimpleConfigurator sc = new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
 			(String command) -> APP.parameterProcessor.process(list(command)));
@@ -289,7 +288,7 @@ public interface AppActions {
 
 	@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 	@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
-	static void showSearch() {
+	public void showSearch() {
 		PopOver<?> p = new PopOver<>(APP.search.build());
 		p.title.set("Search for an action or option");
 		p.setAutoHide(true);
@@ -297,7 +296,7 @@ public interface AppActions {
 	}
 
 	@IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
-	static void openWebBar() {
+	public void openWebBar() {
 		doWithUserString("Open on web...", "Website or phrase",
 			phrase -> {
 				String uriString = WebBarInterpreter.INSTANCE.toUrlString(phrase, DuckDuckGoQBuilder.INSTANCE);
@@ -312,13 +311,13 @@ public interface AppActions {
 	}
 
 	@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
-	static void openDictionary() {
+	public void openDictionary() {
 		doWithUserString("Look up in dictionary...", "Word",
 			phrase -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + urlEncodeUtf8(phrase)))
 		);
 	}
 
-	static void doWithUserString(String title, String inputName, Consumer<? super String> action) {
+	public void doWithUserString(String title, String inputName, Consumer<? super String> action) {
 		PopOver<SimpleConfigurator<?>> p = new PopOver<>(new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, inputName, "").constraints(new StringNonEmpty()),
 			action
@@ -330,7 +329,7 @@ public interface AppActions {
 		p.getContentNode().hideOnOk.setValue(true);
 	}
 
-	static void openImageFullscreen(File image, Screen screen) {
+	public void openImageFullscreen(File image, Screen screen) {
 		// find appropriate widget
 		Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
 		if (c==null) return; // one can never know
@@ -358,7 +357,7 @@ public interface AppActions {
 		else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
 	}
 
-	static void printAllImageFileMetadata(File file) {
+	public void printAllImageFileMetadata(File file) {
 		try {
 			StringBuilder sb = new StringBuilder("Metadata of ").append(file.getPath());
 			com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
@@ -373,15 +372,14 @@ public interface AppActions {
 		}
 	}
 
-
-	static void refreshItemsFromFileJob(List<? extends Item> items) {
+	public void refreshItemsFromFileJob(List<? extends Item> items) {
 		fut(items)
 			.map(Player.IO_THREAD, is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList())
 			.use(Player.IO_THREAD, Player::refreshItemsWith)
 			.showProgressOnActiveWindow();
 	}
 
-	static void itemToMeta(Item i, Consumer<Metadata> action) {
+	public void itemToMeta(Item i, Consumer<Metadata> action) {
 		if (i.same(Player.playingItem.get())) {
 			action.accept(Player.playingItem.get());
 			return;

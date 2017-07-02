@@ -29,7 +29,6 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
-import main.AppActions;
 import util.access.V;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
@@ -51,6 +50,7 @@ import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static layout.widget.Widget.Group.OTHER;
+import static main.App.APP;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
@@ -325,7 +325,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else AppActions.itemToMeta(i, this::dataChanged);
+        else APP.actions.itemToMeta(i, this::dataChanged);
     }
 
     private void dataChanged(Metadata m) {

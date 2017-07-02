@@ -26,7 +26,6 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
-import main.AppActions;
 import util.access.V;
 import util.async.executor.EventReducer;
 import util.conf.Config;
@@ -258,7 +257,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private void setValue(Item i) {
         if (i==null) setValue(EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
-        else AppActions.itemToMeta(i, this::setValue);
+        else APP.actions.itemToMeta(i, this::setValue);
     }
 
     private void setValue(Metadata m) {

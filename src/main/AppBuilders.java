@@ -13,6 +13,7 @@ import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.graphics.Util.setScaleXY;
 
+// TODO: make methods non static ?
 public interface AppBuilders {
 
 	static ProgressIndicator appProgressIndicator() {

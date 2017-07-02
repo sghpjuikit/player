@@ -206,6 +206,9 @@ public class App extends Application implements Configurable {
 	 */ public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
 
 	/**
+	 * Various actions for the application
+	 */ public final AppActions actions = new AppActions();
+	/**
 	 * Event source and stream for executed actions, providing their name. Use
 	 * for notifications of running the action or executing additional behavior.
 	 * <p/>
@@ -542,7 +545,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Read metadata", "Prints all image metadata to console.",
 				MaterialIcon.IMAGE_ASPECT_RATIO,
 				ImageFileFormat::isSupported,
-				AppActions::printAllImageFileMetadata),
+				actions::printAllImageFileMetadata),
 			new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
 				MaterialIcon.OPEN_IN_NEW,
 				Environment::open),
@@ -775,6 +778,7 @@ public class App extends Application implements Configurable {
 				// TODO: unify services & managers ?
 				Action.installActions(
 					this,
+					actions,
 					windowManager,
 					guide,
 					services.getAllServices()

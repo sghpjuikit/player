@@ -27,7 +27,6 @@ import layout.widget.feature.FileExplorerFeature;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
 import main.App;
-import main.AppActions;
 import util.access.AccessibleValue;
 import util.collections.map.ClassListMap;
 import util.file.Environment;
@@ -170,7 +169,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 				(contextMenu, mg) -> Stream.of(
 						menuItem("Play items", () -> PlaylistManager.use(p -> p.setNplay(mg.getGrouped().stream().sorted(APP.db.getLibraryComparator().get())))),
 						menuItem("Enqueue items", () -> PlaylistManager.use(p -> p.addItems(mg.getGrouped()))),
-						menuItem("Update items from file", () -> AppActions.refreshItemsFromFileJob(mg.getGrouped())),
+						menuItem("Update items from file", () -> APP.actions.refreshItemsFromFileJob(mg.getGrouped())),
 						menuItem("Remove items from library", () -> APP.db.removeItems(mg.getGrouped())),
 						new Menu("Show in", null,
 								menuItems(
@@ -236,7 +235,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 						new Menu("Search album cover", null,
 								menuItems(App.APP.plugins.getPlugins(SearchUriBuilder.class),
 										q -> "in " + Parser.DEFAULT.toS(q),
-										q -> AppActions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbum())))
+										q -> APP.actions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbum())))
 								)
 						)
 				)
@@ -266,7 +265,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 									File f = cmd.fsImageFile;
 									if (ImageFileFormat.isSupported(f)) {
 										Screen screen = getScreen(contextMenu.getX(), contextMenu.getY());
-										AppActions.openImageFullscreen(f, screen);
+										APP.actions.openImageFullscreen(f, screen);
 									}
 								})
 						),

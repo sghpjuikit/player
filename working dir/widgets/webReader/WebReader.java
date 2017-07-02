@@ -17,6 +17,7 @@ import web.SearchUriBuilder;
 import web.WebBarInterpreter;
 import static main.App.APP;
 import static util.dev.Util.log;
+import static util.file.Util.childOf;
 import static util.reactive.Util.maintain;
 import static util.type.Util.getFieldValue;
 import static util.type.Util.invokeMethodP1;
@@ -62,6 +63,7 @@ public class WebReader extends FXMLController {
 	            loadPage(url);
             }
         });
+		engine.setUserDataDirectory(childOf(getUserLocation(), "browser"));
         engine.locationProperty().addListener(o -> {
             url = engine.getLocation();
             addressBar.setText(url);
@@ -72,7 +74,6 @@ public class WebReader extends FXMLController {
 	    }));
 	    getInputs().create("Html", String.class, this::loadHtml);
 	    getInputs().create("Url", String.class, this::loadPage);
-
 
 //	    try {
 ////		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), Gui.skin.get() + separator + Gui.skin.get() + ".css").toURI().toURL().toExternalForm());

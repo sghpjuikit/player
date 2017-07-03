@@ -19,6 +19,7 @@ import static util.functional.Util.*;
 /**
  * Reflection utility methods.
  */
+@SuppressWarnings("unused")
 public interface Util {
 
 	static <T> T build(T t, Consumer<? super T> postAction) {
@@ -83,11 +84,47 @@ public interface Util {
 
 /* ---------- REFLECTION - INSTANTIATION ---------------------------------------------------------------------------- */
 
-	static <T> T instantiateOrThrow(Class<T> type) throws RuntimeException {
+	static <T> T instantiateOrThrow(Class<T> type) {
+		boolean isSingleton = isSingleton(type);
+		return isSingleton ? instantiateAsSingleton(type) : instantiateWithDefConstructor(type);
+	}
+
+	static boolean isSingleton(Class<?> type) {
+		String fieldName = "INSTANCE";
+		try {
+			Field f = type.getDeclaredField(fieldName);
+			return Modifier.isStatic(f.getModifiers());
+		} catch (NoSuchFieldException e) {
+			return false;
+		}
+	}
+
+	static <T> T instantiateAsSingleton(Class<T> type) {
+		String fieldName = "INSTANCE";
+		try {
+			Field f = type.getDeclaredField(fieldName);
+			Class<?> fType = f.getType();
+
+			if (!Modifier.isStatic(f.getModifiers())) throw new NoSuchFieldException(fieldName + " field must be static=" + fType);
+			if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
+
+			try {
+				//noinspection unchecked
+				return (T) f.get(null);
+			} catch (IllegalAccessException e) {
+				throw new NoSuchFieldException("Field " + f + " is not accessible");
+			}
+
+		} catch(NoSuchFieldException e) {
+			throw new RuntimeException("Could not instantiate class=" + type + " as singleton.", e);
+		}
+	}
+
+	static <T> T instantiateWithDefConstructor(Class<T> type) {
 		try {
 			return type.getConstructor().newInstance();
-		} catch (InstantiationException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-			throw new RuntimeException("Could not instantiate " + type + " using default constructor. It must be declared and accessible.");
+		} catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+			throw new RuntimeException("Could not instantiate class=" + type + " using default constructor. Undeclared or inaccessible.", e);
 		}
 	}
 
@@ -505,7 +542,6 @@ public interface Util {
 		return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
 	}
 
-	// TODO: make generic
 
 	/**
 	 * Returns enum constants of an enum class in declared order. Works for
@@ -518,6 +554,7 @@ public interface Util {
 	 * @throws IllegalArgumentException if class not an enum
 	 */
 	@SuppressWarnings("unchecked")
+	// TODO: make generic
 	static <T> T[] getEnumConstants(Class type) {
 		// handle enums
 		if (type.isEnum()) return (T[]) type.getEnumConstants();

@@ -92,7 +92,7 @@ import util.file.Util;
 import util.file.mimetype.MimeTypes;
 import util.functional.Try;
 import util.graphics.MouseCapture;
-import unused.PluginMap;
+import util.type.InstanceMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
 import util.system.SystemOutListener;
@@ -279,16 +279,15 @@ public class App extends Application implements Configurable {
 	 * Manages services.
 	 */ public final ServiceManager services = new ServiceManager();
 	/**
-	 * Manages plugins.
-	 */ public final PluginMap plugins = new PluginMap();
+	 * Instance enumerations.
+	 */ public final InstanceMap instances = new InstanceMap();
 	/**
 	 * File mime type map.
 	 * Initialized with the built-in mime types definitions.
 	 */ public final MimeTypes mimeTypes = MimeTypes.standard();
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
-	public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new RatingRatingCellFactory(),
-			() -> plugins.getPlugins(RatingCellFactory.class));
+	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);
 
 	@IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")
 	@Constraint.MinMax(min=0, max=10)
@@ -321,7 +320,6 @@ public class App extends Application implements Configurable {
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
 
-	// TODO: use a Quality enum LOW/HIGH
 	@Constraint.MinMax(min=10, max=60)
 	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
 	public double animationFps = 60.0;
@@ -751,20 +749,21 @@ public class App extends Application implements Configurable {
 		}
 
 		isInitialized = Try.tryCatchAll(() -> {
-				// discover plugins
-				plugins.registerPluginType(SearchUriBuilder.class);
-				plugins.registerPlugin(DuckDuckGoQBuilder.class);
-				plugins.registerPlugin(DuckDuckGoImageQBuilder.class);
-				plugins.registerPlugin(WikipediaQBuilder.class);
-				plugins.registerPlugin(BingImageSearchQBuilder.class);
-				plugins.registerPlugin(GoogleImageQBuilder.class);
-
-				plugins.registerPluginType(RatingCellFactory.class);
-				plugins.registerPlugin(BarRatingCellFactory.class);
-				plugins.registerPlugin(HyphenRatingCellFactory.class);
-				plugins.registerPlugin(TextStarRatingCellFactory.class);
-				plugins.registerPlugin(NumberRatingCellFactory.class);
-				plugins.registerPlugin(RatingRatingCellFactory.class);
+				// enumerate instances
+				instances.addInstance(SearchUriBuilder.class,
+					DuckDuckGoQBuilder.INSTANCE,
+					DuckDuckGoImageQBuilder.INSTANCE,
+					WikipediaQBuilder.INSTANCE,
+					BingImageSearchQBuilder.INSTANCE,
+					GoogleImageQBuilder.INSTANCE
+				);
+				instances.addInstance(RatingCellFactory.class,
+					BarRatingCellFactory.INSTANCE,
+					HyphenRatingCellFactory.INSTANCE,
+					TextStarRatingCellFactory.INSTANCE,
+					NumberRatingCellFactory.INSTANCE,
+					RatingRatingCellFactory.INSTANCE
+				);
 
 				widgetManager.initialize();
 

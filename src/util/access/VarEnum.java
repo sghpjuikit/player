@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import util.access.fieldvalue.EnumerableValue;
+import util.type.InstanceMap;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static util.dev.Util.noØ;
@@ -23,6 +24,12 @@ public class VarEnum<T> extends V<T> implements EnumerableValue<T> {
 	public static <V> VarEnum<V> ofStream(V val, Supplier<Stream<V>> enumerator) {
 		noØ(enumerator);
 		return new VarEnum<>(val, () -> enumerator.get().collect(toList()));
+	}
+
+	public static <V> VarEnum<V> ofInstances(V val, Class<V> type, InstanceMap instanceSource) {
+		noØ(type);
+		noØ(instanceSource);
+		return new VarEnum<>(val, () -> instanceSource.getInstances(type));
 	}
 
 	private final Supplier<Collection<T>> valueEnumerator;

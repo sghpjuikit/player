@@ -1,7 +1,6 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- remove Pluginmap & instead implement VarEnums (Enumerable Configs) with extensible sources
 - update jaudiotagger/12monkeys/other libs
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write

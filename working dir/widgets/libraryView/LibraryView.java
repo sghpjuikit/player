@@ -152,7 +152,7 @@ public class LibraryView extends FXMLController {
                 c.setCellFactory(mgf==AVG_RATING
                         ? (Callback) APP.ratingCell.getValue()
                         : mgf==W_RATING
-                        ? (Callback) new NumberRatingCellFactory()
+                        ? (Callback) NumberRatingCellFactory.INSTANCE
                         : col -> {
                         TableCell cel = table.buildDefaultCell(mgf);
                         cel.setAlignment(a);

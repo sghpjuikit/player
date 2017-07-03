@@ -195,7 +195,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 						),
 						mg.getField()!=Field.ALBUM ? null : new Menu("Search cover in", null,
 								menuItems(
-										App.APP.plugins.getPlugins(SearchUriBuilder.class),
+										App.APP.instances.getInstances(SearchUriBuilder.class),
 										q -> "in " + Parser.DEFAULT.toS(q),
 										q -> Environment.browse(q.apply(mg.getValueS("<none>")))
 								)
@@ -233,7 +233,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 								APP.db.addItems(stream(pig.items).map(Item::toMeta).toList())
 						),
 						new Menu("Search album cover", null,
-								menuItems(App.APP.plugins.getPlugins(SearchUriBuilder.class),
+								menuItems(App.APP.instances.getInstances(SearchUriBuilder.class),
 										q -> "in " + Parser.DEFAULT.toS(q),
 										q -> APP.actions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbum())))
 								)

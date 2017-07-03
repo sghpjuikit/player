@@ -88,11 +88,11 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	protected void layoutChildren(double x, double y, double w, double h) {
 		final double fullHeight = h + snappedTopInset() + snappedBottomInset();
 
-		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(fullHeight));
-		final double rightWidth = rightPane==null ? 0.0 : snapSize(rightPane.prefWidth(fullHeight));
+		final double leftWidth = leftPane==null ? 0.0 : snapSizeX(leftPane.prefWidth(fullHeight));
+		final double rightWidth = rightPane==null ? 0.0 : snapSizeX(rightPane.prefWidth(fullHeight));
 
-		final double textFieldStartX = snapPosition(x) + snapSize(leftWidth);
-		final double textFieldWidth = w - snapSize(leftWidth) - snapSize(rightWidth);
+		final double textFieldStartX = snapPositionX(x) + snapSizeX(leftWidth);
+		final double textFieldWidth = w - snapSizeX(leftWidth) - snapSizeX(rightWidth);
 
 		super.layoutChildren(textFieldStartX, 0, textFieldWidth, fullHeight);
 
@@ -112,15 +112,15 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 		// This resolves https://bitbucket.org/controlsfx/controlsfx/issue/476
 		// when we have a left Node and the click point is badly returned
 		// because we weren't considering the shift induced by the leftPane.
-		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(getSkinnable().getHeight()));
+		final double leftWidth = leftPane==null ? 0.0 : snapSizeX(leftPane.prefWidth(getSkinnable().getHeight()));
 		return super.getIndex(x - leftWidth, y);
 	}
 
 	@Override
 	protected double computePrefWidth(double h, double topInset, double rightInset, double bottomInset, double leftInset) {
 		final double pw = super.computePrefWidth(h, topInset, rightInset, bottomInset, leftInset);
-		final double leftWidth = leftPane==null ? 0.0 : snapSize(leftPane.prefWidth(h));
-		final double rightWidth = rightPane==null ? 0.0 : snapSize(rightPane.prefWidth(h));
+		final double leftWidth = leftPane==null ? 0.0 : snapSizeX(leftPane.prefWidth(h));
+		final double rightWidth = rightPane==null ? 0.0 : snapSizeX(rightPane.prefWidth(h));
 
 		return pw + leftWidth + rightWidth + leftInset + rightInset;
 	}
@@ -128,8 +128,8 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	@Override
 	protected double computePrefHeight(double w, double topInset, double rightInset, double bottomInset, double leftInset) {
 		final double ph = super.computePrefHeight(w, topInset, rightInset, bottomInset, leftInset);
-		final double leftHeight = leftPane==null ? 0.0 : snapSize(leftPane.prefHeight(-1));
-		final double rightHeight = rightPane==null ? 0.0 : snapSize(rightPane.prefHeight(-1));
+		final double leftHeight = leftPane==null ? 0.0 : snapSizeY(leftPane.prefHeight(-1));
+		final double rightHeight = rightPane==null ? 0.0 : snapSizeY(rightPane.prefHeight(-1));
 
 		return Math.max(ph, Math.max(leftHeight, rightHeight));
 	}

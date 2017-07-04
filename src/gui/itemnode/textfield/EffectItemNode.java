@@ -3,7 +3,6 @@ package gui.itemnode.textfield;
 import gui.objects.icon.Icon;
 import gui.objects.picker.Picker;
 import gui.objects.popover.PopOver;
-import gui.objects.window.stage.UiContext;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import javafx.scene.control.Tooltip;
@@ -11,6 +10,7 @@ import javafx.scene.effect.*;
 import javafx.scene.input.MouseEvent;
 import util.type.ClassName;
 import static javafx.geometry.Pos.CENTER;
+import static main.App.APP;
 import static main.AppBuilders.appTooltip;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
@@ -122,7 +122,7 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
 	}
 
 	private void openProperties(MouseEvent me) {
-		if (v!=null) UiContext.showSettings(configsFromFxPropertiesOf(v), me);
+		if (v!=null) APP.windowManager.showSettings(configsFromFxPropertiesOf(v), me);
 		me.consume();
 	}
 }

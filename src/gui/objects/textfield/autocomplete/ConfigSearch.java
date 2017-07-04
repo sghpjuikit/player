@@ -2,7 +2,6 @@ package gui.objects.textfield.autocomplete;
 
 import gui.itemnode.ConfigField;
 import gui.objects.textfield.autocomplete.ConfigSearch.Entry;
-import gui.objects.window.stage.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -20,6 +19,7 @@ import layout.widget.WidgetFactory;
 import util.action.Action;
 import util.conf.Config;
 import util.functional.Functors.Ƒ0;
+import static main.App.APP;
 import static main.AppBuilders.appTooltip;
 import static util.Util.containsNoCase;
 import static util.functional.Util.by;
@@ -203,7 +203,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 			return new SimpleEntry(
 				"Open widget " + f.nameGui(),
 				"Open widget " + f.nameGui() + "\n\n" + "Opens the widget in new window.",
-				() -> UiContext.launchComponent(f.name())
+				() -> APP.windowManager.launchComponent(f.name())
 			);
 		}
 

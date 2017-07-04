@@ -57,6 +57,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import util.SwitchException;
 import util.access.V;
+import util.graphics.P;
 import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -462,6 +463,10 @@ public class PopOver<N extends Node> extends PopupControl {
 	public void show(Window window, double x, double y) {
 		showThis(null, window);
 		position(x, y);
+	}
+
+	public void show(Window window, P position) {
+		show(window, position.x, position.y);
 	}
 
 	private static Stage UNFOCUSED_OWNER;

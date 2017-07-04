@@ -65,7 +65,6 @@ import static comet.Utils.AbilityState.*;
 import static comet.Utils.*;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
-import static gui.objects.window.stage.UiContext.showSettingsSimple;
 import static javafx.geometry.Pos.*;
 import static javafx.scene.effect.BlendMode.*;
 import static javafx.scene.effect.BlurType.GAUSSIAN;
@@ -75,6 +74,7 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.*;
+import static main.App.APP;
 import static util.Util.clip;
 import static util.Util.pyth;
 import static util.animation.Anim.map01To010;
@@ -150,7 +150,7 @@ public class Comet extends ClassController {
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
 				new Icon(null,16){{ maintain(game.paused,mapB(MaterialDesignIcon.PLAY,MaterialDesignIcon.PAUSE), this::icon); }}.onClick(() -> game.pause(!game.paused.get())),
-				new Icon<>(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
+				new Icon<>(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
 				new Icon<>(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),
 			0d,0d,null,0d,

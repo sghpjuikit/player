@@ -17,7 +17,6 @@ import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
 import gui.objects.popover.PopOver.ScreenPos;
-import gui.objects.window.stage.UiContext;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.OverlayPane;
 import java.io.File;
@@ -151,7 +150,7 @@ public class AppActions {
 	@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
 	public void openLauncher() {
 		File f = new File(APP.DIR_LAYOUTS,"AppMainLauncher.fxwl");
-		Component c = UiContext.instantiateComponent(f);
+		Component c = APP.windowManager.instantiateComponent(f);
 		if (c!=null) {
 			OverlayPane<Void> op = new OverlayPane<>() {
 				@Override
@@ -214,7 +213,7 @@ public class AppActions {
 					fc.getExtensionFilters().add(new ExtensionFilter("component file","*.fxwl"));
 					fc.setTitle("Open widget...");
 					File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
-					if (f!=null) UiContext.launchComponent(f);
+					if (f!=null) APP.windowManager.launchComponent(f);
 				}
 			),
 			new FastAction<>(

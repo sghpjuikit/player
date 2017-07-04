@@ -1,6 +1,5 @@
 package layout.widget;
 
-import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
 import java.io.File;
@@ -544,7 +543,7 @@ public final class WidgetManager {
 				out = f.create();
 				standaloneWidgets.add(out);
 				if (!ignore) {
-					UiContext.showFloating(out);
+					APP.windowManager.showFloating(out);
 				}
 			}
 		}

@@ -200,10 +200,6 @@ public class Window extends WindowBase {
 		// note the poor impl. only borders must be Regions!
 		maintain(resizable, v -> !v, v -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(v)));
 
-		// update context manager
-		root.addEventFilter(MOUSE_PRESSED, e -> UiContext.setPressedXY(e.getSceneX(), e.getSceneY()));
-		root.addEventFilter(MOUSE_CLICKED, e -> UiContext.fireAppMouseClickEvent(this, e));
-
 		// app dragging
 		header.addEventHandler(DRAG_DETECTED, this::moveStart);
 		header.addEventHandler(MOUSE_DRAGGED, this::moveDo);

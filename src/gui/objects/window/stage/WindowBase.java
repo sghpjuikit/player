@@ -16,6 +16,7 @@ import javafx.stage.StageStyle;
 import util.access.CyclicEnum;
 import util.async.Async;
 import util.dev.Dependency;
+import util.graphics.P;
 import util.graphics.Util;
 import util.system.Os;
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
@@ -158,6 +159,10 @@ public class WindowBase {
 
 	public double getY() {
 		return s.getY();
+	}
+
+	public P getXY() {
+		return new P(getX(), getY());
 	}
 
 	public double getCenterX() {

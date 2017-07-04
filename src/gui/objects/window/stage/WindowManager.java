@@ -2,7 +2,7 @@ package gui.objects.window.stage;
 
 import gui.Gui;
 import gui.objects.icon.Icon;
-import gui.objects.window.stage.WindowBase.Maximized;
+import gui.objects.popover.PopOver;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashSet;
@@ -14,9 +14,11 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -32,6 +34,7 @@ import layout.widget.feature.HorizontalDock;
 import main.App;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
+import unused.SimpleConfigurator;
 import util.access.V;
 import util.access.VarEnum;
 import util.action.IsAction;
@@ -51,6 +54,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
+import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
@@ -58,8 +62,7 @@ import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.file.Util.childOf;
-import static util.file.Util.listFiles;
+import static util.file.Util.*;
 import static util.functional.Util.*;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.Util.getScreen;
@@ -84,7 +87,7 @@ public class WindowManager implements Configurable<Object> {
 	/**
 	 * Dock window. Null if not active.
 	 */ public Window miniWindow;
-	private static volatile boolean canBeMainTemp = false; // TODO: remove hack
+	static volatile boolean canBeMainTemp = false; // TODO: remove hack
 
     @IsConfig(name = "Opacity", info = "Window opacity.")
     @Constraint.MinMax(min=0, max=1)
@@ -179,7 +182,7 @@ public class WindowManager implements Configurable<Object> {
 		return s;
 	}
 
-    private Window create(boolean canBeMain) {
+    Window create(boolean canBeMain) {
         return create(null,UNDECORATED, canBeMain);
     }
 
@@ -450,38 +453,149 @@ public class WindowManager implements Configurable<Object> {
         }
     }
 
-    private static class WindowState {
-    	public final double x, y, w, h;
-	    public final boolean resizable, minimized, fullscreen, onTop;
-	    public final Maximized maximized;
-	    public final Layout layout;
+/* ------------------------------------------------------------------------------------------------------------------ */
 
-	    public WindowState(Window window) {
-	    	x = window.X.getValue();
-	    	y = window.Y.getValue();
-	    	w = window.W.getValue();
-	    	h = window.H.getValue();
-	    	resizable = window.resizable.getValue();
-	    	minimized = window.s.iconifiedProperty().getValue();
-	    	fullscreen = window.fullscreen.getValue();
-	    	onTop = window.alwaysOnTop.getValue();
-	    	maximized = window.maximized.getValue();
-	    	layout = window.getLayout();
-	    }
 
-	    public Window toWindow() {
-		    Window window = APP.windowManager.create(canBeMainTemp);
-		    window.X.set(x);
-		    window.Y.set(y);
-		    window.W.set(w);
-		    window.H.set(h);
-		    window.s.setIconified(minimized);
-		    window.MaxProp.set(maximized);
-		    window.FullProp.set(fullscreen);
-		    window.resizable.set(resizable);
-		    window.setAlwaysOnTop(onTop);
-		    window.initLayout(layout);
-		    return window;
-	    }
-    }
+	/**
+	 * @param widget non-null widget widget to open
+	 */
+	public Window showWindow(Component widget) {
+		noØ(widget);
+
+		Window w = create();
+		w.initLayout();
+		w.setContent(widget);
+		w.show();
+		w.setScreen(getScreen(APP.mouseCapture.getMousePosition()));
+		w.setXYScreenCenter();
+		return w;
+	}
+
+	public PopOver showFloating(Widget w) {
+		noØ(w);
+
+		// build layout
+		// We are building standalone widget here, but every widget must be part of the layout
+		Layout l = new Layout();
+		l.isStandalone = true;
+		l.load(new AnchorPane());
+
+		// build popup
+		PopOver p = new PopOver<>(l.getRoot());
+		p.title.set(w.getInfo().nameGui());
+		p.setAutoFix(false);
+		Window wnd = getActive().get();
+		p.show(wnd.getStage(), wnd.getCenterX(), wnd.getCenterY());
+		// unregister the widget from active widgets manually on close
+		p.addEventFilter(WINDOW_HIDING, we -> l.close());
+
+		// load widget when graphics ready & shown
+		l.setChild(w);
+
+		// TODO: hack
+		// make popup honor widget size
+		double prefW = ((Pane) w.load()).getPrefWidth();
+		double prefH = ((Pane) w.load()).getPrefHeight();
+		p.setPrefSize(prefW, prefH);
+		p.setX(p.getX() - prefW/2);
+		p.setY(p.getY() - prefH/2);
+
+		return p;
+	}
+
+	public void showSettings(Configurable c, MouseEvent e) {
+		showSettings(c, (Node) e.getSource());
+	}
+
+	public void showSettings(Configurable c, Node n) {
+		showSettingsSimple(c, n);
+		// TODO: decide whether we use SimpleConfigurator or Configurator widget
+//		String name = c instanceof Widget ? ((Widget)c).getName() : "";
+//		Configurator sc = new Configurator(true);
+//		sc.configure(c);
+//		PopOver p = new PopOver<>(sc);
+//		p.title.set((name==null ? "" : name+" ") + " Settings");
+//		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+//		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
+//		p.setAutoHide(true);
+//		p.show(n);
+	}
+
+	public void showSettingsSimple(Configurable<?> c, MouseEvent e) {
+		showSettingsSimple(c, (Node) e.getSource());
+	}
+
+	public void showSettingsSimple(Configurable<?> c, Node n) {
+		String name = c instanceof Widget ? ((Widget) c).getName() : "";
+		SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
+		PopOver p = new PopOver<>(sc);
+		p.title.set((name==null ? "" : name + " ") + " Settings");
+		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
+		p.setAutoHide(true);
+		p.show(n);
+	}
+
+	public PopOver showFloating(Node content, String title) {
+		noØ(content);
+		noØ(title);  // we could use null, but disallow
+
+		PopOver p = new PopOver<>(content);
+		p.title.set(title);
+		p.setAutoFix(false);
+		Window w = getActive().get();
+		p.show(w.getStage(), w.getCenterX(), w.getCenterY());
+		return p;
+	}
+
+	public void launchComponent(File launcher) {
+		launchComponent(instantiateComponent(launcher));
+	}
+
+	public void launchComponent(String componentName) {
+		WidgetFactory<?> wf = APP.widgetManager.factories.get(componentName);
+		Component w = wf==null ? null : wf.create();
+		launchComponent(w);
+	}
+
+	private void launchComponent(Component w) {
+		if (w!=null) {
+			if (APP.windowManager.windows.isEmpty()) {
+				APP.windowManager.getActiveOrNew().setContent(w);
+			} else {
+				APP.windowManager.createWindow(w);
+			}
+		}
+	}
+
+	public Component instantiateComponent(File launcher) {
+		try {
+			WidgetFactory<?> wf;
+			Component w = null;
+
+			// simple launcher version, contains widget name on 1st line
+			String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
+			wf = APP.widgetManager.factories.get(wn);
+			if (wf!=null)
+				w = wf.create();
+
+			// try to deserialize normally
+			if (w==null)
+				w = App.APP.serializators.fromXML(Component.class, launcher)
+					.ifError(e -> LOGGER.error("Could not load component", e))
+					.get();
+
+			// try to build widget using just launcher filename
+			if (w==null) {
+				wf = APP.widgetManager.factories.get(getName(launcher));
+				if (wf!=null) w = wf.create();
+			}
+
+			return w;
+		} catch (Exception x) {
+			LOGGER.error("Could not load component from file {}", launcher, x);
+			return null;
+		}
+	}
+
 }

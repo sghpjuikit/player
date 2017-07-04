@@ -3,13 +3,12 @@ package layout.widget;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import gui.objects.window.stage.UiContext;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
 import main.App;
 import util.file.Util;
 import util.type.ClassName;
+import static main.App.APP;
 import static util.dev.Util.noØ;
 import static util.file.Util.childOf;
 import static util.file.Util.readFileLines;
@@ -136,7 +135,7 @@ public class WidgetFactory<C extends Controller<?>> implements WidgetInfo {
 	@SuppressWarnings("unchecked")
 	public Widget<C> create() {
 		if (isDelegated) {
-			return (Widget) UiContext.instantiateComponent(fxwlFile);
+			return (Widget) APP.windowManager.instantiateComponent(fxwlFile);
 		} else {
 			return new Widget<>(name, this);
 		}

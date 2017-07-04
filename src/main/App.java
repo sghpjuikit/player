@@ -29,7 +29,6 @@ import gui.objects.popover.PopOver;
 import gui.objects.spinner.Spinner;
 import gui.objects.tablecell.*;
 import gui.objects.textfield.autocomplete.ConfigSearch;
-import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
 import gui.pane.*;
@@ -650,7 +649,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Open widget", "Opens exported widget.",
 				IMPORT,
 				f -> f.getPath().endsWith(".fxwl"),
-				UiContext::launchComponent
+				windowManager::launchComponent
 			)
 		);
 
@@ -668,11 +667,11 @@ public class App extends Application implements Configurable {
 			fs -> widgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
 		);
 		parameterProcessor.addFileProcessor(f -> f.getPath().endsWith(".fxwl"),
-			fs -> fs.forEach(UiContext::launchComponent)
+			fs -> fs.forEach(windowManager::launchComponent)
 		);
 		parameterProcessor.addStringProcessor(
 			s -> widgetManager.getFactories().anyMatch(f -> f.nameGui().equals(s) || f.name().equals(s)),
-			ws -> ws.forEach(UiContext::launchComponent)
+			ws -> ws.forEach(windowManager::launchComponent)
 		);
 
 		// add search sources

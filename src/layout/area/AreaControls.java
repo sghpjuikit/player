@@ -47,7 +47,6 @@ import static gui.Gui.OpenStrategy.INSIDE;
 import static gui.Gui.OpenStrategy.POPUP;
 import static gui.Gui.closeAndDo;
 import static gui.Gui.openAndDo;
-import static gui.objects.window.stage.UiContext.showSettings;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -278,7 +277,7 @@ public final class AreaControls {
         Widget w = area.getActiveWidgets().get(0);
 
         if (Gui.open_strategy==POPUP) {
-            showSettings(w,propB);
+	        APP.windowManager.showSettings(w,propB);
         } else
         if (Gui.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {

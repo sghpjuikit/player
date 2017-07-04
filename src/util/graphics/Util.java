@@ -20,6 +20,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -434,6 +435,11 @@ public interface Util {
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+	// TODO: make dpi aware
+	static WritableImage makeSnapshot(Node n) {
+		return n.snapshot(new SnapshotParameters(), null);
+	}
 
 	static void installDragByMouse(Node n) {
 		class P {

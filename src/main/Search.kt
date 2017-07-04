@@ -11,7 +11,7 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
-import javafx.util.Duration.millis
+import util.math.millis
 import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -29,7 +29,7 @@ class Search {
             opacity = 0.0
             cursor = Cursor.DEFAULT
         }
-        val fade = FadeTransition(millis(250.0), clearB)
+        val fade = FadeTransition(millis(250), clearB)
         val tf = DecoratedTextField().apply {
             right.value = clearB
             left.value = Icon<Icon<*>>(FontAwesomeIcon.SEARCH).apply { isMouseTransparent = true }

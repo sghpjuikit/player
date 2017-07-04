@@ -37,7 +37,7 @@ import java.util.function.BiConsumer
 @Suppress("unused")
 @IsActionable
 @IsConfigurable("Notifications")
-class Notifier : ServiceBase(true) {
+class Notifier: ServiceBase(true) {
     @IsConfig(name = "On playback status change")
     var showStatusNotification = true
     @IsConfig(name = "On playing song change")
@@ -86,7 +86,7 @@ class Notifier : ServiceBase(true) {
                 songNotificationInfo = wf.controller as SongReader
                 (songNotificationGui as Pane).setPrefSize(700.0, 300.0)
             }
-            // TODO: fix possible null ?
+        // TODO: fix possible null ?
         }
     }
     private val onStop = Disposer()
@@ -99,7 +99,7 @@ class Notifier : ServiceBase(true) {
         n = Notification()
         onStop += Player.playingItem.onChange { it -> songChange(it) }
         onStop += PLAYBACK.statusProperty().changes(BiConsumer { _, nv ->
-            if (nv == PAUSED || nv == PLAYING || nv == STOPPED)
+            if (nv==PAUSED || nv==PLAYING || nv==STOPPED)
                 playbackChange(nv)
         })
         running = true
@@ -159,7 +159,7 @@ class Notifier : ServiceBase(true) {
 
     private fun songChange(m: Metadata) {
         if (showSongNotification) {
-            val title = "Now playing \t" + m.playlistIndexInfo
+            val title = "Now playing \t"+m.playlistIndexInfo
             songNotificationInfo!!.read(m)
 
             showNotification(songNotificationGui!!, title)
@@ -167,8 +167,8 @@ class Notifier : ServiceBase(true) {
     }
 
     private fun playbackChange(s: Status?) {
-        if (showStatusNotification && s != null) {
-            val title = "Playback change : " + s
+        if (showStatusNotification && s!=null) {
+            val title = "Playback change : "+s
             val i = ItemInfo(false)
             i.read(Player.playingItem.get())
 

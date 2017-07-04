@@ -10,7 +10,7 @@ import util.conf.Configurable
  *     assumptions about other services
  * </ul>
  */
-interface Service : Configurable<Any> {
+interface Service: Configurable<Any> {
 
     /**
      * @implSpec starting the service must not depend on any other service

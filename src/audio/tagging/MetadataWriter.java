@@ -946,7 +946,7 @@ public class MetadataWriter extends MetaItem {
 	 */
 	public static void useToRate(Metadata item, double rating) {
 		use(item, w -> w.setRatingPercent(rating));
-		APP.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
+		APP.services.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
 	}
 
 }

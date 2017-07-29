@@ -428,7 +428,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             runFX(() -> {
                 writing = false;
                 populate(items);
-                APP.use(Notifier.class, s -> s.showTextNotification("Tagging complete", "Tagger"));
+                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", "Tagger"));
             });
         });
 

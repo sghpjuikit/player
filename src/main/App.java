@@ -70,7 +70,6 @@ import services.database.Db;
 import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
-import sun.awt.www.content.image.png;
 import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
@@ -321,14 +320,14 @@ public class App extends Application implements Configurable {
 	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
 	public double animationFps = 60.0;
 
-	@IsConfig(name = "log level (console)", group = "Logging", info = "Logging level for logging to console")
+	@IsConfig(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
 	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
 			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
 			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
 	);
 
-	@IsConfig(name = "log level (file)", group = "Logging", info = "Logging level for logging to file")
-	public final VarEnum<Level> logLevelCFile = new VarEnum<Level>(Level.WARN,
+	@IsConfig(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
+	public final VarEnum<Level> logLevelFile = new VarEnum<Level>(Level.WARN,
 			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
 			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
 	);
@@ -811,7 +810,7 @@ public class App extends Application implements Configurable {
 				configuration.rawAdd(FILE_SETTINGS);
 				configuration.collectStatic();
 				configuration.collect(Action.getActions());
-				services.forEach(configuration::collect);
+				services.getAllServices().forEach(configuration::collect);
 				configuration.collect(this, windowManager, guide, actionPane);
 
 				// deserialize values (some configs need to apply it, will do when ready)
@@ -921,12 +920,6 @@ public class App extends Application implements Configurable {
 		normalLoad = false;
 		close();
 	}
-
-	public <S extends Service> void use(Class<S> type, Consumer<S> action) {
-		services.getService(type).filter(Service::isRunning).ifPresent(action);
-	}
-
-/******************************************************************************/
 
 	private void changeLogBackLoggerAppenderLevel(String appenderName, Level level) {
 		Optional.ofNullable((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME))

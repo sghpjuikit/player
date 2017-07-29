@@ -30,7 +30,6 @@
 package gui.objects.rating
 
 import javafx.scene.control.Control
-import javafx.scene.control.Skin
 import util.Util.clip
 import util.access.V
 import util.access.v
@@ -42,8 +41,6 @@ import java.util.function.Consumer
  * Supports partial rating.
  * <p/>
  * Rating value is represented as 0-1 double.
- *
- * @constructor
  */
 class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double = 0.0) : Control() {
 
@@ -84,8 +81,6 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
         styleClass.setAll("rating")
     }
 
-    override fun createDefaultSkin(): Skin<Rating> {
-        return RatingSkin(this)
-    }
+    override fun createDefaultSkin() = RatingSkin(this)
 
 }

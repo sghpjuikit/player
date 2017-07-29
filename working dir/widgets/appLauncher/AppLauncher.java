@@ -175,8 +175,8 @@ public class AppLauncher extends ClassController {
         Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
              sortHomo = sort.get(); // sorts each group separately
         FileField<?> field = sortBy.get(); // pre-compute once for consistency and performance
-        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
-                         cmpHomo = sortHomo.cmp(by(i -> i.val, field.comparator()));
+        Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType)),
+                         cmpHomo = sortHomo.of(by(i -> i.val, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 

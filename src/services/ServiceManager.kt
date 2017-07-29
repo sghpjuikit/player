@@ -7,6 +7,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import java.util.stream.Stream
+import kotlin.reflect.KClass
 
 class ServiceManager {
 
@@ -25,7 +26,10 @@ class ServiceManager {
 
     fun getAllServices(): Stream<Service> = services.values.stream()
 
-    fun forEach(action: Consumer<Service>) = services.values.forEach(action)
+    fun <S: Service> use(type: KClass<S>, action: (S) -> Unit) = use(type.java, Consumer(action))
+
+    fun <S: Service> use(type: Class<S>, action: Consumer<in S>) =
+            getService(type).filter { it.isRunning() } .ifPresent(action)
 
     @Suppress("UNCHECKED_CAST", "unused")
     fun <S : Service> acquire(type: Class<S>): Subscription {

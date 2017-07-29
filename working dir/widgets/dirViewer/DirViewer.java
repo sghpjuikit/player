@@ -230,7 +230,6 @@ public class DirViewer extends ClassController {
                     run(millis(500), grid::requestFocus);
                 })
                 .showProgress(getWidget().getWindow().taskAdd());
-//                .run();
     }
 
     /**
@@ -305,8 +304,8 @@ public class DirViewer extends ClassController {
         Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
 	         sortHomo = sort.get();                 // sorts each group separately
         FileField<?> field = sortBy.get();          // pre-compute, do not compute in comparator
-        Comparator<Item> cmpHetero = sortHetero.cmp(by(i -> i.valType)),
-                         cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.cmp(c))));
+        Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType)),
+                         cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.of(c))));
         return cmpHetero.thenComparing(cmpHomo);
     }
 

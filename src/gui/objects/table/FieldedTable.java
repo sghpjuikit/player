@@ -333,11 +333,12 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	// sort order -> comparator, never null
 	@SuppressWarnings({"unchecked", "unused"})
 	private void updateComparator(Object ignored) {
-		Comparator<? super T> c = getSortOrder().stream().map(column -> {
-			ObjectField<T,?> field = (ObjectField<T,?>) column.getUserData();
-			Sort sort = Sort.of(column.getSortType());
-			return sort.cmp(field.comparator());
-		})
+		Comparator<? super T> c = getSortOrder().stream()
+			.map(column -> {
+				ObjectField<T,?> field = (ObjectField<T,?>) column.getUserData();
+				Sort sort = Sort.of(column.getSortType());
+				return sort.of(field.comparator());
+			})
 			.reduce(Comparator::thenComparing)
 			.orElse((Comparator) SAME);
 		itemsComparator.setValue(c);

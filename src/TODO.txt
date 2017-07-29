@@ -1,6 +1,10 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
+- fix GView showing one plus row on bottom
+- logger widget does not outside IDE?
+- does dir cache refresh work?
+- implement app arg processing properly
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer
@@ -26,7 +30,7 @@
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller (kotlin lateinit?)
 - implement loading images properly using the twelve monkeys
-    - inestigate/implement javaFX native loading to avoid BufferedImage
+    - investigate/implement javaFX native loading to avoid BufferedImage
 - add name/icon for parametric function's parameters
 - remove uri builder classes and change plugin model for simple property file with uri building formats
   Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
@@ -179,7 +183,7 @@
 
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
 
-- java: 1.9b168
+- java: 1.9b161
 
 - heap: Use at least -Xmx1g, possibly more
     Large images need more memory. Default heap size WILL cause out of memory

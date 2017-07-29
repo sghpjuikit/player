@@ -25,22 +25,12 @@ public class Balancer extends Control {
 	}
 
 	/**
-	 * Creates a default instance with a specified balance value and
-	 * default min, max values.
-	 */
-	public Balancer(double balance) {
-		this();
-		setBalance(balance);
-	}
-
-	/**
 	 * Creates a Balancer instance with specified current, min and max
 	 * value.
 	 *
 	 * @param balance The maximum allowed rating value. <-1,1>
 	 */
 	public Balancer(double balance, double min, double max) {
-		this(balance);
 		setMax(max);
 		setMin(min);
 	}

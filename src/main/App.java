@@ -14,8 +14,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.spi.FilterAttachable;
 import ch.qos.logback.core.util.StatusPrinter;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
+ import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.mapper.Mapper;
@@ -37,7 +36,6 @@ import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -48,9 +46,10 @@ import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.stage.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import layout.Component;
 import layout.widget.Widget;
 import layout.widget.WidgetManager;
@@ -71,6 +70,7 @@ import services.database.Db;
 import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
+import sun.awt.www.content.image.png;
 import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
@@ -91,14 +91,10 @@ import util.file.Util;
 import util.file.mimetype.MimeTypes;
 import util.functional.Try;
 import util.graphics.MouseCapture;
-import util.type.InstanceMap;
 import util.reactive.SetƑ;
 import util.serialize.xstream.*;
 import util.system.SystemOutListener;
-import util.type.ClassName;
-import util.type.InstanceInfo;
-import util.type.InstanceName;
-import util.type.ObjectFieldMap;
+import util.type.*;
 import util.units.FileSize;
 import util.validation.Constraint;
 import web.*;
@@ -108,16 +104,18 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
 import static gui.pane.ActionPane.collectionWrap;
 import static java.util.stream.Collectors.toList;
 import static layout.widget.WidgetManager.WidgetSource.*;
-import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
-import static util.async.Async.*;
+import static util.async.Async.FX;
+import static util.async.Async.run;
 import static util.async.future.Fut.fut;
-import static util.file.Environment.*;
+import static util.file.Environment.chooseFile;
+import static util.file.Environment.chooseFiles;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.*;
 import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layVertically;
 
 /**
  * Application. Represents the program.
@@ -977,67 +975,12 @@ public class App extends Application implements Configurable {
 		Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
 	}
 
-	/**
-	 * Calculates number of instances of this application running on this
-	 * system at this moment. In this context, application instance is considered
-	 * a application running on java virtual machine from user directory equal
-	 * to that of this application. This application is included in the count.
-	 *
-	 * @return number of running instances
-	 */
+	/** @return number of instances of this application (including this one) running at this moment */
 	public static int getInstances() {
-		// Old impl. Obviously not working as it is. Left here for documentation sake as a resource.
-		// try {
-		//     MonitoredHost mh = MonitoredHost.getMonitoredHost("//localhost" );
-		//     for (int id : mh.activeVms() ) {
-		//         VmIdentifier vmId = new VmIdentifier("" + id);
-		//         MonitoredVm vm = mh.getMonitoredVm(vmId, 0 );
-		//         System.out.printf( "%d %s %s %s%n\n", id,MonitoredVmUtil.mainClass( vm, true ),
-		//                            MonitoredVmUtil.jvmArgs( vm ),MonitoredVmUtil.mainArgs( vm ) );
-		//     }
-		// } catch (MonitorException ex) {
-		//     java.util.logging.Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-		// } catch (URISyntaxException ex) {
-		//     java.util.logging.Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-		// }
-		// two occurrences of the result of MonitoredVmUtil.mainClass(), the program is started twice
-
-		// We list all virtual machines (including this one) (each java app runs in its own vm) and
-		// check some property to determine what kind of app this is to count instances of this app.
-		//
-		// Note: I tried to inject some custom property into vm using
-		// vm.getAgentProperties().setProperty(...)  but it appears to be read only. So we handle
-		// the recognition differently.
-
 		int instances = 0;
-		String ud = System.getProperty("user.dir");
 		for (VirtualMachineDescriptor vmd : VirtualMachine.list()) {
-			try {
-				int i = 0;
-				VirtualMachine vm = VirtualMachine.attach(vmd);
-
-				// attempt 1:
-				// User directory. Unfortunately nothing forbids user (or more likely
-				// developer) to copy-paste the app and run it from elsewhere). We want to
-				// defend against this as well.
-				String dir = vm.getSystemProperties().getProperty("user.dir");
-				if (dir!=null && ud.equals(dir)) i=1;
-
-				// attempt 2:
-				// Injected custom property, !work. Read-only? Id like this to work though.
-				// if (vm.getAgentProperties().getProperty("propertyName")!=null) i++;
-
-				// attempt3:
-				// We use command parameter which ends with the name of the executed jar. So far
-				// this works. Its far from perfect, since user/dev could rename the jar.
-				String command = vm.getAgentProperties().getProperty("sun.java.command");
-				if (command!=null && command.endsWith("Player.jar")) i=1;
-
-				instances += i;
-				vm.detach();
-			} catch (AttachNotSupportedException | IOException ex) {
-				LOGGER.warn("Unable to inspect virtual machine {}", vmd);
-			}
+			boolean isSame = App.class.getName().equals(vmd.displayName());
+			if (isSame) instances++;
 		}
 		return instances;
 	}
@@ -1049,15 +992,10 @@ public class App extends Application implements Configurable {
 
 	/** @return images of the icon of the application in all possible sizes */
 	public List<Image> getIcons() {
-		return stream(
-				"icon16.png",
-				"icon24.png",
-				"icon32.png",
-				"icon48.png",
-				"icon128.png",
-				"icon256.png",
-				"icon512.png"
-			).map(path -> new Image(new File(path).toURI().toString()))
+		return stream(16, 24, 32, 48, 128, 256, 512)
+			.map(size -> "icon" + size + ".png")
+			.map(path -> new File(path).toURI().toString())
+			.map(Image::new)
 			.toList();
 	}
 

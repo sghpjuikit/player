@@ -477,7 +477,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			int itemsVisibleCount = indexEnd - indexStart + 1;
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();
-			double scrollableHeight = virtualHeight;
+			double scrollableHeight = virtualHeight - viewHeight;
 
 			// update scrollbar
 			scrollbar.updating = true;
@@ -625,6 +625,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		public void scrollTo01(double to) {
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();
@@ -890,6 +891,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	public static class FlowScrollBar extends ScrollBar {
 		private final Flow flow;
 		private boolean adjusting;
+		private boolean doNotAdjust;
 		public boolean updating;
 
 		public FlowScrollBar(Flow flow) {
@@ -897,24 +899,29 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 			valueProperty().addListener((o, ov, nv) -> {
 				if (ov.doubleValue()!=nv.doubleValue() && !adjusting && !updating) {
-					flow.scrollTo01(nv.doubleValue());
+					flow.scrollTo(nv.doubleValue());
 				}
 			});
 		}
 
 		@Override
 		public void decrement() {
+			doNotAdjust = true;
 			flow.scrollByRows(-1);
+			doNotAdjust = false;
 		}
 
 		@Override
 		public void increment() {
+			doNotAdjust = true;
 			flow.scrollByRows(1);
+			doNotAdjust = false;
 		}
 
 		// Called when the user clicks the scrollbar track, we call the page-up and page-down
 		@Override
 		public void adjustValue(double pos) {
+			if (doNotAdjust) return;
 			adjusting = true;
 			double oldValue = flow.getPosition();
 			double newValue = getMin() + ((getMax() - getMin())*clip(0, pos, 1));
